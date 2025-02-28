@@ -188,7 +188,7 @@ func testGroupStoreCreate(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 	require.Equal(t, g6.IsValidForCreate().Id, "model.group.source.app_error")
 
-	//must use valid characters
+	// must use valid characters
 	g7 := &model.Group{
 		Name:        model.NewPointer("%^#@$$"),
 		DisplayName: model.NewId(),
@@ -333,7 +333,7 @@ func testGroupCreateWithUserIds(t *testing.T, rctx request.CTX, ss store.Store) 
 	}
 	require.Equal(t, guids6.IsValidForCreate().Id, "model.group.source.app_error")
 
-	//must use valid characters
+	// must use valid characters
 	g7 := &model.Group{
 		Name:        model.NewPointer("%^#@$$"),
 		DisplayName: model.NewId(),
@@ -1565,6 +1565,11 @@ func testGetGroupSyncable(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testGetAllGroupSyncablesByGroup(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("team", func(t *testing.T) { testGetAllGroupSyncablesByGroupTeam(t, rctx, ss) })
+	t.Run("channel", func(t *testing.T) { testGetAllGroupSyncablesByGroupChannel(t, rctx, ss) })
+}
+
+func testGetAllGroupSyncablesByGroupTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	numGroupSyncables := 10
 
 	// Create group
@@ -1609,12 +1614,79 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, rctx request.CTX, ss store.St
 	// Returns all the group teams
 	d1, err := ss.Group().GetAllGroupSyncablesByGroupId(group.Id, model.GroupSyncableTypeTeam)
 	require.NoError(t, err)
-	require.Condition(t, func() bool { return len(d1) >= numGroupSyncables }, len(d1), ">=", numGroupSyncables)
+	require.Len(t, d1, numGroupSyncables)
 	for _, expectedGroupTeam := range groupTeams {
 		present := false
 		for _, dbGroupTeam := range d1 {
 			if dbGroupTeam.GroupId == expectedGroupTeam.GroupId && dbGroupTeam.SyncableId == expectedGroupTeam.SyncableId {
 				require.True(t, dbGroupTeam.SchemeAdmin)
+				present = true
+				break
+			}
+		}
+		require.True(t, present)
+	}
+}
+
+func testGetAllGroupSyncablesByGroupChannel(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Create Team
+	team := &model.Team{
+		DisplayName:     "Name",
+		Description:     "Some description",
+		CompanyName:     "Some company name",
+		AllowOpenInvite: false,
+		InviteId:        "inviteid0",
+		Name:            "z-z-" + model.NewId() + "a",
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TeamOpen,
+	}
+	team, nErr := ss.Team().Save(team)
+	require.NoError(t, nErr)
+
+	numGroupSyncables := 10
+
+	// Create group
+	g := &model.Group{
+		Name:        model.NewPointer(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewPointer(model.NewId()),
+	}
+	group, err := ss.Group().Create(g)
+	require.NoError(t, err)
+
+	groupChannels := []*model.GroupSyncable{}
+
+	// Create groupChannels
+	for i := 0; i < numGroupSyncables; i++ {
+		// Create Channel
+		channel := &model.Channel{
+			TeamId:      team.Id,
+			DisplayName: "A Name",
+			Name:        model.NewId(),
+			Type:        model.ChannelTypePrivate,
+		}
+		channel, nErr = ss.Channel().Save(rctx, channel, 9999)
+		require.NoError(t, nErr)
+
+		// Create groupChannel
+		groupChannel := model.NewGroupChannel(group.Id, channel.Id, false)
+		groupChannel.SchemeAdmin = true
+		groupChannel, err = ss.Group().CreateGroupSyncable(groupChannel)
+		require.NoError(t, err)
+		groupChannels = append(groupChannels, groupChannel)
+	}
+
+	// Returns all the group channels
+	groupSyncables, err := ss.Group().GetAllGroupSyncablesByGroupId(group.Id, model.GroupSyncableTypeChannel)
+	require.NoError(t, err)
+	require.Len(t, groupSyncables, numGroupSyncables)
+	for _, expectedGroupChannel := range groupChannels {
+		present := false
+		for _, dbGroupChannel := range groupSyncables {
+			if dbGroupChannel.GroupId == expectedGroupChannel.GroupId && dbGroupChannel.SyncableId == expectedGroupChannel.SyncableId {
+				require.True(t, dbGroupChannel.SchemeAdmin)
 				present = true
 				break
 			}
@@ -3615,6 +3687,10 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 	u3 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewUsername(),
+		Timezone: model.StringMap{
+			"useAutomaticTimezone": "false",
+			"manualTimezone":       "UTC",
+		},
 	}
 	user3, err := ss.User().Save(rctx, u3)
 	require.NoError(t, err)
@@ -3640,6 +3716,30 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
 	_, err = ss.Channel().SaveMember(rctx, &m1)
+	require.NoError(t, err)
+
+	m2 := model.ChannelMember{
+		ChannelId:   channel1.Id,
+		UserId:      user2.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(rctx, &m2)
+	require.NoError(t, err)
+
+	m3 := model.ChannelMember{
+		ChannelId:   channel2.Id,
+		UserId:      user2.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(rctx, &m3)
+	require.NoError(t, err)
+
+	m4 := model.ChannelMember{
+		ChannelId:   channel2.Id,
+		UserId:      user3.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(rctx, &m4)
 	require.NoError(t, err)
 
 	user2.DeleteAt = 1
@@ -3980,6 +4080,145 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 			PerPage: 1,
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 0
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include channel1 member count",
+			Opts:    model.GroupSearchOpts{IncludeChannelMemberCount: channel1.Id},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				for _, group := range groups {
+					fmt.Println(group.Id, group.ChannelMemberCount)
+					var channelMemberCount int
+					if group.ChannelMemberCount != nil {
+						channelMemberCount = *group.ChannelMemberCount
+					}
+					if group.Id == group1.Id && channelMemberCount != 2 {
+						fmt.Println("group1", group.Id, channelMemberCount)
+						return false
+					}
+					if group.Id == group2.Id && channelMemberCount != 1 {
+						fmt.Println("group2", group.Id, channelMemberCount)
+						return false
+					}
+				}
+
+				return true
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include channel2 member count",
+			Opts:    model.GroupSearchOpts{IncludeChannelMemberCount: channel2.Id},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				for _, group := range groups {
+					var channelMemberCount int
+					if group.ChannelMemberCount != nil {
+						channelMemberCount = *group.ChannelMemberCount
+					}
+					if group.Id == group1.Id && channelMemberCount != 1 {
+						fmt.Println("group1", group.Id, channelMemberCount)
+						return false
+					}
+					if group.Id == group2.Id && channelMemberCount != 2 {
+						fmt.Println("group2", group.Id, channelMemberCount)
+						return false
+					}
+				}
+
+				return true
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include channel member count for non-existent channel",
+			Page:    0,
+			PerPage: 100,
+			Opts:    model.GroupSearchOpts{IncludeChannelMemberCount: model.NewId()},
+			Resultf: func(groups []*model.Group) bool {
+				for _, group := range groups {
+					var channelMemberCount int
+					if group.ChannelMemberCount != nil {
+						channelMemberCount = *group.ChannelMemberCount
+					}
+
+					if channelMemberCount != 0 {
+						return false
+					}
+				}
+
+				return true
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include channel1 member count, with timezones",
+			Opts:    model.GroupSearchOpts{IncludeChannelMemberCount: channel1.Id, IncludeTimezones: true},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				for _, group := range groups {
+					var channelMemberTimezonesCount int
+					if group.ChannelMemberTimezonesCount != nil {
+						channelMemberTimezonesCount = *group.ChannelMemberTimezonesCount
+					}
+					if group.Id == group1.Id && channelMemberTimezonesCount != 0 {
+						return false
+					}
+					if group.Id == group2.Id && channelMemberTimezonesCount != 0 {
+						return false
+					}
+				}
+
+				return true
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include channel2 member count, with timezones",
+			Opts:    model.GroupSearchOpts{IncludeChannelMemberCount: channel2.Id, IncludeTimezones: true},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				for _, group := range groups {
+					var channelMemberTimezonesCount int
+					if group.ChannelMemberTimezonesCount != nil {
+						channelMemberTimezonesCount = *group.ChannelMemberTimezonesCount
+					}
+					if group.Id == group1.Id && channelMemberTimezonesCount != 0 {
+						return false
+					}
+					if group.Id == group2.Id && channelMemberTimezonesCount != 1 {
+						return false
+					}
+				}
+
+				return true
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include channel member count for non-existent channel, with timezones",
+			Page:    0,
+			PerPage: 100,
+			Opts:    model.GroupSearchOpts{IncludeChannelMemberCount: model.NewId(), IncludeTimezones: true},
+			Resultf: func(groups []*model.Group) bool {
+				for _, group := range groups {
+					var channelMemberTimezonesCount int
+					if group.ChannelMemberTimezonesCount != nil {
+						channelMemberTimezonesCount = *group.ChannelMemberCount
+					}
+
+					if channelMemberTimezonesCount != 0 {
+						return false
+					}
+				}
+
+				return true
 			},
 			Restrictions: nil,
 		},
