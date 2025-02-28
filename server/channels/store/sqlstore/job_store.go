@@ -172,7 +172,13 @@ func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, error
 	return job, nil
 }
 
-func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error) {
+func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error) {
+	tx, err := jss.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
 	builder := jss.getQueryBuilder().
 		Update("Jobs").
 		Set("LastActivityAt", model.GetMillis()).
@@ -182,24 +188,38 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 	if newStatus == model.JobStatusInProgress {
 		builder = builder.Set("StartAt", model.GetMillis())
 	}
-	query, args, err := builder.ToSql()
-	if err != nil {
-		return false, errors.Wrap(err, "job_tosql")
-	}
 
-	sqlResult, err := jss.GetMaster().Exec(query, args...)
+	sqlResult, err := tx.ExecBuilder(builder)
 	if err != nil {
-		return false, errors.Wrapf(err, "failed to update Job with id=%s", id)
+		return nil, errors.Wrapf(err, "failed to update Job with id=%s", id)
 	}
 	rows, err := sqlResult.RowsAffected()
 	if err != nil {
-		return false, errors.Wrap(err, "unable to get rows affected")
+		return nil, errors.Wrap(err, "unable to get rows affected")
 	}
 	if rows != 1 {
-		return false, nil
+		return nil, nil
 	}
 
-	return true, nil
+	getBuilder := jss.getQueryBuilder().
+		Select("*").
+		From("Jobs").
+		Where(sq.Eq{"Id": id, "Status": newStatus})
+
+	var job model.Job
+	if err = tx.GetBuilder(&job, getBuilder); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, store.NewErrNotFound("Job", id)
+		}
+		return nil, errors.Wrapf(err, "failed to get Job with id=%s", id)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return &job, nil
 }
 
 func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
@@ -213,7 +233,7 @@ func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
 
 	var status model.Job
 	if err = jss.GetReplica().Get(&status, query, args...); err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("Job", id)
 		}
 		return nil, errors.Wrapf(err, "failed to get Job with id=%s", id)
