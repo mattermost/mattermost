@@ -1,9 +1,9 @@
 /* Custom styles for ReactSelect components */
 .react-select__value-container {
     height: auto !important;
+    min-height: 38px !important;
     flex-wrap: wrap !important;
     white-space: normal !important;
-    min-height: 38px !important;
 }
 
 .react-select__multi-value {

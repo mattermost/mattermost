@@ -8,7 +8,7 @@ import {defineMessage, defineMessages, FormattedDate, FormattedMessage, injectIn
 import type {IntlShape} from 'react-intl';
 import ReactSelect from 'react-select';
 import './user_settings_general.scss';
-import type {ValueType, ActionMeta} from 'react-select';
+import type {OnChangeValue, ActionMeta} from 'react-select';
 
 import type {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
@@ -506,7 +506,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         }
     };
 
-    updateSelectAttribute = (selectedOption: ValueType<SelectOption>, action: ActionMeta<SelectOption>, fieldID: string) => {
+    updateSelectAttribute = (selectedOption: OnChangeValue<SelectOption, boolean>, action: ActionMeta<SelectOption>, fieldID: string) => {
         const attributeValues = {...this.state.customAttributeValues};
 
         if (!selectedOption) {
