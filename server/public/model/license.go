@@ -23,7 +23,24 @@ const (
 	LicenseShortSkuE20          = "E20"
 	LicenseShortSkuProfessional = "professional"
 	LicenseShortSkuEnterprise   = "enterprise"
+	LicenseShortSkuPremium      = "premium"
+
+	ProfessionalTier = 1
+	E10Tier          = 1
+	EnterpriseTier   = 2
+	E20Tier          = 2
+	PremiumTier      = 3
 )
+
+var LicenseToLicenseTier = map[string]int{
+	LicenseShortSkuProfessional: ProfessionalTier,
+	LicenseShortSkuE10:          E10Tier,
+
+	LicenseShortSkuEnterprise: EnterpriseTier,
+	LicenseShortSkuE20:        E20Tier,
+
+	LicenseShortSkuPremium: PremiumTier,
+}
 
 const (
 	LicenseUpForRenewalEmailSent = "LicenseUpForRenewalEmailSent"
@@ -356,8 +373,7 @@ func (l *License) IsSanctionedTrial() bool {
 func (l *License) HasEnterpriseMarketplacePlugins() bool {
 	return *l.Features.EnterprisePlugins ||
 		l.SkuShortName == LicenseShortSkuE20 ||
-		l.SkuShortName == LicenseShortSkuProfessional ||
-		l.SkuShortName == LicenseShortSkuEnterprise
+		MinimumProfessionalLicense(l) == nil
 }
 
 func (l *License) HasRemoteClusterService() bool {
@@ -371,8 +387,7 @@ func (l *License) HasRemoteClusterService() bool {
 	}
 
 	return (l.Features != nil && l.Features.RemoteClusterService != nil && *l.Features.RemoteClusterService) ||
-		l.SkuShortName == LicenseShortSkuProfessional ||
-		l.SkuShortName == LicenseShortSkuEnterprise
+		MinimumProfessionalLicense(l) == nil
 }
 
 func (l *License) HasSharedChannels() bool {
@@ -381,13 +396,12 @@ func (l *License) HasSharedChannels() bool {
 	}
 
 	return (l.Features != nil && l.Features.SharedChannels != nil && *l.Features.SharedChannels) ||
-		l.SkuShortName == LicenseShortSkuProfessional ||
-		l.SkuShortName == LicenseShortSkuEnterprise
+		MinimumProfessionalLicense(l) == nil
 }
 
 // IsE20OrEnterprise returns true when the license is for E20 or Enterprise.
 func (l *License) IsE20OrEnterprise() bool {
-	return l.SkuShortName == LicenseShortSkuE20 || l.SkuShortName == LicenseShortSkuEnterprise
+	return MinimumEnterpriseLicense(l) == nil
 }
 
 // NewTestLicense returns a license that expires in the future and has the given features.
@@ -459,9 +473,31 @@ func (lr *LicenseRecord) PreSave() {
 	lr.CreateAt = GetMillis()
 }
 
-func MinimumProfessionalProvidedLicense(license *License) *AppError {
-	if license == nil || (license.SkuShortName != LicenseShortSkuProfessional && license.SkuShortName != LicenseShortSkuEnterprise) {
-		return NewAppError("", NoTranslation, nil, "license is neither professional nor enterprise", http.StatusNotImplemented)
+// MinimumProfessionalLicense returns true if the provided license is at least a professional license.
+// Higher tier licenses also satisfy the condition.
+func MinimumProfessionalLicense(license *License) *AppError {
+	//if license == nil || (license.SkuShortName != LicenseShortSkuProfessional && license.SkuShortName != LicenseShortSkuEnterprise) {
+	if license == nil || LicenseToLicenseTier[license.SkuShortName] < ProfessionalTier {
+		return NewAppError("", NoTranslation, nil, "license is neither professional nor enterprise nor premium", http.StatusNotImplemented)
+	}
+	return nil
+}
+
+// MinimumEnterpriseLicense returns true if the provided license is at least a enterprise license.
+// Higher tier licenses also satisfy the condition.
+func MinimumEnterpriseLicense(license *License) *AppError {
+	//if license == nil || license.SkuShortName != LicenseShortSkuEnterprise {
+	if license == nil || LicenseToLicenseTier[license.SkuShortName] < EnterpriseTier {
+		return NewAppError("", NoTranslation, nil, "license is neither enterprise nor premium", http.StatusNotImplemented)
+	}
+	return nil
+}
+
+// MinimumPremiumLicense returns true if the provided license is at least a premium license.
+func MinimumPremiumLicense(license *License) *AppError {
+	//if license == nil || license.SkuShortName != LicenseShortSkuPremium {
+	if license == nil || LicenseToLicenseTier[license.SkuShortName] < PremiumTier {
+		return NewAppError("", NoTranslation, nil, "license is not premium", http.StatusNotImplemented)
 	}
 	return nil
 }
