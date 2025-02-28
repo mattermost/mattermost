@@ -100,7 +100,7 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("configReload", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToCheckRestrictedAdmin(*c.AppContext.Session(), model.PermissionReloadConfig) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionReloadConfig) {
 		c.SetPermissionError(model.PermissionReloadConfig)
 		return
 	}

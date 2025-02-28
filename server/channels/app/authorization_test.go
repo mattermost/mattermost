@@ -60,7 +60,7 @@ func TestSessionHasPermissionTo(t *testing.T) {
 	})
 }
 
-func TestSessionHasPermissionToCheckRestrictedAdmin(t *testing.T) {
+func TestSessionHasPermissionToAndNotRestrictedAdmin(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -81,21 +81,21 @@ func TestSessionHasPermissionToCheckRestrictedAdmin(t *testing.T) {
 	}
 
 	t.Run("basic user cannot manage system", func(t *testing.T) {
-		require.False(t, th.App.SessionHasPermissionToCheckRestrictedAdmin(session, model.PermissionManageSystem))
+		require.False(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(session, model.PermissionManageSystem))
 	})
 
 	t.Run("allow system admin when not restricted", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ExperimentalSettings.RestrictSystemAdmin = false
 		})
-		require.True(t, th.App.SessionHasPermissionToCheckRestrictedAdmin(adminSession, model.PermissionManageSystem))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(adminSession, model.PermissionManageSystem))
 	})
 
 	t.Run("reject system admin when restricted", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ExperimentalSettings.RestrictSystemAdmin = true
 		})
-		require.False(t, th.App.SessionHasPermissionToCheckRestrictedAdmin(adminSession, model.PermissionManageSystem))
+		require.False(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(adminSession, model.PermissionManageSystem))
 	})
 
 	t.Run("always allow unrestricted session", func(t *testing.T) {
@@ -103,17 +103,17 @@ func TestSessionHasPermissionToCheckRestrictedAdmin(t *testing.T) {
 			*cfg.ExperimentalSettings.RestrictSystemAdmin = false
 		})
 
-		require.True(t, th.App.SessionHasPermissionToCheckRestrictedAdmin(localSession, model.PermissionManageSystem))
-		require.True(t, th.App.SessionHasPermissionToCheckRestrictedAdmin(localSession, model.PermissionCreateBot))
-		require.True(t, th.App.SessionHasPermissionToCheckRestrictedAdmin(localSession, model.PermissionReadPublicChannel))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionManageSystem))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionCreateBot))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionReadPublicChannel))
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ExperimentalSettings.RestrictSystemAdmin = true
 		})
 
-		require.True(t, th.App.SessionHasPermissionToCheckRestrictedAdmin(localSession, model.PermissionManageSystem))
-		require.True(t, th.App.SessionHasPermissionToCheckRestrictedAdmin(localSession, model.PermissionCreateBot))
-		require.True(t, th.App.SessionHasPermissionToCheckRestrictedAdmin(localSession, model.PermissionReadPublicChannel))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionManageSystem))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionCreateBot))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionReadPublicChannel))
 	})
 }
 

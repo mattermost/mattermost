@@ -84,7 +84,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	const OutputDirectory = "support_packet"
 
 	// Support Packet generation is limited to system admins (MM-42271).
-	if !c.App.SessionHasPermissionToCheckRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageSystem) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
@@ -257,7 +257,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToCheckRestrictedAdmin(*c.AppContext.Session(), model.PermissionTestEmail) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionTestEmail) {
 		c.SetPermissionError(model.PermissionTestEmail)
 		return
 	}
@@ -272,7 +272,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionToCheckRestrictedAdmin(*c.AppContext.Session(), model.PermissionTestSiteURL) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionTestSiteURL) {
 		c.SetPermissionError(model.PermissionTestSiteURL)
 		return
 	}
@@ -318,7 +318,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionToCheckRestrictedAdmin(*c.AppContext.Session(), model.PermissionRecycleDatabaseConnections) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionRecycleDatabaseConnections) {
 		c.SetPermissionError(model.PermissionRecycleDatabaseConnections)
 		return
 	}
@@ -333,7 +333,7 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionToCheckRestrictedAdmin(*c.AppContext.Session(), model.PermissionInvalidateCaches) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionInvalidateCaches) {
 		c.SetPermissionError(model.PermissionInvalidateCaches)
 		return
 	}
@@ -357,7 +357,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("queryLogs", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToCheckRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
 		c.SetPermissionError(model.PermissionGetLogs)
 		return
 	}
@@ -400,7 +400,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("getLogs", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToCheckRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
 		c.SetPermissionError(model.PermissionGetLogs)
 		return
 	}
@@ -423,7 +423,7 @@ func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("downloadLogs", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToCheckRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
 		c.SetPermissionError(model.PermissionGetLogs)
 		return
 	}
@@ -525,7 +525,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionToCheckRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageSystem) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}

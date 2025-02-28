@@ -15,7 +15,7 @@ func (api *API) InitCluster() {
 }
 
 func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionToCheckRestrictedAdmin(*c.AppContext.Session(), model.PermissionSysconsoleReadEnvironmentHighAvailability) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionSysconsoleReadEnvironmentHighAvailability) {
 		c.SetPermissionError(model.PermissionSysconsoleReadEnvironmentHighAvailability)
 		return
 	}
