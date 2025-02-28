@@ -27,6 +27,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
+const warningsFilename = "warnings.txt"
+
 // We use this map to identify the exportable preferences.
 // Here we link the preference category and name, to the name of the relevant field in the import struct.
 var exportablePreferences = map[imports.ComparablePreference]string{
@@ -145,74 +147,90 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 
 	ctx.Logger().Info("Bulk export: exporting teams")
-	teamNames, err := a.exportAllTeams(ctx, job, writer)
-	if err != nil {
-		return err
+	teamNames, appErr := a.exportAllTeams(ctx, job, writer)
+	if appErr != nil {
+		return appErr
 	}
 
 	ctx.Logger().Info("Bulk export: exporting channels")
-	if err = a.exportAllChannels(ctx, job, writer, teamNames, opts.IncludeArchivedChannels); err != nil {
-		return err
+	if appErr = a.exportAllChannels(ctx, job, writer, teamNames, opts.IncludeArchivedChannels); appErr != nil {
+		return appErr
 	}
 
 	ctx.Logger().Info("Bulk export: exporting users")
-	profilePictures, err := a.exportAllUsers(ctx, job, writer, opts.IncludeArchivedChannels, opts.IncludeProfilePictures)
-	if err != nil {
-		return err
+	profilePictures, appErr := a.exportAllUsers(ctx, job, writer, opts.IncludeArchivedChannels, opts.IncludeProfilePictures)
+	if appErr != nil {
+		return appErr
 	}
 
 	ctx.Logger().Info("Bulk export: exporting bots")
-	botPPs, err := a.exportAllBots(ctx, job, writer, opts.IncludeProfilePictures)
-	if err != nil {
-		return err
+	botPPs, appErr := a.exportAllBots(ctx, job, writer, opts.IncludeProfilePictures)
+	if appErr != nil {
+		return appErr
 	}
 	profilePictures = append(profilePictures, botPPs...)
 
 	ctx.Logger().Info("Bulk export: exporting posts")
-	attachments, err := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
-	if err != nil {
-		return err
+	attachments, appErr := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
+	if appErr != nil {
+		return appErr
 	}
 
 	ctx.Logger().Info("Bulk export: exporting emoji")
-	emojiPaths, err := a.exportCustomEmoji(ctx, job, writer, outPath, "exported_emoji", !opts.CreateArchive)
-	if err != nil {
-		return err
+	emojiPaths, appErr := a.exportCustomEmoji(ctx, job, writer, outPath, "exported_emoji", !opts.CreateArchive)
+	if appErr != nil {
+		return appErr
 	}
 
 	ctx.Logger().Info("Bulk export: exporting direct channels")
-	if err = a.exportAllDirectChannels(ctx, job, writer, opts.IncludeArchivedChannels); err != nil {
-		return err
+	if appErr = a.exportAllDirectChannels(ctx, job, writer, opts.IncludeArchivedChannels); appErr != nil {
+		return appErr
 	}
 
 	ctx.Logger().Info("Bulk export: exporting direct posts")
-	directAttachments, err := a.exportAllDirectPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
-	if err != nil {
-		return err
+	directAttachments, appErr := a.exportAllDirectPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
+	if appErr != nil {
+		return appErr
 	}
 
 	if opts.IncludeAttachments {
 		ctx.Logger().Info("Bulk export: exporting file attachments")
-		if err = a.exportAttachments(ctx, attachments, outPath, zipWr); err != nil {
-			return err
+		warnings, appErr := a.exportAttachments(ctx, attachments, outPath, zipWr)
+		if appErr != nil {
+			return appErr
 		}
 
 		ctx.Logger().Info("Bulk export: exporting direct file attachments")
-		if err = a.exportAttachments(ctx, directAttachments, outPath, zipWr); err != nil {
-			return err
+		newWarnings, appErr := a.exportAttachments(ctx, directAttachments, outPath, zipWr)
+		if appErr != nil {
+			return appErr
 		}
+		warnings = append(warnings, newWarnings...)
 
 		totalExportedEmojis := 0
 		emojisLen := len(emojiPaths)
 		ctx.Logger().Info("Bulk export: exporting custom emojis")
 		for _, emojiPath := range emojiPaths {
 			if err := a.exportFile(ctx, outPath, emojiPath, zipWr); err != nil {
-				return err
+				ctx.Logger().Warn("Unable to export emoji", mlog.String("emoji_path", emojiPath), mlog.Err(err))
+			} else {
+				totalExportedEmojis++
 			}
-			totalExportedEmojis++
 			if totalExportedEmojis%10 == 0 {
 				ctx.Logger().Info("Bulk export: exporting emojis progress", mlog.Int("total_successfully_exported_emojis", totalExportedEmojis), mlog.Int("total_emojis_to_export", emojisLen))
 			}
+		}
+
+		if len(warnings) > 0 {
+			warningsFile, _ := zipWr.Create(warningsFilename)
+			for _, warning := range warnings {
+				_, err := warningsFile.Write([]byte(warning + "\n"))
+				if err != nil {
+					return model.NewAppError("BulkExport", "app.export.zip_create.error",
+						nil, "err="+err.Error(), http.StatusInternalServerError)
+				}
+			}
+			updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "num_warnings", len(warnings))
 		}
 
 		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "attachments_exported", len(attachments)+len(directAttachments)+len(emojiPaths))
@@ -231,19 +249,23 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	return nil
 }
 
-func (a *App) exportAttachments(ctx request.CTX, attachments []imports.AttachmentImportData, outPath string, zipWr *zip.Writer) *model.AppError {
+func (a *App) exportAttachments(ctx request.CTX, attachments []imports.AttachmentImportData, outPath string,
+	zipWr *zip.Writer) ([]string, *model.AppError) {
 	totalExportedFiles := 0
 	attachmentsLen := len(attachments)
+	var warnings []string
 	for _, attachment := range attachments {
 		if err := a.exportFile(ctx, outPath, *attachment.Path, zipWr); err != nil {
-			return err
+			ctx.Logger().Warn("Unable to export file attachment", mlog.String("attachment_path", *attachment.Path), mlog.Err(err))
+			warnings = append(warnings, fmt.Sprintf("Unable to export file attachment, attachment path: %s , error: %s", *attachment.Path, err.Error()))
+		} else {
+			totalExportedFiles++
 		}
-		totalExportedFiles++
 		if totalExportedFiles%10 == 0 {
 			ctx.Logger().Info("Bulk export: exporting file attachments progress", mlog.Int("total_successfully_exported_files", totalExportedFiles), mlog.Int("total_files_to_export", attachmentsLen))
 		}
 	}
-	return nil
+	return warnings, nil
 }
 
 func (a *App) exportWriteLine(w io.Writer, line *imports.LineImportData) *model.AppError {

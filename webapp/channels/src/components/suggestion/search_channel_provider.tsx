@@ -20,7 +20,7 @@ import SearchChannelSuggestion from './search_channel_suggestion';
 const getState = store.getState;
 const dispatch = store.dispatch;
 
-type SearchChannelAutocomplete = (term: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
+type SearchChannelAutocomplete = (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
 
 export default class SearchChannelProvider extends Provider {
     autocompleteChannelsForSearch: SearchChannelAutocomplete;
@@ -30,7 +30,7 @@ export default class SearchChannelProvider extends Provider {
         this.autocompleteChannelsForSearch = channelSearchFunc;
     }
 
-    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<Channel>) {
+    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<Channel>, teamId: string) {
         const captured = (/\b(?:in|channel):\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (!captured) {
             return false;
@@ -43,6 +43,7 @@ export default class SearchChannelProvider extends Provider {
 
         this.autocompleteChannelsForSearch(
             prefix,
+            teamId,
             async (data: Channel[]) => {
                 if (this.shouldCancelDispatch(prefix)) {
                     return;

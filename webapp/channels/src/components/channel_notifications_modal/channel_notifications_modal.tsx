@@ -4,7 +4,7 @@
 import React, {useCallback, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
-import type {ValueType} from 'react-select';
+import type {OnChangeValue} from 'react-select';
 
 import {BellOffOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel, ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
@@ -149,7 +149,7 @@ export default function ChannelNotificationsModal(props: Props) {
         </>
     );
 
-    const handleChangeForMessageNotificationSoundSelect = (selectedOption: ValueType<Option>) => {
+    const handleChangeForMessageNotificationSoundSelect = (selectedOption: OnChangeValue<Option, boolean>) => {
         stopTryNotificationRing();
 
         if (selectedOption && 'value' in selectedOption) {
@@ -240,22 +240,22 @@ export default function ChannelNotificationsModal(props: Props) {
                         handleChange={(e) => handleChange({push: e.target.value})}
                     />
                     {props.collapsedReplyThreads && settings.push === 'mention' &&
-                    <CheckboxSettingItem
-                        dataTestId='mobile-reply-threads-checkbox-section'
-                        title={formatMessage({
-                            id: 'channel_notifications.ThreadsReplyTitle',
-                            defaultMessage: 'Thread reply notifications',
-                        })}
-                        inputFieldTitle={
-                            <FormattedMessage
-                                id='channel_notifications.checkbox.threadsReplyTitle'
-                                defaultMessage="Notify me about replies to threads I\'m following"
-                            />
-                        }
-                        inputFieldValue={settings.push_threads === 'all'}
-                        inputFieldData={utils.MobileReplyThreadsInputFieldData}
-                        handleChange={(e) => handleChange({push_threads: e ? 'all' : 'mention'})}
-                    />}
+                        <CheckboxSettingItem
+                            dataTestId='mobile-reply-threads-checkbox-section'
+                            title={formatMessage({
+                                id: 'channel_notifications.ThreadsReplyTitle',
+                                defaultMessage: 'Thread reply notifications',
+                            })}
+                            inputFieldTitle={
+                                <FormattedMessage
+                                    id='channel_notifications.checkbox.threadsReplyTitle'
+                                    defaultMessage="Notify me about replies to threads I\'m following"
+                                />
+                            }
+                            inputFieldValue={settings.push_threads === 'all'}
+                            inputFieldData={utils.MobileReplyThreadsInputFieldData}
+                            handleChange={(e) => handleChange({push_threads: e ? 'all' : 'mention'})}
+                        />}
                 </>
             )}
         </>
