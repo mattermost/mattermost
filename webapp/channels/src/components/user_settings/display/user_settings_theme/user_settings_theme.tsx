@@ -124,15 +124,18 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         this.setState({isSaving: true});
 
         await this.props.actions.saveTheme(teamId, this.state.theme);
-        
+        await this.props.actions.saveThemeAutoSwitch(this.state.themeAutoSwitch);        
         if (this.state.themeAutoSwitch) {
             await this.props.actions.saveDarkTheme(teamId, this.state.darkTheme);
-            await this.props.actions.saveThemeAutoSwitch(this.state.themeAutoSwitch);
-        } else if (this.originalThemeAutoSwitch) {
-            // If auto-switch was previously enabled but now disabled
-            await this.props.actions.saveThemeAutoSwitch(false);
-        }
+        }            
 
+        // Apply the appropriate theme based on system preference when auto-switch is enabled
+        if (isSystemInDarkMode() && this.state.themeAutoSwitch) {
+            applyTheme(this.state.darkTheme);
+        } else {
+            applyTheme(this.state.theme);
+        }
+                
         if (this.state.applyToAllTeams) {
             await this.props.actions.deleteTeamSpecificThemes();
         }
@@ -222,7 +225,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         state.serverError = '';
         this.setState(state);
 
-        applyTheme(state.theme);
+        applyTheme(isSystemInDarkMode() ? state.darkTheme : state.theme);
 
         this.props.setRequireConfirm?.(false);
     };
