@@ -996,7 +996,6 @@ func getOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	firstAdminCompleteSetupObj, err := c.App.GetOnboarding()
-
 	if err != nil {
 		c.Err = model.NewAppError("getOnboarding", "app.system.get_onboarding_request.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return

@@ -19,9 +19,11 @@ import (
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
-var writeFilter func(c *Context, structField reflect.StructField) bool
-var readFilter func(c *Context, structField reflect.StructField) bool
-var permissionMap map[string]*model.Permission
+var (
+	writeFilter   func(c *Context, structField reflect.StructField) bool
+	readFilter    func(c *Context, structField reflect.StructField) bool
+	permissionMap map[string]*model.Permission
+)
 
 type filterType string
 
@@ -225,7 +227,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//auditRec.AddEventResultState(cfg) // TODO we can do this too but do we want to? the config object is huge
+	// auditRec.AddEventResultState(cfg) // TODO we can do this too but do we want to? the config object is huge
 	auditRec.AddEventObjectType("config")
 	auditRec.Success()
 	c.LogAudit("updateConfig")
