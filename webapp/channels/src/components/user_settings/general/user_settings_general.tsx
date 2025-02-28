@@ -10,7 +10,7 @@ import ReactSelect from 'react-select';
 import './user_settings_general.scss';
 import type {ValueType, ActionMeta} from 'react-select';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
@@ -166,12 +166,6 @@ type State = {
     serverError?: string | {server_error_id: string; message: string};
     emailError?: string;
     customAttributeValues: Record<string, string | string[]>;
-}
-
-export interface CPASelectOption {
-    ID: string;
-    Name: string;
-    Color: string;
 }
 
 export class UserSettingsGeneralTab extends PureComponent<Props, State> {
@@ -1397,7 +1391,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 }
 
                 if (attribute.type === 'select' || attribute.type === 'multiselect') {
-                    const attribOptions: CPASelectOption[] = attribute.attrs!.options as CPASelectOption[];
+                    const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
                     if (Array.isArray(attributeValue)) {
                         return attributeValue.map((value) => {
                             const option = attribOptions.find((o) => o.ID === value);
@@ -1424,7 +1418,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 }
 
                 if (attribute.type === 'select' || attribute.type === 'multiselect') {
-                    const attribOptions: CPASelectOption[] = attribute.attrs!.options as CPASelectOption[];
+                    const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
                     const opts = attribOptions.map((o) => {
                         return {label: o.Name, value: o.ID} as SelectOption;
                     });
