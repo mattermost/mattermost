@@ -111,7 +111,7 @@
         "MaximumURLLength": 2048
     },
     "TeamSettings": {
-        "SiteName": "Mattermost",
+        "SiteName": "Nimbupani",
         "MaxUsersPerTeam": 2000,
         "EnableJoinLeaveMessageByDefault": true,
         "EnableUserCreation": true,
@@ -452,10 +452,7 @@
         "LoginButtonTextColor": "#ffffff"
     },
     "NativeAppSettings": {
-        "AppCustomURLSchemes": [
-            "mmauth://",
-            "mmauthbeta://"
-        ],
+        "AppCustomURLSchemes": ["mmauth://", "mmauthbeta://"],
         "AppDownloadLink": "https://mattermost.com/pl/download-apps",
         "AndroidAppDownloadLink": "https://mattermost.com/pl/android-app/",
         "IosAppDownloadLink": "https://mattermost.com/pl/ios-app/"

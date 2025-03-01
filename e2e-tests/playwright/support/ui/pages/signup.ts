@@ -34,7 +34,7 @@ export default class SignupPage {
         this.page = page;
 
         this.title = page.locator('h1:has-text("Let’s get started")');
-        this.subtitle = page.locator('text=Create your Mattermost account to start collaborating with your team');
+        this.subtitle = page.locator('text=Create your Nimbupani account to start collaborating with your team');
         this.bodyCard = page.locator('.signup-body-card-content');
         this.loginLink = page.locator('text=Log in');
         this.emailInput = page.locator('#input_email');
