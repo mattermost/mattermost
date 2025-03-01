@@ -26,6 +26,11 @@
         }
     }
 
+    .channel-header-dropdown-menu {
+        overflow: hidden;
+        overflow-y: auto;
+    }
+
     &.Menu-enter {
         .dropdown-menu {
             opacity: 0;
@@ -72,7 +77,8 @@
             @media screen and (min-width: 768px) {
                 max-height: 0;
                 overflow-y: hidden;
-                transition: max-height 1000ms ease-in 0ms, opacity 250ms linear 750ms;
+                transition: max-height 1000ms ease-in 0ms,
+                    opacity 250ms linear 750ms;
             }
 
             @media screen and (max-width: 768px) {
