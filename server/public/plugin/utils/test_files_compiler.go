@@ -15,6 +15,14 @@ import (
 )
 
 func CompileGo(t *testing.T, sourceCode, outputPath string) {
+	compileGo(t, "go", sourceCode, outputPath)
+}
+
+func CompileGoVersion(t *testing.T, goVersion, sourceCode, outputPath string) {
+	compileGo(t, "go"+goVersion, sourceCode, outputPath)
+}
+
+func compileGo(t *testing.T, goBin, sourceCode, outputPath string) {
 	dir, err := os.MkdirTemp(".", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
@@ -32,7 +40,7 @@ func CompileGo(t *testing.T, sourceCode, outputPath string) {
 	serverPath := filepath.Dir(filepath.Dir(sourceFile))
 
 	out := &bytes.Buffer{}
-	cmd := exec.Command("go", "build", "-o", outputPath, main)
+	cmd := exec.Command(goBin, "build", "-o", outputPath, main)
 	cmd.Dir = serverPath
 	cmd.Stdout = out
 	cmd.Stderr = out
