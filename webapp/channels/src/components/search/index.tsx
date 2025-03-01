@@ -8,7 +8,7 @@ import type {Dispatch} from 'redux';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
-import {getMorePostsForSearch, getMoreFilesForSearch} from 'mattermost-redux/actions/search';
+import {getMorePostsForSearch, getMoreFilesForSearch, getMoreOmnisearchForSearch} from 'mattermost-redux/actions/search';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 
@@ -89,6 +89,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             autocompleteUsersInTeam: autocompleteUsersInCurrentTeam,
             updateRhsState,
             getMorePostsForSearch,
+            getMoreOmnisearchForSearch,
             openRHSSearch,
             getMoreFilesForSearch,
             filterFilesSearchByExt,

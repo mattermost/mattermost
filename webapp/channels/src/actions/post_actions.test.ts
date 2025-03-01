@@ -427,6 +427,9 @@ describe('Actions.Posts', () => {
             {state: 'search', type: 'UPDATE_RHS_STATE'},
             {terms: '', type: 'UPDATE_RHS_SEARCH_RESULTS_TERMS'},
             {searchType: '', type: 'UPDATE_RHS_SEARCH_RESULTS_TYPE'},
+            {type: 'REMOVE_SEARCH_POSTS'},
+            {type: 'REMOVE_SEARCH_FILES'},
+            {type: 'REMOVE_SEARCH_OMNISEARCH'},
             {isGettingMore: false, type: 'SEARCH_POSTS_REQUEST'},
             {isGettingMore: false, type: 'SEARCH_FILES_REQUEST'},
         ]);
