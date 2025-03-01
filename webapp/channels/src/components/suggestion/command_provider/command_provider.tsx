@@ -140,7 +140,11 @@ export default class CommandProvider extends Provider {
     }
 
     handleCompleteWord(term: string, pretext: string, callback: (s: string) => void) {
-        callback(term + ' ');
+        let newValue = term + ' ';
+        if (term === '/join') {
+            newValue = `${term} ~`;
+        }
+        callback(newValue);
     }
 
     handleMobile(pretext: string, resultCallback: ResultsCallback<AutocompleteSuggestion>) {
