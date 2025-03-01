@@ -68,7 +68,19 @@ func CheckVersionMatch(version, serverVersion string) (bool, error) {
 	return true, nil
 }
 
-func getClient(ctx context.Context) (*model.Client4, string, bool, error) {
+func getClient(ctx context.Context, cmd *cobra.Command) (*model.Client4, string, bool, error) {
+	// Assume local mode if no server address is provided
+	if !viper.GetBool("local") {
+		credentials, err := GetCurrentCredentials()
+		if err != nil {
+			cmd.PrintErrln("Warning: Unable to retrieve credentials, assuming --local mode")
+			viper.Set("local", true)
+		} else if credentials == nil {
+			cmd.PrintErrln("Warning: No credentials found, assuming --local mode")
+			viper.Set("local", true)
+		}
+	}
+
 	if viper.GetBool("local") {
 		c, err := InitUnixClient(viper.GetString("local-socket-path"))
 		if err != nil {
@@ -90,7 +102,7 @@ func getClient(ctx context.Context) (*model.Client4, string, bool, error) {
 func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		ctx := context.TODO()
-		c, serverVersion, local, err := getClient(ctx)
+		c, serverVersion, local, err := getClient(ctx, cmd)
 		if err != nil {
 			return fmt.Errorf("failed to create client: %w", err)
 		}
