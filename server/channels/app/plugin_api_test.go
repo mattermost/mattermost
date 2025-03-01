@@ -2833,7 +2833,7 @@ func TestPluginServeHTTPCompatibility(t *testing.T) {
 	}
 	`
 
-	for _, goVersion := range []string{"1.22.7", "1.23.6"} {
+	for _, goVersion := range strings.Fields(os.Getenv("GO_COMPATIBILITY_TEST_VERSIONS")) {
 		t.Run(goVersion, func(t *testing.T) {
 			tearDown, ids, errs := SetAppEnvironmentWithPluginsGoVersion(t, []string{pluginCode}, th.App, th.NewPluginAPI, goVersion)
 			defer tearDown()

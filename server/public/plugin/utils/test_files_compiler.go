@@ -19,7 +19,11 @@ func CompileGo(t *testing.T, sourceCode, outputPath string) {
 }
 
 func CompileGoVersion(t *testing.T, goVersion, sourceCode, outputPath string) {
-	compileGo(t, "go"+goVersion, sourceCode, outputPath)
+	var goBin string
+	if goVersion != "" {
+		goBin = os.Getenv("GOBIN")
+	}
+	compileGo(t, filepath.Join(goBin, "go"+goVersion), sourceCode, outputPath)
 }
 
 func compileGo(t *testing.T, goBin, sourceCode, outputPath string) {
