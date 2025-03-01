@@ -10351,10 +10351,10 @@ func (s *TimerLayerThreadStore) GetMembershipsForUser(userID string, teamID stri
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error) {
+func (s *TimerLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeArchivedChannels bool) (map[string]*model.TeamUnread, error) {
 	start := time.Now()
 
-	result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs, includeUrgentMentionCount)
+	result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs, includeUrgentMentionCount, excludeArchivedChannels)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
