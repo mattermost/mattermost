@@ -263,7 +263,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         // First check if we should apply a theme based on system preference
         const systemThemeApplied = applySystemThemeIfNeeded();
- 
+
         // If no system theme was applied, use the regular theme
         if (!systemThemeApplied) {
             applyTheme(this.props.theme);
