@@ -1590,108 +1590,99 @@ func TestExportSchemes(t *testing.T) {
 	})
 }
 
-func TestExportDMFromDeactivatedUser(t *testing.T) {
+func TestExportDeactivatedUserDMs(t *testing.T) {
 	th1 := Setup(t).InitBasic()
 	defer th1.TearDown()
 
-	// Create a user that will be deactivated
-	userToDeactivate := th1.CreateUser()
-	th1.LinkUserToTeam(userToDeactivate, th1.BasicTeam)
+	// Create a DM Channel with another user
+	user2 := th1.BasicUser2
+	dmChannel := th1.CreateDmChannel(user2)
 
-	// Create DM Channel between basic user and the user that will be deactivated
-	dmChannel := th1.CreateDmChannel(userToDeactivate)
-
-	// Create a direct message from the user who will be deactivated
-	post1 := &model.Post{
+	// Create a regular message from user2
+	regularPost := &model.Post{
 		ChannelId: dmChannel.Id,
-		Message:   "Regular message from user who will be deactivated",
-		UserId:    userToDeactivate.Id,
+		Message:   "regular_message_from_user2",
+		UserId:    user2.Id,
 	}
-	_, appErr := th1.App.CreatePost(th1.Context, post1, dmChannel, model.CreatePostFlags{})
+	_, appErr := th1.App.CreatePost(th1.Context, regularPost, dmChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
-	// Create a thread root post from the basic user
-	rootPost := &model.Post{
+	// Create a thread started by the basic user
+	threadStarter := &model.Post{
 		ChannelId: dmChannel.Id,
-		Message:   "Root message for thread from basic user",
+		Message:   "thread_starter_from_basic_user",
 		UserId:    th1.BasicUser.Id,
 	}
-	rootPost, appErr = th1.App.CreatePost(th1.Context, rootPost, dmChannel, model.CreatePostFlags{})
+	threadStarterPost, appErr := th1.App.CreatePost(th1.Context, threadStarter, dmChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
-	// Create a thread reply from the user who will be deactivated
-	threadReply := &model.Post{
+	// Create a reply post from user2
+	replyPost := &model.Post{
 		ChannelId: dmChannel.Id,
-		Message:   "Thread reply from user who will be deactivated",
-		UserId:    userToDeactivate.Id,
-		RootId:    rootPost.Id,
+		Message:   "reply_from_user2",
+		UserId:    user2.Id,
+		RootId:    threadStarterPost.Id,
 	}
-	threadReply, appErr = th1.App.CreatePost(th1.Context, threadReply, dmChannel, model.CreatePostFlags{})
+	_, appErr = th1.App.CreatePost(th1.Context, replyPost, dmChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
-	// Deactivate the user
-	_, err := th1.App.UpdateActive(th1.Context, userToDeactivate, false)
+	// Deactivate user2
+	_, err := th1.App.UpdateActive(th1.Context, user2, false)
 	require.Nil(t, err)
 
-	// Verify the user is deactivated
-	user, appErr := th1.App.GetUser(userToDeactivate.Id)
-	require.Nil(t, appErr)
-	require.NotZero(t, user.DeleteAt)
-
-	// Export the data
+	// Export data
 	var b bytes.Buffer
 	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, appErr)
 
-	// Check if the buffer contains the message from deactivated user
-	// by simply checking if the string is present (not ideal but simple)
-	bufferContent := b.String()
-	require.Contains(t, bufferContent, "Regular message from user who will be deactivated",
-		"Export should contain the regular message from the deactivated user")
-	require.Contains(t, bufferContent, "Thread reply from user who will be deactivated",
-		"Export should contain the thread reply from the deactivated user")
-
-	// Import into a new instance
+	// Import data into a new instance
 	th2 := Setup(t)
 	defer th2.TearDown()
+
 	appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	require.Nil(t, appErr)
 	require.Equal(t, 0, i)
 
-	// Now check for the regular posts from the deactivated user in the new instance
-	posts, err2 := th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
-	require.NoError(t, err2)
+	// Verify channels were imported
+	channels, nErr := th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
+	require.NoError(t, nErr)
+	require.Equal(t, 1, len(channels), "Direct channel should be exported and imported")
 
-	// Track if we found both the regular message and root post
-	foundRegularMessage := false
-	foundRootPost := false
+	// Get all direct posts in the new instance
+	posts, nErr := th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
+	require.NoError(t, nErr)
 
-	for _, p := range posts {
-		// Check for the regular message
-		if p.Message == "Regular message from user who will be deactivated" {
-			foundRegularMessage = true
+	// Check if both the regular message and reply from the deactivated user are present
+	foundRegular := false
+	foundThread := false
+
+	for _, post := range posts {
+		if post.Message == "regular_message_from_user2" {
+			foundRegular = true
 		}
+		if post.Message == "thread_starter_from_basic_user" {
+			foundThread = true
 
-		// Check for the root post
-		if p.Message == "Root message for thread from basic user" {
-			foundRootPost = true
+			// Verify that the reply is included in the post's replies
+			repliesFound := false
+			if post.ReplyCount > 0 {
+				// Get the replies
+				replies, err := th2.App.Srv().Store().Post().GetPostsCreatedAt(post.ChannelId, threadStarterPost.CreateAt)
+				require.NoError(t, err)
 
-			// Also verify that we can find the reply
-			replies, err := th2.App.Srv().Store().Post().GetRepliesForExport(p.Id)
-			require.NoError(t, err)
-
-			foundThreadReply := false
-			for _, reply := range replies {
-				if reply.Message == "Thread reply from user who will be deactivated" {
-					foundThreadReply = true
-					break
+				// Check that the post has the reply from user2
+				for _, r := range replies {
+					if r.Message == "reply_from_user2" {
+						repliesFound = true
+						break
+					}
 				}
 			}
-
-			require.True(t, foundThreadReply, "Thread reply from deactivated user should be imported")
+			require.True(t, repliesFound, "Reply message from deactivated user was not exported")
 		}
 	}
 
-	require.True(t, foundRegularMessage, "Regular message from deactivated user should be imported")
-	require.True(t, foundRootPost, "Root post with replies should be imported")
+	// Both types of posts should be found
+	require.True(t, foundRegular, "Regular message from deactivated user was not exported")
+	require.True(t, foundThread, "Thread with reply from deactivated user was not exported")
 }

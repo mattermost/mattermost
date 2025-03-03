@@ -2825,8 +2825,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		LeftJoin("Preferences ON p.Id = Preferences.Name").
 		LeftJoin("Users u1 ON Preferences.UserId = u1.Id").
 		Join("Channels ON p.ChannelId = Channels.Id").
-		// Don't use inner join on Users to ensure we include posts from deactivated users
-		LeftJoin("Users u2 ON p.UserId = u2.Id").
+		Join("Users u2 ON p.UserId = u2.Id").
 		Where(sq.And{
 			sq.Gt{"p.Id": afterId},
 			sq.Eq{"p.RootId": ""},
