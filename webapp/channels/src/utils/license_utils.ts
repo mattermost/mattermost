@@ -84,10 +84,6 @@ export function getIsGovSku(license: ClientLicense) {
     return license?.IsGovSku === 'true';
 }
 
-export function isEnterpriseOrE20License(license: ClientLicense) {
-    return license?.SkuShortName === LicenseSkus.Enterprise || license?.SkuShortName === LicenseSkus.E20;
-}
-
 export const isEnterpriseLicense = (license?: ClientLicense) => {
     switch (license?.SkuShortName) {
     case LicenseSkus.Enterprise:
