@@ -476,7 +476,6 @@ func (lr *LicenseRecord) PreSave() {
 // MinimumProfessionalLicense returns true if the provided license is at least a professional license.
 // Higher tier licenses also satisfy the condition.
 func MinimumProfessionalLicense(license *License) *AppError {
-	//if license == nil || (license.SkuShortName != LicenseShortSkuProfessional && license.SkuShortName != LicenseShortSkuEnterprise) {
 	if license == nil || LicenseToLicenseTier[license.SkuShortName] < ProfessionalTier {
 		return NewAppError("", NoTranslation, nil, "license is neither professional nor enterprise nor premium", http.StatusNotImplemented)
 	}
@@ -486,7 +485,6 @@ func MinimumProfessionalLicense(license *License) *AppError {
 // MinimumEnterpriseLicense returns true if the provided license is at least a enterprise license.
 // Higher tier licenses also satisfy the condition.
 func MinimumEnterpriseLicense(license *License) *AppError {
-	//if license == nil || license.SkuShortName != LicenseShortSkuEnterprise {
 	if license == nil || LicenseToLicenseTier[license.SkuShortName] < EnterpriseTier {
 		return NewAppError("", NoTranslation, nil, "license is neither enterprise nor premium", http.StatusNotImplemented)
 	}
@@ -495,7 +493,6 @@ func MinimumEnterpriseLicense(license *License) *AppError {
 
 // MinimumPremiumLicense returns true if the provided license is at least a premium license.
 func MinimumPremiumLicense(license *License) *AppError {
-	//if license == nil || license.SkuShortName != LicenseShortSkuPremium {
 	if license == nil || LicenseToLicenseTier[license.SkuShortName] < PremiumTier {
 		return NewAppError("", NoTranslation, nil, "license is not premium", http.StatusNotImplemented)
 	}

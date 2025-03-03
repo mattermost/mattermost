@@ -585,6 +585,11 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Should be able to configure channel banner on a channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
+
 		client.Logout(context.Background())
 		th.LoginBasic()
 
@@ -616,6 +621,11 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Cannot enable channel banner without configuring it", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
+
 		client.Logout(context.Background())
 		th.LoginBasic()
 
@@ -672,6 +682,11 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Cannot configure channel banner on a DM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
+
 		client.Logout(context.Background())
 		th.LoginBasic()
 
@@ -695,6 +710,11 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Cannot configure channel banner on a GM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
+		
 		client.Logout(context.Background())
 		th.LoginBasic()
 
