@@ -1,64 +1,64 @@
 services:
   mysql:
     extends:
-        file: docker-compose.common.yml
-        service: mysql
+      file: docker-compose.common.yml
+      service: mysql
     tmpfs: /var/lib/mysql
     volumes:
-     - "./docker/mysql.conf.d:/etc/mysql/conf.d"
+      - "./docker/mysql.conf.d:/etc/mysql/conf.d"
   postgres:
     extends:
-        file: docker-compose.common.yml
-        service: postgres
+      file: docker-compose.common.yml
+      service: postgres
     tmpfs: /var/lib/postgresql/data
   minio:
     extends:
-        file: docker-compose.common.yml
-        service: minio
+      file: docker-compose.common.yml
+      service: minio
   inbucket:
     extends:
-        file: docker-compose.common.yml
-        service: inbucket
+      file: docker-compose.common.yml
+      service: inbucket
   openldap:
     extends:
-        file: docker-compose.common.yml
-        service: openldap
+      file: docker-compose.common.yml
+      service: openldap
   elasticsearch:
     extends:
-        file: docker-compose.common.yml
-        service: elasticsearch
+      file: docker-compose.common.yml
+      service: elasticsearch
   opensearch:
     extends:
-        file: docker-compose.common.yml
-        service: opensearch
+      file: docker-compose.common.yml
+      service: opensearch
   redis:
     extends:
-        file: docker-compose.common.yml
-        service: redis
+      file: docker-compose.common.yml
+      service: redis
   dejavu:
     extends:
-        file: docker-compose.common.yml
-        service: dejavu
+      file: docker-compose.common.yml
+      service: dejavu
   keycloak:
     extends:
-        file: docker-compose.common.yml
-        service: keycloak
+      file: docker-compose.common.yml
+      service: keycloak
   prometheus:
     extends:
-        file: docker-compose.common.yml
-        service: prometheus
+      file: docker-compose.common.yml
+      service: prometheus
   grafana:
     extends:
-        file: docker-compose.common.yml
-        service: grafana
+      file: docker-compose.common.yml
+      service: grafana
   loki:
     extends:
-        file: docker-compose.common.yml
-        service: loki
+      file: docker-compose.common.yml
+      service: loki
   promtail:
     extends:
-        file: docker-compose.common.yml
-        service: promtail
+      file: docker-compose.common.yml
+      service: promtail
 
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest

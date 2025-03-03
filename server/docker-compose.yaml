@@ -4,29 +4,29 @@ services:
     ports:
       - "3306:3306"
     extends:
-        file: build/docker-compose.common.yml
-        service: mysql
+      file: build/docker-compose.common.yml
+      service: mysql
   mysql-read-replica:
     container_name: mattermost-mysql-read-replica
     ports:
       - "3307:3306"
     extends:
-        file: build/docker-compose.common.yml
-        service: mysql-read-replica
+      file: build/docker-compose.common.yml
+      service: mysql-read-replica
   postgres:
     container_name: mattermost-postgres
     ports:
       - "5432:5432"
     extends:
-        file: build/docker-compose.common.yml
-        service: postgres
+      file: build/docker-compose.common.yml
+      service: postgres
   minio:
     container_name: mattermost-minio
     ports:
       - "9000:9000"
     extends:
-        file: build/docker-compose.common.yml
-        service: minio
+      file: build/docker-compose.common.yml
+      service: minio
   inbucket:
     container_name: mattermost-inbucket
     ports:
@@ -34,80 +34,80 @@ services:
       - "10025:10025"
       - "10110:10110"
     extends:
-        file: build/docker-compose.common.yml
-        service: inbucket
+      file: build/docker-compose.common.yml
+      service: inbucket
   openldap:
     container_name: mattermost-openldap
     ports:
       - "389:389"
       - "636:636"
     extends:
-        file: build/docker-compose.common.yml
-        service: openldap
+      file: build/docker-compose.common.yml
+      service: openldap
   elasticsearch:
     container_name: mattermost-elasticsearch
     ports:
       - "9200:9200"
       - "9300:9300"
     extends:
-        file: build/docker-compose.common.yml
-        service: elasticsearch
+      file: build/docker-compose.common.yml
+      service: elasticsearch
   opensearch:
     container_name: mattermost-opensearch
     ports:
       - "9201:9201"
     extends:
-        file: build/docker-compose.common.yml
-        service: opensearch
+      file: build/docker-compose.common.yml
+      service: opensearch
   redis:
     container_name: mattermost-redis
     ports:
       - "6379:6379"
     extends:
-        file: build/docker-compose.common.yml
-        service: redis
+      file: build/docker-compose.common.yml
+      service: redis
   dejavu:
     container_name: mattermost-dejavu
     ports:
       - "1358:1358"
     extends:
-        file: build/docker-compose.common.yml
-        service: dejavu
+      file: build/docker-compose.common.yml
+      service: dejavu
   keycloak:
     container_name: mattermost-saml
     ports:
       - "8484:8080"
     extends:
-        file: build/docker-compose.common.yml
-        service: keycloak
+      file: build/docker-compose.common.yml
+      service: keycloak
   prometheus:
     container_name: mattermost-prometheus
     ports:
       - "9090:9090"
     extends:
-        file: build/docker-compose.common.yml
-        service: prometheus
+      file: build/docker-compose.common.yml
+      service: prometheus
   grafana:
     container_name: mattermost-grafana
     ports:
       - "3000:3000"
     extends:
-        file: build/docker-compose.common.yml
-        service: grafana
+      file: build/docker-compose.common.yml
+      service: grafana
   loki:
     container_name: mattermost-loki
     ports:
       - "3100:3100"
     extends:
-        file: build/docker-compose.common.yml
-        service: loki
+      file: build/docker-compose.common.yml
+      service: loki
   promtail:
     container_name: mattermost-promtail
     ports:
       - "3180:3180"
     extends:
-        file: build/docker-compose.common.yml
-        service: promtail
+      file: build/docker-compose.common.yml
+      service: promtail
 
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest
@@ -131,7 +131,7 @@ services:
     build:
       context: .
       dockerfile: ./build/Dockerfile.buildenv
-    working_dir: '/home/mattermost-server/server'
+    working_dir: "/home/mattermost-server/server"
     environment:
       - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
@@ -146,8 +146,10 @@ services:
     depends_on:
       - start_dependencies
     volumes:
-      - './../:/home/mattermost-server'
-      - './../../enterprise:/home/enterprise'
+      - "./../:/home/mattermost-server"
+      - "./../../enterprise:/home/enterprise"
+      - "./config:/home/mattermost-server/server/config"
+      - "./client:/home/mattermost-server/server/client"
     restart: on-failure
     healthcheck:
       test: ["CMD", "curl", "-f", "http://leader:8065/api/v4/system/ping"]
@@ -156,7 +158,7 @@ services:
       retries: 30
       start_period: 5m
     user: ${CURRENT_UID}
-    command: ['make', 'run-server']
+    command: ["make", "run-server"]
     expose:
       - "8065"
       - "8064/tcp"
@@ -169,7 +171,7 @@ services:
     build:
       context: .
       dockerfile: ./build/Dockerfile.buildenv
-    working_dir: '/home/mattermost-server/server'
+    working_dir: "/home/mattermost-server/server"
     environment:
       - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
@@ -184,8 +186,8 @@ services:
     depends_on:
       - leader
     volumes:
-      - './../:/home/mattermost-server'
-      - './../../enterprise:/home/enterprise'
+      - "./../:/home/mattermost-server"
+      - "./../../enterprise:/home/enterprise"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower:8065/api/v4/system/ping"]
       interval: 5s
@@ -193,7 +195,7 @@ services:
       retries: 30
       start_period: 5m
     user: ${CURRENT_UID}
-    command: ['make', 'run-server']
+    command: ["make", "run-server"]
     restart: on-failure
     expose:
       - "8065"
@@ -207,7 +209,7 @@ services:
     build:
       context: .
       dockerfile: ./build/Dockerfile.buildenv
-    working_dir: '/home/mattermost-server/server'
+    working_dir: "/home/mattermost-server/server"
     environment:
       - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
@@ -222,8 +224,8 @@ services:
     depends_on:
       - leader
     volumes:
-      - './../:/home/mattermost-server'
-      - './../../enterprise:/home/enterprise'
+      - "./../:/home/mattermost-server"
+      - "./../../enterprise:/home/enterprise"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower2:8065/api/v4/system/ping"]
       interval: 5s
@@ -231,7 +233,7 @@ services:
       retries: 30
       start_period: 5m
     user: ${CURRENT_UID}
-    command: ['make', 'run-server']
+    command: ["make", "run-server"]
     restart: on-failure
     expose:
       - "8065"

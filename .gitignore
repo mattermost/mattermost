@@ -2,6 +2,7 @@
 logs
 .DS_Store
 node_modules
+dummy-files/
 /data
 /dist
 /webapp/dist
@@ -12,6 +13,7 @@ mattermost.mattermost-license
 config/mattermost.mattermost-license
 config/config.json
 config/*.crt
+server/tmpprepackaged/
 
 web/static/js/bundle*.js
 web/static/js/bundle*.js.map
@@ -159,3 +161,4 @@ docker-compose.override.yaml
 .notice-work/
 .aider*
 .env
+server/**/*.tar.gz

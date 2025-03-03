@@ -11,7 +11,8 @@ ARG PUID=2000
 ARG PGID=2000
 # MM_PACKAGE build arguments controls which version of mattermost to install, defaults to latest stable enterprise
 # i.e. https://releases.mattermost.com/9.7.1/mattermost-9.7.1-linux-amd64.tar.gz
-ARG MM_PACKAGE="https://latest.mattermost.com/mattermost-enterprise-linux"
+# ARG MM_PACKAGE="https://latest.mattermost.com/mattermost-enterprise-linux"
+ARG MM_PACKAGE="../../dist/clean-mattermost-team-linux-amd64.tar.gz"
 
 # # Install needed packages and indirect dependencies
 RUN apt-get update \
@@ -27,12 +28,33 @@ RUN apt-get update \
   tzdata \
   && rm -rf /var/lib/apt/lists/*
 
-# Set mattermost group/user and download Mattermost
+# Copy the Mattermost package into the container
+COPY ${MM_PACKAGE} /tmp/mattermost.tar.gz
+
+# Set mattermost group/user and extract Mattermost
+# RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
+#   && groupadd --gid ${PGID} mattermost \
+#   && useradd --uid ${PUID} --gid ${PGID} --comment "" --home-dir /mattermost mattermost \
+#   && tar -xvzf /tmp/mattermost.tar.gz -C /mattermost --strip-components=1 \
+#   && rm /tmp/mattermost.tar.gz \
+#   && chown -R mattermost:mattermost /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
+
+
+# RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
+#   && groupadd --gid ${PGID} mattermost \
+#   && useradd --uid ${PUID} --gid ${PGID} --comment "" --home-dir /mattermost mattermost \
+#   && tar --exclude='*/._*' --transform='s/^\(\.\.\/\)\+//' -xvzf /tmp/mattermost.tar.gz -C /mattermost --strip-components=2 \
+#   && rm /tmp/mattermost.tar.gz \
+#   && chown -R mattermost:mattermost /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
+
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
   && groupadd --gid ${PGID} mattermost \
   && useradd --uid ${PUID} --gid ${PGID} --comment "" --home-dir /mattermost mattermost \
-  && curl -L $MM_PACKAGE | tar -xvz \
+  && tar -xvf /tmp/mattermost.tar.gz -C /mattermost \
+  && rm /tmp/mattermost.tar.gz \
   && chown -R mattermost:mattermost /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
+
+
 
 # We should refrain from running as privileged user
 USER mattermost
@@ -42,7 +64,7 @@ HEALTHCHECK --interval=30s --timeout=10s \
   CMD curl -f http://localhost:8065/api/v4/system/ping || exit 1
 
 # Configure entrypoint and command with proper permissions
-COPY --chown=mattermost:mattermost --chmod=765 entrypoint.sh /
+COPY --chown=mattermost:mattermost --chmod=765 ./build/entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]
 WORKDIR /mattermost
 CMD ["mattermost"]
