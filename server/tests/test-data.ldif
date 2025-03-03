@@ -6,6 +6,7 @@ objectclass: organizationalunit
 dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Test1
 title: Test1 Title
@@ -15,6 +16,7 @@ userPassword: Password1
 dn: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Test2
 title: Test2 Title
@@ -24,6 +26,7 @@ userPassword: Password1
 dn: uid=test.three,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Test3
 title: Test3 Title
@@ -33,6 +36,7 @@ userPassword: Password1
 dn: uid=test.four,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Test4
 title: Test4 Title
@@ -42,6 +46,7 @@ userPassword: Password1
 dn: uid=test.five,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Test5
 # No title to allow testing that path
@@ -53,6 +58,7 @@ userPassword: Password1
 dn: uid=dev-ops.one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Dev3
 title: DevOps Engineer
@@ -62,6 +68,7 @@ userPassword: Password1
 dn: uid=dev.one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Dev1
 title: Senior Software Design Engineer
@@ -71,6 +78,7 @@ userPassword: Password1
 dn: uid=dev.two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Dev2
 title: Software Design Engineer ||
@@ -80,6 +88,7 @@ userPassword: Password1
 dn: uid=dev.three,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Dev3
 title: Software Design Engineer
@@ -89,6 +98,7 @@ userPassword: Password1
 dn: uid=dev.four,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Dev4
 title: Staff Software Design Engineer
@@ -100,6 +110,7 @@ userPassword: Password1
 dn: uid=exec.one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Exec1
 title: CEO
@@ -109,6 +120,7 @@ userPassword: Password1
 dn: uid=exec.two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Exec2
 title: CTO
@@ -120,6 +132,7 @@ userPassword: Password1
 dn: uid=board.one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Board1
 title: Director
@@ -129,6 +142,7 @@ userPassword: Password1
 dn: uid=board.two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Board2
 title: Inside Director
@@ -138,6 +152,7 @@ userPassword: Password1
 dn: uid=board.three,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: Board3
 title: Outside Director
@@ -147,6 +162,7 @@ userPassword: Password1
 dn: uid=firstloginuser.one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: FirstLogin1
 mail: success+firstloginuser.one@simulator.amazonses.com
@@ -155,6 +171,7 @@ userPassword: Password1
 dn: uid=firstloginuser.two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
+objectclass: activeDSObject
 sn: User
 cn: FirstLogin2
 mail: success+firstloginuser.two@simulator.amazonses.com
@@ -165,21 +182,31 @@ changetype: add
 objectclass: organizationalunit
 
 # groupOfNames
+
+# groupOfNames with Base64 Encoded ObjectGUID
 dn: cn=outsiders,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfNames
+objectclass: activeDSObject
+objectGUID:: UcVUS/HonkGbqAAAAAAAAA==
 member: uid=board.three,ou=testusers,dc=mm,dc=test,dc=com
 
+# groupOfNames with Hex Separated ObjectGUID
 dn: cn=board,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfNames
+objectclass: activeDSObject
+objectGUID: \56\6d\95\5b\a8\9a\9c\42\a4\61\00\00\00\00\00\00
 member: uid=board.one,ou=testusers,dc=mm,dc=test,dc=com
 member: uid=board.two,ou=testusers,dc=mm,dc=test,dc=com
 member: cn=outsiders,ou=testgroups,dc=mm,dc=test,dc=com
 
+# groupOfNames with Binary Encoded ObjectGUID
 dn: cn=executive,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfNames
+objectclass: activeDSObject
+objectGUID:: EBYPDQ4NDAsKCQgHBgUEAwIBAA==
 member: uid=exec.one,ou=testusers,dc=mm,dc=test,dc=com
 member: uid=exec.two,ou=testusers,dc=mm,dc=test,dc=com
 member: cn=board,ou=testgroups,dc=mm,dc=test,dc=com
@@ -187,45 +214,61 @@ member: cn=board,ou=testgroups,dc=mm,dc=test,dc=com
 dn: cn=tgroup-84,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfNames
+objectclass: activeDSObject
+objectGUID:: YB4aM/vJn0CfhQAAAAAAAA==
 member: cn=tgroup-9,ou=testgroups,dc=mm,dc=test,dc=com
 member: uid=test.five,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: cn=tgroup-9,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfNames
+objectclass: activeDSObject
+objectGUID:: ZA9bHYy+n0KVlgAAAAAAAA==
 member: cn=tgroup-97,ou=testgroups,dc=mm,dc=test,dc=com
 
 dn: cn=tgroup-97,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfNames
+objectclass: activeDSObject
+objectGUID:: aS77A+eDnke+7AAAAAAAAA==
 member: uid=test.four,ou=testusers,dc=mm,dc=test,dc=com
 
 # groupOfUniqueNames
 dn: cn=tgroup,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: bThfVKmRn0S5mQAAAAAAAA==
 uniqueMember: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: cn=ugroup,cn=tgroup,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: cEdgf5/JnkCZtQAAAAAAAA==
 uniqueMember: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: cn=vgroup,cn=tgroup,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: dUvgN8VXnkC9EQAAAAAAAAA==
 uniqueMember: uid=test.three,ou=testusers,dc=mm,dc=test,dc=com
 
 # Adds a group with a cycle
 dn: cn=team-one-a,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: eXyMRG3BnUCJsQAAAAAAAA==
 uniqueMember: uid=dev.four,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: cn=developers,ou=testgroups,dc=mm,dc=test,dc=com
 
 dn: cn=team-one,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: fM8fdh6MnUGsYQAAAAAAAA==
 uniqueMember: uid=dev.one,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: uid=dev.three,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: cn=team-one-a,ou=testgroups,dc=mm,dc=test,dc=com
@@ -233,11 +276,15 @@ uniqueMember: cn=team-one-a,ou=testgroups,dc=mm,dc=test,dc=com
 dn: cn=team-two,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: gI9GHKjnn0G7LQAAAAAAAAA==
 uniqueMember: uid=dev.two,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: cn=developers,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: hKDpuRd+nECFKwAAAAAAAA==
 uniqueMember: uid=dev-ops.one,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: cn=team-one,ou=testgroups,dc=mm,dc=test,dc=com
 uniqueMember: cn=team-two,ou=testgroups,dc=mm,dc=test,dc=com
@@ -245,5 +292,7 @@ uniqueMember: cn=team-two,ou=testgroups,dc=mm,dc=test,dc=com
 dn: cn=firstlogingroup,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
+objectclass: activeDSObject
+objectGUID:: iS3dxTuwnkC2MQAAAAAAAAA==
 uniqueMember: uid=firstloginuser.one,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: uid=firstloginuser.two,ou=testusers,dc=mm,dc=test,dc=com
