@@ -988,14 +988,17 @@ func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io
 				continue
 			}
 
+			// For DMs with deactivated users, we still want to export the channel
+			// if there are any active members
+
 			// Skip if there are no active members in the channel
 			if len(channel.Members) == 0 {
 				continue
 			}
 
-			// Skip if the channel member structure is not intact
-			switch channel.Type {
-			case model.ChannelTypeGroup:
+			// For group channels, we need to verify member structure integrity
+			// For DM channels, we accept them even if one user is deactivated
+			if channel.Type == model.ChannelTypeGroup {
 				groupMembers := make([]string, len(channel.Members))
 				for i, m := range channel.Members {
 					groupMembers[i] = m.UserId
@@ -1005,14 +1008,6 @@ func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io
 					// we skip this channel and inform by logging it.
 					job.Data["skipped_direct_channels"] = job.Data["skipped_direct_channels"] + "," + channel.Id
 					ctx.Logger().Warn("Skipping group channels with partially deleted members", mlog.String("channel_id", channel.Id))
-					continue
-				}
-			case model.ChannelTypeDirect:
-				if _, u2 := channel.GetBothUsersForDM(); u2 != "" && len(channel.Members) == 1 {
-					// this is the case of a direct channel when other user is permanently deleted
-					// we skip this channel and inform by logging it.
-					job.Data["skipped_direct_channels"] = job.Data["skipped_direct_channels"] + "," + channel.Id
-					ctx.Logger().Info("Skipping direct channel with one active member", mlog.String("channel_id", channel.Id), mlog.String("user_id", channel.Members[0].UserId))
 					continue
 				}
 			}
