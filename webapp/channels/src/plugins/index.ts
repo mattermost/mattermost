@@ -63,7 +63,7 @@ window.plugins = {};
 // remains possible, but is officially deprecated and may be removed in a future release.
 function registerPlugin(id: string, plugin: Plugin): void {
     // Don't register plugins if MMDEBUG cookie is set
-    if (document.cookie.includes('MMDEBUG=')) {
+    if (document.cookie.includes('MMEMBED=1')) {
         return;
     }
 

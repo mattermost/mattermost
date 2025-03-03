@@ -16,7 +16,7 @@ const Footer = () => {
     const {AboutLink, PrivacyPolicyLink, TermsOfServiceLink, HelpLink} = useSelector(getConfig);
 
     // Check if MMDEBUG cookie is set and if so, don't show the footer
-    if (document.cookie.includes('MMDEBUG=')) {
+    if (document.cookie.includes('MMEMBED=1')) {
         return null;
     }
 
