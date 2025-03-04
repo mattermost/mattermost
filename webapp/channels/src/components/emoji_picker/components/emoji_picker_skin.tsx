@@ -213,7 +213,10 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                             <div
                                 className='skin-tones__icons'
                                 id='skin-tones-icons'
-                                aria-label='Skin tone icons'
+                                aria-label={this.props.intl.formatMessage({
+                                    id: 'emoji_picker.skin_tone_icons',
+                                    defaultMessage: 'Skin tone icons',
+                                })}
                                 role='region'
                             >
                                 {this.choices()}
