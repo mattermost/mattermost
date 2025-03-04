@@ -16,26 +16,27 @@
     },
     "dependencies": {
         "@axe-core/playwright": "4.10.1",
-        "@percy/cli": "1.30.3",
+        "@percy/cli": "1.30.6",
         "@percy/playwright": "1.0.7",
-        "@playwright/test": "1.49.0",
-        "async-wait-until": "2.0.12",
+        "@playwright/test": "1.49.1",
+        "async-wait-until": "2.0.18",
         "axe-core": "4.10.2",
         "chalk": "4.1.2",
         "dayjs": "1.11.13",
         "deepmerge": "4.3.1",
-        "dotenv": "16.4.5",
+        "dotenv": "16.4.7",
         "form-data-encoder": "4.0.2",
         "formdata-node": "6.0.3",
-        "uuid": "11.0.3"
+        "uuid": "11.0.5",
+        "zod": "3.24.1"
     },
     "devDependencies": {
         "@types/uuid": "10.0.0",
-        "@typescript-eslint/eslint-plugin": "8.16.0",
-        "@typescript-eslint/parser": "8.16.0",
+        "@typescript-eslint/eslint-plugin": "8.20.0",
+        "@typescript-eslint/parser": "8.20.0",
         "cross-env": "7.0.3",
-        "eslint": "9.16.0",
-        "prettier": "3.4.1",
-        "typescript": "5.7.2"
+        "eslint": "9.18.0",
+        "prettier": "3.4.2",
+        "typescript": "5.7.3"
     }
 }

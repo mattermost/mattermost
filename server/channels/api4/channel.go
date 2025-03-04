@@ -377,6 +377,11 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if patch.BannerInfo != nil && (originalOldChannel.Type != model.ChannelTypeOpen && originalOldChannel.Type != model.ChannelTypePrivate) {
+		c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.banner_info.channel_type.not_allowed", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	rchannel, appErr := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -1406,7 +1411,9 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
+		// allows team admins to access private channel
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeam) &&
+			!c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
 			c.Err = model.NewAppError("getChannelByName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 			return
 		}
@@ -1436,17 +1443,19 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	teamOk := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)
 	channelOk := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel)
-
 	if channel.Type == model.ChannelTypeOpen {
+		teamOk := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)
 		if !teamOk && !channelOk {
 			c.SetPermissionError(model.PermissionReadPublicChannel)
 			return
 		}
 	} else if !channelOk {
-		c.Err = model.NewAppError("getChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
-		return
+		// allows team admins to access private channel
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeam) {
+			c.Err = model.NewAppError("getChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
+			return
+		}
 	}
 
 	appErr = c.App.FillInChannelProps(c.AppContext, channel)

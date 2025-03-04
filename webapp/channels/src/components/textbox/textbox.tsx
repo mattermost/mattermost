@@ -72,6 +72,7 @@ export type Props = {
     openWhenEmpty?: boolean;
     priorityProfiles?: UserProfile[];
     hasLabels?: boolean;
+    isInEditMode?: boolean;
 };
 
 const VISIBLE = {visibility: 'visible'};
@@ -104,6 +105,7 @@ export default class Textbox extends React.PureComponent<Props> {
 
         this.suggestionProviders.push(
             new AtMentionProvider({
+                textboxId: this.props.id,
                 currentUserId: this.props.currentUserId,
                 channelId: this.props.channelId,
                 autocompleteUsersInChannel: (prefix: string) => this.props.actions.autocompleteUsersInChannel(prefix, this.props.channelId),
@@ -145,6 +147,7 @@ export default class Textbox extends React.PureComponent<Props> {
             for (const provider of this.suggestionProviders) {
                 if (provider instanceof AtMentionProvider) {
                     provider.setProps({
+                        textboxId: this.props.id,
                         currentUserId: this.props.currentUserId,
                         channelId: this.props.channelId,
                         autocompleteUsersInChannel: (prefix: string) => this.props.actions.autocompleteUsersInChannel(prefix, this.props.channelId),

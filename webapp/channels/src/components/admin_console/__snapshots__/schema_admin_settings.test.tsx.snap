@@ -381,7 +381,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 16,
-                  "text": "Yкраїнська (Alpha)",
+                  "text": "Yкраїнська",
                   "value": "uk",
                 },
                 Object {
@@ -422,7 +422,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             id="SecondSettings.settingj"
             key="Config_language_SecondSettings.settingj"
             label="label-j"
-            noResultText="no-result-j"
+            noOptionsMessage="no-result-j"
             onChange={[Function]}
             selected={Array []}
             setByEnv={false}
@@ -510,7 +510,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 16,
-                  "text": "Yкраїнська (Alpha)",
+                  "text": "Yкраїнська",
                   "value": "uk",
                 },
                 Object {
@@ -675,8 +675,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
       savingMessage="Saving Config..."
     />
     <WithTooltip
-      id="error-tooltip"
-      placement="top"
       title=""
     >
       <div

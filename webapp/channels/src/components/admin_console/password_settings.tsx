@@ -254,10 +254,9 @@ export default class PasswordSettings extends OLDAdminSettings<Props, State> {
                         </ul>
                         <div>
                             <br/>
-                            <label>
+                            <div className='password-settings__preview-heading'>
                                 <FormattedMessage {...messages.preview}/>
-                            </label>
-                            <br/>
+                            </div>
                             {this.getSampleErrorMsg()}
                         </div>
                     </SettingSet>

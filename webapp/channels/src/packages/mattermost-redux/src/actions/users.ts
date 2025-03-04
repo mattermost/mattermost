@@ -476,6 +476,24 @@ export function getMe(): ActionFuncAsync<UserProfile> {
     };
 }
 
+export function getCustomProfileAttributeValues(userID: string): ActionFuncAsync<Record<string, string>> {
+    return async (dispatch) => {
+        let data;
+        try {
+            data = await Client4.getUserCustomProfileAttributesValues(userID);
+        } catch (error) {
+            return {error};
+        }
+
+        dispatch({
+            type: UserTypes.RECEIVED_CPA_VALUES,
+            data: {userID, customAttributeValues: data},
+        });
+
+        return {data};
+    };
+}
+
 export function updateMyTermsOfServiceStatus(termsOfServiceId: string, accepted: boolean): ActionFuncAsync {
     return async (dispatch, getState) => {
         const response = await dispatch(bindClientFunc({
@@ -967,6 +985,19 @@ export function updateMe(user: Partial<UserProfile>): ActionFuncAsync<UserProfil
         dispatch(loadRolesIfNeeded(data.roles.split(' ')));
 
         return {data};
+    };
+}
+
+export function saveCustomProfileAttribute(userID: string, attributeID: string, attributeValue: string): ActionFuncAsync<Record<string, string>> {
+    return async (dispatch) => {
+        try {
+            const values = {[attributeID]: attributeValue.trim()};
+            const data = await Client4.updateCustomProfileAttributeValues(values);
+            return {data};
+        } catch (error) {
+            dispatch(logError(error));
+            return {error};
+        }
     };
 }
 

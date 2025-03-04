@@ -17,10 +17,8 @@ const Title = () => {
     const intl = useIntl();
     return (
         <WithTooltip
-            id='activated_user_title_tooltip'
             title={defineMessage({id: 'analytics.team.totalUsers.title.tooltip.title', defaultMessage: 'Activated users on this server'})}
             hint={defineMessage({id: 'analytics.team.totalUsers.title.tooltip.hint', defaultMessage: 'Also called Registered Users'})}
-            placement='top'
         >
             <span>
                 <ExternalLink

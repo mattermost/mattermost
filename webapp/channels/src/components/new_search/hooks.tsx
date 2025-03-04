@@ -8,7 +8,7 @@ import {useDispatch} from 'react-redux';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
-import {autocompleteChannelsForSearch} from 'actions/channel_actions';
+import {autocompleteChannelsForSearchInTeam} from 'actions/channel_actions';
 import {autocompleteUsersInTeam} from 'actions/user_actions';
 
 import type {ProviderResult} from 'components/suggestion/provider';
@@ -19,7 +19,7 @@ import SearchUserProvider from 'components/suggestion/search_user_provider';
 
 import {SearchFileExtensionProvider} from './extension_suggestions_provider';
 
-const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosition: number, getCaretPosition: () => number, setSelectedOption: (idx: number) => void): [ProviderResult<unknown>|null, React.ReactNode] => {
+const useSearchSuggestions = (searchType: string, searchTerms: string, searchTeam: string, caretPosition: number, getCaretPosition: () => number, setSelectedOption: (idx: number) => void): [ProviderResult<unknown>|null, React.ReactNode] => {
     const dispatch = useDispatch();
 
     const [providerResults, setProviderResults] = useState<ProviderResult<unknown>|null>(null);
@@ -27,8 +27,8 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosi
 
     const suggestionProviders = useRef<Provider[]>([
         new SearchDateProvider(),
-        new SearchChannelProvider((term: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => dispatch(autocompleteChannelsForSearch(term, success, error))),
-        new SearchUserProvider((username: string) => dispatch(autocompleteUsersInTeam(username))),
+        new SearchChannelProvider((term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => dispatch(autocompleteChannelsForSearchInTeam(term, teamId, success, error))),
+        new SearchUserProvider((username: string, teamId: string) => dispatch(autocompleteUsersInTeam(username, teamId))),
         new SearchFileExtensionProvider(),
     ]);
 
@@ -79,9 +79,9 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, caretPosi
                 setProviderResults(res);
                 setSelectedOption(0);
                 setSuggestionsHeader(headers[idx]);
-            });
+            }, searchTeam);
         });
-    }, [searchTerms, searchType, caretPosition]);
+    }, [searchTerms, searchTeam, searchType, caretPosition]);
 
     return [providerResults, suggestionsHeader];
 };
