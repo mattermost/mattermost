@@ -11,6 +11,7 @@ export type DoAppCallResult<Res=unknown> = {
     error?: AppCallResponse<Res>;
 }
 
+// eslint-disable @typescript-eslint/prefer-function-type
 export interface HandleBindingClick<Res=unknown> {
     (binding: AppBinding, context: AppContext, intl: IntlShape): Promise<DoAppCallResult<Res>>;
 }

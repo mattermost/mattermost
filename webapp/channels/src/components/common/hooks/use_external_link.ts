@@ -28,7 +28,7 @@ export type ExternalLinkQueryParams = {
  * @return {[string, Record<string, string>]} A tuple containing the URL (whether or not it was modified) and all query
  * parameters on that link (either pre-existing or added by this hook)
  */
-export function useExternalLink(href: string, location: string = '', overwriteQueryParams: ExternalLinkQueryParams = {}): [string, Record<string, string>] {
+export function useExternalLink(href: string, location = '', overwriteQueryParams: ExternalLinkQueryParams = {}): [string, Record<string, string>] {
     const userId = useSelector(getCurrentUserId);
     const config = useSelector(getConfig);
     const license = useSelector(getLicense);

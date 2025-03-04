@@ -216,7 +216,7 @@ const NewChannelModal = () => {
                 }
             }
             dispatch(switchToChannel(newChannel!));
-        } catch (e) {
+        } catch {
             onCreateChannelError({message: formatMessage({id: 'channel_modal.error.generic', defaultMessage: 'Something went wrong. Please try again.'})});
         }
     };

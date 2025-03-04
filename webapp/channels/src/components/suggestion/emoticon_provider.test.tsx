@@ -23,7 +23,7 @@ const mockedGetRecentEmojisNames = jest.mocked(getRecentEmojisNames);
 describe('components/EmoticonProvider', () => {
     const resultsCallback = jest.fn();
     const emoticonProvider = new EmoticonProvider();
-    const customEmojis: Map<string, any> = new Map([
+    const customEmojis = new Map<string, any>([
         [
             'thumbsdown-custom',
             {name: 'thumbsdown-custom', category: 'custom'},
@@ -99,7 +99,7 @@ describe('components/EmoticonProvider', () => {
                 return [name, {name, category}];
             },
         );
-        const customEmojisWithBlocklist: Map<string, CustomEmoji> = new Map([
+        const customEmojisWithBlocklist = new Map<string, CustomEmoji>([
             ...blocklistedEmojis,
             [
                 'not-blocklisted',
