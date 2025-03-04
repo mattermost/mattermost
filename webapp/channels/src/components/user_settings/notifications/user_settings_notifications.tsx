@@ -228,7 +228,7 @@ function getDefaultStateFromProps(props: Props): State {
     };
 }
 
-const Input = (props: InputProps) => {
+const Input = (props: InputProps<MultiInputValue, true>) => {
     const ariaProps = {
         'aria-labelledby': 'settingTitle',
         'aria-describedby': 'extraInfo',
