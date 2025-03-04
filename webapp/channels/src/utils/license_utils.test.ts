@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {LicenseSkus} from 'utils/constants';
 import {isLicenseExpired, isLicenseExpiring, isLicensePastGracePeriod} from 'utils/license_utils';
 
 describe('license_utils', () => {

@@ -23,7 +23,7 @@ import {
     isLicenseExpiring,
     isTrialLicense,
     licenseSKUWithFirstLetterCapitalized,
-    isEnterpriseLicense
+    isEnterpriseLicense,
 } from 'utils/license_utils';
 
 import type {ModalData} from 'types/actions';

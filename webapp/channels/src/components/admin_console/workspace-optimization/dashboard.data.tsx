@@ -236,7 +236,7 @@ const useMetricsData = (
     const isLicensed = license?.IsLicensed === 'true' && daysUntilExpiration >= 0;
 
     const isCloud = license?.Cloud === 'true';
-    const isEnterpriseLicense = isEnterpriseLicense(license);
+    const isEnterprise = isEnterpriseLicense(license);
     const isStarterLicense = getIsStarterLicense(license);
 
     const [, contactSalesLink] = useOpenSalesLink();
@@ -248,13 +248,13 @@ const useMetricsData = (
 
     const options: Options = useMemo(() => ({
         isLicensed,
-        isEnterpriseLicense,
+        isEnterpriseLicense: isEnterprise,
         trialOrEnterpriseCtaConfig,
         isStarterLicense,
         isCloud,
         analytics,
         installedVersion,
-    }), [isLicensed, isEnterpriseLicense, trialOrEnterpriseCtaConfig, isStarterLicense, isCloud, analytics, installedVersion]);
+    }), [isLicensed, isEnterprise, trialOrEnterpriseCtaConfig, isStarterLicense, isCloud, analytics, installedVersion]);
 
     useEffect(() => {
         setLoading(true);
