@@ -46,6 +46,7 @@
     "jsx-a11y/role-supports-aria-props": "warn",
     "jsx-a11y/scope": "error",
     "jsx-a11y/tabindex-no-positive": "warn",
+    "@mattermost/no-props-destructuring": "error",
     "react/display-name": [
       0,
       {

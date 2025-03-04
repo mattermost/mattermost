@@ -17,5 +17,6 @@ module.exports = {
     rules: {
         'no-dispatch-getstate': require('./rules/no-dispatch-getstate'),
         'use-external-link': require('./rules/use-external-link'),
+        'no-props-destructuring': require('./rules/no-props-destructuring'),
     },
 };
