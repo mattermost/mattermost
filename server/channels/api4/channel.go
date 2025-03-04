@@ -378,7 +378,8 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if patch.BannerInfo != nil {
-		if appErr := model.MinimumPremiumLicense(c.App.License()); appErr != nil {
+		appErr = model.MinimumPremiumLicense(c.App.License())
+		if appErr != nil {
 			appErr.Where = "patchChannel"
 			c.Err = appErr
 			return

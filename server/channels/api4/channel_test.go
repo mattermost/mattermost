@@ -714,7 +714,7 @@ func TestPatchChannel(t *testing.T) {
 		defer func() {
 			th.App.Srv().RemoveLicense()
 		}()
-		
+
 		client.Logout(context.Background())
 		th.LoginBasic()
 
