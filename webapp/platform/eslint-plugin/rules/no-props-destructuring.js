@@ -12,7 +12,7 @@ module.exports = {
             category: "Best Practices",
             recommended: true
         },
-        fixable: "code", // Mark as auto-fixable
+        fixable: null, // Disable auto-fix for now
         schema: []
     },
 
@@ -49,42 +49,6 @@ module.exports = {
             return false;
         }
 
-        // Helper to fix destructured props
-        function fixDestructuring(fixer, node, firstParam) {
-            const sourceCode = context.getSourceCode();
-            const paramText = sourceCode.getText(firstParam);
-            const newParamText = 'props';
-            
-            // Get all the destructured properties
-            const properties = firstParam.properties || [];
-            const fixes = [
-                // Replace the destructured parameter with 'props'
-                fixer.replaceText(firstParam, newParamText)
-            ];
-            
-            // For each destructured property, replace its usage in the function body
-            properties.forEach(prop => {
-                if (prop.key && prop.key.name) {
-                    const propName = prop.key.name;
-                    const localName = prop.value ? prop.value.name : propName;
-                    
-                    // Find all references to this property in the function body
-                    const scope = context.getScope();
-                    const variable = scope.variables.find(v => v.name === localName);
-                    
-                    if (variable) {
-                        variable.references.forEach(ref => {
-                            if (ref.identifier.parent && ref.identifier.parent.type !== 'MemberExpression') {
-                                fixes.push(fixer.replaceText(ref.identifier, `props.${propName}`));
-                            }
-                        });
-                    }
-                }
-            });
-            
-            return fixes;
-        }
-
         return {
             // Check function declarations that might be components
             FunctionDeclaration(node) {
@@ -94,8 +58,7 @@ module.exports = {
                         (isComponentName(node.id.name) || isReactComponent(node))) {
                         context.report({
                             node: firstParam,
-                            message: "Props should not be destructured in functional components. Use props.propName instead.",
-                            fix: fixer => fixDestructuring(fixer, node, firstParam)
+                            message: "Props should not be destructured in functional components. Use props.propName instead."
                         });
                     }
                 }
@@ -112,8 +75,7 @@ module.exports = {
                             isReactComponent(node)) {
                             context.report({
                                 node: firstParam,
-                                message: "Props should not be destructured in functional components. Use props.propName instead.",
-                                fix: fixer => fixDestructuring(fixer, node, firstParam)
+                                message: "Props should not be destructured in functional components. Use props.propName instead."
                             });
                         }
                     }
@@ -131,8 +93,7 @@ module.exports = {
                             isReactComponent(node)) {
                             context.report({
                                 node: firstParam,
-                                message: "Props should not be destructured in functional components. Use props.propName instead.",
-                                fix: fixer => fixDestructuring(fixer, node, firstParam)
+                                message: "Props should not be destructured in functional components. Use props.propName instead."
                             });
                         }
                     }
