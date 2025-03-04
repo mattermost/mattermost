@@ -3965,7 +3965,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:    "Include syncable sources only",
-			Opts:    model.GroupSearchOpts{IncludeSyncableSources: true},
+			Opts:    model.GroupSearchOpts{OnlySyncableSources: true},
 			Page:    0,
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
@@ -3980,7 +3980,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:    "Include syncable sources with specific source",
-			Opts:    model.GroupSearchOpts{IncludeSyncableSources: true, Source: model.GroupSourceLdap},
+			Opts:    model.GroupSearchOpts{OnlySyncableSources: true, Source: model.GroupSourceLdap},
 			Page:    0,
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {

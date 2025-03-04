@@ -1713,7 +1713,7 @@ func TestGetGroups(t *testing.T) {
 		})
 	})
 
-	t.Run("include_syncable_sources parameter", func(t *testing.T) {
+	t.Run("only_syncable_sources parameter", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableCustomGroups = true
 		})
@@ -1729,7 +1729,7 @@ func TestGetGroups(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		// First test without include_syncable_sources
+		// First test without only_syncable_sources
 		opts := model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
 				Page:    0,
@@ -1741,7 +1741,7 @@ func TestGetGroups(t *testing.T) {
 		// Should return all groups regardless of source when not specified
 		assert.Len(t, groups, 3) // group, and group2
 
-		// Test with custom groups disabled and include_syncable_sources=true
+		// Test with custom groups disabled and only_syncable_sources=true
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableCustomGroups = false
 		})
@@ -1758,8 +1758,8 @@ func TestGetGroups(t *testing.T) {
 			*cfg.ServiceSettings.EnableCustomGroups = true
 		})
 
-		// Test with include_syncable_sources=true
-		opts.IncludeSyncableSources = true
+		// Test with only_syncable_sources=true
+		opts.OnlySyncableSources = true
 		groups, _, err = th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
 		// Should only return groups from syncable sources (LDAP and plugin_ groups)

@@ -153,8 +153,8 @@ type GroupSearchOpts struct {
 	// Only return archived groups
 	FilterArchived bool
 
-	// IncludeSyncableSources filters the groups to only those that are syncable
-	IncludeSyncableSources bool
+	// OnlySyncableSources filters the groups to only those that are syncable
+	OnlySyncableSources bool
 }
 
 type GetGroupOpts struct {
