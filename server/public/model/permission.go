@@ -333,6 +333,9 @@ var PermissionSysconsoleWriteIntegrationsGif *Permission
 var PermissionSysconsoleReadIntegrationsCors *Permission
 var PermissionSysconsoleWriteIntegrationsCors *Permission
 
+var PermissionSysconsoleReadIntegrationsEmbedding *Permission
+var PermissionSysconsoleWriteIntegrationsEmbedding *Permission
+
 var PermissionSysconsoleReadCompliance *Permission
 var PermissionSysconsoleWriteCompliance *Permission
 
@@ -1956,6 +1959,18 @@ func initializePermissions() {
 		"",
 		PermissionScopeSystem,
 	}
+	PermissionSysconsoleReadIntegrationsEmbedding = &Permission{
+		"sysconsole_read_integrations_embedding",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionSysconsoleWriteIntegrationsEmbedding = &Permission{
+		"sysconsole_write_integrations_embedding",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
 	// DEPRECATED
 	PermissionSysconsoleReadCompliance = &Permission{
 		"sysconsole_read_compliance",
@@ -2285,6 +2300,7 @@ func initializePermissions() {
 		PermissionSysconsoleReadIntegrationsBotAccounts,
 		PermissionSysconsoleReadIntegrationsGif,
 		PermissionSysconsoleReadIntegrationsCors,
+		PermissionSysconsoleReadIntegrationsEmbedding,
 		PermissionSysconsoleReadComplianceDataRetentionPolicy,
 		PermissionSysconsoleReadComplianceComplianceExport,
 		PermissionSysconsoleReadComplianceComplianceMonitoring,
@@ -2344,6 +2360,7 @@ func initializePermissions() {
 		PermissionSysconsoleWriteIntegrationsBotAccounts,
 		PermissionSysconsoleWriteIntegrationsGif,
 		PermissionSysconsoleWriteIntegrationsCors,
+		PermissionSysconsoleWriteIntegrationsEmbedding,
 		PermissionSysconsoleWriteComplianceDataRetentionPolicy,
 		PermissionSysconsoleWriteComplianceComplianceExport,
 		PermissionSysconsoleWriteComplianceComplianceMonitoring,
