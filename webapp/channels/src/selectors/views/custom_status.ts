@@ -30,7 +30,7 @@ export function makeGetCustomStatus(): (state: GlobalState, userID?: string) => 
             if (userProps.customStatus) {
                 try {
                     customStatus = JSON.parse(userProps.customStatus);
-                } catch (error) {
+                } catch {
                     // do nothing if invalid, return undefined custom status.
                 }
             }

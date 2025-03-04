@@ -52,7 +52,7 @@ function incomingHooks(state: IDMappedObjects<IncomingWebhook> = {}, action: MMR
     }
 }
 
-function incomingHooksTotalCount(state: number = 0, action: MMReduxAction) {
+function incomingHooksTotalCount(state = 0, action: MMReduxAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_INCOMING_HOOKS_TOTAL_COUNT: {
         return action.data;

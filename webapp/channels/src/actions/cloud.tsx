@@ -29,7 +29,7 @@ export function validateBusinessEmail(email = '') {
         try {
             const res = await Client4.validateBusinessEmail(email);
             return res.data.is_valid;
-        } catch (error) {
+        } catch {
             return false;
         }
     };
@@ -41,7 +41,7 @@ export function validateWorkspaceBusinessEmail() {
         try {
             const res = await Client4.validateWorkspaceBusinessEmail();
             return res.data.is_valid;
-        } catch (error) {
+        } catch {
             return false;
         }
     };

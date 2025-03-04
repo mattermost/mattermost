@@ -100,7 +100,7 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                         const errorResponse = JSON.parse(xhr.response);
                         errorMessage =
                         (errorResponse?.id && errorResponse?.message) ? localizeMessage({id: errorResponse.id, defaultMessage: errorResponse.message}) : localizeMessage({id: 'file_upload.generic_error', defaultMessage: 'There was a problem uploading your files.'});
-                    } catch (e) {
+                    } catch {
                         errorMessage = localizeMessage({id: 'file_upload.generic_error', defaultMessage: 'There was a problem uploading your files.'});
                     }
 

@@ -33,8 +33,8 @@ type Team = {
     schemeAdmin?: boolean;
 };
 export default class GroupTeamsAndChannels extends React.PureComponent<
-Props,
-State
+    Props,
+    State
 > {
     constructor(props: Props) {
         super(props);

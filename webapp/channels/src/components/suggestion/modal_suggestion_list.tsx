@@ -5,7 +5,7 @@ import React from 'react';
 
 import SuggestionList from 'components/suggestion/suggestion_list';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface SuggestionItem {}
 
 type SuggestionListProps = {

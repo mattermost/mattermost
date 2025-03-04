@@ -101,8 +101,8 @@ const messages: Record<string, MessageDescriptor> =
     });
 
 const SearchFileExtensionSuggestion = React.forwardRef<
-HTMLDivElement,
-SuggestionProps<ExtensionItem>
+    HTMLDivElement,
+    SuggestionProps<ExtensionItem>
 >(({item, onClick, matchedPretext, isSelection}, ref) => {
     const intl = useIntl();
 

@@ -673,6 +673,7 @@ export function makeGetProfilesNotInChannel(): (state: GlobalState, channelId: C
     );
 }
 
+/* eslint-disable @stylistic/ts/indent */
 export function makeGetProfilesByIdsAndUsernames(): (
     state: GlobalState,
     props: {
@@ -713,6 +714,7 @@ export function makeGetProfilesByIdsAndUsernames(): (
         },
     );
 }
+/* eslint-enable @stylistic/ts/indent */
 
 export function makeGetDisplayName(): (state: GlobalState, userId: UserProfile['id'], useFallbackUsername?: boolean) => string {
     return createSelector(

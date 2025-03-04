@@ -1176,7 +1176,7 @@ export function clearFileInput(elm: HTMLInputElement) {
             elm.type = 'text';
             elm.type = 'file';
         }
-    } catch (e) {
+    } catch {
         // Do nothing
     }
 }

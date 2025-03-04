@@ -55,7 +55,7 @@ function SelfHostedContent(props: ContentProps) {
                 const professionalProduct = products.find((prod) => prod.sku === LicenseSkus.Professional && prod.recurring_interval === RecurringIntervals.YEAR);
                 const price = professionalProduct ? professionalProduct.price_per_seat.toString() : FALL_BACK_PROFESSIONAL_PRICE;
                 setProfessionalPrice(`$${price}`);
-            } catch (error) {
+            } catch {
                 setProfessionalPrice(`$${FALL_BACK_PROFESSIONAL_PRICE}`);
             }
         }

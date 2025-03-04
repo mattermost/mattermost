@@ -19,7 +19,7 @@ import {getProfilesByIds} from './users';
 
 import {General, Emoji} from '../constants';
 
-export let systemEmojis: Set<string> = new Set();
+export let systemEmojis = new Set<string>();
 export function setSystemEmojis(emojis: Set<string>) {
     systemEmojis = emojis;
 }

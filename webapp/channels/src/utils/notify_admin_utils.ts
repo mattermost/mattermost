@@ -3,7 +3,6 @@
 
 import {MattermostFeatures} from './constants';
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export function mapFeatureIdToTranslation(id: string, formatMessage: Function): string {
     switch (id) {
     case MattermostFeatures.GUEST_ACCOUNTS:

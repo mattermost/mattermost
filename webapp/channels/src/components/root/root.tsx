@@ -129,7 +129,7 @@ export default class Root extends React.PureComponent<Props, State> {
             if (this.props.siteURL !== '') {
                 try {
                     rudderCfg.setCookieDomain = new URL(this.props.siteURL || '').hostname;
-                } catch (_) {
+                } catch {
                     // eslint-disable-next-line no-console
                     console.error('Failed to set cookie domain for RudderStack');
                 }

@@ -47,7 +47,7 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
 
             try {
                 this.setState({copiedLink: document.execCommand('copy')});
-            } catch (err) {
+            } catch {
                 this.setState({copiedLink: false});
             }
         }

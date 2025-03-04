@@ -32,8 +32,8 @@ type State = {
 };
 
 export default class GroupTeamsAndChannelsRow extends React.PureComponent<
-Props,
-State
+    Props,
+    State
 > {
     constructor(props: Props) {
         super(props);
