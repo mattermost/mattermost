@@ -4601,11 +4601,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Версія 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Версія 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
