@@ -378,6 +378,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
                     type='button'
                     className='btn btn-danger'
                     onClick={handleArchiveChannel}
+                    id='channelSettingsArchiveChannelButton'
                 >
                     <FormattedMessage
                         id='channel_settings.archive.button'
@@ -407,6 +408,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
             uiName: formatMessage({id: 'channel_settings.tab.archive', defaultMessage: 'Archive Channel'}),
             icon: 'icon icon-archive-outline',
             iconTitle: formatMessage({id: 'generic_icons.archive', defaultMessage: 'Archive Icon'}),
+            newGroup: true,
         },
     ];
 
@@ -473,14 +475,20 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
             )}
 
             {/* Confirmation Modal for archiving channel */}
-            <ConfirmationModal
-                show={showArchiveConfirmModal}
-                title={formatMessage({id: 'channel_settings.modal.archiveTitle', defaultMessage: 'Archive Channel?'})}
-                message={formatMessage({id: 'channel_settings.modal.archiveMsg', defaultMessage: 'Are you sure you want to archive this channel? This action cannot be undone.'})}
-                confirmButtonText={formatMessage({id: 'channel_settings.modal.confirmArchive', defaultMessage: 'Yes, Archive'})}
-                onConfirm={doArchiveChannel}
-                onCancel={() => setShowArchiveConfirmModal(false)}
-            />
+            {showArchiveConfirmModal &&
+                <ConfirmationModal
+                    id='archiveChannelConfirmModal'
+                    show={true}
+                    title={formatMessage({id: 'channel_settings.modal.archiveTitle', defaultMessage: 'Archive Channel?'})}
+                    message={formatMessage({id: 'channel_settings.modal.archiveMsg', defaultMessage: 'Are you sure you want to archive this channel? This action cannot be undone.'})}
+                    confirmButtonText={formatMessage({id: 'channel_settings.modal.confirmArchive', defaultMessage: 'Yes, Archive'})}
+                    onConfirm={doArchiveChannel}
+                    onCancel={() => setShowArchiveConfirmModal(false)}
+                    confirmButtonClass='btn-danger'
+                    modalClass='archiveChannelConfirmModal'
+                    focusOriginElement='channelSettingsArchiveChannelButton'
+                />
+            }
         </GenericModal>
     );
 }

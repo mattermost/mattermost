@@ -13,6 +13,8 @@ type Props = {
     hasText?: boolean;
     hasExceededCharacterLimit?: boolean;
     updatePreview?: (showPreview: boolean) => void;
+    showPreviewLinkAsIcon?: boolean;
+    iconOnly?: boolean;
 };
 
 function TextboxLinks({
@@ -21,6 +23,8 @@ function TextboxLinks({
     hasText = false,
     hasExceededCharacterLimit = false,
     updatePreview,
+    showPreviewLinkAsIcon = false,
+    iconOnly = false,
 }: Props) {
     const togglePreview = (e: MouseEvent) => {
         e.preventDefault();
@@ -46,6 +50,15 @@ function TextboxLinks({
         );
     }
 
+    const previewCallToActionElement = (showPreviewLinkAsIcon || iconOnly) ? (
+        <i className='icon icon-eye-outline'/>
+    ) : (
+        <FormattedMessage
+            id='textbox.preview'
+            defaultMessage='Preview'
+        />
+    );
+
     const previewLink = (
         <button
             id='previewLink'
@@ -54,12 +67,7 @@ function TextboxLinks({
         >
             {showPreview ? (
                 editHeader
-            ) : (
-                <FormattedMessage
-                    id='textbox.preview'
-                    defaultMessage='Preview'
-                />
-            )}
+            ) : previewCallToActionElement}
         </button>
     );
 
@@ -111,6 +119,12 @@ function TextboxLinks({
         </div>
     );
 
+    // If iconOnly is true, only return the preview button
+    if (iconOnly) {
+        return previewLink;
+    }
+
+    // Otherwise, return the full component
     return (
         <div className={'help__text ' + helpTextClass}>
             {helpText}
