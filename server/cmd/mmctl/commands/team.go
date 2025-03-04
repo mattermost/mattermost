@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands/constants"
 	"sort"
 
 	"github.com/hashicorp/go-multierror"
@@ -38,7 +37,7 @@ var DeleteTeamsCmd = &cobra.Command{
 	Short: "Delete teams",
 	Long: `Permanently delete some teams.
 Permanently deletes a team along with all related information including posts from the database.
-In order to use this command ServiceSettings.EnableAPITeamDeletion must be set to true. See ` + constants.CONFIG_DOCUMENTATION_URL + ` for more information.`,
+In order to use this command ServiceSettings.EnableAPITeamDeletion must be set to true. See ` + CONFIG_DOCUMENTATION_URL + ` for more information.`,
 	Example: "  team delete myteam",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(deleteTeamsCmdF),
