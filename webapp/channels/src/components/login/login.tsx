@@ -58,6 +58,7 @@ import type {GlobalState} from 'types/store';
 import LoginMfa from './login_mfa';
 
 import './login.scss';
+import { isEmbedded } from 'utils/embed';
 
 const MOBILE_SCREEN_WIDTH = 1200;
 
@@ -164,7 +165,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 icon: <LoginGitlabIcon/>,
                 label: GitLabButtonText || formatMessage({id: 'login.gitlab', defaultMessage: 'GitLab'}),
                 style: {color: GitLabButtonColor, borderColor: GitLabButtonColor},
-                onClick: desktopExternalAuth(url),
+                onClick: handleExternalAuth(url, 'gitlab'),
             });
         }
 
@@ -175,7 +176,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 url,
                 icon: <LoginGoogleIcon/>,
                 label: formatMessage({id: 'login.google', defaultMessage: 'Google'}),
-                onClick: desktopExternalAuth(url),
+                onClick: handleExternalAuth(url, 'google'),
             });
         }
 
@@ -186,8 +187,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 url,
                 icon: <EntraIdIcon/>,
                 label: formatMessage({id: 'login.office365', defaultMessage: 'Entra ID'}),
-                onClick: desktopExternalAuth(url),
-                target: '_blank',
+                onClick: handleExternalAuth(url, 'office365'),
             });
         }
 
@@ -199,7 +199,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 icon: <LoginOpenIDIcon/>,
                 label: OpenIdButtonText || formatMessage({id: 'login.openid', defaultMessage: 'Open ID'}),
                 style: {color: OpenIdButtonColor, borderColor: OpenIdButtonColor},
-                onClick: desktopExternalAuth(url),
+                onClick: handleExternalAuth(url, 'openid'),
             });
         }
 
@@ -210,20 +210,33 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 url,
                 icon: <LockIcon/>,
                 label: SamlLoginButtonText || formatMessage({id: 'login.saml', defaultMessage: 'SAML'}),
-                onClick: desktopExternalAuth(url),
+                onClick: handleExternalAuth(url, 'saml'),
             });
         }
 
         return externalLoginOptions;
     };
 
-    const desktopExternalAuth = (href: string) => {
+    const handleExternalAuth = (href: string, provider: string) => {
         return (event: React.MouseEvent) => {
+            // If the user is running the desktop app, we need to redirect them to the desktop login page
             if (isDesktopApp()) {
                 event.preventDefault();
 
                 setDesktopLoginLink(href);
                 history.push(`/login/desktop${search}`);
+            }
+
+            // If the user is running the app in an embedded view, we need send the parent window a message
+            // to continue the login process.
+            if (isEmbedded()) {
+                event.preventDefault();
+
+                window.parent.postMessage({
+                    type: 'mattermost_external_auth_login',
+                    provider,
+                    href,
+                }, '*');
             }
         };
     };
