@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
 
+	"github.com/mattermost/mattermost/server/v8/cmd/mattermost/commands"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
@@ -36,8 +37,7 @@ var DeleteTeamsCmd = &cobra.Command{
 	Use:   "delete [teams]",
 	Short: "Delete teams",
 	Long: `Permanently delete some teams.
-Permanently deletes a team along with all related information including posts from the database.
-In order to use this command ServiceSettings.EnableAPITeamDeletion must be set to true. See ` + CONFIG_DOCUMENTATION_URL + ` for more information.`,
+Permanently deletes a team along with all related information including posts from the database.`,
 	Example: "  team delete myteam",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(deleteTeamsCmdF),
@@ -303,6 +303,15 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	app, err := commands.InitDBCommandContextCobra(cmd)
+	if err != nil {
+		printer.PrintT("App initialization failed: %s", err.Error())
+		return err
+	}
+	deleteEnabled := app.Config().ServiceSettings.EnableAPITeamDeletion
+	if deleteEnabled == nil || !*deleteEnabled {
+		return errors.New("ServiceSettings.EnableAPITeamDeletion must be set to true to use this command. See " + CONFIG_DOCUMENTATION_URL + " for more information")
+	}
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
 		if err := getConfirmation("Are you sure you want to delete the teams specified?  All data will be permanently deleted?", true); err != nil {
