@@ -5836,7 +5836,7 @@ const AdminDefinition: AdminDefinitionType = {
             embedding: {
                 url: 'integrations/embedding',
                 title: defineMessage({id: 'admin.sidebar.embedding', defaultMessage: 'Embedding'}),
-                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.EMBEDDING)),
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.CORS)), // MM-63356: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.EMBEDDING)),
                 schema: {
                     id: 'EmbeddingSettings',
                     name: defineMessage({id: 'admin.integrations.embedding', defaultMessage: 'Embedding'}),
@@ -5846,7 +5846,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.FrameAncestors',
                             label: defineMessage({id: 'admin.customization.frameAncestorTitle', defaultMessage: 'Frame Ancestors:'}),
                             help_text: defineMessage({id: 'admin.customization.frameAncestorDesc', defaultMessage: 'Allows the Mattermost web client to be embedded in other websites. Enter a space-separated list of domains that are allowed to embed the Mattermost web client. Leave blank to disallow embedding.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.EMBEDDING)),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.CORS)), // MM-63356: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.EMBEDDING)),
                         },
                     ],
                 },
