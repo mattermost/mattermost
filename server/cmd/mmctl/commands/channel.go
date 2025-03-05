@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/mattermost/mattermost/server/v8/cmd/mattermost/commands"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
@@ -78,8 +79,7 @@ var DeleteChannelsCmd = &cobra.Command{
 	Use:   "delete [channels]",
 	Short: "Delete channels",
 	Long: `Permanently delete some channels.
-Permanently deletes one or multiple channels along with all related information including posts from the database.
-In order to use this command ServiceSettings.EnableAPIChannelDeletion must be set to true. See ` + CONFIG_DOCUMENTATION_URL + ` for more information.`,
+Permanently deletes one or multiple channels along with all related information including posts from the database.`,
 	Example: "  channel delete myteam:mychannel",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(deleteChannelsCmdF),
@@ -613,6 +613,15 @@ func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, error
 }
 
 func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	app, err := commands.InitDBCommandContextCobra(cmd)
+	if err != nil {
+		printer.PrintT("App initialization failed: %s", err.Error())
+		return err
+	}
+	deleteEnabled := app.Config().ServiceSettings.EnableAPIChannelDeletion
+	if deleteEnabled == nil || !*deleteEnabled {
+		return errors.New("ServiceSettings.EnableAPIChannelDeletion must be set to true to use this command. See " + CONFIG_DOCUMENTATION_URL + " for more information")
+	}
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
 		if err := getConfirmation("Are you sure you want to delete the channels specified? All data will be permanently deleted?", true); err != nil {
