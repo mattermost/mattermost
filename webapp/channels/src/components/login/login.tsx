@@ -48,6 +48,7 @@ import PasswordInput from 'components/widgets/inputs/password_input/password_inp
 
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
+import {isEmbedded} from 'utils/embed';
 import {t} from 'utils/i18n';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp} from 'utils/user_agent';
@@ -58,7 +59,6 @@ import type {GlobalState} from 'types/store';
 import LoginMfa from './login_mfa';
 
 import './login.scss';
-import { isEmbedded } from 'utils/embed';
 
 const MOBILE_SCREEN_WIDTH = 1200;
 
