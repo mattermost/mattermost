@@ -346,7 +346,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
 	})
 
-	t.Run("static, with subpath", func(t *testing.T) {
+	t.Run("static, with subpath and frame ancestors", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
@@ -367,6 +367,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = *cfg.ServiceSettings.SiteURL + "/subpath"
+			*cfg.ServiceSettings.FrameAncestors = "teams.microsoft.com *.cloud.microsoft"
 		})
 
 		web := New(th.Server)
