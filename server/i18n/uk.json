@@ -10442,5 +10442,25 @@
   {
     "id": "ent.message_export.job_data_conversion.app_error",
     "translation": "Не вдалося перетворити значення з поля даних завдання."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Колір банера каналу не може бути порожнім, якщо банер каналу увімкнено"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Банер каналу можна налаштувати лише на публічних та приватних каналах"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Інформаційний текст банера каналу не може бути порожнім, якщо банер каналу увімкнено"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Текст інформації про банер каналу занадто довгий. Максимально допустима довжина - {{.maxLength}} символів."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Банер каналу можна налаштувати лише на публічних та приватних каналах."
   }
 ]
