@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback, useMemo} from 'react';
-import type {ValueType} from 'react-select';
+import type {OnChangeValue} from 'react-select';
 import ReactSelect from 'react-select';
 
 import FormError from 'components/form_error';
@@ -23,7 +23,7 @@ interface Props {
     disabled?: boolean;
     setByEnv: boolean;
     helpText?: React.ReactNode;
-    noResultText?: React.ReactNode;
+    noOptionsMessage?: React.ReactNode;
 }
 
 const getOptionLabel = ({text}: { text: string}) => text;
@@ -37,11 +37,11 @@ const MultiSelectSetting: React.FC<Props> = ({
     disabled = false,
     setByEnv,
     helpText,
-    noResultText,
+    noOptionsMessage,
 }) => {
     const [error, setError] = useState(false);
 
-    const handleChange = useCallback((newValue: ValueType<Option>) => {
+    const handleChange = useCallback((newValue: OnChangeValue<Option, true>) => {
         const updatedValues = newValue ? (newValue as Option[]).map((n) => {
             return n.value;
         }) : [];
@@ -80,9 +80,9 @@ const MultiSelectSetting: React.FC<Props> = ({
                 getOptionLabel={getOptionLabel}
                 options={values}
                 delimiter={','}
-                clearable={false}
+                isClearable={false}
                 isDisabled={disabled || setByEnv}
-                noResultsText={noResultText}
+                noOptionsMessage={() => noOptionsMessage}
                 onChange={handleChange}
                 value={calculatedValue}
             />

@@ -311,7 +311,7 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 		connRes.ActiveQueue = aq
 		connRes.ReuseCount = queues.ReuseCount
 
-		// parse the dq, wc.addToDeadQ()
+		// parse the deadq
 		if queues.DeadQ != nil {
 			dq, dqPtr, err := ps.UnmarshalDQ(queues.DeadQ)
 			if err != nil {
@@ -322,7 +322,9 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 				return nil
 			}
 
-			if dqPtr > 0 {
+			// We check if atleast one item has been written.
+			// Length of dq is always guaranteed to be deadQueueSize.
+			if dq[0] != nil {
 				connRes.DeadQueue = dq
 				connRes.DeadQueuePointer = dqPtr
 			}
@@ -679,6 +681,14 @@ func (h *Hub) Start() {
 					for _, webConn := range targetConns {
 						broadcast(webConn)
 					}
+					continue
+				}
+
+				// There are multiple hubs in a system. So while supporting both channel based iteration and the old
+				// method, there would be events scoped to a channel being sent to multiple hubs. And only one hub would
+				// have the targetConns. Therefore, we need to stop here if channel based iteration is enabled, and it's a
+				// channel-scoped event.
+				if channelID := msg.GetBroadcast().ChannelId; channelID != "" && *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
 					continue
 				}
 

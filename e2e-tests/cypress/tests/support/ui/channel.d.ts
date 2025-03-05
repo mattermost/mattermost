@@ -41,6 +41,15 @@ declare namespace Cypress {
         uiAddUsersToCurrentChannel(usernameList: string[]);
 
         /**
+         * Invite users to the current channel.
+         * @param {string[]} usernameList - list of userids to be invited to the channel
+         *
+         * @example
+         *   cy.uiInviteUsersToCurrentChannel(['user1', 'user2']);
+         */
+        uiInviteUsersToCurrentChannel(usernameList: string[]);
+
+        /**
          * Archive the current channel.
          *
          * @example

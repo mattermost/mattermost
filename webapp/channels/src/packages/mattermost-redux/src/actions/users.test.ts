@@ -1776,4 +1776,31 @@ describe('Actions.Users', () => {
             expect(profiles).toBe(originalState.entities.users.profiles);
         });
     });
+
+    it('getCustomProfileAttributeValues', async () => {
+        const userID = 'user1';
+        nock(Client4.getUserRoute(userID) + '/custom_profile_attributes').
+            get('').
+            query(true).
+            reply(200, {field1: 'value1', field2: 'value2'});
+
+        const originalState = {
+            entities: {
+                users: {
+                    profiles: {
+                        user1: {id: userID},
+                    },
+                },
+            },
+        };
+        store = configureStore(originalState);
+
+        await store.dispatch(Actions.getCustomProfileAttributeValues(userID));
+        const customProfileAttributeValues = store.getState().entities.users.profiles[userID].custom_profile_attributes;
+
+        // Check a few basic fields since they may change over time
+        expect(Object.keys(customProfileAttributeValues).length).toEqual(2);
+        expect(customProfileAttributeValues.field1).toEqual('value1');
+        expect(customProfileAttributeValues.field2).toEqual('value2');
+    });
 });

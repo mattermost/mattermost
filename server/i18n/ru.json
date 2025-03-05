@@ -3997,7 +3997,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Недопустимый идентификатор."
+    "translation": "Неверный идентификатор: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -5665,11 +5665,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 130+"
+    "translation": "Версия 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 130+"
+    "translation": "Версия 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -10054,5 +10054,33 @@
   {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "Невозможно получить программу для чтения zip-файлов."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось создать закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось удалить закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось обновить закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось обновить порядок сортировки закладок канала."
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Невозможно получить закладки для заархивированного канала"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "У вас нет разрешения на удаление этого ресурса."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Невозможно выполнить команду в удаленном канале."
   }
 ]

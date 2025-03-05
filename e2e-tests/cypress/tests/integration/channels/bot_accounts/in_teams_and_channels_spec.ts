@@ -55,7 +55,7 @@ describe('Managing bots in Teams and Channels', () => {
             await client.addToTeam(team.id, bot.user_id);
 
             // # Add bot to channel in team
-            cy.uiAddUsersToCurrentChannel([bot.username]);
+            cy.uiInviteUsersToCurrentChannel([bot.username]);
 
             // * Verify system message in-channel
             cy.uiWaitUntilMessagePostedIncludes(`@${bot.username} added to the channel by you.`);
