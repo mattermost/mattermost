@@ -60,7 +60,7 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pf.SanitizeInput()
+	pf.Name = strings.TrimSpace(pf.Name)
 
 	auditRec := c.MakeAuditRecord("createCPAField", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -105,7 +105,17 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	patch.SanitizeInput()
+	if patch.Name != nil {
+		*patch.Name = strings.TrimSpace(*patch.Name)
+	}
+	if err := patch.IsValid(); err != nil {
+		if appErr, ok := err.(*model.AppError); ok {
+			c.Err = appErr
+		} else {
+			c.Err = model.NewAppError("createCPAField", "api.custom_profile_attributes.invalid_field_patch", nil, "", http.StatusBadRequest)
+		}
+		return
+	}
 
 	auditRec := c.MakeAuditRecord("patchCPAField", audit.Fail)
 	defer c.LogAuditRec(auditRec)

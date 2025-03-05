@@ -8991,11 +8991,11 @@ func (s *RetryLayerPropertyFieldStore) Create(field *model.PropertyField) (*mode
 
 }
 
-func (s *RetryLayerPropertyFieldStore) Delete(id string) error {
+func (s *RetryLayerPropertyFieldStore) Delete(id string, groupID string) error {
 
 	tries := 0
 	for {
-		err := s.PropertyFieldStore.Delete(id)
+		err := s.PropertyFieldStore.Delete(id, groupID)
 		if err == nil {
 			return nil
 		}
@@ -9012,11 +9012,11 @@ func (s *RetryLayerPropertyFieldStore) Delete(id string) error {
 
 }
 
-func (s *RetryLayerPropertyFieldStore) Get(id string) (*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) Get(id string, groupID string) (*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.Get(id)
+		result, err := s.PropertyFieldStore.Get(id, groupID)
 		if err == nil {
 			return result, nil
 		}
@@ -9033,11 +9033,11 @@ func (s *RetryLayerPropertyFieldStore) Get(id string) (*model.PropertyField, err
 
 }
 
-func (s *RetryLayerPropertyFieldStore) GetMany(ids []string) ([]*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) GetMany(ids []string, groupID string) ([]*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.GetMany(ids)
+		result, err := s.PropertyFieldStore.GetMany(ids, groupID)
 		if err == nil {
 			return result, nil
 		}
@@ -9075,11 +9075,11 @@ func (s *RetryLayerPropertyFieldStore) SearchPropertyFields(opts model.PropertyF
 
 }
 
-func (s *RetryLayerPropertyFieldStore) Update(fields []*model.PropertyField) ([]*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) Update(fields []*model.PropertyField, groupID string) ([]*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.Update(fields)
+		result, err := s.PropertyFieldStore.Update(fields, groupID)
 		if err == nil {
 			return result, nil
 		}
@@ -9159,11 +9159,11 @@ func (s *RetryLayerPropertyValueStore) Create(value *model.PropertyValue) (*mode
 
 }
 
-func (s *RetryLayerPropertyValueStore) Delete(id string) error {
+func (s *RetryLayerPropertyValueStore) Delete(id string, groupID string) error {
 
 	tries := 0
 	for {
-		err := s.PropertyValueStore.Delete(id)
+		err := s.PropertyValueStore.Delete(id, groupID)
 		if err == nil {
 			return nil
 		}
@@ -9201,11 +9201,11 @@ func (s *RetryLayerPropertyValueStore) DeleteForField(id string) error {
 
 }
 
-func (s *RetryLayerPropertyValueStore) Get(id string) (*model.PropertyValue, error) {
+func (s *RetryLayerPropertyValueStore) Get(id string, groupID string) (*model.PropertyValue, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyValueStore.Get(id)
+		result, err := s.PropertyValueStore.Get(id, groupID)
 		if err == nil {
 			return result, nil
 		}
@@ -9222,11 +9222,11 @@ func (s *RetryLayerPropertyValueStore) Get(id string) (*model.PropertyValue, err
 
 }
 
-func (s *RetryLayerPropertyValueStore) GetMany(ids []string) ([]*model.PropertyValue, error) {
+func (s *RetryLayerPropertyValueStore) GetMany(ids []string, groupID string) ([]*model.PropertyValue, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyValueStore.GetMany(ids)
+		result, err := s.PropertyValueStore.GetMany(ids, groupID)
 		if err == nil {
 			return result, nil
 		}
@@ -9264,11 +9264,11 @@ func (s *RetryLayerPropertyValueStore) SearchPropertyValues(opts model.PropertyV
 
 }
 
-func (s *RetryLayerPropertyValueStore) Update(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+func (s *RetryLayerPropertyValueStore) Update(values []*model.PropertyValue, groupID string) ([]*model.PropertyValue, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyValueStore.Update(values)
+		result, err := s.PropertyValueStore.Update(values, groupID)
 		if err == nil {
 			return result, nil
 		}

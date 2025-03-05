@@ -1870,6 +1870,10 @@
     "translation": "trying to patch a field that does not exist"
   },
   {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "invalid custom profile attribute field patch"
+  },
+  {
     "id": "api.custom_profile_attributes.license_error",
     "translation": "Your license does not support Custom Profile Attributes."
   },
