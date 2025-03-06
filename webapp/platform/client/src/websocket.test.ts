@@ -224,7 +224,6 @@ describe('websocketclient', () => {
             },
             minWebSocketRetryTime: 1,
             reconnectJitterRange: 1,
-            clientPingEnabled: true,
             clientPingInterval: 1,
         });
 
@@ -281,7 +280,6 @@ describe('websocketclient', () => {
             },
             minWebSocketRetryTime: 1,
             reconnectJitterRange: 1,
-            clientPingEnabled: true,
             clientPingInterval: 1,
         });
 
@@ -351,7 +349,6 @@ describe('websocketclient', () => {
             },
             minWebSocketRetryTime: 1,
             reconnectJitterRange: 1,
-            clientPingEnabled: true,
             clientPingInterval: 15,
         });
 

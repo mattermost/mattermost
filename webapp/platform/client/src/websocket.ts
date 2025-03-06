@@ -16,7 +16,6 @@ export type WebSocketClientConfig = {
     maxWebSocketRetryTime: number;
     reconnectJitterRange: number;
     newWebSocketFn: (url: string) => WebSocket;
-    clientPingEnabled: boolean;
     clientPingInterval: number;
 }
 
@@ -28,7 +27,6 @@ const defaultWebSocketClientConfig: WebSocketClientConfig = {
     newWebSocketFn: (url: string) => {
         return new WebSocket(url);
     },
-    clientPingEnabled: true,
     clientPingInterval: 30000, // 30 seconds
 };
 
@@ -163,31 +161,29 @@ export default class WebSocketClient {
                 this.firstConnectListeners.forEach((listener) => listener());
             }
 
-            if (this.config.clientPingEnabled) {
-                var waitingForPong = false;
-                this.pingInterval = setInterval(
-                    () => {
-                        if (!waitingForPong) {
-                            waitingForPong = true;
-                            this.ping(() => {
-                                waitingForPong = false;
-                            });
-                            return;
-                        }
+            var waitingForPong = false;
+            this.pingInterval = setInterval(
+                () => {
+                    if (!waitingForPong) {
+                        waitingForPong = true;
+                        this.ping(() => {
+                            waitingForPong = false;
+                        });
+                        return;
+                    }
 
-                        console.log('ping received no response within time limit: re-establishing websocket'); //eslint-disable-line no-console
+                    console.log('ping received no response within time limit: re-establishing websocket'); //eslint-disable-line no-console
 
-                        // We are not calling this.close() because we need to auto-restart.
-                        this.connectFailCount = 0;
-                        this.responseSequence = 1;
-                        if (this.pingInterval) {
-                            clearInterval(this.pingInterval);
-                            this.pingInterval = null;
-                        }
-                        this.conn?.close(); // Will auto-reconnect after configured retry time
-                    },
-                    this.config.clientPingInterval);
-            }
+                    // We are not calling this.close() because we need to auto-restart.
+                    this.connectFailCount = 0;
+                    this.responseSequence = 1;
+                    if (this.pingInterval) {
+                        clearInterval(this.pingInterval);
+                        this.pingInterval = null;
+                    }
+                    this.conn?.close(); // Will auto-reconnect after configured retry time
+                },
+                this.config.clientPingInterval);
 
             this.connectFailCount = 0;
         };
