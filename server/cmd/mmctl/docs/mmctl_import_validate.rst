@@ -29,6 +29,7 @@ Options
 
       --check-missing-teams       Check for teams that are not defined but referenced in the archive
       --check-server-duplicates   Set to false to ignore teams, channels, and users already present on the server (default true)
+      --data-path string          The base path for files attached to the export
   -h, --help                      help for validate
       --ignore-attachments        Don't check if the attached files are present in the archive
       --team stringArray          Predefined team[s] to assume as already present on the destination server. Implies --check-missing-teams. The flag can be repeated
