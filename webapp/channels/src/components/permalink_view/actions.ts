@@ -92,7 +92,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
         let postInfo;
         try {
             postInfo = await Client4.getPostInfo(postId);
-        } catch (e) {
+        } catch {
             getHistory().replace(`/error?type=${ErrorPageTypes.PERMALINK_NOT_FOUND}&returnTo=${returnTo}`);
             return;
         }

@@ -79,7 +79,7 @@ abstract class DataLoader<Identifier, Result = unknown> {
  * that the user won't see immediately.
  */
 export class BackgroundDataLoader<Identifier, Result = unknown> extends DataLoader<Identifier, Result> {
-    private intervalId: number = -1;
+    private intervalId = -1;
 
     public startIntervalIfNeeded(ms: number): void {
         if (this.intervalId !== -1) {
@@ -126,7 +126,7 @@ export class BackgroundDataLoader<Identifier, Result = unknown> extends DataLoad
 export class DelayedDataLoader<Identifier> extends DataLoader<Identifier, Promise<unknown>> {
     private readonly wait: number = -1;
 
-    private timeoutId: number = -1;
+    private timeoutId = -1;
     private timeoutCallbacks = new Set<{
         identifiers: Set<Identifier>;
         resolve(): void;

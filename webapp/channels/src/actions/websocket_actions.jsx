@@ -987,6 +987,7 @@ function handleDeleteTeamEvent(msg) {
                 myTeams[t.id] = t;
             });
 
+            // eslint-disable-next-line @typescript-eslint/prefer-for-of
             for (let i = 0; i < teamMembers.length; i++) {
                 const memberTeamId = teamMembers[i].team_id;
                 if (
