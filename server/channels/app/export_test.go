@@ -623,7 +623,7 @@ func TestExportPostWithProps(t *testing.T) {
 		ChannelId: dmChannel.Id,
 		Message:   "aa" + model.NewId() + "a",
 		Props: map[string]any{
-			"attachments": attachments,
+			model.PostPropsAttachments: attachments,
 		},
 		UserId: th1.BasicUser.Id,
 	}
@@ -634,7 +634,7 @@ func TestExportPostWithProps(t *testing.T) {
 		ChannelId: gmChannel.Id,
 		Message:   "dd" + model.NewId() + "a",
 		Props: map[string]any{
-			"attachments": attachments,
+			model.PostPropsAttachments: attachments,
 		},
 		UserId: th1.BasicUser.Id,
 	}
@@ -673,8 +673,8 @@ func TestExportPostWithProps(t *testing.T) {
 	assert.Len(t, posts, 2)
 	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)
 	assert.ElementsMatch(t, dmMembers, *posts[1].ChannelMembers)
-	assert.Contains(t, posts[0].Props["attachments"].([]any)[0], "footer")
-	assert.Contains(t, posts[1].Props["attachments"].([]any)[0], "footer")
+	assert.Contains(t, posts[0].Props[model.PostPropsAttachments].([]any)[0], "footer")
+	assert.Contains(t, posts[1].Props[model.PostPropsAttachments].([]any)[0], "footer")
 }
 
 func TestExportUserCustomStatus(t *testing.T) {
