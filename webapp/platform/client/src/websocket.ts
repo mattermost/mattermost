@@ -177,10 +177,7 @@ export default class WebSocketClient {
                     // We are not calling this.close() because we need to auto-restart.
                     this.connectFailCount = 0;
                     this.responseSequence = 1;
-                    if (this.pingInterval) {
-                        clearInterval(this.pingInterval);
-                        this.pingInterval = null;
-                    }
+                    this.stopPingInterval();
                     this.conn?.close(); // Will auto-reconnect after configured retry time
                 },
                 this.config.clientPingInterval);
@@ -202,10 +199,7 @@ export default class WebSocketClient {
             this.closeListeners.forEach((listener) => listener(this.connectFailCount));
 
             // Make sure we stop pinging if the connection is closed
-            if (this.pingInterval) {
-                clearInterval(this.pingInterval);
-                this.pingInterval = null;
-            }
+            this.stopPingInterval();
 
             // If we've failed a bunch of connections then start backing off
             let retryTime = this.config.minWebSocketRetryTime;
@@ -434,15 +428,19 @@ export default class WebSocketClient {
             clearTimeout(this.reconnectTimeout);
             this.reconnectTimeout = null;
         }
-        if (this.pingInterval) {
-            clearInterval(this.pingInterval);
-            this.pingInterval = null;
-        }
+        this.stopPingInterval();
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
             this.conn.onclose = () => {};
             this.conn.close();
             this.conn = null;
             console.log('websocket closed'); //eslint-disable-line no-console
+        }
+    }
+
+    stopPingInterval() {
+        if (this.pingInterval) {
+            clearInterval(this.pingInterval);
+            this.pingInterval = null;
         }
     }
 
