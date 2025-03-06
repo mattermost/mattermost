@@ -35,7 +35,7 @@ func isValidSkuShortName(license *model.License) bool {
 // `EnableTesting` configuration settings enabled, signaling a non-production, developer mode.
 func IsE10LicensedOrDevelopment(config *model.Config, license *model.License) bool {
 	if license != nil &&
-		model.MinimumProfessionalLicense(license) == nil {
+		model.MinimumProfessionalLicense(license) {
 		return true
 	}
 
@@ -57,7 +57,7 @@ func IsE10LicensedOrDevelopment(config *model.Config, license *model.License) bo
 // Enterprise E20 License or a Mattermost Enterprise License, or has `EnableDeveloper` and
 // `EnableTesting` configuration settings enabled, signaling a non-production, developer mode.
 func IsE20LicensedOrDevelopment(config *model.Config, license *model.License) bool {
-	if license != nil && model.MinimumEnterpriseLicense(license) == nil {
+	if license != nil && model.MinimumEnterpriseLicense(license) {
 		return true
 	}
 

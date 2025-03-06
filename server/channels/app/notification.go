@@ -1465,7 +1465,7 @@ func (a *App) allowChannelMentions(c request.CTX, post *model.Post, numProfiles 
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
 func (a *App) allowGroupMentions(c request.CTX, post *model.Post) bool {
-	if license := a.Srv().License(); license == nil || model.MinimumProfessionalLicense(license) != nil {
+	if license := a.Srv().License(); license == nil || !model.MinimumProfessionalLicense(license) {
 		return false
 	}
 

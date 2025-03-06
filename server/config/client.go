@@ -222,7 +222,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(c.FeatureFlags.EnableRemoteClusterService && *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
 		}
 
-		if model.MinimumProfessionalLicense(license) == nil {
+		if model.MinimumProfessionalLicense(license) {
 			props["EnableCustomGroups"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomGroups)
 			props["PostAcknowledgements"] = "true"
 			props["ScheduledPosts"] = strconv.FormatBool(*c.ServiceSettings.ScheduledPosts)

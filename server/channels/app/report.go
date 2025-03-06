@@ -199,7 +199,7 @@ func (a *App) GetUserCountForReport(filter *model.UserReportOptions) (*int64, *m
 }
 
 func (a *App) StartUsersBatchExport(rctx request.CTX, ro *model.UserReportOptions, startAt int64, endAt int64) *model.AppError {
-	if license := a.Srv().License(); license == nil || model.MinimumProfessionalLicense(license) != nil {
+	if license := a.Srv().License(); license == nil || !model.MinimumProfessionalLicense(license) {
 		return model.NewAppError("StartUsersBatchExport", "app.report.start_users_batch_export.license_error", nil, "", http.StatusBadRequest)
 	}
 

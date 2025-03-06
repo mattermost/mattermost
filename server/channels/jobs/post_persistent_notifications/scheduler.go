@@ -22,7 +22,7 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, _ time.Time, _ b
 func MakeScheduler(jobServer *jobs.JobServer, licenseFunc func() *model.License) *Scheduler {
 	enabledFunc := func(_ *model.Config) bool {
 		l := licenseFunc()
-		return l != nil && model.MinimumProfessionalLicense(l) == nil
+		return l != nil && model.MinimumProfessionalLicense(l)
 	}
 	return &Scheduler{jobs.NewPeriodicScheduler(jobServer, model.JobTypePostPersistentNotifications, 0, enabledFunc)}
 }

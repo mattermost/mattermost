@@ -378,11 +378,8 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if patch.BannerInfo != nil {
-		appErr = model.MinimumPremiumLicense(c.App.License())
-		if appErr != nil {
-			appErr.Where = "patchChannel"
-			c.Err = appErr
-			return
+		if !model.MinimumPremiumLicense(c.App.License()) {
+			c.Err = model.NewAppError("patchChannel", model.NoTranslation, nil, "license is not premium", http.StatusNotImplemented)
 		}
 
 		if originalOldChannel.Type != model.ChannelTypeOpen && originalOldChannel.Type != model.ChannelTypePrivate {
