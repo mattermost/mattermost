@@ -202,7 +202,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 	return true, nil
 }
 
-func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
+func (jss SqlJobStore) Get(rctx request.CTX, id string) (*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -212,7 +212,7 @@ func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
 	}
 
 	var status model.Job
-	if err = jss.GetReplica().Get(&status, query, args...); err != nil {
+	if err = jss.DBXFromContext(rctx.Context()).Get(&status, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Job", id)
 		}
