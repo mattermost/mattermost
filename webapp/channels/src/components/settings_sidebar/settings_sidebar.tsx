@@ -15,6 +15,7 @@ export type Tab = {
     iconTitle: string;
     name: string;
     uiName: string;
+    newGroup?: boolean;
 }
 
 export type Props = {
@@ -84,22 +85,24 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         }
 
         return (
-            <button
-                key={key}
-                ref={this.buttonRefs[index]}
-                id={`${tab.name}Button`}
-                className={classNames('cursor--pointer style--none nav-pills__tab', {active: isActive})}
-                onClick={this.handleClick.bind(null, tab)}
-                onKeyUp={this.handleKeyUp.bind(null, index)}
-                aria-label={tab.uiName.toLowerCase()}
-                role='tab'
-                aria-selected={isActive}
-                tabIndex={!isActive && !this.props.isMobileView ? -1 : 0}
-                aria-controls={`${tab.name}Settings`}
-            >
-                {icon}
-                {tab.uiName}
-            </button>
+            <React.Fragment key={key}>
+                {tab.newGroup && <hr/>}
+                <button
+                    ref={this.buttonRefs[index]}
+                    id={`${tab.name}Button`}
+                    className={classNames('cursor--pointer style--none nav-pills__tab', {active: isActive})}
+                    onClick={this.handleClick.bind(null, tab)}
+                    onKeyUp={this.handleKeyUp.bind(null, index)}
+                    aria-label={tab.uiName.toLowerCase()}
+                    role='tab'
+                    aria-selected={isActive}
+                    tabIndex={!isActive && !this.props.isMobileView ? -1 : 0}
+                    aria-controls={`${tab.name}Settings`}
+                >
+                    {icon}
+                    {tab.uiName}
+                </button>
+            </React.Fragment>
         );
     }
 

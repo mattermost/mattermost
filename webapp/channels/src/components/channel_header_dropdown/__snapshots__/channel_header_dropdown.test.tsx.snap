@@ -71,6 +71,34 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       isFavorite={false}
       show={false}
     />
+    <MenuItemToggleModalRedux
+      dialogProps={
+        Object {
+          "channel": Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "test-channel-id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          },
+        }
+      }
+      dialogType={[Function]}
+      id="channelSettings"
+      modalId="channel_settings"
+      show={true}
+      text="Channel Settings"
+    />
     <Connect(Component)
       channel={
         Object {
@@ -904,6 +932,34 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       }
       isFavorite={false}
       show={false}
+    />
+    <MenuItemToggleModalRedux
+      dialogProps={
+        Object {
+          "channel": Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "test-channel-id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          },
+        }
+      }
+      dialogType={[Function]}
+      id="channelSettings"
+      modalId="channel_settings"
+      show={true}
+      text="Channel Settings"
     />
     <Connect(Component)
       channel={

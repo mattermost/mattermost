@@ -72,7 +72,6 @@ export type Props = {
     openWhenEmpty?: boolean;
     priorityProfiles?: UserProfile[];
     hasLabels?: boolean;
-    isInEditMode?: boolean;
 };
 
 const VISIBLE = {visibility: 'visible'};
