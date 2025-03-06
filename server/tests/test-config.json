@@ -48,6 +48,7 @@
         "PostEditTimeLimit": -1,
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnablePostSearch": true,
+        "EnableOmniSearch": false,
         "MinimumHashtagLength": 3,
         "EnableUserTypingMessages": true,
         "EnableChannelViewedMessages": true,
