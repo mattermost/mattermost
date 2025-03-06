@@ -7,7 +7,7 @@ import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
-import type {Group, SyncablePatch} from '@mattermost/types/groups';
+import type {Group, GroupSource, SyncablePatch} from '@mattermost/types/groups';
 import {SyncableType} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -37,7 +37,7 @@ export type Props = {
     onAddCallback?: (groupIDs: string[]) => void;
 
     actions: {
-        getGroupsNotAssociatedToChannel: (channelID: string, q?: string, page?: number, perPage?: number, filterParentTeamPermitted?: boolean) => Promise<ActionResult>;
+        getGroupsNotAssociatedToChannel: (channelID: string, q?: string, page?: number, perPage?: number, filterParentTeamPermitted?: boolean, source?: GroupSource | string, onlySyncableSources?: boolean) => Promise<ActionResult>;
         setModalSearchTerm: (term: string) => void;
         linkGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>) => Promise<ActionResult>;
         getAllGroupsAssociatedToChannel: (channelID: string, filterAllowReference: boolean, includeMemberCount: boolean) => Promise<ActionResult>;
@@ -80,7 +80,7 @@ export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
         Promise.all([
             this.props.actions.getTeam(this.props.teamID),
             this.props.actions.getAllGroupsAssociatedToTeam(this.props.teamID, false, true),
-            this.props.actions.getGroupsNotAssociatedToChannel(this.props.currentChannelId, '', 0, GROUPS_PER_PAGE + 1, true),
+            this.props.actions.getGroupsNotAssociatedToChannel(this.props.currentChannelId, '', 0, GROUPS_PER_PAGE + 1, true, '', true),
             this.props.actions.getAllGroupsAssociatedToChannel(this.props.currentChannelId, false, true),
         ]).then(() => {
             this.setGroupsLoadingState(false);
@@ -99,7 +99,7 @@ export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
             this.searchTimeoutId = window.setTimeout(
                 async () => {
                     this.setGroupsLoadingState(true);
-                    await this.props.actions.getGroupsNotAssociatedToChannel(this.props.currentChannelId, searchTerm, undefined, undefined, true);
+                    await this.props.actions.getGroupsNotAssociatedToChannel(this.props.currentChannelId, searchTerm, undefined, undefined, true, '', true);
                     this.setGroupsLoadingState(false);
                 },
                 Constants.SEARCH_TIMEOUT_MILLISECONDS,
@@ -168,7 +168,7 @@ export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
     handlePageChange = (page: number, prevPage: number) => {
         if (page > prevPage) {
             this.setGroupsLoadingState(true);
-            this.props.actions.getGroupsNotAssociatedToChannel(this.props.currentChannelId, this.props.searchTerm, page, GROUPS_PER_PAGE + 1, true).then(() => {
+            this.props.actions.getGroupsNotAssociatedToChannel(this.props.currentChannelId, this.props.searchTerm, page, GROUPS_PER_PAGE + 1, true, '', true).then(() => {
                 this.setGroupsLoadingState(false);
             });
         }
