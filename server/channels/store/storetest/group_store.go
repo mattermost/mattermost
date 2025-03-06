@@ -3964,6 +3964,36 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 			Restrictions: nil,
 		},
 		{
+			Name:    "Include syncable sources only",
+			Opts:    model.GroupSearchOpts{OnlySyncableSources: true},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				for _, g := range groups {
+					if g.Source != model.GroupSourceLdap && !strings.HasPrefix(string(g.Source), "plugin_") {
+						return false
+					}
+				}
+				return true
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include syncable sources with specific source",
+			Opts:    model.GroupSearchOpts{OnlySyncableSources: true, Source: model.GroupSourceLdap},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				for _, g := range groups {
+					if g.Source != model.GroupSourceLdap {
+						return false
+					}
+				}
+				return true
+			},
+			Restrictions: nil,
+		},
+		{
 			Name:    "Include archived groups",
 			Opts:    model.GroupSearchOpts{IncludeArchived: true, Q: "group-deleted"},
 			Page:    0,
