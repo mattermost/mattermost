@@ -133,19 +133,6 @@ func TestIsE20LicensedOrDevelopment(t *testing.T) {
 			Features:     &model.Features{FutureFeatures: bToP(true)},
 		}))
 	})
-	t.Run("license with E20 SKU name, disabled future features", func(t *testing.T) {
-		assert.True(t, IsE20LicensedOrDevelopment(nil, &model.License{
-			SkuShortName: "E20",
-			Features:     &model.Features{FutureFeatures: bToP(false)},
-		}))
-	})
-
-	t.Run("license with E20 SKU name, enabled future features", func(t *testing.T) {
-		assert.True(t, IsE20LicensedOrDevelopment(nil, &model.License{
-			SkuShortName: "E20",
-			Features:     &model.Features{FutureFeatures: bToP(true)},
-		}))
-	})
 
 	t.Run("license with enterprise SKU name, disabled future features", func(t *testing.T) {
 		assert.True(t, IsE20LicensedOrDevelopment(nil, &model.License{
@@ -229,20 +216,6 @@ func TestIsE10LicensedOrDevelopment(t *testing.T) {
 		))
 	})
 
-	t.Run("license with E10 SKU name, disabled LDAP", func(t *testing.T) {
-		assert.True(t, IsE10LicensedOrDevelopment(nil, &model.License{
-			SkuShortName: "E10",
-			Features:     &model.Features{LDAP: bToP(false)},
-		}))
-	})
-
-	t.Run("license with E10 SKU name, enabled LDAP", func(t *testing.T) {
-		assert.True(t, IsE10LicensedOrDevelopment(nil, &model.License{
-			SkuShortName: "E10",
-			Features:     &model.Features{LDAP: bToP(true)},
-		}))
-	})
-
 	t.Run("license with professional SKU name, disabled LDAP", func(t *testing.T) {
 		assert.True(t, IsE10LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "professional",
@@ -253,19 +226,6 @@ func TestIsE10LicensedOrDevelopment(t *testing.T) {
 	t.Run("license with professional SKU name, enabled LDAP", func(t *testing.T) {
 		assert.True(t, IsE10LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "professional",
-			Features:     &model.Features{LDAP: bToP(true)},
-		}))
-	})
-	t.Run("license with E20 SKU name, disabled LDAP", func(t *testing.T) {
-		assert.True(t, IsE10LicensedOrDevelopment(nil, &model.License{
-			SkuShortName: "E20",
-			Features:     &model.Features{LDAP: bToP(false)},
-		}))
-	})
-
-	t.Run("license with E20 SKU name, enabled LDAP", func(t *testing.T) {
-		assert.True(t, IsE10LicensedOrDevelopment(nil, &model.License{
-			SkuShortName: "E20",
 			Features:     &model.Features{LDAP: bToP(true)},
 		}))
 	})
