@@ -485,3 +485,189 @@ func TestLicenseHasSharedChannels(t *testing.T) {
 		})
 	}
 }
+
+func TestMinimumProfessionalLicense(t *testing.T) {
+	testCases := []struct {
+		description   string
+		license       *License
+		expectedValue bool
+	}{
+		{
+			"nil license",
+			nil,
+			false,
+		},
+		{
+			"professional license",
+			&License{
+				SkuShortName: LicenseShortSkuProfessional,
+			},
+			true,
+		},
+		{
+			"enterprise license",
+			&License{
+				SkuShortName: LicenseShortSkuEnterprise,
+			},
+			true,
+		},
+		{
+			"premium license",
+			&License{
+				SkuShortName: LicenseShortSkuPremium,
+			},
+			true,
+		},
+		{
+			"E10 license",
+			&License{
+				SkuShortName: LicenseShortSkuE10,
+			},
+			false,
+		},
+		{
+			"E20 license",
+			&License{
+				SkuShortName: LicenseShortSkuE20,
+			},
+			false,
+		},
+		{
+			"unknown license",
+			&License{
+				SkuShortName: "unknown",
+			},
+			false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			assert.Equal(t, testCase.expectedValue, MinimumProfessionalLicense(testCase.license))
+		})
+	}
+}
+
+func TestMinimumEnterpriseLicense(t *testing.T) {
+	testCases := []struct {
+		description   string
+		license       *License
+		expectedValue bool
+	}{
+		{
+			"nil license",
+			nil,
+			false,
+		},
+		{
+			"professional license",
+			&License{
+				SkuShortName: LicenseShortSkuProfessional,
+			},
+			false,
+		},
+		{
+			"enterprise license",
+			&License{
+				SkuShortName: LicenseShortSkuEnterprise,
+			},
+			true,
+		},
+		{
+			"premium license",
+			&License{
+				SkuShortName: LicenseShortSkuPremium,
+			},
+			true,
+		},
+		{
+			"E10 license",
+			&License{
+				SkuShortName: LicenseShortSkuE10,
+			},
+			false,
+		},
+		{
+			"E20 license",
+			&License{
+				SkuShortName: LicenseShortSkuE20,
+			},
+			false,
+		},
+		{
+			"unknown license",
+			&License{
+				SkuShortName: "unknown",
+			},
+			false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			assert.Equal(t, testCase.expectedValue, MinimumEnterpriseLicense(testCase.license))
+		})
+	}
+}
+
+func TestMinimumPremiumLicense(t *testing.T) {
+	testCases := []struct {
+		description   string
+		license       *License
+		expectedValue bool
+	}{
+		{
+			"nil license",
+			nil,
+			false,
+		},
+		{
+			"professional license",
+			&License{
+				SkuShortName: LicenseShortSkuProfessional,
+			},
+			false,
+		},
+		{
+			"enterprise license",
+			&License{
+				SkuShortName: LicenseShortSkuEnterprise,
+			},
+			false,
+		},
+		{
+			"premium license",
+			&License{
+				SkuShortName: LicenseShortSkuPremium,
+			},
+			true,
+		},
+		{
+			"E10 license",
+			&License{
+				SkuShortName: LicenseShortSkuE10,
+			},
+			false,
+		},
+		{
+			"E20 license",
+			&License{
+				SkuShortName: LicenseShortSkuE20,
+			},
+			false,
+		},
+		{
+			"unknown license",
+			&License{
+				SkuShortName: "unknown",
+			},
+			false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			assert.Equal(t, testCase.expectedValue, MinimumPremiumLicense(testCase.license))
+		})
+	}
+}
