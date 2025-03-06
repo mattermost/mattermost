@@ -1,38 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { shallow } from "enzyme";
-import React from "react";
+import {shallow} from 'enzyme';
+import React from 'react';
 
-import type { UserProfile } from "@mattermost/types/users";
+import type {UserProfile} from '@mattermost/types/users';
 
-import UsersEmailsInput from "./users_emails_input";
+import UsersEmailsInput from './users_emails_input';
 
-describe("components/widgets/inputs/UsersEmailsInput", () => {
-    test("should match snapshot", () => {
+describe('components/widgets/inputs/UsersEmailsInput', () => {
+    test('should match snapshot', () => {
         const wrapper = shallow(
             <UsersEmailsInput
-                placeholder="test"
-                ariaLabel="test"
+                placeholder='test'
+                ariaLabel='test'
                 usersLoader={jest.fn()}
                 onChange={jest.fn()}
                 value={[
-                    "test@email.com",
+                    'test@email.com',
                     {
-                        id: "test-user-id",
-                        username: "test-username",
-                        first_name: "test",
-                        last_name: "user",
+                        id: 'test-user-id',
+                        username: 'test-username',
+                        first_name: 'test',
+                        last_name: 'user',
                     } as UserProfile,
                 ]}
                 errorMessage={{
-                    id: "errorMessageId",
-                    defaultMessage: "errorMessageDefault",
+                    id: 'errorMessageId',
+                    defaultMessage: 'errorMessageDefault',
                 }}
                 onInputChange={jest.fn()}
-                inputValue=""
+                inputValue=''
                 emailInvitationsEnabled={false}
-            />
+            />,
         );
         expect(wrapper).toMatchInlineSnapshot(`
             <Fragment>
