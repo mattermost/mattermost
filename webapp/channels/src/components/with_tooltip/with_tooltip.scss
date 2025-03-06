@@ -12,6 +12,12 @@
     text-align: center;
     word-break: break-word;
 
+    &.firstLetterCapitalize{
+        .tooltipContentTitle::first-letter{
+            text-transform: capitalize;
+        }
+    }
+
     > .tooltipContent {
         display: flex;
         flex-direction: column;
