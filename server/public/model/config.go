@@ -2843,11 +2843,14 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppCustomURLSchemes    []string `access:"site_customization,write_restrictable,cloud_restrictable"` // telemetry: none
-	AppDownloadLink        *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	AndroidAppDownloadLink *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	IosAppDownloadLink     *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	MobileExternalBrowser  *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
+	AppCustomURLSchemes        []string `access:"site_customization,write_restrictable,cloud_restrictable"` // telemetry: none
+	AppDownloadLink            *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	AndroidAppDownloadLink     *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	IosAppDownloadLink         *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileExternalBrowser      *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileEnableBiometrics     *bool    `access:"site_customization,write_restrictable"`
+	MobilePreventScreenCapture *bool    `access:"site_customization,write_restrictable"`
+	MobileJailbreakProtection  *bool    `access:"site_customization,write_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2869,6 +2872,18 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.MobileExternalBrowser == nil {
 		s.MobileExternalBrowser = NewPointer(false)
+	}
+
+	if s.MobileEnableBiometrics == nil {
+		s.MobileEnableBiometrics = NewPointer(false)
+	}
+
+	if s.MobilePreventScreenCapture == nil {
+		s.MobilePreventScreenCapture = NewPointer(false)
+	}
+
+	if s.MobileJailbreakProtection == nil {
+		s.MobileJailbreakProtection = NewPointer(false)
 	}
 }
 
