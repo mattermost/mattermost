@@ -23,6 +23,7 @@ import (
 
 var (
 	mockTypeChannel    = mock.AnythingOfType("*model.Channel")
+	mockTypeUser       = mock.AnythingOfType("*model.User")
 	mockTypeString     = mock.AnythingOfType("string")
 	mockTypeReqContext = mock.AnythingOfType("*request.Context")
 	mockTypeContext    = mock.MatchedBy(func(ctx context.Context) bool { return true })
@@ -264,18 +265,22 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 	t.Run("DM channels", func(t *testing.T) {
 		var testRemoteID = model.NewId()
 		testCases := []struct {
-			desc          string
-			user1         *model.User
-			user2         *model.User
-			canSee        bool
-			expectSuccess bool
+			desc                string
+			user1               *model.User
+			user2               *model.User
+			canSee              bool
+			expectSuccess       bool
+			user2InDB           bool
+			user2InParticipants bool
 		}{
-			{"valid users", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId()}, true, true},
-			{"swapped users", &model.User{Id: model.NewId()}, &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, true, true},
-			{"two remotes", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, true, false},
-			{"two locals", &model.User{Id: model.NewId()}, &model.User{Id: model.NewId()}, true, false},
-			{"can't see", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId()}, false, false},
-			{"invalid remoteid", &model.User{Id: model.NewId(), RemoteId: model.NewPointer("bogus")}, &model.User{Id: model.NewId()}, true, false},
+			{"valid users", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId()}, true, true, true, false},
+			{"swapped users", &model.User{Id: model.NewId()}, &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, true, true, true, false},
+			{"two remotes", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, true, false, true, false},
+			{"two locals", &model.User{Id: model.NewId()}, &model.User{Id: model.NewId()}, true, false, true, false},
+			{"can't see", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId()}, false, false, true, false},
+			{"invalid remoteid", &model.User{Id: model.NewId(), RemoteId: model.NewPointer("bogus")}, &model.User{Id: model.NewId()}, true, false, true, false},
+			{"user2 not in DB but in participants", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId()}, true, true, false, true},
+			{"user2 not in DB and not in participants", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId()}, true, false, false, false},
 		}
 
 		for _, tc := range testCases {
@@ -298,6 +303,12 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 					Type:                 model.ChannelTypeDirect,
 					DirectParticipantIDs: []string{tc.user1.Id, tc.user2.Id},
 				}
+
+				// Add participants to the invitation if needed
+				if tc.user2InParticipants {
+					invitation.DirectParticipants = append(invitation.DirectParticipants, tc.user2)
+				}
+
 				payload, err := json.Marshal(invitation)
 				require.NoError(t, err)
 
@@ -313,8 +324,20 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 				mockUserStore := mocks.UserStore{}
 				mockUserStore.On("Get", mockTypeContext, tc.user1.Id).
 					Return(tc.user1, nil)
-				mockUserStore.On("Get", mockTypeContext, tc.user2.Id).
-					Return(tc.user2, nil)
+				if tc.user2InDB {
+					mockUserStore.On("Get", mockTypeContext, tc.user2.Id).
+						Return(tc.user2, nil)
+				} else {
+					mockUserStore.On("Get", mockTypeContext, tc.user2.Id).
+						Return(nil, &store.ErrNotFound{})
+				}
+
+				if tc.user2InParticipants {
+					mockUserStore.On("Save", mock.AnythingOfType("*request.Context"),
+						mock.MatchedBy(func(u *model.User) bool {
+							return u.Id == tc.user2.Id
+						})).Return(tc.user2, nil)
+				}
 
 				mockChannelStore.On("Get", invitation.ChannelId, true).Return(nil, errors.New("boom"))
 				mockChannelStore.On("GetByName", "", mockTypeString, true).Return(nil, &store.ErrNotFound{})
@@ -332,6 +355,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 				mockApp.On("GetOrCreateDirectChannel", mockTypeReqContext, mockTypeString, mockTypeString, mock.AnythingOfType("model.ChannelOption")).
 					Return(channel, nil).Maybe()
 				mockApp.On("UserCanSeeOtherUser", mockTypeReqContext, mockTypeString, mockTypeString).Return(tc.canSee, nil).Maybe()
+				mockApp.On("NotifySharedChannelUserUpdate", mockTypeUser).Return().Maybe()
 
 				defer mockApp.AssertExpectations(t)
 
