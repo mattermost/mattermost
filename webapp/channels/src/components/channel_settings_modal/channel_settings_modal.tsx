@@ -351,6 +351,16 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
                         </div>
                     )}
                 </div>
+                {/* SaveChangesPanel for unsaved changes */}
+                {requireConfirm && (
+                    <SaveChangesPanel
+                        handleSubmit={handleSaveChanges}
+                        handleCancel={handleCancel}
+                        handleClose={handleClose}
+                        tabChangeError={false}
+                        state={saveChangesPanelState}
+                    />
+                )}
             </div>
         );
     };
@@ -462,17 +472,6 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
             bodyPadding={false}
         >
             {renderModalBody()}
-
-            {/* SaveChangesPanel for unsaved changes */}
-            {requireConfirm && (
-                <SaveChangesPanel
-                    handleSubmit={handleSaveChanges}
-                    handleCancel={handleCancel}
-                    handleClose={handleClose}
-                    tabChangeError={false}
-                    state={saveChangesPanelState}
-                />
-            )}
 
             {/* Confirmation Modal for archiving channel */}
             {showArchiveConfirmModal &&

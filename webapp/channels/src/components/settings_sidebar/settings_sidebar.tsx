@@ -85,10 +85,9 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         }
 
         return (
-            <>
+            <React.Fragment key={key}>
                 {tab.newGroup && <hr/>}
                 <button
-                    key={key}
                     ref={this.buttonRefs[index]}
                     id={`${tab.name}Button`}
                     className={classNames('cursor--pointer style--none nav-pills__tab', {active: isActive})}
@@ -103,7 +102,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
                     {icon}
                     {tab.uiName}
                 </button>
-            </>
+            </React.Fragment>
         );
     }
 
