@@ -215,7 +215,6 @@ export type ClientConfig = {
     UniqueEmojiReactionLimitPerPost: string;
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: string;
     YoutubeReferrerPolicy: 'true' | 'false';
-    ScheduledPosts: string;
 };
 
 export type License = {
@@ -919,6 +918,7 @@ export type PluginSettings = {
 export type DisplaySettings = {
     CustomURLSchemes: string[];
     MaxMarkdownNodes: number;
+    SuggestionDebounceDelay: number;
 };
 
 export type GuestAccountsSettings = {
