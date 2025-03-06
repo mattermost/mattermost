@@ -1039,6 +1039,7 @@ type DraftStore interface {
 	GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt int64, userID string) (int64, string, error)
 	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error
+	PermanentDeleteByUser(userId string) error
 }
 
 type PostAcknowledgementStore interface {
