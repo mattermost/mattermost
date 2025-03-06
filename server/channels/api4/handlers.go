@@ -239,7 +239,7 @@ func requireLicense(c *Context) *model.AppError {
 }
 
 func minimumProfessionalLicense(c *Context) *model.AppError {
-	return model.MinimumProfessionalProvidedLicense(c.App.Srv().License())
+	return model.MinimumProfessionalLicense(c.App.Srv().License())
 }
 
 func setHandlerOpts(handler *web.Handler, opts ...APIHandlerOption) {

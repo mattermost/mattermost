@@ -538,6 +538,7 @@ export enum LicenseSkus {
     Starter = 'starter',
     Professional = 'professional',
     Enterprise = 'enterprise',
+    Premium = 'premium',
 }
 
 export const CloudProductToSku = {

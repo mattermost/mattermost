@@ -4,13 +4,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-const (
-	e10          = "E10"
-	e20          = "E20"
-	professional = "professional"
-	enterprise   = "enterprise"
-)
-
 // IsEnterpriseLicensedOrDevelopment returns true when the server is licensed with any Mattermost
 // Enterprise License, or has `EnableDeveloper` and `EnableTesting` configuration settings
 // enabled signaling a non-production, developer mode.
@@ -30,7 +23,7 @@ func isValidSkuShortName(license *model.License) bool {
 	}
 
 	switch license.SkuShortName {
-	case e10, e20, professional, enterprise:
+	case model.LicenseShortSkuE10, model.LicenseShortSkuE20, model.LicenseShortSkuProfessional, model.LicenseShortSkuEnterprise:
 		return true
 	default:
 		return false
@@ -42,8 +35,7 @@ func isValidSkuShortName(license *model.License) bool {
 // `EnableTesting` configuration settings enabled, signaling a non-production, developer mode.
 func IsE10LicensedOrDevelopment(config *model.Config, license *model.License) bool {
 	if license != nil &&
-		(license.SkuShortName == e10 || license.SkuShortName == professional ||
-			license.SkuShortName == e20 || license.SkuShortName == enterprise) {
+		model.MinimumProfessionalLicense(license) == nil {
 		return true
 	}
 
@@ -65,7 +57,7 @@ func IsE10LicensedOrDevelopment(config *model.Config, license *model.License) bo
 // Enterprise E20 License or a Mattermost Enterprise License, or has `EnableDeveloper` and
 // `EnableTesting` configuration settings enabled, signaling a non-production, developer mode.
 func IsE20LicensedOrDevelopment(config *model.Config, license *model.License) bool {
-	if license != nil && (license.SkuShortName == e20 || license.SkuShortName == enterprise) {
+	if license != nil && model.MinimumEnterpriseLicense(license) == nil {
 		return true
 	}
 

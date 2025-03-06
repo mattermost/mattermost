@@ -55,14 +55,14 @@ func postPriorityCheck(
 	}
 
 	if ack := priority.RequestedAck; ack != nil && *ack {
-		licenseErr := model.MinimumProfessionalProvidedLicense(license)
+		licenseErr := model.MinimumProfessionalLicense(license)
 		if licenseErr != nil {
 			return licenseErr
 		}
 	}
 
 	if notification := priority.PersistentNotifications; notification != nil && *notification {
-		licenseErr := model.MinimumProfessionalProvidedLicense(license)
+		licenseErr := model.MinimumProfessionalLicense(license)
 		if licenseErr != nil {
 			return licenseErr
 		}
