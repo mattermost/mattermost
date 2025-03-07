@@ -1477,7 +1477,6 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 	t.Run("regular user with FilterAllowReference", func(t *testing.T) {
 		optsWithFilter := opts
 		optsWithFilter.FilterAllowReference = true
-		var err error
 
 		groups, _, err = th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, optsWithFilter)
 		assert.NoError(t, err)
