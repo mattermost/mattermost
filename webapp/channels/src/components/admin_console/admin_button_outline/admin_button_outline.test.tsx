@@ -1,39 +1,48 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import AdminButtonOutline from './admin_button_outline';
 
 describe('components/admin_console/admin_button_outline/AdminButtonOutline', () => {
-    test('should match snapshot with prop disable false', () => {
+    test('should render correctly with prop disable false', () => {
         const onClick = jest.fn();
-        const wrapper = shallow(
+        render(
             <AdminButtonOutline
                 onClick={onClick}
                 className='admin-btn-default'
                 disabled={false}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        
+        const button = screen.getByRole('button');
+        expect(button).toBeInTheDocument();
+        expect(button).not.toBeDisabled();
+        expect(button).toHaveClass('AdminButtonOutline', 'btn', 'admin-btn-default');
     });
 
-    test('should match snapshot with prop disable true', () => {
+    test('should render correctly with prop disable true', () => {
         const onClick = jest.fn();
-        const wrapper = shallow(
+        render(
             <AdminButtonOutline
                 onClick={onClick}
                 className='admin-btn-default'
                 disabled={true}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        
+        const button = screen.getByRole('button');
+        expect(button).toBeInTheDocument();
+        expect(button).toBeDisabled();
+        expect(button).toHaveClass('AdminButtonOutline', 'btn', 'admin-btn-default');
     });
 
-    test('should match snapshot with children', () => {
+    test('should render correctly with children', () => {
         const onClick = jest.fn();
-        const wrapper = shallow(
+        render(
             <AdminButtonOutline
                 onClick={onClick}
                 className='admin-btn-default'
@@ -42,12 +51,17 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
                 {'Test children'}
             </AdminButtonOutline>,
         );
-        expect(wrapper).toMatchSnapshot();
+        
+        const button = screen.getByRole('button', {name: 'Test children'});
+        expect(button).toBeInTheDocument();
+        expect(button).toBeDisabled();
+        expect(button).toHaveClass('AdminButtonOutline', 'btn', 'admin-btn-default');
+        expect(button).toHaveTextContent('Test children');
     });
 
-    test('should match snapshot with className is not provided in scss file', () => {
+    test('should render correctly with className is not provided in scss file', () => {
         const onClick = jest.fn();
-        const wrapper = shallow(
+        render(
             <AdminButtonOutline
                 onClick={onClick}
                 className='btn-default'
@@ -56,22 +70,26 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
                 {'Test children'}
             </AdminButtonOutline>,
         );
-        expect(wrapper).toMatchSnapshot();
+        
+        const button = screen.getByRole('button', {name: 'Test children'});
+        expect(button).toBeInTheDocument();
+        expect(button).toHaveClass('AdminButtonOutline', 'btn', 'btn-default');
     });
 
-    test('should handle onClick', () => {
+    test('should handle onClick', async () => {
         const onClick = jest.fn();
-        const wrapper = shallow(
+        render(
             <AdminButtonOutline
                 onClick={onClick}
                 className='admin-btn-default'
-                disabled={true}
+                disabled={false}
             >
                 {'Test children'}
             </AdminButtonOutline>,
         );
-
-        wrapper.find('button').simulate('click');
+        
+        const button = screen.getByRole('button', {name: 'Test children'});
+        await userEvent.click(button);
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 });

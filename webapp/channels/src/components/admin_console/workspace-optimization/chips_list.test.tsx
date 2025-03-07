@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {render, screen} from '@testing-library/react';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import ChipsList from 'components/admin_console/workspace-optimization/chips_list';
 import type {ChipsInfoType} from 'components/admin_console/workspace-optimization/chips_list';
 
@@ -21,37 +22,54 @@ describe('components/admin_console/workspace-optimization/chips_list', () => {
         hideCountZeroChips: false,
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(<ChipsList {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+    test('should render all chips with correct counts', () => {
+        renderWithContext(<ChipsList {...baseProps}/>);
+        
+        expect(screen.getByText('Suggestions: 3')).toBeInTheDocument();
+        expect(screen.getByText('Warnings: 2')).toBeInTheDocument();
+        expect(screen.getByText('Problems: 1')).toBeInTheDocument();
+        
+        // Verify we have 3 button elements (chips)
+        const buttons = screen.getAllByRole('button');
+        expect(buttons).toHaveLength(3);
+        
+        // Check class names
+        expect(buttons[0]).toHaveClass('info');
+        expect(buttons[1]).toHaveClass('warning');
+        expect(buttons[2]).toHaveClass('error');
     });
 
-    test('test chips list lenght is 3 as defined in baseProps', () => {
-        const wrapper = shallow(<ChipsList {...baseProps}/>);
-        const chips = wrapper.find('Chip');
-
-        expect(chips.length).toBe(3);
-    });
-
-    test('test chips list lenght is 2 if one of the properties count is 0 and the hide zero count value is TRUE', () => {
+    test('should hide chips with zero count when hideCountZeroChips is true', () => {
         const zeroErrorProps = {
             chipsData: {...overallScoreChips, [ItemStatus.ERROR]: 0},
             hideCountZeroChips: true,
         };
-        const wrapper = shallow(<ChipsList {...zeroErrorProps}/>);
-        const chips = wrapper.find('Chip');
-
-        expect(chips.length).toBe(2);
+        
+        renderWithContext(<ChipsList {...zeroErrorProps}/>);
+        
+        expect(screen.getByText('Suggestions: 3')).toBeInTheDocument();
+        expect(screen.getByText('Warnings: 2')).toBeInTheDocument();
+        expect(screen.queryByText('Problems: 0')).not.toBeInTheDocument();
+        
+        // Verify we have only 2 button elements (chips)
+        const buttons = screen.getAllByRole('button');
+        expect(buttons).toHaveLength(2);
     });
 
-    test('test chips list lenght is 3 even if one of the properties count is 0 BUT the hide zero count value is FALSE', () => {
+    test('should show all chips even with zero counts when hideCountZeroChips is false', () => {
         const zeroErrorProps = {
             chipsData: {...overallScoreChips, [ItemStatus.ERROR]: 0},
             hideCountZeroChips: false,
         };
-        const wrapper = shallow(<ChipsList {...zeroErrorProps}/>);
-        const chips = wrapper.find('Chip');
-
-        expect(chips.length).toBe(3);
+        
+        renderWithContext(<ChipsList {...zeroErrorProps}/>);
+        
+        expect(screen.getByText('Suggestions: 3')).toBeInTheDocument();
+        expect(screen.getByText('Warnings: 2')).toBeInTheDocument();
+        expect(screen.getByText('Problems: 0')).toBeInTheDocument();
+        
+        // Verify we have all 3 button elements (chips)
+        const buttons = screen.getAllByRole('button');
+        expect(buttons).toHaveLength(3);
     });
 });
