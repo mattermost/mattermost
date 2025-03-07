@@ -99,7 +99,8 @@ func (me SqlSessionStore) Get(c request.CTX, sessionIdOrToken string) (*model.Se
 		return nil, errors.Wrap(err, "session_get_tosql")
 	}
 
-	if err := me.DBXFromContext(c.Context()).Select(&sessions, sql, args...); err != nil {
+	err = me.DBXFromContext(c.Context()).Select(&sessions, sql, args...)
+	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with sessionIdOrToken=%s", sessionIdOrToken)
 	}
 	if len(sessions) == 0 {
@@ -134,7 +135,8 @@ func (me SqlSessionStore) GetSessions(c request.CTX, userId string) ([]*model.Se
 		return nil, errors.Wrap(err, "session_get_sessions_tosql")
 	}
 
-	if err := me.GetReplica().Select(&sessions, sql, args...); err != nil {
+	err = me.GetReplica().Select(&sessions, sql, args...)
+	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
 	}
 
@@ -176,23 +178,23 @@ func (me SqlSessionStore) GetLRUSessions(c request.CTX, userId string, limit uin
 
 func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error) {
 	now := model.GetMillis()
-	
+
 	// Start with the base query
 	builder := me.sessionSelectQuery.
 		Where(sq.Eq{"UserId": userId}).
 		Where(sq.NotEq{"ExpiresAt": 0}).
 		Where(sq.GtOrEq{"ExpiresAt": now}).
 		Where(sq.NotEq{"DeviceId": ""})
-	
+
 	// Add the last_removed_device_id condition based on the driver
 	if me.DriverName() == model.DatabaseDriverMysql {
 		builder = builder.Where("DeviceId != COALESCE(Props->>'$.last_removed_device_id', '')")
 	} else {
 		builder = builder.Where("DeviceId != COALESCE(Props->>'last_removed_device_id', '')")
 	}
-	
+
 	sessions := []*model.Session{}
-	
+
 	if err := me.GetReplica().SelectBuilder(&sessions, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
 	}
