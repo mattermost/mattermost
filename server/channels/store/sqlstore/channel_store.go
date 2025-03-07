@@ -509,8 +509,8 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 	s.tableSelectQuery = s.getQueryBuilder().Select(channelSliceColumns()...).From("Channels")
 
 	s.sidebarCategorySelectQuery = s.getQueryBuilder().
-		Select("Id", "UserId", "TeamId", "SortOrder", "Sorting", "Type", "DisplayName", "Muted", "Collapsed").
-		From("SidebarCategories")
+		Select("sc.Id", "sc.UserId", "sc.TeamId", "sc.SortOrder", "sc.Sorting", "sc.Type", "sc.DisplayName", "sc.Muted", "sc.Collapsed").
+		From("SidebarCategories sc")
 
 	s.initializeQueries()
 
