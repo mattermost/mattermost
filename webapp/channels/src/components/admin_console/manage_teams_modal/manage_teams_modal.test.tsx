@@ -1,19 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactWrapper} from 'enzyme';
-import {mount, shallow} from 'enzyme';
 import React from 'react';
+import {render, screen, waitFor} from '@testing-library/react';
 import {act} from 'react-dom/test-utils';
-import {IntlProvider} from 'react-intl';
 
 import {General} from 'mattermost-redux/constants';
 
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal/manage_teams_modal';
-
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import ManageTeamsDropdown from './manage_teams_dropdown';
+// Mock the ManageTeamsDropdown component to avoid testing its internal logic
+jest.mock('./manage_teams_dropdown', () => {
+    return jest.fn((props) => {
+        // Store props on mock function for later assertions
+        (jest.fn as any).mockDropdownProps = props;
+        return <div data-testid="mock-manage-teams-dropdown" />;
+    });
+});
 
 describe('ManageTeamsModal', () => {
     const baseProps = {
@@ -35,24 +40,22 @@ describe('ManageTeamsModal', () => {
         },
     };
 
-    test('should match snapshot init', () => {
-        const wrapper = shallow(<ManageTeamsModal {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('should match snapshot init', async () => {
+        let container;
+        await act(async () => {
+            const result = renderWithContext(<ManageTeamsModal {...baseProps}/>);
+            container = result.container;
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should call api calls on mount', async () => {
-        const intlProviderProps = {
-            defaultLocale: 'en',
-            locale: 'en',
-            messages: {testId: 'Actual value'},
-        };
-
         await act(async () => {
-            mount(
-                <IntlProvider {...intlProviderProps}>
-                    <ManageTeamsModal {...baseProps}/>
-                </IntlProvider>,
-            );
+            renderWithContext(<ManageTeamsModal {...baseProps}/>);
         });
 
         expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledTimes(1);
@@ -61,7 +64,7 @@ describe('ManageTeamsModal', () => {
         expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledWith(baseProps.user.id);
     });
 
-    test('should save data in state from api calls', async () => {
+    test('should render teams and team members from api calls', async () => {
         const mockTeamData = TestHelper.getTeamMock({
             id: '123test',
             name: 'testTeam',
@@ -80,23 +83,19 @@ describe('ManageTeamsModal', () => {
                 getTeamsForUser,
             },
         };
-        const intlProviderProps = {
-            defaultLocale: 'en',
-            locale: 'en',
-            messages: {'test.value': 'Actual value'},
-        };
 
-        let wrapper: ReactWrapper<any>;
         await act(async () => {
-            wrapper = mount(
-                <IntlProvider {...intlProviderProps}>
-                    <ManageTeamsModal {...props}/>
-                </IntlProvider>,
-            );
+            renderWithContext(<ManageTeamsModal {...props}/>);
         });
-        wrapper!.update();
 
-        expect(wrapper!.find('.manage-teams__team-name').text()).toEqual(mockTeamData.display_name);
-        expect(wrapper!.find(ManageTeamsDropdown).props().teamMember).toEqual({team_id: '123test'});
+        // Wait for the team name to appear in the DOM
+        await waitFor(() => {
+            expect(screen.getByText('testTeam')).toBeInTheDocument();
+        });
+
+        // Check that the ManageTeamsDropdown received the correct props
+        const ManageTeamsDropdown = require('./manage_teams_dropdown');
+        expect(ManageTeamsDropdown).toHaveBeenCalled();
+        expect((jest.fn as any).mockDropdownProps.teamMember).toEqual({team_id: '123test'});
     });
 });

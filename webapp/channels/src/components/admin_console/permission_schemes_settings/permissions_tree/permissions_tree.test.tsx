@@ -1,17 +1,48 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen} from '@testing-library/react';
+import {renderWithContext} from 'tests/react_testing_utils';
+import userEvent from '@testing-library/user-event';
 
 import GeneralConstants from 'mattermost-redux/constants/general';
 
-import PermissionGroup from 'components/admin_console/permission_schemes_settings/permission_group';
 import PermissionsTree from 'components/admin_console/permission_schemes_settings/permissions_tree/permissions_tree';
 
 import {LicenseSkus} from 'utils/constants';
 
 import type {Group, Permission} from './types';
+
+// Mock the PermissionGroup component to help with testing
+jest.mock('components/admin_console/permission_schemes_settings/permission_group', () => {
+    return function MockPermissionGroup(props: any) {
+        // Store the group permissions for testing
+        (MockPermissionGroup as any).lastProps = props;
+        return (
+            <div 
+                data-testid={`permission-group-${props.id}`}
+                data-permissions={JSON.stringify(props.permissions)}
+                onClick={() => props.onChange?.(['test_permission', 'test_permission2'])}
+            >
+                {props.id}
+            </div>
+        );
+    };
+});
+
+// Mock the Edit Post Time Limit components
+jest.mock('components/admin_console/permission_schemes_settings/edit_post_time_limit_button', () => {
+    return function MockEditPostTimeLimitButton() {
+        return <button data-testid="edit-time-limit-button">Edit</button>;
+    };
+});
+
+jest.mock('components/admin_console/permission_schemes_settings/edit_post_time_limit_modal', () => {
+    return function MockEditPostTimeLimitModal() {
+        return <div data-testid="edit-time-limit-modal">Modal</div>;
+    };
+});
 
 describe('components/admin_console/permission_schemes_settings/permission_tree', () => {
     const defaultProps = {
@@ -39,74 +70,80 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         customGroupsEnabled: true,
     };
 
-    test('should match snapshot on default data', () => {
-        const wrapper = shallow(
-            <PermissionsTree {...defaultProps}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
-    test('should match snapshot on read only', () => {
-        const wrapper = shallow(
+    test('should render correctly with default props', () => {
+        const {container} = renderWithContext(<PermissionsTree {...defaultProps}/>);
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should render correctly with read only flag', () => {
+        const {container} = renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 readOnly={true}
-            />,
+            />
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on team scope', () => {
-        const wrapper = shallow(
+    test('should render correctly with team scope', () => {
+        const {container} = renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 scope={'team_scope'}
-            />,
+            />
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on system scope', () => {
-        const wrapper = shallow(
+    test('should render correctly with system scope', () => {
+        const {container} = renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 scope={'system_scope'}
-            />,
+            />
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on license without LDAPGroups', () => {
-        const wrapper = shallow(
+    test('should render correctly with license without LDAPGroups', () => {
+        const {container} = renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 license={{}}
-            />,
+            />
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with parentRole with permissions', () => {
-        const wrapper = shallow(
+    test('should render correctly with parentRole having permissions', () => {
+        const {container} = renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 parentRole={{permissions: ['invite_user']}}
                 scope={'system_scope'}
-            />,
+            />
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should ask to toggle on row toggle', () => {
+    test('should call onToggle when permission group changes', () => {
         const onToggle = jest.fn();
-        const wrapper = shallow(
+        renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 onToggle={onToggle}
-            />,
+            />
         );
-        wrapper.find(PermissionGroup).first().prop('onChange')(['test_permission', 'test_permission2']);
-        expect(onToggle).toBeCalledWith('test', ['test_permission', 'test_permission2']);
+        
+        // Find the permission group and click it to trigger the onChange
+        const permissionGroup = screen.getByTestId('permission-group-all');
+        userEvent.click(permissionGroup);
+        
+        expect(onToggle).toHaveBeenCalledWith('test', ['test_permission', 'test_permission2']);
     });
 
     test.each([
@@ -116,22 +153,26 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         {roleName: GeneralConstants.SYSTEM_USER_ROLE, shouldSeeConvertPrivateToPublic: false},
         {roleName: GeneralConstants.SYSTEM_GUEST_ROLE, shouldSeeConvertPrivateToPublic: false},
     ])('should show convert private channel to public for $roleName: $shouldSeeConvertPrivateToPublic', ({roleName, shouldSeeConvertPrivateToPublic}) => {
-        const wrapper = shallow(
+        renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 role={{name: roleName}}
-            />,
+            />
         );
-        const groups = wrapper.find(PermissionGroup).first().prop('permissions') as Array<Group | Permission>;
+        
+        // Access the PermissionGroup mock to get the permissions
+        const permissionGroup = require('components/admin_console/permission_schemes_settings/permission_group');
+        
+        // Check if the 'private_channel' group's permissions include 'convert_private_channel_to_public'
         if (shouldSeeConvertPrivateToPublic) {
-            expect(groups[2].permissions).toContain('convert_private_channel_to_public');
+            expect((permissionGroup as any).lastProps.permissions[2].permissions).toContain('convert_private_channel_to_public');
         } else {
-            expect(groups[2].permissions).not.toContain('convert_private_channel_to_public');
+            expect((permissionGroup as any).lastProps.permissions[2].permissions).not.toContain('convert_private_channel_to_public');
         }
     });
 
-    test('should hide disabbled integration options', () => {
-        const wrapper = shallow(
+    test('should hide disabled integration options', () => {
+        const {container} = renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 config={{
@@ -140,24 +181,23 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
                     EnableCommands: 'false',
                     EnableCustomEmoji: 'false',
                 }}
-            />,
+            />
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should map groups in the correct order', () => {
-        const wrapper = shallow(
-            <PermissionsTree
-                {...defaultProps}
-            />,
-        );
-
-        const groups = wrapper.find(PermissionGroup).first().prop('permissions') as Array<Group | Permission>;
-        expect(groups[0].id).toStrictEqual('teams');
-        expect(groups[6].id).toStrictEqual('posts');
-        expect(groups[7].id).toStrictEqual('integrations');
-        expect(groups[8].id).toStrictEqual('manage_shared_channels');
-        expect(groups[9].id).toStrictEqual('custom_groups');
+    test('should present groups in the correct order', () => {
+        renderWithContext(<PermissionsTree {...defaultProps}/>);
+        
+        // Access the PermissionGroup mock to get the permissions
+        const permissionGroup = require('components/admin_console/permission_schemes_settings/permission_group');
+        const groups = (permissionGroup as any).lastProps.permissions;
+        
+        expect(groups[0].id).toBe('teams');
+        expect(groups[6].id).toBe('posts');
+        expect(groups[7].id).toBe('integrations');
+        expect(groups[8].id).toBe('manage_shared_channels');
+        expect(groups[9].id).toBe('custom_groups');
     });
 
     describe('should show playbook permissions', () => {
@@ -171,15 +211,14 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
                     },
                 };
 
-                const wrapper = shallow(
-                    <PermissionsTree
-                        {...props}
-                    />,
-                );
-
-                const groups = wrapper.find(PermissionGroup).first().prop('permissions') as Array<Group | Permission>;
-                expect(groups[3].id).toStrictEqual('playbook_public');
-                expect(groups[4].id).toStrictEqual('runs');
+                renderWithContext(<PermissionsTree {...props}/>);
+                
+                // Access the PermissionGroup mock to get the permissions
+                const permissionGroup = require('components/admin_console/permission_schemes_settings/permission_group');
+                const groups = (permissionGroup as any).lastProps.permissions;
+                
+                expect(groups[3].id).toBe('playbook_public');
+                expect(groups[4].id).toBe('runs');
             }));
         });
 
@@ -193,16 +232,15 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
                     },
                 };
 
-                const wrapper = shallow(
-                    <PermissionsTree
-                        {...props}
-                    />,
-                );
-
-                const groups = wrapper.find(PermissionGroup).first().prop('permissions') as Array<Group | Permission>;
-                expect(groups[3].id).toStrictEqual('playbook_public');
-                expect(groups[4].id).toStrictEqual('playbook_private');
-                expect(groups[5].id).toStrictEqual('runs');
+                renderWithContext(<PermissionsTree {...props}/>);
+                
+                // Access the PermissionGroup mock to get the permissions
+                const permissionGroup = require('components/admin_console/permission_schemes_settings/permission_group');
+                const groups = (permissionGroup as any).lastProps.permissions;
+                
+                expect(groups[3].id).toBe('playbook_public');
+                expect(groups[4].id).toBe('playbook_private');
+                expect(groups[5].id).toBe('runs');
             }));
         });
     });
