@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {render, screen, fireEvent} from '@testing-library/react';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import AdminPanel from './admin_panel';
 
 describe('components/widgets/admin_console/AdminPanel', () => {
@@ -15,138 +16,66 @@ describe('components/widgets/admin_console/AdminPanel', () => {
         subtitleValues: {foo: 'bar'},
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <AdminPanel {...defaultProps}>{'Test'}</AdminPanel>,
+    test('should render correctly with default props', () => {
+        renderWithContext(
+            <AdminPanel {...defaultProps}>{'Test'}</AdminPanel>
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <div
-              className="AdminPanel clearfix test-class-name"
-              id="test-id"
-            >
-              <div
-                className="header"
-              >
-                <div>
-                  <h3>
-                    <MemoizedFormattedMessage
-                      defaultMessage="test-title-default"
-                      id="test-title-id"
-                    />
-                  </h3>
-                  <div
-                    className="mt-2"
-                  >
-                    <MemoizedFormattedMessage
-                      defaultMessage="test-subtitle-default"
-                      id="test-subtitle-id"
-                      values={
-                        Object {
-                          "foo": "bar",
-                        }
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-              Test
-            </div>
-        `);
+        
+        // Verify the panel has the correct title and subtitle
+        expect(screen.getByText('test-title-default')).toBeInTheDocument();
+        expect(screen.getByText('test-subtitle-default')).toBeInTheDocument();
+        
+        // Verify the children content is rendered
+        expect(screen.getByText('Test')).toBeInTheDocument();
+        
+        // Verify the panel has the correct class and ID
+        const panel = screen.getByText('Test').closest('div.AdminPanel');
+        expect(panel).toHaveClass('test-class-name');
+        expect(panel).toHaveAttribute('id', 'test-id');
     });
 
-    test('should match snapshot with button', () => {
-        const wrapper = shallow(
+    test('should render correctly with button', () => {
+        renderWithContext(
             <AdminPanel
                 {...defaultProps}
-                button={<span>{'TestButton'}</span>}
+                button={<span data-testid="test-button">{'TestButton'}</span>}
             >
                 {'Test'}
-            </AdminPanel>,
+            </AdminPanel>
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <div
-              className="AdminPanel clearfix test-class-name"
-              id="test-id"
-            >
-              <div
-                className="header"
-              >
-                <div>
-                  <h3>
-                    <MemoizedFormattedMessage
-                      defaultMessage="test-title-default"
-                      id="test-title-id"
-                    />
-                  </h3>
-                  <div
-                    className="mt-2"
-                  >
-                    <MemoizedFormattedMessage
-                      defaultMessage="test-subtitle-default"
-                      id="test-subtitle-id"
-                      values={
-                        Object {
-                          "foo": "bar",
-                        }
-                      }
-                    />
-                  </div>
-                </div>
-                <div
-                  className="button"
-                >
-                  <span>
-                    TestButton
-                  </span>
-                </div>
-              </div>
-              Test
-            </div>
-        `);
+        
+        // Verify the button is rendered
+        expect(screen.getByTestId('test-button')).toBeInTheDocument();
+        expect(screen.getByText('TestButton')).toBeInTheDocument();
+        
+        // Verify the button is in the header
+        const button = screen.getByText('TestButton');
+        const buttonContainer = button.closest('div.button');
+        expect(buttonContainer).toBeInTheDocument();
+        
+        // Verify other elements are still present
+        expect(screen.getByText('test-title-default')).toBeInTheDocument();
+        expect(screen.getByText('test-subtitle-default')).toBeInTheDocument();
+        expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
-    test('should match snapshot with onHeaderClick', () => {
-        const wrapper = shallow(
+    test('should call onHeaderClick when header is clicked', () => {
+        const onHeaderClick = jest.fn();
+        
+        renderWithContext(
             <AdminPanel
                 {...defaultProps}
-                onHeaderClick={jest.fn()}
+                onHeaderClick={onHeaderClick}
             >
                 {'Test'}
-            </AdminPanel>,
+            </AdminPanel>
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <div
-              className="AdminPanel clearfix test-class-name"
-              id="test-id"
-            >
-              <div
-                className="header"
-                onClick={[MockFunction]}
-              >
-                <div>
-                  <h3>
-                    <MemoizedFormattedMessage
-                      defaultMessage="test-title-default"
-                      id="test-title-id"
-                    />
-                  </h3>
-                  <div
-                    className="mt-2"
-                  >
-                    <MemoizedFormattedMessage
-                      defaultMessage="test-subtitle-default"
-                      id="test-subtitle-id"
-                      values={
-                        Object {
-                          "foo": "bar",
-                        }
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-              Test
-            </div>
-        `);
+        
+        // Find the header and click it
+        const header = screen.getByText('test-title-default').closest('div.header');
+        fireEvent.click(header!);
+        
+        // Verify the click handler was called
+        expect(onHeaderClick).toHaveBeenCalledTimes(1);
     });
 });
