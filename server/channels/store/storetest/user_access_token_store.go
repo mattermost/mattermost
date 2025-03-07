@@ -165,7 +165,7 @@ func testUserAccessTokenPagination(t *testing.T, rctx request.CTX, ss store.Stor
 
 	_, err := ss.User().Save(rctx, &u1)
 	require.NoError(t, err)
-	
+
 	// Create 10 tokens for the user
 	tokens := make([]*model.UserAccessToken, 10)
 	for i := 0; i < 10; i++ {
@@ -174,67 +174,67 @@ func testUserAccessTokenPagination(t *testing.T, rctx request.CTX, ss store.Stor
 			UserId:      u1.Id,
 			Description: "testtoken" + model.NewId(),
 		}
-		
+
 		// Create a session for each token
 		s := &model.Session{}
 		s.UserId = tokens[i].UserId
 		s.Token = tokens[i].Token
-		
+
 		_, err = ss.Session().Save(rctx, s)
 		require.NoError(t, err)
-		
+
 		// Save the token
 		_, nErr := ss.UserAccessToken().Save(tokens[i])
 		require.NoError(t, nErr)
 	}
-	
+
 	// Test GetAll with pagination
 	// First page (3 tokens)
 	result, nErr := ss.UserAccessToken().GetAll(0, 3)
 	require.NoError(t, nErr)
 	require.Len(t, result, 3, "Should return 3 tokens for the first page")
-	
+
 	// Second page (3 tokens)
 	result, nErr = ss.UserAccessToken().GetAll(3, 3)
 	require.NoError(t, nErr)
 	require.Len(t, result, 3, "Should return 3 tokens for the second page")
-	
+
 	// Beyond the total number of tokens
 	result, nErr = ss.UserAccessToken().GetAll(30, 3)
 	require.NoError(t, nErr)
 	require.Len(t, result, 0, "Should return 0 tokens when offset is beyond total")
-	
+
 	// All tokens
 	result, nErr = ss.UserAccessToken().GetAll(0, 100)
 	require.NoError(t, nErr)
 	require.GreaterOrEqual(t, len(result), 10, "Should return at least 10 tokens")
-	
+
 	// Test GetByUser with pagination
 	// First page (3 tokens)
 	result, nErr = ss.UserAccessToken().GetByUser(u1.Id, 0, 3)
 	require.NoError(t, nErr)
 	require.Len(t, result, 3, "Should return 3 tokens for the first page")
-	
+
 	// Second page (3 tokens)
 	result, nErr = ss.UserAccessToken().GetByUser(u1.Id, 3, 3)
 	require.NoError(t, nErr)
 	require.Len(t, result, 3, "Should return 3 tokens for the second page")
-	
+
 	// Beyond the total number of tokens
 	result, nErr = ss.UserAccessToken().GetByUser(u1.Id, 30, 3)
 	require.NoError(t, nErr)
 	require.Len(t, result, 0, "Should return 0 tokens when offset is beyond total")
-	
+
 	// All tokens for the user
 	result, nErr = ss.UserAccessToken().GetByUser(u1.Id, 0, 100)
 	require.NoError(t, nErr)
 	require.Len(t, result, 10, "Should return 10 tokens for the user")
-	
+
 	// Test for a non-existent user
 	result, nErr = ss.UserAccessToken().GetByUser(model.NewId(), 0, 100)
 	require.NoError(t, nErr)
 	require.Len(t, result, 0, "Should return 0 tokens for non-existent user")
-	
+
 	// Clean up
 	for _, token := range tokens {
 		nErr = ss.UserAccessToken().Delete(token.Id)
