@@ -8873,6 +8873,10 @@
     "translation": "Search ConnectionUrl setting must be provided when indexing is enabled."
   },
   {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix cannot be empty is GlobalSearchPrefix is set."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
     "translation": "{{.EnableIndexing}} setting must be set to true when {{.Autocomplete}} is set to true"
   },
@@ -8883,6 +8887,10 @@
   {
     "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
     "translation": "Ignored indexes for purge should not start with dash."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} should be a prefix of IndexPrefix {{.IndexPrefix}}."
   },
   {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
