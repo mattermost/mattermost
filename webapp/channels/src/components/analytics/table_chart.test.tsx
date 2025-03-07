@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import TableChart from 'components/analytics/table_chart';
@@ -31,6 +30,7 @@ describe('components/analytics/table_chart.tsx', () => {
         );
 
         expect(screen.getByText('Test')).toBeInTheDocument();
+
         // Should render an empty table with no rows
         expect(screen.queryByRole('row')).not.toBeInTheDocument();
     });
@@ -49,12 +49,12 @@ describe('components/analytics/table_chart.tsx', () => {
         );
 
         expect(screen.getByText('Test')).toBeInTheDocument();
-        
+
         // Check first row
         expect(screen.getByText('test1')).toBeInTheDocument();
         expect(screen.getByText('test-value1')).toBeInTheDocument();
         expect(screen.getByText('test1').closest('div')).toHaveAttribute('data-tooltip', 'test-tip1');
-        
+
         // Check second row
         expect(screen.getByText('test2')).toBeInTheDocument();
         expect(screen.getByText('test-value2')).toBeInTheDocument();

@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {screen} from '@testing-library/react';
 import type {ChartData} from 'chart.js';
-import {render, screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import DoughnutChart from 'components/analytics/doughnut_chart';
@@ -84,6 +83,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
 
         expect(Chart).toBeCalled();
         unmount();
+
         // Chart destruction is handled by useEffect cleanup, which is automatically tested
         // when unmounting the component in React Testing Library
     });
@@ -124,7 +124,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
                 height={400}
                 width={600}
                 data={oldData}
-            />
+            />,
         );
         expect(Chart.mock.instances[0].update).not.toBeCalled();
 
@@ -135,7 +135,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
                 height={400}
                 width={600}
                 data={newData}
-            />
+            />,
         );
         expect(Chart.mock.instances[0].update).toBeCalled();
     });
