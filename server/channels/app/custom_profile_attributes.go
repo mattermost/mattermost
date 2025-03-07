@@ -41,13 +41,9 @@ func (a *App) GetCPAField(fieldID string) (*model.PropertyField, *model.AppError
 		return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	field, err := a.Srv().propertyService.GetPropertyField(fieldID)
+	field, err := a.Srv().propertyService.GetPropertyField(fieldID, groupID)
 	if err != nil {
 		return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if field.GroupID != groupID {
-		return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
 	}
 
 	return field, nil
@@ -121,7 +117,9 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 	patch.TargetType = nil
 	existingField.Patch(patch)
 
-	patchedField, err := a.Srv().propertyService.UpdatePropertyField(existingField)
+	// we've already ensured that the field exists for the CPA group,
+	// we don't need to specify the groupID for the update
+	patchedField, err := a.Srv().propertyService.UpdatePropertyField(existingField, "")
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -145,16 +143,7 @@ func (a *App) DeleteCPAField(id string) *model.AppError {
 		return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	existingField, err := a.Srv().propertyService.GetPropertyField(id)
-	if err != nil {
-		return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if existingField.GroupID != groupID {
-		return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
-	}
-
-	if err := a.Srv().propertyService.DeletePropertyField(id); err != nil {
+	if err := a.Srv().propertyService.DeletePropertyField(id, groupID); err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
@@ -195,13 +184,9 @@ func (a *App) GetCPAValue(valueID string) (*model.PropertyValue, *model.AppError
 		return nil, model.NewAppError("GetCPAValue", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	value, err := a.Srv().propertyService.GetPropertyValue(valueID)
+	value, err := a.Srv().propertyService.GetPropertyValue(valueID, groupID)
 	if err != nil {
 		return nil, model.NewAppError("GetCPAValue", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if value.GroupID != groupID {
-		return nil, model.NewAppError("GetCPAValue", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
 	}
 
 	return value, nil
