@@ -421,6 +421,45 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
+	// If `MMEMBED` cookie is set to `1`
+	if cookie, err := r.Cookie("MMEMBED"); err == nil && cookie.Value == "1" {
+		htmlContent := `
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Mattermost DevSecOps</title>
+	<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+	<script src="https://res.cdn.office.net/teams-js/2.34.0/js/MicrosoftTeams.min.js"
+		integrity="sha384-brW9AazbKR2dYw2DucGgWCCcmrm2oBFV4HQidyuyZRI/TnAkmOOnTARSTdps3Hwt"
+		crossorigin="anonymous"></script>
+</head>
+
+<body>
+	<script>
+		microsoftTeams.initialize(() => {
+			microsoftTeams.authentication.getAuthToken()
+			.then(microsoftTeams.authentication.notifySuccess)
+			.catch(error => {
+				console.error("Full error:", error);
+				if (error.message.includes("invalid_resource")) {
+					alert("Configuration mismatch detected - check manifest/Azure AD settings. Check with your admin for help.");
+				}
+			});
+		});
+	</script>
+	<a href="javascript:window.close()">You can close this window now.</a>
+</body>
+
+</html>
+`
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(htmlContent))
+		return
+	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 }
