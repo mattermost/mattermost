@@ -54,11 +54,11 @@ func (s SqlChannelStore) CreateInitialSidebarCategories(c request.CTX, userId st
 
 func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrapper, userId string, excludedTeamIDs []string, opts *store.SidebarCategorySearchOpts) error {
 	query := s.getQueryBuilder().
-		Select("Type, TeamId").
-		From("SidebarCategories").
+		Select("sc.Type, sc.TeamId").
+		From("SidebarCategories sc").
 		Where(sq.Eq{
-			"UserId": userId,
-			"Type": []model.SidebarCategoryType{
+			"sc.UserId": userId,
+			"sc.Type": []model.SidebarCategoryType{
 				model.SidebarCategoryFavorites,
 				model.SidebarCategoryChannels,
 				model.SidebarCategoryDirectMessages,
@@ -66,9 +66,9 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrap
 		})
 
 	if !opts.ExcludeTeam {
-		query = query.Where(sq.Eq{"TeamId": opts.TeamID})
+		query = query.Where(sq.Eq{"sc.TeamId": opts.TeamID})
 	} else {
-		query = query.Where(sq.NotEq{"TeamId": opts.TeamID})
+		query = query.Where(sq.NotEq{"sc.TeamId": opts.TeamID})
 	}
 
 	selectQuery, selectParams, err := query.ToSql()
@@ -561,6 +561,8 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 	if err != nil {
 		return nil, errors.Wrap(err, "sidebar_categories_tosql")
 	}
+	// For debugging
+	//fmt.Printf("SQL query: %s\n", sql)
 
 	if err := db.Select(&categories, sql, args...); err != nil {
 		return nil, store.NewErrNotFound("SidebarCategories", fmt.Sprintf("userId=%s,teamId=%s", userId, opts.TeamID)).Wrap(err)
