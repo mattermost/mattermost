@@ -9,14 +9,14 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import './footer.scss';
 import ExternalLink from 'components/external_link';
-
+import { isEmbedded } from 'utils/embed';
 const Footer = () => {
     const {formatMessage} = useIntl();
 
     const {AboutLink, PrivacyPolicyLink, TermsOfServiceLink, HelpLink} = useSelector(getConfig);
 
     // Check if MMEMBED cookie is set and if so, don't show the footer
-    if (document.cookie.includes('MMEMBED=1')) {
+    if (isEmbedded()) {
         return null;
     }
 

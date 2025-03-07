@@ -28,6 +28,7 @@ import {removeWebappPlugin} from './actions';
 // (without lazy loading). This should be removed in the future whenever we
 // have all plugins migrated to common components that can be reused there.
 import 'components/widgets/modals/full_screen_modal.scss';
+import { isEmbedded } from 'utils/embed';
 
 interface Plugin {
     initialize?: (registry: PluginRegistry, store: any) => void;
@@ -63,7 +64,7 @@ window.plugins = {};
 // remains possible, but is officially deprecated and may be removed in a future release.
 function registerPlugin(id: string, plugin: Plugin): void {
     // Don't register plugins if MMEMBED cookie is set
-    if (document.cookie.includes('MMEMBED=1')) {
+    if (isEmbedded()) {
         return;
     }
 
