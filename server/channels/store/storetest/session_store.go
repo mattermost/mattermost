@@ -400,7 +400,7 @@ func testGetSessionsExpired(t *testing.T, rctx request.CTX, ss store.Store) {
 
 func testGetSessionsWithActiveDeviceIds(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
-	
+
 	// Create session 1 with a device ID
 	s1 := &model.Session{}
 	s1.UserId = userId
@@ -408,7 +408,7 @@ func testGetSessionsWithActiveDeviceIds(t *testing.T, rctx request.CTX, ss store
 	s1.DeviceId = model.NewId()
 	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
-	
+
 	// Create session 2 with a device ID and a prop for last_removed_device_id that doesn't match the device ID
 	s2 := &model.Session{}
 	s2.UserId = userId
@@ -417,7 +417,7 @@ func testGetSessionsWithActiveDeviceIds(t *testing.T, rctx request.CTX, ss store
 	s2.AddProp(model.SessionPropLastRemovedDeviceId, model.NewId())
 	s2, err = ss.Session().Save(rctx, s2)
 	require.NoError(t, err)
-	
+
 	// Create session 3 with a device ID and a prop for last_removed_device_id that matches the device ID - this should be filtered out
 	s3 := &model.Session{}
 	s3.UserId = userId
@@ -426,14 +426,14 @@ func testGetSessionsWithActiveDeviceIds(t *testing.T, rctx request.CTX, ss store
 	s3.AddProp(model.SessionPropLastRemovedDeviceId, s3.DeviceId)
 	s3, err = ss.Session().Save(rctx, s3)
 	require.NoError(t, err)
-	
+
 	// Create session 4 with no device ID - this should be filtered out
 	s4 := &model.Session{}
 	s4.UserId = userId
 	s4.ExpiresAt = model.GetMillis() + 100000
 	s4, err = ss.Session().Save(rctx, s4)
 	require.NoError(t, err)
-	
+
 	// Create session 5 with a device ID but expired - this should be filtered out
 	s5 := &model.Session{}
 	s5.UserId = userId
@@ -441,14 +441,14 @@ func testGetSessionsWithActiveDeviceIds(t *testing.T, rctx request.CTX, ss store
 	s5.DeviceId = model.NewId()
 	s5, err = ss.Session().Save(rctx, s5)
 	require.NoError(t, err)
-	
+
 	// Get sessions with active device IDs
 	sessions, err := ss.Session().GetSessionsWithActiveDeviceIds(userId)
 	require.NoError(t, err)
-	
+
 	// We should have 2 sessions (s1 and s2)
 	require.Len(t, sessions, 2)
-	
+
 	// Verify s1 and s2 are in the result
 	sessionIds := make(map[string]bool)
 	for _, session := range sessions {
@@ -456,7 +456,7 @@ func testGetSessionsWithActiveDeviceIds(t *testing.T, rctx request.CTX, ss store
 	}
 	require.True(t, sessionIds[s1.Id])
 	require.True(t, sessionIds[s2.Id])
-	
+
 	// Verify s3, s4, and s5 are not in the result
 	require.False(t, sessionIds[s3.Id])
 	require.False(t, sessionIds[s4.Id])
