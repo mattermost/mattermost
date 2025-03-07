@@ -138,7 +138,7 @@ PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v1.5.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.2.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.2.1
 # We need to prepackage both versions of playbooks and install the correct one based on the server license. See MM-60025.
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.40.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.1.1
@@ -147,7 +147,7 @@ PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
 PLUGIN_PACKAGES += mattermost-plugin-ai-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.1
-PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.1.0
+PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.1.1
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
@@ -284,7 +284,7 @@ else
 endif
 
 golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.5
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57.1
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
