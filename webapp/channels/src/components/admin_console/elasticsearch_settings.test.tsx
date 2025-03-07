@@ -1,98 +1,178 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen, fireEvent} from '@testing-library/react';
 
 import type {AdminConfig} from '@mattermost/types/config';
 
+import {renderWithContext} from 'tests/react_testing_utils';
+import * as adminActions from 'actions/admin_actions.jsx';
+
 import ElasticSearchSettings from 'components/admin_console/elasticsearch_settings';
-import SaveButton from 'components/save_button';
 
 jest.mock('actions/admin_actions.jsx', () => {
     return {
         elasticsearchPurgeIndexes: jest.fn(),
         rebuildChannelsIndex: jest.fn(),
-        elasticsearchTest: (config: AdminConfig, success: () => void) => success(),
+        elasticsearchTest: jest.fn((config, success) => success()),
+    };
+});
+
+// Mock JobsTable to avoid prop-type warnings
+jest.mock('components/admin_console/jobs', () => {
+    return {
+        __esModule: true,
+        default: () => <div data-testid="mock-jobs-table">Jobs Table</div>,
+    };
+});
+
+// Also mock the SaveButton to avoid issues with button disabled state
+jest.mock('components/save_button', () => {
+    return function MockSaveButton(props) {
+        return (
+            <button
+                id="saveSetting"
+                data-testid="saveSetting"
+                className={`save-button ${props.disabled ? 'disabled' : ''}`}
+                disabled={props.disabled}
+            >
+                Save
+            </button>
+        );
     };
 });
 
 describe('components/ElasticSearchSettings', () => {
-    test('should match snapshot, disabled', () => {
-        const config = {
-            ElasticsearchSettings: {
-                ConnectionURL: 'test',
-                SkipTLSVerification: false,
-                CA: 'test.ca',
-                ClientCert: 'test.crt',
-                ClientKey: 'test.key',
-                Username: 'test',
-                Password: 'test',
-                Sniff: false,
-                EnableIndexing: false,
-                EnableSearching: false,
-                EnableAutocomplete: false,
-            },
-        };
-        const wrapper = shallow(
+    const baseConfig = {
+        ElasticsearchSettings: {
+            ConnectionURL: 'test',
+            Backend: '',
+            SkipTLSVerification: false,
+            CA: 'test.ca',
+            ClientCert: 'test.crt',
+            ClientKey: 'test.key',
+            Username: 'test',
+            Password: 'test',
+            Sniff: false,
+            EnableIndexing: false,
+            EnableSearching: false,
+            EnableAutocomplete: false,
+            IgnoredPurgeIndexes: '',
+        },
+    };
+
+    test('should render correctly when indexing is disabled', () => {
+        renderWithContext(
             <ElasticSearchSettings
-                config={config as AdminConfig}
+                config={baseConfig as AdminConfig}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(screen.getByText('Elasticsearch')).toBeInTheDocument();
+        expect(screen.getByText('Enable Elasticsearch Indexing:')).toBeInTheDocument();
+        
+        // Verify connection options exist but are disabled
+        const connectionUrlInput = screen.getByLabelText('Server Connection Address:');
+        expect(connectionUrlInput).toBeInTheDocument();
+        expect(connectionUrlInput).toBeDisabled();
+        
+        // Test button should be disabled when indexing is disabled
+        const testButton = screen.getByText('Test Connection');
+        expect(testButton).toBeDisabled();
     });
 
-    test('should match snapshot, enabled', () => {
+    test('should render correctly when indexing is enabled', () => {
         const config = {
+            ...baseConfig,
             ElasticsearchSettings: {
-                ConnectionURL: 'test',
-                SkipTLSVerification: false,
-                CA: 'test.ca',
-                ClientCert: 'test.crt',
-                ClientKey: 'test.key',
-                Username: 'test',
-                Password: 'test',
-                Sniff: false,
+                ...baseConfig.ElasticsearchSettings,
                 EnableIndexing: true,
-                EnableSearching: false,
-                EnableAutocomplete: false,
             },
         };
-        const wrapper = shallow(
+
+        renderWithContext(
             <ElasticSearchSettings
                 config={config as AdminConfig}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        // Check that connection options are enabled
+        const connectionUrlInput = screen.getByLabelText('Server Connection Address:');
+        expect(connectionUrlInput).toBeInTheDocument();
+        expect(connectionUrlInput).toBeEnabled();
+        
+        // Test button should be enabled when indexing is enabled
+        const testButton = screen.getByText('Test Connection');
+        expect(testButton).toBeEnabled();
     });
 
-    test('should maintain save disable until is tested', () => {
+    test('should maintain save disabled until connection is tested', () => {
         const config = {
+            ...baseConfig,
             ElasticsearchSettings: {
-                ConnectionURL: 'test',
-                SkipTLSVerification: false,
-                Username: 'test',
-                Password: 'test',
-                Sniff: false,
-                EnableIndexing: false,
-                EnableSearching: false,
-                EnableAutocomplete: false,
+                ...baseConfig.ElasticsearchSettings,
             },
         };
-        const wrapper = shallow(
+
+        renderWithContext(
             <ElasticSearchSettings
                 config={config as AdminConfig}
             />,
         );
-        const instance = wrapper.instance() as any;
-        expect(wrapper.find(SaveButton).prop('disabled')).toBe(true);
-        instance.handleSettingChanged('enableIndexing', true);
-        expect(wrapper.find(SaveButton).prop('disabled')).toBe(true);
-        const success = jest.fn();
-        const error = jest.fn();
-        instance.doTestConfig(success, error);
-        expect(success).toBeCalled();
-        expect(error).not.toBeCalled();
-        expect(wrapper.find(SaveButton).prop('disabled')).toBe(false);
+
+        // Initially, save button should be disabled
+        const saveButton = screen.getByTestId('saveSetting');
+        expect(saveButton).toBeDisabled();
+
+        // Enable indexing
+        const enableIndexingInput = screen.getByTestId('enableIndexingtrue');
+        fireEvent.click(enableIndexingInput);
+
+        // Save button should still be disabled
+        expect(saveButton).toBeDisabled();
+
+        // Test connection
+        const testButton = screen.getByText('Test Connection');
+        fireEvent.click(testButton);
+
+        // Verify elasticsearchTest was called
+        expect(adminActions.elasticsearchTest).toHaveBeenCalled();
+
+        // After successful test, save button should be enabled
+        expect(saveButton).not.toBeDisabled();
+    });
+
+    test('should disable settings when indexing is disabled', () => {
+        // Start with indexing enabled
+        const config = {
+            ...baseConfig,
+            ElasticsearchSettings: {
+                ...baseConfig.ElasticsearchSettings,
+                EnableIndexing: true,
+            },
+        };
+
+        renderWithContext(
+            <ElasticSearchSettings
+                config={config as AdminConfig}
+            />,
+        );
+
+        // Enable indexing should be checked
+        const enableIndexingTrueInput = screen.getByTestId('enableIndexingtrue');
+        expect(enableIndexingTrueInput).toBeChecked();
+
+        // Disable indexing
+        const enableIndexingFalseInput = screen.getByTestId('enableIndexingfalse');
+        fireEvent.click(enableIndexingFalseInput);
+
+        // Now check that connection URL is disabled
+        const connectionUrlInput = screen.getByLabelText('Server Connection Address:');
+        expect(connectionUrlInput).toBeDisabled();
+
+        // And test button should be disabled too
+        const testButton = screen.getByText('Test Connection');
+        expect(testButton).toBeDisabled();
     });
 });

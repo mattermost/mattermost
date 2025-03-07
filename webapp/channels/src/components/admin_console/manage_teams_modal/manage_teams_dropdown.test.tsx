@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen} from '@testing-library/react';
+
+import {renderWithContext} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import ManageTeamsDropdown from 'components/admin_console/manage_teams_modal/manage_teams_dropdown';
-
-import {TestHelper} from 'utils/test_helper';
 
 describe('ManageTeamsDropdown', () => {
     const baseProps = {
@@ -30,15 +31,16 @@ describe('ManageTeamsDropdown', () => {
         handleRemoveUserFromTeam: jest.fn(),
     };
 
-    test('should match snapshot for team member', () => {
-        const wrapper = shallow(
+    test('should show team member text when user is a team member', () => {
+        renderWithContext(
             <ManageTeamsDropdown {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        // Check that the correct role is displayed
+        expect(screen.getByText('Team Member')).toBeInTheDocument();
     });
 
-    test('should match snapshot for system admin', () => {
+    test('should show system admin text when user is a system admin', () => {
         const user = {
             ...baseProps.user,
             roles: 'system_admin',
@@ -49,14 +51,15 @@ describe('ManageTeamsDropdown', () => {
             user,
         };
 
-        const wrapper = shallow(
+        renderWithContext(
             <ManageTeamsDropdown {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        // Check that the correct role is displayed
+        expect(screen.getByText('System Admin')).toBeInTheDocument();
     });
 
-    test('should match snapshot for team admin', () => {
+    test('should show team admin text when user is a team admin', () => {
         const user = {
             ...baseProps.user,
             roles: 'system_user',
@@ -73,33 +76,31 @@ describe('ManageTeamsDropdown', () => {
             teamMember,
         };
 
-        const wrapper = shallow(
+        renderWithContext(
             <ManageTeamsDropdown {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        // Check that the correct role is displayed
+        expect(screen.getByText('Team Admin')).toBeInTheDocument();
     });
 
-    test('should match snapshot for guest', () => {
+    test('should show guest text when user is a guest', () => {
         const user = {
             ...baseProps.user,
             roles: 'system_guest',
         };
 
-        const teamMember = {
-            ...baseProps.teamMember,
-        };
-
         const props = {
             ...baseProps,
             user,
-            teamMember,
+            teamMember: baseProps.teamMember,
         };
 
-        const wrapper = shallow(
+        renderWithContext(
             <ManageTeamsDropdown {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        // Check that the correct role is displayed
+        expect(screen.getByText('Guest')).toBeInTheDocument();
     });
 });
