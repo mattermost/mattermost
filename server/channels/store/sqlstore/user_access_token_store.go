@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -15,10 +16,20 @@ import (
 
 type SqlUserAccessTokenStore struct {
 	*SqlStore
+
+	userAccessTokensSelectQuery sq.SelectBuilder
 }
 
 func newSqlUserAccessTokenStore(sqlStore *SqlStore) store.UserAccessTokenStore {
-	return &SqlUserAccessTokenStore{sqlStore}
+	s := &SqlUserAccessTokenStore{
+		SqlStore: sqlStore,
+	}
+
+	s.userAccessTokensSelectQuery = s.getQueryBuilder().
+		Select("Id", "Token", "UserId", "Description", "IsActive").
+		From("UserAccessTokens")
+
+	return s
 }
 
 func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserAccessToken, error) {
@@ -125,7 +136,9 @@ func (s SqlUserAccessTokenStore) deleteTokensByUser(transaction *sqlxTxWrapper, 
 func (s SqlUserAccessTokenStore) Get(tokenId string) (*model.UserAccessToken, error) {
 	var token model.UserAccessToken
 
-	if err := s.GetReplica().Get(&token, "SELECT * FROM UserAccessTokens WHERE Id = ?", tokenId); err != nil {
+	query := s.userAccessTokensSelectQuery.Where(sq.Eq{"Id": tokenId})
+
+	if err := s.GetReplica().GetBuilder(&token, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("UserAccessToken", tokenId)
 		}
@@ -138,7 +151,11 @@ func (s SqlUserAccessTokenStore) Get(tokenId string) (*model.UserAccessToken, er
 func (s SqlUserAccessTokenStore) GetAll(offset, limit int) ([]*model.UserAccessToken, error) {
 	tokens := []*model.UserAccessToken{}
 
-	if err := s.GetReplica().Select(&tokens, "SELECT * FROM UserAccessTokens LIMIT ? OFFSET ?", limit, offset); err != nil {
+	query := s.userAccessTokensSelectQuery.
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
+
+	if err := s.GetReplica().SelectBuilder(&tokens, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find UserAccessTokens")
 	}
 
@@ -148,7 +165,9 @@ func (s SqlUserAccessTokenStore) GetAll(offset, limit int) ([]*model.UserAccessT
 func (s SqlUserAccessTokenStore) GetByToken(tokenString string) (*model.UserAccessToken, error) {
 	var token model.UserAccessToken
 
-	if err := s.GetReplica().Get(&token, "SELECT * FROM UserAccessTokens WHERE Token = ?", tokenString); err != nil {
+	query := s.userAccessTokensSelectQuery.Where(sq.Eq{"Token": tokenString})
+
+	if err := s.GetReplica().GetBuilder(&token, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("UserAccessToken", fmt.Sprintf("token=%s", tokenString))
 		}
@@ -161,7 +180,12 @@ func (s SqlUserAccessTokenStore) GetByToken(tokenString string) (*model.UserAcce
 func (s SqlUserAccessTokenStore) GetByUser(userId string, offset, limit int) ([]*model.UserAccessToken, error) {
 	tokens := []*model.UserAccessToken{}
 
-	if err := s.GetReplica().Select(&tokens, "SELECT * FROM UserAccessTokens WHERE UserId = ? LIMIT ? OFFSET ?", userId, limit, offset); err != nil {
+	query := s.userAccessTokensSelectQuery.
+		Where(sq.Eq{"UserId": userId}).
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
+
+	if err := s.GetReplica().SelectBuilder(&tokens, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find UserAccessTokens with userId=%s", userId)
 	}
 
@@ -174,7 +198,7 @@ func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, 
 	params := []any{term, term, term}
 	query := `
 		SELECT
-			uat.*
+			uat.Id, uat.Token, uat.UserId, uat.Description, uat.IsActive
 		FROM UserAccessTokens uat
 		INNER JOIN Users u
 			ON uat.UserId = u.Id
