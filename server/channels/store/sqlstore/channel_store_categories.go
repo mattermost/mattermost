@@ -493,15 +493,10 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 }
 
 func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, error) {
-	query := s.getQueryBuilder().
-		Select(
-			"SidebarCategories.Id", "SidebarCategories.UserId", "SidebarCategories.TeamId",
-			"SidebarCategories.SortOrder", "SidebarCategories.Sorting", "SidebarCategories.Type",
-			"SidebarCategories.DisplayName", "SidebarCategories.Muted", "SidebarCategories.Collapsed",
-			"SidebarChannels.ChannelId").
-		From("SidebarCategories").
-		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=SidebarCategories.Id").
-		Where(sq.Eq{"SidebarCategories.Id": categoryId}).
+	query := s.sidebarCategorySelectQuery.
+		Columns("SidebarChannels.ChannelId").
+		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=sc.Id").
+		Where(sq.Eq{"sc.Id": categoryId}).
 		OrderBy("SidebarChannels.SortOrder ASC")
 
 	sql, args, err := query.ToSql()
@@ -537,34 +532,29 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 	}
 
 	categories := []*sidebarCategoryForJoin{}
-	query := s.getQueryBuilder().
-		Select(
-			"SidebarCategories.Id", "SidebarCategories.UserId", "SidebarCategories.TeamId",
-			"SidebarCategories.SortOrder", "SidebarCategories.Sorting", "SidebarCategories.Type",
-			"SidebarCategories.DisplayName", "SidebarCategories.Muted", "SidebarCategories.Collapsed",
-			"SidebarChannels.ChannelId").
-		From("SidebarCategories").
-		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=Id").
-		InnerJoin("Teams ON Teams.Id=SidebarCategories.TeamId").
-		InnerJoin("TeamMembers ON TeamMembers.TeamId=SidebarCategories.TeamId").
+	query := s.sidebarCategorySelectQuery.
+		Columns("SidebarChannels.ChannelId").
+		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=sc.Id").
+		InnerJoin("Teams ON Teams.Id=sc.TeamId").
+		InnerJoin("TeamMembers ON TeamMembers.TeamId=sc.TeamId").
 		Where(sq.And{
 			sq.Eq{"TeamMembers.UserId": userId},
 			sq.Eq{"TeamMembers.DeleteAt": 0},
 			sq.Eq{"Teams.DeleteAt": 0},
 		}).
 		Where(sq.And{
-			sq.Eq{"SidebarCategories.UserId": userId},
+			sq.Eq{"sc.UserId": userId},
 		}).
-		OrderBy("SidebarCategories.SortOrder ASC, SidebarChannels.SortOrder ASC")
+		OrderBy("sc.SortOrder ASC, SidebarChannels.SortOrder ASC")
 
 	if opts.ExcludeTeam {
-		query = query.Where(sq.NotEq{"SidebarCategories.TeamId": opts.TeamID})
+		query = query.Where(sq.NotEq{"sc.TeamId": opts.TeamID})
 	} else {
-		query = query.Where(sq.Eq{"SidebarCategories.TeamId": opts.TeamID})
+		query = query.Where(sq.Eq{"sc.TeamId": opts.TeamID})
 	}
 
 	if opts.Type != "" {
-		query = query.Where(sq.Eq{"SidebarCategories.Type": opts.Type})
+		query = query.Where(sq.Eq{"sc.Type": opts.Type})
 	}
 
 	sql, args, err := query.ToSql()
