@@ -100,7 +100,6 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "closeCallback": null,
         "closeListeners": Set {},
         "config": Object {
-          "clientPingEnabled": true,
           "clientPingInterval": 30000,
           "maxWebSocketFails": 7,
           "maxWebSocketRetryTime": 300000,
@@ -159,7 +158,6 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "closeCallback": null,
         "closeListeners": Set {},
         "config": Object {
-          "clientPingEnabled": true,
           "clientPingInterval": 30000,
           "maxWebSocketFails": 7,
           "maxWebSocketRetryTime": 300000,
