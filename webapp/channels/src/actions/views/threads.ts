@@ -24,6 +24,16 @@ export function updateThreadLastOpened(threadId: string, lastViewedAt: number) {
     };
 }
 
+export function updateThreadLastUpdateAt(threadId: string, lastUpdateAt: number) {
+    return {
+        type: Threads.CHANGED_LAST_UPDATE_AT,
+        data: {
+            threadId,
+            lastUpdateAt,
+        },
+    };
+}
+
 export function setSelectedThreadId(teamId: string, threadId: string | undefined) {
     return {
         type: Threads.CHANGED_SELECTED_THREAD,

@@ -621,7 +621,11 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		}
 	}
 	if sort != "" {
-		query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
+		if opts.UpdatesOnly {
+			query = query.OrderBy("UpdateAt " + sort + ", Id " + sort)
+		} else {
+			query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
+		}
 	}
 
 	if opts.FromCreateAt != 0 {
@@ -645,6 +649,36 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 					direction,
 					sq.And{
 						sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
+						sq.Lt{"Posts.Id": opts.FromPost},
+					},
+				})
+			} else {
+				query = query.Where(direction)
+			}
+		}
+	}
+
+	if opts.FromUpdateAt != 0 {
+		if opts.Direction == "down" {
+			direction := sq.Gt{"Posts.UpdateAt": opts.FromUpdateAt}
+			if opts.FromPost != "" {
+				query = query.Where(sq.Or{
+					direction,
+					sq.And{
+						sq.Eq{"Posts.UpdateAt": opts.FromUpdateAt},
+						sq.Gt{"Posts.Id": opts.FromPost},
+					},
+				})
+			} else {
+				query = query.Where(direction)
+			}
+		} else {
+			direction := sq.Lt{"Posts.UpdateAt": opts.FromUpdateAt}
+			if opts.FromPost != "" {
+				query = query.Where(sq.Or{
+					direction,
+					sq.And{
+						sq.Eq{"Posts.UpdateAt": opts.FromUpdateAt},
 						sq.Lt{"Posts.Id": opts.FromPost},
 					},
 				})
@@ -767,7 +801,11 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 			}
 		}
 		if sort != "" {
-			query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
+			if opts.UpdatesOnly {
+				query = query.OrderBy("UpdateAt " + sort + ", Id " + sort)
+			} else {
+				query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
+			}
 		}
 
 		if opts.FromCreateAt != 0 {
@@ -791,6 +829,36 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 						direction,
 						sq.And{
 							sq.Eq{"p.CreateAt": opts.FromCreateAt},
+							sq.Lt{"p.Id": opts.FromPost},
+						},
+					})
+				} else {
+					query = query.Where(direction)
+				}
+			}
+		}
+
+		if opts.FromUpdateAt != 0 {
+			if opts.Direction == "down" {
+				direction := sq.Gt{"p.UpdateAt": opts.FromUpdateAt}
+				if opts.FromPost != "" {
+					query = query.Where(sq.Or{
+						direction,
+						sq.And{
+							sq.Eq{"p.UpdateAt": opts.FromUpdateAt},
+							sq.Gt{"p.Id": opts.FromPost},
+						},
+					})
+				} else {
+					query = query.Where(direction)
+				}
+			} else {
+				direction := sq.Lt{"p.UpdateAt": opts.FromUpdateAt}
+				if opts.FromPost != "" {
+					query = query.Where(sq.Or{
+						direction,
+						sq.And{
+							sq.Eq{"p.UpdateAt": opts.FromUpdateAt},
 							sq.Lt{"p.Id": opts.FromPost},
 						},
 					})

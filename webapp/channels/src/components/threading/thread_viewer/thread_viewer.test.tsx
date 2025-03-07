@@ -54,6 +54,7 @@ describe('components/threading/ThreadViewer', () => {
         getThread: jest.fn(),
         updateThreadRead: jest.fn(),
         updateThreadLastOpened: jest.fn(),
+        updateThreadLastUpdateAt: jest.fn(),
         fetchRHSAppsBindings: jest.fn(),
     };
 
@@ -70,7 +71,22 @@ describe('components/threading/ThreadViewer', () => {
         rootPostId: post.id,
         isThreadView: true,
         enableWebSocketEventScope: false,
+        lastUpdateAt: 1234,
     };
+
+    beforeEach(() => {
+        // Reset and redefine the mock before each test
+        actions.getPostThread.mockReset().mockResolvedValue({
+            data: {
+                order: ['post1', 'post2', 'post3'],
+                posts: {
+                    post1: TestHelper.getPostMock({id: 'post1', update_at: 1000}),
+                    post2: TestHelper.getPostMock({id: 'post2', update_at: 2000}),
+                    post3: TestHelper.getPostMock({id: 'post3', update_at: 1500}),
+                },
+            },
+        });
+    });
 
     test('should match snapshot', async () => {
         const reset = fakeDate(new Date(1502715365000));
@@ -92,7 +108,7 @@ describe('components/threading/ThreadViewer', () => {
         wrapper.setProps({socketConnectionStatus: false});
         wrapper.setProps({socketConnectionStatus: true});
 
-        return expect(actions.getPostThread).toHaveBeenCalledWith(post.id, true);
+        return expect(actions.getPostThread).toHaveBeenCalledWith(post.id, true, 1234);
     });
 
     test('should not break if root post is a fake post', () => {
@@ -243,5 +259,49 @@ describe('components/threading/ThreadViewer', () => {
         );
 
         expect(actions.fetchRHSAppsBindings).not.toHaveBeenCalledWith('channel_id', 'id');
+    });
+
+    test('should update thread with highest update_at value when lastUpdateAt is 0', async () => {
+        const {actions} = baseProps;
+
+        shallow(
+            <ThreadViewer
+                {...baseProps}
+                lastUpdateAt={0} // Set lastUpdateAt to 0
+            />,
+        );
+
+        await new Promise(process.nextTick);
+
+        // Verify getPostThread was called with lastUpdateAt = 0
+        expect(actions.getPostThread).toHaveBeenCalledWith(post.id, true, 0);
+
+        // Verify updateThreadLastUpdateAt was called with the highest update_at value
+        expect(actions.updateThreadLastUpdateAt).toHaveBeenCalledWith(post.id, 2000);
+    });
+
+    test('should handle case where root post has the highest update_at value', async () => {
+        // Mock with root post having highest update_at
+        actions.getPostThread.mockReset().mockResolvedValue({
+            data: {
+                order: ['post1', 'post2', 'post3'],
+                posts: {
+                    post1: TestHelper.getPostMock({id: 'post1', update_at: 9000}), // Highest value (root post)
+                    post2: TestHelper.getPostMock({id: 'post2', update_at: 2000}),
+                    post3: TestHelper.getPostMock({id: 'post3', update_at: 1500}),
+                },
+            },
+        });
+
+        shallow(
+            <ThreadViewer
+                {...baseProps}
+            />,
+        );
+
+        await new Promise(process.nextTick);
+
+        // Verify updateThreadLastUpdateAt was called with the highest update_at value
+        expect(actions.updateThreadLastUpdateAt).toHaveBeenCalledWith(post.id, 9000);
     });
 });
