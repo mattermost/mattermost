@@ -493,12 +493,18 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 }
 
 func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, error) {
-	sql, args, err := s.getQueryBuilder().
-		Select("SidebarCategories.*", "SidebarChannels.ChannelId").
+	query := s.getQueryBuilder().
+		Select(
+			"SidebarCategories.Id", "SidebarCategories.UserId", "SidebarCategories.TeamId",
+			"SidebarCategories.SortOrder", "SidebarCategories.Sorting", "SidebarCategories.Type",
+			"SidebarCategories.DisplayName", "SidebarCategories.Muted", "SidebarCategories.Collapsed",
+			"SidebarChannels.ChannelId").
 		From("SidebarCategories").
 		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=SidebarCategories.Id").
 		Where(sq.Eq{"SidebarCategories.Id": categoryId}).
-		OrderBy("SidebarChannels.SortOrder ASC").ToSql()
+		OrderBy("SidebarChannels.SortOrder ASC")
+
+	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "sidebar_category_tosql")
 	}
@@ -532,7 +538,11 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 
 	categories := []*sidebarCategoryForJoin{}
 	query := s.getQueryBuilder().
-		Select("SidebarCategories.*", "SidebarChannels.ChannelId").
+		Select(
+			"SidebarCategories.Id", "SidebarCategories.UserId", "SidebarCategories.TeamId",
+			"SidebarCategories.SortOrder", "SidebarCategories.Sorting", "SidebarCategories.Type",
+			"SidebarCategories.DisplayName", "SidebarCategories.Muted", "SidebarCategories.Collapsed",
+			"SidebarChannels.ChannelId").
 		From("SidebarCategories").
 		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=Id").
 		InnerJoin("Teams ON Teams.Id=SidebarCategories.TeamId").
@@ -942,7 +952,7 @@ func (s SqlChannelStore) addChannelToFavoritesCategoryT(transaction *sqlxTxWrapp
 	}
 
 	var channel model.Channel
-	if err := transaction.Get(&channel, `SELECT * FROM Channels WHERE Id=?`, preference.Name); err != nil {
+	if err := transaction.Get(&channel, `SELECT Id, TeamId FROM Channels WHERE Id=?`, preference.Name); err != nil {
 		return errors.Wrapf(err, "Failed to get favorited channel with id=%s", preference.Name)
 	} else if channel.Id == "" {
 		return store.NewErrNotFound("Channel", preference.Name)
