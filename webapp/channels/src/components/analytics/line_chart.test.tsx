@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import React from 'react';
 
 import LineChart from 'components/analytics/line_chart';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 jest.mock('chart.js/auto', () => {
     return jest.fn().mockImplementation(() => {
@@ -21,7 +23,7 @@ describe('components/analytics/line_chart.tsx', () => {
     });
 
     test('should show loading message when data is not provided', () => {
-        render(
+        renderWithContext(
             <LineChart
                 id='test'
                 title='Test'
@@ -40,7 +42,7 @@ describe('components/analytics/line_chart.tsx', () => {
             labels: [],
         };
 
-        render(
+        renderWithContext(
             <LineChart
                 id='test'
                 title='Test'
@@ -62,7 +64,7 @@ describe('components/analytics/line_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3'],
         };
 
-        render(
+        renderWithContext(
             <LineChart
                 id='test'
                 title='Test'

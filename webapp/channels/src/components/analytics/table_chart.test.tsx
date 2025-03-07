@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import TableChart from 'components/analytics/table_chart';
 import type {TableItem} from 'components/analytics/table_chart';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 // Mock the WithTooltip component to make testing easier
 jest.mock('components/with_tooltip', () => {
@@ -21,7 +23,7 @@ describe('components/analytics/table_chart.tsx', () => {
     test('should render correctly without data', () => {
         const data: TableItem[] = [];
 
-        render(
+        renderWithContext(
             <TableChart
                 title='Test'
                 data={data}
@@ -39,7 +41,7 @@ describe('components/analytics/table_chart.tsx', () => {
             {name: 'test2', tip: 'test-tip2', value: <p>{'test-value2'}</p>},
         ];
 
-        render(
+        renderWithContext(
             <TableChart
                 title='Test'
                 data={data}

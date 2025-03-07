@@ -14,7 +14,7 @@ jest.mock('chart.js');
 
 describe('components/analytics/doughnut_chart.tsx', () => {
     test('should show loading state when no data is provided', () => {
-        render(
+        renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -50,7 +50,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             ],
         };
 
-        render(
+        renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -73,7 +73,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3'],
         };
 
-        const {unmount} = render(
+        const {unmount} = renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -105,7 +105,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3', 'test4'],
         };
 
-        const {rerender} = render(
+        const {rerender} = renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}

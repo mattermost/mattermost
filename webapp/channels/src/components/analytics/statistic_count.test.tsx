@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import React from 'react';
 
 import StatisticCount from 'components/analytics/statistic_count';
 
+import {renderWithContext} from 'tests/react_testing_utils';
+
 describe('components/analytics/statistic_count.tsx', () => {
     test('should show loading message when count is not provided', () => {
-        render(
+        renderWithContext(
             <StatisticCount
                 title='Test'
                 icon='test-icon'
@@ -20,7 +22,7 @@ describe('components/analytics/statistic_count.tsx', () => {
     });
 
     test('should display count when provided', () => {
-        render(
+        renderWithContext(
             <StatisticCount
                 title='Test'
                 icon='test-icon'
@@ -34,7 +36,7 @@ describe('components/analytics/statistic_count.tsx', () => {
     });
 
     test('should display zero count when provided', () => {
-        render(
+        renderWithContext(
             <StatisticCount
                 title='Test Zero'
                 icon='test-icon'
@@ -49,7 +51,7 @@ describe('components/analytics/statistic_count.tsx', () => {
 
     test('should apply formatter function when provided', () => {
         const mockFormatter = (value: number) => `${value}%`;
-        render(
+        renderWithContext(
             <StatisticCount
                 title='Test'
                 icon='test-icon'
@@ -63,7 +65,7 @@ describe('components/analytics/statistic_count.tsx', () => {
     });
 
     test('should apply status classes when provided', () => {
-        render(
+        renderWithContext(
             <StatisticCount
                 title='Warning Test'
                 icon='test-icon'
