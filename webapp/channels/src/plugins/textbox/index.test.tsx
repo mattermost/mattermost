@@ -1,12 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-
-import Textbox from 'components/textbox';
+import {render} from '@testing-library/react';
 
 import PluginTextbox from '.';
+
+// Mock the Textbox component to verify props
+jest.mock('components/textbox', () => {
+    const mockTextbox = jest.fn().mockImplementation((props) => {
+        mockTextbox.lastProps = props;
+        return <div data-testid="mock-textbox" />;
+    });
+    return mockTextbox;
+});
 
 describe('PluginTextbox', () => {
     const baseProps = {
@@ -32,14 +39,23 @@ describe('PluginTextbox', () => {
         useChannelMentions: true,
     };
 
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     test('should rename suggestionListStyle to suggestionListPosition', () => {
         const props: React.ComponentProps<typeof PluginTextbox> = {
             ...baseProps,
             suggestionListStyle: 'bottom',
         };
-        const wrapper = shallow(<PluginTextbox {...props}/>);
+        
+        render(<PluginTextbox {...props}/>);
 
-        expect(wrapper.find(Textbox).prop('suggestionListPosition')).toEqual('bottom');
-        expect(wrapper.find(Textbox).prop('suggestionListStyle')).toBeUndefined();
+        // Get the mock Textbox component
+        const Textbox = require('components/textbox');
+        
+        // Check the props passed to Textbox
+        expect(Textbox.lastProps.suggestionListPosition).toEqual('bottom');
+        expect(Textbox.lastProps.suggestionListStyle).toBeUndefined();
     });
 });

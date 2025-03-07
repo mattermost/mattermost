@@ -1,16 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, mount} from 'enzyme';
 import type {ComponentProps} from 'react';
 import React from 'react';
+import {screen} from '@testing-library/react';
 
 import {Preferences} from 'mattermost-redux/constants';
 
 import PostMessageView from 'components/post_view/post_message_view/post_message_view';
+import {renderWithContext} from 'tests/react_testing_utils';
+
+// Mock the ShowMore component to avoid context issues
+jest.mock('components/post_view/show_more', () => () => <div data-testid="show-more">Show More</div>);
 
 const PostTypePlugin = () => (
-    <span id='pluginId'>{'PostTypePlugin'}</span>
+    <span data-testid='pluginId'>{'PostTypePlugin'}</span>
 );
 
 describe('plugins/PostMessageView', () => {
@@ -31,21 +35,25 @@ describe('plugins/PostMessageView', () => {
         currentRelativeTeamUrl: 'team_url',
     };
 
-    test('should match snapshot with extended post type', () => {
-        const wrapper = mount(
+    test('should render properly with extended post type', () => {
+        const {container} = renderWithContext(
             <PostMessageView {...requiredProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('#pluginId').text()).toBe('PostTypePlugin');
+        // Testing that the custom plugin component renders
+        expect(screen.getByTestId('pluginId')).toBeInTheDocument();
+        expect(screen.getByText('PostTypePlugin')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with no extended post type', () => {
+    test('should render properly with no extended post type', () => {
         const props = {...requiredProps, pluginPostTypes: {}};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PostMessageView {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        // When no plugin post type is available, it should not render the plugin component
+        expect(screen.queryByTestId('pluginId')).not.toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 });

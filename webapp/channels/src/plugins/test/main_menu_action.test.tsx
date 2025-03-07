@@ -8,7 +8,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import MainMenu from 'components/main_menu/main_menu';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('plugins/MainMenuActions', () => {
     const pluginAction = jest.fn();
@@ -48,38 +48,38 @@ describe('plugins/MainMenuActions', () => {
         mobile: false,
     };
 
-    test('should match snapshot in web view', () => {
-        let wrapper = shallowWithIntl(
-            <MainMenu
-                {...requiredProps}
-            />,
-        );
-
-        wrapper = wrapper.shallow();
-
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.findWhere((node) => node.key() === 'someplugin_pluginmenuitem')).toHaveLength(1);
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
-    test('should match snapshot in mobile view with some plugin and ability to click plugin', () => {
+    test('should render correctly in web view', () => {
+        const {container} = renderWithContext(
+            <MainMenu
+                {...requiredProps}
+            />
+        );
+
+        expect(screen.getByText('some plugin text')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should render correctly in mobile view with some plugin and ability to click plugin', () => {
         const props = {
             ...requiredProps,
             mobile: true,
         };
 
-        let wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <MainMenu
                 {...props}
-            />,
+            />
         );
 
-        wrapper = wrapper.shallow();
+        expect(screen.getByText('some plugin text')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.findWhere((node) => node.key() === 'someplugin_pluginmenuitem')).toHaveLength(1);
-
-        wrapper.findWhere((node) => node.key() === 'someplugin_pluginmenuitem').simulate('click');
-        expect(pluginAction).toBeCalled();
+        userEvent.click(screen.getByText('some plugin text'));
+        expect(pluginAction).toHaveBeenCalled();
     });
 });
 
