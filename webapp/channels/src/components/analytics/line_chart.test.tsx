@@ -1,14 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {render, screen} from '@testing-library/react';
 import React from 'react';
 
 import LineChart from 'components/analytics/line_chart';
 
+jest.mock('chart.js/auto', () => {
+    return jest.fn().mockImplementation(() => {
+        return {
+            destroy: jest.fn(),
+            update: jest.fn(),
+        };
+    });
+});
+
 describe('components/analytics/line_chart.tsx', () => {
-    test('should match snapshot, on loading', () => {
-        const wrapper = shallow(
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('should show loading message when data is not provided', () => {
+        render(
             <LineChart
                 id='test'
                 title='Test'
@@ -17,16 +30,17 @@ describe('components/analytics/line_chart.tsx', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Loading...')).toBeInTheDocument();
+        expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
-    test('should match snapshot, loaded without data', () => {
+    test('should show "not enough data" message when data has no labels', () => {
         const data = {
             datasets: [],
             labels: [],
         };
 
-        const wrapper = shallow(
+        render(
             <LineChart
                 id='test'
                 title='Test'
@@ -36,10 +50,11 @@ describe('components/analytics/line_chart.tsx', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Not enough data for a meaningful representation.')).toBeInTheDocument();
+        expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
-    test('should match snapshot, loaded with data', () => {
+    test('should render chart when provided with valid data', () => {
         const data = {
             datasets: [
                 {data: [1, 2, 3]},
@@ -47,7 +62,7 @@ describe('components/analytics/line_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3'],
         };
 
-        const wrapper = shallow(
+        render(
             <LineChart
                 id='test'
                 title='Test'
@@ -57,6 +72,8 @@ describe('components/analytics/line_chart.tsx', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Test')).toBeInTheDocument();
+        expect(screen.getByTestId('test')).toBeInTheDocument();
+        expect(screen.getByTestId('test').tagName.toLowerCase()).toBe('canvas');
     });
 });
