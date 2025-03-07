@@ -1477,8 +1477,9 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 	t.Run("regular user with FilterAllowReference", func(t *testing.T) {
 		optsWithFilter := opts
 		optsWithFilter.FilterAllowReference = true
+		var err error
 
-		groups, _, err := th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, optsWithFilter)
+		groups, _, err = th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, optsWithFilter)
 		assert.NoError(t, err)
 
 		// Regular user should only see groups with AllowReference=true
@@ -1497,7 +1498,8 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 	assert.Empty(t, groups)
 
 	t.Run("should get the groups ok when belonging to the team", func(t *testing.T) {
-		groups, resp, err := th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
+		var resp *model.Response
+		groups, resp, err = th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotEmpty(t, groups)
@@ -1509,7 +1511,8 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
 			require.Nil(t, appErr)
 		}()
-		groups, resp, err := th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
+		var resp *model.Response
+		groups, resp, err = th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.Empty(t, groups)
