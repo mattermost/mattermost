@@ -10,6 +10,7 @@ import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import SaveButton from 'components/save_button';
 
+/* eslint-disable @stylistic/ts/indent */
 type Props = {
     saving: boolean;
     saveNeeded: boolean;
@@ -22,6 +23,7 @@ type Props = {
 }, {
     onCancel: () => void;
 }>;
+/* eslint-enable @stylistic/ts/indent */
 
 const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink, onCancel, isDisabled, savingMessage}: Props) => {
     const {formatMessage} = useIntl();

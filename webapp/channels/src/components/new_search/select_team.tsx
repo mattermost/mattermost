@@ -77,7 +77,7 @@ const SelectTeam = (props: Props) => {
         return filteredTeams;
     }, [myTeams, locale, userTeamsOrderPreference, filter, showFilter, props.selectedTeamId]);
 
-    const renderTeam = (teamId: string, teamName: string, elementId: string, className: string = '') => {
+    const renderTeam = (teamId: string, teamName: string, elementId: string, className = '') => {
         return (
             <Menu.Item
                 id={elementId}
