@@ -7153,10 +7153,10 @@ func (s *TimerLayerPropertyFieldStore) Delete(id string) error {
 	return err
 }
 
-func (s *TimerLayerPropertyFieldStore) Get(id string) (*model.PropertyField, error) {
+func (s *TimerLayerPropertyFieldStore) Get(groupID string, id string) (*model.PropertyField, error) {
 	start := time.Now()
 
-	result, err := s.PropertyFieldStore.Get(id)
+	result, err := s.PropertyFieldStore.Get(groupID, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7169,10 +7169,10 @@ func (s *TimerLayerPropertyFieldStore) Get(id string) (*model.PropertyField, err
 	return result, err
 }
 
-func (s *TimerLayerPropertyFieldStore) GetMany(ids []string) ([]*model.PropertyField, error) {
+func (s *TimerLayerPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
 	start := time.Now()
 
-	result, err := s.PropertyFieldStore.GetMany(ids)
+	result, err := s.PropertyFieldStore.GetMany(groupID, ids)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7297,10 +7297,10 @@ func (s *TimerLayerPropertyValueStore) DeleteForField(id string) error {
 	return err
 }
 
-func (s *TimerLayerPropertyValueStore) Get(id string) (*model.PropertyValue, error) {
+func (s *TimerLayerPropertyValueStore) Get(groupID string, id string) (*model.PropertyValue, error) {
 	start := time.Now()
 
-	result, err := s.PropertyValueStore.Get(id)
+	result, err := s.PropertyValueStore.Get(groupID, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7313,10 +7313,10 @@ func (s *TimerLayerPropertyValueStore) Get(id string) (*model.PropertyValue, err
 	return result, err
 }
 
-func (s *TimerLayerPropertyValueStore) GetMany(ids []string) ([]*model.PropertyValue, error) {
+func (s *TimerLayerPropertyValueStore) GetMany(groupID string, ids []string) ([]*model.PropertyValue, error) {
 	start := time.Now()
 
-	result, err := s.PropertyValueStore.GetMany(ids)
+	result, err := s.PropertyValueStore.GetMany(groupID, ids)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
