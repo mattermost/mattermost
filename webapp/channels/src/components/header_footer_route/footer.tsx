@@ -7,9 +7,12 @@ import {useSelector} from 'react-redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import './footer.scss';
 import ExternalLink from 'components/external_link';
-import { isEmbedded } from 'utils/embed';
+
+import {isEmbedded} from 'utils/embed';
+
+import './footer.scss';
+
 const Footer = () => {
     const {formatMessage} = useIntl();
 

@@ -18,6 +18,7 @@ import store from 'stores/redux_store';
 
 import PluginRegistry from 'plugins/registry';
 import {ActionTypes} from 'utils/constants';
+import {isEmbedded} from 'utils/embed';
 import {getSiteURL} from 'utils/url';
 
 import type {GlobalState, ActionFuncAsync} from 'types/store';
@@ -28,7 +29,6 @@ import {removeWebappPlugin} from './actions';
 // (without lazy loading). This should be removed in the future whenever we
 // have all plugins migrated to common components that can be reused there.
 import 'components/widgets/modals/full_screen_modal.scss';
-import { isEmbedded } from 'utils/embed';
 
 interface Plugin {
     initialize?: (registry: PluginRegistry, store: any) => void;
