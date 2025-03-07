@@ -2221,6 +2221,7 @@ export enum ClaimErrors {
 export const DataSearchTypes = {
     FILES_SEARCH_TYPE: 'files',
     MESSAGES_SEARCH_TYPE: 'messages',
+    OMNISEARCH_SEARCH_TYPE: 'omnisearch',
 } as const;
 
 export const OverActiveUserLimits = {

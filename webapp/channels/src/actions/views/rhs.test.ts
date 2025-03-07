@@ -233,6 +233,7 @@ describe('rhs view actions', () => {
             store.dispatch(performSearch(terms, currentTeamId, false));
 
             const compareStore = mockStore(initialState);
+            compareStore.dispatch(SearchActions.clearSearch());
             compareStore.dispatch(SearchActions.searchPostsWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
             compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
 
@@ -256,6 +257,7 @@ describe('rhs view actions', () => {
 
             const filesExtTerms = '@here test search ext:txt ext:jpeg';
             const compareStore = mockStore(initialState);
+            compareStore.dispatch(SearchActions.clearSearch());
             compareStore.dispatch(SearchActions.searchPostsWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
             compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, {include_deleted_channels: false, terms: filesExtTerms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
 
@@ -268,6 +270,7 @@ describe('rhs view actions', () => {
 
             const mentionsQuotedTerms = `@here test search "${currentUsername}" "@${currentUsername}" "${currentUserFirstName}"`;
             const compareStore = mockStore(initialState);
+            compareStore.dispatch(SearchActions.clearSearch());
             compareStore.dispatch(SearchActions.searchPostsWithParams('', {include_deleted_channels: false, terms: mentionsQuotedTerms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
             compareStore.dispatch(SearchActions.searchFilesWithParams('', {include_deleted_channels: false, terms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
 
