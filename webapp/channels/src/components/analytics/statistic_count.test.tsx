@@ -77,7 +77,7 @@ describe('components/analytics/statistic_count.tsx', () => {
 
         const titleElement = screen.getByTestId('warning-statTitle');
         const contentElement = screen.getByTestId('warning-stat');
-        
+
         expect(titleElement).toHaveClass('team_statistics--warning');
         expect(contentElement).toHaveClass('team_statistics--warning');
     });
