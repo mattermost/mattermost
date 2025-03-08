@@ -2495,7 +2495,6 @@ func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", channelId)
 	}
-
 	return posts, nil
 }
 
@@ -2789,7 +2788,6 @@ func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExpo
 	if s.DriverName() == model.DatabaseDriverMysql {
 		aggFn = "IF (COUNT(u1.Username) = 0, JSON_ARRAY(), JSON_ARRAYAGG(u1.Username))"
 	}
-
 	result := []*model.ReplyForExport{}
 
 	qb := s.getQueryBuilder().Select(fmt.Sprintf("Posts.*, u2.Username as Username, %s as FlaggedBy", aggFn)).
@@ -2819,7 +2817,6 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 	if s.DriverName() == model.DatabaseDriverMysql {
 		aggFn = "IF (COUNT(u1.Username) = 0, JSON_ARRAY(), JSON_ARRAYAGG(u1.Username))"
 	}
-
 	result := []*model.DirectPostForExport{}
 
 	query := s.getQueryBuilder().
@@ -2852,12 +2849,10 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 	if err2 := s.GetReplica().Select(&result, queryString, args...); err2 != nil {
 		return nil, errors.Wrap(err2, "failed to find Posts")
 	}
-
 	var channelIds []string
 	for _, p := range result {
 		channelIds = append(channelIds, p.ChannelId)
 	}
-
 	query = s.getQueryBuilder().
 		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, MentionCountRoot, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
 		From("ChannelMembers cm").
@@ -2867,7 +2862,6 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		})
 
 	queryString, args, err = query.ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "post_tosql")
 	}
