@@ -28,14 +28,11 @@ describe('Archive channel members spec', () => {
         // # click on channel drop-down menu
         cy.get('#channelHeaderTitle').click();
 
-        // * View members menu option should not be visible;
-        cy.get('#channelViewMembers').should('not.exist');
-
-        // * Manage members menu option should be visible;
-        cy.get('#channelManageMembers').should('be.visible');
+        // * Members menu option should be visible;
+        cy.get('#channelMembers').should('be.visible');
 
         // # Close the channel dropdown menu
-        cy.get('#channelHeaderTitle').click();
+        cy.get('body').type('{esc}{esc}');
 
         // # Archive the channel
         cy.uiArchiveChannel();
@@ -43,11 +40,8 @@ describe('Archive channel members spec', () => {
         // # click on channel drop-down menu
         cy.get('#channelHeaderTitle').click();
 
-        // * Manage members menu option should not be visible;
-        cy.get('#channelManageMembers').should('not.exist');
-
         // # click on view members menu option;
-        cy.get('#channelViewMembers button').should('be.visible').click();
+        cy.get('#channelMembers').should('be.visible').click();
 
         // * Ensure there are no options to change channel roles or membership
         cy.uiGetRHS().findByText('Manage').should('not.exist');

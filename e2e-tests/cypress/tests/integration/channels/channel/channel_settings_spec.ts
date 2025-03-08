@@ -38,7 +38,8 @@ describe('Channel Settings', () => {
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
             // # Go to channel dropdown > Rename channel
-            cy.get('#channelHeaderDropdownIcon').click();
+            cy.get('#channelHeaderTitle').click();
+            cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
             cy.findByText('Rename Channel').click();
 
             // # Try to enter existing URL and save
@@ -63,7 +64,7 @@ describe('Channel Settings', () => {
         cy.visit(`/${testTeam.name}/channels/off-topic`);
 
         // # Go to channel dropdown > Mute channel
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
         cy.get('#channelHeaderDropdownMenu').should('exist').
             findByText('Mute Channel').should('be.visible').click();
 
@@ -79,7 +80,7 @@ describe('Channel Settings', () => {
             get('a').should('have.class', 'muted');
 
         // # Click Unmute channel while menu is open
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
         cy.get('#channelHeaderDropdownMenu').should('exist').
             findByText('Unmute Channel').should('be.visible').click();
 
