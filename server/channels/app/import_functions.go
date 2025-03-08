@@ -1351,6 +1351,7 @@ func (a *App) importReaction(data *imports.ReactionImportData, post *model.Post)
 }
 
 func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, post *model.Post, teamID string, extractContent bool) *model.AppError {
+
 	var err *model.AppError
 	usernames := []string{}
 	for _, replyData := range data {
@@ -1403,6 +1404,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		if reply == nil {
 			reply = &model.Post{}
 		}
+
 		reply.UserId = user.Id
 		reply.ChannelId = post.ChannelId
 		reply.RootId = post.Id
@@ -1498,7 +1500,6 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 
 			for _, username := range *postWithData.replyData.FlaggedBy {
 				user := users[strings.ToLower(username)]
-
 				preferences = append(preferences, model.Preference{
 					UserId:   user.Id,
 					Category: model.PreferenceCategoryFlaggedPost,
@@ -1686,7 +1687,9 @@ type postAndData struct {
 }
 
 func (a *App) getUsersByUsernames(usernames []string) (map[string]*model.User, *model.AppError) {
+
 	uniqueUsernames := utils.RemoveDuplicatesFromStringArray(usernames)
+
 	allUsers, err := a.Srv().Store().User().GetProfilesByUsernames(uniqueUsernames, nil)
 	if err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -1700,6 +1703,7 @@ func (a *App) getUsersByUsernames(usernames []string) (map[string]*model.User, *
 	for _, user := range allUsers {
 		users[strings.ToLower(user.Username)] = user
 	}
+
 	return users, nil
 }
 
@@ -2272,6 +2276,7 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 // importMultipleDirectPostLines will return an error and the line
 // that caused it whenever possible
 func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun, extractContent bool) (int, *model.AppError) {
+
 	if len(lines) == 0 {
 		return 0, nil
 	}
@@ -2312,6 +2317,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 	)
 
 	for _, line := range lines {
+
 		var userIDs []string
 		var err *model.AppError
 		for _, username := range *line.DirectPost.ChannelMembers {
@@ -2606,6 +2612,7 @@ func (a *App) extractThreadMembers(line *imports.LineImportWorkerData, users map
 				return nil, line.LineNumber, model.NewAppError("importMultiplePostLines", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest).Wrap(uErr)
 			}
 		}
+
 		membership := &model.ThreadMembership{
 			PostId:    post.Id, // empty if it's a new post, will set later while inserting to the DB.
 			UserId:    user.Id,
@@ -2618,10 +2625,12 @@ func (a *App) extractThreadMembers(line *imports.LineImportWorkerData, users map
 		if member.UnreadMentions != nil {
 			membership.UnreadMentions = *member.UnreadMentions
 		}
+
 		// We only need the user ID to update the thread.
 		participants[i] = &model.User{Id: user.Id}
 		threadMemberships = append(threadMemberships, membership)
 	}
+
 	post.Participants = participants
 
 	return threadMemberships, 0, nil
