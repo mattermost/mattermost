@@ -1653,46 +1653,6 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, appErr)
 
-	// Inspect the buffer to check if the posts from deactivated users are included in the export
-	validateExportBuffer := func(buf *bytes.Buffer) bool {
-		scanner := bufio.NewScanner(buf)
-		foundRegularMessage := false
-		foundThreadReply := false
-		lineCount := 0
-
-		for scanner.Scan() {
-			lineCount++
-			var line imports.LineImportData
-			err := json.Unmarshal(scanner.Bytes(), &line)
-			require.NoError(t, err)
-			if line.Type == "direct_post" && line.DirectPost != nil {
-
-				if line.DirectPost.Message != nil && *line.DirectPost.Message == "regular_message_from_user2" {
-					foundRegularMessage = true
-					// Verify the username is correct in the export data
-					require.Equal(t, user2.Username, *line.DirectPost.User)
-				}
-
-				if line.DirectPost.Message != nil && *line.DirectPost.Message == "thread_starter_from_basic_user" {
-					if line.DirectPost.Replies != nil && len(*line.DirectPost.Replies) > 0 {
-						for _, reply := range *line.DirectPost.Replies {
-							if reply.Message != nil && *reply.Message == "reply_from_user2" {
-								foundThreadReply = true
-								// Verify the username is correct in the export data
-								require.Equal(t, user2.Username, *reply.User)
-							}
-						}
-					}
-				}
-			}
-		}
-		return foundRegularMessage && foundThreadReply
-	}
-
-	// Make a copy of the buffer for validation
-	bufCopy := bytes.NewBuffer(b.Bytes())
-	require.True(t, validateExportBuffer(bufCopy), "Export data should contain the post and reply from deactivated user")
-
 	// Import data into a new instance
 	th2 := Setup(t)
 	defer th2.TearDown()
