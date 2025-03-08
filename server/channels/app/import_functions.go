@@ -1498,6 +1498,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 
 			for _, username := range *postWithData.replyData.FlaggedBy {
 				user := users[strings.ToLower(username)]
+
 				preferences = append(preferences, model.Preference{
 					UserId:   user.Id,
 					Category: model.PreferenceCategoryFlaggedPost,
