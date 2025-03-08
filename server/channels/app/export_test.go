@@ -1665,7 +1665,6 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 			var line imports.LineImportData
 			err := json.Unmarshal(scanner.Bytes(), &line)
 			require.NoError(t, err)
-
 			if line.Type == "direct_post" && line.DirectPost != nil {
 
 				if line.DirectPost.Message != nil && *line.DirectPost.Message == "regular_message_from_user2" {
