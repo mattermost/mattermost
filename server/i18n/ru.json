@@ -3997,7 +3997,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Недопустимый идентификатор."
+    "translation": "Неверный идентификатор: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -5665,11 +5665,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 130+"
+    "translation": "Версия 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 130+"
+    "translation": "Версия 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
