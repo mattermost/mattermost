@@ -4609,11 +4609,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 130+"
+    "translation": "Wersja 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 130+"
+    "translation": "Wersja 132+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
