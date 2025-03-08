@@ -52,3 +52,7 @@ func (ps *PropertyService) UpsertPropertyValues(values []*model.PropertyValue) (
 func (ps *PropertyService) DeletePropertyValue(id string) error {
 	return ps.valueStore.Delete(id)
 }
+
+func (ps *PropertyService) DeletePropertyValuesForTarget(groupID string, targetType string, targetID string) error {
+	return ps.valueStore.DeleteForTarget(groupID, targetType, targetID)
+}

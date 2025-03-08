@@ -572,3 +572,73 @@ func TestListCPAValues(t *testing.T) {
 		require.ElementsMatch(t, expectedValues, actualValues)
 	})
 }
+
+func TestDeleteCPAValuesForUser(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	cpaGroupID, cErr := th.App.cpaGroupID()
+	require.NoError(t, cErr)
+
+	userID := model.NewId()
+	otherUserID := model.NewId()
+
+	// Create multiple fields and values for the user
+	var createdFields []*model.PropertyField
+	for i := 1; i <= 3; i++ {
+		field := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    fmt.Sprintf("Field %d", i),
+			Type:    model.PropertyFieldTypeText,
+		}
+		createdField, err := th.App.CreateCPAField(field)
+		require.Nil(t, err)
+		createdFields = append(createdFields, createdField)
+
+		// Create a value for this field
+		value, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(fmt.Sprintf(`"Value %d"`, i)))
+		require.Nil(t, appErr)
+		require.NotNil(t, value)
+	}
+
+	// Verify values exist before deletion
+	values, appErr := th.App.ListCPAValues(userID)
+	require.Nil(t, appErr)
+	require.Len(t, values, 3)
+
+	// Test deleting values for user
+	t.Run("should delete all values for a user", func(t *testing.T) {
+		appErr := th.App.DeleteCPAValuesForUser(userID)
+		require.Nil(t, appErr)
+
+		// Verify values are gone
+		values, appErr := th.App.ListCPAValues(userID)
+		require.Nil(t, appErr)
+		require.Empty(t, values)
+	})
+
+	t.Run("should handle deleting values for a user with no values", func(t *testing.T) {
+		appErr := th.App.DeleteCPAValuesForUser(otherUserID)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("should not affect values for other users", func(t *testing.T) {
+		// Create values for another user
+		for _, field := range createdFields {
+			value, appErr := th.App.PatchCPAValue(otherUserID, field.ID, json.RawMessage(`"Other user value"`))
+			require.Nil(t, appErr)
+			require.NotNil(t, value)
+		}
+
+		// Delete values for original user
+		appErr := th.App.DeleteCPAValuesForUser(userID)
+		require.Nil(t, appErr)
+
+		// Verify other user's values still exist
+		values, appErr := th.App.ListCPAValues(otherUserID)
+		require.Nil(t, appErr)
+		require.Len(t, values, 3)
+	})
+}
