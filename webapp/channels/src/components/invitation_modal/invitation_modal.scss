@@ -7,8 +7,8 @@
 
         @media screen and (max-width: 639px) {
             width: 100%;
-            margin: 0;
             padding: 0 10px;
+            margin: 0;
         }
 
         top: 50%;
@@ -32,10 +32,10 @@
             padding: 16px;
 
             .modal-title {
+                overflow-wrap: break-word;
+                word-wrap: break-word;
                 font-size: 18px;
                 line-height: 24px;
-                word-wrap: break-word;
-                overflow-wrap: break-word;
             }
         }
     }
@@ -48,8 +48,8 @@
 
         .InviteView__sectionTitle {
             @media screen and (max-width: 639px) {
-                font-size: 14px;
                 margin-bottom: 8px;
+                font-size: 14px;
             }
         }
 
@@ -63,8 +63,8 @@
 
     .modal-footer {
         @media screen and (max-width: 639px) {
-            padding: 16px;
             flex-direction: column;
+            padding: 16px;
             gap: 8px;
 
             .btn {
