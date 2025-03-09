@@ -65,7 +65,7 @@ describe('Guest Account - Verify Manage Guest Users', () => {
 
         // * Verify the confirmation message displayed
         cy.get('#confirmModal').should('be.visible').within(() => {
-            cy.get('#confirmModalLabel').should('be.visible').and('have.text', `Deactivate ${guestUser.username}`);
+            cy.get('#genericModalLabel').should('be.visible').and('have.text', `Deactivate ${guestUser.username}`);
             cy.get('.modal-body .ConfirmModal__body').should('be.visible').and('have.text', `This action deactivates ${guestUser.username}. They will be logged out and not have access to any teams or channels on this system.\nAre you sure you want to deactivate ${guestUser.username}?`);
         });
 
