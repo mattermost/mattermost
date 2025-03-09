@@ -178,12 +178,10 @@ export default class ConfirmModal extends React.Component<Props, State> {
                 modalHeaderText={this.props.title}
             >
                 <div
-                    aria-describedby='confirmModalBody'
                     data-testid={this.props.id}
                 >
                     <div
                         className='ConfirmModal__body'
-                        id='confirmModalBody'
                     >
                         {this.props.message}
                         {!this.props.checkboxInFooter && checkbox}
