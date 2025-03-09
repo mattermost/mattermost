@@ -432,7 +432,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
                 onHide={this.handleHide}
                 onExited={this.handleExit}
                 backdrop={this.getBackdrop()}
-                ariaLabeledBy='invitation_modal_title'
+                ariaLabelledby='invitation_modal_title'
                 compassDesign={true}
                 showCloseButton={false}
                 showHeader={false}

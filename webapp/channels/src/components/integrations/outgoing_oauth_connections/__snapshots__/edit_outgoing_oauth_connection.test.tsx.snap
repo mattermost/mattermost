@@ -549,28 +549,19 @@ https://myothersite.com/api/v2"
                     }
                   >
                     <GenericModal
-                      ariaLabel="confirmModalLabel"
                       autoCloseOnCancelButton={true}
                       autoCloseOnConfirmButton={true}
                       bodyPadding={true}
-                      className="modal-confirm integrations-backstage-modal a11y__modal ConfirmModal"
+                      className="ConfirmModal a11y__modal integrations-backstage-modal"
                       compassDesign={true}
                       enforceFocus={true}
                       id="confirmModal"
                       keyboardEscape={true}
                       modalHeaderText={
-                        <div
-                          className="ConfirmModal__header"
-                        >
-                          <span
-                            id="confirmModalLabel"
-                          >
-                            <Memo(MemoizedFormattedMessage)
-                              defaultMessage="Edit Outgoing OAuth Connection"
-                              id="update_outgoing_oauth_connection.confirm"
-                            />
-                          </span>
-                        </div>
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Edit Outgoing OAuth Connection"
+                          id="update_outgoing_oauth_connection.confirm"
+                        />
                       }
                       modalLocation="center"
                       onHide={[Function]}
@@ -580,13 +571,12 @@ https://myothersite.com/api/v2"
                     >
                       <Modal
                         animation={true}
-                        aria-label="confirmModalLabel"
                         aria-labelledby="genericModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
                         bsClass="modal"
-                        dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-confirm integrations-backstage-modal a11y__modal ConfirmModal"
+                        dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal integrations-backstage-modal"
                         dialogComponentClass={[Function]}
                         enforceFocus={true}
                         id="confirmModal"
@@ -679,26 +669,15 @@ https://myothersite.com/api/v2"
               title="Save Outgoing OAuth Connection"
             >
               <GenericModal
-                ariaLabel="confirmModalLabel"
                 autoCloseOnCancelButton={true}
                 autoCloseOnConfirmButton={true}
                 bodyPadding={true}
-                className="modal-confirm  a11y__modal ConfirmModal"
+                className="ConfirmModal a11y__modal "
                 compassDesign={true}
                 enforceFocus={true}
                 id="confirmModal"
                 keyboardEscape={true}
-                modalHeaderText={
-                  <div
-                    className="ConfirmModal__header"
-                  >
-                    <span
-                      id="confirmModalLabel"
-                    >
-                      Save Outgoing OAuth Connection
-                    </span>
-                  </div>
-                }
+                modalHeaderText="Save Outgoing OAuth Connection"
                 modalLocation="center"
                 onExited={[Function]}
                 onHide={[Function]}
@@ -708,13 +687,12 @@ https://myothersite.com/api/v2"
               >
                 <Modal
                   animation={true}
-                  aria-label="confirmModalLabel"
                   aria-labelledby="genericModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
                   bsClass="modal"
-                  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-confirm  a11y__modal ConfirmModal"
+                  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal "
                   dialogComponentClass={[Function]}
                   enforceFocus={true}
                   id="confirmModal"
@@ -1327,28 +1305,19 @@ https://myothersite.com/api/v2"
                     }
                   >
                     <GenericModal
-                      ariaLabel="confirmModalLabel"
                       autoCloseOnCancelButton={true}
                       autoCloseOnConfirmButton={true}
                       bodyPadding={true}
-                      className="modal-confirm integrations-backstage-modal a11y__modal ConfirmModal"
+                      className="ConfirmModal a11y__modal integrations-backstage-modal"
                       compassDesign={true}
                       enforceFocus={true}
                       id="confirmModal"
                       keyboardEscape={true}
                       modalHeaderText={
-                        <div
-                          className="ConfirmModal__header"
-                        >
-                          <span
-                            id="confirmModalLabel"
-                          >
-                            <Memo(MemoizedFormattedMessage)
-                              defaultMessage="Edit Outgoing OAuth Connection"
-                              id="update_outgoing_oauth_connection.confirm"
-                            />
-                          </span>
-                        </div>
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Edit Outgoing OAuth Connection"
+                          id="update_outgoing_oauth_connection.confirm"
+                        />
                       }
                       modalLocation="center"
                       onHide={[Function]}
@@ -1358,13 +1327,12 @@ https://myothersite.com/api/v2"
                     >
                       <Modal
                         animation={true}
-                        aria-label="confirmModalLabel"
                         aria-labelledby="genericModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
                         bsClass="modal"
-                        dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-confirm integrations-backstage-modal a11y__modal ConfirmModal"
+                        dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal integrations-backstage-modal"
                         dialogComponentClass={[Function]}
                         enforceFocus={true}
                         id="confirmModal"
@@ -1457,26 +1425,15 @@ https://myothersite.com/api/v2"
               title="Save Outgoing OAuth Connection"
             >
               <GenericModal
-                ariaLabel="confirmModalLabel"
                 autoCloseOnCancelButton={true}
                 autoCloseOnConfirmButton={true}
                 bodyPadding={true}
-                className="modal-confirm  a11y__modal ConfirmModal"
+                className="ConfirmModal a11y__modal "
                 compassDesign={true}
                 enforceFocus={true}
                 id="confirmModal"
                 keyboardEscape={true}
-                modalHeaderText={
-                  <div
-                    className="ConfirmModal__header"
-                  >
-                    <span
-                      id="confirmModalLabel"
-                    >
-                      Save Outgoing OAuth Connection
-                    </span>
-                  </div>
-                }
+                modalHeaderText="Save Outgoing OAuth Connection"
                 modalLocation="center"
                 onExited={[Function]}
                 onHide={[Function]}
@@ -1486,13 +1443,12 @@ https://myothersite.com/api/v2"
               >
                 <Modal
                   animation={true}
-                  aria-label="confirmModalLabel"
                   aria-labelledby="genericModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
                   bsClass="modal"
-                  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-confirm  a11y__modal ConfirmModal"
+                  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal "
                   dialogComponentClass={[Function]}
                   enforceFocus={true}
                   id="confirmModal"
@@ -2104,28 +2060,19 @@ https://myothersite.com/api/v2"
                     }
                   >
                     <GenericModal
-                      ariaLabel="confirmModalLabel"
                       autoCloseOnCancelButton={true}
                       autoCloseOnConfirmButton={true}
                       bodyPadding={true}
-                      className="modal-confirm integrations-backstage-modal a11y__modal ConfirmModal"
+                      className="ConfirmModal a11y__modal integrations-backstage-modal"
                       compassDesign={true}
                       enforceFocus={true}
                       id="confirmModal"
                       keyboardEscape={true}
                       modalHeaderText={
-                        <div
-                          className="ConfirmModal__header"
-                        >
-                          <span
-                            id="confirmModalLabel"
-                          >
-                            <Memo(MemoizedFormattedMessage)
-                              defaultMessage="Edit Outgoing OAuth Connection"
-                              id="update_outgoing_oauth_connection.confirm"
-                            />
-                          </span>
-                        </div>
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Edit Outgoing OAuth Connection"
+                          id="update_outgoing_oauth_connection.confirm"
+                        />
                       }
                       modalLocation="center"
                       onHide={[Function]}
@@ -2135,13 +2082,12 @@ https://myothersite.com/api/v2"
                     >
                       <Modal
                         animation={true}
-                        aria-label="confirmModalLabel"
                         aria-labelledby="genericModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
                         bsClass="modal"
-                        dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-confirm integrations-backstage-modal a11y__modal ConfirmModal"
+                        dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal integrations-backstage-modal"
                         dialogComponentClass={[Function]}
                         enforceFocus={true}
                         id="confirmModal"
@@ -2234,26 +2180,15 @@ https://myothersite.com/api/v2"
               title="Save Outgoing OAuth Connection"
             >
               <GenericModal
-                ariaLabel="confirmModalLabel"
                 autoCloseOnCancelButton={true}
                 autoCloseOnConfirmButton={true}
                 bodyPadding={true}
-                className="modal-confirm  a11y__modal ConfirmModal"
+                className="ConfirmModal a11y__modal "
                 compassDesign={true}
                 enforceFocus={true}
                 id="confirmModal"
                 keyboardEscape={true}
-                modalHeaderText={
-                  <div
-                    className="ConfirmModal__header"
-                  >
-                    <span
-                      id="confirmModalLabel"
-                    >
-                      Save Outgoing OAuth Connection
-                    </span>
-                  </div>
-                }
+                modalHeaderText="Save Outgoing OAuth Connection"
                 modalLocation="center"
                 onExited={[Function]}
                 onHide={[Function]}
@@ -2263,13 +2198,12 @@ https://myothersite.com/api/v2"
               >
                 <Modal
                   animation={true}
-                  aria-label="confirmModalLabel"
                   aria-labelledby="genericModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
                   bsClass="modal"
-                  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-confirm  a11y__modal ConfirmModal"
+                  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal "
                   dialogComponentClass={[Function]}
                   enforceFocus={true}
                   id="confirmModal"

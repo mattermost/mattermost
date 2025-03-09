@@ -3,7 +3,6 @@
 exports[`components/BrowseChannels should match snapshot and state 1`] = `
 <GenericModal
   aria-modal={true}
-  ariaLabeledBy="genericModalLabel"
   autoCloseOnCancelButton={true}
   autoCloseOnConfirmButton={false}
   bodyPadding={false}

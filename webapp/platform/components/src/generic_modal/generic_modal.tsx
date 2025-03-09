@@ -34,7 +34,7 @@ export type Props = {
     enforceFocus?: boolean;
     container?: React.ReactNode | React.ReactNodeArray;
     ariaLabel?: string;
-    ariaLabeledBy?: string;
+    ariaLabelledby?: string;
     errorText?: string | React.ReactNode;
     compassDesign?: boolean;
     backdrop?: boolean | 'static';
@@ -213,14 +213,23 @@ export class GenericModal extends React.PureComponent<Props, State> {
         };
 
         const modalLocationClass = locationClassMapping[this.props.modalLocation ?? 'center'];
-        const ariaLabeledBy = this.props.ariaLabeledBy || 'genericModalLabel';
+
+        // Accessibility labeling strategy:
+        // 1. We always set aria-labelledby to ensure the modal has a proper label
+        //    - First try to use the provided ariaLabeledBy prop
+        //    - Fall back to 'genericModalLabel' which references the modal title
+        // 2. We also support aria-label as a secondary option
+        //    - This will only be used by screen readers if the element referenced by aria-labelledby doesn't exist
+        //    - This provides a fallback for accessibility in case the referenced element is missing
+        // Note: When both aria-labelledby and aria-label are present, aria-labelledby takes precedence
+        const ariaLabelledby = this.props.ariaLabelledby || 'genericModalLabel';
 
         return (
             <Modal
                 id={this.props.id}
                 role='none'
                 aria-label={this.props.ariaLabel}
-                aria-labelledby={ariaLabeledBy}
+                aria-labelledby={ariaLabelledby}
                 aria-modal='true'
                 dialogClassName={classNames(
                     modalLocationClass,

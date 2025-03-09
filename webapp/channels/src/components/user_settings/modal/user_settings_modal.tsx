@@ -282,7 +282,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 name: 'advanced',
                 uiName: formatMessage({id: 'user.settings.modal.advanced', defaultMessage: 'Advanced'}),
                 icon: 'icon icon-tune',
-                iconTitle: formatMessage({id: 'user.settings.security.icon', defaultMessage: 'Advanced Settings Icon'}),
+                iconTitle: formatMessage({id: 'user.settings.advance.icon', defaultMessage: 'Advanced Settings Icon'}),
             },
         ];
     };
@@ -367,10 +367,10 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 enforceFocus={this.state.enforceFocus}
                 bodyPadding={false}
                 modalHeaderText={headerTitle}
+                modalLocation='top'
             >
                 <div
                     ref={this.modalBodyRef}
-                    className='UserSettingsModal__bodyWrapper'
                 >
                     {/* Admin Mode: wait for user + preferences */}
                     {this.props.adminMode &&

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 .UserSettingsModal {
-    margin-top: 5vh !important;
 
     .GenericModal__wrapper {
         display: flex;
@@ -42,9 +41,20 @@
         justify-content: space-between;
 
         .adminModeBadge {
-            padding: 0 !important;
-            margin: 0 !important;
-            line-height: 18px;
+            display: flex;
+            width: 86px;
+            min-width: 86px;
+            height: 22px;
+            align-items: center;
+            border-radius: 4px;
+            margin-top: 10px;
+            margin-bottom: auto;
+            margin-left: 24px;
+            background: var(--error-text);
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            gap: 6px;
 
             span {
                 margin: 0 auto;

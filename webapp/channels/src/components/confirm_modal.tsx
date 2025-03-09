@@ -167,27 +167,17 @@ export default class ConfirmModal extends React.Component<Props, State> {
             );
         }
 
-        const headerText = (
-            <div className='ConfirmModal__header'>
-                <span id='confirmModalLabel'>
-                    {this.props.title}
-                </span>
-            </div>
-        );
-
         return (
             <GenericModal
                 id={classNames('confirmModal', this.props.id)}
-                className={'modal-confirm ' + this.props.modalClass + ' a11y__modal ConfirmModal'}
+                className={`ConfirmModal a11y__modal ${this.props.modalClass}`}
                 show={this.props.show}
                 onHide={this.handleCancel}
                 onExited={this.props.onExited}
-                ariaLabel='confirmModalLabel'
                 compassDesign={true}
-                modalHeaderText={headerText}
+                modalHeaderText={this.props.title}
             >
                 <div
-                    aria-labelledby='confirmModalLabel'
                     aria-describedby='confirmModalBody'
                     data-testid={this.props.id}
                 >
