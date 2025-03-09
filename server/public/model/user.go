@@ -486,7 +486,7 @@ func (u *User) PreSave() *AppError {
 		u.Props = make(map[string]string)
 	}
 
-	if len(u.NotifyProps) == 0 {
+	if u.NotifyProps == nil || len(u.NotifyProps) == 0 {
 		u.SetDefaultNotifications()
 	}
 
@@ -536,7 +536,7 @@ func (u *User) PreUpdate() {
 		u.AuthData = nil
 	}
 
-	if len(u.NotifyProps) == 0 {
+	if u.NotifyProps == nil || len(u.NotifyProps) == 0 {
 		u.SetDefaultNotifications()
 	} else if _, ok := u.NotifyProps[MentionKeysNotifyProp]; ok {
 		// Remove any blank mention keys
