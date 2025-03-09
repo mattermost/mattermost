@@ -5,6 +5,12 @@
             width: 600px;
         }
 
+        @media screen and (max-width: 639px) {
+            width: 100%;
+            margin: 0;
+            padding: 0 10px;
+        }
+
         top: 50%;
         left: 50%;
         display: flex;
@@ -12,5 +18,59 @@
         justify-content: center;
         margin: auto;
         transform: translate(-50%, -50%) !important;
+    }
+
+    .modal-content {
+        @media screen and (max-width: 639px) {
+            width: 100%;
+            min-width: 320px;
+        }
+    }
+
+    .modal-header {
+        @media screen and (max-width: 639px) {
+            padding: 16px;
+
+            .modal-title {
+                font-size: 18px;
+                line-height: 24px;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+        }
+    }
+
+    .modal-body {
+        @media screen and (max-width: 639px) {
+            padding: 16px;
+            overflow-x: hidden;
+        }
+
+        .InviteView__sectionTitle {
+            @media screen and (max-width: 639px) {
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+        }
+
+        .users-emails-input__control {
+            @media screen and (max-width: 639px) {
+                min-width: 280px;
+                max-width: 100%;
+            }
+        }
+    }
+
+    .modal-footer {
+        @media screen and (max-width: 639px) {
+            padding: 16px;
+            flex-direction: column;
+            gap: 8px;
+
+            .btn {
+                width: 100%;
+                margin: 0 !important;
+            }
+        }
     }
 }

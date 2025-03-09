@@ -9,6 +9,11 @@
         &--first {
             padding-top: 0;
         }
+
+        @media screen and (max-width: 639px) {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
     }
 
     &__footer {
@@ -27,12 +32,26 @@
 
         .btn {
             font-weight: 600;
+
+            @media screen and (max-width: 639px) {
+                width: 100%;
+                margin: 4px 0;
+            }
+        }
+
+        @media screen and (max-width: 639px) {
+            flex-direction: column;
         }
     }
 
     &__sectionTitleParenthetical {
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-weight: normal;
+
+        @media screen and (max-width: 639px) {
+            display: block;
+            margin-top: 4px;
+        }
     }
 }
 
@@ -47,6 +66,10 @@ $less-than-6-user-lines-height: 227px;
             // to make the taller than normal input look ok when nothing has yet been selected
             .users-emails-input__value-container {
                 margin-top: 6px;
+
+                @media screen and (max-width: 639px) {
+                    margin-top: 4px;
+                }
             }
         }
 
@@ -55,6 +78,11 @@ $less-than-6-user-lines-height: 227px;
             min-height: 84px;
             max-height: $less-than-6-user-lines-height;
             align-items: flex-start;
+
+            @media screen and (max-width: 639px) {
+                min-height: 64px;
+                max-height: 180px;
+            }
         }
     }
 }
