@@ -182,6 +182,7 @@ export default class ConfirmModal extends React.Component<Props, State> {
                 >
                     <div
                         className='ConfirmModal__body'
+                        id='confirmModalBody'
                     >
                         {this.props.message}
                         {!this.props.checkboxInFooter && checkbox}
