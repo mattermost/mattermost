@@ -80,6 +80,9 @@ const Input = React.forwardRef((
     const [focused, setFocused] = useState(false);
     const [customInputLabel, setCustomInputLabel] = useState<CustomMessageInputType>(null);
 
+    const errorId = `error_${name || ''}`;
+    const inputId = `input_${name || ''}`;
+
     useEffect(() => {
         if (customMessage === undefined || customMessage === null) {
             if (customInputLabel !== null) {
@@ -156,8 +159,6 @@ const Input = React.forwardRef((
     const generateInput = () => {
         const placeholderValue = formatAsString(formatMessage, focused ? (label && placeholder) || label : label || placeholder);
         const ariaLabel = formatAsString(formatMessage, label || placeholder);
-        const errorId = `error_${name || ''}`;
-        const inputId = `input_${name || ''}`;
 
         if (otherProps.type === 'textarea') {
             return (
@@ -168,7 +169,8 @@ const Input = React.forwardRef((
                     value={value}
                     placeholder={placeholderValue}
                     aria-label={ariaLabel}
-                    aria-describedby={customInputLabel ? errorId : undefined}
+                    aria-describedby={customInputLabel?.type === ItemStatus.ERROR ? errorId : undefined}
+                    aria-invalid={error || hasError || limitExceeded > 0}
                     rows={3}
                     name={name}
                     disabled={disabled}
@@ -187,7 +189,8 @@ const Input = React.forwardRef((
                 value={value}
                 placeholder={placeholderValue}
                 aria-label={ariaLabel}
-                aria-describedby={customInputLabel ? errorId : undefined}
+                aria-describedby={customInputLabel?.type === ItemStatus.ERROR ? errorId : undefined}
+                aria-invalid={error || hasError || limitExceeded > 0}
                 name={name}
                 disabled={disabled}
                 {...otherProps}
@@ -228,7 +231,7 @@ const Input = React.forwardRef((
             </fieldset>
             {customInputLabel && (
                 <div
-                    id={`error_${name || ''}`}
+                    id={errorId}
                     className={`Input___customMessage Input___${customInputLabel.type}`}
                     role={customInputLabel.type === ItemStatus.ERROR ? 'alert' : undefined}
                 >
