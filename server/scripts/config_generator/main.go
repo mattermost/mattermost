@@ -19,7 +19,7 @@ func customizeConfig(cfg *model.Config) {
 	cfg.LogSettings.ConsoleLevel = model.NewString("DEBUG")
 	cfg.TeamSettings.SiteName = model.NewString("Nimbupani")
 	cfg.TeamSettings.MaxChannelsPerTeam = model.NewInt64(20000)
-	cfg.TeamSettings.MaxUsersPerTeam = model.NewInt64(50000)
+	cfg.TeamSettings.MaxUsersPerTeam = model.NewInt(50000)
 	cfg.SupportSettings.TermsOfServiceLink = model.NewString("https://nimbupani.ai/terms/")
 	cfg.SupportSettings.PrivacyPolicyLink = model.NewString("https://nimbupani.ai/privacy-policy/")
 	cfg.SupportSettings.AboutLink = model.NewString("https://nimbupani.ai/")
