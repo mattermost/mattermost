@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps, IntlShape} from 'react-intl';
 
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon} from '@mattermost/compass-icons/components';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -14,15 +14,20 @@ import {isPrivateChannel} from 'mattermost-redux/utils/channel_utils';
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
+import NoResultsIndicator from 'components/no_results_indicator';
+import {NoResultsVariant} from 'components/no_results_indicator/types';
 import QuickInput from 'components/quick_input';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+import MenuItem from 'components/widgets/menu/menu_items/menu_item';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
+import {localizeMessage} from 'utils/utils';
 
 import type {FilterType} from './browse_channels/browse_channels';
 import {Filter} from './browse_channels/browse_channels';
@@ -122,86 +127,58 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         return this.props.myChannelMemberships[channelId];
     }
 
+    handleKeyDown = (channel: Channel, e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+
+            // Call join directly without event
+            this.props.handleJoin(channel, () => {});
+        }
+    };
+
     createChannelRow = (channel: Channel) => {
-        const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
+        const memberCount = this.props.channelsMemberCount?.[channel.id] ?? 0;
+        const memberCountText = memberCount === 1 ? `${memberCount} member` : `${memberCount} members`;
+
         let channelTypeIcon;
-
-        if (isArchivedChannel(channel)) {
-            channelTypeIcon = <ArchiveOutlineIcon size={18}/>;
-        } else if (isPrivateChannel(channel)) {
-            channelTypeIcon = <LockOutlineIcon size={18}/>;
-        } else {
-            channelTypeIcon = <GlobeIcon size={18}/>;
-        }
-        let memberCount = 0;
-        if (this.props.channelsMemberCount?.[channel.id]) {
-            memberCount = this.props.channelsMemberCount[channel.id];
+        if (channel.type === Constants.OPEN_CHANNEL) {
+            channelTypeIcon = <GlobeIcon size={16}/>;
+        } else if (channel.type === Constants.PRIVATE_CHANNEL) {
+            channelTypeIcon = <LockOutlineIcon size={16}/>;
         }
 
-        const membershipIndicator = this.isMemberOfChannel(channel.id) ? (
-            <div
-                id='membershipIndicatorContainer'
-                aria-label={this.props.intl.formatMessage({id: 'more_channels.membership_indicator', defaultMessage: 'Membership Indicator: Joined'})}
-            >
-                <CheckIcon size={14}/>
-                <FormattedMessage
-                    id={'more_channels.joined'}
-                    defaultMessage={'Joined'}
-                />
-            </div>
+        const channelPurposeContainer = channel.purpose ? (
+            <div className='more-modal__description'>{channel.purpose}</div>
         ) : null;
-
-        const channelPurposeContainerAriaLabel = this.props.intl.formatMessage(
-            messages.channelPurpose,
-            {memberCount, channelPurpose: channel.purpose || ''},
-        );
-
-        const channelPurposeContainer = (
-            <div
-                id='channelPurposeContainer'
-                aria-label={channelPurposeContainerAriaLabel}
-            >
-                {membershipIndicator}
-                {membershipIndicator ? <span className='dot'/> : null}
-                <AccountOutlineIcon size={14}/>
-                <span data-testid={`channelMemberCount-${channel.name}`} >{memberCount}</span>
-                {channel.purpose.length > 0 ? <span className='dot'/> : null}
-                <span className='more-modal__description'>{channel.purpose}</span>
-            </div>
-        );
-
-        const joinViewChannelButtonClass = classNames('btn btn-sm', {
-            'btn-secondary outlineButton': this.isMemberOfChannel(channel.id),
-            'btn-primary primaryButton': !this.isMemberOfChannel(channel.id),
-        });
 
         const joinViewChannelButton = (
             <button
-                id='joinViewChannelButton'
+                className={classNames('btn', {
+                    'btn-primary': !this.isMemberOfChannel(channel.id),
+                    'btn-outline': this.isMemberOfChannel(channel.id),
+                })}
                 onClick={(e) => this.handleJoin(channel, e)}
-                className={joinViewChannelButtonClass}
-                disabled={Boolean(this.state.joiningChannel)}
-                tabIndex={-1}
-                aria-label={this.isMemberOfChannel(channel.id) ? this.props.intl.formatMessage({id: 'more_channels.view', defaultMessage: 'View'}) : this.props.intl.formatMessage({id: 'joinChannel.JoinButton', defaultMessage: 'Join'})}
+                aria-label={this.isMemberOfChannel(channel.id) ? this.props.intl.formatMessage({id: 'browse_channels.view', defaultMessage: 'View Channel'}) : this.props.intl.formatMessage({id: 'browse_channels.join', defaultMessage: 'Join Channel'})}
             >
-                <LoadingWrapper
-                    loading={this.state.joiningChannel === channel.id}
-                    text={messages.joiningButton}
-                >
-                    <FormattedMessage
-                        id={this.isMemberOfChannel(channel.id) ? 'more_channels.view' : 'joinChannel.JoinButton'}
-                        defaultMessage={this.isMemberOfChannel(channel.id) ? 'View' : 'Join'}
-                    />
-                </LoadingWrapper>
+                <FormattedMessage
+                    id={this.isMemberOfChannel(channel.id) ? 'browse_channels.view' : 'browse_channels.join'}
+                    defaultMessage={this.isMemberOfChannel(channel.id) ? 'View' : 'Join'}
+                />
             </button>
         );
 
-        const sharedChannelIcon = channel.shared ? (
-            <SharedChannelIndicator
-                className='shared-channel-icon'
-                withTooltip={true}
-            />
-        ) : null;
+        const ariaLabel = this.props.intl.formatMessage(
+            {
+                id: 'browse_channels.channel_row',
+                defaultMessage: '{channelName}, {channelType} channel, {memberCount}, {purpose}',
+            },
+            {
+                channelName: channel.display_name,
+                channelType: channel.type === Constants.OPEN_CHANNEL ? 'public' : 'private',
+                memberCount: memberCountText,
+                purpose: channel.purpose || '',
+            },
+        );
 
         return (
             <div
@@ -211,13 +188,15 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 data-testid={`ChannelRow-${channel.name}`}
                 aria-label={ariaLabel}
                 onClick={(e) => this.handleJoin(channel, e)}
+                onKeyDown={(e) => this.handleKeyDown(channel, e)}
                 tabIndex={0}
+                role='button'
             >
                 <div className='more-modal__details'>
                     <div className='style--none more-modal__name'>
                         {channelTypeIcon}
                         <span id='channelName'>{channel.display_name}</span>
-                        {sharedChannelIcon}
+                        <span className='more-modal__description'>{` - ${memberCountText}`}</span>
                     </div>
                     {channelPurposeContainer}
                 </div>
@@ -345,6 +324,8 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
 
     render() {
         const channels = this.props.channels;
+        const activeChannels = this.props.channels || [];
+
         let listContent;
         let nextButton;
         let previousButton;
@@ -431,95 +412,65 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 color={'var(--button-bg)'}
             />
         );
-        const channelDropdownItems = [
-            <Menu.Item
-                key='channelsMoreDropdownAll'
-                id='channelsMoreDropdownAll'
-                onClick={() => this.props.changeFilter(Filter.All)}
-                leadingElement={<GlobeCheckedIcon size={16}/>}
-                labels={
-                    <FormattedMessage
-                        id='suggestion.all'
-                        defaultMessage='All channel types'
-                    />
-                }
-                trailingElements={this.props.filter === Filter.All ? checkIcon : null}
-                aria-label={this.props.intl.formatMessage({id: 'suggestion.all', defaultMessage: 'All channel types'})}
-            />,
-            <Menu.Item
-                key='channelsMoreDropdownPublic'
-                id='channelsMoreDropdownPublic'
-                onClick={() => this.props.changeFilter(Filter.Public)}
-                leadingElement={<GlobeIcon size={16}/>}
-                labels={
-                    <FormattedMessage
-                        id='suggestion.public'
-                        defaultMessage='Public channels'
-                    />
-                }
-                trailingElements={this.props.filter === Filter.Public ? checkIcon : null}
-                aria-label={this.props.intl.formatMessage({id: 'suggestion.public', defaultMessage: 'Public channels'})}
-            />,
-            <Menu.Item
-                key='channelsMoreDropdownPrivate'
-                id='channelsMoreDropdownPrivate'
-                onClick={() => this.props.changeFilter(Filter.Private)}
-                leadingElement={<LockOutlineIcon size={16}/>}
-                labels={
-                    <FormattedMessage
-                        id='suggestion.private'
-                        defaultMessage='Private channels'
-                    />
-                }
-                trailingElements={this.props.filter === Filter.Private ? checkIcon : null}
-                aria-label={this.props.intl.formatMessage({id: 'suggestion.private', defaultMessage: 'Private channels'})}
-            />,
-        ];
 
-        if (this.props.canShowArchivedChannels) {
-            channelDropdownItems.push(
-                <Menu.Separator key='channelsMoreDropdownSeparator'/>,
-                <Menu.Item
-                    key='channelsMoreDropdownArchived'
-                    id='channelsMoreDropdownArchived'
-                    onClick={() => this.props.changeFilter(Filter.Archived)}
-                    leadingElement={<ArchiveOutlineIcon size={16}/>}
-                    labels={
-                        <FormattedMessage
-                            id='suggestion.archive'
-                            defaultMessage='Archived channels'
-                        />
-                    }
-                    trailingElements={this.props.filter === Filter.Archived ? checkIcon : null}
-                    aria-label={this.props.intl.formatMessage({id: 'suggestion.archive', defaultMessage: 'Archived channels'})}
-                />,
-            );
-        }
         const menuButton = (
-            <>
-                {this.getFilterLabel()}
-                <ChevronDownIcon
-                    color={'rgba(var(--center-channel-color-rgb), 0.64)'}
-                    size={16}
-                />
-            </>
-        );
-        const channelDropdown = (
-            <Menu.Container
-                menuButton={{
-                    id: 'menuWrapper',
-                    children: menuButton,
-                }}
-                menu={{
-                    id: 'browseChannelsDropdown',
-                    'aria-label': this.props.intl.formatMessage({id: 'more_channels.title', defaultMessage: 'Browse channels'}),
-                }}
+            <button
+                className='dropdown-toggle theme'
+                type='button'
+                aria-expanded='true'
             >
-                {channelDropdownItems.map((item) => item)}
-            </Menu.Container >
+                <span>{this.getFilterLabel()}</span>
+                <span className='icon icon-chevron-down'/>
+            </button>
         );
 
-        const hideJoinedButtonClass = classNames('get-app__checkbox', {checked: this.props.rememberHideJoinedChannelsChecked});
+        const filter = (
+            <div className='more-modal__dropdown'>
+                <Menu.Container
+                    menuButton={{
+                        id: 'menuWrapper',
+                        children: menuButton,
+                    }}
+                    menu={{
+                        id: 'browseChannelsDropdown',
+                        'aria-label': this.props.intl.formatMessage({id: 'browse_channels.channel_filter', defaultMessage: 'Channel Filter'}),
+                    }}
+                >
+                    <Menu.Group>
+                        <Menu.ItemAction
+                            id='channelsMoreDropdownAll'
+                            onClick={() => this.props.changeFilter(Filter.All)}
+                            text={this.props.intl.formatMessage({id: 'browse_channels.all', defaultMessage: 'All'})}
+                            ariaLabel={this.props.intl.formatMessage({id: 'browse_channels.all', defaultMessage: 'All'})}
+                        />
+                        <Menu.ItemAction
+                            id='channelsMoreDropdownPublic'
+                            onClick={() => this.props.changeFilter(Filter.Public)}
+                            text={this.props.intl.formatMessage({id: 'browse_channels.public', defaultMessage: 'Public'})}
+                            ariaLabel={this.props.intl.formatMessage({id: 'browse_channels.public', defaultMessage: 'Public'})}
+                        />
+                        <Menu.ItemAction
+                            id='channelsMoreDropdownPrivate'
+                            onClick={() => this.props.changeFilter(Filter.Private)}
+                            text={this.props.intl.formatMessage({id: 'browse_channels.private', defaultMessage: 'Private'})}
+                            ariaLabel={this.props.intl.formatMessage({id: 'browse_channels.private', defaultMessage: 'Private'})}
+                        />
+                        {this.props.canShowArchivedChannels && (
+                            <Menu.ItemAction
+                                id='channelsMoreDropdownArchived'
+                                onClick={() => this.props.changeFilter(Filter.Archived)}
+                                text={this.props.intl.formatMessage({id: 'browse_channels.archived', defaultMessage: 'Archived'})}
+                                ariaLabel={this.props.intl.formatMessage({id: 'browse_channels.archived', defaultMessage: 'Archived'})}
+                            />
+                        )}
+                    </Menu.Group>
+                </Menu.Container>
+            </div>
+        );
+
+        const hideJoinedButtonClass = classNames('get-app__checkbox', {
+            checked: this.props.rememberHideJoinedChannelsChecked,
+        });
         const hideJoinedPreferenceCheckbox = (
             <div
                 id={'hideJoinedPreferenceCheckbox'}
@@ -553,8 +504,28 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             <div className='more-modal__dropdown'>
                 <span id='channelCountLabel'>{channelCountLabel}</span>
                 <div id='modalPreferenceContainer'>
-                    {channelDropdown}
-                    {hideJoinedPreferenceCheckbox}
+                    {filter}
+                    <MenuItem
+                        id='hideJoinedChannelsItem'
+                        onClick={() => this.props.hideJoinedChannelsPreference(!this.props.rememberHideJoinedChannelsChecked)}
+                        ariaLabel={this.props.intl.formatMessage({id: 'filtered_channels_list.hideJoinedChannels', defaultMessage: 'Hide joined channels'})}
+                        text={
+                            <>
+                                <button
+                                    className='style--none'
+                                    role='checkbox'
+                                    aria-checked={this.props.rememberHideJoinedChannelsChecked}
+                                    aria-label={this.props.intl.formatMessage({id: 'filtered_channels_list.hideJoinedChannels', defaultMessage: 'Hide joined channels'})}
+                                >
+                                    {this.props.rememberHideJoinedChannelsChecked && checkIcon}
+                                    <FormattedMessage
+                                        id='filtered_channels_list.hideJoinedChannels'
+                                        defaultMessage='Hide joined channels'
+                                    />
+                                </button>
+                            </>
+                        }
+                    />
                 </div>
             </div>
         );

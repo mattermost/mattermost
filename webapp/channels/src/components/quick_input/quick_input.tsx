@@ -196,6 +196,8 @@ export class QuickInput extends React.PureComponent<Props> {
                             data-testid='input-clear'
                             className={classNames(clearClassName, 'input-clear visible')}
                             onClick={this.onClear}
+                            role='button'
+                            aria-label={typeof clearableTooltipText === 'string' ? clearableTooltipText : 'Clear'}
                         >
                             <span
                                 className='input-clear-x'
