@@ -872,3 +872,23 @@ func SliceToMapKey(s ...string) map[string]any {
 
 	return m
 }
+
+// NewString returns a pointer to the given string.
+func NewString(s string) *string {
+	return &s
+}
+
+// NewInt returns a pointer to the given int.
+func NewInt(n int) *int {
+	return &n
+}
+
+// NewBool returns a pointer to the given bool.
+func NewBool(b bool) *bool {
+	return &b
+}
+
+// NewInt64 returns a pointer to the given int64.
+func NewInt64(n int64) *int64 {
+	return &n
+}

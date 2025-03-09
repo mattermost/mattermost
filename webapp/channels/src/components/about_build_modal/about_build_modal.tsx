@@ -112,7 +112,7 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
             <div>
                 <FormattedMessage
                     id="about.teamEditionLearnMattermost"
-                    defaultMessage="Nimbupani is built on the open-source Mattermost platform, customized to enhance collaboration and community engagement. "
+                    defaultMessage="Nimbupani is built using the open-source Mattermost platform, reconfigured to enhance collaboration and community engagement for students. We value open source communities and are grateful for the contributions of the Mattermost community. "
                 />
                 <ExternalLink
                     location="about_build_modal"

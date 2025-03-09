@@ -1,4 +1,5 @@
 *.tar.gz
+ideal-config.json
 logs
 .DS_Store
 node_modules

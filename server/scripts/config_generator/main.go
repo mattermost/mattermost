@@ -11,10 +11,29 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-// generateDefaultConfig writes default config to outputFile.
+// customizeConfig applies custom modifications to the default config
+func customizeConfig(cfg *model.Config) {
+	// Nimbupani's custom modifications will come here
+	cfg.ServiceSettings.SiteURL = model.NewString("https://nimbupani.ai/")
+	cfg.LogSettings.EnableConsole = model.NewBool(true)
+	cfg.LogSettings.ConsoleLevel = model.NewString("DEBUG")
+	cfg.TeamSettings.SiteName = model.NewString("Nimbupani")
+	cfg.TeamSettings.MaxChannelsPerTeam = model.NewInt64(20000)
+	cfg.TeamSettings.MaxUsersPerTeam = model.NewInt64(50000)
+	cfg.SupportSettings.TermsOfServiceLink = model.NewString("https://nimbupani.ai/terms/")
+	cfg.SupportSettings.PrivacyPolicyLink = model.NewString("https://nimbupani.ai/privacy-policy/")
+	cfg.SupportSettings.AboutLink = model.NewString("https://nimbupani.ai/")
+
+}
+
+// generateDefaultConfig writes default config with custom modifications to outputFile.
 func generateDefaultConfig(outputFile *os.File) error {
 	defaultCfg := &model.Config{}
 	defaultCfg.SetDefaults()
+	
+	// Apply custom modifications
+	customizeConfig(defaultCfg)
+	
 	if data, err := json.MarshalIndent(defaultCfg, "", "  "); err != nil {
 		return err
 	} else if _, err := outputFile.Write(data); err != nil {

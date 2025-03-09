@@ -119,8 +119,8 @@ const (
 	ServiceSettingsDefaultMaxURLLength           = 2048
 	ServiceSettingsMaxUniqueReactionsPerPost     = 500
 
-	TeamSettingsDefaultSiteName              = "Mattermost"
-	TeamSettingsDefaultMaxUsersPerTeam       = 50
+	TeamSettingsDefaultSiteName              = "Nimbupani"
+	TeamSettingsDefaultMaxUsersPerTeam       = 50000
 	TeamSettingsDefaultCustomBrandText       = ""
 	TeamSettingsDefaultCustomDescriptionText = ""
 	TeamSettingsDefaultUserStatusAwayTimeout = 300
@@ -139,9 +139,9 @@ const (
 
 	EmailSettingsDefaultFeedbackOrganization = ""
 
-	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/pl/terms-of-use/"
-	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/pl/privacy-policy/"
-	SupportSettingsDefaultAboutLink          = "https://mattermost.com/pl/about-mattermost"
+	SupportSettingsDefaultTermsOfServiceLink = "https://nimbupani.ai/terms/"
+	SupportSettingsDefaultPrivacyPolicyLink  = "https://nimbupani.ai/privacy-policy/"
+	SupportSettingsDefaultAboutLink          = "https://nimbupani.ai/"
 	SupportSettingsDefaultHelpLink           = "https://mattermost.com/pl/help/"
 	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/pl/report-a-bug"
 	SupportSettingsDefaultSupportEmail       = ""
@@ -2365,7 +2365,7 @@ func (s *TeamSettings) SetDefaults() {
 	}
 
 	if s.MaxChannelsPerTeam == nil {
-		s.MaxChannelsPerTeam = NewPointer(int64(2000))
+		s.MaxChannelsPerTeam = NewPointer(int64(20000))
 	}
 
 	if s.MaxNotificationsPerChannel == nil {
