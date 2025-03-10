@@ -2,11 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
-import {screen, render} from '@testing-library/react';
-import {IntlProvider} from 'react-intl';
+import {screen} from '@testing-library/react';
 
-import {mockStore} from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelBanner from './index';
@@ -53,14 +51,9 @@ describe('components/channel_banner', () => {
     };
 
     const renderComponent = (channelId: string, state = baseState) => {
-        const store = mockStore(state);
-
-        return render(
-            <Provider store={store}>
-                <IntlProvider locale='en'>
-                    <ChannelBanner channelId={channelId} />
-                </IntlProvider>
-            </Provider>,
+        return renderWithContext(
+            <ChannelBanner channelId={channelId} />,
+            state
         );
     };
 
