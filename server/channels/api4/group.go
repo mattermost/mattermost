@@ -394,7 +394,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("group_syncable")
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, c.Params.GroupId)
 	})
 
 	w.WriteHeader(http.StatusCreated)
@@ -579,7 +579,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("group_syncable")
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, c.Params.GroupId)
 	})
 
 	b, err := json.Marshal(groupSyncable)
@@ -641,7 +641,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, c.Params.GroupId)
 	})
 
 	auditRec.Success()
