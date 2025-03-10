@@ -1,8 +1,15 @@
+@use "utils/variables";
+
 .channel_banner {
     width: 100%;
     padding-inline: 24px;
     padding-block: 6px;
     white-space: nowrap;
+    min-height: variables.$announcement-bar-height;
+    max-height: variables.$announcement-bar-height;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     .channel_banner_text {
         overflow: hidden;
@@ -12,3 +19,12 @@
         text-align: center;
     }
 }
+
+.channelBannerTooltip {
+    min-width: 400px;
+    max-width: min(1000px, 70vw);
+    pointer-events: auto;
+    max-height: 80vh;
+    overflow: auto;
+}
+

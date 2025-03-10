@@ -31,6 +31,8 @@ type Props = {
 
 export default function ChannelBanner({channelId}: Props) {
     const license = useSelector(getLicense);
+
+    // TODO - check for premium license here once the corresponding PR is merged
     const isEnterprise = isEnterpriseLicense(license);
     const channelBannerInfo = useSelector((state: GlobalState) => getChannelBanner(state, channelId));
     const intl = useIntl();
@@ -42,31 +44,38 @@ export default function ChannelBanner({channelId}: Props) {
     }
 
     const ariaLabel = intl.formatMessage({id: 'channel_banner.aria_label', defaultMessage: 'Channel banner text'});
+    const content = (
+        <Markdown
+            message={channelBannerInfo!.text}
+            options={markdownRenderingOptions}
+        />
+    );
 
     return (
-        <div
-            className='channel_banner'
-            style={{
-                backgroundColor: channelBannerInfo!.background_color,
-            }}
+        <WithTooltip
+            title={content}
+            className='channelBannerTooltip'
+            delayClose={true}
+            placement={'bottom'}
         >
-            <WithTooltip
-                title={channelBannerInfo!.text}
-                isVertical={false}
+            <div
+                className='channel_banner'
+                data-testid='channel_banner_container'
+                style={{
+                    backgroundColor: channelBannerInfo!.background_color,
+                }}
             >
                 <span
+                    data-testid='channel_banner_text'
                     className='channel_banner_text'
                     aria-label={ariaLabel}
                     style={{
                         color: getContrastingSimpleColor(channelBannerInfo!.background_color),
                     }}
                 >
-                    <Markdown
-                        message={channelBannerInfo!.text}
-                        options={markdownRenderingOptions}
-                    />
+                    {content}
                 </span>
-            </WithTooltip>
-        </div>
+            </div>
+        </WithTooltip>
     );
 }
