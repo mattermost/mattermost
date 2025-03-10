@@ -8,9 +8,19 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelBanner from './index';
+import {GlobalState} from "types/store";
+import type {GeneralState} from "@mattermost/types/lib/general";
 
 describe('components/channel_banner', () => {
-    const baseState = {
+    const channel1 = TestHelper.getChannelMock({
+        id: 'test-channel-id',
+        team_id: team.id,
+        display_name: 'Test Channel',
+        header: 'This is the channel header',
+        name: 'test-channel',
+    });
+
+    const baseState: Partial<GlobalState> = {
         entities: {
             general: {
                 license: {
@@ -18,8 +28,12 @@ describe('components/channel_banner', () => {
                     Cloud: 'false',
                     EnterpriseReady: 'true',
                 },
-            },
+            } as GeneralState,
             channels: {
+                channels: {
+
+                }
+
                 channelBanners: {
                     'channel-id-1': {
                         text: 'Test banner message',
@@ -52,8 +66,8 @@ describe('components/channel_banner', () => {
 
     const renderComponent = (channelId: string, state = baseState) => {
         return renderWithContext(
-            <ChannelBanner channelId={channelId} />,
-            state
+            <ChannelBanner channelId={channelId}/>,
+            state,
         );
     };
 
@@ -88,11 +102,11 @@ describe('components/channel_banner', () => {
 
     test('should render banner with correct text and styling', () => {
         renderComponent('channel-id-1');
-        
+
         const bannerContainer = screen.getByTestId('channel_banner_container');
         expect(bannerContainer).toBeInTheDocument();
         expect(bannerContainer).toHaveStyle('background-color: #FF0000');
-        
+
         const bannerText = screen.getByTestId('channel_banner_text');
         expect(bannerText).toBeInTheDocument();
         expect(bannerText.textContent).toBe('Test banner message');
@@ -100,14 +114,14 @@ describe('components/channel_banner', () => {
 
     test('should render markdown in banner text', () => {
         renderComponent('channel-id-3');
-        
+
         const bannerContainer = screen.getByTestId('channel_banner_container');
         expect(bannerContainer).toBeInTheDocument();
         expect(bannerContainer).toHaveStyle('background-color: #0000FF');
-        
+
         const bannerText = screen.getByTestId('channel_banner_text');
         expect(bannerText).toBeInTheDocument();
-        
+
         // Check that markdown was rendered (bold text)
         const strongElement = bannerText.querySelector('strong');
         expect(strongElement).toBeInTheDocument();
