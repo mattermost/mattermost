@@ -32,6 +32,11 @@ func (a *App) canSendPushNotifications() bool {
 	}
 
 	pushServer := *a.Config().EmailSettings.PushNotificationServer
+
+	if license := a.Srv().License(); license != nil && strings.HasPrefix(pushServer, "ntfy:") {
+		return true
+	}
+
 	if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
 		a.NotificationsLog().Warn("Push notifications are disabled - license missing",
 			mlog.String("status", model.NotificationStatusNotSent),
