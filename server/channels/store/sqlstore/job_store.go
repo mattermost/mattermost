@@ -173,50 +173,74 @@ func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, error
 }
 
 func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error) {
-	tx, err := jss.GetMaster().Beginx()
-	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransactionX(tx, &err)
+	if jss.DriverName() == model.DatabaseDriverMysql {
+		tx, err := jss.GetMaster().Beginx()
+		if err != nil {
+			return nil, errors.Wrap(err, "begin_transaction")
+		}
+		defer finalizeTransactionX(tx, &err)
 
+		builder := jss.getQueryBuilder().
+			Update("Jobs").
+			Set("LastActivityAt", model.GetMillis()).
+			Set("Status", newStatus).
+			Where(sq.Eq{"Id": id, "Status": currentStatus})
+
+		if newStatus == model.JobStatusInProgress {
+			builder = builder.Set("StartAt", model.GetMillis())
+		}
+
+		sqlResult, err := tx.ExecBuilder(builder)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to update Job with id=%s", id)
+		}
+		rows, err := sqlResult.RowsAffected()
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to get rows affected")
+		}
+		if rows != 1 {
+			return nil, nil
+		}
+
+		getBuilder := jss.getQueryBuilder().
+			Select("*").
+			From("Jobs").
+			Where(sq.Eq{"Id": id, "Status": newStatus})
+
+		var job model.Job
+		if err = tx.GetBuilder(&job, getBuilder); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil, store.NewErrNotFound("Job", id)
+			}
+			return nil, errors.Wrapf(err, "failed to get Job with id=%s", id)
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			return nil, errors.Wrap(err, "commit_transaction")
+		}
+
+		return &job, nil
+	}
+
+	// For PostgreSQL, use RETURNING to get the updated job in a single query
 	builder := jss.getQueryBuilder().
 		Update("Jobs").
 		Set("LastActivityAt", model.GetMillis()).
 		Set("Status", newStatus).
-		Where(sq.Eq{"Id": id, "Status": currentStatus})
+		Where(sq.Eq{"Id": id, "Status": currentStatus}).
+		Suffix("RETURNING *")
 
 	if newStatus == model.JobStatusInProgress {
 		builder = builder.Set("StartAt", model.GetMillis())
 	}
 
-	sqlResult, err := tx.ExecBuilder(builder)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to update Job with id=%s", id)
-	}
-	rows, err := sqlResult.RowsAffected()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to get rows affected")
-	}
-	if rows != 1 {
-		return nil, nil
-	}
-
-	getBuilder := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
-		Where(sq.Eq{"Id": id, "Status": newStatus})
-
 	var job model.Job
-	if err = tx.GetBuilder(&job, getBuilder); err != nil {
+	if err := jss.GetMaster().GetBuilder(&job, builder); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("Job", id)
 		}
-		return nil, errors.Wrapf(err, "failed to get Job with id=%s", id)
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
+		return nil, errors.Wrapf(err, "failed to update Job with id=%s", id)
 	}
 
 	return &job, nil
