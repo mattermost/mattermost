@@ -1590,70 +1590,111 @@ func TestExportSchemes(t *testing.T) {
 	})
 }
 
-func TestExportDeactivatedUserDMs(t *testing.T) {
+// TestExportDeactivatedUserDMsRegression specifically tests the MM-43598 regression
+// by validating that direct messages from deactivated users are exported correctly
+func TestExportDeactivatedUserDMsRegression(t *testing.T) {
 	th1 := Setup(t).InitBasic()
 	defer th1.TearDown()
 
-	// Create a DM Channel with another user
+	// Create a DM Channel
 	user2 := th1.BasicUser2
-
 	dmChannel := th1.CreateDmChannel(user2)
 
-	// Create a regular message from user2
-	regularPost := &model.Post{
+	// 1. First basic user (active) sends a message to user2 (who will later be deactivated)
+	initialMessage := "initial_message_from_basic_user"
+	initialPost := &model.Post{
 		ChannelId: dmChannel.Id,
-		Message:   "regular_message_from_user2",
-		UserId:    user2.Id,
-	}
-	_, appErr := th1.App.CreatePost(th1.Context, regularPost, dmChannel, model.CreatePostFlags{SetOnline: true})
-	require.Nil(t, appErr)
-
-	// Create a thread started by the basic user
-	threadStarter := &model.Post{
-		ChannelId: dmChannel.Id,
-		Message:   "thread_starter_from_basic_user",
+		Message:   initialMessage,
 		UserId:    th1.BasicUser.Id,
 	}
-	threadStarterPost, appErr := th1.App.CreatePost(th1.Context, threadStarter, dmChannel, model.CreatePostFlags{SetOnline: true})
+	initialPostCreated, appErr := th1.App.CreatePost(th1.Context, initialPost, dmChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
-	// Create a reply post from user2
-	replyPost := &model.Post{
+	// 2. Have user2 reply with TWO types of replies:
+
+	// 2a. User2 replies in a thread (to the initial message)
+	// This is a threaded reply which should work even before the fix
+	threadedReplyMessage := "threaded_reply_from_user2"
+	threadedReply := &model.Post{
 		ChannelId: dmChannel.Id,
-		Message:   "reply_from_user2",
+		Message:   threadedReplyMessage,
 		UserId:    user2.Id,
-		RootId:    threadStarterPost.Id,
+		RootId:    initialPostCreated.Id, // This makes it a threaded reply
 	}
-	_, appErr = th1.App.CreatePost(th1.Context, replyPost, dmChannel, model.CreatePostFlags{SetOnline: true})
+	_, appErr = th1.App.CreatePost(th1.Context, threadedReply, dmChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
-	// Deactivate user2
+	// 2b. User2 sends a standalone reply (NOT in a thread)
+	// This is the non-threaded reply that was broken before the fix
+	nonThreadedReplyMessage := "non_threaded_reply_from_user2"
+	nonThreadedReply := &model.Post{
+		ChannelId: dmChannel.Id,
+		Message:   nonThreadedReplyMessage,
+		UserId:    user2.Id,
+		// No RootId, making it a standalone message, not a thread reply
+	}
+	_, appErr = th1.App.CreatePost(th1.Context, nonThreadedReply, dmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	// 3. Now deactivate user2
 	_, err := th1.App.UpdateActive(th1.Context, user2, false)
 	require.Nil(t, err)
 
-	// Check that posts from deactivated users are still found in the source instance
-	postsBeforeExport, nErr := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
-	require.NoError(t, nErr)
-	require.GreaterOrEqual(t, len(postsBeforeExport), 2, "Should find at least the regular message and thread starter")
-
-	// Verify we have the message from the deactivated user
-	foundUserMessage := false
-	for _, post := range postsBeforeExport {
-		if post.Message == "regular_message_from_user2" {
-			foundUserMessage = true
-			// Verify User field is not empty even though user is deactivated
-			require.NotEmpty(t, post.User, "Username should be populated for deactivated user")
-			require.Equal(t, user2.Username, post.User)
-		}
-	}
-	require.True(t, foundUserMessage, "Should find the deactivated user's message")
-
-	// Export data
+	// 4. Export data
 	var b bytes.Buffer
 	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, appErr)
 
-	// Import data into a new instance
+	// 5. Make a copy of the buffer for export validation
+	var exportDataCopy bytes.Buffer
+	_, nErr := exportDataCopy.Write(b.Bytes())
+	require.NoError(t, nErr)
+
+	// 6. Validate export data directly to ensure both types of replies are present
+	scanner := bufio.NewScanner(&exportDataCopy)
+	foundThreadedReply := false
+	foundNonThreadedReply := false
+
+	for scanner.Scan() {
+		var line imports.LineImportData
+		err := json.Unmarshal(scanner.Bytes(), &line)
+		if err != nil {
+			continue
+		}
+
+		// Check for direct posts
+		if line.Type == "direct_post" && line.DirectPost != nil {
+			// Check for the non-threaded reply (the standalone message)
+			if line.DirectPost.Message != nil && *line.DirectPost.Message == nonThreadedReplyMessage {
+				foundNonThreadedReply = true
+				// Verify username is correctly preserved in export
+				require.Equal(t, user2.Username, *line.DirectPost.User,
+					"Deactivated user's username should be preserved in export for non-threaded reply")
+			}
+
+			// Check for the thread starter and its replies
+			if line.DirectPost.Message != nil && *line.DirectPost.Message == initialMessage {
+				// Check if the threaded reply is in the replies array
+				if line.DirectPost.Replies != nil {
+					for _, reply := range *line.DirectPost.Replies {
+						if reply.Message != nil && *reply.Message == threadedReplyMessage {
+							foundThreadedReply = true
+							require.Equal(t, user2.Username, *reply.User,
+								"Deactivated user's username should be preserved in export for threaded reply")
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// This is key for testing MM-43598
+	require.True(t, foundNonThreadedReply,
+		"Non-threaded reply from deactivated user must be present in export data - this is what MM-43598 fixes")
+	require.True(t, foundThreadedReply,
+		"Threaded reply from deactivated user must be present in export data")
+
+	// 7. Import data into a new instance
 	th2 := Setup(t)
 	defer th2.TearDown()
 
@@ -1661,36 +1702,41 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Equal(t, 0, i)
 
-	// Verify channels were imported
+	// 8. Verify the DM channel was imported
 	channels, nErr := th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 	require.NoError(t, nErr)
-	require.Equal(t, 1, len(channels), "Direct channel should be exported and imported")
+	require.Equal(t, 1, len(channels), "Direct channel should be imported")
 
-	// Get all direct posts in the new instance
-	posts, nErr := th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
+	// 9. Verify all posts were imported
+	posts, nErr := th2.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{
+		ChannelId: channels[0].Id,
+		PerPage:   1000,
+	}, false, nil)
 	require.NoError(t, nErr)
 
-	// Check if both the regular message and reply from the deactivated user are present
-	foundRegular := false
-	foundReply := false
+	// We should have exactly 3 posts
+	require.Equal(t, 3, len(posts.Posts), "Should have imported exactly 3 posts")
 
-	for _, post := range posts {
-		if post.Message == "regular_message_from_user2" {
-			foundRegular = true
+	// 10. Specifically check that both types of replies are present
+	foundThreadedReplyInImport := false
+	foundNonThreadedReplyInImport := false
+
+	for _, post := range posts.Posts {
+		if post.Message == threadedReplyMessage {
+			foundThreadedReplyInImport = true
+			// Verify this is a reply in a thread
+			require.NotEmpty(t, post.RootId, "Threaded reply should have a RootId")
 		}
-		if post.Message == "reply_from_user2" {
-			foundReply = true
-		}
-	}
-
-	// Both types of posts should be found
-	require.True(t, foundRegular, "Regular message from deactivated user was not exported")
-	require.True(t, foundReply, "Reply message from deactivated user was not exported")
-
-	// Verify post usernames are correctly set
-	for _, post := range posts {
-		if post.Message == "regular_message_from_user2" {
-			require.Equal(t, user2.Username, post.User, "Post username should match original user even if deactivated")
+		if post.Message == nonThreadedReplyMessage {
+			foundNonThreadedReplyInImport = true
+			// Verify this is NOT a reply in a thread
+			require.Empty(t, post.RootId, "Non-threaded reply should not have a RootId")
 		}
 	}
+
+	// This directly tests the issue in MM-43598
+	require.True(t, foundNonThreadedReplyInImport,
+		"Non-threaded reply from deactivated user should be imported")
+	require.True(t, foundThreadedReplyInImport,
+		"Threaded reply from deactivated user should be imported")
 }
