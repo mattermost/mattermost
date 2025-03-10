@@ -2828,8 +2828,8 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		Join("Users u2 ON p.UserId = u2.Id").
 		Where(sq.And{
 			sq.Gt{"p.Id": afterId},
-			sq.Eq{"p.DeleteAt": 0},
 			sq.Eq{"p.RootId": ""},
+			sq.Eq{"p.DeleteAt": 0},
 			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
 		}).
 		GroupBy("p.Id, u2.Username").

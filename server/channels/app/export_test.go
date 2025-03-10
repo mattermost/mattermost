@@ -1590,9 +1590,9 @@ func TestExportSchemes(t *testing.T) {
 	})
 }
 
-// TestExportDeactivatedUserDMsRegression specifically tests the MM-43598 regression
+// TestExportDeactivatedUserDMs specifically tests the MM-43598 bug
 // by validating that direct messages from deactivated users are exported correctly
-func TestExportDeactivatedUserDMsRegression(t *testing.T) {
+func TestExportDeactivatedUserDMs(t *testing.T) {
 	th1 := Setup(t).InitBasic()
 	defer th1.TearDown()
 
@@ -1613,7 +1613,6 @@ func TestExportDeactivatedUserDMsRegression(t *testing.T) {
 	// 2. Have user2 reply with TWO types of replies:
 
 	// 2a. User2 replies in a thread (to the initial message)
-	// This is a threaded reply which should work even before the fix
 	threadedReplyMessage := "threaded_reply_from_user2"
 	threadedReply := &model.Post{
 		ChannelId: dmChannel.Id,
@@ -1625,7 +1624,6 @@ func TestExportDeactivatedUserDMsRegression(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// 2b. User2 sends a standalone reply (NOT in a thread)
-	// This is the non-threaded reply that was broken before the fix
 	nonThreadedReplyMessage := "non_threaded_reply_from_user2"
 	nonThreadedReply := &model.Post{
 		ChannelId: dmChannel.Id,
@@ -1690,7 +1688,7 @@ func TestExportDeactivatedUserDMsRegression(t *testing.T) {
 
 	// This is key for testing MM-43598
 	require.True(t, foundNonThreadedReply,
-		"Non-threaded reply from deactivated user must be present in export data - this is what MM-43598 fixes")
+		"Non-threaded reply from deactivated user must be present in export data")
 	require.True(t, foundThreadedReply,
 		"Threaded reply from deactivated user must be present in export data")
 
