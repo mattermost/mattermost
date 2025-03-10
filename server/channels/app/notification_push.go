@@ -513,6 +513,13 @@ func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushRespons
 }
 
 func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Session) error {
+	pushServer := *a.Config().EmailSettings.PushNotificationServer
+	
+	// Handle ntfy push notifications
+	if strings.HasPrefix(pushServer, "ntfy:") {
+		return a.sendNtfyPush(msg)
+	}
+	
 	msg.ServerId = a.TelemetryId()
 
 	a.NotificationsLog().Trace("Notification will be sent",
