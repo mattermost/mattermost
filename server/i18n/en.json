@@ -8094,7 +8094,7 @@
   },
   {
     "id": "ent.ldap.update_cpa.patch_error",
-    "translation": ""
+    "translation": "Error patching CPA value"
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
