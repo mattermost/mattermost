@@ -24,8 +24,12 @@ import {
     doFormatText,
     replaceTokens,
     isChannelNamesMap,
+    convertMentionNicknameOrFullName
 } from 'utils/text_formatting';
 import type {ChannelNamesMap} from 'utils/text_formatting';
+import { Preferences } from 'mattermost-redux/constants';
+import {TestHelper} from 'utils/test_helper';
+import { displayUsername } from 'mattermost-redux/utils/user_utils';
 
 const emptyEmojiMap = new EmojiMap(new Map());
 
@@ -241,6 +245,49 @@ describe('highlightSearchTerms', () => {
         expect(tokens.get('$MM_SEARCHTERM1$')!.value).toBe('<span class="search-highlight">$MM_HASHTAG0$</span>');
     });
 });
+
+describe.only('convertMentionNicknameOrFullName', () => {
+    const user1 = TestHelper.getUserMock(
+        {id: 'abc1', username: 'username1', first_name: 'Json', last_name: 'Doe', nickname: 'JD'},
+    )
+    const user2 = TestHelper.getUserMock(
+        {id: 'abc2', username: 'username2', first_name: 'Jhon', last_name: 'Smith', nickname: 'JS'},
+    )
+    const usersByUsername = {
+        [user1.username]: user1,
+        [user2.username]: user2,
+    }
+    test('should display username when configure username', () => {
+        const teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME;
+        const text = `@${user1.username} @${user2.username} Hi, how are you?`
+        const result = convertMentionNicknameOrFullName(text, usersByUsername, teammateNameDisplay );
+        expect(result).toBe(`@${user1.username} @${user2.username} Hi, how are you?`)
+    })
+    test('should display fullname when configure fullname', () => {
+        const teammateNameDisplay = Preferences.DISPLAY_PREFER_FULL_NAME;
+        const text = `@${user1.username} @${user2.username} Hi, how are you?`
+        const result = convertMentionNicknameOrFullName(text, usersByUsername, teammateNameDisplay );
+        expect(result).toBe(`@${user1.first_name} ${user1.last_name} @${user2.first_name} ${user2.last_name} Hi, how are you?`)
+    })
+    test('should display nickname when configure nickname', () => {
+        const teammateNameDisplay = Preferences.DISPLAY_PREFER_NICKNAME;
+        const text = `@${user1.username} @${user2.username} Hi, how are you?`
+        const result = convertMentionNicknameOrFullName(text, usersByUsername, teammateNameDisplay );
+        expect(result).toBe(`@${user1.nickname} @${user2.nickname} Hi, how are you?`)
+    })
+    test('should not display fullname if user is not found', () => {
+        const teammateNameDisplay = Preferences.DISPLAY_PREFER_FULL_NAME;
+        const text = `@hoge @${user2.username} Hi, how are you?`
+        const result = convertMentionNicknameOrFullName(text, usersByUsername, teammateNameDisplay );
+        expect(result).toBe(`@hoge @${user2.first_name} ${user2.last_name} Hi, how are you?`)
+    })
+    test('should not display nickname if use is not match', () => {
+        const teammateNameDisplay = Preferences.DISPLAY_PREFER_NICKNAME;
+        const text = `@hoge @${user2.username} Hi, how are you?`
+        const result = convertMentionNicknameOrFullName(text, usersByUsername, teammateNameDisplay );
+        expect(result).toBe(`@hoge @${user2.nickname} Hi, how are you?`)
+    })
+})
 
 describe('autolink channel mentions', () => {
     test('link a channel mention', () => {
