@@ -4,7 +4,8 @@
 import max from 'lodash/max';
 
 import type {
-    Channel, ChannelBanner,
+    Channel,
+    ChannelBanner,
     ChannelMemberCountsByGroup,
     ChannelMembership,
     ChannelMessageCount,

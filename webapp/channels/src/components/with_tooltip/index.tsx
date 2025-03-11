@@ -114,6 +114,7 @@ export default function WithTooltip({
     }
 
     const placements = useMemo<{initial: Placement; fallback: Placement[]}>(() => {
+        // if an explicit placement is provided, use it exclusively
         if (placement) {
             return {initial: placement, fallback: [placement]};
         }

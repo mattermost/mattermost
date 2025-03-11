@@ -102,7 +102,6 @@ function channels(state: IDMappedObjects<Channel> = {}, action: MMReduxAction) {
     case ChannelTypes.RECEIVED_CHANNELS:
     case ChannelTypes.RECEIVED_ALL_CHANNELS:
     case SchemeTypes.RECEIVED_SCHEME_CHANNELS: {
-        console.log('RECEIVED_SCHEME_CHANNELS');
         const channels: Channel[] = action.data.map(toClientChannel);
 
         if (channels.length === 0) {

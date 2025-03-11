@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {isEnterpriseLicense} from 'utils/license_utils';
@@ -39,11 +39,7 @@ export default function ChannelBanner({channelId}: Props) {
 
     const showChannelBanner = isEnterprise && channelBannerEnabled(channelBannerInfo);
 
-    if (!channelBannerInfo || !showChannelBanner) {
-        return null;
-    }
-
-    const ariaLabel = intl.formatMessage({id: 'channel_banner.aria_label', defaultMessage: 'Channel banner text'});
+    const channelBannerTextAriaLabel = intl.formatMessage({id: 'channel_banner.aria_label', defaultMessage: 'Channel banner text'});
     const content = (
         <Markdown
             message={channelBannerInfo!.text}
@@ -51,27 +47,44 @@ export default function ChannelBanner({channelId}: Props) {
         />
     );
 
+    const channelBannerStyle = useMemo(() => {
+        return {
+            backgroundColor: channelBannerInfo!.background_color,
+        };
+    }, [channelBannerInfo]);
+
+    const channelBannerTextStyle = useMemo(() => {
+        // this is just to satisfy type checks.
+        if (!channelBannerInfo || !channelBannerInfo.background_color) {
+            return {};
+        }
+
+        return {
+            color: getContrastingSimpleColor(channelBannerInfo.background_color),
+        };
+    }, [channelBannerInfo]);
+
+    if (!channelBannerInfo || !showChannelBanner) {
+        return null;
+    }
+
     return (
         <WithTooltip
             title={content}
             className='channelBannerTooltip'
             delayClose={true}
-            placement={'bottom'}
+            placement='bottom'
         >
             <div
                 className='channel_banner'
                 data-testid='channel_banner_container'
-                style={{
-                    backgroundColor: channelBannerInfo!.background_color,
-                }}
+                style={channelBannerStyle}
             >
                 <span
                     data-testid='channel_banner_text'
                     className='channel_banner_text'
-                    aria-label={ariaLabel}
-                    style={{
-                        color: getContrastingSimpleColor(channelBannerInfo!.background_color),
-                    }}
+                    aria-label={channelBannerTextAriaLabel}
+                    style={channelBannerTextStyle}
                 >
                     {content}
                 </span>

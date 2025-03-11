@@ -171,8 +171,14 @@ export function setThemeDefaults(theme: Partial<Theme>): Theme {
     return processedTheme as Theme;
 }
 
+// getContrastingSimpleColor returns a contrasting color - either black or white, depending on the luminance
+// of the supplied color. Both input and outpur colors are in hexadecimal color code.
 export function getContrastingSimpleColor(colorHexCode: string): string {
     const color = colorHexCode.startsWith('#') ? colorHexCode.slice(1) : colorHexCode;
+
+    if (color.length !== 6) {
+        return '';
+    }
 
     // split red, green and blue components
     const red = parseInt(color.substring(0, 2), 16);
@@ -181,16 +187,16 @@ export function getContrastingSimpleColor(colorHexCode: string): string {
 
     // calculate relative luminance of each color channel - https://www.w3.org/TR/WCAG21/#dfn-relative-luminance
     const srgb = [red / 255, green / 255, blue / 255];
-    const x = srgb.map((i) => {
+    const [redLuminance, greenLuminance, blueLuminance] = srgb.map((i) => {
         if (i <= 0.04045) {
             return i / 12.92;
         }
         return Math.pow((i + 0.055) / 1.055, 2.4);
     });
 
-    // calculate combined luminance of each channel
-    const L = (0.2126 * x[0]) + (0.7152 * x[1]) + (0.0722 * x[2]);
+    // calculate luminance of the whole color by adding percieved luminance of each channel
+    const colorLuminance = (0.2126 * redLuminance) + (0.7152 * greenLuminance) + (0.0722 * blueLuminance);
 
     // return black or white based on color's luminance
-    return L > 0.179 ? '#000000' : '#FFFFFF';
+    return colorLuminance > 0.179 ? '#000000' : '#FFFFFF';
 }
