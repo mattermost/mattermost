@@ -6,6 +6,10 @@ import iconWS from 'images/icon_WS.png';
 import * as UserAgent from 'utils/user_agent';
 
 import type {ThunkActionFunc} from 'types/store';
+import { convertMentionNicknameOrFullName } from './text_formatting';
+import { useSelector } from 'react-redux';
+import type {GlobalState} from 'types/store';
+import { getTeammateNameDisplaySetting } from 'mattermost-redux/selectors/entities/preferences';
 
 export type NotificationResult = {
     status: 'error' | 'not_sent' | 'success' | 'unsupported';
@@ -76,9 +80,13 @@ export function showNotification(
             }
         }
 
+        const usersByUsername = useSelector((state: GlobalState) => state.entities.users.profiles);
+        const teammateNameDisplay = useSelector((state: GlobalState) => getTeammateNameDisplaySetting(state));
+        const convertedMentionBody = convertMentionNicknameOrFullName(body, usersByUsername, teammateNameDisplay)
+
         const notification = new Notification(title, {
-            body,
-            tag: body,
+            body: convertedMentionBody,
+            tag: convertedMentionBody,
             icon,
             requireInteraction,
             silent,
