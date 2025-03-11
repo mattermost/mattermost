@@ -11,7 +11,6 @@
 // Group: @channels @accessibility @smoke
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
-import 'cypress-real-events';
 
 describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
     let testUser;
@@ -193,31 +192,31 @@ describe('Accessibility tests for RHS getting focus after buttons actions', () =
     });
 
     it('Focus should be on RHS when opening Recent Mentions', () => {
-        // # Click the Recent Mentions button
+        // # Enter key press on the Recent Mentions button
         cy.findByRole('button', {name: /Recent mentions/i}).focus().realPress('Enter');
 
         // * Verify RHS is open
         cy.get('#sidebar-right').should('be.visible');
 
         // * Check that the RHS container is focused
-        cy.get('.sidebar-right-container').find('button[aria-label="Expand Sidebar Icon"]').should('be.focused');
+        cy.findByLabelText('Expand Sidebar Icon').should('be.focused');
     });
 
     it('Focus should be on RHS when opening Saved Messages', () => {
-        // # Click the Saved Messages button
+        // # Enter key press on the Saved Messages button
         cy.findByRole('button', {name: /Saved messages/i}).focus().realPress('Enter');
 
         // * Verify RHS is open
         cy.get('#sidebar-right').should('be.visible');
 
         // * Check that the RHS container is focused
-        cy.get('.sidebar-right-container').find('button[aria-label="Expand Sidebar Icon"]').should('be.focused');
+        cy.findByLabelText('Expand Sidebar Icon').should('be.focused');
     });
 
     it('Focus should be on RHS when opening Members', () => {
         cy.get('#channelHeaderInfo').should('exist');
 
-        // # Click the Members button
+        // # Enter key press on the Members button
         cy.get('#member_rhs').should('be.visible').focus().realPress('Enter');
 
         // * Verify RHS is open
@@ -228,14 +227,14 @@ describe('Accessibility tests for RHS getting focus after buttons actions', () =
     });
 
     it('Focus should be on RHS when opening Channel files', () => {
-        // # Click the Channel files button
+        // # Enter key press on the Channel files button
         cy.findByRole('button', {name: /Channel files/i}).focus().realPress('Enter');
 
         // * Verify RHS is open
         cy.get('#sidebar-right').should('be.visible');
 
         // * Check that the RHS container is focused
-        cy.get('.sidebar-right-container').find('button[aria-label="Expand Sidebar Icon"]').should('be.focused');
+        cy.findByLabelText('Expand Sidebar Icon').should('be.focused');
     });
 });
 
