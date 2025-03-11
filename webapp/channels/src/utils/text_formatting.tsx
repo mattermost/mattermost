@@ -16,6 +16,9 @@ import type EmojiMap from './emoji_map.js';
 import * as Emoticons from './emoticons';
 import * as Markdown from './markdown';
 
+import { displayUsername } from 'mattermost-redux/utils/user_utils';
+import { UserProfile } from '@mattermost/types/users';
+
 const punctuationRegex = /[^\p{L}\d]/u;
 const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi;
 const UNICODE_EMOJI_REGEX = emojiRegex();
@@ -562,6 +565,20 @@ export function getUsernameMentions(text: string): string[] {
     const excludedMentions = new Set(text.match(Constants.SPECIAL_MENTIONS_REGEX) || []);
     const mentions = text.match(AT_MENTION_PATTERN) || [];
     return mentions.filter((mention) => !excludedMentions.has(mention));
+}
+
+export function convertMentionNicknameOrFullName(text: string, usersByUsername: Record<string, UserProfile>, teammateNameDisplay: string): string {
+    return getUsernameMentions(text).reduce((msg, mention) => {
+        const username = mention.substring(1);
+        const mentionedUser = usersByUsername[username];
+
+        if (!mentionedUser) {
+            return msg;
+        }
+
+        const userDisplayName = displayUsername(mentionedUser, teammateNameDisplay);
+        return msg.replace(`@${username}`, `@${userDisplayName}`);
+    }, text);
 }
 
 export function autolinkChannelMentions(
