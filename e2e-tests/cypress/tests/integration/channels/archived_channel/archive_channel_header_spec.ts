@@ -64,7 +64,7 @@ describe('Archive channel header spec', () => {
         cy.get('#channelArchiveChannel').should('be.visible');
 
         // * Add members menu option should be visible;
-        cy.get('#channelAddMembers').should('be.visible');
+        cy.get('#channelInviteMembers').should('be.visible');
 
         // * Notification preferences option should be visible;
         cy.get('#channelNotificationPreferences').should('be.visible');
@@ -91,7 +91,7 @@ describe('Archive channel header spec', () => {
         cy.get('#channelArchiveChannel').should('not.exist');
 
         // * Add members menu option should not be visible;
-        cy.get('#channelAddMembers').should('not.exist');
+        cy.get('#channelInviteMembers').should('not.exist');
 
         // * Notification preferences option should not be visible;
         cy.get('#channelNotificationPreferences').should('not.exist');
