@@ -372,7 +372,7 @@ func TestListCPAValues(t *testing.T) {
 func TestSanitizePropertyValue(t *testing.T) {
 	t.Run("text field type", func(t *testing.T) {
 		t.Run("valid text", func(t *testing.T) {
-			result, err := sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`"hello world"`))
+			result, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeText}}, json.RawMessage(`"hello world"`))
 			require.NoError(t, err)
 			var value string
 			require.NoError(t, json.Unmarshal(result, &value))
@@ -380,7 +380,7 @@ func TestSanitizePropertyValue(t *testing.T) {
 		})
 
 		t.Run("empty text should be allowed", func(t *testing.T) {
-			result, err := sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`""`))
+			result, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeText}}, json.RawMessage(`""`))
 			require.NoError(t, err)
 			var value string
 			require.NoError(t, json.Unmarshal(result, &value))
@@ -388,12 +388,12 @@ func TestSanitizePropertyValue(t *testing.T) {
 		})
 
 		t.Run("invalid JSON", func(t *testing.T) {
-			_, err := sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`invalid`))
+			_, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeText}}, json.RawMessage(`invalid`))
 			require.Error(t, err)
 		})
 
 		t.Run("wrong type", func(t *testing.T) {
-			_, err := sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`123`))
+			_, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeText}}, json.RawMessage(`123`))
 			require.Error(t, err)
 			require.Contains(t, err.Error(), "json: cannot unmarshal number into Go value of type string")
 		})
@@ -401,7 +401,7 @@ func TestSanitizePropertyValue(t *testing.T) {
 
 	t.Run("date field type", func(t *testing.T) {
 		t.Run("valid date", func(t *testing.T) {
-			result, err := sanitizePropertyValue(model.PropertyFieldTypeDate, json.RawMessage(`"2023-01-01"`))
+			result, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeDate}}, json.RawMessage(`"2023-01-01"`))
 			require.NoError(t, err)
 			var value string
 			require.NoError(t, json.Unmarshal(result, &value))
@@ -409,7 +409,7 @@ func TestSanitizePropertyValue(t *testing.T) {
 		})
 
 		t.Run("empty date should be allowed", func(t *testing.T) {
-			result, err := sanitizePropertyValue(model.PropertyFieldTypeDate, json.RawMessage(`""`))
+			result, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeDate}}, json.RawMessage(`""`))
 			require.NoError(t, err)
 			var value string
 			require.NoError(t, json.Unmarshal(result, &value))
@@ -419,15 +419,24 @@ func TestSanitizePropertyValue(t *testing.T) {
 
 	t.Run("select field type", func(t *testing.T) {
 		t.Run("valid option", func(t *testing.T) {
-			result, err := sanitizePropertyValue(model.PropertyFieldTypeSelect, json.RawMessage(`"option1"`))
+			result, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeSelect}, Attrs: model.CPAAttrs{
+				Options: model.PropertyOptions[*model.CustomProfileAttributesSelectOption]{
+					{ID: "option1"},
+				},
+			}}, json.RawMessage(`"option1"`))
 			require.NoError(t, err)
 			var value string
 			require.NoError(t, json.Unmarshal(result, &value))
 			require.Equal(t, "option1", value)
 		})
 
+		t.Run("invalid option", func(t *testing.T) {
+			_, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeSelect}}, json.RawMessage(`"option1"`))
+			require.Error(t, err)
+		})
+
 		t.Run("empty option should be allowed", func(t *testing.T) {
-			result, err := sanitizePropertyValue(model.PropertyFieldTypeSelect, json.RawMessage(`""`))
+			result, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeSelect}}, json.RawMessage(`""`))
 			require.NoError(t, err)
 			var value string
 			require.NoError(t, json.Unmarshal(result, &value))
@@ -438,7 +447,7 @@ func TestSanitizePropertyValue(t *testing.T) {
 	t.Run("user field type", func(t *testing.T) {
 		t.Run("valid user ID", func(t *testing.T) {
 			validID := model.NewId()
-			result, err := sanitizePropertyValue(model.PropertyFieldTypeUser, json.RawMessage(fmt.Sprintf(`"%s"`, validID)))
+			result, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeUser}}, json.RawMessage(fmt.Sprintf(`"%s"`, validID)))
 			require.NoError(t, err)
 			var value string
 			require.NoError(t, json.Unmarshal(result, &value))
@@ -446,12 +455,12 @@ func TestSanitizePropertyValue(t *testing.T) {
 		})
 
 		t.Run("empty user ID should be allowed", func(t *testing.T) {
-			_, err := sanitizePropertyValue(model.PropertyFieldTypeUser, json.RawMessage(`""`))
+			_, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeUser}}, json.RawMessage(`""`))
 			require.NoError(t, err)
 		})
 
 		t.Run("invalid user ID format", func(t *testing.T) {
-			_, err := sanitizePropertyValue(model.PropertyFieldTypeUser, json.RawMessage(`"invalid-id"`))
+			_, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeUser}}, json.RawMessage(`"invalid-id"`))
 			require.Error(t, err)
 			require.Equal(t, "invalid user id", err.Error())
 		})
@@ -459,7 +468,16 @@ func TestSanitizePropertyValue(t *testing.T) {
 
 	t.Run("multiselect field type", func(t *testing.T) {
 		t.Run("valid options", func(t *testing.T) {
-			result, err := sanitizePropertyValue(model.PropertyFieldTypeMultiselect, json.RawMessage(`["option1", "option2"]`))
+			result, err := sanitizePropertyValue(&model.CPAField{
+				PropertyField: model.PropertyField{Type: model.PropertyFieldTypeMultiselect},
+				Attrs: model.CPAAttrs{
+					Options: model.PropertyOptions[*model.CustomProfileAttributesSelectOption]{
+						{ID: "option1"},
+						{ID: "option2"},
+						{ID: "option3"},
+					},
+				},
+			}, json.RawMessage(`["option1", "option2"]`))
 			require.NoError(t, err)
 			var values []string
 			require.NoError(t, json.Unmarshal(result, &values))
@@ -467,12 +485,30 @@ func TestSanitizePropertyValue(t *testing.T) {
 		})
 
 		t.Run("empty array", func(t *testing.T) {
-			_, err := sanitizePropertyValue(model.PropertyFieldTypeMultiselect, json.RawMessage(`[]`))
+			_, err := sanitizePropertyValue(&model.CPAField{
+				PropertyField: model.PropertyField{Type: model.PropertyFieldTypeMultiselect},
+				Attrs: model.CPAAttrs{
+					Options: model.PropertyOptions[*model.CustomProfileAttributesSelectOption]{
+						{ID: "option1"},
+						{ID: "option2"},
+						{ID: "option3"},
+					},
+				},
+			}, json.RawMessage(`[]`))
 			require.NoError(t, err)
 		})
 
 		t.Run("array with empty values should filter them out", func(t *testing.T) {
-			result, err := sanitizePropertyValue(model.PropertyFieldTypeMultiselect, json.RawMessage(`["option1", "", "option2", "   ", "option3"]`))
+			result, err := sanitizePropertyValue(&model.CPAField{
+				PropertyField: model.PropertyField{Type: model.PropertyFieldTypeMultiselect},
+				Attrs: model.CPAAttrs{
+					Options: model.PropertyOptions[*model.CustomProfileAttributesSelectOption]{
+						{ID: "option1"},
+						{ID: "option2"},
+						{ID: "option3"},
+					},
+				},
+			}, json.RawMessage(`["option1", "", "option2", "   ", "option3"]`))
 			require.NoError(t, err)
 			var values []string
 			require.NoError(t, json.Unmarshal(result, &values))
@@ -484,7 +520,7 @@ func TestSanitizePropertyValue(t *testing.T) {
 		t.Run("valid user IDs", func(t *testing.T) {
 			validID1 := model.NewId()
 			validID2 := model.NewId()
-			result, err := sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, validID1, validID2)))
+			result, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeMultiuser}}, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, validID1, validID2)))
 			require.NoError(t, err)
 			var values []string
 			require.NoError(t, json.Unmarshal(result, &values))
@@ -492,14 +528,14 @@ func TestSanitizePropertyValue(t *testing.T) {
 		})
 
 		t.Run("empty array", func(t *testing.T) {
-			_, err := sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(`[]`))
+			_, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeMultiuser}}, json.RawMessage(`[]`))
 			require.NoError(t, err)
 		})
 
 		t.Run("array with empty strings should be filtered out", func(t *testing.T) {
 			validID1 := model.NewId()
 			validID2 := model.NewId()
-			result, err := sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(fmt.Sprintf(`["%s", "", "   ", "%s"]`, validID1, validID2)))
+			result, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeMultiuser}}, json.RawMessage(fmt.Sprintf(`["%s", "", "   ", "%s"]`, validID1, validID2)))
 			require.NoError(t, err)
 			var values []string
 			require.NoError(t, json.Unmarshal(result, &values))
@@ -508,16 +544,10 @@ func TestSanitizePropertyValue(t *testing.T) {
 
 		t.Run("array with invalid ID should return error", func(t *testing.T) {
 			validID1 := model.NewId()
-			_, err := sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(fmt.Sprintf(`["%s", "invalid-id"]`, validID1)))
+			_, err := sanitizePropertyValue(&model.CPAField{PropertyField: model.PropertyField{Type: model.PropertyFieldTypeMultiuser}}, json.RawMessage(fmt.Sprintf(`["%s", "invalid-id"]`, validID1)))
 			require.Error(t, err)
 			require.Equal(t, "invalid user id: invalid-id", err.Error())
 		})
-	})
-
-	t.Run("unknown field type", func(t *testing.T) {
-		_, err := sanitizePropertyValue("unknown", json.RawMessage(`"value"`))
-		require.Error(t, err)
-		require.Equal(t, "unknown field type: unknown", err.Error())
 	})
 }
 
