@@ -11,6 +11,7 @@ import (
 	"net/http"
 	timePkg "time"
 
+	saml2 "github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -292,9 +293,9 @@ func (hooks *hooksTimerLayer) GenerateSupportData(c *Context) ([]*model.FileData
 	return _returnsA, _returnsB
 }
 
-func (hooks *hooksTimerLayer) OnSAMLLogin(c *Context, user *model.User, encodedXML string) error {
+func (hooks *hooksTimerLayer) OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error {
 	startTime := timePkg.Now()
-	_returnsA := hooks.hooksImpl.OnSAMLLogin(c, user, encodedXML)
+	_returnsA := hooks.hooksImpl.OnSAMLLogin(c, user, assertion)
 	hooks.recordTime(startTime, "OnSAMLLogin", _returnsA == nil)
 	return _returnsA
 }

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	saml2 "github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -400,5 +401,5 @@ type Hooks interface {
 	// OnSAMLLogin is invoked after a successful SAML login.
 	//
 	// Minimum server version: 10.7
-	OnSAMLLogin(c *Context, user *model.User, encodedXML string) error
+	OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
 }
