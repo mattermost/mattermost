@@ -52,7 +52,7 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	return field, nil
 }
 
-func (s *SqlPropertyFieldStore) Get(id string, groupID string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) Get(groupID, id string) (*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": id})
 
 	if groupID != "" {
@@ -67,7 +67,7 @@ func (s *SqlPropertyFieldStore) Get(id string, groupID string) (*model.PropertyF
 	return &field, nil
 }
 
-func (s *SqlPropertyFieldStore) GetMany(ids []string, groupID string) ([]*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": ids})
 
 	if groupID != "" {
@@ -150,7 +150,7 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 	return fields, nil
 }
 
-func (s *SqlPropertyFieldStore) Update(fields []*model.PropertyField, groupID string) (_ []*model.PropertyField, err error) {
+func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyField) (_ []*model.PropertyField, err error) {
 	if len(fields) == 0 {
 		return nil, nil
 	}
@@ -231,7 +231,7 @@ func (s *SqlPropertyFieldStore) Update(fields []*model.PropertyField, groupID st
 	return fields, nil
 }
 
-func (s *SqlPropertyFieldStore) Delete(id string, groupID string) error {
+func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
 	builder := s.getQueryBuilder().
 		Update("PropertyFields").
 		Set("DeleteAt", model.GetMillis()).

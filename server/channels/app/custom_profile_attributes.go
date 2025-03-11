@@ -4,6 +4,7 @@
 package app
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"sort"
@@ -41,9 +42,14 @@ func (a *App) GetCPAField(fieldID string) (*model.PropertyField, *model.AppError
 		return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	field, err := a.Srv().propertyService.GetPropertyField(fieldID, groupID)
+	field, err := a.Srv().propertyService.GetPropertyField(groupID, fieldID)
 	if err != nil {
-		return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	return field, nil
@@ -60,7 +66,7 @@ func (a *App) ListCPAFields() ([]*model.PropertyField, *model.AppError) {
 		PerPage: CustomProfileAttributesFieldLimit,
 	}
 
-	fields, err := a.Srv().propertyService.SearchPropertyFields(opts)
+	fields, err := a.Srv().propertyService.SearchPropertyFields(groupID, "", opts)
 	if err != nil {
 		return nil, model.NewAppError("GetCPAFields", "app.custom_profile_attributes.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -119,7 +125,7 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 
 	// we've already ensured that the field exists for the CPA group,
 	// we don't need to specify the groupID for the update
-	patchedField, err := a.Srv().propertyService.UpdatePropertyField(existingField, "")
+	patchedField, err := a.Srv().propertyService.UpdatePropertyField("", existingField)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -143,7 +149,7 @@ func (a *App) DeleteCPAField(id string) *model.AppError {
 		return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().propertyService.DeletePropertyField(id, groupID); err != nil {
+	if err := a.Srv().propertyService.DeletePropertyField(groupID, id); err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
@@ -166,10 +172,8 @@ func (a *App) ListCPAValues(userID string) ([]*model.PropertyValue, *model.AppEr
 		return nil, model.NewAppError("GetCPAFields", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	values, err := a.Srv().propertyService.SearchPropertyValues(model.PropertyValueSearchOpts{
-		GroupID:  groupID,
-		TargetID: userID,
-		PerPage:  CustomProfileAttributesFieldLimit,
+	values, err := a.Srv().propertyService.SearchPropertyValues(groupID, userID, model.PropertyValueSearchOpts{
+		PerPage: CustomProfileAttributesFieldLimit,
 	})
 	if err != nil {
 		return nil, model.NewAppError("ListCPAValues", "app.custom_profile_attributes.list_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -184,7 +188,7 @@ func (a *App) GetCPAValue(valueID string) (*model.PropertyValue, *model.AppError
 		return nil, model.NewAppError("GetCPAValue", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	value, err := a.Srv().propertyService.GetPropertyValue(valueID, groupID)
+	value, err := a.Srv().propertyService.GetPropertyValue(groupID, valueID)
 	if err != nil {
 		return nil, model.NewAppError("GetCPAValue", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

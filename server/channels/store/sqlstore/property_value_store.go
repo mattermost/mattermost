@@ -56,7 +56,7 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 	return value, nil
 }
 
-func (s *SqlPropertyValueStore) Get(id string, groupID string) (*model.PropertyValue, error) {
+func (s *SqlPropertyValueStore) Get(groupID, id string) (*model.PropertyValue, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": id})
 
 	if groupID != "" {
@@ -71,7 +71,7 @@ func (s *SqlPropertyValueStore) Get(id string, groupID string) (*model.PropertyV
 	return &value, nil
 }
 
-func (s *SqlPropertyValueStore) GetMany(ids []string, groupID string) ([]*model.PropertyValue, error) {
+func (s *SqlPropertyValueStore) GetMany(groupID string, ids []string) ([]*model.PropertyValue, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": ids})
 
 	if groupID != "" {
@@ -141,7 +141,7 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 	return values, nil
 }
 
-func (s *SqlPropertyValueStore) Update(values []*model.PropertyValue, groupID string) (_ []*model.PropertyValue, err error) {
+func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyValue) (_ []*model.PropertyValue, err error) {
 	if len(values) == 0 {
 		return nil, nil
 	}
@@ -301,7 +301,7 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 	return updatedValues, nil
 }
 
-func (s *SqlPropertyValueStore) Delete(id string, groupID string) error {
+func (s *SqlPropertyValueStore) Delete(groupID string, id string) error {
 	builder := s.getQueryBuilder().
 		Update("PropertyValues").
 		Set("DeleteAt", model.GetMillis()).
