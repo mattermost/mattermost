@@ -34,6 +34,7 @@ const (
 
 	ImageDriverLocal = "local"
 	ImageDriverS3    = "amazons3"
+	ImageDriverAzure = "azure"
 
 	DatabaseDriverMysql    = "mysql"
 	DatabaseDriverPostgres = "postgres"
