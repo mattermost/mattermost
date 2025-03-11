@@ -434,7 +434,6 @@
   "admin.bleve.purgeIndexesButton.success": "Indexes purged successfully.",
   "admin.bleve.purgeIndexesHelpText": "Purging will entirely remove the content of the Bleve index directory. Search results may be incomplete until a bulk index of the existing database is rebuilt.",
   "admin.bleve.title": "Bleve",
-  "admin.system_properties.title": "System Properties",
   "admin.cacheSettings.cacheType.lru": "LRU",
   "admin.cacheSettings.cacheType.redis": "Redis",
   "admin.cacheSettings.cacheTypeDesc": "The type of the cache backend. E.g.: \"redis\" or \"lru\"",
