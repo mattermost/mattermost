@@ -1,55 +1,67 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen} from '@testing-library/react';
-
+import React from 'react';
 import {renderWithContext} from 'tests/react_testing_utils';
+import {LicenseSkus} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelBanner from './index';
-import {GlobalState} from "types/store";
-import type {GeneralState} from "@mattermost/types/lib/general";
 
 describe('components/channel_banner', () => {
     const channel1 = TestHelper.getChannelMock({
-        id: 'test-channel-id',
-        team_id: team.id,
-        display_name: 'Test Channel',
+        id: 'channel_id_1',
+        team_id: 'team_id',
+        display_name: 'Test Channel 1',
         header: 'This is the channel header',
         name: 'test-channel',
+        banner_info: {
+            text: 'Test banner message',
+            background_color: '#FF0000',
+            enabled: true,
+        },
     });
 
-    const baseState: Partial<GlobalState> = {
+    const channel2 = TestHelper.getChannelMock({
+        id: 'channel_id_2',
+        team_id: 'team_id',
+        display_name: 'Test Channel 2',
+        header: 'This is the channel header',
+        name: 'test-channel',
+        banner_info: {
+            text: 'Disabled banner',
+            background_color: '#00FF00',
+            enabled: false,
+        },
+    });
+
+    const channel3 = TestHelper.getChannelMock({
+        id: 'channel_id_3',
+        team_id: 'team_id',
+        display_name: 'Test Channel 3',
+        header: 'This is the channel header',
+        name: 'test-channel',
+        banner_info: {
+            text: 'Banner with **markdown**',
+            background_color: '#0000FF',
+            enabled: true,
+        },
+    });
+
+    const baseState = {
         entities: {
             general: {
                 license: {
                     IsLicensed: 'true',
-                    Cloud: 'false',
-                    EnterpriseReady: 'true',
+                    SkuShortName: LicenseSkus.Enterprise,
                 },
-            } as GeneralState,
+            },
             channels: {
                 channels: {
-
-                }
-
-                channelBanners: {
-                    'channel-id-1': {
-                        text: 'Test banner message',
-                        background_color: '#FF0000',
-                        enabled: true,
-                    },
-                    'channel-id-2': {
-                        text: 'Disabled banner',
-                        background_color: '#00FF00',
-                        enabled: false,
-                    },
-                    'channel-id-3': {
-                        text: 'Banner with **markdown**',
-                        background_color: '#0000FF',
-                        enabled: true,
-                    },
+                    [channel1.id]: channel1,
+                    [channel2.id]: channel2,
+                    [channel3.id]: channel3,
                 },
             },
             users: {
@@ -64,13 +76,6 @@ describe('components/channel_banner', () => {
         },
     };
 
-    const renderComponent = (channelId: string, state = baseState) => {
-        return renderWithContext(
-            <ChannelBanner channelId={channelId}/>,
-            state,
-        );
-    };
-
     test('should not render when license is not enterprise', () => {
         const nonEnterpriseLicenseState = {
             ...baseState,
@@ -79,29 +84,75 @@ describe('components/channel_banner', () => {
                 general: {
                     license: {
                         IsLicensed: 'true',
-                        Cloud: 'true',
-                        EnterpriseReady: 'false',
+                        SkuShortName: LicenseSkus.Professional,
                     },
                 },
             },
         };
 
-        renderComponent('channel-id-1', nonEnterpriseLicenseState);
+        renderWithContext(
+            <ChannelBanner channelId={'channel_id_1'}/>,
+            nonEnterpriseLicenseState,
+        );
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
     test('should not render when banner is disabled', () => {
-        renderComponent('channel-id-2');
+        renderWithContext(
+            <ChannelBanner channelId={'channel_id_2'}/>,
+            baseState,
+        );
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
     test('should not render when channel has no banner', () => {
-        renderComponent('non-existent-channel-id');
+        renderWithContext(
+            <ChannelBanner channelId={'non-existent-channel-id'}/>,
+            baseState,
+        );
+        expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+    });
+
+    test('should not render when banner info is incomplete', () => {
+        const channel = TestHelper.getChannelMock({
+            id: 'channel_id_1',
+            team_id: 'team_id',
+            display_name: 'Test Channel 1',
+            header: 'This is the channel header',
+            name: 'test-channel',
+            banner_info: {
+
+                // incomplete channel banner info
+                enabled: true,
+            },
+        });
+
+        const incompleteBannerInfoState = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                channels: {
+                    ...baseState.entities.channels,
+                    channels: {
+                        ...baseState.entities.channels.channels,
+                        [channel.id]: channel,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <ChannelBanner channelId={'channel_id_1'}/>,
+            incompleteBannerInfoState,
+        );
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
     test('should render banner with correct text and styling', () => {
-        renderComponent('channel-id-1');
+        renderWithContext(
+            <ChannelBanner channelId={'channel_id_1'}/>,
+            baseState,
+        );
 
         const bannerContainer = screen.getByTestId('channel_banner_container');
         expect(bannerContainer).toBeInTheDocument();
@@ -113,7 +164,10 @@ describe('components/channel_banner', () => {
     });
 
     test('should render markdown in banner text', () => {
-        renderComponent('channel-id-3');
+        renderWithContext(
+            <ChannelBanner channelId={'channel_id_3'}/>,
+            baseState,
+        );
 
         const bannerContainer = screen.getByTestId('channel_banner_container');
         expect(bannerContainer).toBeInTheDocument();
