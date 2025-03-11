@@ -6667,14 +6667,6 @@
     "translation": "The role was not valid."
   },
   {
-    "id": "app.saml.disabled.app_error",
-    "translation": "SAML not configured."
-  },
-  {
-    "id": "app.saml.license_error",
-    "translation": "SAML license required."
-  },
-  {
     "id": "app.save_config.app_error",
     "translation": "An error occurred saving the configuration."
   },
