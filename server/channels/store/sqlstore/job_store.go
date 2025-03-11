@@ -173,6 +173,8 @@ func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, error
 }
 
 func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error) {
+	lastActivityAndStartTime := model.GetMillis()
+
 	if jss.DriverName() == model.DatabaseDriverMysql {
 		tx, err := jss.GetMaster().Beginx()
 		if err != nil {
@@ -182,12 +184,12 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 
 		builder := jss.getQueryBuilder().
 			Update("Jobs").
-			Set("LastActivityAt", model.GetMillis()).
+			Set("LastActivityAt", lastActivityAndStartTime).
 			Set("Status", newStatus).
 			Where(sq.Eq{"Id": id, "Status": currentStatus})
 
 		if newStatus == model.JobStatusInProgress {
-			builder = builder.Set("StartAt", model.GetMillis())
+			builder = builder.Set("StartAt", lastActivityAndStartTime)
 		}
 
 		sqlResult, err := tx.ExecBuilder(builder)
@@ -226,13 +228,13 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 	// For PostgreSQL, use RETURNING to get the updated job in a single query
 	builder := jss.getQueryBuilder().
 		Update("Jobs").
-		Set("LastActivityAt", model.GetMillis()).
+		Set("LastActivityAt", lastActivityAndStartTime).
 		Set("Status", newStatus).
 		Where(sq.Eq{"Id": id, "Status": currentStatus}).
 		Suffix("RETURNING *")
 
 	if newStatus == model.JobStatusInProgress {
-		builder = builder.Set("StartAt", model.GetMillis())
+		builder = builder.Set("StartAt", lastActivityAndStartTime)
 	}
 
 	var job []*model.Job
