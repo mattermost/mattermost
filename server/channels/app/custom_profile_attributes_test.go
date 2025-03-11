@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -24,9 +25,9 @@ func TestGetCPAField(t *testing.T) {
 	require.NoError(t, cErr)
 
 	t.Run("should fail when getting a non-existent field", func(t *testing.T) {
-		field, err := th.App.GetCPAField(model.NewId())
-		require.NotNil(t, err)
-		require.Equal(t, "app.custom_profile_attributes.get_property_field.app_error", err.Id)
+		field, appErr := th.App.GetCPAField(model.NewId())
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.custom_profile_attributes.property_field_not_found.app_error", appErr.Id)
 		require.Empty(t, field)
 	})
 
@@ -50,7 +51,7 @@ func TestGetCPAField(t *testing.T) {
 			GroupID: cpaGroupID,
 			Name:    "Test Field",
 			Type:    model.PropertyFieldTypeText,
-			Attrs:   map[string]any{"visibility": "hidden"},
+			Attrs:   model.StringInterface{"visibility": "hidden"},
 		}
 
 		createdField, err := th.App.CreateCPAField(field)
@@ -61,7 +62,7 @@ func TestGetCPAField(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, createdField.ID, fetchedField.ID)
 		require.Equal(t, "Test Field", fetchedField.Name)
-		require.Equal(t, map[string]any{"visibility": "hidden"}, fetchedField.Attrs)
+		require.Equal(t, model.StringInterface{"visibility": "hidden"}, fetchedField.Attrs)
 	})
 }
 
@@ -75,13 +76,14 @@ func TestListCPAFields(t *testing.T) {
 	require.NoError(t, cErr)
 
 	t.Run("should list the CPA property fields", func(t *testing.T) {
-		field1 := &model.PropertyField{
+		field1 := model.PropertyField{
 			GroupID: cpaGroupID,
 			Name:    "Field 1",
 			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsSortOrder: 1},
 		}
 
-		_, err := th.App.Srv().propertyService.CreatePropertyField(field1)
+		_, err := th.App.Srv().propertyService.CreatePropertyField(&field1)
 		require.NoError(t, err)
 
 		field2 := &model.PropertyField{
@@ -92,23 +94,20 @@ func TestListCPAFields(t *testing.T) {
 		_, err = th.App.Srv().propertyService.CreatePropertyField(field2)
 		require.NoError(t, err)
 
-		field3 := &model.PropertyField{
+		field3 := model.PropertyField{
 			GroupID: cpaGroupID,
 			Name:    "Field 3",
 			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsSortOrder: 0},
 		}
-		_, err = th.App.Srv().propertyService.CreatePropertyField(field3)
+		_, err = th.App.Srv().propertyService.CreatePropertyField(&field3)
 		require.NoError(t, err)
 
 		fields, appErr := th.App.ListCPAFields()
 		require.Nil(t, appErr)
 		require.Len(t, fields, 2)
-
-		fieldNames := []string{}
-		for _, field := range fields {
-			fieldNames = append(fieldNames, field.Name)
-		}
-		require.ElementsMatch(t, []string{"Field 1", "Field 3"}, fieldNames)
+		require.Equal(t, "Field 3", fields[0].Name)
+		require.Equal(t, "Field 1", fields[1].Name)
 	})
 }
 
@@ -145,16 +144,16 @@ func TestCreateCPAField(t *testing.T) {
 			GroupID: cpaGroupID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
-			Attrs:   map[string]any{"visibility": "hidden"},
+			Attrs:   model.StringInterface{"visibility": "hidden"},
 		}
 
 		createdField, err := th.App.CreateCPAField(field)
 		require.Nil(t, err)
 		require.NotZero(t, createdField.ID)
 		require.Equal(t, cpaGroupID, createdField.GroupID)
-		require.Equal(t, map[string]any{"visibility": "hidden"}, createdField.Attrs)
+		require.Equal(t, model.StringInterface{"visibility": "hidden"}, createdField.Attrs)
 
-		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField(createdField.ID)
+		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField("", createdField.ID)
 		require.NoError(t, gErr)
 		require.Equal(t, field.Name, fetchedField.Name)
 		require.NotZero(t, fetchedField.CreateAt)
@@ -225,14 +224,14 @@ func TestPatchCPAField(t *testing.T) {
 		GroupID: cpaGroupID,
 		Name:    model.NewId(),
 		Type:    model.PropertyFieldTypeText,
-		Attrs:   map[string]any{"visibility": "hidden"},
+		Attrs:   model.StringInterface{"visibility": "hidden"},
 	}
 	createdField, err := th.App.CreateCPAField(newField)
 	require.Nil(t, err)
 
 	patch := &model.PropertyFieldPatch{
 		Name:       model.NewPointer("Patched name"),
-		Attrs:      model.NewPointer(map[string]any{"visibility": "default"}),
+		Attrs:      model.NewPointer(model.StringInterface{"visibility": "default"}),
 		TargetID:   model.NewPointer(model.NewId()),
 		TargetType: model.NewPointer(model.NewId()),
 	}
@@ -295,7 +294,7 @@ func TestDeleteCPAField(t *testing.T) {
 			TargetType: "user",
 			GroupID:    cpaGroupID,
 			FieldID:    createdField.ID,
-			Value:      fmt.Sprintf("Value %d", i),
+			Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),
 		}
 		value, err := th.App.Srv().propertyService.CreatePropertyValue(newValue)
 		require.NoError(t, err)
@@ -305,7 +304,7 @@ func TestDeleteCPAField(t *testing.T) {
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
 		err := th.App.DeleteCPAField(model.NewId())
 		require.NotNil(t, err)
-		require.Equal(t, "app.custom_profile_attributes.get_property_field.app_error", err.Id)
+		require.Equal(t, "app.custom_profile_attributes.property_field_not_found.app_error", err.Id)
 	})
 
 	t.Run("should not allow to delete a field outside of CPA", func(t *testing.T) {
@@ -325,7 +324,7 @@ func TestDeleteCPAField(t *testing.T) {
 	t.Run("should correctly delete the field", func(t *testing.T) {
 		// check that we have the associated values to the field prior deletion
 		opts := model.PropertyValueSearchOpts{PerPage: 10, FieldID: createdField.ID}
-		values, err := th.App.Srv().propertyService.SearchPropertyValues(opts)
+		values, err := th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
 		require.NoError(t, err)
 		require.Len(t, values, 3)
 
@@ -333,17 +332,17 @@ func TestDeleteCPAField(t *testing.T) {
 		require.Nil(t, th.App.DeleteCPAField(createdField.ID))
 
 		// check that it is marked as deleted
-		fetchedField, err := th.App.Srv().propertyService.GetPropertyField(createdField.ID)
+		fetchedField, err := th.App.Srv().propertyService.GetPropertyField("", createdField.ID)
 		require.NoError(t, err)
 		require.NotZero(t, fetchedField.DeleteAt)
 
 		// ensure that the associated fields have been marked as deleted too
-		values, err = th.App.Srv().propertyService.SearchPropertyValues(opts)
+		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
 		require.NoError(t, err)
 		require.Len(t, values, 0)
 
 		opts.IncludeDeleted = true
-		values, err = th.App.Srv().propertyService.SearchPropertyValues(opts)
+		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
 		require.NoError(t, err)
 		require.Len(t, values, 3)
 		for _, value := range values {
@@ -375,7 +374,7 @@ func TestGetCPAValue(t *testing.T) {
 			TargetType: "user",
 			GroupID:    model.NewId(),
 			FieldID:    fieldID,
-			Value:      "Value",
+			Value:      json.RawMessage(`"Value"`),
 		}
 		propertyValue, err := th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
 		require.NoError(t, err)
@@ -391,7 +390,7 @@ func TestGetCPAValue(t *testing.T) {
 			TargetType: "user",
 			GroupID:    cpaGroupID,
 			FieldID:    fieldID,
-			Value:      "Value",
+			Value:      json.RawMessage(`"Value"`),
 		}
 		propertyValue, err := th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
 		require.NoError(t, err)
@@ -399,6 +398,33 @@ func TestGetCPAValue(t *testing.T) {
 		pv, appErr := th.App.GetCPAValue(propertyValue.ID)
 		require.Nil(t, appErr)
 		require.NotNil(t, pv)
+	})
+
+	t.Run("should handle array values correctly", func(t *testing.T) {
+		arrayField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeMultiselect,
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(arrayField)
+		require.NoError(t, err)
+
+		propertyValue := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			GroupID:    cpaGroupID,
+			FieldID:    createdField.ID,
+			Value:      json.RawMessage(`["option1", "option2", "option3"]`),
+		}
+		propertyValue, err = th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
+		require.NoError(t, err)
+
+		pv, appErr := th.App.GetCPAValue(propertyValue.ID)
+		require.Nil(t, appErr)
+		require.NotNil(t, pv)
+		var arrayValues []string
+		require.NoError(t, json.Unmarshal(pv.Value, &arrayValues))
+		require.Equal(t, []string{"option1", "option2", "option3"}, arrayValues)
 	})
 }
 
@@ -413,7 +439,7 @@ func TestPatchCPAValue(t *testing.T) {
 
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
 		invalidFieldID := model.NewId()
-		_, appErr := th.App.PatchCPAValue(model.NewId(), invalidFieldID, "fieldValue")
+		_, appErr := th.App.PatchCPAValue(model.NewId(), invalidFieldID, json.RawMessage(`"fieldValue"`))
 		require.NotNil(t, appErr)
 	})
 
@@ -427,18 +453,18 @@ func TestPatchCPAValue(t *testing.T) {
 		require.NoError(t, err)
 
 		userID := model.NewId()
-		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, "test value")
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"test value"`))
 		require.Nil(t, appErr)
 		require.NotNil(t, patchedValue)
-		require.Equal(t, "test value", patchedValue.Value)
+		require.Equal(t, json.RawMessage(`"test value"`), patchedValue.Value)
 		require.Equal(t, userID, patchedValue.TargetID)
 
 		t.Run("should correctly patch the CPA property value", func(t *testing.T) {
-			patch2, appErr := th.App.PatchCPAValue(userID, createdField.ID, "new patched value")
+			patch2, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"new patched value"`))
 			require.Nil(t, appErr)
 			require.NotNil(t, patch2)
 			require.Equal(t, patchedValue.ID, patch2.ID)
-			require.Equal(t, "new patched value", patch2.Value)
+			require.Equal(t, json.RawMessage(`"new patched value"`), patch2.Value)
 			require.Equal(t, userID, patch2.TargetID)
 		})
 	})
@@ -455,8 +481,94 @@ func TestPatchCPAValue(t *testing.T) {
 		require.NoError(t, err)
 
 		userID := model.NewId()
-		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, "test value")
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"test value"`))
 		require.NotNil(t, appErr)
 		require.Nil(t, patchedValue)
+	})
+
+	t.Run("should handle array values correctly", func(t *testing.T) {
+		arrayField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeMultiselect,
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(arrayField)
+		require.NoError(t, err)
+
+		userID := model.NewId()
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`["option1", "option2", "option3"]`))
+		require.Nil(t, appErr)
+		require.NotNil(t, patchedValue)
+		var arrayValues []string
+		require.NoError(t, json.Unmarshal(patchedValue.Value, &arrayValues))
+		require.Equal(t, []string{"option1", "option2", "option3"}, arrayValues)
+		require.Equal(t, userID, patchedValue.TargetID)
+
+		// Update array values
+		updatedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`["newOption1", "newOption2"]`))
+		require.Nil(t, appErr)
+		require.NotNil(t, updatedValue)
+		require.Equal(t, patchedValue.ID, updatedValue.ID)
+		arrayValues = nil
+		require.NoError(t, json.Unmarshal(updatedValue.Value, &arrayValues))
+		require.Equal(t, []string{"newOption1", "newOption2"}, arrayValues)
+		require.Equal(t, userID, updatedValue.TargetID)
+	})
+}
+
+func TestListCPAValues(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	cpaGroupID, cErr := th.App.cpaGroupID()
+	require.NoError(t, cErr)
+
+	userID := model.NewId()
+
+	t.Run("should return empty list when user has no values", func(t *testing.T) {
+		values, appErr := th.App.ListCPAValues(userID)
+		require.Nil(t, appErr)
+		require.Empty(t, values)
+	})
+
+	t.Run("should list all values for a user", func(t *testing.T) {
+		var expectedValues []json.RawMessage
+
+		for i := 1; i <= CustomProfileAttributesFieldLimit; i++ {
+			field := &model.PropertyField{
+				GroupID: cpaGroupID,
+				Name:    fmt.Sprintf("Field %d", i),
+				Type:    model.PropertyFieldTypeText,
+			}
+			_, err := th.App.Srv().propertyService.CreatePropertyField(field)
+			require.NoError(t, err)
+
+			value := &model.PropertyValue{
+				TargetID:   userID,
+				TargetType: "user",
+				GroupID:    cpaGroupID,
+				FieldID:    field.ID,
+				Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),
+			}
+			_, err = th.App.Srv().propertyService.CreatePropertyValue(value)
+			require.NoError(t, err)
+			expectedValues = append(expectedValues, value.Value)
+		}
+
+		// List values for original user
+		values, appErr := th.App.ListCPAValues(userID)
+		require.Nil(t, appErr)
+		require.Len(t, values, CustomProfileAttributesFieldLimit)
+
+		actualValues := make([]json.RawMessage, len(values))
+		for i, value := range values {
+			require.Equal(t, userID, value.TargetID)
+			require.Equal(t, "user", value.TargetType)
+			require.Equal(t, cpaGroupID, value.GroupID)
+			actualValues[i] = value.Value
+		}
+		require.ElementsMatch(t, expectedValues, actualValues)
 	})
 }

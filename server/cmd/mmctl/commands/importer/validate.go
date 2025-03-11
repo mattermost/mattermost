@@ -815,7 +815,10 @@ func (v *Validator) validatePost(info ImportFileInfo, line imports.LineImportDat
 				continue
 			}
 
-			attachmentPath := path.Join("data", *attachment.Path)
+			attachmentPath := *attachment.Path
+			if _, ok := v.attachments[attachmentPath]; !ok {
+				attachmentPath = path.Join("data", *attachment.Path)
+			}
 
 			if _, ok := v.attachments[attachmentPath]; !ok {
 				helpful := ""
@@ -949,7 +952,10 @@ func (v *Validator) validateDirectPost(info ImportFileInfo, line imports.LineImp
 				continue
 			}
 
-			attachmentPath := path.Join("data", *attachment.Path)
+			attachmentPath := *attachment.Path
+			if _, ok := v.attachments[attachmentPath]; !ok {
+				attachmentPath = path.Join("data", *attachment.Path)
+			}
 
 			if _, ok := v.attachments[attachmentPath]; !ok {
 				helpful := ""

@@ -32,6 +32,7 @@ func TestThreadStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore)
 	t.Run("DeleteMembershipsForChannel", func(t *testing.T) { testDeleteMembershipsForChannel(t, rctx, ss) })
 	t.Run("SaveMultipleMemberships", func(t *testing.T) { testSaveMultipleMemberships(t, ss) })
 	t.Run("MaintainMultipleFromImport", func(t *testing.T) { testMaintainMultipleFromImport(t, rctx, ss) })
+	t.Run("UpdateTeamIdForChannelThreads", func(t *testing.T) { testUpdateTeamIdForChannelThreads(t, rctx, ss) })
 }
 
 func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -2014,5 +2015,115 @@ func testMaintainMultipleFromImport(t *testing.T, rctx request.CTX, ss store.Sto
 		// clean the thread memberships
 		err = cleanMembers(followers, rootPost1.Id)
 		require.NoError(t, err)
+	})
+}
+
+func testUpdateTeamIdForChannelThreads(t *testing.T, rctx request.CTX, ss store.Store) {
+	createThreadMembership := func(userID, postID string, following bool) (*model.ThreadMembership, func()) {
+		t.Helper()
+		opts := store.ThreadMembershipOpts{
+			Following:             following,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: false,
+			UpdateParticipants:    true,
+		}
+		mem, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		require.NoError(t, err)
+
+		return mem, func() {
+			err := ss.Thread().DeleteMembershipForUser(userID, postID)
+			require.NoError(t, err)
+		}
+	}
+
+	postingUserID := model.NewId()
+
+	team1, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	team2, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayNameTwo",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	channel1, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team1.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel1" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	rootPost1, err := ss.Post().Save(rctx, &model.Post{
+		ChannelId: channel1.Id,
+		UserId:    postingUserID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	_, err = ss.Post().Save(rctx, &model.Post{
+		ChannelId: channel1.Id,
+		UserId:    postingUserID,
+		Message:   model.NewRandomString(10),
+		RootId:    rootPost1.Id,
+	})
+	require.NoError(t, err)
+
+	t.Run("Should move threads to the new team", func(t *testing.T) {
+		userA, err := ss.User().Save(request.TestContext(t), &model.User{
+			Username: model.NewId(),
+			Email:    MakeEmail(),
+			Password: model.NewId(),
+		})
+		require.NoError(t, err)
+
+		_, clean := createThreadMembership(userA.Id, rootPost1.Id, true)
+		defer clean()
+
+		err = ss.Thread().UpdateTeamIdForChannelThreads(channel1.Id, team2.Id)
+		require.NoError(t, err)
+
+		defer func() {
+			err = ss.Thread().UpdateTeamIdForChannelThreads(channel1.Id, team1.Id)
+			require.NoError(t, err)
+		}()
+
+		threads, err := ss.Thread().GetThreadsForUser(userA.Id, team2.Id, model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+		require.Len(t, threads, 1)
+	})
+
+	t.Run("Should not move threads to a non existent team", func(t *testing.T) {
+		userA, err := ss.User().Save(request.TestContext(t), &model.User{
+			Username: model.NewId(),
+			Email:    MakeEmail(),
+			Password: model.NewId(),
+		})
+		require.NoError(t, err)
+
+		newTeamID := model.NewId()
+
+		_, clean := createThreadMembership(userA.Id, rootPost1.Id, true)
+		t.Cleanup(clean)
+
+		err = ss.Thread().UpdateTeamIdForChannelThreads(channel1.Id, newTeamID)
+		require.NoError(t, err)
+
+		threads, err := ss.Thread().GetThreadsForUser(userA.Id, newTeamID, model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+		require.Len(t, threads, 0)
+
+		threads, err = ss.Thread().GetThreadsForUser(userA.Id, team1.Id, model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+		require.Len(t, threads, 1)
 	})
 }
