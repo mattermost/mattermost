@@ -34,5 +34,5 @@ export type UserPropertyField = PropertyField & {
     group_id: UserPropertyFieldGroupID;
     attrs?: {sort_order?: number};
 }
-
 export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;
+
