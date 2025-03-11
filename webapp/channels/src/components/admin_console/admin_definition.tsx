@@ -110,6 +110,7 @@ import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
 
 const FILE_STORAGE_DRIVER_LOCAL = 'local';
 const FILE_STORAGE_DRIVER_S3 = 'amazons3';
+const FILE_STORAGE_DRIVER_AZURE = 'azure';
 const MEBIBYTE = Math.pow(1024, 2);
 
 const SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1 = 'RSAwithSHA1';
@@ -951,6 +952,10 @@ const AdminDefinition: AdminDefinitionType = {
                                     value: FILE_STORAGE_DRIVER_S3,
                                     display_name: defineMessage({id: 'admin.image.storeAmazonS3', defaultMessage: 'Amazon S3'}),
                                 },
+                                {
+                                    value: FILE_STORAGE_DRIVER_AZURE,
+                                    display_name: defineMessage({id: 'admin.image.storeAzure', defaultMessage: 'Azure Storage'}),
+                                },
                             ],
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                         },
@@ -1136,6 +1141,72 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                         },
                         {
+                            type: 'text',
+                            key: 'FileSettings.AzureStorageAccount',
+                            label: defineMessage({id: 'admin.image.azureStorageAccountTitle', defaultMessage: 'Azure Storage Account:'}),
+                            help_text: defineMessage({id: 'admin.image.azureStorageAccountDescription', defaultMessage: 'Storage account name in your Azure Storage account.'}),
+                            placeholder: defineMessage({id: 'admin.image.azureStorageAccountExample', defaultMessage: 'E.g.: "mattermoststorage"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_AZURE)),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.AzureAccessKey',
+                            label: defineMessage({id: 'admin.image.azureAccessKeyTitle', defaultMessage: 'Azure Access Key:'}),
+                            help_text: defineMessage({id: 'admin.image.azureAccessKeyDescription', defaultMessage: 'The access key associated with your Azure Storage account.'}),
+                            placeholder: defineMessage({id: 'admin.image.azureAccessKeyExample', defaultMessage: 'E.g.: "9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So="'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_AZURE)),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.AzureAccessSecret',
+                            label: defineMessage({id: 'admin.image.azureAccessSecretTitle', defaultMessage: 'Azure Access Secret:'}),
+                            help_text: defineMessage({id: 'admin.image.azureAccessSecretDescription', defaultMessage: 'The access key secret associated with your Azure Storage account.'}),
+                            placeholder: defineMessage({id: 'admin.image.azureAccessSecretExample', defaultMessage: 'E.g.: "9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So="'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_AZURE)),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.AzureContainer',
+                            label: defineMessage({id: 'admin.image.azureContainerTitle', defaultMessage: 'Azure Container:'}),
+                            help_text: defineMessage({id: 'admin.image.azureContainerDescription', defaultMessage: 'The container name in your Azure Storage account.'}),
+                            placeholder: defineMessage({id: 'admin.image.azureContainerExample', defaultMessage: 'E.g.: "mattermost-media"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_AZURE)),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.AzurePathPrefix',
+                            label: defineMessage({id: 'admin.image.azurePathPrefixTitle', defaultMessage: 'Azure Path Prefix:'}),
+                            help_text: defineMessage({id: 'admin.image.azurePathPrefixDescription', defaultMessage: 'Optional path prefix to use for objects in your Azure container.'}),
+                            placeholder: defineMessage({id: 'admin.image.azurePathPrefixExample', defaultMessage: 'E.g.: "files/" or leave empty'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_AZURE)),
+                            ),
+                        },
+                        {
+                            type: 'number',
+                            key: 'FileSettings.AzureRequestTimeoutMilliseconds',
+                            label: defineMessage({id: 'admin.image.azureRequestTimeoutTitle', defaultMessage: 'Azure Request Timeout (Milliseconds):'}),
+                            help_text: defineMessage({id: 'admin.image.azureRequestTimeoutDescription', defaultMessage: 'The number of milliseconds to wait for a response from Azure Storage before timing out.'}),
+                            placeholder: defineMessage({id: 'admin.image.azureRequestTimeoutExample', defaultMessage: '30000'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_AZURE)),
+                            ),
+                        },
+                        {
                             type: 'button',
                             action: testS3Connection,
                             key: 'TestS3Connection',
@@ -1143,7 +1214,7 @@ const AdminDefinition: AdminDefinitionType = {
                             loading: defineMessage({id: 'admin.s3.testing', defaultMessage: 'Testing...'}),
                             error_message: defineMessage({id: 'admin.s3.s3Fail', defaultMessage: 'Connection unsuccessful: {error}'}),
                             success_message: defineMessage({id: 'admin.s3.s3Success', defaultMessage: 'Connection was successful'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                            isDisabled: it.any(it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE))),
                         },
                     ],
                 },
@@ -1177,6 +1248,10 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     value: FILE_STORAGE_DRIVER_S3,
                                     display_name: defineMessage({id: 'admin.image.storeAmazonS3', defaultMessage: 'Amazon S3'}),
+                                },
+                                {
+                                    value: FILE_STORAGE_DRIVER_AZURE,
+                                    display_name: defineMessage({id: 'admin.image.storeAzure', defaultMessage: 'Azure Storage'}),
                                 },
                             ],
                         },
@@ -1328,6 +1403,66 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                                 it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_S3)),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.ExportAzureStorageAccount',
+                            label: defineMessage({id: 'admin.image.azureStorageAccountTitle', defaultMessage: 'Azure Storage Account:'}),
+                            help_text: defineMessage({id: 'admin.image.azureStorageAccountDescription', defaultMessage: 'Storage account name in your Azure Storage account.'}),
+                            placeholder: defineMessage({id: 'admin.image.azureStorageAccountExample', defaultMessage: 'E.g.: "mattermoststorage"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                            isHidden: it.any(
+                                it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false)
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.ExportAzureAccessKey',
+                            label: defineMessage({id: 'admin.image.azureAccessKeyTitle', defaultMessage: 'Azure Access Key:'}),
+                            help_text: defineMessage({id: 'admin.image.azureAccessKeyDescription', defaultMessage: 'The access key associated with your Azure Storage account.'}),
+                            placeholder: defineMessage({id: 'admin.image.azureAccessKeyExample', defaultMessage: 'E.g.: "9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So="'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                            isHidden: it.any(
+                                it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false)
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.ExportAzureContainer',
+                            label: defineMessage({id: 'admin.image.azureContainerTitle', defaultMessage: 'Azure Container:'}),
+                            help_text: defineMessage({id: 'admin.image.azureContainerDescription', defaultMessage: 'The container name in your Azure Storage account.'}),
+                            placeholder: defineMessage({id: 'admin.image.azureContainerExample', defaultMessage: 'E.g.: "mattermost-export"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                            isHidden: it.any(
+                                it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false)
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.ExportAzurePathPrefix',
+                            label: defineMessage({id: 'admin.image.azurePathPrefixTitle', defaultMessage: 'Azure Path Prefix:'}),
+                            help_text: defineMessage({id: 'admin.image.azurePathPrefixDescription', defaultMessage: 'Optional path prefix to use for objects in your Azure container.'}),
+                            placeholder: defineMessage({id: 'admin.image.azurePathPrefixExample', defaultMessage: 'E.g.: "exports/" or leave empty'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                            isHidden: it.any(
+                                it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false)
                             ),
                         },
                         {

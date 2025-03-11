@@ -1700,13 +1700,13 @@ type FileSettings struct {
 	AmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	// Azure Storage Settings
-	AzureAccessKey                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AzureAccessSecret                  *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AzureContainer                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AzureStorageAccount                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AzurePathPrefix                    *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AzureRequestTimeoutMilliseconds    *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AzurePresignExpiresSeconds         *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureAccessKey                  *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureAccessSecret               *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureContainer                  *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureStorageAccount             *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzurePathPrefix                 *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureRequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzurePresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	// Export store settings
 	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable"`
 	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable"`
@@ -1726,13 +1726,13 @@ type FileSettings struct {
 	ExportAmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	// Export Azure settings
-	ExportAzureAccessKey                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
-	ExportAzureAccessSecret                  *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
-	ExportAzureContainer                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
-	ExportAzureStorageAccount                *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
-	ExportAzurePathPrefix                    *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
-	ExportAzureRequestTimeoutMilliseconds    *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
-	ExportAzurePresignExpiresSeconds         *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureAccessKey                  *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureAccessSecret               *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureContainer                  *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureStorageAccount             *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzurePathPrefix                 *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureRequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzurePresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -4090,7 +4090,7 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(*s.DriverName == ImageDriverLocal || *s.DriverName == ImageDriverS3) {
+	if !(*s.DriverName == ImageDriverLocal || *s.DriverName == ImageDriverS3 || *s.DriverName == ImageDriverAzure) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.file_driver.app_error", nil, "", http.StatusBadRequest)
 	}
 
