@@ -814,7 +814,6 @@ func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 		}
 		hash[id] = true
 	}
-	hash = nil
 
 	members, err := a.Srv().Store().Group().UpsertMembers(groupID, userIDs)
 	if err != nil {
