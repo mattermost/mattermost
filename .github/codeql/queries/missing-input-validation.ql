@@ -9,9 +9,7 @@ import go
 // List of files that should use the new validation pattern
 predicate isTargetedFile(File f) {
   // Add files as they are migrated to the new pattern
-  f.getBaseName() = "user.go" or
-  f.getBaseName() = "channel.go" or
-  f.getBaseName() = "post.go"
+  f.getBaseName() = "brand.go"
   // Add more files as needed
 }
 // Find all HTTP handler functions in the api4 package in targeted files
