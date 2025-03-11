@@ -315,7 +315,7 @@ func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duratio
 }
 
 func (b *AzureFileBackend) DriverName() string {
-	return "azure"
+	return driverAzure
 }
 
 // ZipReader will create a zip of path. If path is a single file, it will zip the single file.
