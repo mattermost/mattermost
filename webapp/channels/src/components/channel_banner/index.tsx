@@ -4,21 +4,22 @@
 import React, {useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
-import {isEnterpriseLicense} from 'utils/license_utils';
-import type {TextFormattingOptions} from 'utils/text_formatting';
 
 import {channelBannerEnabled} from '@mattermost/types/channels';
 
 import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-
-import './style.scss';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import Markdown from 'components/markdown';
 import WithTooltip from 'components/with_tooltip';
 
+import {isEnterpriseLicense} from 'utils/license_utils';
+import type {TextFormattingOptions} from 'utils/text_formatting';
+
 import type {GlobalState} from 'types/store';
+
+import './style.scss';
 
 const markdownRenderingOptions: Partial<TextFormattingOptions> = {
     singleline: true,

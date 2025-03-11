@@ -3184,6 +3184,7 @@
   "change_url.shorter": "URLs must have maximum 64 characters.",
   "change_url.startAndEndWithLetter": "URLs must start and end with a lowercase letter or number.",
   "change_url.startWithLetter": "URLs must start with a lowercase letter or number.",
+  "channel_banner.aria_label": "Channel banner text",
   "channel_bookmarks.addBookmark": "Add a bookmark",
   "channel_bookmarks.addBookmarkLimitReached": "Cannot add more than {limit} bookmarks",
   "channel_bookmarks.addLink": "Add a link",
@@ -6077,6 +6078,5 @@
   "workspace_limits.teams_limit_reached.view_upgrade_options": "View upgrade options",
   "workspace_limits.upgrade": "Upgrade to avoid {planName} data limits",
   "workspace_limits.upgrade_reasons.free": "{planName} is restricted to {messagesLimit} message history and {storageLimit} file storage. You can delete items to free up space or upgrade to a paid plan.",
-  "yourcomputer": "Your computer",
-  "channel_banner.aria_label": "Channel banner text"
+  "yourcomputer": "Your computer"
 }

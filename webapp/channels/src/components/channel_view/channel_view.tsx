@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import {makeAsyncComponent} from 'components/async_load';
+import ChannelBanner from 'components/channel_banner';
 import deferComponentRender from 'components/deferComponentRender';
 import {DropOverlayIdCenterChannel} from 'components/file_upload_overlay/file_upload_overlay';
 import PostView from 'components/post_view';
@@ -15,7 +16,6 @@ import WebSocketClient from 'client/web_websocket_client';
 import InputLoading from './input_loading';
 
 import type {PropsFromRedux} from './index';
-import ChannelBanner from "components/channel_banner";
 
 const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('components/channel_header')));
 const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => import('components/file_upload_overlay')));

@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import * as ThemeUtils from 'mattermost-redux/utils/theme_utils';
+import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import {Preferences} from '../constants';
-import {getContrastingSimpleColor} from "mattermost-redux/utils/theme_utils";
 
 describe('ThemeUtils', () => {
     describe('getComponents', () => {
