@@ -235,15 +235,21 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 		builder = builder.Set("StartAt", model.GetMillis())
 	}
 
-	var job model.Job
-	if err := jss.GetMaster().GetBuilder(&job, builder); err != nil {
+	var job []*model.Job
+	if err := jss.GetMaster().SelectBuilder(&job, builder); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("Job", id)
 		}
 		return nil, errors.Wrapf(err, "failed to update Job with id=%s", id)
 	}
 
-	return &job, nil
+	// we are updating by id, so we should only ever update 1 job
+	if len(job) != 1 {
+		// no row was updated, but no error above, so to remain consistent we return nil, nil
+		return nil, nil
+	}
+
+	return job[0], nil
 }
 
 func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
