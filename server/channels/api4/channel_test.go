@@ -584,9 +584,74 @@ func TestPatchChannel(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("Should not be able to configure channel banner without a license", func(t *testing.T) {
+		client.Logout(context.Background())
+		th.LoginBasic()
+		th.App.Srv().RemoveLicense()
+
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}
+		var err error
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		patch := &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled:         model.NewPointer(true),
+				Text:            model.NewPointer("banner text"),
+				BackgroundColor: model.NewPointer("color"),
+			},
+		}
+
+		patchedChannel, resp, err := client.PatchChannel(context.Background(), channel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Nil(t, patchedChannel)
+	})
+
+	t.Run("Should not be able to configure channel banner with a professional license", func(t *testing.T) {
+		client.Logout(context.Background())
+		th.LoginBasic()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
+
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}
+		var err error
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		patch := &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled:         model.NewPointer(true),
+				Text:            model.NewPointer("banner text"),
+				BackgroundColor: model.NewPointer("color"),
+			},
+		}
+
+		patchedChannel, resp, err := client.PatchChannel(context.Background(), channel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Nil(t, patchedChannel)
+	})
+
 	t.Run("Should be able to configure channel banner on a channel", func(t *testing.T) {
 		client.Logout(context.Background())
 		th.LoginBasic()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
 
 		channel := &model.Channel{
 			DisplayName: GenerateTestChannelName(),
@@ -618,6 +683,10 @@ func TestPatchChannel(t *testing.T) {
 	t.Run("Cannot enable channel banner without configuring it", func(t *testing.T) {
 		client.Logout(context.Background())
 		th.LoginBasic()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
 
 		channel := &model.Channel{
 			DisplayName: GenerateTestChannelName(),
@@ -674,6 +743,10 @@ func TestPatchChannel(t *testing.T) {
 	t.Run("Cannot configure channel banner on a DM channel", func(t *testing.T) {
 		client.Logout(context.Background())
 		th.LoginBasic()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
 
 		dmChannel, resp, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
 		require.NoError(t, err)
@@ -697,6 +770,10 @@ func TestPatchChannel(t *testing.T) {
 	t.Run("Cannot configure channel banner on a GM channel", func(t *testing.T) {
 		client.Logout(context.Background())
 		th.LoginBasic()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
 
 		user3 := th.CreateUser()
 		gmChannel, resp, err := client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})

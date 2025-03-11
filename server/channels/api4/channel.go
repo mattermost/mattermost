@@ -377,9 +377,17 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if patch.BannerInfo != nil && (originalOldChannel.Type != model.ChannelTypeOpen && originalOldChannel.Type != model.ChannelTypePrivate) {
-		c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.banner_info.channel_type.not_allowed", nil, "", http.StatusBadRequest)
-		return
+	if patch.BannerInfo != nil {
+		license := c.App.License()
+		if license == nil || !license.IsE20OrEnterprise() {
+			c.Err = model.NewAppError("patchChannel", "license_error.feature_unavailable", nil, "feature is not available for the current license", http.StatusForbidden)
+			return
+		}
+
+		if originalOldChannel.Type != model.ChannelTypeOpen && originalOldChannel.Type != model.ChannelTypePrivate {
+			c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.banner_info.channel_type.not_allowed", nil, "", http.StatusBadRequest)
+			return
+		}
 	}
 
 	rchannel, appErr := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
