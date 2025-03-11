@@ -156,38 +156,6 @@ func (_m *SamlInterface) GetMetadata(c request.CTX) (string, *model.AppError) {
 	return r0, r1
 }
 
-// ValidateResponse provides a mock function with given fields: rctx, encodedXML
-func (_m *SamlInterface) ValidateResponse(rctx request.CTX, encodedXML string) (*saml2.AssertionInfo, *model.AppError) {
-	ret := _m.Called(rctx, encodedXML)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ValidateResponse")
-	}
-
-	var r0 *saml2.AssertionInfo
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string) (*saml2.AssertionInfo, *model.AppError)); ok {
-		return rf(rctx, encodedXML)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string) *saml2.AssertionInfo); ok {
-		r0 = rf(rctx, encodedXML)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*saml2.AssertionInfo)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
-		r1 = rf(rctx, encodedXML)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // NewSamlInterface creates a new instance of SamlInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewSamlInterface(t interface {

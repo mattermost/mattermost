@@ -15,5 +15,4 @@ type SamlInterface interface {
 	DoLogin(c request.CTX, encodedXML string, relayState map[string]string) (*model.User, *saml2.AssertionInfo, *model.AppError)
 	GetMetadata(c request.CTX) (string, *model.AppError)
 	CheckProviderAttributes(c request.CTX, SS *model.SamlSettings, ouser *model.User, patch *model.UserPatch) string
-	ValidateResponse(rctx request.CTX, encodedXML string) (*saml2.AssertionInfo, *model.AppError)
 }

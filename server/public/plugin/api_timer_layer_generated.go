@@ -11,7 +11,6 @@ import (
 	"net/http"
 	timePkg "time"
 
-	saml2 "github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -1482,12 +1481,5 @@ func (api *apiTimerLayer) GetGroups(page, perPage int, opts model.GroupSearchOpt
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetGroups(page, perPage, opts, viewRestrictions)
 	api.recordTime(startTime, "GetGroups", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (api *apiTimerLayer) ValidateSAMLResponse(encodedXML string) (*saml2.AssertionInfo, *model.AppError) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.ValidateSAMLResponse(encodedXML)
-	api.recordTime(startTime, "ValidateSAMLResponse", _returnsB == nil)
 	return _returnsA, _returnsB
 }
