@@ -7,7 +7,8 @@ import {withRouter} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getConfig, getReportAProblemLink} from 'mattermost-redux/selectors/entities/general';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getReportAProblemLink} from 'mattermost-redux/selectors/entities/report_a_problem';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {openModal} from 'actions/views/modals';

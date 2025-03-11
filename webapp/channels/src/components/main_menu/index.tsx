@@ -11,8 +11,8 @@ import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct}
 import {
     getConfig,
     getLicense,
-    getReportAProblemLink,
 } from 'mattermost-redux/selectors/entities/general';
+import {getReportAProblemLink} from 'mattermost-redux/selectors/entities/report_a_problem';
 import {haveICurrentTeamPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {
     getJoinableTeamIds,
