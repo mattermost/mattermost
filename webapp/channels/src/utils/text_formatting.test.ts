@@ -247,7 +247,7 @@ describe('highlightSearchTerms', () => {
     });
 });
 
-describe.only("getUsernameMentions", () => {
+describe("getUsernameMentions", () => {
     it("should return mentions when there are valid usernames", () => {
         const text = "Hello @alice and @bob!";
         expect(getUsernameMentions(text)).toEqual(["@alice", "@bob"]);
@@ -273,7 +273,7 @@ describe.only("getUsernameMentions", () => {
     });
 });
 
-describe.only('convertMentionNicknameOrFullName', () => {
+describe('convertMentionNicknameOrFullName', () => {
     const user1 = TestHelper.getUserMock(
         {id: 'abc1', username: 'username1', first_name: 'Json', last_name: 'Doe', nickname: 'JD'},
     )
