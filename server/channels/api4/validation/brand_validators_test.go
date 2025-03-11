@@ -18,8 +18,8 @@ func TestUploadBrandImageValidator(t *testing.T) {
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
 		part, _ := writer.CreateFormFile("image", "test.png")
-		part.Write([]byte("test image content"))
-		writer.Close()
+		_, _ = part.Write([]byte("test image content"))
+		_ = writer.Close()
 
 		r := httptest.NewRequest("POST", "/api/v4/brand/image", body)
 		r.Header.Set("Content-Type", writer.FormDataContentType())
