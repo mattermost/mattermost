@@ -4,6 +4,7 @@
 package filestore
 
 import (
+	"archive/zip"
 	"bytes"
 	"context" 
 	"fmt"
@@ -315,6 +316,119 @@ func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duratio
 
 func (b *AzureFileBackend) DriverName() string {
 	return "azure"
+}
+
+// ZipReader will create a zip of path. If path is a single file, it will zip the single file.
+// If deflate is true, the contents will be compressed. It will stream the zip to io.ReadCloser.
+func (b *AzureFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, error) {
+	deflateMethod := zip.Store
+	if deflate {
+		deflateMethod = zip.Deflate
+	}
+
+	path = filepath.Join(b.pathPrefix, path)
+	
+	pr, pw := io.Pipe()
+
+	go func() {
+		defer pw.Close()
+
+		zipWriter := zip.NewWriter(pw)
+		defer zipWriter.Close()
+
+		ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel()
+
+		// Try to check if this is a single file
+		blobURL := b.containerURL.NewBlockBlobURL(path)
+		props, err := blobURL.GetProperties(ctx, azblob.BlobAccessConditions{}, azblob.ClientProvidedKeyOptions{})
+		
+		if err == nil {
+			// Found a file, add it directly 
+			stripPath := filepath.Dir(path)
+			if stripPath != "" {
+				stripPath += "/"
+			}
+
+			// Create zip header for the file
+			header := &zip.FileHeader{
+				Name:     filepath.Base(path),
+				Method:   deflateMethod,
+				Modified: props.LastModified(),
+			}
+			header.SetMode(0644) // rw-r--r-- permissions
+
+			writer, err := zipWriter.CreateHeader(header)
+			if err != nil {
+				pw.CloseWithError(errors.Wrapf(err, "unable to create zip entry for %s", path))
+				return
+			}
+
+			data, err := b.ReadFile(strings.TrimPrefix(path, b.pathPrefix))
+			if err != nil {
+				pw.CloseWithError(errors.Wrapf(err, "unable to read file %s", path))
+				return
+			}
+
+			_, err = writer.Write(data)
+			if err != nil {
+				pw.CloseWithError(errors.Wrapf(err, "unable to write data for %s", path))
+				return
+			}
+			return
+		}
+
+		// Assume it's a directory, add a trailing slash
+		if !strings.HasSuffix(path, "/") {
+			path = path + "/"
+		}
+
+		// List all files in the directory and add them to the zip
+		files, err := b.ListDirectoryRecursively(strings.TrimPrefix(path, b.pathPrefix))
+		if err != nil {
+			pw.CloseWithError(errors.Wrapf(err, "unable to list directory %s", path))
+			return
+		}
+
+		for _, filePath := range files {
+			fullPath := filepath.Join(b.pathPrefix, filePath)
+
+			// Skip the directory itself
+			if fullPath == path || fullPath+"/" == path {
+				continue
+			}
+
+			// Create a relative path for the zip entry
+			relPath := strings.TrimPrefix(fullPath, path)
+
+			// Add the file to the zip
+			header := &zip.FileHeader{
+				Name:     relPath,
+				Method:   deflateMethod,
+			}
+			header.SetMode(0644) // rw-r--r-- permissions
+
+			writer, err := zipWriter.CreateHeader(header)
+			if err != nil {
+				pw.CloseWithError(errors.Wrapf(err, "unable to create zip entry for %s", fullPath))
+				return
+			}
+
+			data, err := b.ReadFile(filePath)
+			if err != nil {
+				pw.CloseWithError(errors.Wrapf(err, "unable to read file %s", fullPath))
+				return
+			}
+
+			_, err = writer.Write(data)
+			if err != nil {
+				pw.CloseWithError(errors.Wrapf(err, "unable to write data for %s", fullPath))
+				return
+			}
+		}
+	}()
+
+	return pr, nil
 }
 
 // seekableReader implements ReadCloseSeeker interface
