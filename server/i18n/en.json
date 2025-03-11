@@ -9145,6 +9145,22 @@
     "translation": "Invalid value for read timeout."
   },
   {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Invalid report a problem link. Must be a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Report a problem link is required."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Invalid report a problem mail. Must be a valid email address."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Report a problem mail is required."
+  },
+  {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
     "translation": "Invalid direct message restriction. Must be 'any', or 'team'."
   },
