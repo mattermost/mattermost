@@ -7,13 +7,11 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {getConfig, getEnvironmentConfig, patchConfig} from 'mattermost-redux/actions/admin';
-import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {loadRolesIfNeeded, editRole} from 'mattermost-redux/actions/roles';
 import {selectTeam} from 'mattermost-redux/actions/teams';
-import {saveCustomProfileAttribute} from 'mattermost-redux/actions/users';
 import {General} from 'mattermost-redux/constants';
 import * as Selectors from 'mattermost-redux/selectors/entities/admin';
-import {getConfig as getGeneralConfig, getLicense, getCustomProfileAttributes, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getConfig as getGeneralConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -38,9 +36,7 @@ function mapStateToProps(state: GlobalState) {
     const team = getTeam(state, teamId || '');
     const unauthorizedRoute = team ? `/${team.name}/channels/${General.DEFAULT_CHANNEL}` : '/';
     const consoleAccess = getConsoleAccess(state);
-    const customProfileAttributeFields = getCustomProfileAttributes(state);
-    const enableCustomProfileAttributes = getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true';
-
+    
     return {
         config: Selectors.getConfig(state),
         environmentConfig: Selectors.getEnvironmentConfig(state),
@@ -56,8 +52,6 @@ function mapStateToProps(state: GlobalState) {
         cloud: state.entities.cloud,
         team,
         currentTheme: getTheme(state),
-        customProfileAttributeFields,
-        enableCustomProfileAttributes,
     };
 }
 
