@@ -808,8 +808,8 @@ func (a *App) UserIsInAdminRoleGroup(userID, syncableID string, syncableType mod
 
 func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
 	hash := make(map[string]bool)
-	for _,id := range userIDs {
-		if _,ok := hash[id]; ok {
+	for _, id := range userIDs {
+		if _, ok := hash[id]; ok {
 			return nil, model.NewAppError("UpsertGroupMembers", "app.group.uniqueness_error", nil, "", http.StatusBadRequest)
 		}
 		hash[id] = true
