@@ -520,6 +520,8 @@ export type ConnectedWorkspacesSettings = {
     MaxPostsPerSync: number;
 }
 
+export type SystemPropertiesSettings = null;
+
 export type FileSettings = {
     EnableFileAttachments: boolean;
     EnableMobileUpload: boolean;
@@ -1000,6 +1002,7 @@ export type AdminConfig = {
     ExportSettings: ExportSettings;
     WranglerSettings: WranglerSettings;
     ConnectedWorkspacesSettings: ConnectedWorkspacesSettings;
+    SystemPropertiesSettings: SystemPropertiesSettings;
 };
 
 export type ReplicaLagSetting = {
