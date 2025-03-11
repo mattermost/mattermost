@@ -319,6 +319,25 @@ func TestGetClientConfig(t *testing.T) {
 				"GiphySdkKey": model.ServiceSettingsDefaultGiphySdkKeyTest,
 			},
 		},
+		{
+			"report a problem values",
+			&model.Config{
+				SupportSettings: model.SupportSettings{
+					ReportAProblemType: model.NewPointer("type"),
+					ReportAProblemLink: model.NewPointer("link"),
+					ReportAProblemMail: model.NewPointer("mail"),
+					AllowDownloadLogs:  model.NewPointer(true),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"ReportAProblemType": "type",
+				"ReportAProblemLink": "link",
+				"ReportAProblemMail": "mail",
+				"AllowDownloadLogs":  "true",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

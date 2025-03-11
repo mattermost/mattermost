@@ -61,6 +61,52 @@ func TestConfigDefaults(t *testing.T) {
 		c.SetDefaults()
 		recursivelyUninitialize(&c, "config", reflect.ValueOf(&c).Elem())
 	})
+	t.Run("report a problem defaults", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		require.Equal(t, SupportSettingsDefaultReportAProblemType, *c.SupportSettings.ReportAProblemType)
+		require.Equal(t, SupportSettingsDefaultReportAProblemLink, *c.SupportSettings.ReportAProblemLink)
+		require.Equal(t, "", *c.SupportSettings.ReportAProblemMail)
+		require.Equal(t, true, *c.SupportSettings.AllowDownloadLogs)
+	})
+}
+
+func TestConfigIsValid(t *testing.T) {
+	t.Run("report a problem values", func(t *testing.T) {
+		t.Run("email", func(t *testing.T) {
+			c := Config{}
+			c.SetDefaults()
+			c.SupportSettings.ReportAProblemType = NewPointer(string(SupportSettingsReportAProblemTypeMail))
+			c.SupportSettings.ReportAProblemMail = nil
+			require.NotNil(t, c.IsValid())
+
+			c.SupportSettings.ReportAProblemMail = NewPointer("")
+			require.NotNil(t, c.IsValid())
+
+			c.SupportSettings.ReportAProblemMail = NewPointer("invalid")
+			require.NotNil(t, c.IsValid())
+
+			c.SupportSettings.ReportAProblemMail = NewPointer("valid@email.com")
+			require.Nil(t, c.IsValid())
+		})
+
+		t.Run("link", func(t *testing.T) {
+			c := Config{}
+			c.SetDefaults()
+			c.SupportSettings.ReportAProblemType = NewPointer(string(SupportSettingsReportAProblemTypeLink))
+			c.SupportSettings.ReportAProblemLink = nil
+			require.NotNil(t, c.IsValid())
+
+			c.SupportSettings.ReportAProblemLink = NewPointer("")
+			require.NotNil(t, c.IsValid())
+
+			c.SupportSettings.ReportAProblemLink = NewPointer("invalid")
+			require.NotNil(t, c.IsValid())
+
+			c.SupportSettings.ReportAProblemLink = NewPointer("http://valid.com")
+			require.Nil(t, c.IsValid())
+		})
+	})
 }
 
 func TestConfigEmptySiteName(t *testing.T) {

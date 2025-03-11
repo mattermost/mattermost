@@ -10,7 +10,8 @@ export function getBrowserInfo() {
     // Check if it's Mattermost Desktop App first
     if (userAgent.includes('mattermost')) {
         browser = 'Mattermost Desktop App';
-        const match = userAgent.match(/mattermost-desktop\/(\d+(\.\d+)*)/i);
+        const match = userAgent.match(/mattermost\/(\d+(\.\d+)*)/i);
+
         if (match && match[1]) {
             browserVersion = match[1];
         }
