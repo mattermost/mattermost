@@ -53,14 +53,14 @@ func TestGetCPAField(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		createdField, err := th.App.CreateCPAField(field)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotEmpty(t, createdField.ID)
 
 		fetchedField, err := th.App.GetCPAField(createdField.ID)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, createdField.ID, fetchedField.ID)
 		require.Equal(t, "Test Field", fetchedField.Name)
 		require.Equal(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden}, fetchedField.Attrs)
@@ -122,10 +122,10 @@ func TestCreateCPAField(t *testing.T) {
 
 	t.Run("should fail if the field is not valid", func(t *testing.T) {
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{Name: model.NewId()})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		createdField, err := th.App.CreateCPAField(field)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Empty(t, createdField)
 	})
 
@@ -152,7 +152,7 @@ func TestCreateCPAField(t *testing.T) {
 		require.NoError(t, err)
 
 		createdField, err := th.App.CreateCPAField(field)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotZero(t, createdField.ID)
 		require.Equal(t, cpaGroupID, createdField.GroupID)
 		require.Equal(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden}, createdField.Attrs)
@@ -181,7 +181,7 @@ func TestCreateCPAField(t *testing.T) {
 				require.NoError(t, err)
 
 				createdField, err := th.App.CreateCPAField(field)
-				require.Nil(t, err)
+				require.NoError(t, err)
 				require.NotZero(t, createdField.ID)
 			}
 
@@ -192,16 +192,16 @@ func TestCreateCPAField(t *testing.T) {
 					Type: model.PropertyFieldTypeText,
 				},
 			}
-			createdField, err := th.App.CreateCPAField(field)
-			require.NotNil(t, err)
-			require.Equal(t, http.StatusUnprocessableEntity, err.StatusCode)
+			createdField, appErr := th.App.CreateCPAField(field)
+			require.NotNil(t, appErr)
+			require.Equal(t, http.StatusUnprocessableEntity, appErr.StatusCode)
 			require.Zero(t, createdField)
 		})
 
 		t.Run("deleted fields should not count for the limit", func(t *testing.T) {
 			// we retrieve the list of fields and check we've reached the limit
-			fields, err := th.App.ListCPAFields()
-			require.Nil(t, err)
+			fields, appErr := th.App.ListCPAFields()
+			require.Nil(t, appErr)
 			require.Len(t, fields, CustomProfileAttributesFieldLimit)
 
 			// then we delete one field
@@ -214,8 +214,8 @@ func TestCreateCPAField(t *testing.T) {
 					Type: model.PropertyFieldTypeText,
 				},
 			}
-			createdField, err := th.App.CreateCPAField(field)
-			require.Nil(t, err)
+			createdField, appErr := th.App.CreateCPAField(field)
+			require.Nil(t, appErr)
 			require.NotZero(t, createdField.ID)
 		})
 	})
@@ -239,7 +239,7 @@ func TestPatchCPAField(t *testing.T) {
 	require.NoError(t, err)
 
 	createdField, err := th.App.CreateCPAField(newField)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	patch := &model.PropertyFieldPatch{
 		Name:       model.NewPointer("Patched name"),
@@ -249,8 +249,8 @@ func TestPatchCPAField(t *testing.T) {
 	}
 
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
-		updatedField, err := th.App.PatchCPAField(model.NewId(), patch)
-		require.NotNil(t, err)
+		updatedField, appErr := th.App.PatchCPAField(model.NewId(), patch)
+		require.NotNil(t, appErr)
 		require.Empty(t, updatedField)
 	})
 
@@ -273,8 +273,8 @@ func TestPatchCPAField(t *testing.T) {
 	t.Run("should correctly patch the CPA property field", func(t *testing.T) {
 		time.Sleep(10 * time.Millisecond) // ensure the UpdateAt is different than CreateAt
 
-		updatedField, err := th.App.PatchCPAField(createdField.ID, patch)
-		require.Nil(t, err)
+		updatedField, appErr := th.App.PatchCPAField(createdField.ID, patch)
+		require.Nil(t, appErr)
 		require.Equal(t, createdField.ID, updatedField.ID)
 		require.Equal(t, "Patched name", updatedField.Name)
 		require.Equal(t, model.CustomProfileAttributesVisibilityWhenSet, updatedField.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
@@ -305,7 +305,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.NoError(t, err)
 
 		createdSelectField, err := th.App.CreateCPAField(selectField)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// Get the original option IDs
 		options := createdSelectField.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
@@ -338,7 +338,7 @@ func TestPatchCPAField(t *testing.T) {
 		}
 
 		updatedSelectField, err := th.App.PatchCPAField(createdSelectField.ID, selectPatch)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		updatedOptions := updatedSelectField.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
 		require.Len(t, updatedOptions, 3)
@@ -374,9 +374,9 @@ func TestDeleteCPAField(t *testing.T) {
 	require.NoError(t, err)
 
 	createdField, err := th.App.CreateCPAField(newField)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		newValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
 			TargetType: "user",
@@ -390,9 +390,9 @@ func TestDeleteCPAField(t *testing.T) {
 	}
 
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
-		err := th.App.DeleteCPAField(model.NewId())
-		require.NotNil(t, err)
-		require.Equal(t, "app.custom_profile_attributes.property_field_not_found.app_error", err.Id)
+		appErr := th.App.DeleteCPAField(model.NewId())
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.custom_profile_attributes.property_field_not_found.app_error", appErr.Id)
 	})
 
 	t.Run("should not allow to delete a field outside of CPA", func(t *testing.T) {
