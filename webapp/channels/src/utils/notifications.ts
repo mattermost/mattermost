@@ -7,8 +7,7 @@ import * as UserAgent from 'utils/user_agent';
 
 import type {ThunkActionFunc} from 'types/store';
 import { convertMentionNicknameOrFullName } from './text_formatting';
-import { useSelector } from 'react-redux';
-import type {GlobalState} from 'types/store';
+import { getUsersByUsername } from 'mattermost-redux/selectors/entities/users';
 import { getTeammateNameDisplaySetting } from 'mattermost-redux/selectors/entities/preferences';
 
 export type NotificationResult = {
@@ -48,7 +47,7 @@ export function showNotification(
         silent: false,
     },
 ): ThunkActionFunc<Promise<NotificationResult & {callback: () => void}>> {
-    return async () => {
+    return async (_, getState) => {
         let icon = icon50;
         if (UserAgent.isEdge()) {
             icon = iconWS;
@@ -80,8 +79,9 @@ export function showNotification(
             }
         }
 
-        const usersByUsername = useSelector((state: GlobalState) => state.entities.users.profiles);
-        const teammateNameDisplay = useSelector((state: GlobalState) => getTeammateNameDisplaySetting(state));
+        const state = getState();
+        const usersByUsername = getUsersByUsername(state);
+        const teammateNameDisplay = getTeammateNameDisplaySetting(state);
         const convertedMentionBody = convertMentionNicknameOrFullName(body, usersByUsername, teammateNameDisplay)
 
         const notification = new Notification(title, {
