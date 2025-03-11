@@ -54,11 +54,11 @@ func (s SqlChannelStore) CreateInitialSidebarCategories(c request.CTX, userId st
 
 func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrapper, userId string, excludedTeamIDs []string, opts *store.SidebarCategorySearchOpts) error {
 	query := s.getQueryBuilder().
-		Select("sc.Type, sc.TeamId").
-		From("SidebarCategories sc").
+		Select("SidebarCategories.Type, SidebarCategories.TeamId").
+		From("SidebarCategories").
 		Where(sq.Eq{
-			"sc.UserId": userId,
-			"sc.Type": []model.SidebarCategoryType{
+			"SidebarCategories.UserId": userId,
+			"SidebarCategories.Type": []model.SidebarCategoryType{
 				model.SidebarCategoryFavorites,
 				model.SidebarCategoryChannels,
 				model.SidebarCategoryDirectMessages,
@@ -66,9 +66,9 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrap
 		})
 
 	if !opts.ExcludeTeam {
-		query = query.Where(sq.Eq{"sc.TeamId": opts.TeamID})
+		query = query.Where(sq.Eq{"SidebarCategories.TeamId": opts.TeamID})
 	} else {
-		query = query.Where(sq.NotEq{"sc.TeamId": opts.TeamID})
+		query = query.Where(sq.NotEq{"SidebarCategories.TeamId": opts.TeamID})
 	}
 
 	selectQuery, selectParams, err := query.ToSql()
@@ -495,8 +495,8 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, error) {
 	query := s.sidebarCategorySelectQuery.
 		Columns("SidebarChannels.ChannelId").
-		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=sc.Id").
-		Where(sq.Eq{"sc.Id": categoryId}).
+		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=SidebarCategories.Id").
+		Where(sq.Eq{"SidebarCategories.Id": categoryId}).
 		OrderBy("SidebarChannels.SortOrder ASC")
 
 	sql, args, err := query.ToSql()
@@ -534,35 +534,33 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 	categories := []*sidebarCategoryForJoin{}
 	query := s.sidebarCategorySelectQuery.
 		Columns("SidebarChannels.ChannelId").
-		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=sc.Id").
-		InnerJoin("Teams ON Teams.Id=sc.TeamId").
-		InnerJoin("TeamMembers ON TeamMembers.TeamId=sc.TeamId").
+		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=SidebarCategories.Id").
+		InnerJoin("Teams ON Teams.Id=SidebarCategories.TeamId").
+		InnerJoin("TeamMembers ON TeamMembers.TeamId=SidebarCategories.TeamId").
 		Where(sq.And{
 			sq.Eq{"TeamMembers.UserId": userId},
 			sq.Eq{"TeamMembers.DeleteAt": 0},
 			sq.Eq{"Teams.DeleteAt": 0},
 		}).
 		Where(sq.And{
-			sq.Eq{"sc.UserId": userId},
+			sq.Eq{"SidebarCategories.UserId": userId},
 		}).
-		OrderBy("sc.SortOrder ASC, SidebarChannels.SortOrder ASC")
+		OrderBy("SidebarCategories.SortOrder ASC, SidebarChannels.SortOrder ASC")
 
 	if opts.ExcludeTeam {
-		query = query.Where(sq.NotEq{"sc.TeamId": opts.TeamID})
+		query = query.Where(sq.NotEq{"SidebarCategories.TeamId": opts.TeamID})
 	} else {
-		query = query.Where(sq.Eq{"sc.TeamId": opts.TeamID})
+		query = query.Where(sq.Eq{"SidebarCategories.TeamId": opts.TeamID})
 	}
 
 	if opts.Type != "" {
-		query = query.Where(sq.Eq{"sc.Type": opts.Type})
+		query = query.Where(sq.Eq{"SidebarCategories.Type": opts.Type})
 	}
 
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "sidebar_categories_tosql")
 	}
-	// For debugging
-	//fmt.Printf("SQL query: %s\n", sql)
 
 	if err := db.Select(&categories, sql, args...); err != nil {
 		return nil, store.NewErrNotFound("SidebarCategories", fmt.Sprintf("userId=%s,teamId=%s", userId, opts.TeamID)).Wrap(err)
