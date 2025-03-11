@@ -36,7 +36,6 @@ function mapStateToProps(state: GlobalState) {
     const team = getTeam(state, teamId || '');
     const unauthorizedRoute = team ? `/${team.name}/channels/${General.DEFAULT_CHANNEL}` : '/';
     const consoleAccess = getConsoleAccess(state);
-    
     return {
         config: Selectors.getConfig(state),
         environmentConfig: Selectors.getEnvironmentConfig(state),
