@@ -6,9 +6,12 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
 
+import {TrackCrossTeamSearchFeature, TrackCrossTeamSearchAllTeamsEvent, TrackCrossTeamSearchCurrentTeamEvent, TrackCrossTeamSearchDifferentTeamEvent} from 'mattermost-redux/constants/telemetry';
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
+import {trackFeatureEvent} from 'actions/telemetry_actions';
 import {updateSearchTerms, showSearchResults, updateSearchType, updateSearchTeam} from 'actions/views/rhs';
 import {getSearchButtons} from 'selectors/plugins';
 import {getSearchTeam, getSearchTerms, getSearchType} from 'selectors/rhs';
@@ -16,8 +19,8 @@ import {getSearchTeam, getSearchTerms, getSearchType} from 'selectors/rhs';
 import Popover from 'components/widgets/popover';
 
 import a11yController from 'utils/a11y_controller_instance';
-import type {A11yFocusEventDetail} from 'utils/constants';
-import Constants, {A11yCustomEventTypes} from 'utils/constants';
+import {focusElement} from 'utils/a11y_utils';
+import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
@@ -111,6 +114,7 @@ const NewSearch = (): JSX.Element => {
     const searchType = useSelector(getSearchType) || '';
     const searchTeam = useSelector(getSearchTeam);
     const pluginSearch = useSelector(getSearchButtons);
+    const currentTeamId = useSelector(getCurrentTeamId);
     const crossTeamSearchEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ExperimentalCrossTeamSearch')) === 'true';
 
     const dispatch = useDispatch();
@@ -181,18 +185,9 @@ const NewSearch = (): JSX.Element => {
     const closeSearchBox = useCallback(() => {
         setFocused(false);
         setCurrentChannel('');
-        if (searchButtonRef.current) {
-            document.dispatchEvent(
-                new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
-                    detail: {
-                        target: searchButtonRef.current,
-                        keyboardOnly: false,
-                    },
-                }),
-            );
-            a11yController.resetOriginElement();
-        }
-    }, []);
+
+        focusElement(searchButtonRef, true, true);
+    }, [searchButtonRef, setFocused, setCurrentChannel]);
 
     const openSearchBox = useCallback(() => {
         setFocused(true);
@@ -226,6 +221,10 @@ const NewSearch = (): JSX.Element => {
             dispatch(updateSearchTeam(searchTeam));
 
             if (searchType === '' || searchType === 'messages' || searchType === 'files') {
+                if (crossTeamSearchEnabled) {
+                    trackCrossTeamSearch(currentTeamId, searchTeam);
+                }
+
                 dispatch(showSearchResults(false));
             } else {
                 pluginSearch.forEach((pluginData: any) => {
@@ -236,9 +235,17 @@ const NewSearch = (): JSX.Element => {
             }
             setFocused(false);
             setCurrentChannel('');
-        },
-        [pluginSearch],
-    );
+        }, [pluginSearch, currentTeamId, crossTeamSearchEnabled]);
+
+    const trackCrossTeamSearch = (currentTeamId: string, searchTeamId: string) => {
+        if (searchTeamId === '') {
+            trackFeatureEvent(TrackCrossTeamSearchFeature, TrackCrossTeamSearchAllTeamsEvent);
+        } else if (searchTeamId === currentTeamId) {
+            trackFeatureEvent(TrackCrossTeamSearchFeature, TrackCrossTeamSearchCurrentTeamEvent);
+        } else {
+            trackFeatureEvent(TrackCrossTeamSearchFeature, TrackCrossTeamSearchDifferentTeamEvent);
+        }
+    };
 
     const onClose = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
