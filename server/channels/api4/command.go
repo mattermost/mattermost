@@ -41,6 +41,12 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
+	// Bot accounts are not allowed to manage slash commands
+	if c.AppContext.Session().IsBotUser() {
+		c.SetPermissionError(model.PermissionManageSlashCommands)
+		return
+	}
+
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageSlashCommands) {
 		c.SetPermissionError(model.PermissionManageSlashCommands)
 		return
@@ -81,6 +87,12 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameterAuditable(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
+
+	// Bot accounts are not allowed to manage slash commands
+	if c.AppContext.Session().IsBotUser() {
+		c.SetPermissionError(model.PermissionManageSlashCommands)
+		return
+	}
 
 	oldCmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
@@ -142,6 +154,12 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
+	// Bot accounts are not allowed to manage slash commands
+	if c.AppContext.Session().IsBotUser() {
+		c.SetPermissionError(model.PermissionManageSlashCommands)
+		return
+	}
+
 	newTeam, appErr := c.App.GetTeam(cmr.TeamId)
 	if appErr != nil {
 		c.Err = appErr
@@ -193,6 +211,12 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
+
+	// Bot accounts are not allowed to manage slash commands
+	if c.AppContext.Session().IsBotUser() {
+		c.SetPermissionError(model.PermissionManageSlashCommands)
+		return
+	}
 
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
@@ -451,6 +475,12 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("regenCommandToken", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
+
+	// Bot accounts are not allowed to manage slash commands
+	if c.AppContext.Session().IsBotUser() {
+		c.SetPermissionError(model.PermissionManageSlashCommands)
+		return
+	}
 
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
