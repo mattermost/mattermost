@@ -107,8 +107,8 @@ func TestListCPAFields(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	createdField, err := th.App.CreateCPAField(field)
-	require.Nil(t, err)
+	createdField, appErr := th.App.CreateCPAField(field)
+	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
