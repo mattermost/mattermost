@@ -63,8 +63,12 @@ const (
 )
 
 var (
+	// Existing image maps
 	imageExtensions = map[string]bool{".jpg": true, ".jpeg": true, ".gif": true, ".bmp": true, ".png": true, ".tiff": true, "tif": true}
 	imageMimeTypes  = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
+
+	videoExtensions = map[string]bool{".mp4": true, ".mov": true, ".avi": true, ".webm": true, ".mkv": true, ".wmv": true, ".mpg": true, ".mpeg": true}
+	videoMimeTypes  = map[string]string{".mp4": "video/mp4", ".mov": "video/quicktime", ".avi": "video/x-msvideo", ".webm": "video/webm", ".mkv": "video/x-matroska", ".wmv": "video/x-ms-wmv", ".mpg": "video/mpeg", ".mpeg": "video/mpeg"}
 )
 
 var (
@@ -77,6 +81,10 @@ func isFileExtImage(ext string) bool {
 	ext = strings.ToLower(ext)
 	return imageExtensions[ext]
 }
+func isFileExtVideo(ext string) bool {
+	ext = strings.ToLower(ext)
+	return videoExtensions[ext]
+}
 
 func getImageMimeType(ext string) string {
 	ext = strings.ToLower(ext)
@@ -85,7 +93,13 @@ func getImageMimeType(ext string) string {
 	}
 	return imageMimeTypes[ext]
 }
-
+func getVideoMimeType(ext string) string {
+	ext = strings.ToLower(ext)
+	if videoMimeTypes[ext] == "" {
+		return "video/mp4"
+	}
+	return videoMimeTypes[ext]
+}
 func (s *S3FileBackendAuthError) Error() string {
 	return s.DetailedError
 }
@@ -502,12 +516,16 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, error) {
 	var contentType string
 	path = filepath.Join(b.pathPrefix, path)
-	if ext := filepath.Ext(path); isFileExtImage(ext) {
+	ext := filepath.Ext(path)
+	switch {
+	case isFileExtImage(ext):
 		contentType = getImageMimeType(ext)
-	} else {
+
+	case isFileExtVideo(ext):
+		contentType = getVideoMimeType(ext)
+	default:
 		contentType = "binary/octet-stream"
 	}
-
 	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
 
 	objSize := int64(-1)

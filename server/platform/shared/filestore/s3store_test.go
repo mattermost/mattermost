@@ -379,3 +379,122 @@ func TestListDirectory(t *testing.T) {
 	err = fileBackend.RemoveDirectory("19700101")
 	require.NoError(t, err)
 }
+
+func TestWriteFileVideoMimeTypes(t *testing.T) {
+	s3Host := os.Getenv("CI_MINIO_HOST")
+	if s3Host == "" {
+		s3Host = "localhost"
+	}
+
+	s3Port := os.Getenv("CI_MINIO_PORT")
+	if s3Port == "" {
+		s3Port = "9000"
+	}
+
+	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+
+	// Generate a random bucket name
+	b := make([]byte, 30)
+	rand.Read(b)
+	bucketName := base64.StdEncoding.EncodeToString(b)
+	bucketName = strings.ToLower(bucketName)
+	bucketName = strings.Replace(bucketName, "+", "", -1)
+	bucketName = strings.Replace(bucketName, "/", "", -1)
+
+	cfg := FileBackendSettings{
+		DriverName:                         model.ImageDriverS3,
+		AmazonS3AccessKeyId:                model.MinioAccessKey,
+		AmazonS3SecretAccessKey:            model.MinioSecretKey,
+		AmazonS3Bucket:                     bucketName,
+		AmazonS3Endpoint:                   s3Endpoint,
+		AmazonS3SSL:                        false,
+		AmazonS3RequestTimeoutMilliseconds: 5000,
+	}
+
+	fileBackend, err := NewS3FileBackend(cfg)
+	require.NoError(t, err)
+
+	err = fileBackend.MakeBucket()
+	require.NoError(t, err)
+
+	tests := []struct {
+		name         string
+		extension    string
+		expectedType string
+		content      []byte
+	}{
+		{
+			name:         "mp4",
+			extension:    ".mp4",
+			expectedType: "video/mp4",
+			content:      []byte("test-video-content"),
+		},
+		{
+			name:         "mov",
+			extension:    ".mov",
+			expectedType: "video/quicktime",
+			content:      []byte("test-video-content"),
+		},
+		{
+			name:         "avi",
+			extension:    ".avi",
+			expectedType: "video/x-msvideo",
+			content:      []byte("test-video-content"),
+		},
+		{
+			name:         "webm",
+			extension:    ".webm",
+			expectedType: "video/webm",
+			content:      []byte("test-video-content"),
+		},
+		{
+			name:         "wmv",
+			extension:    ".wmv",
+			expectedType: "video/x-ms-wmv",
+			content:      []byte("test-video-content"),
+		},
+		{
+			name:         "mkv",
+			extension:    ".mkv",
+			expectedType: "video/x-matroska",
+			content:      []byte("test-video-content"),
+		},
+		{
+			name:         "mpg",
+			extension:    ".mpg",
+			expectedType: "video/mpeg",
+			content:      []byte("test-video-content"),
+		},
+		{
+			name:         "mpeg",
+			extension:    ".mpeg",
+			expectedType: "video/mpeg",
+			content:      []byte("test-video-content"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path := "test" + tt.extension
+			reader := bytes.NewReader(tt.content)
+
+			written, err := fileBackend.WriteFile(reader, path)
+			require.NoError(t, err)
+			require.Equal(t, int64(len(tt.content)), written)
+
+			// Verify the file exists with correct mime type
+			props, err := fileBackend.client.StatObject(
+				context.Background(),
+				bucketName,
+				path,
+				s3.StatObjectOptions{},
+			)
+			require.NoError(t, err)
+			require.Equal(t, tt.expectedType, props.ContentType)
+
+			// Cleanup
+			err = fileBackend.RemoveFile(path)
+			require.NoError(t, err)
+		})
+	}
+}
