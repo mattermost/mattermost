@@ -1385,3 +1385,10 @@ func (api *apiTimerLayer) GetPluginID() string {
 	api.recordTime(startTime, "GetPluginID", true)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) GetPluginStatuses() ([]*model.PluginStatus, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPluginStatuses()
+	api.recordTime(startTime, "GetPluginStatuses", _returnsB == nil)
+	return _returnsA, _returnsB
+}

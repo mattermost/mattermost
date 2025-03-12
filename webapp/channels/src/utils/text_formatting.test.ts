@@ -326,6 +326,13 @@ describe('linkOnlyMarkdown', () => {
             'Do you like <a class="theme markdown__link" href="https://www.mattermost.com" target="_blank">' +
             'https://www.mattermost.com</a>?');
     });
+    test('link without a title but with particular language', () => {
+        const text = 'Do you like https://mattermost.com/，這是第二個網址。?';
+        const output = formatText(text, options, emptyEmojiMap);
+        expect(output).toBe(
+            'Do you like <a class="theme markdown__link" href="https://www.mattermost.com" target="_blank">' +
+            'https://www.mattermost.com</a>，這是第二個網址。?');
+    });
     test('link with a title', () => {
         const text = 'Do you like [Mattermost](https://www.mattermost.com)?';
         const output = formatText(text, options, emptyEmojiMap);

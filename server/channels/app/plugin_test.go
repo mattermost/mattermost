@@ -623,7 +623,7 @@ func TestPluginSync(t *testing.T) {
 				appErr = th.App.DeletePublicKey("pub_key")
 				checkNoError(t, appErr)
 
-				appErr = th.App.ch.RemovePlugin("testplugin")
+				appErr = th.App.ch.RemovePlugin("testplugin", nil)
 				checkNoError(t, appErr)
 			})
 		})
@@ -1215,7 +1215,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.Equal(t, "testplugin", pluginStatus[0].PluginId)
 		require.Equal(t, "testplugin2", pluginStatus[1].PluginId)
 
-		appErr := th.App.ch.RemovePlugin("testplugin")
+		appErr := th.App.ch.RemovePlugin("testplugin", nil)
 		checkNoError(t, appErr)
 
 		pluginStatus, err = env.Statuses()
@@ -1355,7 +1355,8 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.Len(t, transitionalPlugins, 1)
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", transitionalPlugins[0])
 
-		th.App.ch.RemovePlugin("testplugin")
+		appErr := th.App.ch.RemovePlugin("testplugin", nil)
+		require.Nil(t, appErr)
 
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
