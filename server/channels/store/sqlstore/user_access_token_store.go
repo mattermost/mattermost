@@ -196,14 +196,12 @@ func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, 
 	term = sanitizeSearchTerm(term, "\\")
 	tokens := []*model.UserAccessToken{}
 	
-	liketerm := "%" + term + "%"
-	
 	// Create a custom query instead of using userAccessTokensSelectQuery
 	// This ensures we explicitly qualify all columns to avoid ambiguity
 	query := s.getQueryBuilder().
 		Select(
 			"UserAccessTokens.Id",
-			"UserAccessTokens.Token",
+			"UserAccessTokens.Token", 
 			"UserAccessTokens.UserId",
 			"UserAccessTokens.Description",
 			"UserAccessTokens.IsActive",
@@ -211,9 +209,9 @@ func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, 
 		From("UserAccessTokens").
 		InnerJoin("Users ON UserAccessTokens.UserId = Users.Id").
 		Where(sq.Or{
-			sq.Like{"UserAccessTokens.Id": liketerm},
-			sq.Like{"UserAccessTokens.UserId": liketerm},
-			sq.Like{"Users.Username": liketerm},
+			sq.Like{"UserAccessTokens.Id": term},
+			sq.Like{"UserAccessTokens.UserId": term},
+			sq.Like{"Users.Username": term},
 		})
 
 	if err := s.GetReplica().SelectBuilder(&tokens, query); err != nil {
