@@ -19,6 +19,44 @@ type SqlWebhookStore struct {
 	metrics einterfaces.MetricsInterface
 }
 
+func incomingWebhookColumns() []string {
+	return []string{
+		"Id",
+		"CreateAt",
+		"UpdateAt",
+		"DeleteAt",
+		"UserId",
+		"ChannelId",
+		"TeamId",
+		"DisplayName",
+		"Description",
+		"Username",
+		"IconURL",
+		"ChannelLocked",
+	}
+}
+
+func outgoingWebhookColumns() []string {
+	return []string{
+		"Id",
+		"Token",
+		"CreateAt",
+		"UpdateAt",
+		"DeleteAt",
+		"CreatorId",
+		"ChannelId",
+		"TeamId",
+		"TriggerWords",
+		"TriggerWhen",
+		"CallbackURLs",
+		"DisplayName",
+		"Description",
+		"ContentType",
+		"Username",
+		"IconURL",
+	}
+}
+
 func (s SqlWebhookStore) ClearCaches() {
 }
 
@@ -68,7 +106,16 @@ func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) (*model.Inc
 
 func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, error) {
 	var webhook model.IncomingWebhook
-	if err := s.GetReplica().Get(&webhook, "SELECT * FROM IncomingWebhooks WHERE Id = ? AND DeleteAt = 0", id); err != nil {
+	
+	query := s.getQueryBuilder().
+		Select(incomingWebhookColumns()...).
+		From("IncomingWebhooks").
+		Where(sq.And{
+			sq.Eq{"Id": id},
+			sq.Eq{"DeleteAt": 0},
+		})
+	
+	if err := s.GetReplica().GetBuilder(&webhook, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("IncomingWebhook", id)
 		}
@@ -113,7 +160,7 @@ func (s SqlWebhookStore) GetIncomingListByUser(userId string, offset, limit int)
 	webhooks := []*model.IncomingWebhook{}
 
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(incomingWebhookColumns()...).
 		From("IncomingWebhooks").
 		Where(sq.Eq{"DeleteAt": int(0)}).Limit(uint64(limit)).Offset(uint64(offset))
 
@@ -132,7 +179,7 @@ func (s SqlWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, o
 	webhooks := []*model.IncomingWebhook{}
 
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(incomingWebhookColumns()...).
 		From("IncomingWebhooks").
 		Where(sq.And{
 			sq.Eq{"TeamId": teamId},
@@ -157,7 +204,15 @@ func (s SqlWebhookStore) GetIncomingByTeam(teamId string, offset, limit int) ([]
 func (s SqlWebhookStore) GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, error) {
 	webhooks := []*model.IncomingWebhook{}
 
-	if err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE ChannelId = ? AND DeleteAt = 0", channelId); err != nil {
+	query := s.getQueryBuilder().
+		Select(incomingWebhookColumns()...).
+		From("IncomingWebhooks").
+		Where(sq.And{
+			sq.Eq{"ChannelId": channelId},
+			sq.Eq{"DeleteAt": 0},
+		})
+	
+	if err := s.GetReplica().SelectBuilder(&webhooks, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find IncomingWebhooks with channelId=%s", channelId)
 	}
 
@@ -189,7 +244,15 @@ func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*model.Ou
 func (s SqlWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, error) {
 	var webhook model.OutgoingWebhook
 
-	if err := s.GetReplica().Get(&webhook, "SELECT * FROM OutgoingWebhooks WHERE Id = ? AND DeleteAt = 0", id); err != nil {
+	query := s.getQueryBuilder().
+		Select(outgoingWebhookColumns()...).
+		From("OutgoingWebhooks").
+		Where(sq.And{
+			sq.Eq{"Id": id},
+			sq.Eq{"DeleteAt": 0},
+		})
+	
+	if err := s.GetReplica().GetBuilder(&webhook, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("OutgoingWebhook", id)
 		}
@@ -204,7 +267,7 @@ func (s SqlWebhookStore) GetOutgoingListByUser(userId string, offset, limit int)
 	webhooks := []*model.OutgoingWebhook{}
 
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(outgoingWebhookColumns()...).
 		From("OutgoingWebhooks").
 		Where(sq.And{
 			sq.Eq{"DeleteAt": int(0)},
@@ -229,7 +292,7 @@ func (s SqlWebhookStore) GetOutgoingByChannelByUser(channelId string, userId str
 	webhooks := []*model.OutgoingWebhook{}
 
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(outgoingWebhookColumns()...).
 		From("OutgoingWebhooks").
 		Where(sq.And{
 			sq.Eq{"ChannelId": channelId},
@@ -258,7 +321,7 @@ func (s SqlWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, o
 	webhooks := []*model.OutgoingWebhook{}
 
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(outgoingWebhookColumns()...).
 		From("OutgoingWebhooks").
 		Where(sq.And{
 			sq.Eq{"TeamId": teamId},
