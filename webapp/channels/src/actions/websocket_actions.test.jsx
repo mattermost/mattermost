@@ -1390,9 +1390,9 @@ describe('handleCustomAttributeCRUD', () => {
 
         let cpaFields = getCustomProfileAttributes(testStore.getState());
         expect(cpaFields).toBeTruthy();
-        expect(Object.keys(cpaFields).length).toEqual(1);
-        expect(cpaFields.field1.type).toEqual(field1.type);
-        expect(cpaFields.field1.name).toEqual(field1.name);
+        expect(cpaFields.length).toEqual(1);
+        expect(cpaFields.filter(({id}) => id === field1.id)[0].type).toEqual(field1.type);
+        expect(cpaFields.filter(({id}) => id === field1.id)[0].name).toEqual(field1.name);
 
         // create second field
         testStore.dispatch(handleCustomAttributesCreated({
@@ -1404,9 +1404,9 @@ describe('handleCustomAttributeCRUD', () => {
 
         cpaFields = getCustomProfileAttributes(testStore.getState());
         expect(cpaFields).toBeTruthy();
-        expect(Object.keys(cpaFields).length).toEqual(2);
-        expect(cpaFields.field2.type).toEqual(field2.type);
-        expect(cpaFields.field2.name).toEqual(field2.name);
+        expect(cpaFields.length).toEqual(2);
+        expect(cpaFields.filter(({id}) => id === field2.id)[0].type).toEqual(field2.type);
+        expect(cpaFields.filter(({id}) => id === field2.id)[0].name).toEqual(field2.name);
 
         // update field
         testStore.dispatch(handleCustomAttributesUpdated({
@@ -1418,9 +1418,9 @@ describe('handleCustomAttributeCRUD', () => {
 
         cpaFields = getCustomProfileAttributes(testStore.getState());
         expect(cpaFields).toBeTruthy();
-        expect(Object.keys(cpaFields).length).toEqual(2);
-        expect(cpaFields.field1.name).toEqual('Updated Name');
-        expect(cpaFields.field2.name).toEqual(field2.name);
+        expect(cpaFields.length).toEqual(2);
+        expect(cpaFields.filter(({id}) => id === field1.id)[0].name).toEqual('Updated Name');
+        expect(cpaFields.filter(({id}) => id === field2.id)[0].name).toEqual(field2.name);
 
         // delete field
         testStore.dispatch(handleCustomAttributesDeleted({
@@ -1432,7 +1432,7 @@ describe('handleCustomAttributeCRUD', () => {
 
         cpaFields = getCustomProfileAttributes(testStore.getState());
         expect(cpaFields).toBeTruthy();
-        expect(Object.keys(cpaFields).length).toEqual(1);
-        expect(cpaFields.field2).toBeTruthy();
+        expect(cpaFields.length).toEqual(1);
+        expect(cpaFields.filter(({id}) => id === field2.id)[0]).toBeTruthy();
     });
 });

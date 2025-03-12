@@ -82,7 +82,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = false
-	f.ExperimentalCrossTeamSearch = false
+	f.ExperimentalCrossTeamSearch = true
 	f.CustomProfileAttributes = false
 }
 
