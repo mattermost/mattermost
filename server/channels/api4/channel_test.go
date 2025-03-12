@@ -5538,3 +5538,75 @@ func TestViewChannelWithoutCollapsedThreads(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, threads.TotalUnreadMentions)
 }
+
+func TestCanEditChannelBanner(t *testing.T) {
+	t.Run("when license is nil", func(t *testing.T) {
+		channel := &model.Channel{
+			Type: model.ChannelTypeOpen,
+		}
+
+		err := canEditChannelBanner(nil, channel)
+
+		require.NotNil(t, err)
+		assert.Equal(t, "license_error.feature_unavailable", err.Id)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("when license is not E20 or Enterprise", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
+		channel := &model.Channel{
+			Type: model.ChannelTypeOpen,
+		}
+
+		err := canEditChannelBanner(license, channel)
+
+		require.NotNil(t, err)
+		assert.Equal(t, "license_error.feature_unavailable", err.Id)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("when channel type is direct message", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
+		channel := &model.Channel{
+			Type: model.ChannelTypeDirect,
+		}
+
+		err := canEditChannelBanner(license, channel)
+
+		require.NotNil(t, err)
+		assert.Equal(t, "api.channel.update_channel.banner_info.channel_type.not_allowed", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
+	t.Run("when channel type is group message", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
+		channel := &model.Channel{
+			Type: model.ChannelTypeGroup,
+		}
+
+		err := canEditChannelBanner(license, channel)
+		require.NotNil(t, err)
+		assert.Equal(t, "api.channel.update_channel.banner_info.channel_type.not_allowed", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
+	t.Run("when channel type is open and license is valid", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
+		channel := &model.Channel{
+			Type: model.ChannelTypeOpen,
+		}
+
+		err := canEditChannelBanner(license, channel)
+		assert.Nil(t, err)
+	})
+
+	t.Run("when channel type is private and license is valid", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
+		channel := &model.Channel{
+			Type: model.ChannelTypePrivate,
+		}
+
+		err := canEditChannelBanner(license, channel)
+		assert.Nil(t, err)
+	})
+}
