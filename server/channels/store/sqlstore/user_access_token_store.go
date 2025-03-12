@@ -195,16 +195,28 @@ func (s SqlUserAccessTokenStore) GetByUser(userId string, offset, limit int) ([]
 func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, error) {
 	term = sanitizeSearchTerm(term, "\\")
 	tokens := []*model.UserAccessToken{}
-	params := []any{term, term, term}
-	query := `
-		SELECT
-			uat.Id, uat.Token, uat.UserId, uat.Description, uat.IsActive
-		FROM UserAccessTokens uat
-		INNER JOIN Users u
-			ON uat.UserId = u.Id
-		WHERE uat.Id LIKE ? OR uat.UserId LIKE ? OR u.Username LIKE ?`
+	
+	liketerm := "%" + term + "%"
+	
+	// Create a custom query instead of using userAccessTokensSelectQuery
+	// This ensures we explicitly qualify all columns to avoid ambiguity
+	query := s.getQueryBuilder().
+		Select(
+			"UserAccessTokens.Id",
+			"UserAccessTokens.Token",
+			"UserAccessTokens.UserId",
+			"UserAccessTokens.Description",
+			"UserAccessTokens.IsActive",
+		).
+		From("UserAccessTokens").
+		InnerJoin("Users ON UserAccessTokens.UserId = Users.Id").
+		Where(sq.Or{
+			sq.Like{"UserAccessTokens.Id": liketerm},
+			sq.Like{"UserAccessTokens.UserId": liketerm},
+			sq.Like{"Users.Username": liketerm},
+		})
 
-	if err := s.GetReplica().Select(&tokens, query, params...); err != nil {
+	if err := s.GetReplica().SelectBuilder(&tokens, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find UserAccessTokens by term with value '%s'", term)
 	}
 
