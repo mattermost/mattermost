@@ -1406,20 +1406,6 @@
                     margin: 0;
                     font-size: 1em;
                 }
-
-                &.list-item--task-list {
-                    margin-left: -17px;
-                    list-style-type: none;
-                }
-
-                &:has(ul) {
-                    list-style-type: none;
-                }
-
-                input[type="checkbox"]:disabled {
-                    cursor: default;
-                    vertical-align: top;
-                }
             }
         }
 
