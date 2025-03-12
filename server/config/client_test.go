@@ -324,7 +324,7 @@ func TestGetClientConfig(t *testing.T) {
 			&model.Config{
 				SupportSettings: model.SupportSettings{
 					ReportAProblemType: model.NewPointer("type"),
-					ReportAProblemLink: model.NewPointer("link"),
+					ReportAProblemLink: model.NewPointer("http://example.com"),
 					ReportAProblemMail: model.NewPointer("mail"),
 					AllowDownloadLogs:  model.NewPointer(true),
 				},
@@ -333,7 +333,7 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"ReportAProblemType": "type",
-				"ReportAProblemLink": "link",
+				"ReportAProblemLink": "http://example.com",
 				"ReportAProblemMail": "mail",
 				"AllowDownloadLogs":  "true",
 			},
