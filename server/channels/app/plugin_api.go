@@ -661,11 +661,7 @@ func (api *PluginAPI) GetGroupsBySource(groupSource model.GroupSource) ([]*model
 }
 
 func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.AppError) {
-	groupSearchOpts := model.GroupSearchOpts{
-		FilterHasMember: userID,
-	}
-
-	return api.app.GetGroupsByUserId(groupSearchOpts)
+	return api.app.GetGroupsByUserId(userID, model.GroupSearchOpts{})
 }
 
 func (api *PluginAPI) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {

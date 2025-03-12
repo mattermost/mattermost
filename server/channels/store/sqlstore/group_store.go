@@ -301,7 +301,7 @@ func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.
 	return groups, nil
 }
 
-func (s *SqlGroupStore) GetByUser(opts model.GroupSearchOpts) ([]*model.Group, error) {
+func (s *SqlGroupStore) GetByUser(userID string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 	groups := []*model.Group{}
 
 	builder := s.getQueryBuilder().
@@ -310,7 +310,7 @@ func (s *SqlGroupStore) GetByUser(opts model.GroupSearchOpts) ([]*model.Group, e
 		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
 		Where(sq.Eq{
 			"GroupMembers.DeleteAt": 0,
-			"UserId":                opts.FilterHasMember,
+			"UserId":                userID,
 		})
 
 	if opts.FilterAllowReference {

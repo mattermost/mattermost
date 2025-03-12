@@ -5376,11 +5376,11 @@ func (s *RetryLayerGroupStore) GetByRemoteID(remoteID string, groupSource model.
 
 }
 
-func (s *RetryLayerGroupStore) GetByUser(opts model.GroupSearchOpts) ([]*model.Group, error) {
+func (s *RetryLayerGroupStore) GetByUser(userID string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.GetByUser(opts)
+		result, err := s.GroupStore.GetByUser(userID, opts)
 		if err == nil {
 			return result, nil
 		}

@@ -818,17 +818,13 @@ func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	allowReference := false
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-		allowReference = true
-	}
+	filterAllowReference := !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
 
 	opts := model.GroupSearchOpts{
-		FilterAllowReference: allowReference,
-		FilterHasMember:      c.Params.UserId,
+		FilterAllowReference: filterAllowReference,
 	}
 
-	groups, appErr := c.App.GetGroupsByUserId(opts)
+	groups, appErr := c.App.GetGroupsByUserId(c.Params.UserId, opts)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -895,15 +891,12 @@ func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError
 		return nil, model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionListTeamChannels})
 	}
 
-	allowReference := c.Params.FilterAllowReference
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-		allowReference = true
-	}
+	filterAllowReference := c.Params.FilterAllowReference || !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
 
 	opts := model.GroupSearchOpts{
 		Q:                    c.Params.Q,
 		IncludeMemberCount:   c.Params.IncludeMemberCount,
-		FilterAllowReference: allowReference,
+		FilterAllowReference: filterAllowReference,
 	}
 	if c.Params.Paginate == nil || *c.Params.Paginate {
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
@@ -949,15 +942,12 @@ func getGroupsByChannelCommon(c *Context, r *http.Request) ([]byte, *model.AppEr
 		return nil, model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
 	}
 
-	allowReference := c.Params.FilterAllowReference
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-		allowReference = true
-	}
+	filterAllowReference := c.Params.FilterAllowReference || !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
 
 	opts := model.GroupSearchOpts{
 		Q:                    c.Params.Q,
 		IncludeMemberCount:   c.Params.IncludeMemberCount,
-		FilterAllowReference: allowReference,
+		FilterAllowReference: filterAllowReference,
 	}
 	if c.Params.Paginate == nil || *c.Params.Paginate {
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
@@ -1002,15 +992,12 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	allowReference := c.Params.FilterAllowReference
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-		allowReference = true
-	}
+	filterAllowReference := c.Params.FilterAllowReference || !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
 
 	opts := model.GroupSearchOpts{
 		Q:                    c.Params.Q,
 		IncludeMemberCount:   c.Params.IncludeMemberCount,
-		FilterAllowReference: allowReference,
+		FilterAllowReference: filterAllowReference,
 	}
 	if c.Params.Paginate == nil || *c.Params.Paginate {
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
@@ -1079,15 +1066,12 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Include archived groups
 	includeArchived := r.URL.Query().Get("include_archived") == "true"
 
-	allowReference := c.Params.FilterAllowReference
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-		allowReference = true
-	}
+	filterAllowReference := c.Params.FilterAllowReference || !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
 
 	opts := model.GroupSearchOpts{
 		Q:                         c.Params.Q,
 		IncludeMemberCount:        c.Params.IncludeMemberCount,
-		FilterAllowReference:      allowReference,
+		FilterAllowReference:      filterAllowReference,
 		FilterArchived:            c.Params.FilterArchived,
 		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
 		Source:                    source,
