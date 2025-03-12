@@ -80,19 +80,6 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
           useChannelMentions={false}
           value="Fake Channel"
         />
-        <TextboxLinks
-          hasExceededCharacterLimit={false}
-          hasText={true}
-          iconOnly={true}
-          previewMessageLink={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Edit"
-              id="edit_channel_header_modal.previewHeader"
-            />
-          }
-          showPreview={false}
-          updatePreview={[Function]}
-        />
       </div>
       <div
         className="post-create-footer"
@@ -225,19 +212,6 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
           supportsCommands={false}
           useChannelMentions={false}
           value="Fake Channel"
-        />
-        <TextboxLinks
-          hasExceededCharacterLimit={false}
-          hasText={true}
-          iconOnly={true}
-          previewMessageLink={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Edit"
-              id="edit_channel_header_modal.previewHeader"
-            />
-          }
-          showPreview={false}
-          updatePreview={[Function]}
         />
       </div>
       <div
@@ -390,19 +364,6 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
           useChannelMentions={false}
           value="Fake Channel"
         />
-        <TextboxLinks
-          hasExceededCharacterLimit={false}
-          hasText={true}
-          iconOnly={true}
-          previewMessageLink={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Edit"
-              id="edit_channel_header_modal.previewHeader"
-            />
-          }
-          showPreview={false}
-          updatePreview={[Function]}
-        />
       </div>
       <div
         className="post-create-footer"
@@ -546,19 +507,6 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
           useChannelMentions={false}
           value="Fake Channel"
         />
-        <TextboxLinks
-          hasExceededCharacterLimit={false}
-          hasText={true}
-          iconOnly={true}
-          previewMessageLink={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Edit"
-              id="edit_channel_header_modal.previewHeader"
-            />
-          }
-          showPreview={false}
-          updatePreview={[Function]}
-        />
       </div>
       <div
         className="post-create-footer"
@@ -691,19 +639,6 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
           supportsCommands={false}
           useChannelMentions={false}
           value="Fake Channel"
-        />
-        <TextboxLinks
-          hasExceededCharacterLimit={false}
-          hasText={true}
-          iconOnly={true}
-          previewMessageLink={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Edit"
-              id="edit_channel_header_modal.previewHeader"
-            />
-          }
-          showPreview={false}
-          updatePreview={[Function]}
         />
       </div>
       <div

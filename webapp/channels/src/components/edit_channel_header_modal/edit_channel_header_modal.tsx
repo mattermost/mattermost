@@ -253,19 +253,6 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                                 preview={this.props.shouldShowPreview}
                                 useChannelMentions={false}
                             />
-                            <TextboxLinks
-                                showPreview={this.props.shouldShowPreview}
-                                updatePreview={this.setShowPreview}
-                                hasText={this.state.header ? this.state.header.length > 0 : false}
-                                hasExceededCharacterLimit={this.state.header ? this.state.header.length > headerMaxLength : false}
-                                previewMessageLink={
-                                    <FormattedMessage
-                                        id='edit_channel_header_modal.previewHeader'
-                                        defaultMessage='Edit'
-                                    />
-                                }
-                                iconOnly={true}
-                            />
                         </div>
                         <div className='post-create-footer'>
                             <TextboxLinks
