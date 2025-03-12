@@ -1866,6 +1866,10 @@
     "translation": "remote_id must be blank for custom group"
   },
   {
+    "id": "api.custom_profile_attributes.field_conversion_error",
+    "translation": "unable to convert the property field to a custom profile attribute field"
+  },
+  {
     "id": "api.custom_profile_attributes.field_not_found",
     "translation": "trying to patch a field that does not exist"
   },
@@ -5043,8 +5047,8 @@
     "translation": "Unable to get custom profile attribute values"
   },
   {
-    "id": "app.custom_profile_attributes.not_string_value_type.app_error",
-    "translation": "The value type must be a string"
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": ""
   },
   {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",
