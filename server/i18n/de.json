@@ -4648,11 +4648,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 130+"
+    "translation": "Version 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 130+"
+    "translation": "Version 132+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10438,5 +10438,25 @@
   {
     "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
     "translation": "Die Anzahl der Elemente in ClientSideUserIds {{.CurrentLength}} ist höher als die maximale Grenze von {{.MaxLength}}."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Kanalbanner können nur für öffentliche und private Kanäle konfiguriert werden."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Die Farbe des Kanalbanners darf nicht leer sein, wenn das Kanalbanner aktiviert ist"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Kanalbanner können nur für öffentliche und private Kanäle konfiguriert werden"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Kanalbanner-Infotext kann nicht leer sein, wenn Kanalbanner aktiviert ist"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Der Text im Kanalbanner ist zu lang. Die maximal zulässige Länge beträgt {{.maxLength}} Zeichen."
   }
 ]

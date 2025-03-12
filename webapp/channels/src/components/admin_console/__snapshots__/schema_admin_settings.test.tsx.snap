@@ -422,7 +422,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             id="SecondSettings.settingj"
             key="Config_language_SecondSettings.settingj"
             label="label-j"
-            noResultText="no-result-j"
+            noOptionsMessage="no-result-j"
             onChange={[Function]}
             selected={Array []}
             setByEnv={false}

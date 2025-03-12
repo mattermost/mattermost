@@ -441,6 +441,7 @@ type ServiceSettings struct {
 	MaximumURLLength                                  *int    `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	ScheduledPosts                                    *bool   `access:"site_posts"`
 	EnableWebHubChannelIteration                      *bool   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	FrameAncestors                                    *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 var MattermostGiphySdkKey string
@@ -968,6 +969,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableWebHubChannelIteration == nil {
 		s.EnableWebHubChannelIteration = NewPointer(false)
 	}
+
+	if s.FrameAncestors == nil {
+		s.FrameAncestors = NewPointer("")
+	}
 }
 
 type CacheSettings struct {
@@ -1133,7 +1138,7 @@ type ExperimentalSettings struct {
 	ClientSideCertEnable                                  *bool   `access:"experimental_features,cloud_restrictable"`
 	ClientSideCertCheck                                   *string `access:"experimental_features,cloud_restrictable"`
 	LinkMetadataTimeoutMilliseconds                       *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	RestrictSystemAdmin                                   *bool   `access:"experimental_features,write_restrictable"`
+	RestrictSystemAdmin                                   *bool   `access:"*_read,write_restrictable"`
 	EnableSharedChannels                                  *bool   `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableSharedChannels`
 	EnableRemoteClusterService                            *bool   `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableRemoteClusterService`
 	DisableAppBar                                         *bool   `access:"experimental_features"`
