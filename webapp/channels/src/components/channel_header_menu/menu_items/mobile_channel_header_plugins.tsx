@@ -34,12 +34,13 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
     const dispatch = useDispatch();
 
     const createAppButton = (binding: AppBinding) => {
-        const onClick = () => fireAppAction(binding);
+        const handleAppButtonClick = () => fireAppAction(binding);
+        
         if (props.isDropdown) {
             return (
                 <Menu.Item
                     key={'mobileChannelHeaderItem' + binding.app_id + binding.location}
-                    onClick={onClick}
+                    onClick={handleAppButtonClick}
                     labels={<span>{binding.label}</span>}
                 />
             );
@@ -49,7 +50,7 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
                 <button
                     id={`${binding.app_id}_${binding.location}`}
                     className='navbar-toggle navbar-right__icon'
-                    onClick={onClick}
+                    onClick={handleAppButtonClick}
                 >
                     <span className='icon navbar-plugin-button'>
                         <img
@@ -63,14 +64,16 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
             </li>
         );
     };
+    
     const createButton = (plug: MobileChannelHeaderButtonAction) => {
-        const onClick = () => fireAction(plug);
+        const handlePluginButtonClick = () => fireAction(plug);
+        
         if (props.isDropdown) {
             return (
                 <Menu.Item
                     key={'mobileChannelHeaderItem' + plug.id}
                     id={'mobileChannelHeaderItem' + plug.id}
-                    onClick={onClick}
+                    onClick={handlePluginButtonClick}
                     labels={<span>{plug.dropdownText}</span>}
                 />
             );
@@ -80,7 +83,7 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
             <li className='flex-parent--center'>
                 <button
                     className='navbar-toggle navbar-right__icon'
-                    onClick={onClick}
+                    onClick={handlePluginButtonClick}
                 >
                     <span className='icon navbar-plugin-button'>
                         {plug.icon}
@@ -111,40 +114,47 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
             channel.team_id,
         );
 
+        const handleAppResponse = (callResp: any, errorResponse?: any) => {
+            if (errorResponse) {
+                const errorMessage = errorResponse.text || intl.formatMessage({
+                    id: 'apps.error.unknown',
+                    defaultMessage: 'Unknown error occurred.',
+                });
+                dispatch(postEphemeralCallResponseForChannel(errorResponse, errorMessage, channel.id));
+                return;
+            }
+            
+            switch (callResp.type) {
+            case AppCallResponseTypes.OK:
+                if (callResp.text) {
+                    dispatch(postEphemeralCallResponseForChannel(callResp, callResp.text, channel.id));
+                }
+                break;
+            case AppCallResponseTypes.NAVIGATE:
+                break;
+            case AppCallResponseTypes.FORM:
+                if (callResp.form) {
+                    dispatch(openAppsModal(callResp.form, context));
+                }
+                break;
+            default: {
+                const errorMessage = intl.formatMessage({
+                    id: 'apps.error.responses.unknown_type',
+                    defaultMessage: 'App response type not supported. Response type: {type}.',
+                }, {
+                    type: callResp.type,
+                });
+                dispatch(postEphemeralCallResponseForChannel(callResp, errorMessage, channel.id));
+            }
+            }
+        };
+
         const res = await dispatch(handleBindingClick(binding, context, intl));
         if (res.error) {
-            const errorResponse = res.error;
-            const errorMessage = errorResponse.text || intl.formatMessage({
-                id: 'apps.error.unknown',
-                defaultMessage: 'Unknown error occurred.',
-            });
-            dispatch(postEphemeralCallResponseForChannel(errorResponse, errorMessage, channel.id));
+            handleAppResponse(null, res.error);
             return;
         }
-        const callResp = res.data!;
-        switch (callResp.type) {
-        case AppCallResponseTypes.OK:
-            if (callResp.text) {
-                dispatch(postEphemeralCallResponseForChannel(callResp, callResp.text, channel.id));
-            }
-            break;
-        case AppCallResponseTypes.NAVIGATE:
-            break;
-        case AppCallResponseTypes.FORM:
-            if (callResp.form) {
-                dispatch(openAppsModal(callResp.form, context));
-            }
-            break;
-        default: {
-            const errorMessage = intl.formatMessage({
-                id: 'apps.error.responses.unknown_type',
-                defaultMessage: 'App response type not supported. Response type: {type}.',
-            }, {
-                type: callResp.type,
-            });
-            dispatch(postEphemeralCallResponseForChannel(callResp, errorMessage, channel.id));
-        }
-        }
+        handleAppResponse(res.data!);
     };
 
     const components = mobileComponents || [];
