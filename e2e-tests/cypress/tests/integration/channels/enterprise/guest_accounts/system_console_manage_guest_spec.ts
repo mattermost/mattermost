@@ -106,8 +106,8 @@ describe('Guest Account - Verify Manage Guest Users', () => {
 
         // * Verify the confirmation message displayed
         cy.get('#confirmModal').should('be.visible').within(() => {
-            cy.get('#confirmModalLabel').should('be.visible').and('have.text', `Revoke Sessions for ${guestUser.username}`);
-            cy.get('.modal-body').should('be.visible').and('have.text', `This action revokes all sessions for ${guestUser.username}. They will be logged out from all devices. Are you sure you want to revoke all sessions for ${guestUser.username}?`);
+            cy.get('#genericModalLabel').should('be.visible').and('have.text', `Revoke Sessions for ${guestUser.username}`);
+            cy.get('.modal-body .ConfirmModal__body').should('be.visible').and('have.text', `This action revokes all sessions for ${guestUser.username}. They will be logged out from all devices. Are you sure you want to revoke all sessions for ${guestUser.username}?`);
         });
 
         // * Verify the behavior when Cancel button in the confirmation message is clicked
