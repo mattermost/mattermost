@@ -30,7 +30,7 @@ type Props = {
 const EditChannelSettings = ({channel, isReadonly, isDefault}: Props): JSX.Element => {
     const dispatch = useDispatch();
     const channelPropertiesPermission = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
-    
+
     const handleRenameChannel = () => {
         dispatch(
             openModal({
@@ -40,7 +40,7 @@ const EditChannelSettings = ({channel, isReadonly, isDefault}: Props): JSX.Eleme
             }),
         );
     };
-    
+
     const handleEditHeader = () => {
         dispatch(
             openModal({
@@ -50,7 +50,7 @@ const EditChannelSettings = ({channel, isReadonly, isDefault}: Props): JSX.Eleme
             }),
         );
     };
-    
+
     const handleEditPurpose = () => {
         dispatch(
             openModal({

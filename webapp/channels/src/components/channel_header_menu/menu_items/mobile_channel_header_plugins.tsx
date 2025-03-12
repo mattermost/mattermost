@@ -35,7 +35,7 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
 
     const createAppButton = (binding: AppBinding) => {
         const handleAppButtonClick = () => fireAppAction(binding);
-        
+
         if (props.isDropdown) {
             return (
                 <Menu.Item
@@ -64,10 +64,10 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
             </li>
         );
     };
-    
+
     const createButton = (plug: MobileChannelHeaderButtonAction) => {
         const handlePluginButtonClick = () => fireAction(plug);
-        
+
         if (props.isDropdown) {
             return (
                 <Menu.Item
@@ -123,7 +123,7 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
                 dispatch(postEphemeralCallResponseForChannel(errorResponse, errorMessage, channel.id));
                 return;
             }
-            
+
             switch (callResp.type) {
             case AppCallResponseTypes.OK:
                 if (callResp.text) {
