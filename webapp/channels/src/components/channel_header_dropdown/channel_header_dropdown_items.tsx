@@ -57,6 +57,8 @@ export type Props = {
     isChannelBookmarksEnabled: boolean;
 }
 
+const SHOW_SETTINGS_MODAL = true;
+
 export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
     render() {
         const {
@@ -125,6 +127,15 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                         show={isMobile}
                         channel={channel}
                         isFavorite={isFavorite}
+                    />
+                    <Menu.ItemToggleModalRedux
+                        id='channelSettings'
+                        show={!isArchived && channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && SHOW_SETTINGS_MODAL}
+                        modalId={ModalIdentifiers.CHANNEL_SETTINGS}
+                        dialogType={ChannelSettingsModal}
+                        dialogProps={{channel}}
+                        text={localizeMessage({id: 'channel_header.settings', defaultMessage: 'Channel Settings'})}
+
                     />
                     <MenuItemViewPinnedPosts
                         show={isMobile}
@@ -272,14 +283,6 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                             dialogType={RenameChannelModal}
                             dialogProps={{channel}}
                             text={localizeMessage({id: 'channel_header.rename', defaultMessage: 'Rename Channel'})}
-                        />
-                        <Menu.ItemToggleModalRedux
-                            id='channelSettings'
-                            show={!isArchived && channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL}
-                            modalId={ModalIdentifiers.CHANNEL_SETTINGS}
-                            dialogType={ChannelSettingsModal}
-                            dialogProps={{channel}}
-                            text={localizeMessage({id: 'channel_header.settings', defaultMessage: 'Channel Settings'})}
                         />
                     </ChannelPermissionGate>
                     <ChannelPermissionGate

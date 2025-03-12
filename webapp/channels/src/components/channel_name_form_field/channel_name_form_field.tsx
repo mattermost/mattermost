@@ -24,6 +24,7 @@ export type Props = {
     placeholder: string;
     onDisplayNameChange: (name: string) => void;
     onURLChange: (url: string) => void;
+    currentUrl?: string;
     autoFocus?: boolean;
     onErrorStateChange?: (isError: boolean) => void;
     team?: Team;
@@ -58,7 +59,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
     const [displayNameError, setDisplayNameError] = useState<string>('');
     const displayName = useRef<string>('');
     const urlModified = useRef<boolean>(false);
-    const [url, setURL] = useState<string>('');
+    const [url, setURL] = useState<string>(props.currentUrl || '');
     const [urlError, setURLError] = useState<string>('');
     const [inputCustomMessage, setInputCustomMessage] = useState<CustomMessageInputType | null>(null);
 

@@ -564,6 +564,7 @@ https://myothersite.com/api/v2"
                         />
                       }
                       modalLocation="center"
+                      onExited={[Function]}
                       onHide={[Function]}
                       show={false}
                       showCloseButton={true}
@@ -593,6 +594,7 @@ https://myothersite.com/api/v2"
                             "remove": [Function],
                           }
                         }
+                        onExited={[Function]}
                         onHide={[Function]}
                         renderBackdrop={[Function]}
                         restoreFocus={true}
@@ -1320,6 +1322,7 @@ https://myothersite.com/api/v2"
                         />
                       }
                       modalLocation="center"
+                      onExited={[Function]}
                       onHide={[Function]}
                       show={false}
                       showCloseButton={true}
@@ -1349,6 +1352,7 @@ https://myothersite.com/api/v2"
                             "remove": [Function],
                           }
                         }
+                        onExited={[Function]}
                         onHide={[Function]}
                         renderBackdrop={[Function]}
                         restoreFocus={true}
@@ -2075,6 +2079,7 @@ https://myothersite.com/api/v2"
                         />
                       }
                       modalLocation="center"
+                      onExited={[Function]}
                       onHide={[Function]}
                       show={false}
                       showCloseButton={true}
@@ -2104,6 +2109,7 @@ https://myothersite.com/api/v2"
                             "remove": [Function],
                           }
                         }
+                        onExited={[Function]}
                         onHide={[Function]}
                         renderBackdrop={[Function]}
                         restoreFocus={true}
