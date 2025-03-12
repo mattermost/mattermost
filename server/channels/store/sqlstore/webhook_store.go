@@ -17,54 +17,61 @@ import (
 type SqlWebhookStore struct {
 	*SqlStore
 	metrics einterfaces.MetricsInterface
-}
-
-func incomingWebhookColumns() []string {
-	return []string{
-		"Id",
-		"CreateAt",
-		"UpdateAt",
-		"DeleteAt",
-		"UserId",
-		"ChannelId",
-		"TeamId",
-		"DisplayName",
-		"Description",
-		"Username",
-		"IconURL",
-		"ChannelLocked",
-	}
-}
-
-func outgoingWebhookColumns() []string {
-	return []string{
-		"Id",
-		"Token",
-		"CreateAt",
-		"UpdateAt",
-		"DeleteAt",
-		"CreatorId",
-		"ChannelId",
-		"TeamId",
-		"TriggerWords",
-		"TriggerWhen",
-		"CallbackURLs",
-		"DisplayName",
-		"Description",
-		"ContentType",
-		"Username",
-		"IconURL",
-	}
+	
+	incomingWebhookSelectQuery sq.SelectBuilder
+	outgoingWebhookSelectQuery sq.SelectBuilder
 }
 
 func (s SqlWebhookStore) ClearCaches() {
 }
 
 func newSqlWebhookStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.WebhookStore {
-	return &SqlWebhookStore{
+	s := &SqlWebhookStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
+	
+	// Initialize query builders for incoming webhooks
+	s.incomingWebhookSelectQuery = s.getQueryBuilder().
+		Select(
+			"Id",
+			"CreateAt",
+			"UpdateAt",
+			"DeleteAt",
+			"UserId",
+			"ChannelId",
+			"TeamId",
+			"DisplayName",
+			"Description",
+			"Username",
+			"IconURL",
+			"ChannelLocked",
+		).
+		From("IncomingWebhooks")
+	
+	// Initialize query builders for outgoing webhooks
+	s.outgoingWebhookSelectQuery = s.getQueryBuilder().
+		Select(
+			"Id",
+			"Token",
+			"CreateAt",
+			"UpdateAt",
+			"DeleteAt",
+			"CreatorId",
+			"ChannelId",
+			"TeamId",
+			"TriggerWords",
+			"TriggerWhen",
+			"CallbackURLs",
+			"DisplayName",
+			"Description",
+			"ContentType",
+			"Username",
+			"IconURL",
+		).
+		From("OutgoingWebhooks")
+	
+	return s
 }
 
 func (s SqlWebhookStore) InvalidateWebhookCache(webhookId string) {
@@ -107,9 +114,7 @@ func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) (*model.Inc
 func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, error) {
 	var webhook model.IncomingWebhook
 	
-	query := s.getQueryBuilder().
-		Select(incomingWebhookColumns()...).
-		From("IncomingWebhooks").
+	query := s.incomingWebhookSelectQuery.
 		Where(sq.And{
 			sq.Eq{"Id": id},
 			sq.Eq{"DeleteAt": 0},
@@ -159,10 +164,10 @@ func (s SqlWebhookStore) GetIncomingList(offset, limit int) ([]*model.IncomingWe
 func (s SqlWebhookStore) GetIncomingListByUser(userId string, offset, limit int) ([]*model.IncomingWebhook, error) {
 	webhooks := []*model.IncomingWebhook{}
 
-	query := s.getQueryBuilder().
-		Select(incomingWebhookColumns()...).
-		From("IncomingWebhooks").
-		Where(sq.Eq{"DeleteAt": int(0)}).Limit(uint64(limit)).Offset(uint64(offset))
+	query := s.incomingWebhookSelectQuery.
+		Where(sq.Eq{"DeleteAt": int(0)}).
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
 	if userId != "" {
 		query = query.Where(sq.Eq{"UserId": userId})
@@ -178,13 +183,13 @@ func (s SqlWebhookStore) GetIncomingListByUser(userId string, offset, limit int)
 func (s SqlWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.IncomingWebhook, error) {
 	webhooks := []*model.IncomingWebhook{}
 
-	query := s.getQueryBuilder().
-		Select(incomingWebhookColumns()...).
-		From("IncomingWebhooks").
+	query := s.incomingWebhookSelectQuery.
 		Where(sq.And{
 			sq.Eq{"TeamId": teamId},
 			sq.Eq{"DeleteAt": int(0)},
-		}).Limit(uint64(limit)).Offset(uint64(offset))
+		}).
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
 	if userId != "" {
 		query = query.Where(sq.Eq{"UserId": userId})
@@ -204,9 +209,7 @@ func (s SqlWebhookStore) GetIncomingByTeam(teamId string, offset, limit int) ([]
 func (s SqlWebhookStore) GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, error) {
 	webhooks := []*model.IncomingWebhook{}
 
-	query := s.getQueryBuilder().
-		Select(incomingWebhookColumns()...).
-		From("IncomingWebhooks").
+	query := s.incomingWebhookSelectQuery.
 		Where(sq.And{
 			sq.Eq{"ChannelId": channelId},
 			sq.Eq{"DeleteAt": 0},
@@ -244,9 +247,7 @@ func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*model.Ou
 func (s SqlWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, error) {
 	var webhook model.OutgoingWebhook
 
-	query := s.getQueryBuilder().
-		Select(outgoingWebhookColumns()...).
-		From("OutgoingWebhooks").
+	query := s.outgoingWebhookSelectQuery.
 		Where(sq.And{
 			sq.Eq{"Id": id},
 			sq.Eq{"DeleteAt": 0},
@@ -266,12 +267,12 @@ func (s SqlWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, error) 
 func (s SqlWebhookStore) GetOutgoingListByUser(userId string, offset, limit int) ([]*model.OutgoingWebhook, error) {
 	webhooks := []*model.OutgoingWebhook{}
 
-	query := s.getQueryBuilder().
-		Select(outgoingWebhookColumns()...).
-		From("OutgoingWebhooks").
+	query := s.outgoingWebhookSelectQuery.
 		Where(sq.And{
 			sq.Eq{"DeleteAt": int(0)},
-		}).Limit(uint64(limit)).Offset(uint64(offset))
+		}).
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
 	if userId != "" {
 		query = query.Where(sq.Eq{"CreatorId": userId})
@@ -291,9 +292,7 @@ func (s SqlWebhookStore) GetOutgoingList(offset, limit int) ([]*model.OutgoingWe
 func (s SqlWebhookStore) GetOutgoingByChannelByUser(channelId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, error) {
 	webhooks := []*model.OutgoingWebhook{}
 
-	query := s.getQueryBuilder().
-		Select(outgoingWebhookColumns()...).
-		From("OutgoingWebhooks").
+	query := s.outgoingWebhookSelectQuery.
 		Where(sq.And{
 			sq.Eq{"ChannelId": channelId},
 			sq.Eq{"DeleteAt": int(0)},
@@ -320,9 +319,7 @@ func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, offset, limit in
 func (s SqlWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, error) {
 	webhooks := []*model.OutgoingWebhook{}
 
-	query := s.getQueryBuilder().
-		Select(outgoingWebhookColumns()...).
-		From("OutgoingWebhooks").
+	query := s.outgoingWebhookSelectQuery.
 		Where(sq.And{
 			sq.Eq{"TeamId": teamId},
 			sq.Eq{"DeleteAt": int(0)},
