@@ -26,7 +26,13 @@ func newSqlUserAccessTokenStore(sqlStore *SqlStore) store.UserAccessTokenStore {
 	}
 
 	s.userAccessTokensSelectQuery = s.getQueryBuilder().
-		Select("Id", "Token", "UserId", "Description", "IsActive").
+		Select(
+			"UserAccessTokens.Id",
+			"UserAccessTokens.Token",
+			"UserAccessTokens.UserId",
+			"UserAccessTokens.Description",
+			"UserAccessTokens.IsActive",
+		).
 		From("UserAccessTokens")
 
 	return s
@@ -196,17 +202,8 @@ func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, 
 	term = sanitizeSearchTerm(term, "\\")
 	tokens := []*model.UserAccessToken{}
 	
-	// Create a custom query instead of using userAccessTokensSelectQuery
-	// This ensures we explicitly qualify all columns to avoid ambiguity
-	query := s.getQueryBuilder().
-		Select(
-			"UserAccessTokens.Id",
-			"UserAccessTokens.Token", 
-			"UserAccessTokens.UserId",
-			"UserAccessTokens.Description",
-			"UserAccessTokens.IsActive",
-		).
-		From("UserAccessTokens").
+	// Use the userAccessTokensSelectQuery which already has qualified column names
+	query := s.userAccessTokensSelectQuery.
 		InnerJoin("Users ON UserAccessTokens.UserId = Users.Id").
 		Where(sq.Or{
 			sq.Like{"UserAccessTokens.Id": term},
