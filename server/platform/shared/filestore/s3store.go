@@ -63,7 +63,6 @@ const (
 )
 
 var (
-	// Existing image maps
 	imageExtensions = map[string]bool{".jpg": true, ".jpeg": true, ".gif": true, ".bmp": true, ".png": true, ".tiff": true, "tif": true}
 	imageMimeTypes  = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
 
@@ -526,6 +525,7 @@ func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path
 	default:
 		contentType = "binary/octet-stream"
 	}
+	
 	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
 
 	objSize := int64(-1)
