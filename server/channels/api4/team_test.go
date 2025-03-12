@@ -2456,7 +2456,7 @@ func TestAddTeamMemberGuestPermissions(t *testing.T) {
 		guestUser := th.CreateGuestUser(t)
 
 		_, resp, err := th.Client.AddTeamMember(context.Background(), th.BasicTeam.Id, guestUser.Id)
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 }
@@ -2805,7 +2805,7 @@ func TestAddTeamMembersGuestPermissions(t *testing.T) {
 		guestUser := th.CreateGuestUser(t)
 
 		_, resp, err := th.Client.AddTeamMembers(context.Background(), th.BasicTeam.Id, []string{guestUser.Id})
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 }
