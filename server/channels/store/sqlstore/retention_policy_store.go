@@ -641,8 +641,13 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 }
 
 func subQueryIN(property string, query sq.SelectBuilder) sq.Sqlizer {
+	// Extract the SQL query string and arguments
 	queryString, args := query.MustSql()
-	subQuery := fmt.Sprintf("%s IN (SELECT * FROM (%s) AS A)", property, queryString)
+	
+	// Extract the field being selected using the property name
+	// Since the query is already selecting a specific column (e.g., "ChannelId" or "TeamId"),
+	// we can use that same property in the outer query instead of using SELECT *
+	subQuery := fmt.Sprintf("%s IN (SELECT %s FROM (%s) AS A)", property, property, queryString)
 	return sq.Expr(subQuery, args...)
 }
 
