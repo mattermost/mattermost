@@ -55,15 +55,15 @@ func TestGetCPAField(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdField, err := th.App.CreateCPAField(field)
-		require.NoError(t, err)
+		createdField, appErr := th.App.CreateCPAField(field)
+		require.Nil(t, appErr)
 		require.NotEmpty(t, createdField.ID)
 
-		fetchedField, err := th.App.GetCPAField(createdField.ID)
-		require.NoError(t, err)
+		fetchedField, appErr := th.App.GetCPAField(createdField.ID)
+		require.Nil(t, appErr)
 		require.Equal(t, createdField.ID, fetchedField.ID)
 		require.Equal(t, "Test Field", fetchedField.Name)
-		require.Equal(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden}, fetchedField.Attrs)
+		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, fetchedField.Attrs["visibility"])
 	})
 }
 
@@ -151,11 +151,11 @@ func TestCreateCPAField(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdField, err := th.App.CreateCPAField(field)
-		require.NoError(t, err)
+		createdField, appErr := th.App.CreateCPAField(field)
+		require.Nil(t, appErr)
 		require.NotZero(t, createdField.ID)
 		require.Equal(t, cpaGroupID, createdField.GroupID)
-		require.Equal(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden}, createdField.Attrs)
+		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, createdField.Attrs["visibility"])
 
 		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField("", createdField.ID)
 		require.NoError(t, gErr)
@@ -180,8 +180,8 @@ func TestCreateCPAField(t *testing.T) {
 				})
 				require.NoError(t, err)
 
-				createdField, err := th.App.CreateCPAField(field)
-				require.NoError(t, err)
+				createdField, appErr := th.App.CreateCPAField(field)
+				require.Nil(t, appErr)
 				require.NotZero(t, createdField.ID)
 			}
 
@@ -238,8 +238,8 @@ func TestPatchCPAField(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	createdField, err := th.App.CreateCPAField(newField)
-	require.NoError(t, err)
+	createdField, appErr := th.App.CreateCPAField(newField)
+	require.Nil(t, appErr)
 
 	patch := &model.PropertyFieldPatch{
 		Name:       model.NewPointer("Patched name"),
@@ -304,8 +304,8 @@ func TestPatchCPAField(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		createdSelectField, err := th.App.CreateCPAField(selectField)
-		require.NoError(t, err)
+		createdSelectField, appErr := th.App.CreateCPAField(selectField)
+		require.Nil(t, appErr)
 
 		// Get the original option IDs
 		options := createdSelectField.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
@@ -337,8 +337,8 @@ func TestPatchCPAField(t *testing.T) {
 			}),
 		}
 
-		updatedSelectField, err := th.App.PatchCPAField(createdSelectField.ID, selectPatch)
-		require.NoError(t, err)
+		updatedSelectField, appErr := th.App.PatchCPAField(createdSelectField.ID, selectPatch)
+		require.Nil(t, appErr)
 
 		updatedOptions := updatedSelectField.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
 		require.Len(t, updatedOptions, 3)
