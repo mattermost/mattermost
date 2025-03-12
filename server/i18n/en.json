@@ -516,6 +516,10 @@
     "translation": "{{.Username}} unarchived the channel."
   },
   {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Channel banner can only be configured on Public and Private channels."
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "The channel has been archived or deleted."
   },
@@ -8493,6 +8497,22 @@
     "translation": "Name must be 1 or more lowercase alphanumeric character."
   },
   {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Channel banner color cannot be empty when channel banner is enabled"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Channel banner can only be configured on Public and Private channels"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Channel banner info text cannot be empty when channel banner is enabled"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Channel banner info text is too long. Max allowed length is {{.maxLength}} characters."
+  },
+  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
@@ -10342,11 +10362,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 130+"
+    "translation": "Version 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 130+"
+    "translation": "Version 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
