@@ -35,7 +35,7 @@ const ProfilePopoverCustomAttributes = ({
         }
     });
 
-    const attributeSections = Object.values(customProfileAttributeFields).map((attribute) => {
+    const attributeSections = customProfileAttributeFields.map((attribute) => {
         if (!hideStatus && userProfile.custom_profile_attributes) {
             const visibility = attribute.attrs?.visibility || 'when-set';
             if (visibility === 'never') {

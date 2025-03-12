@@ -266,5 +266,21 @@
   {
     "id": "app.post.move_thread.from_another_channel",
     "translation": "Denne tråden ble flyttet fra en annen kanal"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook-hendelsen ble ikke håndtert. Enten mangler den, eller så er den ikke gyldig."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Intern feil oppsto under cloud api-forespørsel."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Lisensen din støtter ikke skyforespørsler."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Har allerede varslet admin"
   }
 ]

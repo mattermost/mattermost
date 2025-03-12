@@ -96,11 +96,11 @@ function useTimePostBoxIndicator(channelId: string) {
 
     const isScheduledPostEnabledValue = useSelector(isScheduledPostsEnabled);
 
-    const showRemoteUserHour = isDM && showIt && timestamp !== 0;
-
     const currentUserId = useSelector(getCurrentUserId);
     const isSelfDM = isDM && teammateId === currentUserId;
     const isBot = Boolean(isDM && teammate?.is_bot);
+
+    const showRemoteUserHour = isDM && showIt && timestamp !== 0 && !isBot;
 
     return {
         showRemoteUserHour,
