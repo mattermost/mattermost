@@ -304,12 +304,12 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
-            customProfileAttributeFields: {
-                field1: {
+            customProfileAttributeFields: [
+                {
                     ...customProfileAttribute,
                     attrs: {ldap: 'ldap_field'},
                 },
-            },
+            ],
             user: {...user, auth_service: 'ldap'},
             activeSection: 'customAttribute_field1',
         };
@@ -325,12 +325,12 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
-            customProfileAttributeFields: {
-                field1: {
+            customProfileAttributeFields: [
+                {
                     ...customProfileAttribute,
                     attrs: {saml: 'saml_field'},
                 },
-            },
+            ],
             user: {...user, auth_service: 'saml'},
             activeSection: 'customAttribute_field1',
         };
@@ -346,12 +346,12 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
-            customProfileAttributeFields: {
-                field1: {
+            customProfileAttributeFields: [
+                {
                     ...customProfileAttribute,
                     attrs: {ldap: ''},
                 },
-            },
+            ],
             user: {...user, auth_service: 'ldap'},
             activeSection: 'customAttribute_field1',
         };
