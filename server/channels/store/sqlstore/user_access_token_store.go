@@ -202,7 +202,6 @@ func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, 
 	term = sanitizeSearchTerm(term, "\\")
 	tokens := []*model.UserAccessToken{}
 	
-	// Use the userAccessTokensSelectQuery which already has qualified column names
 	query := s.userAccessTokensSelectQuery.
 		InnerJoin("Users ON UserAccessTokens.UserId = Users.Id").
 		Where(sq.Or{
