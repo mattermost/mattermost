@@ -400,7 +400,6 @@ import (
 	"net/http"
 	timePkg "time"
 
-	saml2 "github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 

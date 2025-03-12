@@ -1169,15 +1169,15 @@ func init() {
 type Z_OnSAMLLoginArgs struct {
 	A *Context
 	B *model.User
-	C string
+	C *saml2.AssertionInfo
 }
 
 type Z_OnSAMLLoginReturns struct {
 	A error
 }
 
-func (g *hooksRPCClient) OnSAMLLogin(c *Context, user *model.User, encodedXML string) error {
-	_args := &Z_OnSAMLLoginArgs{c, user, encodedXML}
+func (g *hooksRPCClient) OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error {
+	_args := &Z_OnSAMLLoginArgs{c, user, assertion}
 	_returns := &Z_OnSAMLLoginReturns{}
 	if g.implemented[OnSAMLLoginID] {
 		if err := g.client.Call("Plugin.OnSAMLLogin", _args, _returns); err != nil {
@@ -1189,7 +1189,7 @@ func (g *hooksRPCClient) OnSAMLLogin(c *Context, user *model.User, encodedXML st
 
 func (s *hooksRPCServer) OnSAMLLogin(args *Z_OnSAMLLoginArgs, returns *Z_OnSAMLLoginReturns) error {
 	if hook, ok := s.impl.(interface {
-		OnSAMLLogin(c *Context, user *model.User, encodedXML string) error
+		OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
 	}); ok {
 		returns.A = hook.OnSAMLLogin(args.A, args.B, args.C)
 		returns.A = encodableError(returns.A)
@@ -7110,35 +7110,6 @@ func (s *apiRPCServer) GetGroups(args *Z_GetGroupsArgs, returns *Z_GetGroupsRetu
 		returns.A, returns.B = hook.GetGroups(args.A, args.B, args.C, args.D)
 	} else {
 		return encodableError(fmt.Errorf("API GetGroups called but not implemented."))
-	}
-	return nil
-}
-
-type Z_ValidateSAMLResponseArgs struct {
-	A string
-}
-
-type Z_ValidateSAMLResponseReturns struct {
-	A *saml2.AssertionInfo
-	B *model.AppError
-}
-
-func (g *apiRPCClient) ValidateSAMLResponse(encodedXML string) (*saml2.AssertionInfo, *model.AppError) {
-	_args := &Z_ValidateSAMLResponseArgs{encodedXML}
-	_returns := &Z_ValidateSAMLResponseReturns{}
-	if err := g.client.Call("Plugin.ValidateSAMLResponse", _args, _returns); err != nil {
-		log.Printf("RPC call to ValidateSAMLResponse API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) ValidateSAMLResponse(args *Z_ValidateSAMLResponseArgs, returns *Z_ValidateSAMLResponseReturns) error {
-	if hook, ok := s.impl.(interface {
-		ValidateSAMLResponse(encodedXML string) (*saml2.AssertionInfo, *model.AppError)
-	}); ok {
-		returns.A, returns.B = hook.ValidateSAMLResponse(args.A)
-	} else {
-		return encodableError(fmt.Errorf("API ValidateSAMLResponse called but not implemented."))
 	}
 	return nil
 }

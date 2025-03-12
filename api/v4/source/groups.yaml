@@ -1087,7 +1087,7 @@
           schema:
             type: boolean
             default: false
-        - name: include_syncable_sources
+        - name: only_syncable_sources
           in: query
           description: Boolean which includes groups from syncable sources.
           schema:

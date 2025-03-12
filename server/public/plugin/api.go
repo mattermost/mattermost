@@ -9,7 +9,6 @@ import (
 
 	plugin "github.com/hashicorp/go-plugin"
 
-	saml2 "github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -1400,14 +1399,6 @@ type API interface {
 	// @tag Group
 	// Minimum server version: 10.7
 	GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError)
-
-	// ValidateSAMLResponse validates a SAML response.
-	// Requires SAML feature to be licensed and enabled.
-	//
-	// @tag User
-	// @tag SAML
-	// Minimum server version: 10.7
-	ValidateSAMLResponse(encodedXML string) (*saml2.AssertionInfo, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

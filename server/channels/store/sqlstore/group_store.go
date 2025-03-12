@@ -1624,7 +1624,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 
 	if opts.Source != "" {
 		groupsQuery = groupsQuery.Where("g.Source = ?", opts.Source)
-	} else if opts.IncludeSyncableSources {
+	} else if opts.OnlySyncableSources {
 		sources := model.GetSyncableGroupSources()
 		sourcePrefixes := model.GetSyncableGroupSourcePrefixes()
 

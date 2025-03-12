@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io"
 
-	saml2 "github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 )
@@ -262,15 +261,4 @@ func (u *UserService) UpdateRoles(userID, newRoles string) (*model.User, error) 
 	user, appErr := u.api.UpdateUserRoles(userID, newRoles)
 
 	return user, normalizeAppErr(appErr)
-}
-
-// ValidateSAMLResponse validates a SAML response.
-// Requires SAML feature to be licensed and enabled.
-//
-// @tag User
-// @tag SAML
-// Minimum server version: 10.7
-func (u *UserService) ValidateSAMLResponse(encodedXML string) (*saml2.AssertionInfo, error) {
-	info, appErr := u.api.ValidateSAMLResponse(encodedXML)
-	return info, normalizeAppErr(appErr)
 }

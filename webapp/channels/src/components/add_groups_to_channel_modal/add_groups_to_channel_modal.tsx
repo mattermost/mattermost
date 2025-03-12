@@ -37,7 +37,7 @@ export type Props = {
     onAddCallback?: (groupIDs: string[]) => void;
 
     actions: {
-        getGroupsNotAssociatedToChannel: (channelID: string, q?: string, page?: number, perPage?: number, filterParentTeamPermitted?: boolean, source?: GroupSource | string, includeSyncableSources?: boolean) => Promise<ActionResult>;
+        getGroupsNotAssociatedToChannel: (channelID: string, q?: string, page?: number, perPage?: number, filterParentTeamPermitted?: boolean, source?: GroupSource | string, onlySyncableSources?: boolean) => Promise<ActionResult>;
         setModalSearchTerm: (term: string) => void;
         linkGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>) => Promise<ActionResult>;
         getAllGroupsAssociatedToChannel: (channelID: string, filterAllowReference: boolean, includeMemberCount: boolean) => Promise<ActionResult>;

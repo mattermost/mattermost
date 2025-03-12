@@ -41,7 +41,7 @@ type Props = {
 }
 
 export type Actions = {
-    getGroupsNotAssociatedToTeam: (teamID: string, q?: string, page?: number, perPage?: number, source?: GroupSource | string, includeSyncableSources?: boolean) => Promise<ActionResult>;
+    getGroupsNotAssociatedToTeam: (teamID: string, q?: string, page?: number, perPage?: number, source?: GroupSource | string, onlySyncableSources?: boolean) => Promise<ActionResult>;
     setModalSearchTerm: (term: string) => void;
     linkGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType, patch: SyncablePatch) => Promise<ActionResult>;
     getAllGroupsAssociatedToTeam: (teamID: string, filterAllowReference: boolean, includeMemberCount: boolean) => Promise<ActionResult>;

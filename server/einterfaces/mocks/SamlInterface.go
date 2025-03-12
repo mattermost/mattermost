@@ -86,7 +86,7 @@ func (_m *SamlInterface) ConfigureSP(c request.CTX) error {
 }
 
 // DoLogin provides a mock function with given fields: c, encodedXML, relayState
-func (_m *SamlInterface) DoLogin(c request.CTX, encodedXML string, relayState map[string]string) (*model.User, *model.AppError) {
+func (_m *SamlInterface) DoLogin(c request.CTX, encodedXML string, relayState map[string]string) (*model.User, *saml2.AssertionInfo, *model.AppError) {
 	ret := _m.Called(c, encodedXML, relayState)
 
 	if len(ret) == 0 {
@@ -94,8 +94,9 @@ func (_m *SamlInterface) DoLogin(c request.CTX, encodedXML string, relayState ma
 	}
 
 	var r0 *model.User
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string) (*model.User, *model.AppError)); ok {
+	var r1 *saml2.AssertionInfo
+	var r2 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string) (*model.User, *saml2.AssertionInfo, *model.AppError)); ok {
 		return rf(c, encodedXML, relayState)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string) *model.User); ok {
@@ -106,15 +107,23 @@ func (_m *SamlInterface) DoLogin(c request.CTX, encodedXML string, relayState ma
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string, map[string]string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string, map[string]string) *saml2.AssertionInfo); ok {
 		r1 = rf(c, encodedXML, relayState)
 	} else {
 		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+			r1 = ret.Get(1).(*saml2.AssertionInfo)
 		}
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(request.CTX, string, map[string]string) *model.AppError); ok {
+		r2 = rf(c, encodedXML, relayState)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
+		}
+	}
+
+	return r0, r1, r2
 }
 
 // GetMetadata provides a mock function with given fields: c
@@ -138,38 +147,6 @@ func (_m *SamlInterface) GetMetadata(c request.CTX) (string, *model.AppError) {
 
 	if rf, ok := ret.Get(1).(func(request.CTX) *model.AppError); ok {
 		r1 = rf(c)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// ValidateResponse provides a mock function with given fields: rctx, encodedXML
-func (_m *SamlInterface) ValidateResponse(rctx request.CTX, encodedXML string) (*saml2.AssertionInfo, *model.AppError) {
-	ret := _m.Called(rctx, encodedXML)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ValidateResponse")
-	}
-
-	var r0 *saml2.AssertionInfo
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string) (*saml2.AssertionInfo, *model.AppError)); ok {
-		return rf(rctx, encodedXML)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string) *saml2.AssertionInfo); ok {
-		r0 = rf(rctx, encodedXML)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*saml2.AssertionInfo)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
-		r1 = rf(rctx, encodedXML)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

@@ -15,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 
-	saml2 "github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -1450,19 +1449,6 @@ func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID strin
 
 func (api *PluginAPI) GetPluginID() string {
 	return api.id
-}
-
-func (api *PluginAPI) ValidateSAMLResponse(encodedXML string) (*saml2.AssertionInfo, *model.AppError) {
-	license := api.GetLicense()
-	if license == nil || !*license.Features.SAML {
-		return nil, model.NewAppError("ValidateSAMLResponse", "app.saml.license_error", nil, "SAML license required", http.StatusForbidden)
-	}
-
-	if api.app.Saml() == nil {
-		return nil, model.NewAppError("ValidateSAMLResponse", "app.saml.disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
-	return api.app.Saml().ValidateResponse(api.ctx, encodedXML)
 }
 
 func (api *PluginAPI) GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError) {

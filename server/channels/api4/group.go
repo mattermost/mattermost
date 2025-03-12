@@ -1048,7 +1048,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	source := c.Params.GroupSource
 
-	includeSyncableSources := r.URL.Query().Get("include_syncable_sources") == "true"
+	onlySyncableSources := r.URL.Query().Get("only_syncable_sources") == "true"
 
 	if id := c.Params.NotAssociatedToTeam; model.IsValidId(id) {
 		teamID = id
@@ -1071,7 +1071,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// If they don't specify a source and custom groups are disabled, ensure they only get the other sources
 	if !*c.App.Config().ServiceSettings.EnableCustomGroups {
-		includeSyncableSources = true
+		onlySyncableSources = true
 	}
 
 	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
@@ -1095,7 +1095,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeTimezones:          includeTimezones,
 		IncludeMemberIDs:          c.Params.IncludeMemberIDs,
 		IncludeArchived:           includeArchived,
-		IncludeSyncableSources:    includeSyncableSources,
+		OnlySyncableSources:       onlySyncableSources,
 	}
 
 	if teamID != "" {
