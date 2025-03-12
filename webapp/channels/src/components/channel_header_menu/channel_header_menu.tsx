@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import type {ReactNode} from 'react';
 import React from 'react';
 import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 import type {UserProfile} from '@mattermost/types/users';
@@ -84,16 +84,20 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
         channelTitle = <ChannelHeaderTitleGroup gmMembers={gmMembers}/>;
     }
 
+    const dispatch = useDispatch();
+    
     const pluginItems = pluginMenuItems.map((item) => {
+        const handlePluginItemClick = () => {
+            if (item.action) {
+                item.action(channel.id);
+            }
+        };
+        
         return (
             <Menu.Item
                 id={item.id + '_pluginmenuitem'}
                 key={item.id + '_pluginmenuitem'}
-                onClick={() => {
-                    if (item.action) {
-                        item.action(channel.id);
-                    }
-                }}
+                onClick={handlePluginItemClick}
                 labels={<span>{item.text}</span>}
             />
         );
