@@ -34,6 +34,49 @@ const ChannelSettingsSubmenu = ({channel, isReadonly, isDefault}: Props): JSX.El
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const channelPropertiesPermission = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
+    const handleRenameChannel = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.RENAME_CHANNEL,
+                dialogType: RenameChannelModal,
+                dialogProps: {channel},
+            }),
+        );
+    };
+
+    const handleEditHeader = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+                dialogType: EditChannelHeaderModal,
+                dialogProps: {channel},
+            }),
+        );
+    };
+
+    const handleEditPurpose = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
+                dialogType: EditChannelPurposeModal,
+                dialogProps: {channel},
+            }),
+        );
+    };
+
+    const handleConvertToPrivate = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.CONVERT_CHANNEL,
+                dialogType: ConvertChannelModal,
+                dialogProps: {
+                    channelId: channel.id,
+                    channelDisplayName: channel.display_name,
+                },
+            }),
+        );
+    };
+
     return (
         <Menu.SubMenu
             id={'channelSettings'}
@@ -52,15 +95,7 @@ const ChannelSettingsSubmenu = ({channel, isReadonly, isDefault}: Props): JSX.El
                 <>
                     <Menu.Item
                         id='channelRename'
-                        onClick={() => {
-                            dispatch(
-                                openModal({
-                                    modalId: ModalIdentifiers.RENAME_CHANNEL,
-                                    dialogType: RenameChannelModal,
-                                    dialogProps: {channel},
-                                }),
-                            );
-                        }}
+                        onClick={handleRenameChannel}
                         labels={
                             <FormattedMessage
                                 id='channel_header.rename'
@@ -75,15 +110,7 @@ const ChannelSettingsSubmenu = ({channel, isReadonly, isDefault}: Props): JSX.El
                     >
                         <Menu.Item
                             id='channelEditHeader'
-                            onClick={() => {
-                                dispatch(
-                                    openModal({
-                                        modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
-                                        dialogType: EditChannelHeaderModal,
-                                        dialogProps: {channel},
-                                    }),
-                                );
-                            }}
+                            onClick={handleEditHeader}
                             labels={
                                 <FormattedMessage
                                     id='channel_header.setHeader'
@@ -93,15 +120,7 @@ const ChannelSettingsSubmenu = ({channel, isReadonly, isDefault}: Props): JSX.El
                         />
                         <Menu.Item
                             id='channelEditPurpose'
-                            onClick={() => {
-                                dispatch(
-                                    openModal({
-                                        modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
-                                        dialogType: EditChannelPurposeModal,
-                                        dialogProps: {channel},
-                                    }),
-                                );
-                            }}
+                            onClick={handleEditPurpose}
                             labels={
                                 <FormattedMessage
                                     id='channel_header.setPurpose'
@@ -121,18 +140,7 @@ const ChannelSettingsSubmenu = ({channel, isReadonly, isDefault}: Props): JSX.El
                 >
                     <Menu.Item
                         id='channelConvertToPrivate'
-                        onClick={() => {
-                            dispatch(
-                                openModal({
-                                    modalId: ModalIdentifiers.CONVERT_CHANNEL,
-                                    dialogType: ConvertChannelModal,
-                                    dialogProps: {
-                                        channelId: channel.id,
-                                        channelDisplayName: channel.display_name,
-                                    },
-                                }),
-                            );
-                        }}
+                        onClick={handleConvertToPrivate}
                         labels={
                             <FormattedMessage
                                 id='channel_header.convert'

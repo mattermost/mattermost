@@ -21,19 +21,21 @@ type Props = {
 
 const EditConversationHeader = ({channel}: Props): JSX.Element => {
     const dispatch = useDispatch();
+    const handleEditHeader = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+                dialogType: EditChannelHeaderModal,
+                dialogProps: {channel},
+            }),
+        );
+    };
+
     return (
         <Menu.Item
             id='channelEditHeader'
             leadingElement={<CogOutlineIcon size='18px'/>}
-            onClick={() => {
-                dispatch(
-                    openModal({
-                        modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
-                        dialogType: EditChannelHeaderModal,
-                        dialogProps: {channel},
-                    }),
-                );
-            }}
+            onClick={handleEditHeader}
             labels={
                 <FormattedMessage
                     id='channel_header.setConversationHeader'

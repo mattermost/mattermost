@@ -29,22 +29,24 @@ const ArchiveChannel = ({
     const redirectChannelName = useSelector(getRedirectChannelNameForCurrentTeam);
     const penultimateViewedChannelName = useSelector(getPenultimateViewedChannelName) || redirectChannelName;
 
+    const handleArchiveChannel = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.DELETE_CHANNEL,
+                dialogType: DeleteChannelModal,
+                dialogProps: {
+                    channel,
+                    penultimateViewedChannelName,
+                },
+            }),
+        );
+    };
+
     return (
         <Menu.Item
             id='channelArchiveChannel'
             leadingElement={<ArchiveOutlineIcon size={18}/>}
-            onClick={() => {
-                dispatch(
-                    openModal({
-                        modalId: ModalIdentifiers.DELETE_CHANNEL,
-                        dialogType: DeleteChannelModal,
-                        dialogProps: {
-                            channel,
-                            penultimateViewedChannelName,
-                        },
-                    }),
-                );
-            }}
+            onClick={handleArchiveChannel}
             labels={
                 <FormattedMessage
                     id='channel_header.delete'

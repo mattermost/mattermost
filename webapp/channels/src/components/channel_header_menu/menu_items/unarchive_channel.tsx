@@ -23,20 +23,22 @@ const UnarchiveChannel = ({
 }: Props) => {
     const dispatch = useDispatch();
 
+    const handleUnarchiveChannel = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.UNARCHIVE_CHANNEL,
+                dialogType: UnarchiveChannelModal,
+                dialogProps: {channel},
+            }),
+        );
+    };
+
     return (
         <>
             <Menu.Separator/>
             <Menu.Item
                 id='channelUnarchiveChannel'
-                onClick={() => {
-                    dispatch(
-                        openModal({
-                            modalId: ModalIdentifiers.UNARCHIVE_CHANNEL,
-                            dialogType: UnarchiveChannelModal,
-                            dialogProps: {channel},
-                        }),
-                    );
-                }}
+                onClick={handleUnarchiveChannel}
                 labels={
                     <FormattedMessage
                         id='channel_header.unarchive'

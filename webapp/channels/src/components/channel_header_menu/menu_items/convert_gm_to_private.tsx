@@ -20,18 +20,20 @@ type Props = {
 
 const ConvertGMtoPrivate = ({channel}: Props): JSX.Element => {
     const dispatch = useDispatch();
+    const handleConvertToPrivate = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.CONVERT_GM_TO_CHANNEL,
+                dialogType: ConvertGmToChannelModal,
+                dialogProps: {channel},
+            }),
+        );
+    };
+
     return (
         <Menu.Item
             id='convertGMPrivateChannel'
-            onClick={() => {
-                dispatch(
-                    openModal({
-                        modalId: ModalIdentifiers.CONVERT_GM_TO_CHANNEL,
-                        dialogType: ConvertGmToChannelModal,
-                        dialogProps: {channel},
-                    }),
-                );
-            }}
+            onClick={handleConvertToPrivate}
             labels={
                 <FormattedMessage
                     id='sidebar_left.sidebar_channel_menu_convert_to_channel'

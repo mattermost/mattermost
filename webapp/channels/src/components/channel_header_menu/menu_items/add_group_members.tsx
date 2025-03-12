@@ -17,19 +17,21 @@ import {ModalIdentifiers} from 'utils/constants';
 const AddGroupMembers = (): JSX.Element => {
     const dispatch = useDispatch();
 
+    const handleAddGroupMembers = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.CREATE_DM_CHANNEL,
+                dialogType: MoreDirectChannels,
+                dialogProps: {isExistingChannel: true, focusOriginElement: 'channelInfoRHSAddPeopleButton'},
+            }),
+        );
+    };
+
     return (
         <Menu.Item
             id='channelAddMembers'
             leadingElement={<AccountMultipleOutlineIcon size='18px'/>}
-            onClick={() => {
-                dispatch(
-                    openModal({
-                        modalId: ModalIdentifiers.CREATE_DM_CHANNEL,
-                        dialogType: MoreDirectChannels,
-                        dialogProps: {isExistingChannel: true, focusOriginElement: 'channelInfoRHSAddPeopleButton'},
-                    }),
-                );
-            }}
+            onClick={handleAddGroupMembers}
             labels={
                 <FormattedMessage
                     id='navbar.addMembers'

@@ -22,19 +22,31 @@ interface Props extends Menu.FirstMenuItemProps {
 
 const Groups = ({channel, ...rest}: Props): JSX.Element => {
     const dispatch = useDispatch();
+    const handleAddGroups = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.ADD_GROUPS_TO_CHANNEL,
+                dialogType: AddGroupsToChannelModal,
+            }),
+        );
+    };
+
+    const handleManageGroups = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.MANAGE_CHANNEL_GROUPS,
+                dialogType: ChannelGroupsManageModal,
+                dialogProps: {channelID: channel.id},
+            }),
+        );
+    };
+
     return (
         <>
             <Menu.Item
                 id='channelAddGroups'
                 leadingElement={<AccountMultiplePlusOutlineIcon size='18px'/>}
-                onClick={() => {
-                    dispatch(
-                        openModal({
-                            modalId: ModalIdentifiers.ADD_GROUPS_TO_CHANNEL,
-                            dialogType: AddGroupsToChannelModal,
-                        }),
-                    );
-                }}
+                onClick={handleAddGroups}
                 labels={
                     <FormattedMessage
                         id='navbar.addGroups'
@@ -46,15 +58,7 @@ const Groups = ({channel, ...rest}: Props): JSX.Element => {
             <Menu.Item
                 id='channelManageGroups'
                 leadingElement={<AccountMultipleOutlineIcon size='18px'/>}
-                onClick={() => {
-                    dispatch(
-                        openModal({
-                            modalId: ModalIdentifiers.MANAGE_CHANNEL_GROUPS,
-                            dialogType: ChannelGroupsManageModal,
-                            dialogProps: {channelID: channel.id},
-                        }),
-                    );
-                }}
+                onClick={handleManageGroups}
                 labels={
                     <FormattedMessage
                         id='navbar_dropdown.manageGroups'

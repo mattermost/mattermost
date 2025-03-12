@@ -22,17 +22,19 @@ type Props = {
 const AddChannelMembers = ({channel}: Props): JSX.Element => {
     const dispatch = useDispatch();
 
+    const handleAddMembers = () => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.CHANNEL_INVITE,
+            dialogType: ChannelInviteModal,
+            dialogProps: {channel},
+        }));
+    };
+
     return (
         <Menu.Item
             id='channelAddMembers'
             leadingElement={<AccountPlusOutlineIcon size='18px'/>}
-            onClick={() => {
-                dispatch(openModal({
-                    modalId: ModalIdentifiers.CHANNEL_INVITE,
-                    dialogType: ChannelInviteModal,
-                    dialogProps: {channel}}),
-                );
-            }}
+            onClick={handleAddMembers}
             labels={
                 <FormattedMessage
                     id='navbar.addMembers'

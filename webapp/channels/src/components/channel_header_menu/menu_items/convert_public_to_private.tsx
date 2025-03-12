@@ -20,21 +20,23 @@ type Props = {
 
 const ConvertPublictoPrivate = ({channel}: Props): JSX.Element => {
     const dispatch = useDispatch();
+    const handleConvertToPrivate = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.CONVERT_CHANNEL,
+                dialogType: ConvertChannelModal,
+                dialogProps: {
+                    channelId: channel.id,
+                    channelDisplayName: channel.display_name,
+                },
+            }),
+        );
+    };
+
     return (
         <Menu.Item
             id='channelConvertToPrivate'
-            onClick={() => {
-                dispatch(
-                    openModal({
-                        modalId: ModalIdentifiers.CONVERT_CHANNEL,
-                        dialogType: ConvertChannelModal,
-                        dialogProps: {
-                            channelId: channel.id,
-                            channelDisplayName: channel.display_name,
-                        },
-                    }),
-                );
-            }}
+            onClick={handleConvertToPrivate}
             labels={
                 <FormattedMessage
                     id='channel_header.convert'

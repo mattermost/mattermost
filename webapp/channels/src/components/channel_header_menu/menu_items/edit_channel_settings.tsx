@@ -30,21 +30,43 @@ type Props = {
 const EditChannelSettings = ({channel, isReadonly, isDefault}: Props): JSX.Element => {
     const dispatch = useDispatch();
     const channelPropertiesPermission = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
+    
+    const handleRenameChannel = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.RENAME_CHANNEL,
+                dialogType: RenameChannelModal,
+                dialogProps: {channel},
+            }),
+        );
+    };
+    
+    const handleEditHeader = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+                dialogType: EditChannelHeaderModal,
+                dialogProps: {channel},
+            }),
+        );
+    };
+    
+    const handleEditPurpose = () => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
+                dialogType: EditChannelPurposeModal,
+                dialogProps: {channel},
+            }),
+        );
+    };
     return (
         <>
             {!isReadonly && (
                 <>
                     <Menu.Item
                         id='channelRename'
-                        onClick={() => {
-                            dispatch(
-                                openModal({
-                                    modalId: ModalIdentifiers.RENAME_CHANNEL,
-                                    dialogType: RenameChannelModal,
-                                    dialogProps: {channel},
-                                }),
-                            );
-                        }}
+                        onClick={handleRenameChannel}
                         labels={
                             <FormattedMessage
                                 id='channel_header.rename'
@@ -59,15 +81,7 @@ const EditChannelSettings = ({channel, isReadonly, isDefault}: Props): JSX.Eleme
                     >
                         <Menu.Item
                             id='channelEditHeader'
-                            onClick={() => {
-                                dispatch(
-                                    openModal({
-                                        modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
-                                        dialogType: EditChannelHeaderModal,
-                                        dialogProps: {channel},
-                                    }),
-                                );
-                            }}
+                            onClick={handleEditHeader}
                             labels={
                                 <FormattedMessage
                                     id='channel_header.setHeader'
@@ -77,15 +91,7 @@ const EditChannelSettings = ({channel, isReadonly, isDefault}: Props): JSX.Eleme
                         />
                         <Menu.Item
                             id='channelEditPurpose'
-                            onClick={() => {
-                                dispatch(
-                                    openModal({
-                                        modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
-                                        dialogType: EditChannelPurposeModal,
-                                        dialogProps: {channel},
-                                    }),
-                                );
-                            }}
+                            onClick={handleEditPurpose}
                             labels={
                                 <FormattedMessage
                                     id='channel_header.setPurpose'

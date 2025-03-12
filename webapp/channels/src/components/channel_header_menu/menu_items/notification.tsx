@@ -24,21 +24,22 @@ interface Props extends Menu.FirstMenuItemProps {
 const Notification = ({channel, user, ...rest}: Props): JSX.Element => {
     const dispatch = useDispatch();
 
+    const handleNotificationPreferences = () => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.CHANNEL_NOTIFICATIONS,
+            dialogType: ChannelNotificationsModal,
+            dialogProps: {
+                channel,
+                currentUser: user,
+            },
+        }));
+    };
+
     return (
         <Menu.Item
             leadingElement={<BellOutlineIcon size='18px'/>}
             id='channelNotificationPreferences'
-            onClick={() => {
-                dispatch(openModal({
-                    modalId: ModalIdentifiers.CHANNEL_NOTIFICATIONS,
-                    dialogType: ChannelNotificationsModal,
-                    dialogProps: {
-                        channel,
-                        currentUser: user,
-                    },
-                }),
-                );
-            }}
+            onClick={handleNotificationPreferences}
             labels={
                 <FormattedMessage
                     id='navbar.preferences'
