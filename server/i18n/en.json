@@ -1867,7 +1867,7 @@
   },
   {
     "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "unable to convert the property field to a custom profile attribute field"
+    "translation": "Unable to convert the property field to a custom profile attribute field"
   },
   {
     "id": "api.custom_profile_attributes.field_not_found",
@@ -5048,7 +5048,7 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
-    "translation": ""
+    "translation": "Unable to convert the property field to a custom profile attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",
