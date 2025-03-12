@@ -695,7 +695,6 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err *model.AppError
 	var member model.TeamMember
 	if jsonErr := json.NewDecoder(r.Body).Decode(&member); jsonErr != nil {
 		c.Err = model.NewAppError("addTeamMember", "api.team.add_team_member.invalid_body.app_error", nil, "Error in model.TeamMemberFromJSON()", http.StatusBadRequest).Wrap(jsonErr)
@@ -717,7 +716,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if member.UserId == c.AppContext.Session().UserId {
 		var team *model.Team
-		team, err = c.App.GetTeam(member.TeamId)
+		team, err := c.App.GetTeam(member.TeamId)
 		if err != nil {
 			c.Err = err
 			return
