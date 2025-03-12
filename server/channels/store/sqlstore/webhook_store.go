@@ -17,7 +17,7 @@ import (
 type SqlWebhookStore struct {
 	*SqlStore
 	metrics einterfaces.MetricsInterface
-	
+
 	incomingWebhookSelectQuery sq.SelectBuilder
 	outgoingWebhookSelectQuery sq.SelectBuilder
 }
@@ -30,7 +30,7 @@ func newSqlWebhookStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
-	
+
 	// Initialize query builders for incoming webhooks
 	s.incomingWebhookSelectQuery = s.getQueryBuilder().
 		Select(
@@ -48,7 +48,7 @@ func newSqlWebhookStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 			"ChannelLocked",
 		).
 		From("IncomingWebhooks")
-	
+
 	// Initialize query builders for outgoing webhooks
 	s.outgoingWebhookSelectQuery = s.getQueryBuilder().
 		Select(
@@ -70,7 +70,7 @@ func newSqlWebhookStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 			"IconURL",
 		).
 		From("OutgoingWebhooks")
-	
+
 	return s
 }
 
@@ -113,13 +113,13 @@ func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) (*model.Inc
 
 func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, error) {
 	var webhook model.IncomingWebhook
-	
+
 	query := s.incomingWebhookSelectQuery.
 		Where(sq.And{
 			sq.Eq{"Id": id},
 			sq.Eq{"DeleteAt": 0},
 		})
-	
+
 	if err := s.GetReplica().GetBuilder(&webhook, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("IncomingWebhook", id)
@@ -214,7 +214,7 @@ func (s SqlWebhookStore) GetIncomingByChannel(channelId string) ([]*model.Incomi
 			sq.Eq{"ChannelId": channelId},
 			sq.Eq{"DeleteAt": 0},
 		})
-	
+
 	if err := s.GetReplica().SelectBuilder(&webhooks, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find IncomingWebhooks with channelId=%s", channelId)
 	}
@@ -252,7 +252,7 @@ func (s SqlWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, error) 
 			sq.Eq{"Id": id},
 			sq.Eq{"DeleteAt": 0},
 		})
-	
+
 	if err := s.GetReplica().GetBuilder(&webhook, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("OutgoingWebhook", id)
