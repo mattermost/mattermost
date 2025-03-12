@@ -373,8 +373,8 @@ func TestDeleteCPAField(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	createdField, err := th.App.CreateCPAField(newField)
-	require.NoError(t, err)
+	createdField, appErr := th.App.CreateCPAField(newField)
+	require.Nil(t, appErr)
 
 	for i := range 3 {
 		newValue := &model.PropertyValue{
