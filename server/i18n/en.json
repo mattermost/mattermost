@@ -8249,6 +8249,10 @@
     "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator."
   },
   {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "Failed to retrieve CPA fields"
+  },
+  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "We received an empty response from the Identity Provider."
   },
@@ -8283,6 +8287,18 @@
   {
     "id": "ent.saml.service_disable.app_error",
     "translation": "SAML 2.0 is not configured or supported on this server."
+  },
+  {
+    "id": "ent.saml.update_cpa.attribute_error",
+    "translation": "Error retrieving SAML attribute"
+  },
+  {
+    "id": "ent.saml.update_cpa.json_marshal_error",
+    "translation": "Error marshaling SAML attribute to JSON"
+  },
+  {
+    "id": "ent.saml.update_cpa.patch_error",
+    "translation": "Error patching CPA value"
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
