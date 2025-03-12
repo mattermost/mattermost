@@ -10428,5 +10428,9 @@
   {
     "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
     "translation": "ClientSideUserIds {{.CurrentLength}} 内の要素数が上限値 {{.MaxLength}}を超えています。"
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "チャンネルバナーはパブリックチャンネルとプライベートチャンネルでのみ設定可能です"
   }
 ]
