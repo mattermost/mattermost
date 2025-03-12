@@ -3997,7 +3997,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Недопустимый идентификатор."
+    "translation": "Неверный идентификатор: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -5665,11 +5665,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 130+"
+    "translation": "Версия 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 130+"
+    "translation": "Версия 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -10082,5 +10082,21 @@
   {
     "id": "api.command.execute_command.deleted.error",
     "translation": "Невозможно выполнить команду в удаленном канале."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "пытаюсь исправить поле, которого не существует"
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Сеанс не найден."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Невозможно подсчитать количество полей для группы атрибутов пользовательского профиля"
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Баннер канала можно настроить только на публичных и приватных каналах."
   }
 ]

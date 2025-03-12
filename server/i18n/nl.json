@@ -3992,7 +3992,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Ongeldig Id."
+    "translation": "Ongeldig Id. :{{.Id}}"
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4628,11 +4628,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 130+"
+    "translation": "Versie 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 130+"
+    "translation": "Versie 132+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10430,5 +10430,25 @@
   {
     "id": "api.custom_profile_attributes.field_not_found",
     "translation": "proberen een veld te patchen dat niet bestaat"
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Sessie niet gevonden."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Kan het aantal velden voor de aangepaste profielattribuutgroep niet tellen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Kan aangepaste profielattribuutvelden niet uploaden"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Ongeldige gebruikers-id aan clientzijde: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Aantal elementen in ClientSideUserIds {{.CurrentLength}} is hoger dan de maximale limiet van {{.MaxLength}}."
   }
 ]
