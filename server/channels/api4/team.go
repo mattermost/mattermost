@@ -736,6 +736,19 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionAddUserToTeam)
 			return
 		}
+
+		canInviteGuests := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteGuest)
+		if !canInviteGuests {
+			user, err := c.App.GetUser(member.UserId)
+			if err != nil {
+				c.Err = model.NewAppError("addTeamMembers", "api.team.user.missing_account", nil, "", http.StatusNotFound).Wrap(err)
+				return
+			}
+			if user.IsGuest() {
+				c.SetPermissionError(model.PermissionInviteGuest)
+				return
+			}
+		}
 	}
 
 	team, err := c.App.GetTeam(member.TeamId)
