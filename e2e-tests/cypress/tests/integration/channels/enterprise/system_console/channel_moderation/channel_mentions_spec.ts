@@ -169,14 +169,14 @@ describe('MM-23102 - Channel Moderation - Channel Mentions', () => {
 
         // * Type at all and enter that no confirmation dialogue shows up
         cy.postMessage('@all ');
-        cy.get('#confirmModalLabel').should('not.exist');
+        cy.get('#genericModalLabel').should('not.exist');
 
         // * Type at channel and enter that no confirmation dialogue shows up
         cy.postMessage('@channel ');
-        cy.get('#confirmModalLabel').should('not.exist');
+        cy.get('#genericModalLabel').should('not.exist');
 
         // * Type at here and enter that no confirmation dialogue shows up
         cy.postMessage('@here ');
-        cy.get('#confirmModalLabel').should('not.exist');
+        cy.get('#genericModalLabel').should('not.exist');
     });
 });

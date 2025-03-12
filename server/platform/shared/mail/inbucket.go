@@ -103,7 +103,7 @@ func GetMessageFromMailbox(email, id string) (JSONMessageInbucket, error) {
 	}
 
 	// download attachments
-	if len(record.Attachments) > 0 {
+	if record.Attachments != nil && len(record.Attachments) > 0 {
 		for i := range record.Attachments {
 			var bytes []byte
 			bytes, err = downloadAttachment(record.Attachments[i].DownloadLink)
