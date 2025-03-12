@@ -161,6 +161,7 @@ export default class WebSocketClient {
                 this.firstConnectListeners.forEach((listener) => listener());
             }
 
+            this.stopPingInterval();
             var waitingForPong = false;
             this.pingInterval = setInterval(
                 () => {
