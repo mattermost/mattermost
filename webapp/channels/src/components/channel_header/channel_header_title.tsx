@@ -105,8 +105,6 @@ const ChannelHeaderTitle = ({
                     size='sm'
                 />
                 <strong
-                    role='heading'
-                    aria-level={2}
                     id='channelHeaderTitle'
                     className='heading'
                 >
@@ -148,46 +146,50 @@ const ChannelHeaderTitle = ({
                 <div
                     id='channelHeaderDropdownButton'
                 >
-                    <strong
-                        role='heading'
-                        aria-level={2}
-                        id='channelHeaderTitle'
-                        className='heading'
-                        ref={headerItemRef}
+                    <button
+                        id='channelHeaderMenuButton'
+                        className={classNames('channel-header__trigger style--none', {active: titleMenuOpen})}
+                        aria-label={
+                            (isDirect && currentUser.id === dmUser?.id) ? personalChannelHeaderAriaLabel.toLowerCase() : othersChannelHeaderAriaLabel.toLowerCase()
+                        }
+                        aria-expanded={titleMenuOpen}
+                        aria-controls='channelHeaderDropdownMenu'
                     >
-                        <button
-                            id='channel_header.menuAriaLabel'
-                            className={classNames('channel-header__trigger style--none', {active: titleMenuOpen})}
-                            aria-label={
-                                (isDirect && currentUser.id === dmUser?.id) ? personalChannelHeaderAriaLabel.toLowerCase() : othersChannelHeaderAriaLabel.toLowerCase()
-                            }
-                            aria-expanded={titleMenuOpen}
-                            aria-controls='channelHeaderDropdownMenu'
-                        >
-                            {showTooltip ? (
-                                <WithTooltip
-                                    title={channelTitle as string}
+                        {showTooltip ? (
+                            <WithTooltip
+                                title={channelTitle as string}
+                            >
+                                <strong
+                                    id='channelHeaderTitle'
+                                    className='heading'
+                                    ref={headerItemRef}
                                 >
                                     <span>
                                         {archivedIcon}
                                         {channelTitle}
                                         {sharedIcon}
                                     </span>
-                                </WithTooltip>
-                            ) : (
+                                </strong>
+                            </WithTooltip>
+                        ) : (
+                            <strong
+                                id='channelHeaderTitle'
+                                className='heading'
+                                ref={headerItemRef}
+                            >
                                 <span>
                                     {archivedIcon}
                                     {channelTitle}
                                     {sharedIcon}
                                 </span>
-                            )}
-                            <span
-                                id='channelHeaderDropdownIcon'
-                                className='icon icon-chevron-down header-dropdown-chevron-icon'
-                                aria-hidden='true'
-                            />
-                        </button>
-                    </strong>
+                            </strong>
+                        )}
+                        <span
+                            id='channelHeaderDropdownIcon'
+                            className='icon icon-chevron-down header-dropdown-chevron-icon'
+                            aria-hidden='true'
+                        />
+                    </button>
                 </div>
                 <ChannelHeaderDropdown
                     ariaLabel={
