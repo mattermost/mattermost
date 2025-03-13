@@ -25,7 +25,7 @@ const ProfilePopoverCustomAttributes = ({
             dispatch(getCustomProfileAttributeValues(userID));
         }
     });
-    const attributeSections = Object.values(customProfileAttributeFields).map((attribute) => {
+    const attributeSections = customProfileAttributeFields.map((attribute) => {
         if (userProfile.custom_profile_attributes) {
             const value = userProfile.custom_profile_attributes[attribute.id];
             if (!value) {
