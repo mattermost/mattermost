@@ -6,6 +6,8 @@ import React, {memo} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import * as Menu from 'components/menu';
+
 import MobileChannelHeaderPlugins from '../menu_items/mobile_channel_header_plugins';
 
 type Props = {
@@ -15,18 +17,19 @@ type Props = {
 }
 
 const ChannelHeaderMobileMenu = (props: Props): JSX.Element => {
+    if (!props.isMobile) {
+        return <></>;
+    }
     return (
         <>
-            {props.isMobile && props.pluginItems}
-            {props.isMobile && (
-                <MobileChannelHeaderPlugins
-                    channel={props.channel}
-                    isDropdown={true}
-                />
-            )}
+            <MobileChannelHeaderPlugins
+                channel={props.channel}
+                isDropdown={true}
+            />
+            <Menu.Separator/>
+            {props.pluginItems}
         </>
     );
 };
 
-// Exported for tests
 export default memo(ChannelHeaderMobileMenu);

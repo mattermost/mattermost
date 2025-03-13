@@ -115,8 +115,6 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                         <strong
                             id='channelHeaderTitle'
                             className='heading'
-                            role='heading'
-                            aria-level={2}
                         >
                             {channelTitle as string}
                         </strong>

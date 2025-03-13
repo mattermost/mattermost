@@ -120,7 +120,9 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                 </ChannelPermissionGate>
             )}
             <ChannelMoveToSubMenu channel={channel}/>
-            <MenuItemPluginItems pluginItems={pluginItems}/>
+            {isMobile && (
+                <MenuItemPluginItems pluginItems={pluginItems}/>
+            )}
             <Menu.Separator/>
             <CloseMessage
                 currentUserID={user.id}

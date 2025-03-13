@@ -57,9 +57,9 @@ const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, 
             <ChannelMoveToSubMenu
                 channel={channel}
             />
-            <MenuItemPluginItems
-                pluginItems={pluginItems}
-            />
+            {isMobile && (
+                <MenuItemPluginItems pluginItems={pluginItems}/>
+            )}
             <Menu.Separator/>
             <CloseMessage
                 currentUserID={user.id}
