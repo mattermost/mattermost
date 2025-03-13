@@ -23,7 +23,7 @@ const MobileSecurityFeatureDiscovery = () => {
                 id: 'admin.mobile_security_feature_discovery.copy',
                 defaultMessage: 'Enable advanced security features like biometric authentication, screen capture prevention, and jailbreak/root detection for your mobile users.',
             })}
-            learnMoreURL='https://docs.mattermost.com/deploy/mobile-app-security.html'
+            learnMoreURL='https://docs.mattermost.com/configure/environment-configuration-settings.html#mobile-security'
             featureDiscoveryImage={
                 <MobileSecuritySVG
                     width={294}
