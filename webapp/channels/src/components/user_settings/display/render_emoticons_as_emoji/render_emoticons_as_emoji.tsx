@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -14,6 +14,7 @@ import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {a11yFocus} from 'utils/utils';
+import useDidUpdate from 'components/common/hooks/useDidUpdate';
 
 export type OwnProps = {
     adminMode?: boolean;
@@ -43,7 +44,7 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({userId, active, areAllSections
         minRef.current?.focus();
     };
 
-    useEffect(() => {
+    useDidUpdate(() => {
         if (!active && areAllSectionsInactive) {
             focusEditButton();
         }
