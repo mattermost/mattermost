@@ -14,7 +14,7 @@ import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
-import {Locations, StoragePrefixes} from 'utils/constants';
+import Constants, {Locations, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {PostDraft} from 'types/store/draft';
@@ -202,6 +202,37 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             const textbox = screen.getByTestId('post_textbox');
             userEvent.type(textbox, 'something{esc}');
             expect(textbox).not.toHaveFocus();
+            expect(mockedUpdateDraft).not.toHaveBeenCalled();
+        });
+
+        it('ESC should blur the input and reset draft when in editing mode', () => {
+            jest.useFakeTimers();
+            const props = {
+                ...baseProps,
+                isInEditMode: true,
+            };
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...props}
+                />,
+                mergeObjects(initialState, {
+                    entities: {
+                        roles: {
+                            roles: {
+                                user_roles: {permissions: [Permissions.CREATE_POST]},
+                            },
+                        },
+                    },
+                }),
+            );
+            const textbox = screen.getByTestId('edit_textbox');
+            userEvent.type(textbox, 'something{esc}');
+            expect(textbox).not.toHaveFocus();
+
+            // save is called with a short delayed after pressing escape key
+            jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT + 50);
+            expect(mockedRemoveDraft).toHaveBeenCalled();
+            expect(mockedUpdateDraft).not.toHaveBeenCalled();
         });
     });
 
