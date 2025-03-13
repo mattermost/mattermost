@@ -1,0 +1,52 @@
+@use "sass:color";
+@use "../../sass/utils/variables";
+@use "../../sass/utils/functions";
+@use "../../sass/utils/mixins";
+
+// Styles for textarea wrapper and preview functionality
+.textarea-wrapper {
+    position: relative;
+
+    .custom-textarea {
+        height: auto;
+        min-height: 8em;
+        max-height: 60vh;
+        -webkit-overflow-scrolling: touch;
+        -ms-overflow-style: auto;
+        overflow-y: auto;
+
+        &.custom-textarea--preview {
+            display: none;
+        }
+
+        &.textbox-preview-area {
+            position: relative;
+        }
+    }
+
+    &.textarea-wrapper-preview {
+        .custom-textarea.textbox-preview-area {
+            display: block;
+        }
+
+        .textbox-edit-area {
+            display: none;
+        }
+    }
+}
+
+// Post footer styles for the preview links
+.post-create-footer, .edit-post-footer {
+    position: relative;
+    display: inline-block;
+    font-size: 13px;
+
+    .post-error {
+        position: relative;
+        top: 3px;
+        margin-bottom: 0;
+        font-size: 0.85em;
+        font-weight: normal;
+        opacity: 0.75;
+    }
+}

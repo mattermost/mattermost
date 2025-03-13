@@ -28,6 +28,8 @@ import * as Utils from 'utils/utils';
 
 import type {TextboxElement} from './index';
 
+import './textbox.scss';
+
 const ALL = ['all'];
 
 export type Props = {
