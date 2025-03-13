@@ -9,9 +9,9 @@ import type {IntlShape} from 'react-intl';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
-import type {IDMappedObjects} from '@mattermost/types/utilities';
 
-import {Client4} from 'mattermost-redux/client';
+import type {LogErrorOptions} from 'mattermost-redux/actions/errors';
+import {LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
@@ -109,16 +109,16 @@ export type Props = {
     collapseModal: () => void;
     isMobileView: boolean;
     maxFileSize: number;
-    customProfileAttributeFields: IDMappedObjects<UserPropertyField>;
+    customProfileAttributeFields: UserPropertyField[];
     actions: {
-        logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
+        logError: ({message, type}: {message: any; type: string}, options?: LogErrorOptions) => void;
         clearErrors: () => void;
         updateMe: (user: UserProfile) => Promise<ActionResult>;
         sendVerificationEmail: (email: string) => Promise<ActionResult>;
         setDefaultProfileImage: (id: string) => void;
         uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
-        saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult>;
-        getCustomProfileAttributeFields: () => Promise<ActionResult>;
+        saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult<Record<string, string>>>;
+        getCustomProfileAttributeValues: (userID: string) => Promise<ActionResult<Record<string, string>>>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;
@@ -163,14 +163,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        if (this.props.enableCustomProfileAttributes) {
-            const fetchValues = async () => {
-                const response = await Client4.getUserCustomProfileAttributesValues(this.props.user.id);
-                this.setState({customAttributeValues: response});
-            };
-
-            this.props.actions.getCustomProfileAttributeFields();
-            fetchValues();
+        if (this.props.enableCustomProfileAttributes && !this.props.user.custom_profile_attributes) {
+            this.props.actions.getCustomProfileAttributeValues(this.props.user.id);
         }
     }
 
@@ -324,7 +318,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         this.props.actions.logError({
                             message: AnnouncementBarMessages.EMAIL_VERIFICATION_REQUIRED,
                             type: AnnouncementBarTypes.SUCCESS,
-                        }, true);
+                        }, {errorBarMode: LogErrorBarMode.Always});
                     }
                 } else if (err) {
                     let serverError;
@@ -427,6 +421,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             then(({data, error: err}) => {
                 if (data) {
                     this.updateSection('');
+                    this.setState({customAttributeValues: {...this.state.customAttributeValues, ...data}});
                 } else if (err) {
                     const serverError = err;
                     this.setState({serverError, emailError: '', clientError: '', sectionIsSaving: false});
@@ -492,10 +487,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
     setupInitialState(props: Props) {
         const user = props.user;
-        let cav = {};
-        if (this.state !== undefined) {
-            cav = this.state.customAttributeValues;
-        }
         return {
             username: user.username,
             firstName: user.first_name,
@@ -511,7 +502,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             sectionIsSaving: false,
             showSpinner: false,
             serverError: '',
-            customAttributeValues: cav,
+            customAttributeValues: user.custom_profile_attributes || {},
         };
     }
 
@@ -1329,12 +1320,11 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     };
 
     createCustomAttributeSection = () => {
-        if (this.props.customProfileAttributeFields == null) {
+        if (!this.props.enableCustomProfileAttributes || this.props.customProfileAttributeFields == null) {
             return <></>;
         }
 
-        const attributeSections = Object.values(this.props.customProfileAttributeFields).map((attribute) => {
-            const attributeValue = this.state.customAttributeValues?.[attribute.id] ?? '';
+        const attributeSections = this.props.customProfileAttributeFields.map((attribute) => {
             const sectionName = 'customAttribute_' + attribute.id;
             const active = this.props.activeSection === sectionName;
             let max = null;
@@ -1362,7 +1352,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 className='form-control'
                                 type='text'
                                 onChange={this.updateAttribute}
-                                value={attributeValue}
+                                value={this.state.customAttributeValues[attribute.id] || ''}
                                 maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                                 autoCapitalize='off'
                                 onFocus={Utils.moveCursorToEnd}
@@ -1396,6 +1386,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 );
             }
             let describe: JSX.Element|string = '';
+            const attributeValue = this.props.user.custom_profile_attributes?.[attribute.id];
             if (attributeValue) {
                 describe = attributeValue;
             } else {
@@ -1533,7 +1524,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         const usernameSection = this.createUsernameSection();
         const positionSection = this.createPositionSection();
         const emailSection = this.createEmailSection();
-        const customProperiesSection = this.createCustomAttributeSection();
+        const customAttributeSection = this.createCustomAttributeSection();
         const pictureSection = this.createPictureSection();
 
         return (
@@ -1573,7 +1564,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     <div className='divider-light'/>
                     {emailSection}
                     <div className='divider-light'/>
-                    {customProperiesSection}
+                    {customAttributeSection}
                     {pictureSection}
                     <div className='divider-dark'/>
                 </div>

@@ -45,6 +45,7 @@
 
 .app__body {
     .modal {
+        z-index: variables.$z-index-modal;
         color: rgb(var(--center-channel-color-rgb));
 
         .modal-content {
@@ -939,6 +940,7 @@
         height: 32px;
         padding: 0;
         border: none;
+        background-color: initial;
         opacity: 0.75;
         text-align: center;
     }
