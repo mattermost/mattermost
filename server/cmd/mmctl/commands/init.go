@@ -69,19 +69,21 @@ func CheckVersionMatch(version, serverVersion string) (bool, error) {
 }
 
 func getClient(ctx context.Context, cmd *cobra.Command) (*model.Client4, string, bool, error) {
-	// Assume local mode if no server address is provided
-	if !viper.GetBool("local") {
+	useLocal := viper.GetBool("local")
+
+	if !useLocal {
+		// Assume local mode if no server address is provided
 		credentials, err := GetCurrentCredentials()
 		if err != nil {
 			cmd.PrintErrln("Warning: Unable to retrieve credentials, assuming --local mode")
-			viper.Set("local", true)
+			useLocal = true
 		} else if credentials == nil {
 			cmd.PrintErrln("Warning: No credentials found, assuming --local mode")
-			viper.Set("local", true)
+			useLocal = true
 		}
 	}
 
-	if viper.GetBool("local") {
+	if useLocal {
 		c, err := InitUnixClient(viper.GetString("local-socket-path"))
 		if err != nil {
 			return nil, "", true, err
