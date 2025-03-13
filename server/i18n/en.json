@@ -5311,6 +5311,10 @@
     "translation": "invalid id property for group."
   },
   {
+    "id": "app.group.license_error",
+    "translation": "LDAP license required."
+  },
+  {
     "id": "app.group.no_rows",
     "translation": "no matching group found"
   },
