@@ -89,6 +89,7 @@ Cypress.Commands.add('apiInstallTrialLicense', () => {
             company_name: 'mattermost',
             contact_email: 'test@mattermost.com',
             company_size: '1-10',
+            contact_name: 'John Doe',
         },
     }).then((response) => {
         expect(response.status).to.equal(200);
