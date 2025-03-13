@@ -179,6 +179,10 @@ func NewServer(options ...Option) (*Server, error) {
 		timezones:   timezones.New(),
 	}
 
+	if os.Getenv("TEST_SPINWICK") == "true" {
+		mlog.Warn("mattermost: TEST_SPINWICK is true!")
+	}
+
 	for _, option := range options {
 		if err := option(s); err != nil {
 			return nil, errors.Wrap(err, "failed to apply option")
@@ -1439,7 +1443,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		})
 	}
 
-	//remove the license
+	// remove the license
 	if appErr := s.RemoveLicense(); appErr != nil {
 		mlog.Error("Error while removing the license.", mlog.Err(appErr))
 	}
