@@ -5123,6 +5123,10 @@
     "translation": "Unable to save the Draft."
   },
   {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete drafts for user."
+  },
+  {
     "id": "app.email.no_rate_limiter.app_error",
     "translation": "Rate limiter is not set up."
   },
