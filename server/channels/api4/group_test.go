@@ -1543,57 +1543,74 @@ func TestGetGroups(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
-	opts := model.GroupSearchOpts{
-		Source: model.GroupSourceLdap,
-		PageOpts: &model.PageOpts{
-			Page:    0,
-			PerPage: 60,
-		},
-	}
+	opts := model.GroupSearchOpts{}
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
-	_, _, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
+	// All groups
+	groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.ElementsMatch(t, []*model.Group{group, group2, th.Group}, groups)
 
-	_, err = th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
+	// Only LDAP groups
+	opts.Source = model.GroupSourceLdap
+	groups, resp, err = th.SystemAdminClient.GetGroups(context.Background(), opts)
 	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.ElementsMatch(t, []*model.Group{group, th.Group}, groups)
+
+	resp, err = th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 
 	opts.NotAssociatedToChannel = th.BasicChannel.Id
 
-	_, err = th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
+	resp, err = th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
 	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 
-	groups, _, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
-	assert.NoError(t, err)
+	groups, resp, err = th.SystemAdminClient.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	assert.ElementsMatch(t, []*model.Group{group, th.Group}, groups)
 	assert.Nil(t, groups[0].MemberCount)
 
 	opts.IncludeMemberCount = true
-	groups, _, _ = th.SystemAdminClient.GetGroups(context.Background(), opts)
+	groups, resp, err = th.SystemAdminClient.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	assert.NotNil(t, groups[0].MemberCount)
 	opts.IncludeMemberCount = false
 
 	opts.Q = "-fOo"
-	groups, _, _ = th.SystemAdminClient.GetGroups(context.Background(), opts)
+	groups, resp, err = th.SystemAdminClient.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	assert.Len(t, groups, 1)
 	opts.Q = ""
 
-	_, err = th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
+	resp, err = th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
 	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 
 	opts.NotAssociatedToTeam = th.BasicTeam.Id
 
-	_, err = th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "team_user team_admin")
+	resp, err = th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "team_user team_admin")
 	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 
-	_, _, err = th.Client.GetGroups(context.Background(), opts)
-	assert.NoError(t, err)
+	// Still returns all LDAP groups as none are associated to the team
+	groups, resp, err = th.Client.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.ElementsMatch(t, []*model.Group{group, th.Group}, groups)
 
 	// test "since", should only return group created in this test, not th.Group
 	opts.Since = start
-	groups, _, err = th.Client.GetGroups(context.Background(), opts)
-	assert.NoError(t, err)
+	groups, resp, err = th.Client.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	assert.Len(t, groups, 1)
 	// test correct group returned
 	assert.Equal(t, groups[0].Id, group.Id)
@@ -1601,21 +1618,24 @@ func TestGetGroups(t *testing.T) {
 	// delete group, should still return
 	_, appErr = th.App.DeleteGroup(group.Id)
 	require.Nil(t, appErr)
-	groups, _, err = th.Client.GetGroups(context.Background(), opts)
-	assert.NoError(t, err)
+	groups, resp, err = th.Client.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Id, group.Id)
 
 	// test with current since value, return none
 	opts.Since = model.GetMillis()
-	groups, _, err = th.Client.GetGroups(context.Background(), opts)
-	assert.NoError(t, err)
+	groups, resp, err = th.Client.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	assert.Empty(t, groups)
 
 	// make sure delete group is not returned without Since
 	opts.Since = 0
-	groups, _, err = th.Client.GetGroups(context.Background(), opts)
-	assert.NoError(t, err)
+	groups, resp, err = th.Client.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	//'Normal getGroups should not return delete groups
 	assert.Len(t, groups, 1)
 	// make sure it returned th.Group,not group
@@ -1623,22 +1643,25 @@ func TestGetGroups(t *testing.T) {
 
 	// Test include_archived parameter
 	opts.IncludeArchived = true
-	groups, _, err = th.Client.GetGroups(context.Background(), opts)
-	assert.NoError(t, err)
+	groups, resp, err = th.Client.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	assert.Len(t, groups, 2)
 	opts.IncludeArchived = false
 
 	// Test returning only archived groups
 	opts.FilterArchived = true
-	groups, _, err = th.Client.GetGroups(context.Background(), opts)
-	assert.NoError(t, err)
+	groups, resp, err = th.Client.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Id, group.Id)
 	opts.FilterArchived = false
 
 	opts.Source = model.GroupSourceCustom
-	groups, _, err = th.Client.GetGroups(context.Background(), opts)
-	assert.NoError(t, err)
+	groups, resp, err = th.Client.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Id, group2.Id)
 
@@ -1648,14 +1671,18 @@ func TestGetGroups(t *testing.T) {
 	opts.Q = "-fOo"
 	opts.IncludeMemberCount = true
 
-	groups, _, _ = th.SystemAdminClient.GetGroups(context.Background(), opts)
+	groups, resp, err = th.SystemAdminClient.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	assert.Equal(t, *groups[0].MemberCount, int(0))
 	assert.Equal(t, *groups[0].ChannelMemberCount, int(0))
 
 	_, appErr = th.App.UpsertGroupMember(group2.Id, th.BasicUser.Id)
 	assert.Nil(t, appErr)
 
-	groups, _, _ = th.SystemAdminClient.GetGroups(context.Background(), opts)
+	groups, resp, err = th.SystemAdminClient.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	assert.NotNil(t, groups[0].MemberCount)
 	assert.Equal(t, *groups[0].ChannelMemberCount, int(1))
 
@@ -1670,21 +1697,24 @@ func TestGetGroups(t *testing.T) {
 
 	// Specify custom groups source when feature is disabled
 	opts.Source = model.GroupSourceCustom
-	_, response, err := th.Client.GetGroups(context.Background(), opts)
+	groups, response, err := th.Client.GetGroups(context.Background(), opts)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
+	assert.Nil(t, groups)
 
 	// Specify ldap groups source when custom groups feature is disabled
 	opts.Source = model.GroupSourceLdap
-	groups, _, err = th.Client.GetGroups(context.Background(), opts)
-	assert.NoError(t, err)
+	groups, resp, err = th.Client.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Source, model.GroupSourceLdap)
 
 	// don't include source and should only get ldap groups in response
 	opts.Source = ""
-	groups, _, err = th.Client.GetGroups(context.Background(), opts)
-	assert.NoError(t, err)
+	groups, resp, err = th.Client.GetGroups(context.Background(), opts)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Source, model.GroupSourceLdap)
 }
