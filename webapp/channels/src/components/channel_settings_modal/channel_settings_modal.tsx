@@ -18,16 +18,9 @@ import {patchChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
-import {setShowPreviewOnChannelSettingsModal} from 'actions/views/textbox';
-import {showPreviewOnChannelSettingsModal} from 'selectors/views/textbox';
-
-import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import ConfirmationModal from 'components/confirm_modal';
-import Textbox, {TextboxLinks} from 'components/textbox';
-import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
-import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
-import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
+import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import {focusElement} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
@@ -35,6 +28,8 @@ import {isKeyPressed, cmdOrCtrlPressed} from 'utils/keyboard';
 import {stopTryNotificationRing} from 'utils/notification_sounds';
 
 import type {GlobalState} from 'types/store';
+
+import ChannelSettingsInfoTab from './channel_settings_info_tab';
 
 import './channel_settings_modal.scss';
 
@@ -57,7 +52,6 @@ enum ChannelSettingsTabs {
 function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const shouldShowPreview = useSelector(showPreviewOnChannelSettingsModal);
 
     const canConvertToPrivate = useSelector((state: GlobalState) =>
         haveITeamPermission(state, channel?.team_id ?? '', Permissions.CREATE_PRIVATE_CHANNEL),
@@ -87,9 +81,6 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     // Refs
     const modalBodyRef = useRef<HTMLDivElement>(null);
     const headerTextboxRef = useRef<TextboxClass>(null);
-
-    // Constants
-    const headerMaxLength = 1024;
 
     // UI Feedback: errors, states
     const [urlError, setURLError] = useState('');
@@ -241,19 +232,6 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
         setServerError(err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'}));
     };
 
-    // Example of toggling from open <-> private
-    const handleChannelTypeChange = (type: ChannelType) => {
-        // If canCreatePublic is false, do not allow. Similarly if canCreatePrivate is false, do not allow
-        if (type === Constants.OPEN_CHANNEL && !canConvertToPublic) {
-            return;
-        }
-        if (type === Constants.PRIVATE_CHANNEL && !canConvertToPrivate) {
-            return;
-        }
-        setChannelType(type);
-        setServerError('');
-    };
-
     const handleArchiveChannel = () => {
         setShowArchiveConfirmModal(true);
     };
@@ -277,173 +255,31 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
         }
     };
 
-    const handleURLChange = useCallback((newURL: string) => {
-        setURL(newURL);
-        setURLError('');
-    }, []);
-
-    const handleKeyPress = () => {
-        return true;
-    };
-
-    const handleOnChange = (e: React.ChangeEvent<TextboxElement>) => {
-        setChannelHeader(e.target.value);
-
-        // Check for character limit
-        if (e.target.value.length > headerMaxLength) {
-            setServerError(formatMessage({
-                id: 'edit_channel_header_modal.error',
-                defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
-            }, {
-                maxLength: headerMaxLength,
-            }));
-        } else if (serverError) {
-            setServerError('');
-        }
-    };
-
     const renderInfoTab = () => {
-        // Channel name, URL, purpose, header, plus the public/private toggle
         return (
-            <div className='ChannelSettingsModal__infoTab'>
-                <label className='Input_legend'>{formatMessage({id: 'channel_settings.label.name', defaultMessage: 'Channel Name'})}</label>
-                <ChannelNameFormField
-                    value={displayName}
-                    name='channel-settings-name'
-                    placeholder={formatMessage({
-                        id: 'channel_settings_modal.name.placeholder',
-                        defaultMessage: 'Enter a name for your channel',
-                    })}
-                    onDisplayNameChange={(name) => {
-                        setDisplayName(name);
-                    }}
-                    onURLChange={handleURLChange}
-                    urlError={urlError}
-                    currentUrl={channel.name}
-                />
-
-                <PublicPrivateSelector
-                    className='ChannelSettingsModal__typeSelector'
-                    selected={channelType}
-                    publicButtonProps={{
-                        title: formatMessage({id: 'channel_modal.type.public.title', defaultMessage: 'Public Channel'}),
-                        description: formatMessage({id: 'channel_modal.type.public.description', defaultMessage: 'Anyone can join'}),
-                        disabled: !canConvertToPublic,
-                    }}
-                    privateButtonProps={{
-                        title: formatMessage({id: 'channel_modal.type.private.title', defaultMessage: 'Private Channel'}),
-                        description: formatMessage({id: 'channel_modal.type.private.description', defaultMessage: 'Only invited members'}),
-                        disabled: !canConvertToPrivate,
-                    }}
-                    onChange={handleChannelTypeChange}
-                />
-
-                {/* Purpose Section*/}
-                {/* <label className='Input_legend'>{formatMessage({id: 'channel_settings.label.purpose', defaultMessage: 'Channel Purpose'})}</label> */}
-                {/* <div className='textarea-wrapper'>
-                    <Textbox
-                        value={channelPurpose}
-                        onChange={(e: React.ChangeEvent<TextboxElement>) => {
-                            setChannelPurpose(e.target.value);
-
-                            // Check for character limit
-                            if (e.target.value.length > Constants.MAX_CHANNELPURPOSE_LENGTH) {
-                                setServerError(formatMessage({
-                                    id: 'channel_settings.error_purpose_length',
-                                    defaultMessage: 'The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.',
-                                }, {
-                                    maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
-                                }));
-                            } else if (serverError) {
-                                setServerError('');
-                            }
-                        }}
-                        onKeyPress={() => {
-                            // No specific key press handling needed for the settings modal
-                        }}
-                        onKeyDown={() => {
-                            // No specific key down handling needed for the settings modal
-                        }}
-                        supportsCommands={false}
-                        suggestionListPosition='bottom'
-                        createMessage={formatMessage({
-                            id: 'channel_settings_modal.purpose.placeholder',
-                            defaultMessage: 'Enter a purpose for this channel (optional)',
-                        })}
-                        handlePostError={() => {
-                            // No specific post error handling needed for the settings modal
-                        }}
-                        channelId={channel.id}
-                        id='channel_settings_purpose_textbox'
-                        characterLimit={Constants.MAX_CHANNELPURPOSE_LENGTH}
-                        preview={shouldShowPreview}
-                        useChannelMentions={false}
-                    />
-                </div>
-                <div className='post-create-footer'>
-                    <TextboxLinks
-                        showPreview={shouldShowPreview}
-                        updatePreview={(show) => {
-                            dispatch(setShowPreviewOnChannelSettingsModal(show));
-                        }}
-                        hasText={channelPurpose ? channelPurpose.length > 0 : false}
-                        hasExceededCharacterLimit={channelPurpose ? channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH : false}
-                        previewMessageLink={
-                            <FormattedMessage
-                                id='edit_channel_purpose_modal.previewPurpose'
-                                defaultMessage='Edit'
-                            />
-                        }
-                    />
-                </div> */}
-                {/* Channel Header Section*/}
-                <label className='Input_legend'>{formatMessage({id: 'channel_settings.label.header', defaultMessage: 'Channel Header'})}</label>
-                <div className='textarea-wrapper'>
-                    <Textbox
-                        value={header!}
-                        onChange={handleOnChange}
-                        supportsCommands={false}
-                        suggestionListPosition='bottom'
-                        createMessage={formatMessage({
-                            id: 'channel_settings_modal.header.placeholder',
-                            defaultMessage: 'Enter a header for this channel',
-                        })}
-                        channelId={channel.id!}
-                        id='edit_textbox'
-                        ref={headerTextboxRef}
-                        characterLimit={headerMaxLength}
-                        preview={true}
-                        useChannelMentions={false}
-                        onKeyPress={handleKeyPress}
-                    />
-                </div>
-                <div className='post-create-footer'>
-                    <TextboxLinks
-                        showPreview={shouldShowPreview}
-                        updatePreview={(show) => {
-                            dispatch(setShowPreviewOnChannelSettingsModal(show));
-                        }}
-                        hasText={header ? header.length > 0 : false}
-                        hasExceededCharacterLimit={header ? header.length > headerMaxLength : false}
-                        previewMessageLink={
-                            <FormattedMessage
-                                id='edit_channel_header_modal.previewHeader'
-                                defaultMessage='Edit'
-                            />
-                        }
-                    />
-                </div>
-                {/* SaveChangesPanel for unsaved changes */}
-                {requireConfirm && (
-                    <SaveChangesPanel
-                        handleSubmit={handleSaveChanges}
-                        handleCancel={handleCancel}
-                        handleClose={handleClose}
-                        tabChangeError={false}
-                        state={saveChangesPanelState}
-                    />
-                )}
-            </div>
+            <ChannelSettingsInfoTab
+                channel={channel}
+                displayName={displayName}
+                setDisplayName={setDisplayName}
+                url={url}
+                setURL={setURL}
+                channelType={channelType}
+                setChannelType={setChannelType}
+                header={header}
+                setChannelHeader={setChannelHeader}
+                urlError={urlError}
+                setURLError={setURLError}
+                serverError={serverError}
+                setServerError={setServerError}
+                canConvertToPublic={canConvertToPublic}
+                canConvertToPrivate={canConvertToPrivate}
+                headerTextboxRef={headerTextboxRef}
+                requireConfirm={requireConfirm}
+                saveChangesPanelState={saveChangesPanelState}
+                handleSaveChanges={handleSaveChanges}
+                handleCancel={handleCancel}
+                handleClose={handleClose}
+            />
         );
     };
 
