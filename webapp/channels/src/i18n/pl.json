@@ -1508,7 +1508,7 @@
   "admin.manage_roles.cancel": "Anuluj",
   "admin.manage_roles.manageRolesTitle": "Zarządzaj rolami",
   "admin.manage_roles.postAllPublicRole": "Dostęp do wiadomości na wszystkich kanałach publicznych Mattermost.",
-  "admin.manage_roles.postAllPublicRoleTitle": "wiadomości:kanały",
+  "admin.manage_roles.postAllPublicRoleTitle": "wiadomość:kanały",
   "admin.manage_roles.postAllRole": "Pozwól wysyłać wiadomości do wszystkich kanałów Mattermost włączając wiadomości bezpośrednie.",
   "admin.manage_roles.postAllRoleTitle": "wiadomość:wszystkie",
   "admin.manage_roles.save": "Zapisz",
