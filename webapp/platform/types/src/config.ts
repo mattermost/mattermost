@@ -715,6 +715,7 @@ export type LdapSettings = {
     LoginButtonColor: string;
     LoginButtonBorderColor: string;
     LoginButtonTextColor: string;
+    MaximumLoginAttempts: number;
 };
 
 export type ComplianceSettings = {
