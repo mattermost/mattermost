@@ -179,10 +179,6 @@ func NewServer(options ...Option) (*Server, error) {
 		timezones:   timezones.New(),
 	}
 
-	if os.Getenv("TEST_SPINWICK") == "true" {
-		mlog.Warn("mattermost: TEST_SPINWICK is true!")
-	}
-
 	for _, option := range options {
 		if err := option(s); err != nil {
 			return nil, errors.Wrap(err, "failed to apply option")
@@ -505,6 +501,10 @@ func NewServer(options ...Option) (*Server, error) {
 			}
 		}
 	})
+
+	if os.Getenv("TEST_SPINWICK") == "true" {
+		s.Log().Warn("mattermost: TEST_SPINWICK is true!")
+	}
 
 	return s, nil
 }
