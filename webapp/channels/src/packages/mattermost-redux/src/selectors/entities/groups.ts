@@ -9,7 +9,7 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import type {UserMentionKey} from 'mattermost-redux/selectors/entities/users';
-import {filterGroupsMatchingTerm, sortGroups} from 'mattermost-redux/utils/group_utils';
+import {filterGroupsMatchingTerm, isSyncableSource, sortGroups} from 'mattermost-redux/utils/group_utils';
 
 import {getCurrentUserLocale} from './i18n';
 
@@ -197,7 +197,7 @@ export const getGroupsNotAssociatedToTeam: (state: GlobalState, teamID: string) 
     getAllGroups,
     (state: GlobalState, teamID: string) => getTeamGroupIDSet(state, teamID),
     (allGroups, teamGroupIDSet) => {
-        return Object.entries(allGroups).filter(([groupID, group]) => !teamGroupIDSet.has(groupID) && group.source === GroupSource.Ldap).map((entry) => entry[1]);
+        return Object.entries(allGroups).filter(([groupID, group]) => !teamGroupIDSet.has(groupID) && isSyncableSource(group.source)).map((entry) => entry[1]);
     },
 );
 
@@ -217,7 +217,7 @@ export const getGroupsNotAssociatedToChannel: (state: GlobalState, channelID: st
     (state: GlobalState, channelID: string, teamID: string) => getTeam(state, teamID),
     (state: GlobalState, channelID: string, teamID: string) => getGroupsAssociatedToTeam(state, teamID),
     (allGroups, channelGroupIDSet, team, teamGroups) => {
-        let result = Object.values(allGroups).filter((group) => !channelGroupIDSet.has(group.id) && group.source === GroupSource.Ldap);
+        let result = Object.values(allGroups).filter((group) => !channelGroupIDSet.has(group.id) && isSyncableSource(group.source));
         if (team?.group_constrained) {
             const gids = teamGroups.map((group) => group.id);
             result = result.filter((group) => gids?.includes(group.id));
