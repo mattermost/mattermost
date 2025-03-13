@@ -5308,7 +5308,7 @@
   },
   {
     "id": "app.group.uniqueness_error",
-    "translation": "group member already exists"
+    "translation": "Group member with UserID \"{{.UserId}}\" already exists"
   },
   {
     "id": "app.group.username_conflict",
