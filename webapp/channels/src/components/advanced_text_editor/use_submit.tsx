@@ -38,6 +38,7 @@ import type {PostDraft} from 'types/store/draft';
 import {isPostDraftEmpty} from 'types/store/draft';
 
 import useGroups from './use_groups';
+import {getFilesIdsForPost} from 'mattermost-redux/selectors/entities/files';
 
 function getStatusFromSlashCommand(message: string) {
     const tokens = message.split(' ');
@@ -57,7 +58,7 @@ const useSubmit = (
     draft: PostDraft,
     postError: React.ReactNode,
     channelId: string,
-    postId: string,
+    rootId: string,
     serverError: (ServerError & { submittedMessage?: string }) | null,
     lastBlurAt: React.MutableRefObject<number>,
     focusTextbox: (forceFocust?: boolean) => void,
@@ -69,6 +70,7 @@ const useSubmit = (
     afterSubmit?: (response: SubmitPostReturnType) => void,
     skipCommands?: boolean,
     isInEditMode?: boolean,
+    postId?: string,
 ): [
         (submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => void,
         string | null,
@@ -76,6 +78,8 @@ const useSubmit = (
     const getGroupMentions = useGroups(channelId, draft.message);
 
     const dispatch = useDispatch();
+
+    const postFileIds = useSelector((state: GlobalState) => getFilesIdsForPost(state, postId || ''));
 
     const isDraftSubmitting = useRef(false);
     const [errorClass, setErrorClass] = useState<string | null>(null);
@@ -92,10 +96,10 @@ const useSubmit = (
     });
 
     const isRootDeleted = useSelector((state: GlobalState) => {
-        if (!postId) {
+        if (!rootId) {
             return false;
         }
-        const post = getPost(state, postId);
+        const post = getPost(state, rootId);
         if (!post || post.delete_at || post.state === 'DELETED') {
             return true;
         }
@@ -191,7 +195,7 @@ const useSubmit = (
                 createAt: 0,
                 updateAt: 0,
                 channelId,
-                rootId: postId,
+                rootId,
             }, {instant: true});
         } catch (err: unknown) {
             if (isServerError(err)) {
@@ -209,7 +213,7 @@ const useSubmit = (
             return;
         }
 
-        if (!postId && !schedulingInfo) {
+        if (!rootId && !schedulingInfo) {
             dispatch(scrollPostListToBottom());
         }
 
@@ -230,7 +234,7 @@ const useSubmit = (
         skipCommands,
         afterSubmit,
         afterOptimisticSubmit,
-        postId,
+        rootId,
         showPostDeletedModal,
         handleDraftChange,
         channelId,
@@ -238,12 +242,24 @@ const useSubmit = (
     ]);
 
     const handleFileChange = useCallback((submittingDraft: PostDraft) => {
+        // sets the updated data for file IDs by post ID part
         dispatch({
             type: FileTypes.RECEIVED_FILES_FOR_POST,
             data: submittingDraft.fileInfos,
             postId,
         });
-    }, [dispatch, postId]);
+
+        // removes the data for the deleted files from store
+        const deletedFileIds = postFileIds.filter((id: string) => !submittingDraft.fileInfos.find((file) => file.id === id));
+        if (deletedFileIds) {
+            dispatch({
+                type: FileTypes.REMOVED_FILE,
+                data: {
+                    fileIds: deletedFileIds,
+                },
+            });
+        }
+    }, [dispatch, postFileIds, postId]);
 
     const setUpdatedFileIds = useCallback((draft: PostDraft) => {
         // new object creation is needed here to support sending a draft with files.
@@ -270,6 +286,7 @@ const useSubmit = (
     }, [dispatch]);
 
     const handleSubmit = useCallback(async (submittingDraftParam = draft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
+        console.log('handleSubmit');
         if (!channel) {
             return;
         }
