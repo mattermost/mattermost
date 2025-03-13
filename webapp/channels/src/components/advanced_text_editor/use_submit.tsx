@@ -12,6 +12,7 @@ import {FileTypes} from 'mattermost-redux/action_types';
 import {getChannelTimezones} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, getAllChannelStats} from 'mattermost-redux/selectors/entities/channels';
+import {getFilesIdsForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -38,7 +39,6 @@ import type {PostDraft} from 'types/store/draft';
 import {isPostDraftEmpty} from 'types/store/draft';
 
 import useGroups from './use_groups';
-import {getFilesIdsForPost} from 'mattermost-redux/selectors/entities/files';
 
 function getStatusFromSlashCommand(message: string) {
     const tokens = message.split(' ');
@@ -286,7 +286,6 @@ const useSubmit = (
     }, [dispatch]);
 
     const handleSubmit = useCallback(async (submittingDraftParam = draft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
-        console.log('handleSubmit');
         if (!channel) {
             return;
         }
