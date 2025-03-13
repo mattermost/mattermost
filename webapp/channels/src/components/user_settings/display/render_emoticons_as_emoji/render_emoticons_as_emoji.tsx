@@ -9,12 +9,12 @@ import type {PreferencesType, PreferenceType} from '@mattermost/types/preference
 
 import {Preferences} from 'mattermost-redux/constants';
 
+import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {a11yFocus} from 'utils/utils';
-import useDidUpdate from 'components/common/hooks/useDidUpdate';
 
 export type OwnProps = {
     adminMode?: boolean;
