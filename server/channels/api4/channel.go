@@ -377,6 +377,14 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if patch.BannerInfo != nil {
+		if channelBannerAppErr := canEditChannelBanner(c.App.License(), originalOldChannel); channelBannerAppErr != nil {
+			channelBannerAppErr.Where = "patchChannel"
+			c.Err = channelBannerAppErr
+			return
+		}
+	}
+
 	rchannel, appErr := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -2433,4 +2441,16 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	if err := json.NewEncoder(w).Encode(updatedChannel); err != nil {
 		c.Logger.Warn("Error while writing response from convertGroupMessageToChannel", mlog.Err(err))
 	}
+}
+
+func canEditChannelBanner(license *model.License, originalChannel *model.Channel) *model.AppError {
+	if license == nil || !license.IsE20OrEnterprise() {
+		return model.NewAppError("", "license_error.feature_unavailable", nil, "feature is not available for the current license", http.StatusForbidden)
+	}
+
+	if originalChannel.Type != model.ChannelTypeOpen && originalChannel.Type != model.ChannelTypePrivate {
+		return model.NewAppError("", "api.channel.update_channel.banner_info.channel_type.not_allowed", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }

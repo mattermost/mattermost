@@ -8,7 +8,7 @@ import {useIntl} from 'react-intl';
 import {getRoundedTime} from 'components/custom_status/date_time_input';
 import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
 
-import {toUTCUnix} from 'utils/datetime';
+import {toUTCUnixInSeconds} from 'utils/datetime';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 import type {PropsFromRedux} from './index';
@@ -31,7 +31,7 @@ function PostReminderCustomTimePicker({userId, timezone, onExited, postId, actio
     const initialReminderTime = getRoundedTime(currentTime);
 
     const handleConfirm = useCallback((dateTime: Moment) => {
-        actions.addPostReminder(userId, postId, toUTCUnix(dateTime.toDate()));
+        actions.addPostReminder(userId, postId, toUTCUnixInSeconds(dateTime.toDate()));
         onExited();
     }, [actions, postId, userId, onExited]);
 

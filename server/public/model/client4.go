@@ -1684,6 +1684,16 @@ func (c *Client4) UpdateUserActive(ctx context.Context, userId string, active bo
 	return BuildResponse(r), nil
 }
 
+// ResetFailedAttempts resets the number of failed attempts for a user.
+func (c *Client4) ResetFailedAttempts(ctx context.Context, userId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.userRoute(userId)+"/reset_failed_attempts", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // DeleteUser deactivates a user in the system based on the provided user id string.
 func (c *Client4) DeleteUser(ctx context.Context, userId string) (*Response, error) {
 	r, err := c.DoAPIDelete(ctx, c.userRoute(userId))
@@ -9465,21 +9475,21 @@ func (c *Client4) DeleteCPAField(ctx context.Context, fieldID string) (*Response
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) ListCPAValues(ctx context.Context, userID string) (map[string]string, *Response, error) {
+func (c *Client4) ListCPAValues(ctx context.Context, userID string) (map[string]json.RawMessage, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.userCustomProfileAttributesRoute(userID), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
-	fields := make(map[string]string)
+	fields := make(map[string]json.RawMessage)
 	if err := json.NewDecoder(r.Body).Decode(&fields); err != nil {
 		return nil, nil, NewAppError("ListCPAValues", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return fields, BuildResponse(r), nil
 }
 
-func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]string) (map[string]string, *Response, error) {
+func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]json.RawMessage) (map[string]json.RawMessage, *Response, error) {
 	buf, err := json.Marshal(values)
 	if err != nil {
 		return nil, nil, NewAppError("PatchCPAValues", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -9491,7 +9501,7 @@ func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]string) 
 	}
 	defer closeBody(r)
 
-	var patchedValues map[string]string
+	var patchedValues map[string]json.RawMessage
 	if err := json.NewDecoder(r.Body).Decode(&patchedValues); err != nil {
 		return nil, nil, NewAppError("PatchCPAValues", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

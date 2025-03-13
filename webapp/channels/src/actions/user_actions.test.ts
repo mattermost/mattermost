@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Dispatch, AnyAction} from 'redux';
+
 import type {Channel, ChannelMembership, ChannelMessageCount} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
@@ -601,8 +603,8 @@ describe('Actions.User', () => {
         } as unknown as GlobalState;
 
         const testStore = mockStore(state);
-        store.getState.mockImplementation(testStore.getState);
-        store.dispatch.mockImplementation(testStore.dispatch);
+        (store.getState as jest.MockedFunction<() => GlobalState>).mockImplementation(testStore.getState);
+        (store.dispatch as jest.MockedFunction<Dispatch<AnyAction>>).mockImplementation(testStore.dispatch);
         const actions = testStore.getActions();
 
         await UserActions.loadProfilesForGM();

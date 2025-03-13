@@ -526,7 +526,6 @@ function PostComponent(props: Props) {
                 ref={postRef}
                 id={getTestId()}
                 data-testid={postAriaLabelDivTestId}
-                tabIndex={0}
                 post={post}
                 className={getClassName()}
                 onClick={handlePostClick}
@@ -567,7 +566,6 @@ function PostComponent(props: Props) {
                     channelId={post.channel_id}
                 />
                 <div
-                    role='application'
                     className={`post__content ${props.center ? 'center' : ''}`}
                     data-testid='postContent'
                 >
