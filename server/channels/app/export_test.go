@@ -938,18 +938,51 @@ func TestExportFileWarnings(t *testing.T) {
 
 			exportFile, err := os.Create(filepath.Join(dir, "export.zip"))
 			require.NoError(t, err)
-			defer exportFile.Close()
+
+			job, appErr := th.App.Srv().Jobs.CreateJob(th.Context, model.JobTypeExportProcess, nil)
+			require.Nil(t, appErr)
+			ok, appErr := th.App.Srv().Jobs.ClaimJob(job)
+			require.Nil(t, appErr)
+			require.True(t, ok)
+			job, appErr = th.App.Srv().Jobs.GetJob(th.Context, job.Id)
+			require.Nil(t, appErr)
 
 			opts := model.BulkExportOpts{
 				IncludeAttachments: true,
 				CreateArchive:      true,
 			}
-			appErr = th.App.BulkExport(th.Context, exportFile, dir, nil, opts)
+			appErr = th.App.BulkExport(th.Context, exportFile, dir, job, opts)
 			// should not get an error for the missing file
 			require.Nil(t, appErr)
 
 			// should get a warning instead:
 			testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Unable to export file attachment")
+
+			// should get info in the job data:
+			job, appErr = th.App.Srv().Jobs.GetJob(th.Context, job.Id)
+			require.Nil(t, appErr)
+			warnings, ok := job.Data["num_warnings"]
+			require.True(t, ok)
+			require.Equal(t, "1", warnings)
+
+			exportFile.Close()
+
+			// Verify warnings.txt exists in the zip and contains expected content
+			exportZipPath := filepath.Join(dir, "export.zip")
+			exportZipFile, err := os.Open(exportZipPath)
+			require.NoError(t, err)
+			defer exportZipFile.Close()
+
+			info, err := exportZipFile.Stat()
+			require.NoError(t, err)
+
+			paths, err := utils.UnzipToPath(exportZipFile, info.Size(), dir)
+			require.NoError(t, err)
+			require.Contains(t, paths, filepath.Join(dir, warningsFilename))
+
+			warningsContent, err := os.ReadFile(filepath.Join(dir, warningsFilename))
+			require.NoError(t, err)
+			require.Contains(t, string(warningsContent), "Unable to export file attachment, attachment path:")
 		})
 	}
 }

@@ -7,8 +7,6 @@ import {Provider} from 'react-redux';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {Client4} from 'mattermost-redux/client';
-
 import configureStore from 'store';
 
 import {shallowWithIntl, mountWithIntl} from 'tests/helpers/intl-test-helper';
@@ -47,7 +45,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
         isMobileView: false,
-        customProfileAttributeFields: {},
+        customProfileAttributeFields: [],
         actions: {
             logError: jest.fn(),
             clearErrors: jest.fn(),
@@ -56,7 +54,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             setDefaultProfileImage: jest.fn(),
             uploadProfileImage: jest.fn(),
             saveCustomProfileAttribute: jest.fn(),
-            getCustomProfileAttributeFields: jest.fn(),
+            getCustomProfileAttributeValues: jest.fn(),
         },
         maxFileSize: 1024,
         ldapPositionAttributeSet: false,
@@ -66,7 +64,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
     };
 
     const customProfileAttribute: UserPropertyField = {
-        id: '1',
+        id: 'field1',
         group_id: 'custom_profile_attributes',
         name: 'Test Attribute',
         type: 'text',
@@ -196,65 +194,98 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
     });
 
     test('should show Custom Attribute Field with no value', async () => {
-        (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => {
-            return {};
-        });
-        const props = {...requiredProps, enableCustomProfileAttributes: true, customProfileAttributeFields: {1: customProfileAttribute}};
-        props.user = {...user};
+        const testUser = {...user, custom_profile_attributes: {}};
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [customProfileAttribute],
+            user: testUser,
+        };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
+        expect(props.actions.getCustomProfileAttributeValues).not.toHaveBeenCalled();
         expect(await screen.getByRole('button', {name: `${customProfileAttribute.name} Edit`})).toBeInTheDocument();
         expect(await screen.findByText('Click \'Edit\' to add your custom attribute'));
     });
 
     test('should show Custom Attribute Field with empty value', async () => {
-        (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => {
-            return {
-                1: '',
-            };
-        });
-        const props = {...requiredProps, enableCustomProfileAttributes: true, customProfileAttributeFields: {1: customProfileAttribute}};
-        props.user = {...user};
+        const testUser = {...user, custom_profile_attributes: {field1: ''}};
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [customProfileAttribute],
+            user: testUser,
+        };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
+        expect(props.actions.getCustomProfileAttributeValues).not.toHaveBeenCalled();
         expect(await screen.getByRole('button', {name: `${customProfileAttribute.name} Edit`})).toBeInTheDocument();
         expect(await screen.findByText('Click \'Edit\' to add your custom attribute'));
     });
 
-    test('should show Custom Attribute Field with value set', async () => {
-        (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => {
-            return {1: 'Custom Attribute Value'};
-        });
-        const props = {...requiredProps, enableCustomProfileAttributes: true, customProfileAttributeFields: {1: customProfileAttribute}};
-        props.user = {...user};
+    test('should show Custom Attribute Field with value', async () => {
+        const testUser = {...user, custom_profile_attributes: {field1: 'FieldOneValue'}};
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [customProfileAttribute],
+            user: testUser,
+        };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
+        expect(props.actions.getCustomProfileAttributeValues).not.toHaveBeenCalled();
+        expect(await screen.findByText('FieldOneValue')).toBeInTheDocument();
+    });
+
+    test('should call getCustomProfileAttributeValues if users properties are null', async () => {
+        const testUser = {...user};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [customProfileAttribute],
+            actions: {...requiredProps.actions},
+            user: testUser,
+        };
+
+        const {rerender} = renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(props.actions.getCustomProfileAttributeValues).toHaveBeenCalledTimes(1);
         expect(await screen.getByRole('button', {name: `${customProfileAttribute.name} Edit`})).toBeInTheDocument();
-        expect(await screen.findByText('Custom Attribute Value'));
+
+        props.user = {...testUser, custom_profile_attributes: {field1: 'FieldOneValue'}};
+        console.log(props.user);
+        rerender(<UserSettingsGeneral {...props}/>);
+        expect(props.actions.getCustomProfileAttributeValues).toHaveBeenCalledTimes(1);
+        expect(await screen.findByText('FieldOneValue')).toBeInTheDocument();
     });
 
     test('should show Custom Attribute Field editing with empty value', async () => {
-        const props = {...requiredProps, enableCustomProfileAttributes: true, customProfileAttributeFields: {1: customProfileAttribute}};
-        props.user = {...user};
-        props.activeSection = 'customAttribute_1';
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [customProfileAttribute],
+            user,
+            activeSection: 'customAttribute_field1',
+        };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
-
         expect(await screen.getByRole('textbox', {name: `${customProfileAttribute.name}`})).toBeInTheDocument();
     });
 
     test('submitAttribute() should have called saveCustomProfileAttribute', async () => {
-        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({1: 'Updated Value'});
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({field1: 'Updated Value'});
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
             actions: {...requiredProps.actions, saveCustomProfileAttribute},
-            customProfileAttributeFields: {1: customProfileAttribute},
+            customProfileAttributeFields: [customProfileAttribute],
             user: {...user},
-            activeSection: 'customAttribute_1',
+            activeSection: 'customAttribute_field1',
         };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
@@ -266,6 +297,6 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(saveCustomProfileAttribute).toHaveBeenCalledTimes(1);
-        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', '1', 'Updated Value');
+        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'Updated Value');
     });
 });

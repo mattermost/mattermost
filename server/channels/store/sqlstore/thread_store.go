@@ -1139,3 +1139,25 @@ func (s *SqlThreadStore) updateThreadParticipantsForUserTx(trx *sqlxTxWrapper, p
 
 	return nil
 }
+
+// UpdateTeamIdForChannelThreads updates the team id for all threads in a channel.
+// Specifically used when a channel is moved to a different team.
+// If a user is not member of the new team, the threads will be deleted by the
+// channel move process.
+func (s *SqlThreadStore) UpdateTeamIdForChannelThreads(channelId, teamId string) error {
+	query := s.getQueryBuilder().
+		Update("Threads").
+		Set("ThreadTeamId", teamId).
+		Where(
+			sq.And{
+				sq.Eq{"ChannelId": channelId},
+				sq.Expr("EXISTS(SELECT 1 FROM Teams WHERE Id = ?)", teamId),
+			})
+
+	_, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to update threads team id for channel id=%s", channelId)
+	}
+
+	return nil
+}

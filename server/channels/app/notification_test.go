@@ -2914,6 +2914,48 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, membership)
 	})
+
+	t.Run("should not auto follow when the original poster is no longer a channel member", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		u1 := th.BasicUser
+		u2 := th.BasicUser2
+		c1 := th.BasicChannel
+		th.AddUserToChannel(u2, c1)
+
+		// Enable CRT
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ThreadAutoFollow = true
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		})
+
+		rootPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "root post by user1",
+			UserId:    u1.Id,
+		}
+		rpost, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Remove user1 from the channel
+		appErr = th.App.RemoveUserFromChannel(th.Context, u1.Id, u1.Id, c1)
+		require.Nil(t, appErr)
+
+		replyPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "reply post by user2",
+			UserId:    u2.Id,
+			RootId:    rpost.Id,
+		}
+		_, appErr = th.App.CreatePost(th.Context, replyPost, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Ensure user1 is not auto-following the thread
+		threadMembership, appErr := th.App.GetThreadMembershipForUser(u1.Id, rpost.Id)
+		require.NotNil(t, appErr)
+		require.Nil(t, threadMembership)
+	})
 }
 
 func TestChannelAutoFollowThreads(t *testing.T) {

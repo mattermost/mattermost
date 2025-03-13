@@ -502,8 +502,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
-	app.initElasticsearchChannelIndexCheck()
-
 	return s, nil
 }
 
@@ -1784,14 +1782,14 @@ func cancelTask(mut *sync.Mutex, taskPointer **model.ScheduledTask) {
 func runDNDStatusExpireJob(a *App) {
 	if a.IsLeader() {
 		withMut(&a.ch.dndTaskMut, func() {
-			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
 			withMut(&a.ch.dndTaskMut, func() {
-				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 			})
 		} else {
 			cancelTask(&a.ch.dndTaskMut, &a.ch.dndTask)
