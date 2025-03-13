@@ -10,6 +10,7 @@ describe('Reducers.RHS', () => {
         shouldShowPreviewOnCreateComment: false,
         shouldShowPreviewOnCreatePost: false,
         shouldShowPreviewOnEditChannelHeaderModal: false,
+        shouldShowPreviewOnChannelSettingsModal: false,
     };
 
     test('Initial state', () => {
@@ -63,6 +64,21 @@ describe('Reducers.RHS', () => {
         expect(nextState).toEqual({
             ...initialState,
             shouldShowPreviewOnEditChannelHeaderModal: true,
+        });
+    });
+
+    test('update show preview value on channel settings modal', () => {
+        const nextState = textboxReducer(
+            {},
+            {
+                type: ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_MODAL,
+                showPreview: true,
+            },
+        );
+
+        expect(nextState).toEqual({
+            ...initialState,
+            shouldShowPreviewOnChannelSettingsModal: true,
         });
     });
 });

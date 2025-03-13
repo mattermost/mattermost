@@ -216,5 +216,6 @@ export type ViewsState = {
         shouldShowPreviewOnCreatePost: boolean;
         shouldShowPreviewOnEditChannelHeaderModal: boolean;
         shouldShowPreviewOnEditPostModal: boolean;
+        shouldShowPreviewOnChannelSettingsModal: boolean;
     };
 };

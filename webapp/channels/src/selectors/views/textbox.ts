@@ -14,3 +14,7 @@ export function showPreviewOnCreatePost(state: GlobalState) {
 export function showPreviewOnEditChannelHeaderModal(state: GlobalState) {
     return state.views.textbox.shouldShowPreviewOnEditChannelHeaderModal;
 }
+
+export function showPreviewOnChannelSettingsModal(state: GlobalState) {
+    return state.views.textbox.shouldShowPreviewOnChannelSettingsModal;
+}
