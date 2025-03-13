@@ -56,6 +56,9 @@ For more information on Groups, please see <link>documentation</link>."
       >
         <Connect(GroupsList) />
       </AdminPanel>
+      <Pluggable
+        pluggableName="SystemConsoleGroupTable"
+      />
     </div>
   </div>
 </div>
