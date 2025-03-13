@@ -4603,7 +4603,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 130+"
+    "translation": "Version 132+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8567,7 +8567,7 @@
   },
   {
     "id": "app.post_reminder_dm",
-    "translation": "@{{.Username}}からのこのメッセージについてのリマインダーです: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+    "translation": "このメッセージ（@{{.Username}}により投稿された）についてのリマインダーです: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
     "id": "api.command_marketplace.unsupported.app_error",

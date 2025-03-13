@@ -517,7 +517,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Nevalidní Id."
+    "translation": "Neplatné Id: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
@@ -5293,11 +5293,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verze 130+"
+    "translation": "Verze 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verze 130+"
+    "translation": "Verze 132+"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
@@ -10422,5 +10422,25 @@
   {
     "id": "app.file_info.get_storage_usage.app_error",
     "translation": "Nepodařilo se získat využití úložiště pro všechny soubory."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Relace nebyla nalezena."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Nelze spočítat počet polí pro skupinu vlastního atributu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Nelze provést vložení nebo aktualizaci polí vlastního atributu profilu"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Neplatné ID uživatele na straně klienta: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Počet prvků v ClientSideUserIds {{.CurrentLength}} je vyšší než maximální limit {{.MaxLength}}."
   }
 ]
