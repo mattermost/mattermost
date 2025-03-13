@@ -128,6 +128,8 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		user := printer.GetLines()[0].(userOut)
 		s.Equal(s.th.BasicUser.Username, user.Username)
 		s.False(user.Deactivated)
+		s.Empty(user.AuthData)
+		s.Empty(user.AuthService)
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
@@ -149,6 +151,32 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		user := printer.GetLines()[0].(userOut)
 		s.Equal(disabledUser.Username, user.Username)
 		s.True(user.Deactivated) // Verify user shows as deactivated
+		s.Empty(user.AuthData)
+		s.Empty(user.AuthService)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForAllClients("Search for a user with authData", func(c client.Client) {
+		printer.Clean()
+
+		// Create a LDAP user
+		ldapUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
+			Email:       s.th.GenerateTestEmail(),
+			Username:    model.NewUsername(),
+			Password:    model.NewId(),
+			AuthData:    model.NewPointer("1234"),
+			AuthService: model.UserAuthServiceLdap,
+		})
+		s.Require().Nil(appErr)
+
+		err := searchUserCmdF(c, &cobra.Command{}, []string{ldapUser.Email})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		user := printer.GetLines()[0].(userOut)
+		s.Equal(ldapUser.Username, user.Username)
+		s.False(user.Deactivated)
+		s.Equal(*ldapUser.AuthData, user.AuthData)
+		s.Equal(ldapUser.AuthService, user.AuthService)
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
