@@ -85,6 +85,7 @@ export type ClientConfig = {
     EnableMobileFileUpload: string;
     EnableMultifactorAuthentication: string;
     EnableOAuthServiceProvider: string;
+    EnableOmniSearch: string;
     EnableOutgoingOAuthConnections: string;
     EnableOpenServer: string;
     EnableOutgoingWebhooks: string;
@@ -355,6 +356,7 @@ export type ServiceSettings = {
     TimeBetweenUserTypingUpdatesMilliseconds: number;
     EnablePostSearch: boolean;
     EnableFileSearch: boolean;
+    EnableOmniSearch: boolean;
     MinimumHashtagLength: number;
     EnableUserTypingMessages: boolean;
     EnableChannelViewedMessages: boolean;
