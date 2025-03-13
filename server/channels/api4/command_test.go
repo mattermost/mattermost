@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func TestCreateCommand(t *testing.T) {
@@ -1162,7 +1163,8 @@ func TestExecuteCommandReadOnly(t *testing.T) {
 func TestBotCannotManageSlashCommands(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	
+	_ = request.EmptyContext(nil) // Use the import
+
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
@@ -1177,30 +1179,34 @@ func TestBotCannotManageSlashCommands(t *testing.T) {
 		Password: "Password1",
 		Roles:    model.SystemUserRoleId + " " + model.TeamUserRoleId + " " + model.TeamAdminRoleId,
 	}
-	
+
 	ruser, err := th.App.CreateUser(th.Context, user)
 	require.Nil(t, err)
-	
+
 	// Add user to the team
 	_, appErr := th.App.AddTeamMember(th.Context, th.BasicTeam.Id, ruser.Id)
 	require.Nil(t, appErr)
-	
+
 	// Grant the user the manage slash commands permission
 	_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, model.TeamAdminRoleId)
 	require.Nil(t, appErr)
-	
+
 	// Create a bot from this user
 	bot, appErr := th.App.ConvertUserToBot(th.Context, ruser)
 	require.Nil(t, appErr)
-	
+
 	// Set up bot client
-	token, tokenErr := th.App.CreateToken(bot.UserId, "")
+	token := &model.UserAccessToken{
+		UserId:      bot.UserId,
+		Description: "Bot token for testing",
+	}
+	userAccessToken, tokenErr := th.App.CreateUserAccessToken(th.Context, token)
 	require.Nil(t, tokenErr)
-	
+
 	botClient := th.CreateClient()
-	botClient.AuthToken = token.Token
+	botClient.AuthToken = userAccessToken.Token
 	botClient.AuthType = model.HeaderBearer
-	
+
 	// Create a slash command - this should fail because bots can't manage slash commands
 	testCmd := &model.Command{
 		CreatorId:   bot.UserId,
@@ -1211,25 +1217,20 @@ func TestBotCannotManageSlashCommands(t *testing.T) {
 		Description: "test command",
 		Trigger:     "test",
 	}
-	
-	_, resp, err := botClient.CreateCommand(context.Background(), testCmd)
-	require.Error(t, err)
+
+	_, resp, _ := botClient.CreateCommand(context.Background(), testCmd)
 	CheckForbiddenStatus(t, resp)
-	
+
 	// Also try update, delete, regen token - all should fail
-	_, resp, err = botClient.MoveCommand(context.Background(), th.BasicTeam.Id, "fakeid")
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
-	
-	_, resp, err = botClient.UpdateCommand(context.Background(), testCmd)
-	require.Error(t, err) 
-	CheckForbiddenStatus(t, resp)
-	
-	resp, err = botClient.DeleteCommand(context.Background(), "fakeid")
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
-	
-	_, resp, err = botClient.RegenCommandToken(context.Background(), "fakeid")
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	moveResp, _ := botClient.MoveCommand(context.Background(), th.BasicTeam.Id, "fakeid")
+	CheckForbiddenStatus(t, moveResp)
+
+	_, updateResp, _ := botClient.UpdateCommand(context.Background(), testCmd)
+	CheckForbiddenStatus(t, updateResp)
+
+	deleteResp, _ := botClient.DeleteCommand(context.Background(), "fakeid")
+	CheckForbiddenStatus(t, deleteResp)
+
+	_, regenResp, _ := botClient.RegenCommandToken(context.Background(), "fakeid")
+	CheckForbiddenStatus(t, regenResp)
 }
