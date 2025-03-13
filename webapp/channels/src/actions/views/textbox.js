@@ -30,3 +30,17 @@ export function setShowPreviewOnChannelSettingsModal(showPreview) {
         showPreview,
     };
 }
+
+export function setShowPreviewOnChannelSettingsHeaderModal(showPreview) {
+    return {
+        type: ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL,
+        showPreview,
+    };
+}
+
+export function setShowPreviewOnChannelSettingsPurposeModal(showPreview) {
+    return {
+        type: ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL,
+        showPreview,
+    };
+}

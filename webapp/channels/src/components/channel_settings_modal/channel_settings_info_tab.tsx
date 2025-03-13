@@ -7,8 +7,14 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 
-import {setShowPreviewOnChannelSettingsModal} from 'actions/views/textbox';
-import {showPreviewOnChannelSettingsModal} from 'selectors/views/textbox';
+import {
+    setShowPreviewOnChannelSettingsHeaderModal,
+    setShowPreviewOnChannelSettingsPurposeModal,
+} from 'actions/views/textbox';
+import {
+    showPreviewOnChannelSettingsHeaderModal,
+    showPreviewOnChannelSettingsPurposeModal,
+} from 'selectors/views/textbox';
 
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import Textbox, {TextboxLinks} from 'components/textbox';
@@ -29,6 +35,8 @@ type ChannelSettingsInfoTabProps = {
     setChannelType: (type: ChannelType) => void;
     header: string;
     setChannelHeader: (header: string) => void;
+    channelPurpose: string;
+    setChannelPurpose: (purpose: string) => void;
     urlError: string;
     setURLError: (error: string) => void;
     serverError: string;
@@ -53,6 +61,8 @@ const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
     setChannelType,
     header,
     setChannelHeader,
+    channelPurpose,
+    setChannelPurpose,
     urlError,
     setURLError,
     serverError,
@@ -68,7 +78,8 @@ const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
 }) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const shouldShowPreview = useSelector(showPreviewOnChannelSettingsModal);
+    const shouldShowPreviewPurpose = useSelector(showPreviewOnChannelSettingsPurposeModal);
+    const shouldShowPreviewHeader = useSelector(showPreviewOnChannelSettingsHeaderModal);
 
     // Constants
     const headerMaxLength = 1024;
@@ -126,8 +137,8 @@ const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
             />
 
             {/* Purpose Section*/}
-            {/* <label className='Input_legend'>{formatMessage({id: 'channel_settings.label.purpose', defaultMessage: 'Channel Purpose'})}</label> */}
-            {/* <div className='textarea-wrapper'>
+            <label className='Input_legend'>{formatMessage({id: 'channel_settings.label.purpose', defaultMessage: 'Channel Purpose'})}</label>
+            <div className='textarea-wrapper'>
                 <Textbox
                     value={channelPurpose}
                     onChange={(e: React.ChangeEvent<TextboxElement>) => {
@@ -163,15 +174,15 @@ const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
                     channelId={channel.id}
                     id='channel_settings_purpose_textbox'
                     characterLimit={Constants.MAX_CHANNELPURPOSE_LENGTH}
-                    preview={shouldShowPreview}
+                    preview={shouldShowPreviewPurpose}
                     useChannelMentions={false}
                 />
             </div>
             <div className='post-create-footer'>
                 <TextboxLinks
-                    showPreview={shouldShowPreview}
+                    showPreview={shouldShowPreviewPurpose}
                     updatePreview={(show) => {
-                        dispatch(setShowPreviewOnChannelSettingsModal(show));
+                        dispatch(setShowPreviewOnChannelSettingsPurposeModal(show));
                     }}
                     hasText={channelPurpose ? channelPurpose.length > 0 : false}
                     hasExceededCharacterLimit={channelPurpose ? channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH : false}
@@ -182,7 +193,7 @@ const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
                         />
                     }
                 />
-            </div> */}
+            </div>
             {/* Channel Header Section*/}
             <label className='Input_legend'>{formatMessage({id: 'channel_settings.label.header', defaultMessage: 'Channel Header'})}</label>
             <div className='textarea-wrapper'>
@@ -222,15 +233,15 @@ const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
                     id='channel_settings_header_textbox'
                     ref={headerTextboxRef}
                     characterLimit={headerMaxLength}
-                    preview={shouldShowPreview}
+                    preview={shouldShowPreviewHeader}
                     useChannelMentions={false}
                 />
             </div>
             <div className='post-create-footer'>
                 <TextboxLinks
-                    showPreview={shouldShowPreview}
+                    showPreview={shouldShowPreviewHeader}
                     updatePreview={(show) => {
-                        dispatch(setShowPreviewOnChannelSettingsModal(show));
+                        dispatch(setShowPreviewOnChannelSettingsHeaderModal(show));
                     }}
                     hasText={header ? header.length > 0 : false}
                     hasExceededCharacterLimit={header ? header.length > headerMaxLength : false}

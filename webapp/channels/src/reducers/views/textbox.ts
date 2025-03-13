@@ -57,9 +57,35 @@ function shouldShowPreviewOnChannelSettingsModal(state = false, action: MMAction
     }
 }
 
+function shouldShowPreviewOnChannelSettingsHeaderModal(state = false, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL:
+        return action.showPreview;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return false;
+    default:
+        return state;
+    }
+}
+
+function shouldShowPreviewOnChannelSettingsPurposeModal(state = false, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL:
+        return action.showPreview;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return false;
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     shouldShowPreviewOnCreateComment,
     shouldShowPreviewOnCreatePost,
     shouldShowPreviewOnEditChannelHeaderModal,
     shouldShowPreviewOnChannelSettingsModal,
+    shouldShowPreviewOnChannelSettingsHeaderModal,
+    shouldShowPreviewOnChannelSettingsPurposeModal,
 });

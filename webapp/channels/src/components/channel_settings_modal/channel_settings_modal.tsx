@@ -267,6 +267,8 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
                 setChannelType={setChannelType}
                 header={header}
                 setChannelHeader={setChannelHeader}
+                channelPurpose={channelPurpose}
+                setChannelPurpose={setChannelPurpose}
                 urlError={urlError}
                 setURLError={setURLError}
                 serverError={serverError}
