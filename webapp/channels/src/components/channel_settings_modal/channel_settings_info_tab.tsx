@@ -33,7 +33,7 @@ type ChannelSettingsInfoTabProps = {
     setURL: (url: string) => void;
     channelType: ChannelType;
     setChannelType: (type: ChannelType) => void;
-    header: string;
+    channelHeader: string;
     setChannelHeader: (header: string) => void;
     channelPurpose: string;
     setChannelPurpose: (purpose: string) => void;
@@ -44,6 +44,7 @@ type ChannelSettingsInfoTabProps = {
     canConvertToPublic: boolean;
     canConvertToPrivate: boolean;
     headerTextboxRef: React.RefObject<TextboxClass>;
+    purposeTextboxRef: React.RefObject<TextboxClass>;
     requireConfirm: boolean;
     saveChangesPanelState?: SaveChangesPanelState;
     handleSaveChanges: () => Promise<void>;
@@ -59,7 +60,7 @@ const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
     setURL,
     channelType,
     setChannelType,
-    header,
+    channelHeader,
     setChannelHeader,
     channelPurpose,
     setChannelPurpose,
@@ -70,6 +71,7 @@ const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
     canConvertToPublic,
     canConvertToPrivate,
     headerTextboxRef,
+    purposeTextboxRef,
     requireConfirm,
     saveChangesPanelState,
     handleSaveChanges,
@@ -101,6 +103,25 @@ const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
         setChannelType(type);
         setServerError('');
     };
+
+    const handleChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
+        const newValue = e.target.value;
+
+        // Update the header value
+        setChannelHeader(newValue);
+
+        // Check for character limit
+        if (newValue.length > headerMaxLength) {
+            setServerError(formatMessage({
+                id: 'edit_channel_header_modal.error',
+                defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
+            }, {
+                maxLength: headerMaxLength,
+            }));
+        } else if (serverError) {
+            setServerError('');
+        }
+    }, [setChannelHeader, headerMaxLength, serverError, setServerError, formatMessage, channelHeader]);
 
     return (
         <div className='ChannelSettingsModal__infoTab'>
@@ -171,6 +192,7 @@ const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
                     handlePostError={() => {
                         // No specific post error handling needed for the settings modal
                     }}
+                    ref={purposeTextboxRef}
                     channelId={channel.id}
                     id='channel_settings_purpose_textbox'
                     characterLimit={Constants.MAX_CHANNELPURPOSE_LENGTH}
@@ -198,22 +220,8 @@ const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
             <label className='Input_legend'>{formatMessage({id: 'channel_settings.label.header', defaultMessage: 'Channel Header'})}</label>
             <div className='textarea-wrapper'>
                 <Textbox
-                    value={header}
-                    onChange={(e: React.ChangeEvent<TextboxElement>) => {
-                        setChannelHeader(e.target.value);
-
-                        // Check for character limit
-                        if (e.target.value.length > headerMaxLength) {
-                            setServerError(formatMessage({
-                                id: 'edit_channel_header_modal.error',
-                                defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
-                            }, {
-                                maxLength: headerMaxLength,
-                            }));
-                        } else if (serverError) {
-                            setServerError('');
-                        }
-                    }}
+                    value={channelHeader}
+                    onChange={handleChange}
                     onKeyPress={() => {
                         // No specific key press handling needed for the settings modal
                     }}
@@ -243,8 +251,8 @@ const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
                     updatePreview={(show) => {
                         dispatch(setShowPreviewOnChannelSettingsHeaderModal(show));
                     }}
-                    hasText={header ? header.length > 0 : false}
-                    hasExceededCharacterLimit={header ? header.length > headerMaxLength : false}
+                    hasText={channelHeader ? channelHeader.length > 0 : false}
+                    hasExceededCharacterLimit={channelHeader ? channelHeader.length > headerMaxLength : false}
                     previewMessageLink={
                         <FormattedMessage
                             id='edit_channel_header_modal.previewHeader'

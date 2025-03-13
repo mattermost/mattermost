@@ -73,6 +73,8 @@
 
         textarea {
             width: 100%;
+            min-height: 8em;
+            max-height: 60vh;
             box-sizing: border-box;
             padding: 12px 16px;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);

@@ -81,7 +81,6 @@ const VISIBLE = {visibility: 'visible'};
 const HIDDEN = {visibility: 'hidden'};
 
 export default class Textbox extends React.PureComponent<Props> {
-    debugger;
     private readonly suggestionProviders: Provider[];
     private readonly wrapper: React.RefObject<HTMLDivElement>;
     private readonly message: React.RefObject<SuggestionBoxComponent>;

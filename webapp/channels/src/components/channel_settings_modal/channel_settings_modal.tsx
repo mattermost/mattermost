@@ -7,7 +7,7 @@ import React, {
     useEffect,
     useCallback,
 } from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
@@ -29,6 +29,8 @@ import {stopTryNotificationRing} from 'utils/notification_sounds';
 
 import type {GlobalState} from 'types/store';
 
+import ChannelSettingsArchiveTab from './channel_settings_archive_tab';
+import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
 
 import './channel_settings_modal.scss';
@@ -75,12 +77,13 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     const [url, setURL] = useState(channel?.name ?? '');
     const [channelPurpose, setChannelPurpose] = useState(channel.purpose ?? '');
 
-    const [header, setChannelHeader] = useState(channel?.header ?? '');
+    const [channelHeader, setChannelHeader] = useState(channel?.header ?? '');
     const [channelType, setChannelType] = useState<ChannelType>(channel?.type as ChannelType ?? Constants.OPEN_CHANNEL as ChannelType);
 
     // Refs
     const modalBodyRef = useRef<HTMLDivElement>(null);
     const headerTextboxRef = useRef<TextboxClass>(null);
+    const purposeTextboxRef = useRef<TextboxClass>(null);
 
     // UI Feedback: errors, states
     const [urlError, setURLError] = useState('');
@@ -96,15 +99,15 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
             displayName !== channel.display_name ||
             url !== channel.name ||
             channelPurpose !== channel.purpose ||
-            header !== channel.header ||
+            channelHeader !== channel.header ||
             channelType !== channel.type
         );
-    }, [channel, displayName, url, channelPurpose, header, channelType]);
+    }, [channel, displayName, url, channelPurpose, channelHeader, channelType]);
 
     // Possibly set requireConfirm whenever an edit has occurred
     useEffect(() => {
         setRequireConfirm(hasUnsavedChanges());
-    }, [displayName, url, channelPurpose, header, channelType, hasUnsavedChanges]);
+    }, [displayName, url, channelPurpose, channelHeader, channelType, hasUnsavedChanges]);
 
     // For KeyDown handling
     useEffect(() => {
@@ -136,6 +139,42 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
         }
     };
 
+    // Validate & Save - using useCallback to ensure it has the latest state values
+    const handleSave = useCallback(async (): Promise<boolean> => {
+        if (!channel) {
+            return false;
+        }
+
+        // TODO: expand this simple example of the client-side check, enhance and cover all scenarios shown int he UX
+        if (!displayName.trim()) {
+            setServerError(formatMessage({
+                id: 'channel_settings.error_display_name_required',
+                defaultMessage: 'Channel name is required',
+            }));
+            return false;
+        }
+
+        // Build updated channel object
+        const updated: Channel = {
+            ...channel,
+            display_name: displayName.trim(),
+            name: url.trim(),
+            purpose: channelPurpose.trim(),
+            header: channelHeader.trim(), // Now using the latest header value from state
+            type: channelType as ChannelType,
+        };
+
+        const {error} = await dispatch(patchChannel(channel.id, updated));
+        if (error) {
+            handleServerError(error as ServerError);
+            return false;
+        }
+
+        // Return success, but don't close the modal yet
+        // Let the SaveChangesPanel show the "Settings saved" message first
+        return true;
+    }, [channel, displayName, url, channelPurpose, channelHeader, channelType, dispatch, formatMessage]);
+
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
         const success = await handleSave();
@@ -144,10 +183,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
             return;
         }
         setSaveChangesPanelState('saved');
-
-        // Don't set requireConfirm to false here
-        // Let the SaveChangesPanel's automatic timeout handle it
-    }, []);
+    }, [handleSave]);
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState(undefined);
@@ -192,49 +228,13 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
         onExited();
     };
 
-    // Validate & Save
-    const handleSave = async (): Promise<boolean> => {
-        if (!channel) {
-            return false;
-        }
-
-        // TODO: expand this simple example of the client-side check, enhance and cover all scenarios shown int he UX
-        if (!displayName.trim()) {
-            setServerError(formatMessage({
-                id: 'channel_settings.error_display_name_required',
-                defaultMessage: 'Channel name is required',
-            }));
-            return false;
-        }
-
-        // Build updated channel object
-        const updated: Channel = {
-            ...channel,
-            display_name: displayName.trim(),
-            name: url.trim(),
-            purpose: channelPurpose.trim(),
-            header: header.trim(),
-            type: channelType as ChannelType,
-        };
-
-        const {error} = await dispatch(patchChannel(channel.id, updated));
-        if (error) {
-            handleServerError(error as ServerError);
-            return false;
-        }
-
-        // Return success, but don't close the modal yet
-        // Let the SaveChangesPanel show the "Settings saved" message first
-        return true;
-    };
-
     const handleServerError = (err: ServerError) => {
         setServerError(err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'}));
     };
 
-    const handleArchiveChannel = () => {
+    const handleArchiveChannel = useCallback(() => {
         setShowArchiveConfirmModal(true);
-    };
+    }, []);
 
     const doArchiveChannel = () => {
         // TODO: add the extra logic to archive the channel
@@ -265,7 +265,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
                 setURL={setURL}
                 channelType={channelType}
                 setChannelType={setChannelType}
-                header={header}
+                channelHeader={channelHeader}
                 setChannelHeader={setChannelHeader}
                 channelPurpose={channelPurpose}
                 setChannelPurpose={setChannelPurpose}
@@ -276,6 +276,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
                 canConvertToPublic={canConvertToPublic}
                 canConvertToPrivate={canConvertToPrivate}
                 headerTextboxRef={headerTextboxRef}
+                purposeTextboxRef={purposeTextboxRef}
                 requireConfirm={requireConfirm}
                 saveChangesPanelState={saveChangesPanelState}
                 handleSaveChanges={handleSaveChanges}
@@ -286,36 +287,16 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     };
 
     const renderConfigurationTab = () => {
-        // Could show channel permissions, guest/member permissions, etc.
         return (
-            <div className='ChannelSettingsModal__configurationTab'>
-                <FormattedMessage
-                    id='channel_settings.configuration.placeholder'
-                    defaultMessage='Channel Permissions or Additional Configuration (WIP)'
-                />
-            </div>
+            <ChannelSettingsConfigurationTab/>
         );
     };
 
     const renderArchiveTab = () => {
         return (
-            <div className='ChannelSettingsModal__archiveTab'>
-                <FormattedMessage
-                    id='channel_settings.archive.warning'
-                    defaultMessage='Archiving this channel will remove it from the channel list. Are you sure you want to proceed?'
-                />
-                <button
-                    type='button'
-                    className='btn btn-danger'
-                    onClick={handleArchiveChannel}
-                    id='channelSettingsArchiveChannelButton'
-                >
-                    <FormattedMessage
-                        id='channel_settings.archive.button'
-                        defaultMessage='Archive Channel'
-                    />
-                </button>
-            </div>
+            <ChannelSettingsArchiveTab
+                handleArchiveChannel={handleArchiveChannel}
+            />
         );
     };
 
