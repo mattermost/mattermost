@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"strings"
 
 	"github.com/anthonynsimon/bild/transform"
-	"github.com/rwcarlsen/goexif/exif"
+	"github.com/bep/imagemeta"
 )
 
 const (
@@ -55,22 +56,77 @@ func MakeImageUpright(img image.Image, orientation int) image.Image {
 	}
 }
 
+type fwSeeker struct {
+	r io.Reader
+}
+
+func (f *fwSeeker) Read(p []byte) (n int, err error) {
+	return f.r.Read(p)
+}
+
+func (f *fwSeeker) Seek(offset int64, whence int) (int64, error) {
+	// We don't support seeking backwards.
+	if whence != io.SeekCurrent {
+		return 0, fmt.Errorf("unsupported whence value: %d", whence)
+	}
+
+	// Seeking forward means we can simply discard the data.
+	n, err := io.CopyN(io.Discard, f.r, offset)
+	if err != nil {
+		return n, fmt.Errorf("failed to seek: %w", err)
+	}
+
+	return n, nil
+}
+
 // GetImageOrientation reads the input data and returns the EXIF encoded
-// image orientation.
-func GetImageOrientation(input io.Reader) (int, error) {
-	exifData, err := exif.Decode(input)
-	if err != nil {
+// image orientation. Supported formats are JPEG, PNG, TIFF, and WebP.
+// Passing an io.ReadSeeker is preferable as we can't guarantee a plain
+// io.Reader will work for all formats (e.g. TIFF requires backwards seeking).
+func GetImageOrientation(input io.Reader, format string) (int, error) {
+	orientation := Upright
+
+	// Strip the "image/" prefix from the format in case it's a MIME type.
+	format, _ = strings.CutPrefix(format, "image/")
+
+	var imgFormat imagemeta.ImageFormat
+	switch format {
+	case "jpeg":
+		imgFormat = imagemeta.JPEG
+	case "png":
+		imgFormat = imagemeta.PNG
+	case "tiff":
+		imgFormat = imagemeta.TIFF
+	case "webp":
+		imgFormat = imagemeta.WebP
+	default:
+		// We don't support EXIF on any other format.
+		return orientation, fmt.Errorf("unsupported image format: %s", format)
+	}
+
+	var rs io.ReadSeeker
+	if r, ok := input.(io.ReadSeeker); ok {
+		rs = r
+	} else {
+		rs = &fwSeeker{r: input}
+	}
+
+	opts := imagemeta.Options{
+		R: rs,
+		HandleTag: func(tag imagemeta.TagInfo) error {
+			if tag.Tag == "Orientation" {
+				if o, ok := tag.Value.(uint16); ok {
+					orientation = int(o)
+				}
+			}
+			return nil
+		},
+		Sources:     imagemeta.EXIF,
+		ImageFormat: imgFormat,
+	}
+
+	if err := imagemeta.Decode(opts); err != nil {
 		return Upright, fmt.Errorf("failed to decode exif data: %w", err)
-	}
-
-	tag, err := exifData.Get("Orientation")
-	if err != nil {
-		return Upright, fmt.Errorf("failed to get orientation field from exif data: %w", err)
-	}
-
-	orientation, err := tag.Int(0)
-	if err != nil {
-		return Upright, fmt.Errorf("failed to get value from exif tag: %w", err)
 	}
 
 	return orientation, nil
