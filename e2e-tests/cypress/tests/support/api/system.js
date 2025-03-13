@@ -84,6 +84,7 @@ Cypress.Commands.add('apiInstallTrialLicense', () => {
             trialreceive_emails_accepted: true,
             terms_accepted: true,
             users: Cypress.env('numberOfTrialUsers'),
+            company_country: 'US',
         },
     }).then((response) => {
         expect(response.status).to.equal(200);
