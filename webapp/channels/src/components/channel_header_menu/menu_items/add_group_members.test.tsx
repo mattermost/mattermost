@@ -52,7 +52,7 @@ describe('components/ChannelHeaderMenu/MenuItems/AddGroupMembers', () => {
             modalId: ModalIdentifiers.CREATE_DM_CHANNEL,
             dialogType: MoreDirectChannels,
             dialogProps: {
-                focusOriginElement: 'channelInfoRHSAddPeopleButton',
+                focusOriginElement: 'channelHeaderDropdownButton',
                 isExistingChannel: true,
             },
         });
