@@ -8377,6 +8377,10 @@
     "translation": "Failed to set job status to error"
   },
   {
+    "id": "license_error.feature_unavailable",
+    "translation": "Feature is not available for the current license"
+  },
+  {
     "id": "manaultesting.manual_test.parse.app_error",
     "translation": "Unable to parse URL."
   },
