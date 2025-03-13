@@ -84,6 +84,7 @@ Cypress.Commands.add('apiInstallTrialLicense', () => {
             receive_emails_accepted: true,
             terms_accepted: true,
             users: Cypress.env('numberOfTrialUsers'),
+
             // Enriched fields required for trial license as of v10.7
             company_country: 'US',
             company_name: 'mattermost',
