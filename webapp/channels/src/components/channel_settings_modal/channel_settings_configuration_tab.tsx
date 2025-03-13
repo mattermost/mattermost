@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-const ChannelSettingsConfigurationTab: React.FC = () => {
+function ChannelSettingsConfigurationTab() {
     return (
         <div className='ChannelSettingsModal__configurationTab'>
             <FormattedMessage
@@ -13,6 +13,6 @@ const ChannelSettingsConfigurationTab: React.FC = () => {
             />
         </div>
     );
-};
+}
 
 export default ChannelSettingsConfigurationTab;

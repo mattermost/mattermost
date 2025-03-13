@@ -6,11 +6,16 @@ import {FormattedMessage} from 'react-intl';
 
 type ChannelSettingsArchiveTabProps = {
     handleArchiveChannel: () => void;
-};
+}
 
-const ChannelSettingsArchiveTab: React.FC<ChannelSettingsArchiveTabProps> = ({
+/** TODOS:
+ * 1. Add logic to avoid showing this section in town-square and off-topic channels
+ * 2. Add logic to avoid showing this section in direct messages
+ * 3. Add logic to avoid showing this section in group messages
+ */
+function ChannelSettingsArchiveTab({
     handleArchiveChannel,
-}) => {
+}: ChannelSettingsArchiveTabProps) {
     return (
         <div className='ChannelSettingsModal__archiveTab'>
             <FormattedMessage
@@ -30,6 +35,6 @@ const ChannelSettingsArchiveTab: React.FC<ChannelSettingsArchiveTabProps> = ({
             </button>
         </div>
     );
-};
+}
 
 export default ChannelSettingsArchiveTab;

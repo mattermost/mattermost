@@ -52,7 +52,7 @@ type ChannelSettingsInfoTabProps = {
     handleClose: () => void;
 };
 
-const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
+function ChannelSettingsInfoTab({
     channel,
     displayName,
     setDisplayName,
@@ -77,7 +77,7 @@ const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
     handleSaveChanges,
     handleCancel,
     handleClose,
-}) => {
+}: ChannelSettingsInfoTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const shouldShowPreviewPurpose = useSelector(showPreviewOnChannelSettingsPurposeModal);
@@ -273,6 +273,6 @@ const ChannelSettingsInfoTab: React.FC<ChannelSettingsInfoTabProps> = ({
             )}
         </div>
     );
-};
+}
 
 export default ChannelSettingsInfoTab;
