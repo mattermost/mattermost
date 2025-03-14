@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {LicenseSkus} from 'utils/constants';
-import {isLicenseExpired, isLicenseExpiring, isLicensePastGracePeriod, isEnterpriseOrE20License} from 'utils/license_utils';
+import {isLicenseExpired, isLicenseExpiring, isLicensePastGracePeriod} from 'utils/license_utils';
 
 describe('license_utils', () => {
     const millisPerDay = 24 * 60 * 60 * 1000;
@@ -44,26 +43,6 @@ describe('license_utils', () => {
             const license = {Id: '1234', IsLicensed: 'true', Cloud: 'false', ExpiresAt: `${Date.now() - (11 * millisPerDay)}`};
 
             expect(isLicensePastGracePeriod(license)).toBeTruthy();
-        });
-    });
-
-    describe('isEnterpriseOrE20License', () => {
-        it('should return False if not Enterprise or E20', () => {
-            const license = {Id: '1234', IsLicensed: 'true', Cloud: 'false', SkuShortName: LicenseSkus.Starter};
-
-            expect(isEnterpriseOrE20License(license)).toBeFalsy();
-        });
-
-        it('should return True if Enterprise', () => {
-            const license = {Id: '1234', IsLicensed: 'true', Cloud: 'false', SkuShortName: LicenseSkus.Enterprise};
-
-            expect(isEnterpriseOrE20License(license)).toBeTruthy();
-        });
-
-        it('should return True if E20', () => {
-            const license = {Id: '1234', IsLicensed: 'true', Cloud: 'false', SkuShortName: LicenseSkus.E20};
-
-            expect(isEnterpriseOrE20License(license)).toBeTruthy();
         });
     });
 });
