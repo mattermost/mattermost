@@ -46,12 +46,16 @@ const InviteMembersButton = (props: Props): JSX.Element | null => {
                 modalId={ModalIdentifiers.INVITATION}
                 dialogType={InvitationModal}
                 onClick={handleButtonClick}
+                dialogProps={{focusOriginElement: 'inviteMembersButton'}}
             >
                 <div
                     className='SidebarChannelNavigator__inviteMembersLhsButton'
                     aria-label={intl.formatMessage({id: 'sidebar_left.sidebar_channel_navigator.inviteUsers', defaultMessage: 'Invite Members'})}
                 >
-                    <i className='icon-plus-box'/>
+                    <i
+                        className='icon-plus-box'
+                        aria-hidden='true'
+                    />
                     <FormattedMessage
                         id={'sidebar_left.inviteMembers'}
                         defaultMessage='Invite Members'

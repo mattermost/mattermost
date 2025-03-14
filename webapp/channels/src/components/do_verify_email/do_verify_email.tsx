@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {useLocation, useHistory} from 'react-router-dom';
 
-import {clearErrors, logError} from 'mattermost-redux/actions/errors';
+import {clearErrors, logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import {verifyUserEmail, getMe} from 'mattermost-redux/actions/users';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -91,7 +91,7 @@ const DoVerifyEmail = () => {
         dispatch(logError({
             message: AnnouncementBarMessages.EMAIL_VERIFIED,
             type: AnnouncementBarTypes.SUCCESS,
-        } as any, true));
+        } as any, {errorBarMode: LogErrorBarMode.Always}));
 
         trackEvent('settings', 'verify_email');
 

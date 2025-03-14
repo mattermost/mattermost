@@ -1399,3 +1399,224 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
   />
 </div>
 `;
+
+exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, plugin group 1`] = `
+<div
+  className="group-users"
+>
+  <div
+    className="group-users--header"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="This group is managed by a plugin."
+      id="admin.group_settings.group_profile.group_users.pluginGroupText"
+    />
+  </div>
+  <div
+    className="group-users--body"
+  >
+    <div
+      className="group-users-loading active"
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+    <Memo(GroupUsersRow)
+      displayName="Name0 Surname0"
+      email="test0@test.com"
+      key="id0"
+      lastPictureUpdate={0}
+      userId="id0"
+      username="username0"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name1 Surname1"
+      email="test1@test.com"
+      key="id1"
+      lastPictureUpdate={1}
+      userId="id1"
+      username="username1"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name2 Surname2"
+      email="test2@test.com"
+      key="id2"
+      lastPictureUpdate={2}
+      userId="id2"
+      username="username2"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name3 Surname3"
+      email="test3@test.com"
+      key="id3"
+      lastPictureUpdate={3}
+      userId="id3"
+      username="username3"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name4 Surname4"
+      email="test4@test.com"
+      key="id4"
+      lastPictureUpdate={4}
+      userId="id4"
+      username="username4"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name5 Surname5"
+      email="test5@test.com"
+      key="id5"
+      lastPictureUpdate={5}
+      userId="id5"
+      username="username5"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name6 Surname6"
+      email="test6@test.com"
+      key="id6"
+      lastPictureUpdate={6}
+      userId="id6"
+      username="username6"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name7 Surname7"
+      email="test7@test.com"
+      key="id7"
+      lastPictureUpdate={7}
+      userId="id7"
+      username="username7"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name8 Surname8"
+      email="test8@test.com"
+      key="id8"
+      lastPictureUpdate={8}
+      userId="id8"
+      username="username8"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name9 Surname9"
+      email="test9@test.com"
+      key="id9"
+      lastPictureUpdate={9}
+      userId="id9"
+      username="username9"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name10 Surname10"
+      email="test10@test.com"
+      key="id10"
+      lastPictureUpdate={10}
+      userId="id10"
+      username="username10"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name11 Surname11"
+      email="test11@test.com"
+      key="id11"
+      lastPictureUpdate={11}
+      userId="id11"
+      username="username11"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name12 Surname12"
+      email="test12@test.com"
+      key="id12"
+      lastPictureUpdate={12}
+      userId="id12"
+      username="username12"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name13 Surname13"
+      email="test13@test.com"
+      key="id13"
+      lastPictureUpdate={13}
+      userId="id13"
+      username="username13"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name14 Surname14"
+      email="test14@test.com"
+      key="id14"
+      lastPictureUpdate={14}
+      userId="id14"
+      username="username14"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name15 Surname15"
+      email="test15@test.com"
+      key="id15"
+      lastPictureUpdate={15}
+      userId="id15"
+      username="username15"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name16 Surname16"
+      email="test16@test.com"
+      key="id16"
+      lastPictureUpdate={16}
+      userId="id16"
+      username="username16"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name17 Surname17"
+      email="test17@test.com"
+      key="id17"
+      lastPictureUpdate={17}
+      userId="id17"
+      username="username17"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name18 Surname18"
+      email="test18@test.com"
+      key="id18"
+      lastPictureUpdate={18}
+      userId="id18"
+      username="username18"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name19 Surname19"
+      email="test19@test.com"
+      key="id19"
+      lastPictureUpdate={19}
+      userId="id19"
+      username="username19"
+    />
+  </div>
+  <div
+    className="group-users--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 20,
+            "startCount": 1,
+            "total": 20,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-tertiary prev disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <Memo(PreviousIcon) />
+    </button>
+    <button
+      className="btn btn-tertiary next disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <Memo(NextIcon) />
+    </button>
+  </div>
+</div>
+`;

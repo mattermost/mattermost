@@ -152,6 +152,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "update_at": 0,
             "username": "some-user",
           },
+          "focusOriginElement": "channelHeaderMenuButton",
         }
       }
       dialogType={
@@ -272,7 +273,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "type": [Function],
           }
         }
-        id="channelAddMembers"
+        id="channelInviteMembers"
         modalId="channel_invite"
         show={true}
         text="Add Members"
@@ -280,6 +281,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       <MenuItemToggleModalRedux
         dialogProps={
           Object {
+            "focusOriginElement": "channelHeaderMenuButton",
             "isExistingChannel": true,
           }
         }
@@ -984,6 +986,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "update_at": 0,
             "username": "some-user",
           },
+          "focusOriginElement": "channelHeaderMenuButton",
         }
       }
       dialogType={
@@ -1104,7 +1107,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "type": [Function],
           }
         }
-        id="channelAddMembers"
+        id="channelInviteMembers"
         modalId="channel_invite"
         show={true}
         text="Add Members"
@@ -1112,6 +1115,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       <MenuItemToggleModalRedux
         dialogProps={
           Object {
+            "focusOriginElement": "channelHeaderMenuButton",
             "isExistingChannel": true,
           }
         }

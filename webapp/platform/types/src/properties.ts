@@ -3,7 +3,7 @@
 
 export type PropertyField = {
     id: string;
-    group_id?: string;
+    group_id: string;
     name: string;
     type: string;
     attrs?: {[key: string]: unknown};
@@ -26,9 +26,11 @@ export type PropertyValue<T> = {
 }
 
 export type UserPropertyFieldType = 'text';
-export type UserPropertyFieldGroupID = 'user_properties';
+export type UserPropertyFieldGroupID = 'custom_profile_attributes';
 
 export type UserPropertyField = PropertyField & {
     type: UserPropertyFieldType;
+    group_id: UserPropertyFieldGroupID;
+    attrs?: {sort_order?: number};
 }
-export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;
+export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type' | 'attrs'>>;

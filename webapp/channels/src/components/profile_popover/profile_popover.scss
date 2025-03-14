@@ -15,18 +15,30 @@ $profilePopoverBorderWidth: 1px;
     border-radius: 4px;
     background: var(--center-channel-bg);
     box-shadow: var(--elevation-4);
+    overflow-x: hidden;
     overflow-y: auto;
 
-    .user-profile-popover-title {
+    .user-profile-popover_container {
         display: flex;
-        max-width: calc($profilePopoverWidth - 40px);
+        height: 100%;
+        flex-direction: column;
+    }
+
+    .user-profile-popover-title {
+        position: sticky;
+        z-index: 1;
+        top: 0;
+        display: flex;
         flex-wrap: nowrap;
         align-items: center;
         justify-content: flex-start;
         justify-content: end;
+        justify-content: space-between;
         padding: 12px 8px 12px 8px;
+        background: var(--center-channel-bg);
 
         .user-popover__role {
+            max-width: calc($profilePopoverWidth - 40px);
             flex-grow: 1;
             background: unset;
             padding-inline-start: 8px;
@@ -189,14 +201,13 @@ $profilePopoverBorderWidth: 1px;
                 font-size: 16px;
             }
         }
-        
+
         .user-popover__custom_attributes {
             display: flex;
             flex-direction: column;
             padding: 0 16px 12px 16px;
 
             .user-popover__subtitle {
-                display: flex;
                 margin-bottom: 4px;
                 font-size: 11px;
                 font-weight: 600;
@@ -207,6 +218,7 @@ $profilePopoverBorderWidth: 1px;
 
             .user-popover__subtitle-text {
                 margin: 0;
+                overflow-wrap: break-word;
             }
         }
 
@@ -239,6 +251,12 @@ $profilePopoverBorderWidth: 1px;
                 background: none;
             }
         }
+    }
+
+    .user-profile-popover-bottom-row {
+        position: sticky;
+        bottom: 0;
+        background: var(--center-channel-bg);
 
         .user-popover__bottom-row-container {
             display: flex;
