@@ -378,12 +378,9 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if patch.BannerInfo != nil {
-		if !model.MinimumPremiumLicense(c.App.License()) {
-			c.Err = model.NewAppError("patchChannel", "license_error.feature_unavailable", nil, "feature is not available for the current license", http.StatusNotImplemented)
-		}
-
-		if originalOldChannel.Type != model.ChannelTypeOpen && originalOldChannel.Type != model.ChannelTypePrivate {
-			c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.banner_info.channel_type.not_allowed", nil, "", http.StatusBadRequest)
+		if channelBannerAppErr := canEditChannelBanner(c.App.License(), originalOldChannel); channelBannerAppErr != nil {
+			channelBannerAppErr.Where = "patchChannel"
+			c.Err = channelBannerAppErr
 			return
 		}
 	}
@@ -2444,4 +2441,16 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	if err := json.NewEncoder(w).Encode(updatedChannel); err != nil {
 		c.Logger.Warn("Error while writing response from convertGroupMessageToChannel", mlog.Err(err))
 	}
+}
+
+func canEditChannelBanner(license *model.License, originalChannel *model.Channel) *model.AppError {
+	if !model.MinimumPremiumLicense(license) {
+		return model.NewAppError("", "license_error.feature_unavailable", nil, "feature is not available for the current license", http.StatusForbidden)
+	}
+
+	if originalChannel.Type != model.ChannelTypeOpen && originalChannel.Type != model.ChannelTypePrivate {
+		return model.NewAppError("", "api.channel.update_channel.banner_info.channel_type.not_allowed", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
