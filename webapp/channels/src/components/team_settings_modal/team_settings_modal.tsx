@@ -8,14 +8,17 @@ import {useIntl} from 'react-intl';
 
 import TeamSettings from 'components/team_settings';
 
+import {focusElement} from 'utils/a11y_utils';
+
 const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
 
 type Props = {
     onExited: () => void;
     canInviteUsers: boolean;
+    focusOriginElement?: string;
 }
 
-const TeamSettingsModal = ({onExited, canInviteUsers}: Props) => {
+const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props) => {
     const [activeTab, setActiveTab] = useState('info');
     const [show, setShow] = useState<boolean>(true);
     const [hasChanges, setHasChanges] = useState<boolean>(false);
@@ -36,11 +39,14 @@ const TeamSettingsModal = ({onExited, canInviteUsers}: Props) => {
     const handleHide = useCallback(() => setShow(false), []);
 
     const handleClose = useCallback(() => {
+        if (focusOriginElement) {
+            focusElement(focusOriginElement, true);
+        }
         setActiveTab('info');
         setHasChanges(false);
         setHasChangeTabError(false);
         onExited();
-    }, [onExited]);
+    }, [onExited, focusOriginElement]);
 
     const handleCollapse = useCallback(() => {
         const el = ReactDOM.findDOMNode(modalBodyRef.current) as HTMLDivElement;

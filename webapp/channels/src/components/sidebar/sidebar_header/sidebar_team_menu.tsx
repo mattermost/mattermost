@@ -17,7 +17,6 @@ import {
     PlusIcon,
     MonitorAccountIcon,
 } from '@mattermost/compass-icons/components';
-import type {ClientConfig} from '@mattermost/types/config';
 import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -46,307 +45,26 @@ import {isCloudLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
-const MATTERMOST_ACADEMY_TEAM_TRAINING_LINK = 'https://mattermost.com/pl/mattermost-academy-team-training';
-
 interface Props {
     currentTeam: Team;
 }
 
 export default function SidebarTeamMenu(props: Props) {
-    const history = useHistory();
-
-    const dispatch = useDispatch();
-
     const license = useSelector(getLicense);
     const config = useSelector(getConfig);
 
     const havePermissionToCreateTeam = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.CREATE_TEAM}));
     const havePermissionToManageTeam = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_TEAM));
-    const havePermissionToRemoveUserFromTeam = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.REMOVE_USER_FROM_TEAM));
-    const havePermissionToManageTeamRoles = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_TEAM_ROLES));
-
+    const isCloud = isCloudLicense(license);
+    const isGuestAccessEnabled = config?.EnableGuestAccounts === 'true';
     const isTeamGroupConstrained = Boolean(props.currentTeam?.group_constrained);
     const isLicensedForLDAPGroups = license?.LDAPGroups === 'true';
     const experimentalPrimaryTeam = config.ExperimentalPrimaryTeam;
     const joinableTeams = useSelector(getJoinableTeamIds);
     const haveMoreJoinableTeams = joinableTeams?.length > 0;
-    const isCloud = isCloudLicense(license);
-    const cloudSubscription = useSelector(getCloudSubscription);
-    const subscriptionProduct = useSelector(getSubscriptionProduct);
-    const isFreeTrial = isCloud && cloudSubscription?.is_free_trial === 'true';
-    const isStarterFree = isCloud && subscriptionProduct?.sku === CloudProducts.STARTER;
-    const usageDeltas = useGetUsageDeltas();
-    const isTeamsLimitReached = isStarterFree && !isFreeTrial && usageDeltas.teams.active >= 0;
-    const isTeamCreateRestricted = isCloud && (isFreeTrial || isTeamsLimitReached);
-    const pluginInMainMenu = useSelector(getMainMenuPluginComponents);
+    const canJoinAnotherTeam = !experimentalPrimaryTeam && haveMoreJoinableTeams;
+
     const tooltipText = props.currentTeam.description ? props.currentTeam.description : props.currentTeam.display_name;
-
-    const onAddGroupsToTeamMenuItemClick = useCallback(() => {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.ADD_GROUPS_TO_TEAM,
-            dialogType: AddGroupsToTeamModal,
-        }));
-    }, [dispatch]);
-
-    const onTeamSettingsMenuItemClick = useCallback(() => {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.TEAM_SETTINGS,
-            dialogType: TeamSettingsModal,
-        }));
-    }, [dispatch]);
-
-    const onManageGroupsMenuItemClick = useCallback(() => {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.MANAGE_TEAM_GROUPS,
-            dialogType: TeamGroupsManageModal,
-            dialogProps: {
-                teamID: props.currentTeam.id,
-            },
-        }));
-    }, [dispatch, props.currentTeam.id]);
-
-    const onManageViewMembersMenuItemClick = useCallback(() => {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.TEAM_MEMBERS,
-            dialogType: TeamMembersModal,
-        }));
-    }, [dispatch]);
-
-    const onJoinAnotherTeamMenuItemClick = useCallback(() => {
-        history.push('/select_team');
-    }, [history]);
-
-    const onLeaveTeamMenuItemClick = useCallback(() => {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.LEAVE_TEAM,
-            dialogType: LeaveTeamModal,
-        }));
-    }, [dispatch]);
-
-    const onCreateTeamMenuItemClick = useCallback(() => {
-        if (isTeamsLimitReached) {
-            return;
-        }
-
-        history.push('/create_team');
-    }, [history, isTeamsLimitReached]);
-
-    const onLearnAboutTeamsMenuItemClick = useCallback(() => {
-        window.open(MATTERMOST_ACADEMY_TEAM_TRAINING_LINK, '_blank', 'noopener noreferrer');
-    }, []);
-
-    let addGroupsToTeamMenuItem: JSX.Element | null = null;
-    if (isTeamGroupConstrained && isLicensedForLDAPGroups && havePermissionToManageTeam) {
-        addGroupsToTeamMenuItem = (
-            <Menu.Item
-                onClick={onAddGroupsToTeamMenuItemClick}
-                leadingElement={(
-                    <AccountPlusOutlineIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.teamMenu.addGroupsToTeamMenuItem.primaryLabel'
-                        defaultMessage='Add groups'
-                    />
-                )}
-                aria-haspopup='dialog'
-            />
-        );
-    }
-
-    let teamSettingsMenuItem: JSX.Element | null = null;
-    if (havePermissionToManageTeam) {
-        teamSettingsMenuItem = (
-            <Menu.Item
-                leadingElement={(
-                    <SettingsOutlineIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                onClick={onTeamSettingsMenuItemClick}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.teamMenu.teamSettingsMenuItem.primaryLabel'
-                        defaultMessage='Team settings'
-                    />
-                )}
-                aria-haspopup='dialog'
-            />
-        );
-    }
-
-    let manageGroupsMenuItem: JSX.Element | null = null;
-    if (isTeamGroupConstrained && isLicensedForLDAPGroups && havePermissionToManageTeam) {
-        manageGroupsMenuItem = (
-            <Menu.Item
-                leadingElement={(
-                    <MonitorAccountIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                onClick={onManageGroupsMenuItemClick}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.teamMenu.manageGroupsMenuItem.primaryLabel'
-                        defaultMessage='Manage groups'
-                    />
-                )}
-                aria-haspopup='dialog'
-            />
-        );
-    }
-
-    let manageViewMembersMenuItem: JSX.Element | null = null;
-    if (havePermissionToRemoveUserFromTeam && havePermissionToManageTeamRoles) {
-        manageViewMembersMenuItem = (
-            <Menu.Item
-                leadingElement={(
-                    <AccountMultipleOutlineIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                onClick={onManageViewMembersMenuItemClick}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.teamMenu.manageMembersMenuItem.primaryLabel'
-                        defaultMessage='Manage members'
-                    />
-                )}
-                aria-haspopup='dialog'
-            />
-        );
-    } else {
-        manageViewMembersMenuItem = (
-            <Menu.Item
-                leadingElement={(
-                    <AccountMultipleOutlineIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                onClick={onManageViewMembersMenuItemClick}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.teamMenu.viewMembersMenuItem.primaryLabel'
-                        defaultMessage='View members'
-                    />
-                )}
-                aria-haspopup='dialog'
-            />
-        );
-    }
-
-    let joinAnotherTeamMenuItem: JSX.Element | null = null;
-    if (!experimentalPrimaryTeam && haveMoreJoinableTeams) {
-        joinAnotherTeamMenuItem = (
-            <Menu.Item
-                leadingElement={(
-                    <MessagePlusOutlineIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                onClick={onJoinAnotherTeamMenuItemClick}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.teamMenu.joinAnotherTeamMenuItem.primaryLabel'
-                        defaultMessage='Join another team'
-                    />
-                )}
-            />
-        );
-    }
-
-    let leaveTeamMenuItem: JSX.Element | null = null;
-    if (!isTeamGroupConstrained && experimentalPrimaryTeam !== props.currentTeam.name) {
-        leaveTeamMenuItem = (
-            <Menu.Item
-                leadingElement={(
-                    <ExitToAppIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                onClick={onLeaveTeamMenuItemClick}
-                isDestructive={true}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.teamMenu.leaveTeamMenuItem.primaryLabel'
-                        defaultMessage='Leave team'
-                    />
-                )}
-                aria-haspopup='dialog'
-            />
-        );
-    }
-
-    let createTeamMenuItem: JSX.Element | null = null;
-    if (havePermissionToCreateTeam) {
-        createTeamMenuItem = (
-            <Menu.Item
-                disabled={isTeamsLimitReached}
-                leadingElement={(
-                    <PlusIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                onClick={onCreateTeamMenuItemClick}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.teamMenu.createTeamMenuItem.primaryLabel'
-                        defaultMessage='Create a team'
-                    />
-                )}
-                trailingElements={isTeamCreateRestricted && <RestrictedIndicatorForCreateTeam isFreeTrial={isFreeTrial}/>}
-            />
-        );
-    }
-
-    const learnAboutTeamsMenuItem = (
-        <Menu.Item
-            className='learnAboutTeamsMenuItem'
-            onClick={onLearnAboutTeamsMenuItemClick}
-            leadingElement={(
-                <LightbulbOutlineIcon
-                    size={18}
-                    aria-hidden='true'
-                />
-            )}
-            labels={(
-                <FormattedMessage
-                    id='sidebarLeft.teamMenu.learnAboutTeamsMenuItem.primaryLabel'
-                    defaultMessage='Learn about teams'
-                />
-            )}
-        />
-    );
-
-    let pluginMenuItems: JSX.Element[] | null = null;
-    if (pluginInMainMenu.length > 0) {
-        pluginMenuItems = pluginInMainMenu.map((plugin) => {
-            function handleClick() {
-                if (plugin.action) {
-                    plugin.action();
-                }
-            }
-
-            return (
-                <Menu.Item
-                    id={`${plugin.id}_pluginmenuitem`}
-                    key={plugin.id}
-                    onClick={handleClick}
-                    labels={<span>{plugin.text}</span>}
-                />
-            );
-        });
-    }
 
     return (
         <Menu.Container
@@ -368,45 +86,69 @@ export default function SidebarTeamMenu(props: Props) {
                 width: '225px',
             }}
         >
-            <InvitePeopleMenuItem config={config}/>
-            {addGroupsToTeamMenuItem}
-            {teamSettingsMenuItem}
-            {manageViewMembersMenuItem}
-            {manageGroupsMenuItem}
-            {leaveTeamMenuItem}
-            {(Boolean(createTeamMenuItem) || Boolean(joinAnotherTeamMenuItem)) && <Menu.Separator/>}
-            {joinAnotherTeamMenuItem}
-            {createTeamMenuItem}
-            {Boolean(learnAboutTeamsMenuItem) && <Menu.Separator/>}
-            {learnAboutTeamsMenuItem}
-            {Boolean(pluginMenuItems) && <Menu.Separator/>}
-            {pluginMenuItems}
+            <InvitePeopleMenuItem
+                isGuestAccessEnabled={isGuestAccessEnabled}
+            />
+            <AddGroupsToTeamMenuItem
+                isTeamGroupConstrained={isTeamGroupConstrained}
+                isLicensedForLDAPGroups={isLicensedForLDAPGroups}
+                havePermissionToManageTeam={havePermissionToManageTeam}
+            />
+            <TeamSettingsMenuItem
+                havePermissionToManageTeam={havePermissionToManageTeam}
+            />
+            <ManageViewMembersMenuItem/>
+            <ManageGroupsMenuItem
+                isTeamGroupConstrained={isTeamGroupConstrained}
+                isLicensedForLDAPGroups={isLicensedForLDAPGroups}
+                havePermissionToManageTeam={havePermissionToManageTeam}
+                teamID={props.currentTeam.id}
+            />
+            <LeaveTeamMenuItem
+                isTeamGroupConstrained={isTeamGroupConstrained}
+                teamName={props.currentTeam.name}
+                experimentalPrimaryTeam={experimentalPrimaryTeam}
+            />
+            {(canJoinAnotherTeam || havePermissionToCreateTeam) && <Menu.Separator/>}
+            {canJoinAnotherTeam &&
+                <JoinAnotherTeamMenuItem/>
+            }
+            {havePermissionToCreateTeam && (
+                <CreateTeamMenuItem
+                    isCloud={isCloud}
+                />
+            )}
+            <Menu.Separator/>
+            <LearnAboutTeamsMenuItem/>
+            <PluginMenuItems/>
         </Menu.Container>
     );
 }
 
 interface InvitePeopleMenuItemProps extends Menu.FirstMenuItemProps {
-    config: Partial<ClientConfig>;
+    isGuestAccessEnabled: boolean;
 }
 
-function InvitePeopleMenuItem({config, ...restProps}: InvitePeopleMenuItemProps) {
+function InvitePeopleMenuItem({isGuestAccessEnabled, ...restProps}: InvitePeopleMenuItemProps) {
     const dispatch = useDispatch();
 
-    const isGuestAccessEnabled = config?.EnableGuestAccounts === 'true';
     const havePermissionToAddUserToTeam = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.ADD_USER_TO_TEAM));
     const havePermissionToInviteGuest = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.INVITE_GUEST));
 
-    const onInvitePeopleMenuItemClick = useCallback(() => {
+    const handleClick = useCallback(() => {
         dispatch(openModal({
             modalId: ModalIdentifiers.INVITATION,
             dialogType: InvitationModal,
+            dialogProps: {
+                focusOriginElement: 'sidebarTeamMenuButton',
+            },
         }));
     }, [dispatch]);
 
     if (isGuestAccessEnabled && havePermissionToAddUserToTeam && havePermissionToInviteGuest) {
         return (
             <Menu.Item
-                onClick={onInvitePeopleMenuItemClick}
+                onClick={handleClick}
                 leadingElement={(
                     <AccountMultiplePlusOutlineIcon
                         size={18}
@@ -432,6 +174,293 @@ function InvitePeopleMenuItem({config, ...restProps}: InvitePeopleMenuItemProps)
     }
 
     return null;
+}
+
+interface AddGroupsToTeamMenuItemProps extends Menu.FirstMenuItemProps {
+    isTeamGroupConstrained: boolean;
+    isLicensedForLDAPGroups: boolean;
+    havePermissionToManageTeam: boolean;
+}
+
+function AddGroupsToTeamMenuItem({isTeamGroupConstrained, isLicensedForLDAPGroups, havePermissionToManageTeam, ...restProps}: AddGroupsToTeamMenuItemProps) {
+    const dispatch = useDispatch();
+
+    const handleClick = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.ADD_GROUPS_TO_TEAM,
+            dialogType: AddGroupsToTeamModal,
+            dialogProps: {
+                focusOriginElement: 'sidebarTeamMenuButton',
+            },
+        }));
+    }, [dispatch]);
+
+    if (isTeamGroupConstrained && isLicensedForLDAPGroups && havePermissionToManageTeam) {
+        return (
+            <Menu.Item
+                onClick={handleClick}
+                leadingElement={(
+                    <AccountPlusOutlineIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                )}
+                labels={(
+                    <FormattedMessage
+                        id='sidebarLeft.teamMenu.addGroupsToTeamMenuItem.primaryLabel'
+                        defaultMessage='Add groups'
+                    />
+                )}
+                aria-haspopup='dialog'
+                {...restProps}
+            />
+        );
+    }
+
+    return null;
+}
+
+interface TeamSettingsMenuItemProps extends Menu.FirstMenuItemProps {
+    havePermissionToManageTeam: boolean;
+}
+
+function TeamSettingsMenuItem({havePermissionToManageTeam, ...restProps}: TeamSettingsMenuItemProps) {
+    const dispatch = useDispatch();
+
+    const handleClick = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.TEAM_SETTINGS,
+            dialogType: TeamSettingsModal,
+            dialogProps: {
+                focusOriginElement: 'sidebarTeamMenuButton',
+            },
+        }));
+    }, [dispatch]);
+
+    if (havePermissionToManageTeam) {
+        return (
+            <Menu.Item
+                leadingElement={(
+                    <SettingsOutlineIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                )}
+                onClick={handleClick}
+                labels={(
+                    <FormattedMessage
+                        id='sidebarLeft.teamMenu.teamSettingsMenuItem.primaryLabel'
+                        defaultMessage='Team settings'
+                    />
+                )}
+                aria-haspopup='dialog'
+                {...restProps}
+            />
+        );
+    }
+
+    return null;
+}
+
+function ManageViewMembersMenuItem(props: Menu.FirstMenuItemProps) {
+    const dispatch = useDispatch();
+
+    const havePermissionToRemoveUserFromTeam = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.REMOVE_USER_FROM_TEAM));
+    const havePermissionToManageTeamRoles = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_TEAM_ROLES));
+
+    const handleClick = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.TEAM_MEMBERS,
+            dialogType: TeamMembersModal,
+            dialogProps: {
+                focusOriginElement: 'sidebarTeamMenuButton',
+            },
+        }));
+    }, [dispatch]);
+
+    let label = (
+        <FormattedMessage
+            id='sidebarLeft.teamMenu.viewMembersMenuItem.primaryLabel'
+            defaultMessage='View members'
+        />
+    );
+    if (havePermissionToRemoveUserFromTeam && havePermissionToManageTeamRoles) {
+        label = (
+            <FormattedMessage
+                id='sidebarLeft.teamMenu.manageMembersMenuItem.primaryLabel'
+                defaultMessage='Manage members'
+            />
+        );
+    }
+
+    return (
+        <Menu.Item
+            leadingElement={(
+                <AccountMultipleOutlineIcon
+                    size={18}
+                    aria-hidden='true'
+                />
+            )}
+            onClick={handleClick}
+            labels={label}
+            aria-haspopup='dialog'
+            {...props}
+        />
+    );
+}
+
+interface ManageGroupsMenuItemProps {
+    isTeamGroupConstrained: boolean;
+    isLicensedForLDAPGroups: boolean;
+    havePermissionToManageTeam: boolean;
+    teamID: Team['id'];
+}
+
+function ManageGroupsMenuItem({isTeamGroupConstrained, isLicensedForLDAPGroups, havePermissionToManageTeam, teamID}: ManageGroupsMenuItemProps) {
+    const dispatch = useDispatch();
+
+    const handleClick = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.MANAGE_TEAM_GROUPS,
+            dialogType: TeamGroupsManageModal,
+            dialogProps: {
+                teamID,
+            },
+        }));
+    }, [dispatch, teamID]);
+
+    if (isTeamGroupConstrained && isLicensedForLDAPGroups && havePermissionToManageTeam) {
+        return (
+            <Menu.Item
+                leadingElement={(
+                    <MonitorAccountIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                )}
+                onClick={handleClick}
+                labels={(
+                    <FormattedMessage
+                        id='sidebarLeft.teamMenu.manageGroupsMenuItem.primaryLabel'
+                        defaultMessage='Manage groups'
+                    />
+                )}
+                aria-haspopup='dialog'
+            />
+        );
+    }
+
+    return null;
+}
+
+interface LeaveTeamMenuItemProps {
+    isTeamGroupConstrained: boolean;
+    teamName: Team['name'];
+    experimentalPrimaryTeam?: string;
+}
+
+function LeaveTeamMenuItem({isTeamGroupConstrained, teamName, experimentalPrimaryTeam}: LeaveTeamMenuItemProps) {
+    const dispatch = useDispatch();
+
+    const handleClick = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.LEAVE_TEAM,
+            dialogType: LeaveTeamModal,
+        }));
+    }, [dispatch]);
+
+    if (!isTeamGroupConstrained && experimentalPrimaryTeam !== teamName) {
+        return (
+            <Menu.Item
+                leadingElement={(
+                    <ExitToAppIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                )}
+                onClick={handleClick}
+                isDestructive={true}
+                labels={(
+                    <FormattedMessage
+                        id='sidebarLeft.teamMenu.leaveTeamMenuItem.primaryLabel'
+                        defaultMessage='Leave team'
+                    />
+                )}
+                aria-haspopup='dialog'
+            />
+        );
+    }
+
+    return null;
+}
+
+function JoinAnotherTeamMenuItem() {
+    const history = useHistory();
+
+    const handleClick = useCallback(() => {
+        history.push('/select_team');
+    }, [history]);
+
+    return (
+        <Menu.Item
+            leadingElement={(
+                <MessagePlusOutlineIcon
+                    size={18}
+                    aria-hidden='true'
+                />
+            )}
+            onClick={handleClick}
+            labels={(
+                <FormattedMessage
+                    id='sidebarLeft.teamMenu.joinAnotherTeamMenuItem.primaryLabel'
+                    defaultMessage='Join another team'
+                />
+            )}
+        />
+    );
+}
+
+interface CreateTeamMenuItemProps {
+    isCloud: boolean;
+}
+
+function CreateTeamMenuItem({isCloud}: CreateTeamMenuItemProps) {
+    const history = useHistory();
+
+    const cloudSubscription = useSelector(getCloudSubscription);
+    const subscriptionProduct = useSelector(getSubscriptionProduct);
+    const isFreeTrial = isCloud && cloudSubscription?.is_free_trial === 'true';
+    const isStarterFree = isCloud && subscriptionProduct?.sku === CloudProducts.STARTER;
+    const usageDeltas = useGetUsageDeltas();
+    const isTeamsLimitReached = isStarterFree && !isFreeTrial && usageDeltas.teams.active >= 0;
+    const isTeamCreateRestricted = isCloud && (isFreeTrial || isTeamsLimitReached);
+
+    const handleClick = useCallback(() => {
+        if (isTeamsLimitReached) {
+            return;
+        }
+
+        history.push('/create_team');
+    }, [history, isTeamsLimitReached]);
+
+    return (
+        <Menu.Item
+            leadingElement={(
+                <PlusIcon
+                    size={18}
+                    aria-hidden='true'
+                />
+            )}
+            onClick={handleClick}
+            labels={(
+                <FormattedMessage
+                    id='sidebarLeft.teamMenu.createTeamMenuItem.primaryLabel'
+                    defaultMessage='Create a team'
+                />
+            )}
+            trailingElements={isTeamCreateRestricted && <RestrictedIndicatorForCreateTeam isFreeTrial={isFreeTrial}/>}
+        />
+    );
 }
 
 function RestrictedIndicatorForCreateTeam({isFreeTrial}: {isFreeTrial: boolean}) {
@@ -463,7 +492,7 @@ function RestrictedIndicatorForCreateTeam({isFreeTrial}: {isFreeTrial: boolean})
             })}
             messageAdminPostTrial={formatMessage({
                 id: 'navbar_dropdown.create.modal.messageAdminPostTrial',
-                defaultMessage: 'Multiple teams allow for context-specific spaces that are more attuned to your and your teams’ needs. Upgrade to the Professional plan to create unlimited teams.',
+                defaultMessage: "Multiple teams allow for context-specific spaces that are more attuned to your and your teams' needs. Upgrade to the Professional plan to create unlimited teams.",
             })}
             titleEndUser={formatMessage({
                 id: 'navbar_dropdown.create.modal.titleEndUser',
@@ -471,8 +500,67 @@ function RestrictedIndicatorForCreateTeam({isFreeTrial}: {isFreeTrial: boolean})
             })}
             messageEndUser={formatMessage({
                 id: 'navbar_dropdown.create.modal.messageEndUser',
-                defaultMessage: 'Multiple teams allow for context-specific spaces that are more attuned to your teams’ needs.',
+                defaultMessage: "Multiple teams allow for context-specific spaces that are more attuned to your teams' needs.",
             })}
         />
     );
+}
+
+const MATTERMOST_ACADEMY_TEAM_TRAINING_LINK = 'https://mattermost.com/pl/mattermost-academy-team-training';
+
+function LearnAboutTeamsMenuItem() {
+    const handleClick = useCallback(() => {
+        window.open(MATTERMOST_ACADEMY_TEAM_TRAINING_LINK, '_blank', 'noopener noreferrer');
+    }, []);
+
+    return (
+        <Menu.Item
+            className='learnAboutTeamsMenuItem'
+            onClick={handleClick}
+            leadingElement={(
+                <LightbulbOutlineIcon
+                    size={18}
+                    aria-hidden='true'
+                />
+            )}
+            labels={(
+                <FormattedMessage
+                    id='sidebarLeft.teamMenu.learnAboutTeamsMenuItem.primaryLabel'
+                    defaultMessage='Learn about teams'
+                />
+            )}
+        />
+    );
+}
+
+function PluginMenuItems() {
+    const pluginInMainMenu = useSelector(getMainMenuPluginComponents);
+
+    if (pluginInMainMenu.length > 0) {
+        const pluginMenuItems = pluginInMainMenu.map((plugin) => {
+            function handleClick() {
+                if (plugin.action) {
+                    plugin.action();
+                }
+            }
+
+            return (
+                <Menu.Item
+                    id={`${plugin.id}_pluginmenuitem`}
+                    key={plugin.id}
+                    onClick={handleClick}
+                    labels={<span>{plugin.text}</span>}
+                />
+            );
+        });
+
+        return (
+            <>
+                <Menu.Separator/>
+                {pluginMenuItems}
+            </>
+        );
+    }
+
+    return null;
 }

@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import {Permissions} from 'mattermost-redux/constants';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
@@ -42,6 +44,11 @@ describe('SidebarHeader', () => {
                 teams: {
                     [team.id]: team,
                 },
+                myMembers: {
+                    [team.id]: {
+                        roles: 'team_user',
+                    },
+                },
             },
             users: {
                 profiles: {
@@ -51,6 +58,19 @@ describe('SidebarHeader', () => {
                     },
                 },
                 currentUserId: 'uid',
+            },
+            roles: {
+                roles: {
+                    system_admin: {
+                        permissions: [Permissions.MANAGE_TEAM],
+                    },
+                    system_user: {
+                        permissions: [],
+                    },
+                    team_user: {
+                        permissions: [],
+                    },
+                },
             },
             usage: {
                 integrations: {
