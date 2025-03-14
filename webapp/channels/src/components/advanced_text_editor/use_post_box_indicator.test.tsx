@@ -9,6 +9,21 @@ import {renderHookWithContext} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
+jest.mock('luxon', () => {
+    const actualLuxon = jest.requireActual('luxon');
+    return {
+        ...actualLuxon,
+        DateTime: {
+            ...actualLuxon.DateTime,
+            local: jest.fn(() => ({
+                setZone: jest.fn(() => actualLuxon.DateTime.fromObject({
+                    hour: 2,
+                })),
+            })),
+        },
+    };
+});
+
 function getBaseState(): DeepPartial<GlobalState> {
     return {
         entities: {
