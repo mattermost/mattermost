@@ -668,7 +668,7 @@ func doesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 	}
 
 	if (notify == model.ChannelNotifyAll) &&
-		(post.UserId != user.Id || post.GetProp("from_webhook") == "true") {
+		(post.UserId != user.Id || post.GetProp(model.PostPropsFromWebhook) == "true") {
 		return ""
 	}
 
@@ -833,16 +833,16 @@ func (a *App) buildFullPushNotificationMessage(c request.CTX, contentsConfig str
 	}
 
 	msg.SenderName = senderName
-	if ou, ok := post.GetProp("override_username").(string); ok && *cfg.ServiceSettings.EnablePostUsernameOverride {
+	if ou, ok := post.GetProp(model.PostPropsOverrideUsername).(string); ok && *cfg.ServiceSettings.EnablePostUsernameOverride {
 		msg.OverrideUsername = ou
 		msg.SenderName = ou
 	}
 
-	if oi, ok := post.GetProp("override_icon_url").(string); ok && *cfg.ServiceSettings.EnablePostIconOverride {
+	if oi, ok := post.GetProp(model.PostPropsOverrideIconURL).(string); ok && *cfg.ServiceSettings.EnablePostIconOverride {
 		msg.OverrideIconURL = oi
 	}
 
-	if fw, ok := post.GetProp("from_webhook").(string); ok {
+	if fw, ok := post.GetProp(model.PostPropsFromWebhook).(string); ok {
 		msg.FromWebhook = fw
 	}
 

@@ -81,7 +81,7 @@ func testPostPersistentNotificationStoreGet(t *testing.T, rctx request.CTX, ss s
 		},
 	}
 
-	_, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3, &p4, &p5})
+	_, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p1, &p2, &p3, &p4, &p5})
 	require.NoError(t, err)
 	require.Equal(t, -1, errIdx)
 
@@ -156,7 +156,7 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, rctx requ
 		},
 	}
 
-	_, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1})
+	_, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p1})
 	require.NoError(t, err)
 	require.Equal(t, -1, errIdx)
 
@@ -235,7 +235,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 			},
 		}
 
-		_, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3})
+		_, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p1, &p2, &p3})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
@@ -321,7 +321,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 			},
 		}
 
-		_, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3, &p4, &p5})
+		_, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p1, &p2, &p3, &p4, &p5})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
@@ -425,7 +425,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 			},
 		}
 
-		_, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3, &p4, &p5})
+		_, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p1, &p2, &p3, &p4, &p5})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 

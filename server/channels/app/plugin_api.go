@@ -756,7 +756,7 @@ func (api *PluginAPI) DeleteGroupSyncable(groupID string, syncableID string, syn
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
-	post.AddProp("from_plugin", "true")
+	post.AddProp(model.PostPropsFromPlugin, "true")
 
 	post, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true, true)
 	if post != nil {

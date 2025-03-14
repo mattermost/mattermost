@@ -297,12 +297,12 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	// Temporary fix so old plugins don't clobber new fields in SlackAttachment struct, see MM-13088
-	if attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment); ok {
+	if attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment); ok {
 		jsonAttachments, err := json.Marshal(attachments)
 		if err == nil {
 			attachmentsInterface := []any{}
 			err = json.Unmarshal(jsonAttachments, &attachmentsInterface)
-			post.AddProp("attachments", attachmentsInterface)
+			post.AddProp(model.PostPropsAttachments, attachmentsInterface)
 		}
 		if err != nil {
 			c.Logger().Warn("Could not convert post attachments to map interface.", mlog.Err(err))
@@ -524,9 +524,9 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 	}
 
 	if len(channelMentionsProp) > 0 {
-		post.AddProp("channel_mentions", channelMentionsProp)
+		post.AddProp(model.PostPropsChannelMentions, channelMentionsProp)
 	} else if post.GetProps() != nil {
-		post.DelProp("channel_mentions")
+		post.DelProp(model.PostPropsChannelMentions)
 	}
 
 	matched := atMentionPattern.MatchString(post.Message)
@@ -2077,7 +2077,7 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 
 func isPostMention(user *model.User, post *model.Post, keywords MentionKeywords, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool) bool {
 	// Prevent the user from mentioning themselves
-	if post.UserId == user.Id && post.GetProp("from_webhook") != "true" {
+	if post.UserId == user.Id && post.GetProp(model.PostPropsFromWebhook) != "true" {
 		return false
 	}
 
