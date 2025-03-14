@@ -1546,26 +1546,34 @@ func TestGetGroups(t *testing.T) {
 
 	baseOpts := model.GroupSearchOpts{
 		Source: model.GroupSourceLdap,
-		PageOpts: &model.PageOpts{
-			Page:    0,
-			PerPage: 60,
-		},
 	}
 
 	t.Run("without license", func(t *testing.T) {
 		opts := baseOpts
 		th.App.Srv().SetLicense(nil)
-		_, response, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
+		groups, response, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, response)
+		assert.Nil(t, groups)
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
-	t.Run("basic search", func(t *testing.T) {
+	t.Run("basic search for all groups", func(t *testing.T) {
 		opts := baseOpts
-		groups, _, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
+		opts.Source = ""
+		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.ElementsMatch(t, []*model.Group{group, group2, th.Group}, groups)
+		assert.Nil(t, groups[0].MemberCount)
+	})
+
+	t.Run("basic search for LDAP groups", func(t *testing.T) {
+		opts := baseOpts
+		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.ElementsMatch(t, []*model.Group{group, th.Group}, groups)
 		assert.Nil(t, groups[0].MemberCount)
 	})
@@ -1573,59 +1581,70 @@ func TestGetGroups(t *testing.T) {
 	t.Run("include member count", func(t *testing.T) {
 		opts := baseOpts
 		opts.IncludeMemberCount = true
-		groups, _, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
+		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.NotNil(t, groups[0].MemberCount)
 	})
 
 	t.Run("search with Q parameter", func(t *testing.T) {
 		opts := baseOpts
 		opts.Q = "-fOo"
-		groups, _, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
+		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.Len(t, groups, 1)
 	})
 
 	t.Run("not associated to channel", func(t *testing.T) {
 		opts := baseOpts
-		_, err := th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
+		resp, err := th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
 		opts.NotAssociatedToChannel = th.BasicChannel.Id
 
-		_, err = th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
+		resp, err = th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
-		groups, _, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
+		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.ElementsMatch(t, []*model.Group{group, th.Group}, groups)
 	})
 
 	t.Run("not associated to team", func(t *testing.T) {
 		opts := baseOpts
-		_, err := th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
+		resp, err := th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
 		opts.NotAssociatedToTeam = th.BasicTeam.Id
 
-		_, err = th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "team_user team_admin")
+		resp, err = th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "team_user team_admin")
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
-		_, _, err = th.Client.GetGroups(context.Background(), opts)
+		groups, resp, err := th.Client.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.ElementsMatch(t, []*model.Group{group, th.Group}, groups)
 	})
 
 	t.Run("since parameter", func(t *testing.T) {
 		opts := baseOpts
 		opts.Since = start
-		groups, _, err := th.Client.GetGroups(context.Background(), opts)
+		groups, resp, err := th.Client.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.Len(t, groups, 1)
 		assert.Equal(t, groups[0].Id, group.Id)
 
 		opts.Since = model.GetMillis()
-		groups, _, err = th.Client.GetGroups(context.Background(), opts)
+		groups, resp, err = th.Client.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.Empty(t, groups)
 	})
 
@@ -1636,14 +1655,16 @@ func TestGetGroups(t *testing.T) {
 
 		// Test include_archived parameter
 		opts.IncludeArchived = true
-		groups, _, err := th.Client.GetGroups(context.Background(), opts)
+		groups, resp, err := th.Client.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.Len(t, groups, 2)
 
 		// Test returning only archived groups
 		opts.FilterArchived = true
-		groups, _, err = th.Client.GetGroups(context.Background(), opts)
+		groups, resp, err = th.Client.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.Len(t, groups, 1)
 		assert.Equal(t, groups[0].Id, group.Id)
 	})
@@ -1651,8 +1672,9 @@ func TestGetGroups(t *testing.T) {
 	t.Run("group source filtering", func(t *testing.T) {
 		opts := baseOpts
 		opts.Source = model.GroupSourceCustom
-		groups, _, err := th.Client.GetGroups(context.Background(), opts)
+		groups, resp, err := th.Client.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.Len(t, groups, 1)
 		assert.Equal(t, groups[0].Id, group2.Id)
 	})
@@ -1665,8 +1687,9 @@ func TestGetGroups(t *testing.T) {
 		opts.IncludeMemberCount = true
 		opts.Source = model.GroupSourceCustom // Switch to custom source to get group2
 
-		groups, _, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
+		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		require.Len(t, groups, 1)
 		assert.Equal(t, *groups[0].MemberCount, int(0))
 		assert.Equal(t, *groups[0].ChannelMemberCount, int(0))
@@ -1674,8 +1697,9 @@ func TestGetGroups(t *testing.T) {
 		_, appErr = th.App.UpsertGroupMember(group2.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		groups, _, err = th.SystemAdminClient.GetGroups(context.Background(), opts)
+		groups, resp, err = th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		require.Len(t, groups, 1)
 		assert.Equal(t, *groups[0].MemberCount, int(1))
 		assert.Equal(t, *groups[0].ChannelMemberCount, int(1))
@@ -1689,16 +1713,18 @@ func TestGetGroups(t *testing.T) {
 		t.Run("custom source not allowed", func(t *testing.T) {
 			opts := baseOpts
 			opts.Source = model.GroupSourceCustom
-			_, response, err := th.Client.GetGroups(context.Background(), opts)
+			groups, response, err := th.Client.GetGroups(context.Background(), opts)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, response)
+			assert.Nil(t, groups)
 		})
 
 		t.Run("ldap source allowed", func(t *testing.T) {
 			opts := baseOpts
 			opts.Source = model.GroupSourceLdap
-			groups, _, err := th.Client.GetGroups(context.Background(), opts)
+			groups, resp, err := th.Client.GetGroups(context.Background(), opts)
 			require.NoError(t, err)
+			CheckOKStatus(t, resp)
 			assert.Len(t, groups, 1)
 			assert.Equal(t, groups[0].Source, model.GroupSourceLdap)
 		})
@@ -1706,8 +1732,9 @@ func TestGetGroups(t *testing.T) {
 		t.Run("no source specified", func(t *testing.T) {
 			opts := baseOpts
 			opts.Source = ""
-			groups, _, err := th.Client.GetGroups(context.Background(), opts)
+			groups, resp, err := th.Client.GetGroups(context.Background(), opts)
 			require.NoError(t, err)
+			CheckOKStatus(t, resp)
 			assert.Len(t, groups, 1)
 			assert.Equal(t, groups[0].Source, model.GroupSourceLdap)
 		})
@@ -1736,8 +1763,9 @@ func TestGetGroups(t *testing.T) {
 				PerPage: 60,
 			},
 		}
-		groups, _, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
+		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		// Should return all groups regardless of source when not specified
 		assert.Len(t, groups, 3) // group, and group2
 
@@ -1745,8 +1773,9 @@ func TestGetGroups(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableCustomGroups = false
 		})
-		groups, _, err = th.SystemAdminClient.GetGroups(context.Background(), opts)
+		groups, resp, err = th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		// Should still only return LDAP groups
 		assert.Len(t, groups, 2)
 		for _, g := range groups {
@@ -1760,8 +1789,10 @@ func TestGetGroups(t *testing.T) {
 
 		// Test with only_syncable_sources=true
 		opts.OnlySyncableSources = true
-		groups, _, err = th.SystemAdminClient.GetGroups(context.Background(), opts)
+		groups, resp, err = th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
 		// Should only return groups from syncable sources (LDAP and plugin_ groups)
 		assert.Len(t, groups, 2)
 		for _, g := range groups {
