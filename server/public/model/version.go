@@ -148,8 +148,8 @@ func init() {
 	seen := make(map[string]string)
 
 	for _, version := range versions {
-		maj, min, _ := SplitVersion(version)
-		verStr := fmt.Sprintf("%v.%v.0", maj, min)
+		major, minor, _ := SplitVersion(version)
+		verStr := fmt.Sprintf("%v.%v.0", major, minor)
 
 		if seen[verStr] == "" {
 			versionsWithoutHotFixes = append(versionsWithoutHotFixes, verStr)

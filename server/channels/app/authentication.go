@@ -339,8 +339,8 @@ func (a *App) MFARequired(rctx request.CTX) *model.AppError {
 	return nil
 }
 
-func checkUserLoginAttempts(user *model.User, max int) *model.AppError {
-	if user.FailedAttempts >= max {
+func checkUserLoginAttempts(user *model.User, maxAttempts int) *model.AppError {
+	if user.FailedAttempts >= maxAttempts {
 		if user.AuthService == model.UserAuthServiceLdap {
 			return model.NewAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many_ldap.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 		}

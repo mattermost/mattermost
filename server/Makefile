@@ -292,7 +292,7 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
 
 golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57.1
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.7
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
