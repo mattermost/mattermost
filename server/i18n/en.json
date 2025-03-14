@@ -5035,10 +5035,6 @@
     "translation": "Unable to get Custom Profile Attribute field"
   },
   {
-    "id": "app.custom_profile_attributes.invalid_options.app_error",
-    "translation": "Unable to validate the options"
-  },
-  {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
     "translation": "Custom Profile Attributes field limit reached"
   },
@@ -5067,16 +5063,12 @@
     "translation": "Unable to upsert Custom Profile Attribute fields"
   },
   {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Invalid property value attributes : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Unable to search Custom Profile Attribute fields"
-  },
-  {
-    "id": "app.custom_profile_attributes.unknown_value_type.app_error",
-    "translation": "The value type '{{.ValueType}}' is not supported"
-  },
-  {
-    "id": "app.custom_profile_attributes.unknown_visibility.app_error",
-    "translation": "The visibility '{{.Visibility}}' is not supported"
   },
   {
     "id": "app.delete_scheduled_post.delete_error",

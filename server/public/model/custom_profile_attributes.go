@@ -136,7 +136,10 @@ func (c *CPAField) SanitizeAndValidate() *AppError {
 	case PropertyFieldTypeText:
 		if valueType := strings.TrimSpace(c.Attrs.ValueType); valueType != "" {
 			if !IsKnownCPAValueType(valueType) {
-				return NewAppError("ValidateCPAField", "app.custom_profile_attributes.unknown_value_type.app_error", map[string]any{"ValueType": valueType}, "", http.StatusUnprocessableEntity)
+				return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
+					"AttributeName": CustomProfileAttributesPropertyAttrsValueType,
+					"Reason":        "unknown value type",
+				}, "", http.StatusUnprocessableEntity)
 			}
 			c.Attrs.ValueType = valueType
 		}
@@ -152,7 +155,10 @@ func (c *CPAField) SanitizeAndValidate() *AppError {
 		}
 
 		if err := options.IsValid(); err != nil {
-			return NewAppError("ValidateCPAField", "app.custom_profile_attributes.invalid_options.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
+			return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
+				"AttributeName": PropertyFieldAttributeOptions,
+				"Reason":        err.Error(),
+			}, "", http.StatusUnprocessableEntity).Wrap(err)
 		}
 		c.Attrs.Options = options
 	}
@@ -160,7 +166,10 @@ func (c *CPAField) SanitizeAndValidate() *AppError {
 	visibility := CustomProfileAttributesVisibilityDefault
 	if visibilityAttr := strings.TrimSpace(c.Attrs.Visibility); visibilityAttr != "" {
 		if !IsKnownCPAVisibility(visibilityAttr) {
-			return NewAppError("ValidateCPAField", "app.custom_profile_attributes.unknown_visibility.app_error", map[string]any{"Visibility": visibilityAttr}, "", http.StatusUnprocessableEntity)
+			return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
+				"AttributeName": CustomProfileAttributesPropertyAttrsVisibility,
+				"Reason":        "unknown visibility",
+			}, "", http.StatusUnprocessableEntity)
 		}
 		visibility = visibilityAttr
 	}
