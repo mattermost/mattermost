@@ -393,11 +393,6 @@ func (l *License) HasSharedChannels() bool {
 		MinimumProfessionalLicense(l)
 }
 
-// IsE20OrEnterprise returns true when the license is for E20 or Enterprise.
-func (l *License) IsE20OrEnterprise() bool {
-	return MinimumEnterpriseLicense(l)
-}
-
 // NewTestLicense returns a license that expires in the future and has the given features.
 func NewTestLicense(features ...string) *License {
 	ret := &License{
