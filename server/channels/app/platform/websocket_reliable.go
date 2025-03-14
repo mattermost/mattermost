@@ -156,7 +156,7 @@ func (ps *PlatformService) UnmarshalDQ(buf []json.RawMessage) ([]*model.WebSocke
 		// Same as active queue, this can never be out of bounds because all dead queues
 		// are of deadQueueSize.
 		dq[dqPtr] = item
-		dqPtr++
+		dqPtr = (dqPtr + 1) % deadQueueSize
 	}
 	return dq, dqPtr, nil
 }

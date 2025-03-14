@@ -755,6 +755,97 @@ func (api *PluginAPI) DeleteGroupSyncable(groupID string, syncableID string, syn
 	return api.app.DeleteGroupSyncable(groupID, syncableID, syncableType)
 }
 
+func (api *PluginAPI) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	if err := api.checkLDAPLicense(); err != nil {
+		return nil, model.NewAppError("UpsertGroupMember", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+	}
+	return api.app.UpsertGroupMember(groupID, userID)
+}
+
+func (api *PluginAPI) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
+	if err := api.checkLDAPLicense(); err != nil {
+		return nil, model.NewAppError("UpsertGroupMembers", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+	}
+	return api.app.UpsertGroupMembers(groupID, userIDs)
+}
+
+func (api *PluginAPI) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
+	if err := api.checkLDAPLicense(); err != nil {
+		return nil, model.NewAppError("GetGroupByRemoteID", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+	}
+	return api.app.GetGroupByRemoteID(remoteID, groupSource)
+}
+
+func (api *PluginAPI) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	if err := api.checkLDAPLicense(); err != nil {
+		return nil, model.NewAppError("CreateGroup", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+	}
+	return api.app.CreateGroup(group)
+}
+
+func (api *PluginAPI) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	if err := api.checkLDAPLicense(); err != nil {
+		return nil, model.NewAppError("UpdateGroup", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+	}
+	return api.app.UpdateGroup(group)
+}
+
+func (api *PluginAPI) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
+	if err := api.checkLDAPLicense(); err != nil {
+		return nil, model.NewAppError("DeleteGroup", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+	}
+	return api.app.DeleteGroup(groupID)
+}
+
+func (api *PluginAPI) RestoreGroup(groupID string) (*model.Group, *model.AppError) {
+	if err := api.checkLDAPLicense(); err != nil {
+		return nil, model.NewAppError("RestoreGroup", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+	}
+	return api.app.RestoreGroup(groupID)
+}
+
+func (api *PluginAPI) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	if err := api.checkLDAPLicense(); err != nil {
+		return nil, model.NewAppError("DeleteGroupMember", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+	}
+	return api.app.DeleteGroupMember(groupID, userID)
+}
+
+func (api *PluginAPI) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+	if err := api.checkLDAPLicense(); err != nil {
+		return nil, model.NewAppError("GetGroupSyncable", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+	}
+	return api.app.GetGroupSyncable(groupID, syncableID, syncableType)
+}
+
+func (api *PluginAPI) GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
+	if err := api.checkLDAPLicense(); err != nil {
+		return nil, model.NewAppError("GetGroupSyncables", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+	}
+	return api.app.GetGroupSyncables(groupID, syncableType)
+}
+
+func (api *PluginAPI) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	if err := api.checkLDAPLicense(); err != nil {
+		return nil, model.NewAppError("UpsertGroupSyncable", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+	}
+	return api.app.UpsertGroupSyncable(groupSyncable)
+}
+
+func (api *PluginAPI) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	if err := api.checkLDAPLicense(); err != nil {
+		return nil, model.NewAppError("UpdateGroupSyncable", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+	}
+	return api.app.UpdateGroupSyncable(groupSyncable)
+}
+
+func (api *PluginAPI) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+	if err := api.checkLDAPLicense(); err != nil {
+		return nil, model.NewAppError("DeleteGroupSyncable", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+	}
+	return api.app.DeleteGroupSyncable(groupID, syncableID, syncableType)
+}
+
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	post.AddProp("from_plugin", "true")
 

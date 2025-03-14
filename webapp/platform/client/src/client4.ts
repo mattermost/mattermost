@@ -674,6 +674,13 @@ export default class Client4 {
         );
     };
 
+    resetFailedAttempts = (userId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getUserRoute(userId)}/reset_failed_attempts`,
+            {method: 'post'},
+        );
+    };
+
     getKnownUsers = () => {
         return this.doFetch<Array<UserProfile['id']>>(
             `${this.getUsersRoute()}/known`,
@@ -2127,6 +2134,14 @@ export default class Client4 {
             analyticsData.persistent_notifications = post.metadata.priority.persistent_notifications;
             this.trackEvent('api', 'api_posts_create', analyticsData);
         }
+        return result;
+    };
+
+    createPostEphemeral = async (userID: string, post: PartialExcept<Post, 'channel_id' | 'message'>) => {
+        const result = await this.doFetch<Post>(
+            `${this.getPostsRoute()}/ephemeral`,
+            {method: 'post', body: JSON.stringify({user_id: userID, post})},
+        );
         return result;
     };
 

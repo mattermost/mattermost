@@ -2039,7 +2039,7 @@ func TestGetGroups(t *testing.T) {
 		groups, _, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
 		// Should return all groups regardless of source when not specified
-		assert.Len(t, groups, 5) // group, and group2
+		assert.Len(t, groups, 5)
 
 		// Test with custom groups disabled and only_syncable_sources=true
 		th.App.UpdateConfig(func(cfg *model.Config) {
