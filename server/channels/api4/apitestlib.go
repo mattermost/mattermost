@@ -620,6 +620,17 @@ func (th *TestHelper) CreateUser() *model.User {
 	return th.CreateUserWithClient(th.Client)
 }
 
+func (th *TestHelper) CreateGuestUser(tb testing.TB) *model.User {
+	tb.Helper()
+
+	guestUser := th.CreateUserWithClient(th.Client)
+
+	_, appErr := th.App.UpdateUserRoles(th.Context, guestUser.Id, model.SystemGuestRoleId, false)
+	require.Nil(tb, appErr)
+
+	return guestUser
+}
+
 func (th *TestHelper) CreateTeam() *model.Team {
 	return th.CreateTeamWithClient(th.Client)
 }
