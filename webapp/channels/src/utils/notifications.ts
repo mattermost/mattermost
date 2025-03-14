@@ -6,6 +6,9 @@ import iconWS from 'images/icon_WS.png';
 import * as UserAgent from 'utils/user_agent';
 
 import type {ThunkActionFunc} from 'types/store';
+import { convertMentionNicknameOrFullName } from './text_formatting';
+import { getUsersByUsername } from 'mattermost-redux/selectors/entities/users';
+import { getTeammateNameDisplaySetting } from 'mattermost-redux/selectors/entities/preferences';
 
 export type NotificationResult = {
     status: 'error' | 'not_sent' | 'success' | 'unsupported';
@@ -44,7 +47,7 @@ export function showNotification(
         silent: false,
     },
 ): ThunkActionFunc<Promise<NotificationResult & {callback: () => void}>> {
-    return async () => {
+    return async (_, getState) => {
         let icon = icon50;
         if (UserAgent.isEdge()) {
             icon = iconWS;
@@ -76,9 +79,14 @@ export function showNotification(
             }
         }
 
+        const state = getState();
+        const usersByUsername = getUsersByUsername(state);
+        const teammateNameDisplay = getTeammateNameDisplaySetting(state);
+        const convertedMentionBody = convertMentionNicknameOrFullName(body, usersByUsername, teammateNameDisplay)
+
         const notification = new Notification(title, {
-            body,
-            tag: body,
+            body: convertedMentionBody,
+            tag: convertedMentionBody,
             icon,
             requireInteraction,
             silent,
