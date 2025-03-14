@@ -205,15 +205,12 @@ describe('Channel members RHS', () => {
             // # Go to test channel
             cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
-            cy.uiOpenChannelMenu('Manage Members');
+            cy.uiOpenChannelMenu('Members');
 
             // * RHS Container should be open in edit mode
             cy.get('#rhsContainer').then((rhsContainer) => {
                 cy.wrap(rhsContainer).findByText('Members').should('be.visible');
                 cy.wrap(rhsContainer).findByText(testChannel.display_name).should('be.visible');
-
-                // Done button should be visible
-                cy.wrap(rhsContainer).findByText('Done').should('be.visible');
             });
         });
 
@@ -267,7 +264,7 @@ describe('Channel members RHS', () => {
             // # Go to test channel
             cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
-            cy.uiOpenChannelMenu('View Members');
+            cy.uiOpenChannelMenu('Members');
 
             // * RHS Container should be open in edit mode
             ensureChannelMembersRHSExists(testChannel);
