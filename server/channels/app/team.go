@@ -1972,14 +1972,18 @@ func (a *App) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *
 	return a.SetTeamIconFromFile(team, file)
 }
 
-func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError {
+func (a *App) SetTeamIconFromFile(team *model.Team, file io.ReadSeeker) *model.AppError {
 	// Decode image into Image object
-	img, _, err := image.Decode(file)
+	img, format, err := image.Decode(file)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	orientation, _ := imaging.GetImageOrientation(file)
+	orientation, err := imaging.GetImageOrientation(file, format)
+	if err != nil {
+		mlog.Warn("Failed to get image orientation", mlog.Err(err))
+	}
+
 	img = imaging.MakeImageUpright(img, orientation)
 
 	// Scale team icon
