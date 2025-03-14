@@ -233,15 +233,10 @@ export default class Renderer extends marked.Renderer {
         return marked.Renderer.prototype.tablecell(content, flags).trim();
     }
 
-    public list(content: string, ordered: boolean, start: number) {
+    public list(content: string, ordered: boolean) {
         const type = ordered ? 'ol' : 'ul';
 
         let output = `<${type} className="markdown__list"`;
-        if (ordered && start !== undefined) {
-            // The CSS that we use for lists hides the actual counter and uses ::before to simulate one so that we can
-            // style it properly. We need to use a CSS counter to tell the ::before elements which numbers to show.
-            output += ` style="counter-reset: list ${start - 1}"`;
-        }
         output += `>${content}</${type}>`;
 
         return output;
