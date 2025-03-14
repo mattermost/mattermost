@@ -2077,6 +2077,7 @@ const AdminDefinition: AdminDefinitionType = {
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.mobileSecurity', defaultMessage: 'Mobile Security'}),
                 isHidden: it.any(
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MOBILE_SECURITY)),
                     it.licensedForSku(LicenseSkus.Enterprise),
                     it.not(it.enterpriseReady),
                 ),
