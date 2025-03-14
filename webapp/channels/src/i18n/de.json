@@ -3538,7 +3538,7 @@
   "create_post.prewritten.tip.team_hi_message": ":wave: Hi Team!",
   "create_post.read_only": "Dieser Kanal ist schreibgeschützt. Nur berechtigte Mitglieder können hier schreiben.",
   "create_post.shortcutsNotSupported": "Tastaturkürzel werden auf deinem Gerät nicht unterstützt.",
-  "create_post.write": "In {channelDisplayName} schreiben",
+  "create_post.write": "Schreibe an {channelDisplayName}",
   "create_post_button.option.schedule_message": "Geplante Nachricht",
   "create_post_button.option.schedule_message.options.choose_custom_time": "Wähle einen Zeitpunkt",
   "create_post_button.option.schedule_message.options.header": "Geplante Nachricht",
