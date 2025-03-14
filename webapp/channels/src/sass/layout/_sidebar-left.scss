@@ -340,30 +340,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         font-size: 20px;
     }
 
-    .sidebar-header {
-        display: flex;
-        overflow: hidden;
-        flex-direction: row;
-        align-items: center;
-    }
-
-    .SidebarHeaderMenuWrapper {
-        overflow: hidden;
-        padding-left: 5px;
-        border-radius: 4px;
-        background: transparent;
-
-        &:hover,
-        &:active,
-        &:focus {
-            background-color: rgba(var(--sidebar-text-rgb), 0.08);
-        }
-
-        &.MenuWrapper--open {
-            background-color: rgba(var(--sidebar-text-rgb), 0.16);
-        }
-    }
-
     .SidebarMenu {
         opacity: 1;
 
@@ -1355,19 +1331,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
     &:focus,
     span {
         outline: none;
-    }
-}
-
-// Manual override of the global menu (and items) styling for the sidebar dropdown menu
-#sidebarDropdownMenu {
-    position: fixed;
-
-    .MenuItem {
-        >button,
-        >div,
-        >a {
-            padding: 0 32px 0 24px;
-        }
     }
 }
 

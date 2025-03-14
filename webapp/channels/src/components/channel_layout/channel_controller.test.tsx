@@ -34,6 +34,10 @@ jest.mock('mattermost-redux/selectors/entities/general', () => ({
     ...jest.requireActual('mattermost-redux/selectors/entities/general') as typeof import('mattermost-redux/selectors/entities/general'),
 }));
 
+jest.mock('selectors/views/browser', () => ({
+    getIsMobileView: () => false,
+}));
+
 describe('ChannelController', () => {
     beforeEach(() => {
         mockState = {

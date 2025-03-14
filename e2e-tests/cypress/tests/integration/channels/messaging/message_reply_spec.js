@@ -21,6 +21,7 @@ describe('Message Reply', () => {
             newChannel = channel;
             cy.visit(`/${team.name}/channels/${channel.name}`);
 
+            // HERE WE NEED TO UPDATE THE AREA SINCE WE REMOVED THIS ID
             // # Wait for the page to fully load before continuing
             cy.get('#sidebar-header-container').should('be.visible').and('have.text', team.display_name);
         });
