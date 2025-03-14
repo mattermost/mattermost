@@ -502,6 +502,10 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
+	if os.Getenv("TEST_SPINWICK") == "true" {
+		s.Log().Warn("mattermost: TEST_SPINWICK is true!")
+	}
+
 	return s, nil
 }
 
@@ -1439,7 +1443,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		})
 	}
 
-	//remove the license
+	// remove the license
 	if appErr := s.RemoveLicense(); appErr != nil {
 		mlog.Error("Error while removing the license.", mlog.Err(appErr))
 	}
