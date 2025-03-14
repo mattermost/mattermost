@@ -166,3 +166,30 @@
         }
     }
 }
+
+.archiveChannelConfirmModal {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    .GenericModal__header {
+        display: flex;
+        justify-content: center;
+
+        h1#genericModalLabel {
+            width: auto;
+        }
+    }
+
+    .GenericModal__body {
+        .ConfirmModal__body {
+            text-align: center;
+        }
+    }
+
+    .ConfirmModal__footer {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+    }
+}

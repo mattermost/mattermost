@@ -18,7 +18,6 @@ import {patchChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
-import ConfirmationModal from 'components/confirm_modal';
 import type TextboxClass from 'components/textbox/textbox';
 import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
@@ -74,7 +73,6 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
 
     // We track unsaved changes to prompt a save changes panel
     const [requireConfirm, setRequireConfirm] = useState(false);
-    const [showArchiveConfirmModal, setShowArchiveConfirmModal] = useState(false);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
 
     // The fields we allow editing
@@ -237,15 +235,6 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
         setServerError(err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'}));
     };
 
-    const handleArchiveChannel = useCallback(() => {
-        setShowArchiveConfirmModal(true);
-    }, []);
-
-    const doArchiveChannel = () => {
-        // TODO: add the extra logic to archive the channel
-        handleHideConfirm();
-    };
-
     // Renders content based on active tab
     const renderTabContent = () => {
         switch (activeTab) {
@@ -300,7 +289,8 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     const renderArchiveTab = () => {
         return (
             <ChannelSettingsArchiveTab
-                handleArchiveChannel={handleArchiveChannel}
+                channel={channel}
+                onHide={handleHideConfirm}
             />
         );
     };
@@ -378,22 +368,6 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
             bodyPadding={false}
         >
             {renderModalBody()}
-
-            {/* Confirmation Modal for archiving channel */}
-            {showArchiveConfirmModal &&
-                <ConfirmationModal
-                    id='archiveChannelConfirmModal'
-                    show={true}
-                    title={formatMessage({id: 'channel_settings.modal.archiveTitle', defaultMessage: 'Archive Channel?'})}
-                    message={formatMessage({id: 'channel_settings.modal.archiveMsg', defaultMessage: 'Are you sure you want to archive this channel? This action cannot be undone.'})}
-                    confirmButtonText={formatMessage({id: 'channel_settings.modal.confirmArchive', defaultMessage: 'Yes, Archive'})}
-                    onConfirm={doArchiveChannel}
-                    onCancel={() => setShowArchiveConfirmModal(false)}
-                    confirmButtonClass='btn-danger'
-                    modalClass='archiveChannelConfirmModal'
-                    focusOriginElement='channelSettingsArchiveChannelButton'
-                />
-            }
         </GenericModal>
     );
 }
