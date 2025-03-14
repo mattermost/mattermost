@@ -41,7 +41,7 @@ const (
 	CustomProfileAttributesValueTypePhone = "phone"
 )
 
-func IsKnownCustomProfilteAttributesValueType(valueType string) bool {
+func IsKnownCPAValueType(valueType string) bool {
 	switch valueType {
 	case CustomProfileAttributesValueTypeEmail,
 		CustomProfileAttributesValueTypeURL,
@@ -60,7 +60,7 @@ const (
 	CustomProfileAttributesVisibilityDefault = CustomProfileAttributesVisibilityWhenSet
 )
 
-func IsKnownCustomProfilteAttributesVisibility(visibility string) bool {
+func IsKnownCPAVisibility(visibility string) bool {
 	switch visibility {
 	case CustomProfileAttributesVisibilityHidden,
 		CustomProfileAttributesVisibilityWhenSet,
@@ -138,7 +138,7 @@ func (c *CPAField) Sanitize() *AppError {
 	switch c.Type {
 	case PropertyFieldTypeText:
 		if valueType := strings.TrimSpace(c.Attrs.ValueType); valueType != "" {
-			if !IsKnownCustomProfilteAttributesValueType(valueType) {
+			if !IsKnownCPAValueType(valueType) {
 				return NewAppError("ValidateCPAField", "app.custom_profile_attributes.unknown_value_type.app_error", map[string]any{"ValueType": valueType}, "", http.StatusUnprocessableEntity)
 			}
 			c.Attrs.ValueType = valueType
@@ -162,7 +162,7 @@ func (c *CPAField) Sanitize() *AppError {
 
 	visibility := CustomProfileAttributesVisibilityDefault
 	if visibilityAttr := strings.TrimSpace(c.Attrs.Visibility); visibilityAttr != "" {
-		if !IsKnownCustomProfilteAttributesVisibility(visibilityAttr) {
+		if !IsKnownCPAVisibility(visibilityAttr) {
 			return NewAppError("ValidateCPAField", "app.custom_profile_attributes.unknown_visibility.app_error", map[string]any{"Visibility": visibilityAttr}, "", http.StatusUnprocessableEntity)
 		}
 		visibility = visibilityAttr
