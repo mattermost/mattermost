@@ -72,7 +72,7 @@ func (a *App) ListCPAFields() ([]*model.PropertyField, *model.AppError) {
 	}
 
 	sort.Slice(fields, func(i, j int) bool {
-		return model.CustomProfileAttributesPropertySortOrder(fields[i]) < model.CustomProfileAttributesPropertySortOrder(fields[j])
+		return model.CPASortOrder(fields[i]) < model.CPASortOrder(fields[j])
 	})
 
 	return fields, nil

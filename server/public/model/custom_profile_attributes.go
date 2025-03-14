@@ -14,7 +14,7 @@ const CustomProfileAttributesPropertyGroupName = "custom_profile_attributes"
 
 const CustomProfileAttributesPropertyAttrsSortOrder = "sort_order"
 
-func CustomProfileAttributesPropertySortOrder(p *PropertyField) int {
+func CPASortOrder(p *PropertyField) int {
 	value, ok := p.Attrs[CustomProfileAttributesPropertyAttrsSortOrder]
 	if !ok {
 		return 0
