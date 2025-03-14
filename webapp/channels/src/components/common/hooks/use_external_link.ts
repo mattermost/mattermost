@@ -23,7 +23,7 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
     const isCloud = useSelector((state: GlobalState) => getLicense(state).Cloud === 'true');
 
     return useMemo(() => {
-        if (!href?.includes('mattermost.com')) {
+        if (!href?.includes('mattermost.com') || href?.startsWith('mailto:')) {
             return [href, {}];
         }
 
@@ -40,7 +40,7 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
             ...overwriteQueryParams,
             ...existingQueryParamsObj,
         };
-        parsedUrl.search = new URLSearchParams(queryParams).toString();
+        parsedUrl.search = Object.entries(queryParams).map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join('&');
 
         return [parsedUrl.toString(), queryParams];
     }, [href, isCloud, location, overwriteQueryParams, telemetryId, userId]);
