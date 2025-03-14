@@ -121,8 +121,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			// For options, we need to check length since IDs will be different
 			if tt.wantAttrs.Options != nil {
 				require.NotNil(t, cpaField.Attrs.Options)
-				assert.Equal(t, len(tt.wantAttrs.Options), len(cpaField.Attrs.Options))
-
+				assert.Len(t, cpaField.Attrs.Options, len(tt.wantAttrs.Options))
 				if len(tt.wantAttrs.Options) > 0 {
 					assert.Equal(t, tt.wantAttrs.Options[0].Name, cpaField.Attrs.Options[0].Name)
 					assert.Equal(t, tt.wantAttrs.Options[0].Color, cpaField.Attrs.Options[0].Color)
@@ -220,7 +219,7 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 				require.True(t, ok)
 				optionsSlice, ok := options.(PropertyOptions[*CustomProfileAttributesSelectOption])
 				require.True(t, ok)
-				assert.Equal(t, len(tt.cpaField.Attrs.Options), len(optionsSlice))
+				assert.Len(t, optionsSlice, len(tt.cpaField.Attrs.Options))
 			}
 		})
 	}
