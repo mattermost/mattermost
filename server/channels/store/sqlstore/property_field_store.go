@@ -4,8 +4,6 @@
 package sqlstore
 
 import (
-	"database/sql"
-	"encoding/json"
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
@@ -14,103 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
-
-func (s *SqlPropertyFieldStore) propertyFieldToInsertMap(field *model.PropertyField) (map[string]any, error) {
-	if field.Attrs == nil {
-		field.Attrs = make(map[string]any)
-	}
-
-	attrsJSON, err := json.Marshal(field.Attrs)
-	if err != nil {
-		return nil, errors.Wrap(err, "property_field_to_insert_map_marshal_attrs")
-	}
-	if s.IsBinaryParamEnabled() {
-		attrsJSON = AppendBinaryFlag(attrsJSON)
-	}
-
-	return map[string]any{
-		"ID":         field.ID,
-		"GroupID":    field.GroupID,
-		"Name":       field.Name,
-		"Type":       field.Type,
-		"Attrs":      attrsJSON,
-		"TargetID":   field.TargetID,
-		"TargetType": field.TargetType,
-		"CreateAt":   field.CreateAt,
-		"UpdateAt":   field.UpdateAt,
-		"DeleteAt":   field.DeleteAt,
-	}, nil
-}
-
-func (s *SqlPropertyFieldStore) propertyFieldToUpdateMap(field *model.PropertyField) (map[string]any, error) {
-	if field.Attrs == nil {
-		field.Attrs = make(map[string]any)
-	}
-
-	attrsJSON, err := json.Marshal(field.Attrs)
-	if err != nil {
-		return nil, errors.Wrap(err, "property_field_to_update_map_marshal_attrs")
-	}
-	if s.IsBinaryParamEnabled() {
-		attrsJSON = AppendBinaryFlag(attrsJSON)
-	}
-
-	return map[string]any{
-		"Name":       field.Name,
-		"Type":       field.Type,
-		"Attrs":      attrsJSON,
-		"TargetID":   field.TargetID,
-		"TargetType": field.TargetType,
-		"UpdateAt":   field.UpdateAt,
-		"DeleteAt":   field.DeleteAt,
-	}, nil
-}
-
-func propertyFieldsFromRows(rows *sql.Rows) ([]*model.PropertyField, error) {
-	results := []*model.PropertyField{}
-
-	for rows.Next() {
-		var field model.PropertyField
-		var attrsJSON string
-
-		err := rows.Scan(
-			&field.ID,
-			&field.GroupID,
-			&field.Name,
-			&field.Type,
-			&attrsJSON,
-			&field.TargetID,
-			&field.TargetType,
-			&field.CreateAt,
-			&field.UpdateAt,
-			&field.DeleteAt,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		if err := json.Unmarshal([]byte(attrsJSON), &field.Attrs); err != nil {
-			return nil, errors.Wrap(err, "property_fields_from_rows_unmarshal_attrs")
-		}
-
-		results = append(results, &field)
-	}
-
-	return results, nil
-}
-
-func propertyFieldFromRows(rows *sql.Rows) (*model.PropertyField, error) {
-	fields, err := propertyFieldsFromRows(rows)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(fields) > 0 {
-		return fields[0], nil
-	}
-
-	return nil, sql.ErrNoRows
-}
 
 type SqlPropertyFieldStore struct {
 	*SqlStore
@@ -139,14 +40,10 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 		return nil, errors.Wrap(err, "property_field_create_isvalid")
 	}
 
-	insertMap, err := s.propertyFieldToInsertMap(field)
-	if err != nil {
-		return nil, err
-	}
-
 	builder := s.getQueryBuilder().
 		Insert("PropertyFields").
-		SetMap(insertMap)
+		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "CreateAt", "UpdateAt", "DeleteAt").
+		Values(field.ID, field.GroupID, field.Name, field.Type, field.Attrs, field.TargetID, field.TargetType, field.CreateAt, field.UpdateAt, field.DeleteAt)
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_insert")
@@ -155,45 +52,31 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	return field, nil
 }
 
-func (s *SqlPropertyFieldStore) Get(id string) (*model.PropertyField, error) {
-	queryString, args, err := s.tableSelectQuery.
-		Where(sq.Eq{"id": id}).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "property_field_get_tosql")
+func (s *SqlPropertyFieldStore) Get(groupID, id string) (*model.PropertyField, error) {
+	builder := s.tableSelectQuery.Where(sq.Eq{"id": id})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
 	}
 
-	rows, err := s.GetReplica().Query(queryString, args...)
-	if err != nil {
+	var field model.PropertyField
+	if err := s.GetReplica().GetBuilder(&field, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_get_select")
 	}
-	defer rows.Close()
 
-	field, err := propertyFieldFromRows(rows)
-	if err != nil {
-		return nil, errors.Wrap(err, "property_field_get_propertyfieldfromrows")
-	}
-
-	return field, nil
+	return &field, nil
 }
 
-func (s *SqlPropertyFieldStore) GetMany(ids []string) ([]*model.PropertyField, error) {
-	queryString, args, err := s.tableSelectQuery.
-		Where(sq.Eq{"id": ids}).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "property_field_get_many_tosql")
+func (s *SqlPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
+	builder := s.tableSelectQuery.Where(sq.Eq{"id": ids})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
 	}
 
-	rows, err := s.GetReplica().Query(queryString, args...)
-	if err != nil {
+	fields := []*model.PropertyField{}
+	if err := s.GetReplica().SelectBuilder(&fields, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_get_many_query")
-	}
-	defer rows.Close()
-
-	fields, err := propertyFieldsFromRows(rows)
-	if err != nil {
-		return nil, errors.Wrap(err, "property_field_get_many_propertyfieldfromrows")
 	}
 
 	if len(fields) < len(ids) {
@@ -203,50 +86,65 @@ func (s *SqlPropertyFieldStore) GetMany(ids []string) ([]*model.PropertyField, e
 	return fields, nil
 }
 
+func (s *SqlPropertyFieldStore) CountForGroup(groupID string, includeDeleted bool) (int64, error) {
+	var count int64
+	builder := s.getQueryBuilder().
+		Select("COUNT(id)").
+		From("PropertyFields").
+		Where(sq.Eq{"GroupID": groupID})
+
+	if !includeDeleted {
+		builder = builder.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
+		return int64(0), errors.Wrap(err, "failed to count Sessions")
+	}
+	return count, nil
+}
+
 func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	if opts.Page < 0 {
-		return nil, errors.New("page must be positive integer")
+	if err := opts.Cursor.IsValid(); err != nil {
+		return nil, fmt.Errorf("cursor is invalid: %w", err)
 	}
 
 	if opts.PerPage < 1 {
 		return nil, errors.New("per page must be positive integer greater than zero")
 	}
 
-	query := s.tableSelectQuery.
-		OrderBy("CreateAt ASC").
-		Offset(uint64(opts.Page * opts.PerPage)).
+	builder := s.tableSelectQuery.
+		OrderBy("CreateAt ASC, Id ASC").
 		Limit(uint64(opts.PerPage))
 
+	if !opts.Cursor.IsEmpty() {
+		builder = builder.Where(sq.Or{
+			sq.Gt{"CreateAt": opts.Cursor.CreateAt},
+			sq.And{
+				sq.Eq{"CreateAt": opts.Cursor.CreateAt},
+				sq.Gt{"Id": opts.Cursor.PropertyFieldID},
+			},
+		})
+	}
+
 	if !opts.IncludeDeleted {
-		query = query.Where(sq.Eq{"DeleteAt": 0})
+		builder = builder.Where(sq.Eq{"DeleteAt": 0})
 	}
 
 	if opts.GroupID != "" {
-		query = query.Where(sq.Eq{"GroupID": opts.GroupID})
+		builder = builder.Where(sq.Eq{"GroupID": opts.GroupID})
 	}
 
 	if opts.TargetType != "" {
-		query = query.Where(sq.Eq{"TargetType": opts.TargetType})
+		builder = builder.Where(sq.Eq{"TargetType": opts.TargetType})
 	}
 
 	if opts.TargetID != "" {
-		query = query.Where(sq.Eq{"TargetID": opts.TargetID})
+		builder = builder.Where(sq.Eq{"TargetID": opts.TargetID})
 	}
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "property_field_search_tosql")
-	}
-
-	rows, err := s.GetReplica().Query(queryString, args...)
-	if err != nil {
+	fields := []*model.PropertyField{}
+	if err := s.GetReplica().SelectBuilder(&fields, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_search_query")
-	}
-	defer rows.Close()
-
-	fields, err := propertyFieldsFromRows(rows)
-	if err != nil {
-		return nil, errors.Wrap(err, "property_field_search_propertyfieldfromrows")
 	}
 
 	return fields, nil
@@ -264,43 +162,66 @@ func (s *SqlPropertyFieldStore) Update(fields []*model.PropertyField) (_ []*mode
 	defer finalizeTransactionX(transaction, &err)
 
 	updateTime := model.GetMillis()
-	for _, field := range fields {
-		field.UpdateAt = updateTime
+	isPostgres := s.DriverName() == model.DatabaseDriverPostgres
+	nameCase := sq.Case("id")
+	typeCase := sq.Case("id")
+	attrsCase := sq.Case("id")
+	targetIDCase := sq.Case("id")
+	targetTypeCase := sq.Case("id")
+	deleteAtCase := sq.Case("id")
+	ids := make([]string, len(fields))
 
+	for i, field := range fields {
+		field.UpdateAt = updateTime
 		if vErr := field.IsValid(); vErr != nil {
 			return nil, errors.Wrap(vErr, "property_field_update_isvalid")
 		}
 
-		updateMap, err := s.propertyFieldToUpdateMap(field)
-		if err != nil {
-			return nil, err
-		}
-
-		queryString, args, err := s.getQueryBuilder().
-			Update("PropertyFields").
-			SetMap(updateMap).
-			Where(sq.Eq{"id": field.ID}).
-			ToSql()
-		if err != nil {
-			return nil, errors.Wrap(err, "property_field_update_tosql")
-		}
-
-		result, err := transaction.Exec(queryString, args...)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to update property field with id: %s", field.ID)
-		}
-
-		count, err := result.RowsAffected()
-		if err != nil {
-			return nil, errors.Wrap(err, "property_field_update_rowsaffected")
-		}
-		if count == 0 {
-			return nil, store.NewErrNotFound("PropertyField", field.ID)
+		ids[i] = field.ID
+		whenID := sq.Expr("?", field.ID)
+		if isPostgres {
+			nameCase = nameCase.When(whenID, sq.Expr("?::text", field.Name))
+			typeCase = typeCase.When(whenID, sq.Expr("?::property_field_type", field.Type))
+			attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", field.Attrs))
+			targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
+			targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
+			deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
+		} else {
+			nameCase = nameCase.When(whenID, sq.Expr("?", field.Name))
+			typeCase = typeCase.When(whenID, sq.Expr("?", field.Type))
+			attrsCase = attrsCase.When(whenID, sq.Expr("?", field.Attrs))
+			targetIDCase = targetIDCase.When(whenID, sq.Expr("?", field.TargetID))
+			targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?", field.TargetType))
+			deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?", field.DeleteAt))
 		}
 	}
 
+	builder := s.getQueryBuilder().
+		Update("PropertyFields").
+		Set("Name", nameCase).
+		Set("Type", typeCase).
+		Set("Attrs", attrsCase).
+		Set("TargetID", targetIDCase).
+		Set("TargetType", targetTypeCase).
+		Set("UpdateAt", updateTime).
+		Set("DeleteAt", deleteAtCase).
+		Where(sq.Eq{"id": ids})
+
+	result, err := transaction.ExecBuilder(builder)
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_update_exec")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_update_rowsaffected")
+	}
+	if count != int64(len(fields)) {
+		return nil, errors.Errorf("failed to update, some property fields were not found, got %d of %d", count, len(fields))
+	}
+
 	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "property_field_update_commit")
+		return nil, errors.Wrap(err, "property_field_update_commit_transaction")
 	}
 
 	return fields, nil

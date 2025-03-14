@@ -19,3 +19,7 @@ export async function waitForAnimationEnd(locator: Locator) {
         Promise.all(element.getAnimations({subtree: true}).map((animation) => animation.finished)),
     );
 }
+
+export async function moveMouseToCenter(page: Page) {
+    await page.mouse.move(0, 0);
+}

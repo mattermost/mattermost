@@ -1372,6 +1372,97 @@ func (api *apiTimerLayer) UninviteRemoteFromChannel(channelID string, remoteID s
 	return _returnsA
 }
 
+func (api *apiTimerLayer) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpsertGroupMember(groupID, userID)
+	api.recordTime(startTime, "UpsertGroupMember", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpsertGroupMembers(groupID, userIDs)
+	api.recordTime(startTime, "UpsertGroupMembers", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetGroupByRemoteID(remoteID, groupSource)
+	api.recordTime(startTime, "GetGroupByRemoteID", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateGroup(group)
+	api.recordTime(startTime, "CreateGroup", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateGroup(group)
+	api.recordTime(startTime, "UpdateGroup", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.DeleteGroup(groupID)
+	api.recordTime(startTime, "DeleteGroup", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) RestoreGroup(groupID string) (*model.Group, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.RestoreGroup(groupID)
+	api.recordTime(startTime, "RestoreGroup", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.DeleteGroupMember(groupID, userID)
+	api.recordTime(startTime, "DeleteGroupMember", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetGroupSyncable(groupID, syncableID, syncableType)
+	api.recordTime(startTime, "GetGroupSyncable", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetGroupSyncables(groupID, syncableType)
+	api.recordTime(startTime, "GetGroupSyncables", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpsertGroupSyncable(groupSyncable)
+	api.recordTime(startTime, "UpsertGroupSyncable", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateGroupSyncable(groupSyncable)
+	api.recordTime(startTime, "UpdateGroupSyncable", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.DeleteGroupSyncable(groupID, syncableID, syncableType)
+	api.recordTime(startTime, "DeleteGroupSyncable", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) UpdateUserRoles(userID, newRoles string) (*model.User, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.UpdateUserRoles(userID, newRoles)
@@ -1384,4 +1475,11 @@ func (api *apiTimerLayer) GetPluginID() string {
 	_returnsA := api.apiImpl.GetPluginID()
 	api.recordTime(startTime, "GetPluginID", true)
 	return _returnsA
+}
+
+func (api *apiTimerLayer) GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetGroups(page, perPage, opts, viewRestrictions)
+	api.recordTime(startTime, "GetGroups", _returnsB == nil)
+	return _returnsA, _returnsB
 }

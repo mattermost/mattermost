@@ -47,7 +47,10 @@ export default function UserAccountProfileMenuItem(props: Props) {
         dispatch(openModal({
             modalId: ModalIdentifiers.USER_SETTINGS,
             dialogType: UserSettingsModal,
-            dialogProps: {isContentProductSettings: false},
+            dialogProps: {
+                isContentProductSettings: false,
+                focusOriginElement: 'userAccountMenuButton',
+            },
         }));
 
         if (isCompleteYourProfileTaskPending) {

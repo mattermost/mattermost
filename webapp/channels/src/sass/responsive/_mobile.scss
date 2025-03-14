@@ -472,7 +472,6 @@
     }
 
     .emoji-picker {
-        z-index: 1070;
         // !important is used to overide inline styles
         // used on larger screens
         top: 0 !important;
@@ -485,10 +484,6 @@
 
         >ul {
             margin-top: 66px;
-        }
-
-        &.bottom {
-            margin-top: 0;
         }
 
         .search-grid-container {
@@ -866,11 +861,9 @@
             }
         }
 
-        .post-add-reaction {
-            .Reaction {
-                opacity: 1;
-                visibility: visible;
-            }
+        .Reaction__add {
+            opacity: 1;
+            visibility: visible;
         }
 
         .browser--ie & {
@@ -2041,19 +2034,6 @@
     .inner-wrap {
         &.move--right {
             transform: translate3d(0, 0, 0);
-        }
-    }
-
-    // overides edit modal body element's css position
-    // to allow emoji picker to fill the screen on mobile screens < 480
-    .edit-modal-body--add-reaction {
-        position: static;
-
-        .emoji-picker {
-            top: -1px !important;
-            left: -1px !important;
-            width: calc(100% + 2px);
-            height: calc(100% + 2px);
         }
     }
 }
