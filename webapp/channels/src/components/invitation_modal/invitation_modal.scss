@@ -5,6 +5,13 @@
             width: 600px;
         }
 
+        @media screen and (max-width: 639px) {
+            width: 100%;
+            height: 100%;
+            padding: 0 10px;
+            margin: 0;
+        }
+
         top: 50%;
         left: 50%;
         display: flex;
@@ -20,5 +27,70 @@
 
     &__footer {
         padding-right: 0 !important;
+    }
+
+    .modal-content {
+        @media screen and (max-width: 639px) {
+            width: 100%;
+            min-width: 320px;
+            max-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+    }
+
+    .modal-header {
+        @media screen and (max-width: 639px) {
+            padding: 16px;
+            padding-top: 24px;
+
+            .modal-title {
+                font-size: 18px;
+                line-height: 24px;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+            }
+        }
+    }
+
+    .modal-body {
+        @media screen and (max-width: 639px) {
+            padding: 16px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex: 1;
+            max-height: calc(100vh - 140px); // Account for header and footer
+        }
+
+        .InviteView__sectionTitle {
+            @media screen and (max-width: 639px) {
+                margin-bottom: 8px;
+                font-size: 14px;
+            }
+        }
+
+        .users-emails-input__control {
+            @media screen and (max-width: 639px) {
+                min-width: 280px;
+                max-width: 100%;
+            }
+        }
+    }
+
+    .modal-footer {
+        @media screen and (max-width: 639px) {
+            flex-direction: column;
+            padding: 16px;
+            gap: 8px;
+            position: sticky;
+            bottom: 0;
+            background: var(--center-channel-bg);
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+            .btn {
+                width: 100%;
+                margin: 0 !important;
+            }
+        }
     }
 }
