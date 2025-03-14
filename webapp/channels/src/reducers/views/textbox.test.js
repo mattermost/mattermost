@@ -11,6 +11,8 @@ describe('Reducers.RHS', () => {
         shouldShowPreviewOnCreatePost: false,
         shouldShowPreviewOnEditChannelHeaderModal: false,
         shouldShowPreviewOnChannelSettingsModal: false,
+        shouldShowPreviewOnChannelSettingsHeaderModal: false,
+        shouldShowPreviewOnChannelSettingsPurposeModal: false,
     };
 
     test('Initial state', () => {
@@ -79,6 +81,36 @@ describe('Reducers.RHS', () => {
         expect(nextState).toEqual({
             ...initialState,
             shouldShowPreviewOnChannelSettingsModal: true,
+        });
+    });
+
+    test('update show preview value on channel settings header modal', () => {
+        const nextState = textboxReducer(
+            {},
+            {
+                type: ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL,
+                showPreview: true,
+            },
+        );
+
+        expect(nextState).toEqual({
+            ...initialState,
+            shouldShowPreviewOnChannelSettingsHeaderModal: true,
+        });
+    });
+
+    test('update show preview value on channel settings purpose modal', () => {
+        const nextState = textboxReducer(
+            {},
+            {
+                type: ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL,
+                showPreview: true,
+            },
+        );
+
+        expect(nextState).toEqual({
+            ...initialState,
+            shouldShowPreviewOnChannelSettingsPurposeModal: true,
         });
     });
 });
