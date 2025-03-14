@@ -465,6 +465,7 @@ function CreateTeamMenuItem({isCloud}: CreateTeamMenuItemProps) {
 
 function RestrictedIndicatorForCreateTeam({isFreeTrial}: {isFreeTrial: boolean}) {
     const {formatMessage} = useIntl();
+
     return (
         <RestrictedIndicator
             feature={MattermostFeatures.CREATE_MULTIPLE_TEAMS}
