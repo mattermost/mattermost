@@ -618,7 +618,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 
 	var searchResult searchResp
 	_, err = os.client.Client.Do(ctx, &opensearchapi.SearchReq{
-		Indices: []string{*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts + "*"},
+		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBasePosts+"*")},
 		Body:    bytes.NewReader(searchBuf),
 		Params: opensearchapi.SearchParams{
 			From: model.NewPointer(page * perPage),
@@ -910,7 +910,7 @@ func (os *OpensearchInterfaceImpl) SearchChannels(teamId, userID string, term st
 		return []string{}, model.NewAppError("Opensearch.SearchChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	searchResult, err := os.client.Search(ctx, &opensearchapi.SearchReq{
-		Indices: []string{*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels},
+		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBaseChannels)},
 		Body:    bytes.NewReader(buf),
 		Params: opensearchapi.SearchParams{
 			Size: model.NewPointer(model.ChannelSearchDefaultLimit),
@@ -1097,7 +1097,7 @@ func (os *OpensearchInterfaceImpl) autocompleteUsers(contextCategory string, cat
 	}
 
 	searchResults, err := os.client.Search(ctx, &opensearchapi.SearchReq{
-		Indices: []string{*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers},
+		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBaseUsers)},
 		Body:    bytes.NewReader(buf),
 		Params: opensearchapi.SearchParams{
 			Size: model.NewPointer(options.Limit),
@@ -1223,7 +1223,7 @@ func (os *OpensearchInterfaceImpl) autocompleteUsersNotInChannel(teamId, channel
 	}
 
 	searchResults, err := os.client.Search(ctx, &opensearchapi.SearchReq{
-		Indices: []string{*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers},
+		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBaseUsers)},
 		Body:    bytes.NewReader(buf),
 		Params: opensearchapi.SearchParams{
 			Size: model.NewPointer(options.Limit),
@@ -1798,7 +1798,7 @@ func (os *OpensearchInterfaceImpl) SearchFiles(channels model.ChannelList, searc
 	}
 
 	searchResult, err := os.client.Search(ctx, &opensearchapi.SearchReq{
-		Indices: []string{*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles},
+		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBaseFiles)},
 		Body:    bytes.NewReader(searchBuf),
 		Params: opensearchapi.SearchParams{
 			From: model.NewPointer(page * perPage),
