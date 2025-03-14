@@ -95,7 +95,7 @@ func (a *App) CreateCPAField(field *model.CPAField) (*model.PropertyField, *mode
 
 	field.GroupID = groupID
 
-	if appErr := field.Sanitize(); appErr != nil {
+	if appErr := field.SanitizeAndValidate(); appErr != nil {
 		return nil, appErr
 	}
 
@@ -133,7 +133,7 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 		return nil, model.NewAppError("UpdateCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := cpaField.Sanitize(); appErr != nil {
+	if appErr := cpaField.SanitizeAndValidate(); appErr != nil {
 		return nil, appErr
 	}
 

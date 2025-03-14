@@ -131,7 +131,7 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 	return &pf
 }
 
-func (c *CPAField) Sanitize() *AppError {
+func (c *CPAField) SanitizeAndValidate() *AppError {
 	switch c.Type {
 	case PropertyFieldTypeText:
 		if valueType := strings.TrimSpace(c.Attrs.ValueType); valueType != "" {

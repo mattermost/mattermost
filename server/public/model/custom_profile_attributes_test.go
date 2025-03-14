@@ -289,7 +289,7 @@ func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
 	}
 }
 
-func TestCPAField_Sanitize(t *testing.T) {
+func TestCPAField_SanitizeAndValidate(t *testing.T) {
 	tests := []struct {
 		name           string
 		field          *CPAField
@@ -446,7 +446,7 @@ func TestCPAField_Sanitize(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.field.Sanitize()
+			err := tt.field.SanitizeAndValidate()
 			if tt.expectError {
 				require.NotNil(t, err)
 				require.Equal(t, tt.errorId, err.Id)
