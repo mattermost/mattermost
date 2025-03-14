@@ -16,6 +16,7 @@ export type Tab = {
     name: string;
     uiName: string;
     newGroup?: boolean;
+    display?: boolean; // Controls whether the tab is displayed, defaults to true
 }
 
 export type Props = {
@@ -32,7 +33,11 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
 
     constructor(props: Props) {
         super(props);
-        this.totalTabs = [...this.props.tabs, ...this.props.pluginTabs || []];
+
+        // Filter out tabs where display is explicitly set to false
+        const filteredTabs = this.props.tabs.filter((tab) => tab.display !== false);
+        const filteredPluginTabs = this.props.pluginTabs?.filter((tab) => tab.display !== false) || [];
+        this.totalTabs = [...filteredTabs, ...filteredPluginTabs];
         this.buttonRefs = this.totalTabs.map(() => React.createRef());
     }
 
@@ -107,32 +112,38 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
     }
 
     public render() {
-        const tabList = this.props.tabs.map((tab, index) => this.renderTab(tab, index));
+        // Filter tabs where display is explicitly set to false
+        const visibleTabs = this.props.tabs.filter((tab) => tab.display !== false);
+        const tabList = visibleTabs.map((tab, index) => this.renderTab(tab, index));
+
         let pluginTabList: React.ReactNode;
         if (this.props.pluginTabs?.length) {
-            pluginTabList = (
-                <>
-                    <hr/>
-                    <div
-                        role='group'
-                        aria-labelledby='userSettingsModal.pluginPreferences.header'
-                    >
+            const visiblePluginTabs = this.props.pluginTabs.filter((tab) => tab.display !== false);
+            if (visiblePluginTabs.length) {
+                pluginTabList = (
+                    <>
+                        <hr/>
                         <div
-                            key={'plugin preferences heading'}
-                            role='heading'
-                            className={'header'}
-                            aria-level={3}
-                            id='userSettingsModal_pluginPreferences_header'
+                            role='group'
+                            aria-labelledby='userSettingsModal.pluginPreferences.header'
                         >
-                            <FormattedMessage
-                                id={'userSettingsModal.pluginPreferences.header'}
-                                defaultMessage={'PLUGIN PREFERENCES'}
-                            />
+                            <div
+                                key={'plugin preferences heading'}
+                                role='heading'
+                                className={'header'}
+                                aria-level={3}
+                                id='userSettingsModal_pluginPreferences_header'
+                            >
+                                <FormattedMessage
+                                    id={'userSettingsModal.pluginPreferences.header'}
+                                    defaultMessage={'PLUGIN PREFERENCES'}
+                                />
+                            </div>
+                            {visiblePluginTabs.map((tab, index) => this.renderTab(tab, visibleTabs.length + index))}
                         </div>
-                        {this.props.pluginTabs.map((tab, index) => this.renderTab(tab, index + this.props.tabs.length))}
-                    </div>
-                </>
-            );
+                    </>
+                );
+            }
         }
 
         return (

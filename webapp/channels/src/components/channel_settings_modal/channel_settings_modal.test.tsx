@@ -238,4 +238,27 @@ describe('ChannelSettingsModal', () => {
             expect(screen.getByText('Try again')).toBeInTheDocument();
         });
     });
+
+    // Verify that the archive tab is not shown for the default channel
+    it('should not show archive tab for default channel', async () => {
+        // Create a channel with the default channel name (town-square)
+        const defaultChannel = {
+            ...baseChannel,
+            name: 'town-square', // Constants.DEFAULT_CHANNEL
+        };
+
+        renderWithContext(<ChannelSettingsModal {...{...baseProps, channel: defaultChannel}}/>);
+
+        // Wait for the lazy-loaded sidebar to render
+        await waitFor(() => {
+            // Verify that the Info tab is shown
+            expect(screen.getByRole('tab', {name: 'info'})).toBeInTheDocument();
+
+            // Verify that the Configuration tab is shown
+            expect(screen.getByRole('tab', {name: 'configuration'})).toBeInTheDocument();
+
+            // Verify that the Archive tab is NOT shown
+            expect(screen.queryByRole('tab', {name: 'archive channel'})).not.toBeInTheDocument();
+        });
+    });
 });

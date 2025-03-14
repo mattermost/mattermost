@@ -315,6 +315,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
             icon: 'icon icon-archive-outline',
             iconTitle: formatMessage({id: 'generic_icons.archive', defaultMessage: 'Archive Icon'}),
             newGroup: true,
+            display: channel.name !== Constants.DEFAULT_CHANNEL,
         },
     ];
 
