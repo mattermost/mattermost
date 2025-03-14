@@ -12,8 +12,6 @@ import (
 
 const CustomProfileAttributesPropertyGroupName = "custom_profile_attributes"
 
-const CustomProfileAttributesPropertyAttrsSortOrder = "sort_order"
-
 func CPASortOrder(p *PropertyField) int {
 	value, ok := p.Attrs[CustomProfileAttributesPropertyAttrsSortOrder]
 	if !ok {
@@ -29,16 +27,23 @@ func CPASortOrder(p *PropertyField) int {
 }
 
 const (
+	// Attributes keys
+	CustomProfileAttributesPropertyAttrsSortOrder  = "sort_order"
 	CustomProfileAttributesPropertyAttrsValueType  = "value_type"
 	CustomProfileAttributesPropertyAttrsVisibility = "visibility"
 	CustomProfileAttributesPropertyAttrsLDAP       = "ldap"
 	CustomProfileAttributesPropertyAttrsSAML       = "saml"
-)
 
-const (
+	// Value Types
 	CustomProfileAttributesValueTypeEmail = "email"
 	CustomProfileAttributesValueTypeURL   = "url"
 	CustomProfileAttributesValueTypePhone = "phone"
+
+	// Visibility
+	CustomProfileAttributesVisibilityHidden  = "hidden"
+	CustomProfileAttributesVisibilityWhenSet = "when_set"
+	CustomProfileAttributesVisibilityAlways  = "always"
+	CustomProfileAttributesVisibilityDefault = CustomProfileAttributesVisibilityWhenSet
 )
 
 func IsKnownCPAValueType(valueType string) bool {
@@ -51,14 +56,6 @@ func IsKnownCPAValueType(valueType string) bool {
 
 	return false
 }
-
-const (
-	CustomProfileAttributesVisibilityHidden  = "hidden"
-	CustomProfileAttributesVisibilityWhenSet = "when_set"
-	CustomProfileAttributesVisibilityAlways  = "always"
-
-	CustomProfileAttributesVisibilityDefault = CustomProfileAttributesVisibilityWhenSet
-)
 
 func IsKnownCPAVisibility(visibility string) bool {
 	switch visibility {
