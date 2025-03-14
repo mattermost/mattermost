@@ -146,7 +146,7 @@ const AdvancedTextEditor = ({
         textboxId = AdvancedTextEditorTextboxIds.Default;
     }
 
-    const isRHS = Boolean(rootId && !isThreadView);
+    const isRHS = Boolean(rootId && !isThreadView) || location === Locations.RHS_COMMENT;
 
     const getFormattingBarPreferenceName = () => {
         let name: string;
