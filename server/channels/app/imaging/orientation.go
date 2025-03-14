@@ -57,26 +57,42 @@ func MakeImageUpright(img image.Image, orientation int) image.Image {
 }
 
 type fwSeeker struct {
-	r io.Reader
+	r   io.Reader
+	pos int64
 }
 
-func (f *fwSeeker) Read(p []byte) (n int, err error) {
-	return f.r.Read(p)
+func (f *fwSeeker) Read(p []byte) (int, error) {
+	n, err := f.r.Read(p)
+	if err != nil {
+		return n, err
+	}
+	f.pos += int64(n)
+	return n, nil
 }
 
 func (f *fwSeeker) Seek(offset int64, whence int) (int64, error) {
-	// We don't support seeking backwards.
-	if whence != io.SeekCurrent {
-		return 0, fmt.Errorf("unsupported whence value: %d", whence)
+	isForwardSeek := (whence == io.SeekStart && offset >= f.pos) ||
+		(whence == io.SeekCurrent && offset >= 0)
+
+	// We only support seeking forward.
+	if !isForwardSeek {
+		return 0, fmt.Errorf("seeking backwards is not supported")
+	}
+
+	toRead := offset
+	if whence == io.SeekStart {
+		toRead -= f.pos
 	}
 
 	// Seeking forward means we can simply discard the data.
-	n, err := io.CopyN(io.Discard, f.r, offset)
+	n, err := io.CopyN(io.Discard, f.r, toRead)
 	if err != nil {
 		return n, fmt.Errorf("failed to seek: %w", err)
 	}
 
-	return n, nil
+	f.pos += n
+
+	return f.pos, nil
 }
 
 // GetImageOrientation reads the input data and returns the EXIF encoded
@@ -121,7 +137,11 @@ func GetImageOrientation(input io.Reader, format string) (int, error) {
 			}
 			return nil
 		},
-		Sources:     imagemeta.EXIF,
+		ShouldHandleTag: func(tag imagemeta.TagInfo) bool {
+			// We only care about the orientation tag.
+			return tag.Tag == "Orientation"
+		},
+		Sources:     imagemeta.EXIF, // We only care about EXIF data.
 		ImageFormat: imgFormat,
 	}
 
