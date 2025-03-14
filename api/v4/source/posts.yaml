@@ -401,6 +401,12 @@
           schema:
             type: integer
             default: 0
+        - name: fromUpdateAt
+          in: query
+          description: The update_at timestamp to return the next page of posts from. You cannot set this flag with direction=down.
+          schema:
+            type: integer
+            default: 0
         - name: direction
           in: query
           description: The direction to return the posts. Either up or down.
@@ -422,6 +428,12 @@
         - name: collapsedThreadsExtended
           in: query
           description: Whether to return the associated users as part of the response or not
+          schema:
+            type: boolean
+            default: false
+        - name: updatesOnly
+          in: query
+          description: This flag is used to make the API work with the updateAt value. If you set this flag, you must set a value for fromUpdateAt.
           schema:
             type: boolean
             default: false

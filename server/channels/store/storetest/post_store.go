@@ -838,7 +838,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		require.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Order, 2)
 		require.Len(t, r1.Posts, 2)
 		assert.True(t, *r1.HasNext)
 
@@ -876,7 +876,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		require.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Order, 2)
 		require.Len(t, r1.Posts, 2)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
 		assert.False(t, *r1.HasNext)
@@ -895,6 +895,126 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, r1.Posts, 2)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, m1.CreateAt)
 		assert.True(t, *r1.HasNext)
+	})
+
+	t.Run("Pagination with UpdateAt", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName1",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		now := model.GetMillis()
+		o1 := &model.Post{CreateAt: now, ChannelId: channel.Id, UserId: model.NewId(), Message: NewTestID()}
+		o1, err = ss.Post().Save(rctx, o1)
+		require.NoError(t, err)
+
+		// Create replies with explicit UpdateAt timestamps
+		o2 := &model.Post{CreateAt: now + 1, UpdateAt: now + 1, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestID(), RootId: o1.Id}
+		_, err = ss.Post().Save(rctx, o2)
+		require.NoError(t, err)
+
+		m1 := &model.Post{CreateAt: now + 2, UpdateAt: now + 2, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestID(), RootId: o1.Id}
+		m1, err = ss.Post().Save(rctx, m1)
+		require.NoError(t, err)
+
+		o3 := &model.Post{CreateAt: now + 3, UpdateAt: now + 3, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestID(), RootId: o1.Id}
+		_, err = ss.Post().Save(rctx, o3)
+		require.NoError(t, err)
+
+		o4 := &model.Post{CreateAt: now + 4, UpdateAt: now + 4, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestID(), RootId: o1.Id}
+		o4, err = ss.Post().Save(rctx, o4)
+		require.NoError(t, err)
+
+		// Test pagination with UpdateAt in "down" direction
+		opts := model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: true,
+			PerPage:          2,
+			Direction:        "down",
+		}
+		r1, err := ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		require.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Posts, 3)
+		assert.Equal(t, r1.Posts[r1.Order[0]].UpdateAt, o4.CreateAt) // The root post always get updated with the createAt of the latest post in the thread.
+		assert.True(t, *r1.HasNext)
+
+		lastPostID := r1.Order[len(r1.Order)-1]
+		lastPostUpdateAt := r1.Posts[lastPostID].UpdateAt
+
+		// Continue pagination using UpdateAt
+		opts = model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: true,
+			PerPage:          2,
+			Direction:        "down",
+			FromPost:         lastPostID,
+			FromUpdateAt:     lastPostUpdateAt,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		require.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Posts, 3)
+		assert.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].UpdateAt, lastPostUpdateAt)
+		assert.Equal(t, r1.Posts[r1.Order[0]].UpdateAt, o4.CreateAt) // The root post always get updated with the createAt of the latest post in the thread.
+		assert.False(t, *r1.HasNext)
+
+		// Non-CRT mode with UpdateAt pagination
+		opts = model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: false,
+			PerPage:          2,
+			Direction:        "down",
+			SkipFetchThreads: false,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		// Ordering by updateAt will move the root post down, so we will get more posts in the thread.
+		require.Len(t, r1.Order, 3)
+		require.Len(t, r1.Posts, 3)
+		require.True(t, *r1.HasNext)
+
+		lastPostID = r1.Order[len(r1.Order)-1]
+		lastPostUpdateAt = r1.Posts[lastPostID].UpdateAt
+
+		opts = model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: false,
+			PerPage:          3,
+			Direction:        "down",
+			FromPost:         lastPostID,
+			FromUpdateAt:     lastPostUpdateAt,
+			SkipFetchThreads: false,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		require.Len(t, r1.Order, 3)
+		require.Len(t, r1.Posts, 3)
+		require.Equal(t, r1.Posts[r1.Order[0]].ReplyCount, int64(4))
+		require.Equal(t, r1.Posts[r1.Order[1]].ReplyCount, int64(4))
+		require.Equal(t, r1.Posts[r1.Order[2]].ReplyCount, int64(4))
+		require.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].UpdateAt, lastPostUpdateAt)
+		assert.False(t, *r1.HasNext)
+
+		// Only with UpdateAt - direction down
+		opts = model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: false,
+			PerPage:          1,
+			Direction:        "down",
+			FromUpdateAt:     m1.UpdateAt,
+			SkipFetchThreads: false,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		require.Len(t, r1.Order, 2)
+		require.Len(t, r1.Posts, 2)
+		require.GreaterOrEqual(t, r1.Posts[r1.Order[1]].UpdateAt, m1.UpdateAt)
+		require.True(t, *r1.HasNext)
 	})
 }
 
