@@ -646,14 +646,9 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Should be able to configure channel banner on a channel", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
-		defer func() {
-			th.App.Srv().RemoveLicense()
-		}()
-
 		client.Logout(context.Background())
 		th.LoginBasic()
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
 		defer func() {
 			th.App.Srv().RemoveLicense()
 		}()
@@ -686,14 +681,9 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Cannot enable channel banner without configuring it", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
-		defer func() {
-			th.App.Srv().RemoveLicense()
-		}()
-
 		client.Logout(context.Background())
 		th.LoginBasic()
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
 		defer func() {
 			th.App.Srv().RemoveLicense()
 		}()
@@ -751,14 +741,9 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Cannot configure channel banner on a DM channel", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
-		defer func() {
-			th.App.Srv().RemoveLicense()
-		}()
-
 		client.Logout(context.Background())
 		th.LoginBasic()
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
 		defer func() {
 			th.App.Srv().RemoveLicense()
 		}()
@@ -783,14 +768,9 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Cannot configure channel banner on a GM channel", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
-		defer func() {
-			th.App.Srv().RemoveLicense()
-		}()
-
 		client.Logout(context.Background())
 		th.LoginBasic()
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
 		defer func() {
 			th.App.Srv().RemoveLicense()
 		}()
@@ -5586,7 +5566,7 @@ func TestCanEditChannelBanner(t *testing.T) {
 	})
 
 	t.Run("when channel type is direct message", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuPremium)
 		channel := &model.Channel{
 			Type: model.ChannelTypeDirect,
 		}
@@ -5599,7 +5579,7 @@ func TestCanEditChannelBanner(t *testing.T) {
 	})
 
 	t.Run("when channel type is group message", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuPremium)
 		channel := &model.Channel{
 			Type: model.ChannelTypeGroup,
 		}
@@ -5611,7 +5591,7 @@ func TestCanEditChannelBanner(t *testing.T) {
 	})
 
 	t.Run("when channel type is open and license is valid", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuPremium)
 		channel := &model.Channel{
 			Type: model.ChannelTypeOpen,
 		}
@@ -5621,7 +5601,7 @@ func TestCanEditChannelBanner(t *testing.T) {
 	})
 
 	t.Run("when channel type is private and license is valid", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuPremium)
 		channel := &model.Channel{
 			Type: model.ChannelTypePrivate,
 		}
