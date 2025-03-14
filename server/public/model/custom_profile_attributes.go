@@ -31,6 +31,8 @@ func CustomProfileAttributesPropertySortOrder(p *PropertyField) int {
 const (
 	CustomProfileAttributesPropertyAttrsValueType  = "value_type"
 	CustomProfileAttributesPropertyAttrsVisibility = "visibility"
+	CustomProfileAttributesPropertyAttrsLDAP       = "ldap"
+	CustomProfileAttributesPropertyAttrsSAML       = "saml"
 )
 
 const (
@@ -113,6 +115,8 @@ type CPAAttrs struct {
 	SortOrder  string                                                `json:"sort_order"`
 	Options    PropertyOptions[*CustomProfileAttributesSelectOption] `json:"options"`
 	ValueType  string                                                `json:"value_type"`
+	LDAP       string                                                `json:"ldap"`
+	SAML       string                                                `json:"saml"`
 }
 
 func (c *CPAField) ToPropertyField() *PropertyField {
@@ -123,6 +127,8 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 		CustomProfileAttributesPropertyAttrsSortOrder:  c.Attrs.SortOrder,
 		CustomProfileAttributesPropertyAttrsValueType:  c.Attrs.ValueType,
 		PropertyFieldAttributeOptions:                  c.Attrs.Options,
+		CustomProfileAttributesPropertyAttrsLDAP:       c.Attrs.LDAP,
+		CustomProfileAttributesPropertyAttrsSAML:       c.Attrs.SAML,
 	}
 
 	return &pf
