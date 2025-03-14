@@ -86,14 +86,19 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	appErr = c.App.HandleIncomingWebhook(c.AppContext, id, incomingWebhookPayload)
+	post, appErr := c.App.HandleIncomingWebhook(c.AppContext, id, incomingWebhookPayload)
 	if appErr != nil {
 		c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.general.app_error", errCtx, "", appErr.StatusCode).Wrap(appErr)
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte("ok"))
+	payload, err := json.Marshal(post)
+	if err != nil {
+		c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.encode.app_error", errCtx, "", http.StatusInternalServerError).Wrap(appErr)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(payload)
 }
 
 func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
