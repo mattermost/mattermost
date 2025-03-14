@@ -5576,7 +5576,7 @@ func (s *OpenTracingLayerJobStore) UpdateStatus(id string, status string) (*mode
 	return result, err
 }
 
-func (s *OpenTracingLayerJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error) {
+func (s *OpenTracingLayerJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.UpdateStatusOptimistically")
 	s.Root.Store.SetContext(newCtx)
