@@ -318,7 +318,7 @@ func (s *SqlGroupStore) GetByUser(userID string, opts model.GroupSearchOpts) ([]
 	}
 
 	if err := s.GetReplica().SelectBuilder(&groups, builder); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Groups with userId=%s", opts.FilterHasMember)
+		return nil, errors.Wrapf(err, "failed to find Groups with userId=%s", userID)
 	}
 
 	return groups, nil
