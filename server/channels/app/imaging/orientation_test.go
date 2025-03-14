@@ -63,7 +63,7 @@ func TestFwSeeker(t *testing.T) {
 		require.Equal(t, int64(7), pos)
 
 		// Seeking backwards should not be supported
-		pos, err = seeker.Seek(6, io.SeekStart)
+		_, err = seeker.Seek(6, io.SeekStart)
 		require.EqualError(t, err, "seeking backwards is not supported")
 
 		// Read the remaining data
@@ -169,6 +169,7 @@ func TestGetImageOrientation(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, tc := range testCases {
+		var orientation int
 		imgPath := filepath.Join(imgDir, tc.fileName)
 		file, err := os.Open(imgPath)
 		require.NoError(t, err)
@@ -181,7 +182,7 @@ func TestGetImageOrientation(t *testing.T) {
 			_, err = file.Seek(0, io.SeekStart)
 			require.NoError(t, err)
 
-			orientation, err := GetImageOrientation(file, format)
+			orientation, err = GetImageOrientation(file, format)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedOrientation, orientation, "Incorrect orientation detected for %s", tc.fileName)
 		})
@@ -194,7 +195,7 @@ func TestGetImageOrientation(t *testing.T) {
 			_, err = file.Seek(0, io.SeekStart)
 			require.NoError(t, err)
 
-			orientation, err := GetImageOrientation(&io.LimitedReader{R: file, N: 1024 * 1024}, format)
+			orientation, err = GetImageOrientation(&io.LimitedReader{R: file, N: 1024 * 1024}, format)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedOrientation, orientation, "Incorrect orientation detected for %s", tc.fileName)
 		})
