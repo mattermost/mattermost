@@ -1454,6 +1454,22 @@ func (mr *MockClientMockRecorder) GetUsersByIds(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersByIds", reflect.TypeOf((*MockClient)(nil).GetUsersByIds), arg0, arg1)
 }
 
+// GetUsersInChannel mocks base method.
+func (m *MockClient) GetUsersInChannel(arg0 context.Context, arg1 string, arg2, arg3 int, arg4 string) ([]*model.User, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersInChannel", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].([]*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetUsersInChannel indicates an expected call of GetUsersInChannel.
+func (mr *MockClientMockRecorder) GetUsersInChannel(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersInChannel", reflect.TypeOf((*MockClient)(nil).GetUsersInChannel), arg0, arg1, arg2, arg3, arg4)
+}
+
 // GetUsersInTeam mocks base method.
 func (m *MockClient) GetUsersInTeam(arg0 context.Context, arg1 string, arg2, arg3 int, arg4 string) ([]*model.User, *model.Response, error) {
 	m.ctrl.T.Helper()
