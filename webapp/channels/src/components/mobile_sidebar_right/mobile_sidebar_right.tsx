@@ -12,7 +12,7 @@ import MobileRightDrawerItems from './mobile_sidebar_right_items';
 import type {PropsFromRedux} from './index';
 import './mobile_sidebar_right.scss';
 
-const TRANSITION_TIMEOUT = 500; // in ms
+const TRANSITION_TIMEOUT = 300; // in ms
 
 type Props = PropsFromRedux;
 

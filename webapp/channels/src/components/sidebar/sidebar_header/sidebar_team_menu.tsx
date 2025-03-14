@@ -17,6 +17,7 @@ import {
     PlusIcon,
     MonitorAccountIcon,
 } from '@mattermost/compass-icons/components';
+import type {ClientConfig} from '@mattermost/types/config';
 import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -61,14 +62,11 @@ export default function SidebarTeamMenu(props: Props) {
 
     const havePermissionToCreateTeam = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.CREATE_TEAM}));
     const havePermissionToManageTeam = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_TEAM));
-    const havePermissionToAddUserToTeam = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.ADD_USER_TO_TEAM));
     const havePermissionToRemoveUserFromTeam = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.REMOVE_USER_FROM_TEAM));
     const havePermissionToManageTeamRoles = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_TEAM_ROLES));
-    const havePermissionToInviteGuest = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.INVITE_GUEST));
 
     const isTeamGroupConstrained = Boolean(props.currentTeam?.group_constrained);
     const isLicensedForLDAPGroups = license?.LDAPGroups === 'true';
-    const isGuestAccessEnabled = config?.EnableGuestAccounts === 'true';
     const experimentalPrimaryTeam = config.ExperimentalPrimaryTeam;
     const joinableTeams = useSelector(getJoinableTeamIds);
     const haveMoreJoinableTeams = joinableTeams?.length > 0;
@@ -87,13 +85,6 @@ export default function SidebarTeamMenu(props: Props) {
         dispatch(openModal({
             modalId: ModalIdentifiers.ADD_GROUPS_TO_TEAM,
             dialogType: AddGroupsToTeamModal,
-        }));
-    }, [dispatch]);
-
-    const onInvitePeopleMenuItemClick = useCallback(() => {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.INVITATION,
-            dialogType: InvitationModal,
         }));
     }, [dispatch]);
 
@@ -161,35 +152,7 @@ export default function SidebarTeamMenu(props: Props) {
                         defaultMessage='Add groups'
                     />
                 )}
-                aria-haspopup='true'
-            />
-        );
-    }
-
-    let invitePeopleMenuItem: JSX.Element | null = null;
-    if (isGuestAccessEnabled && havePermissionToAddUserToTeam && havePermissionToInviteGuest) {
-        invitePeopleMenuItem = (
-            <Menu.Item
-                onClick={onInvitePeopleMenuItemClick}
-                leadingElement={(
-                    <AccountMultiplePlusOutlineIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                labels={(
-                    <>
-                        <FormattedMessage
-                            id='sidebarLeft.teamMenu.invitePeopleMenuItem.primaryLabel'
-                            defaultMessage='Invite people'
-                        />
-                        <FormattedMessage
-                            id='sidebarLeft.teamMenu.invitePeopleMenuItem.secondaryLabel'
-                            defaultMessage='Add or invite people to team'
-                        />
-                    </>
-                )}
-                aria-haspopup='true'
+                aria-haspopup='dialog'
             />
         );
     }
@@ -211,7 +174,7 @@ export default function SidebarTeamMenu(props: Props) {
                         defaultMessage='Team settings'
                     />
                 )}
-                aria-haspopup='true'
+                aria-haspopup='dialog'
             />
         );
     }
@@ -233,7 +196,7 @@ export default function SidebarTeamMenu(props: Props) {
                         defaultMessage='Manage groups'
                     />
                 )}
-                aria-haspopup='true'
+                aria-haspopup='dialog'
             />
         );
     }
@@ -255,7 +218,7 @@ export default function SidebarTeamMenu(props: Props) {
                         defaultMessage='Manage members'
                     />
                 )}
-                aria-haspopup='true'
+                aria-haspopup='dialog'
             />
         );
     } else {
@@ -274,7 +237,7 @@ export default function SidebarTeamMenu(props: Props) {
                         defaultMessage='View members'
                     />
                 )}
-                aria-haspopup='true'
+                aria-haspopup='dialog'
             />
         );
     }
@@ -296,7 +259,6 @@ export default function SidebarTeamMenu(props: Props) {
                         defaultMessage='Join another team'
                     />
                 )}
-                aria-haspopup='true'
             />
         );
     }
@@ -319,7 +281,7 @@ export default function SidebarTeamMenu(props: Props) {
                         defaultMessage='Leave team'
                     />
                 )}
-                aria-haspopup='true'
+                aria-haspopup='dialog'
             />
         );
     }
@@ -406,13 +368,13 @@ export default function SidebarTeamMenu(props: Props) {
                 width: '225px',
             }}
         >
-            {invitePeopleMenuItem}
+            <InvitePeopleMenuItem config={config}/>
             {addGroupsToTeamMenuItem}
             {teamSettingsMenuItem}
             {manageViewMembersMenuItem}
             {manageGroupsMenuItem}
             {leaveTeamMenuItem}
-            {Boolean(createTeamMenuItem) && <Menu.Separator/>}
+            {(Boolean(createTeamMenuItem) || Boolean(joinAnotherTeamMenuItem)) && <Menu.Separator/>}
             {joinAnotherTeamMenuItem}
             {createTeamMenuItem}
             {Boolean(learnAboutTeamsMenuItem) && <Menu.Separator/>}
@@ -421,6 +383,55 @@ export default function SidebarTeamMenu(props: Props) {
             {pluginMenuItems}
         </Menu.Container>
     );
+}
+
+interface InvitePeopleMenuItemProps extends Menu.FirstMenuItemProps {
+    config: Partial<ClientConfig>;
+}
+
+function InvitePeopleMenuItem({config, ...restProps}: InvitePeopleMenuItemProps) {
+    const dispatch = useDispatch();
+
+    const isGuestAccessEnabled = config?.EnableGuestAccounts === 'true';
+    const havePermissionToAddUserToTeam = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.ADD_USER_TO_TEAM));
+    const havePermissionToInviteGuest = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.INVITE_GUEST));
+
+    const onInvitePeopleMenuItemClick = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.INVITATION,
+            dialogType: InvitationModal,
+        }));
+    }, [dispatch]);
+
+    if (isGuestAccessEnabled && havePermissionToAddUserToTeam && havePermissionToInviteGuest) {
+        return (
+            <Menu.Item
+                onClick={onInvitePeopleMenuItemClick}
+                leadingElement={(
+                    <AccountMultiplePlusOutlineIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                )}
+                labels={(
+                    <>
+                        <FormattedMessage
+                            id='sidebarLeft.teamMenu.invitePeopleMenuItem.primaryLabel'
+                            defaultMessage='Invite people'
+                        />
+                        <FormattedMessage
+                            id='sidebarLeft.teamMenu.invitePeopleMenuItem.secondaryLabel'
+                            defaultMessage='Add or invite people to team'
+                        />
+                    </>
+                )}
+                aria-haspopup='dialog'
+                {...restProps}
+            />
+        );
+    }
+
+    return null;
 }
 
 function RestrictedIndicatorForCreateTeam({isFreeTrial}: {isFreeTrial: boolean}) {
@@ -462,7 +473,6 @@ function RestrictedIndicatorForCreateTeam({isFreeTrial}: {isFreeTrial: boolean})
                 id: 'navbar_dropdown.create.modal.messageEndUser',
                 defaultMessage: 'Multiple teams allow for context-specific spaces that are more attuned to your teams’ needs.',
             })}
-            padding='0'
         />
     );
 }
