@@ -4,6 +4,7 @@
 package imaging
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"io"
@@ -33,6 +34,8 @@ const (
 	RotatedCCWMirrored
 	RotatedCW
 )
+
+var errStopDecoding = fmt.Errorf("stop decoding")
 
 // MakeImageUpright changes the orientation of the given image.
 func MakeImageUpright(img image.Image, orientation int) image.Image {
@@ -133,6 +136,9 @@ func GetImageOrientation(input io.Reader, format string) (int, error) {
 			if tag.Tag == "Orientation" {
 				if o, ok := tag.Value.(uint16); ok {
 					orientation = int(o)
+					// Stop decoding after we've found the orientation tag]
+					// since it's the only one we care about.
+					return errStopDecoding
 				}
 			}
 			return nil
@@ -145,7 +151,7 @@ func GetImageOrientation(input io.Reader, format string) (int, error) {
 		ImageFormat: imgFormat,
 	}
 
-	if err := imagemeta.Decode(opts); err != nil {
+	if err := imagemeta.Decode(opts); err != nil && !errors.Is(err, errStopDecoding) {
 		return Upright, fmt.Errorf("failed to decode exif data: %w", err)
 	}
 
