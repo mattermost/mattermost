@@ -18,6 +18,7 @@ import store from 'stores/redux_store';
 
 import PluginRegistry from 'plugins/registry';
 import {ActionTypes} from 'utils/constants';
+import {isEmbedded} from 'utils/embed';
 import {getSiteURL} from 'utils/url';
 
 import type {GlobalState, ActionFuncAsync} from 'types/store';
@@ -63,7 +64,7 @@ window.plugins = {};
 // remains possible, but is officially deprecated and may be removed in a future release.
 function registerPlugin(id: string, plugin: Plugin): void {
     // Don't register plugins if MMEMBED cookie is set
-    if (document.cookie.includes('MMEMBED=1')) {
+    if (isEmbedded()) {
         return;
     }
 
