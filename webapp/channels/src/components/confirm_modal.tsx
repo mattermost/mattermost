@@ -7,6 +7,8 @@ import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
+import {focusElement} from 'utils/a11y_utils';
+
 import './confirm_modal.scss';
 
 type Props = {
@@ -81,6 +83,12 @@ type Props = {
      * Set to hide the cancel button
      */
     hideCancel?: boolean;
+
+    /*
+     * The element that triggered the modal
+     */
+    focusOriginElement?: string;
+
 };
 
 type State = {
@@ -121,6 +129,15 @@ export default class ConfirmModal extends React.Component<Props, State> {
 
     handleCancel = () => {
         this.props.onCancel?.(this.state.checked);
+    };
+
+    handleExited = () => {
+        this.props.onExited?.();
+        if (this.props.focusOriginElement) {
+            setTimeout(() => {
+                focusElement(this.props.focusOriginElement!, true);
+            }, 0);
+        }
     };
 
     render() {
@@ -173,7 +190,8 @@ export default class ConfirmModal extends React.Component<Props, State> {
                 className={`ConfirmModal a11y__modal ${this.props.modalClass}`}
                 show={this.props.show}
                 onHide={this.handleCancel}
-                onExited={this.props.onExited}
+                onExited={this.handleExited}
+                ariaLabel='confirmModalLabel'
                 compassDesign={true}
                 modalHeaderText={this.props.title}
             >
@@ -191,7 +209,6 @@ export default class ConfirmModal extends React.Component<Props, State> {
                         {this.props.checkboxInFooter && checkbox}
                         {cancelButton}
                         <button
-                            autoFocus={true}
                             type='button'
                             className={this.props.confirmButtonClass}
                             onClick={this.handleConfirm}

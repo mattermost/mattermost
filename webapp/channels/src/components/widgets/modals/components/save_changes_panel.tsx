@@ -17,8 +17,9 @@ type Props = {
     handleClose: () => void;
     tabChangeError?: boolean;
     state: SaveChangesPanelState;
+    customErrorMessage?: string;
 }
-function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeError = false, state = 'editing'}: Props) {
+function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeError = false, state = 'editing', customErrorMessage}: Props) {
     const panelClassName = classNames('mm-save-changes-panel', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const messageClassName = classNames('mm-save-changes-panel__message', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const cancelButtonClassName = classNames('mm-save-changes-panel__cancel-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
@@ -36,6 +37,10 @@ function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeErr
     }, [handleClose, state]);
 
     const generateMessage = () => {
+        if (customErrorMessage && (tabChangeError || state === 'error')) {
+            return customErrorMessage;
+        }
+
         if (tabChangeError || state === 'editing') {
             return (
                 <FormattedMessage
@@ -97,6 +102,7 @@ function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeErr
                     data-testid='mm-save-changes-panel__save-btn'
                     className={saveButtonClassName}
                     onClick={handleSubmit}
+                    disabled={tabChangeError}
                 >
                     {state === 'error' ?
                         <FormattedMessage
