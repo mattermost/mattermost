@@ -13,6 +13,7 @@ const ChannelHeaderDropdown = ({ariaLabel}: {
         <Menu
             id='channelHeaderDropdownMenu'
             ariaLabel={ariaLabel}
+            className='channel-header-dropdown-menu'
         >
             <ChannelHeaderDropdownItems isMobile={false}/>
         </Menu>
