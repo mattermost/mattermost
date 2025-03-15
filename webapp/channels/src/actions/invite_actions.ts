@@ -86,7 +86,7 @@ export function sendMembersInvites(teamId: string, users: UserProfile[], emails:
             let response;
             try {
                 response = await dispatch(TeamActions.sendEmailInvitesToTeamGracefully(teamId, emails));
-            } catch (e) {
+            } catch {
                 response = {
                     data: emails.map((email) => ({
                         email,
@@ -201,7 +201,7 @@ export async function sendGuestInviteForUser(
                 await dispatch(joinChannel(user.id, teamId, channel.id, channel.name)); // eslint-disable-line no-await-in-loop
             }
         }
-    } catch (e) {
+    } catch {
         return {
             notSent: {
                 user,
@@ -265,7 +265,7 @@ export function sendGuestsInvites(
             let response;
             try {
                 response = await dispatch(TeamActions.sendEmailGuestInvitesToChannelsGracefully(teamId, channels.map((x) => x.id), emails, message));
-            } catch (e) {
+            } catch {
                 response = {
                     data: emails.map((email) => ({
                         email,
@@ -411,7 +411,7 @@ export function sendMembersInvitesToChannels(
                         message,
                     ),
                 );
-            } catch (e) {
+            } catch {
                 response = {
                     data: emails.map((email) => ({
                         email,

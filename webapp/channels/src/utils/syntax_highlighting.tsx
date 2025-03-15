@@ -24,7 +24,7 @@ export async function highlight(lang: string, code: string) {
         try {
             await registerLanguage(language);
             return hlJS.highlight(code, {language}).value;
-        } catch (e) {
+        } catch {
             // fall through if highlighting fails and handle below
         }
     }
