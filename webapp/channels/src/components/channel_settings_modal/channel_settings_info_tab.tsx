@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useState, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -52,6 +52,7 @@ type ChannelSettingsInfoTabProps = {
     handleCancel: () => void;
     handleClose: () => void;
     characterLimitExceeded: boolean;
+    setCharacterLimitExceeded?: (exceeded: boolean) => void;
 };
 
 function ChannelSettingsInfoTab({
@@ -80,6 +81,7 @@ function ChannelSettingsInfoTab({
     handleCancel,
     handleClose,
     characterLimitExceeded,
+    setCharacterLimitExceeded,
 }: ChannelSettingsInfoTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -89,10 +91,77 @@ function ChannelSettingsInfoTab({
     // Constants
     const headerMaxLength = 1024;
 
+    // Internal state variables
+    const [internalDisplayName, setInternalDisplayName] = useState(displayName);
+    const [internalUrl, setInternalUrl] = useState(url);
+    const [internalChannelPurpose, setInternalChannelPurpose] = useState(channelPurpose);
+    const [internalChannelHeader, setInternalChannelHeader] = useState(channelHeader);
+    const [internalChannelType, setInternalChannelType] = useState(channelType);
+    const [internalUrlError, setInternalUrlError] = useState(urlError);
+
+    // Add validation functions
+    const checkCharacterLimits = useCallback(() => {
+        const isPurposeExceeded = internalChannelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH;
+        const isHeaderExceeded = internalChannelHeader.length > headerMaxLength;
+
+        const hasErrors = isPurposeExceeded || isHeaderExceeded;
+
+        // Update parent's characterLimitExceeded state if the setter is provided
+        if (setCharacterLimitExceeded) {
+            setCharacterLimitExceeded(hasErrors);
+        }
+
+        if (isPurposeExceeded) {
+            setServerError(formatMessage({
+                id: 'channel_settings.error_purpose_length',
+                defaultMessage: 'The channel purpose exceeds the maximum character limit of {maxLength} characters.',
+            }, {
+                maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
+            }));
+            return false;
+        }
+
+        if (isHeaderExceeded) {
+            setServerError(formatMessage({
+                id: 'edit_channel_header_modal.error',
+                defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
+            }, {
+                maxLength: headerMaxLength,
+            }));
+            return false;
+        }
+
+        return true;
+    }, [internalChannelPurpose, internalChannelHeader, headerMaxLength, formatMessage, setServerError, setCharacterLimitExceeded]);
+
+    // Add effect to notify parent of changes
+    useEffect(() => {
+        // Update parent state
+        setDisplayName(internalDisplayName);
+        setURL(internalUrl);
+        setChannelPurpose(internalChannelPurpose);
+        setChannelHeader(internalChannelHeader);
+        setChannelType(internalChannelType);
+        setURLError(internalUrlError);
+
+        // Check character limits
+        checkCharacterLimits();
+    }, [internalDisplayName, internalUrl, internalChannelPurpose, internalChannelHeader, internalChannelType, internalUrlError, checkCharacterLimits, setDisplayName, setURL, setChannelPurpose, setChannelHeader, setChannelType, setURLError]);
+
+    // Add effect to reset internal state when parent state changes (for cancel/reset)
+    useEffect(() => {
+        setInternalDisplayName(displayName);
+        setInternalUrl(url);
+        setInternalChannelPurpose(channelPurpose);
+        setInternalChannelHeader(channelHeader);
+        setInternalChannelType(channelType);
+        setInternalUrlError(urlError);
+    }, [displayName, url, channelPurpose, channelHeader, channelType, urlError]);
+
     const handleURLChange = useCallback((newURL: string) => {
-        setURL(newURL);
-        setURLError('');
-    }, [setURL, setURLError]);
+        setInternalUrl(newURL);
+        setInternalUrlError('');
+    }, []);
 
     const togglePurposePreview = useCallback(() => {
         dispatch(setShowPreviewOnChannelSettingsPurposeModal(!shouldShowPreviewPurpose));
@@ -110,15 +179,15 @@ function ChannelSettingsInfoTab({
         if (type === Constants.PRIVATE_CHANNEL && !canConvertToPrivate) {
             return;
         }
-        setChannelType(type);
+        setInternalChannelType(type);
         setServerError('');
     };
 
-    const handleChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
+    const handleHeaderChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
         const newValue = e.target.value;
 
         // Update the header value
-        setChannelHeader(newValue);
+        setInternalChannelHeader(newValue);
 
         // Check for character limit
         if (newValue.length > headerMaxLength) {
@@ -131,31 +200,50 @@ function ChannelSettingsInfoTab({
         } else if (serverError) {
             setServerError('');
         }
-    }, [setChannelHeader, headerMaxLength, serverError, setServerError, formatMessage]);
+    }, [headerMaxLength, serverError, setServerError, formatMessage]);
+
+    const handlePurposeChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
+        const newValue = e.target.value;
+
+        // Update the purpose value
+        setInternalChannelPurpose(newValue);
+
+        // Check for character limit
+        if (newValue.length > Constants.MAX_CHANNELPURPOSE_LENGTH) {
+            setServerError(formatMessage({
+                id: 'channel_settings.error_purpose_length',
+                defaultMessage: 'The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.',
+            }, {
+                maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
+            }));
+        } else if (serverError) {
+            setServerError('');
+        }
+    }, [serverError, setServerError, formatMessage]);
 
     return (
         <div className='ChannelSettingsModal__infoTab'>
             {/* Channel Name Section*/}
             <label className='Input_legend'>{formatMessage({id: 'channel_settings.label.name', defaultMessage: 'Channel Name'})}</label>
             <ChannelNameFormField
-                value={displayName}
+                value={internalDisplayName}
                 name='channel-settings-name'
                 placeholder={formatMessage({
                     id: 'channel_settings_modal.name.placeholder',
                     defaultMessage: 'Enter a name for your channel',
                 })}
                 onDisplayNameChange={(name) => {
-                    setDisplayName(name);
+                    setInternalDisplayName(name);
                 }}
                 onURLChange={handleURLChange}
-                urlError={urlError}
-                currentUrl={url}
+                urlError={internalUrlError}
+                currentUrl={internalUrl}
             />
 
             {/* Channel Type Section*/}
             <PublicPrivateSelector
                 className='ChannelSettingsModal__typeSelector'
-                selected={channelType}
+                selected={internalChannelType}
                 publicButtonProps={{
                     title: formatMessage({id: 'channel_modal.type.public.title', defaultMessage: 'Public Channel'}),
                     description: formatMessage({id: 'channel_modal.type.public.description', defaultMessage: 'Anyone can join'}),
@@ -172,22 +260,8 @@ function ChannelSettingsInfoTab({
             {/* Purpose Section*/}
             <div className='textarea-wrapper'>
                 <Textbox
-                    value={channelPurpose}
-                    onChange={(e: React.ChangeEvent<TextboxElement>) => {
-                        setChannelPurpose(e.target.value);
-
-                        // Check for character limit
-                        if (e.target.value.length > Constants.MAX_CHANNELPURPOSE_LENGTH) {
-                            setServerError(formatMessage({
-                                id: 'channel_settings.error_purpose_length',
-                                defaultMessage: 'The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.',
-                            }, {
-                                maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
-                            }));
-                        } else if (serverError) {
-                            setServerError('');
-                        }
-                    }}
+                    value={internalChannelPurpose}
+                    onChange={handlePurposeChange}
                     onKeyPress={() => {
                         // No specific key press handling needed for the settings modal
                     }}
@@ -222,8 +296,8 @@ function ChannelSettingsInfoTab({
             {/* Channel Header Section*/}
             <div className='textarea-wrapper'>
                 <Textbox
-                    value={channelHeader}
-                    onChange={handleChange}
+                    value={internalChannelHeader}
+                    onChange={handleHeaderChange}
                     onKeyPress={() => {
                         // No specific key press handling needed for the settings modal
                     }}

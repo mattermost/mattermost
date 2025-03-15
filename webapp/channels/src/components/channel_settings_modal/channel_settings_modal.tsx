@@ -50,10 +50,6 @@ enum ChannelSettingsTabs {
     ARCHIVE = 'archive',
 }
 
-/** TODO:
- * 1. Define if we keep the eddit purpose modal, in DMs we provide that option, so, should we show this modal hiding
- *    remaining elements or keep the existing one.
- */
 function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -92,42 +88,13 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     const [urlError, setURLError] = useState('');
     const [serverError, setServerError] = useState('');
 
-    // Constants
-    const headerMaxLength = 1024;
-
-    // Function to check character limits
+    // Simplified function to check character limits - now just returns the state
     const checkCharacterLimits = useCallback(() => {
-        const isPurposeExceeded = channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH;
-        const isHeaderExceeded = channelHeader.length > headerMaxLength;
+        return !characterLimitExceeded;
+    }, [characterLimitExceeded]);
 
-        setCharacterLimitExceeded(isPurposeExceeded || isHeaderExceeded);
-
-        if (isPurposeExceeded) {
-            setServerError(formatMessage({
-                id: 'channel_settings.error_purpose_length',
-                defaultMessage: 'The channel purpose exceeds the maximum character limit of {maxLength} characters.',
-            }, {
-                maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
-            }));
-            return false;
-        }
-
-        if (isHeaderExceeded) {
-            setServerError(formatMessage({
-                id: 'channel_settings.error_header_length',
-                defaultMessage: 'The channel header exceeds the maximum character limit of {maxLength} characters.',
-            }, {
-                maxLength: headerMaxLength,
-            }));
-            return false;
-        }
-
-        return true;
-    }, [channelPurpose, channelHeader, headerMaxLength, formatMessage]);
-
-    // For checking unsaved changes, we store the initial "loaded" values or do a direct comparison
+    // For checking unsaved changes, we compare the current form values with the original channel values
     const hasUnsavedChanges = useCallback(() => {
-        // Compare fields to their original values
         if (!channel) {
             return false;
         }
@@ -140,17 +107,10 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
         );
     }, [channel, displayName, url, channelPurpose, channelHeader, channelType]);
 
-    // Possibly set requireConfirm whenever an edit has occurred
+    // Set requireConfirm whenever an edit has occurred
     useEffect(() => {
         setRequireConfirm(hasUnsavedChanges());
     }, [displayName, url, channelPurpose, channelHeader, channelType, hasUnsavedChanges]);
-
-    // Check character limits whenever relevant fields change
-    useEffect(() => {
-        if (requireConfirm) {
-            checkCharacterLimits();
-        }
-    }, [channelPurpose, channelHeader, requireConfirm, checkCharacterLimits]);
 
     // For KeyDown handling
     useEffect(() => {
@@ -322,6 +282,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
                 handleCancel={handleCancel}
                 handleClose={handleClose}
                 characterLimitExceeded={characterLimitExceeded}
+                setCharacterLimitExceeded={setCharacterLimitExceeded}
             />
         );
     };
