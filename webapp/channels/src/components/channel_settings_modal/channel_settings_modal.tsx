@@ -33,7 +33,6 @@ import ChannelSettingsConfigurationTab from './channel_settings_configuration_ta
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
 
 import './channel_settings_modal.scss';
-import display from 'components/user_settings/display';
 
 // Lazy-loaded components
 const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
