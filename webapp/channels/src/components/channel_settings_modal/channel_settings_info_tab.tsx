@@ -16,8 +16,9 @@ import {
     showPreviewOnChannelSettingsPurposeModal,
 } from 'selectors/views/textbox';
 
+import ShowFormat from 'components/advanced_text_editor/show_formatting/show_formatting';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
-import Textbox, {TextboxLinks} from 'components/textbox';
+import Textbox from 'components/textbox';
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
@@ -50,6 +51,7 @@ type ChannelSettingsInfoTabProps = {
     handleSaveChanges: () => Promise<void>;
     handleCancel: () => void;
     handleClose: () => void;
+    characterLimitExceeded: boolean;
 };
 
 function ChannelSettingsInfoTab({
@@ -77,6 +79,7 @@ function ChannelSettingsInfoTab({
     handleSaveChanges,
     handleCancel,
     handleClose,
+    characterLimitExceeded,
 }: ChannelSettingsInfoTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -90,6 +93,14 @@ function ChannelSettingsInfoTab({
         setURL(newURL);
         setURLError('');
     }, [setURL, setURLError]);
+
+    const togglePurposePreview = useCallback(() => {
+        dispatch(setShowPreviewOnChannelSettingsPurposeModal(!shouldShowPreviewPurpose));
+    }, [dispatch, shouldShowPreviewPurpose]);
+
+    const toggleHeaderPreview = useCallback(() => {
+        dispatch(setShowPreviewOnChannelSettingsHeaderModal(!shouldShowPreviewHeader));
+    }, [dispatch, shouldShowPreviewHeader]);
 
     const handleChannelTypeChange = (type: ChannelType) => {
         // If canCreatePublic is false, do not allow. Similarly if canCreatePrivate is false, do not allow
@@ -193,6 +204,10 @@ function ChannelSettingsInfoTab({
                     preview={shouldShowPreviewPurpose}
                     useChannelMentions={false}
                 />
+                <ShowFormat
+                    onClick={togglePurposePreview}
+                    active={shouldShowPreviewPurpose}
+                />
                 <p
                     data-testid='mm-modal-generic-section-item__description'
                     className='mm-modal-generic-section-item__description'
@@ -203,22 +218,7 @@ function ChannelSettingsInfoTab({
                     />
                 </p>
             </div>
-            <div className='post-create-footer'>
-                <TextboxLinks
-                    showPreview={shouldShowPreviewPurpose}
-                    updatePreview={(show) => {
-                        dispatch(setShowPreviewOnChannelSettingsPurposeModal(show));
-                    }}
-                    hasText={channelPurpose ? channelPurpose.length > 0 : false}
-                    hasExceededCharacterLimit={channelPurpose ? channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH : false}
-                    previewMessageLink={
-                        <FormattedMessage
-                            id='edit_channel_purpose_modal.previewPurpose'
-                            defaultMessage='Edit'
-                        />
-                    }
-                />
-            </div>
+
             {/* Channel Header Section*/}
             <div className='textarea-wrapper'>
                 <Textbox
@@ -240,40 +240,30 @@ function ChannelSettingsInfoTab({
                     preview={shouldShowPreviewHeader}
                     useChannelMentions={false}
                 />
-            </div>
-            <p
-                data-testid='mm-modal-generic-section-item__description'
-                className='mm-modal-generic-section-item__description'
-            >
-                <FormattedMessage
-                    id='channel_settings.purpose.header'
-                    defaultMessage='This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).'
-                />
-            </p>
-            <div className='post-create-footer'>
-                <TextboxLinks
-                    showPreview={shouldShowPreviewHeader}
-                    updatePreview={(show) => {
-                        dispatch(setShowPreviewOnChannelSettingsHeaderModal(show));
-                    }}
-                    hasText={channelHeader ? channelHeader.length > 0 : false}
-                    hasExceededCharacterLimit={channelHeader ? channelHeader.length > headerMaxLength : false}
-                    previewMessageLink={
-                        <FormattedMessage
-                            id='edit_channel_header_modal.previewHeader'
-                            defaultMessage='Edit'
-                        />
-                    }
+                <p
+                    data-testid='mm-modal-generic-section-item__description'
+                    className='mm-modal-generic-section-item__description'
+                >
+                    <FormattedMessage
+                        id='channel_settings.purpose.header'
+                        defaultMessage='This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).'
+                    />
+                </p>
+                <ShowFormat
+                    onClick={toggleHeaderPreview}
+                    active={shouldShowPreviewHeader}
                 />
             </div>
+
             {/* SaveChangesPanel for unsaved changes */}
             {requireConfirm && (
                 <SaveChangesPanel
                     handleSubmit={handleSaveChanges}
                     handleCancel={handleCancel}
                     handleClose={handleClose}
-                    tabChangeError={false}
-                    state={saveChangesPanelState}
+                    tabChangeError={characterLimitExceeded}
+                    state={characterLimitExceeded ? 'error' : saveChangesPanelState}
+                    customErrorMessage={serverError}
                 />
             )}
         </div>

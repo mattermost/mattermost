@@ -73,6 +73,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     // We track unsaved changes to prompt a save changes panel
     const [requireConfirm, setRequireConfirm] = useState(false);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
+    const [characterLimitExceeded, setCharacterLimitExceeded] = useState(false);
 
     // The fields we allow editing
     const [displayName, setDisplayName] = useState(channel?.display_name ?? '');
@@ -90,6 +91,39 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     // UI Feedback: errors, states
     const [urlError, setURLError] = useState('');
     const [serverError, setServerError] = useState('');
+
+    // Constants
+    const headerMaxLength = 1024;
+
+    // Function to check character limits
+    const checkCharacterLimits = useCallback(() => {
+        const isPurposeExceeded = channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH;
+        const isHeaderExceeded = channelHeader.length > headerMaxLength;
+
+        setCharacterLimitExceeded(isPurposeExceeded || isHeaderExceeded);
+
+        if (isPurposeExceeded) {
+            setServerError(formatMessage({
+                id: 'channel_settings.error_purpose_length',
+                defaultMessage: 'The channel purpose exceeds the maximum character limit of {maxLength} characters.',
+            }, {
+                maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
+            }));
+            return false;
+        }
+
+        if (isHeaderExceeded) {
+            setServerError(formatMessage({
+                id: 'channel_settings.error_header_length',
+                defaultMessage: 'The channel header exceeds the maximum character limit of {maxLength} characters.',
+            }, {
+                maxLength: headerMaxLength,
+            }));
+            return false;
+        }
+
+        return true;
+    }, [channelPurpose, channelHeader, headerMaxLength, formatMessage]);
 
     // For checking unsaved changes, we store the initial "loaded" values or do a direct comparison
     const hasUnsavedChanges = useCallback(() => {
@@ -110,6 +144,13 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     useEffect(() => {
         setRequireConfirm(hasUnsavedChanges());
     }, [displayName, url, channelPurpose, channelHeader, channelType, hasUnsavedChanges]);
+
+    // Check character limits whenever relevant fields change
+    useEffect(() => {
+        if (requireConfirm) {
+            checkCharacterLimits();
+        }
+    }, [channelPurpose, channelHeader, requireConfirm, checkCharacterLimits]);
 
     // For KeyDown handling
     useEffect(() => {
@@ -156,6 +197,11 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
             return false;
         }
 
+        // Check character limits
+        if (!checkCharacterLimits()) {
+            return false;
+        }
+
         // Build updated channel object
         const updated: Channel = {
             ...channel,
@@ -175,7 +221,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
         // Return success, but don't close the modal yet
         // Let the SaveChangesPanel show the "Settings saved" message first
         return true;
-    }, [channel, displayName, url, channelPurpose, channelHeader, channelType, dispatch, formatMessage]);
+    }, [channel, displayName, url, channelPurpose, channelHeader, channelType, dispatch, formatMessage, checkCharacterLimits]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
@@ -275,6 +321,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
                 handleSaveChanges={handleSaveChanges}
                 handleCancel={handleCancel}
                 handleClose={handleClose}
+                characterLimitExceeded={characterLimitExceeded}
             />
         );
     };

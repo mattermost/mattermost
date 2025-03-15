@@ -64,7 +64,14 @@
             line-height: 20px;
         }
 
-        #channel_settings_purpose_textbox,  #channel_settings_header_textbox{
+        #PreviewInputTextButton {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            z-index: 10;
+        }
+
+        .textbox-preview-area, #channel_settings_purpose_textbox,  #channel_settings_header_textbox {
             height: 80px !important;
         }
     }
