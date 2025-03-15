@@ -63,6 +63,10 @@
             font-weight: 600;
             line-height: 20px;
         }
+
+        #channel_settings_purpose_textbox,  #channel_settings_header_textbox{
+            height: 80px !important;
+        }
     }
 
     &__typeSelector {

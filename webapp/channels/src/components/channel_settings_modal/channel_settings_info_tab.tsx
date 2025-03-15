@@ -120,10 +120,11 @@ function ChannelSettingsInfoTab({
         } else if (serverError) {
             setServerError('');
         }
-    }, [setChannelHeader, headerMaxLength, serverError, setServerError, formatMessage, channelHeader]);
+    }, [setChannelHeader, headerMaxLength, serverError, setServerError, formatMessage]);
 
     return (
         <div className='ChannelSettingsModal__infoTab'>
+            {/* Channel Name Section*/}
             <label className='Input_legend'>{formatMessage({id: 'channel_settings.label.name', defaultMessage: 'Channel Name'})}</label>
             <ChannelNameFormField
                 value={displayName}
@@ -140,6 +141,7 @@ function ChannelSettingsInfoTab({
                 currentUrl={url}
             />
 
+            {/* Channel Type Section*/}
             <PublicPrivateSelector
                 className='ChannelSettingsModal__typeSelector'
                 selected={channelType}
@@ -157,7 +159,6 @@ function ChannelSettingsInfoTab({
             />
 
             {/* Purpose Section*/}
-            <label className='Input_legend'>{formatMessage({id: 'channel_settings.label.purpose', defaultMessage: 'Channel Purpose'})}</label>
             <div className='textarea-wrapper'>
                 <Textbox
                     value={channelPurpose}
@@ -179,18 +180,12 @@ function ChannelSettingsInfoTab({
                     onKeyPress={() => {
                         // No specific key press handling needed for the settings modal
                     }}
-                    onKeyDown={() => {
-                        // No specific key down handling needed for the settings modal
-                    }}
                     supportsCommands={false}
                     suggestionListPosition='bottom'
                     createMessage={formatMessage({
                         id: 'channel_settings_modal.purpose.placeholder',
-                        defaultMessage: 'Enter a purpose for this channel (optional)',
+                        defaultMessage: 'Enter a purpose for this channel',
                     })}
-                    handlePostError={() => {
-                        // No specific post error handling needed for the settings modal
-                    }}
                     ref={purposeTextboxRef}
                     channelId={channel.id}
                     id='channel_settings_purpose_textbox'
@@ -198,6 +193,15 @@ function ChannelSettingsInfoTab({
                     preview={shouldShowPreviewPurpose}
                     useChannelMentions={false}
                 />
+                <p
+                    data-testid='mm-modal-generic-section-item__description'
+                    className='mm-modal-generic-section-item__description'
+                >
+                    <FormattedMessage
+                        id='channel_settings.purpose.description'
+                        defaultMessage='Describe how this channel should be used.'
+                    />
+                </p>
             </div>
             <div className='post-create-footer'>
                 <TextboxLinks
@@ -216,7 +220,6 @@ function ChannelSettingsInfoTab({
                 />
             </div>
             {/* Channel Header Section*/}
-            <label className='Input_legend'>{formatMessage({id: 'channel_settings.label.header', defaultMessage: 'Channel Header'})}</label>
             <div className='textarea-wrapper'>
                 <Textbox
                     value={channelHeader}
@@ -224,18 +227,12 @@ function ChannelSettingsInfoTab({
                     onKeyPress={() => {
                         // No specific key press handling needed for the settings modal
                     }}
-                    onKeyDown={() => {
-                        // No specific key down handling needed for the settings modal
-                    }}
                     supportsCommands={false}
                     suggestionListPosition='bottom'
                     createMessage={formatMessage({
                         id: 'channel_settings_modal.header.placeholder',
-                        defaultMessage: 'Enter a header for this channel',
+                        defaultMessage: 'Enter a header description or important links',
                     })}
-                    handlePostError={() => {
-                        // No specific post error handling needed for the settings modal
-                    }}
                     channelId={channel.id}
                     id='channel_settings_header_textbox'
                     ref={headerTextboxRef}
@@ -244,6 +241,15 @@ function ChannelSettingsInfoTab({
                     useChannelMentions={false}
                 />
             </div>
+            <p
+                data-testid='mm-modal-generic-section-item__description'
+                className='mm-modal-generic-section-item__description'
+            >
+                <FormattedMessage
+                    id='channel_settings.purpose.header'
+                    defaultMessage='This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).'
+                />
+            </p>
             <div className='post-create-footer'>
                 <TextboxLinks
                     showPreview={shouldShowPreviewHeader}
