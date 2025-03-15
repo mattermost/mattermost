@@ -117,6 +117,13 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         }
     }, [displayNameError, urlError]);
 
+    // Effect to set URL from props if it's modified
+    useEffect(() => {
+        if (props.currentUrl) {
+            setURL(props.currentUrl);
+        }
+    }, [props.currentUrl]);
+
     return (
         <>
             <Input

@@ -87,7 +87,6 @@ function ChannelSettingsInfoTab({
     const headerMaxLength = 1024;
 
     const handleURLChange = useCallback((newURL: string) => {
-        // TODO: there is an issue when undoing the channel name settings, the defined url is not changing back
         setURL(newURL);
         setURLError('');
     }, [setURL, setURLError]);

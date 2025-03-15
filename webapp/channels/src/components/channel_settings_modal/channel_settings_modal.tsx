@@ -53,7 +53,6 @@ enum ChannelSettingsTabs {
 /** TODO:
  * 1. Define if we keep the eddit purpose modal, in DMs we provide that option, so, should we show this modal hiding
  *    remaining elements or keep the existing one.
- * 2. Add logic to avoid showing archive section in town-square and off-topic channels
  */
 function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
