@@ -66,9 +66,9 @@
 
         #PreviewInputTextButton {
             position: absolute;
+            z-index: 10;
             top: 5px;
             right: 5px;
-            z-index: 10;
         }
 
         .textbox-preview-area, #channel_settings_purpose_textbox,  #channel_settings_header_textbox {

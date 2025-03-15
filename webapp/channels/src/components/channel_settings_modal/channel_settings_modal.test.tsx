@@ -129,7 +129,7 @@ describe('ChannelSettingsModal', () => {
         renderWithContext(<ChannelSettingsModal {...baseProps}/>);
 
         // Simulate unsaved changes: change channel purpose.
-        const purposeTextarea = screen.getByPlaceholderText('Enter a purpose for this channel (optional)');
+        const purposeTextarea = screen.getByPlaceholderText('Enter a purpose for this channel');
         await userEvent.clear(purposeTextarea);
         await userEvent.type(purposeTextarea, 'New purpose');
 
