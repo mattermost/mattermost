@@ -11,6 +11,24 @@ import {renderHookWithContext} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
+// Mock DateTime.local globally
+jest.mock('luxon', () => {
+    const actual = jest.requireActual('luxon');
+    return {
+        ...actual,
+        DateTime: {
+            ...actual.DateTime,
+            local: jest.fn().mockImplementation(() => {
+                // Create a fixed DateTime that will be used as the base
+                return actual.DateTime.fromObject(
+                    {year: 2025, month: 1, day: 1},
+                    {zone: 'UTC'},
+                );
+            }),
+        },
+    };
+});
+
 function getBaseState(): DeepPartial<GlobalState> {
     return {
         entities: {
@@ -102,26 +120,18 @@ describe('useTimePostBoxIndicator', () => {
         jest.setSystemTime(new Date('2021-01-01T18:00:00Z').getTime());
     });
 
-    it('should pass base case', () => {
-        const fakeLocal = DateTime.local(2025, 1, 1, 3, {
-            zone: 'Asia/Kolkata',
-        });
+    beforeEach(() => {
+        (DateTime.local as jest.Mock).mockClear();
+    });
 
-        DateTime.local = jest.fn(() => fakeLocal);
-
-        const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('dm_channel_id'), getBaseState());
-
-        expect(current.isDM).toBe(true);
-        expect(current.showDndWarning).toBe(false);
-        expect(current.isSelfDM).toBe(false);
-        expect(current.isBot).toBe(false);
-        expect(current.showRemoteUserHour).toBe(true);
-        expect(current.isScheduledPostEnabled).toBe(true);
-        expect(current.teammateTimezone.useAutomaticTimezone).toBe(true);
-        expect(current.teammateTimezone.automaticTimezone).toBe('IST');
+    afterAll(() => {
+        jest.useRealTimers();
     });
 
     it('should not show if within working hours', () => {
+        // Mock time to 11 AM CET - within working hours (6 AM to 10 PM)
+        mockDateTime(11, 'CET');
+
         const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('dm_near_timezone'), getBaseState());
 
         expect(current.isDM).toBe(true);
@@ -134,12 +144,42 @@ describe('useTimePostBoxIndicator', () => {
         expect(current.teammateTimezone.manualTimezone).toBe('CET');
     });
 
-    it('should work for DM with bots', () => {
-        const fakeLocal = DateTime.local(2025, 1, 1, 3, {
-            zone: 'Asia/Kolkata',
-        });
+    it('should show if out of working hours', () => {
+        // Mock time to 11 PM CET - outside working hours (6 AM to 10 PM)
+        mockDateTime(23, 'CET');
 
-        DateTime.local = jest.fn(() => fakeLocal);
+        const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('dm_near_timezone'), getBaseState());
+
+        expect(current.isDM).toBe(true);
+        expect(current.showDndWarning).toBe(false);
+        expect(current.isSelfDM).toBe(false);
+        expect(current.isBot).toBe(false);
+        expect(current.showRemoteUserHour).toBe(true);
+        expect(current.isScheduledPostEnabled).toBe(true);
+        expect(current.teammateTimezone.useAutomaticTimezone).toBe(false);
+        expect(current.teammateTimezone.manualTimezone).toBe('CET');
+    });
+
+    it('should work for DM with bots with in working hours', () => {
+        // Mock time to 3 AM IST - time shouldn't matter for bots
+        mockDateTime(3);
+
+        const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('bot_dm_channel_id'), getBaseState());
+
+        expect(current.isDM).toBe(true);
+        expect(current.showDndWarning).toBe(false);
+        expect(current.isSelfDM).toBe(false);
+        expect(current.isBot).toBe(true);
+        expect(current.showRemoteUserHour).toBe(false);
+        expect(current.isScheduledPostEnabled).toBe(true);
+        expect(current.teammateTimezone.useAutomaticTimezone).toBe(true);
+        expect(current.teammateTimezone.automaticTimezone).toBe('IST');
+    });
+
+    it('should work for DM with bots with out working hours', () => {
+        // Mock time to 3 AM IST - time shouldn't matter for bots
+        mockDateTime(23);
+
         const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('bot_dm_channel_id'), getBaseState());
 
         expect(current.isDM).toBe(true);
@@ -153,11 +193,8 @@ describe('useTimePostBoxIndicator', () => {
     });
 
     it('should handle teammate not loaded', () => {
-        const fakeLocal = DateTime.local(2025, 1, 1, 1, {
-            zone: 'Asia/Kolkata',
-        });
-
-        DateTime.local = jest.fn(() => fakeLocal);
+        // Mock time to 1 AM IST - outside working hours
+        mockDateTime(1);
 
         const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('unknown_dm_channel_id'), getBaseState());
 
@@ -171,3 +208,9 @@ describe('useTimePostBoxIndicator', () => {
         expect(current.teammateTimezone.automaticTimezone).toBe('IST');
     });
 });
+
+function mockDateTime(hour: number, zone = 'Asia/Kolkata') {
+    const dt = DateTime.local().setZone(zone).set({hour});
+    (DateTime.local as jest.Mock).mockReturnValue(dt);
+    return dt;
+}
