@@ -7,6 +7,7 @@
 
     .GenericModal__wrapper {
         display: flex;
+        overflow: visible;
 
         max-width: 1200px;
         max-height: 90vh;
@@ -14,16 +15,14 @@
         border: var(--border-default);
         border-radius: var(--radius-l);
         box-shadow: var(--elevation-6);
-        overflow-y: auto;
         .modal-body {
             display: flex;
+            overflow: visible;
             width: auto;
             min-height: 150px;
             flex-direction: column;
             margin: 0;
             gap: 24px;
-            overflow-x: hidden;
-            overflow-y: auto;
         }
     }
 
@@ -45,10 +44,10 @@
 
         .settings-content {
             display: flex;
+            overflow: visible !important;
             flex: 1;
             flex-direction: column;
             padding-bottom: 50px !important;
-            overflow: visible !important;
         }
     }
 
@@ -74,6 +73,15 @@
 
         .textbox-preview-area, #channel_settings_purpose_textbox,  #channel_settings_header_textbox {
             height: 80px !important;
+            box-shadow: none !important;
+        }
+
+        .suggestion-list {
+            z-index: 100000;
+        }
+
+        .textbox-preview-area {
+            box-shadow: none;
         }
     }
 
