@@ -188,10 +188,6 @@ func TestGetImageOrientation(t *testing.T) {
 		})
 
 		t.Run(tc.name+"_reader", func(t *testing.T) {
-			if format == "tiff" {
-				t.Skipf("Skipping test for %s as it doesn't support seeking", tc.fileName)
-			}
-
 			_, err = file.Seek(0, io.SeekStart)
 			require.NoError(t, err)
 
