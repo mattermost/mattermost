@@ -44,7 +44,8 @@ func TestElasticsearchAggregation(t *testing.T) {
 	mockJobStore.On("UpdateStatusOptimistically",
 		mock.AnythingOfType("string"),
 		model.JobStatusPending,
-		model.JobStatusInProgress).Return(true, nil)
+		model.JobStatusInProgress).
+		Return(&model.Job{}, nil)
 	mockJobStore.On("GetAllByType", mock.AnythingOfType("string")).Return([]*model.Job{{
 		Id:     "abcxyz123",
 		Type:   "EnterpriseElasticsearchIndexer",
