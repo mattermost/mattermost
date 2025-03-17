@@ -2016,7 +2016,7 @@
   "admin.saml.verifyTitle": "Verificar Firma:",
   "admin.saml_feature_discovery.copy": "Cuando se conecta Mattermost con el proveedor de inicio de sesión único de tu organización, los usuarios pueden acceder a Mattermost sin tener que volver a introducir sus credenciales.",
   "admin.saml_feature_discovery.title": "Integrar SAML 2.0 con Mattermost Professional",
-  "admin.saving": "Guardando...",
+  "admin.saving": "Guardando Configuración...",
   "admin.security.password": "Contraseña",
   "admin.server_logs.CopyLog": "Copiar log",
   "admin.server_logs.DataCopied": "Datos copiados",

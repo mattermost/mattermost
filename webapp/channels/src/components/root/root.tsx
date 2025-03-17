@@ -185,6 +185,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         this.props.actions.migrateRecentEmojis();
         this.props.actions.loadRecentlyUsedCustomEmojis();
+        this.props.actions.getCustomProfileAttributeFields();
 
         this.showLandingPageIfNecessary();
 
