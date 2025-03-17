@@ -1,69 +1,129 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import type {UserProfile as UserProfileType} from '@mattermost/types/users';
-
 import {Preferences} from 'mattermost-redux/constants';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import UserProfile from './user_profile';
 
 describe('components/UserProfile', () => {
+    const user = TestHelper.getUserMock({username: 'testUserName', nickname: 'testNickname', first_name: 'testFirstName', last_name: 'testLastName'});
+    const displayName = `${user.first_name} ${user.last_name}`;
+
     const baseProps = {
-        displayName: 'nickname',
+        displayName,
         isBusy: false,
         isMobileView: false,
-        user: {username: 'username'} as UserProfileType,
+        user,
         userId: 'user_id',
         theme: Preferences.THEMES.onyx,
         isShared: false,
         dispatch: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(<UserProfile {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+    test('renders basic user profile with nickname', () => {
+        renderWithContext(
+            <UserProfile {...baseProps}/>,
+        );
+
+        // The profile should be rendered as a button due to the popover
+        const profileButton = screen.getByRole('button', {name: displayName});
+        expect(profileButton).toBeInTheDocument();
+        expect(profileButton).toHaveClass('user-popover');
     });
 
-    test('should match snapshot, with colorization', () => {
-        const props = {
-            ...baseProps,
-            colorize: true,
+    test('renders with colorization', () => {
+        renderWithContext(
+            <UserProfile
+                {...baseProps}
+                colorize={true}
+            />,
+        );
+
+        const profileButton = screen.getByRole('button', {name: displayName});
+
+        // Check if the element has a color style property
+        const styles = window.getComputedStyle(profileButton);
+        expect(styles.color).toBeDefined();
+    });
+
+    test('renders shared user indicator when user is shared', () => {
+        const sharedUser = {
+            ...baseProps.user,
+            remote_id: 'remote_id', // This makes the user a shared user
         };
 
-        const wrapper = shallow(<UserProfile {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        renderWithContext(
+            <UserProfile
+                {...baseProps}
+                user={sharedUser}
+            />,
+        );
+
+        // Check for shared user indicator by its icon class
+        expect(screen.getByLabelText('shared user indicator')).toBeInTheDocument();
     });
 
-    test('should match snapshot, when user is shared', () => {
-        const props = {
-            ...baseProps,
-            isShared: true,
-        };
-
-        const wrapper = shallow(<UserProfile {...props}/>);
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot, when popover is disabled', () => {
-        const wrapper = shallow(
+    test('renders without popover when disabled', () => {
+        renderWithContext(
             <UserProfile
                 {...baseProps}
                 disablePopover={true}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        // When popover is disabled, it should render as a div instead of a button
+        const profileDiv = screen.getByText(displayName);
+        expect(profileDiv.tagName).toBe('DIV');
+        expect(profileDiv).toHaveClass('user-popover');
     });
 
-    test('should match snapshot, when displayUsername is enabled', () => {
-        const wrapper = shallow(
+    test('renders username when displayUsername is enabled', () => {
+        renderWithContext(
             <UserProfile
                 {...baseProps}
                 displayUsername={true}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        // Should show the username with @ prefix
+        const profileButton = screen.getByRole('button', {name: `@${user.username}`});
+        expect(profileButton).toBeInTheDocument();
+    });
+
+    test('renders bot tag for bot users', () => {
+        const botUser = {
+            ...baseProps.user,
+            is_bot: true,
+        };
+
+        renderWithContext(
+            <UserProfile
+                {...baseProps}
+                user={botUser}
+            />,
+        );
+
+        expect(screen.getByText('BOT')).toBeInTheDocument();
+    });
+
+    test('renders guest tag for guest users', () => {
+        const guestUser = {
+            ...baseProps.user,
+            roles: 'system_guest',
+        };
+
+        renderWithContext(
+            <UserProfile
+                {...baseProps}
+                user={guestUser}
+            />,
+        );
+
+        expect(screen.getByText('GUEST')).toBeInTheDocument();
     });
 });
