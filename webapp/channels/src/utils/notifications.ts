@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {convertMentionNicknameOrFullName} from './text_formatting';
+import {getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+
 import icon50 from 'images/icon50x50.png';
 import iconWS from 'images/icon_WS.png';
 import * as UserAgent from 'utils/user_agent';
 
 import type {ThunkActionFunc} from 'types/store';
-import { convertMentionNicknameOrFullName } from './text_formatting';
-import { getUsersByUsername } from 'mattermost-redux/selectors/entities/users';
-import { getTeammateNameDisplaySetting } from 'mattermost-redux/selectors/entities/preferences';
 
 export type NotificationResult = {
     status: 'error' | 'not_sent' | 'success' | 'unsupported';
