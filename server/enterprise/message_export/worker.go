@@ -142,13 +142,12 @@ func (w *MessageExportWorker) DoJob(job *model.Job) {
 	logger.Debug("Worker: Received a new candidate job.")
 	defer w.jobServer.HandleJobPanic(logger, job)
 
-	claimed, appErr := w.jobServer.ClaimJob(job)
+	var appErr *model.AppError
+	job, appErr = w.jobServer.ClaimJob(job)
 	if appErr != nil {
-		logger.Info("Worker: Error occurred while trying to claim job", mlog.Err(appErr))
+		logger.Warn("Worker: Error occurred while trying to claim job", mlog.Err(appErr))
 		return
-	}
-
-	if !claimed {
+	} else if job == nil {
 		return
 	}
 
