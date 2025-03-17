@@ -22,6 +22,12 @@ function getBaseState(): DeepPartial<GlobalState> {
                         type: 'D',
                         name: 'current_user_id__teammate_user_id',
                     },
+                    dm_near_timezone: {
+                        id: 'dm_same_timezone',
+                        teammate_id: 'teammate_near_timezone_id',
+                        type: 'D',
+                        name: 'current_user_id__teammate_near_timezone_id',
+                    },
                     bot_dm_channel_id: {
                         id: 'bot_dm_channel_id',
                         teammate_id: 'bot_user_id',
@@ -49,6 +55,18 @@ function getBaseState(): DeepPartial<GlobalState> {
                             useAutomaticTimezone: 'true',
                             automaticTimezone: 'IST',
                             manualTimezone: '',
+                        },
+                    },
+                    teammate_near_timezone_id: {
+                        id: 'teammate_near_timezone_id',
+                        username: 'teammate_near_timezone_username',
+                        nickname: 'teammate_near_timezone_nickname',
+                        first_name: 'teammate_near_timezone_first_name',
+                        last_name: 'teammate_near_timezone_last_name',
+                        timezone: {
+                            useAutomaticTimezone: 'false',
+                            automaticTimezone: '',
+                            manualTimezone: 'CET',
                         },
                     },
                     bot_user_id: {
@@ -79,6 +97,11 @@ function getBaseState(): DeepPartial<GlobalState> {
 }
 
 describe('useTimePostBoxIndicator', () => {
+    beforeAll(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2021-01-01T18:00:00Z').getTime());
+    });
+
     it('should pass base case', () => {
         const fakeLocal = DateTime.local(2025, 1, 1, 3, {
             zone: 'Asia/Kolkata',
@@ -96,6 +119,19 @@ describe('useTimePostBoxIndicator', () => {
         expect(current.isScheduledPostEnabled).toBe(true);
         expect(current.teammateTimezone.useAutomaticTimezone).toBe(true);
         expect(current.teammateTimezone.automaticTimezone).toBe('IST');
+    });
+
+    it('should not show if within working hours', () => {
+        const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('dm_near_timezone'), getBaseState());
+
+        expect(current.isDM).toBe(true);
+        expect(current.showDndWarning).toBe(false);
+        expect(current.isSelfDM).toBe(false);
+        expect(current.isBot).toBe(false);
+        expect(current.showRemoteUserHour).toBe(false);
+        expect(current.isScheduledPostEnabled).toBe(true);
+        expect(current.teammateTimezone.useAutomaticTimezone).toBe(false);
+        expect(current.teammateTimezone.manualTimezone).toBe('CET');
     });
 
     it('should work for DM with bots', () => {
