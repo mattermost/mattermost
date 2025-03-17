@@ -3,7 +3,6 @@
 
 export enum ColumnNames {
     username = 'usernameColumn',
-    displayName = 'displayNameColumn',
     email = 'emailColumn',
     createAt = 'createAtColumn',
     lastLoginAt = 'lastLoginColumn',
