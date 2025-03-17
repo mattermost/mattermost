@@ -352,7 +352,7 @@ func TestCPAField_SanitizeAndValidate(t *testing.T) {
 				},
 			},
 			expectError: true,
-			errorId:     "app.custom_profile_attributes.unknown_value_type.app_error",
+			errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
 		},
 		{
 			name: "valid select field with valid options",
