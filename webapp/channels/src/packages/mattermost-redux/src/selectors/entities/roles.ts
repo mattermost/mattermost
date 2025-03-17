@@ -17,6 +17,7 @@ import {
     haveISystemPermission as haveISystemPermissionInternal,
 } from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getTeamMemberships, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {isSyncableSource} from 'mattermost-redux/utils/group_utils';
 
 // Re-define these types to ensure that these are typed correctly when mattermost-redux is published
 export const getMySystemPermissions: (state: GlobalState) => Set<string> = getMySystemPermissionsInternal;
@@ -86,9 +87,9 @@ export const getGroupListPermissions: (state: GlobalState) => Record<string, Gro
         const groupPermissionsMap: Record<string, GroupPermissions> = {};
         groups.forEach((g) => {
             groupPermissionsMap[g.id] = {
-                can_delete: permissions.has(Permissions.DELETE_CUSTOM_GROUP) && g.source.toLowerCase() !== 'ldap' && g.delete_at === 0,
-                can_manage_members: permissions.has(Permissions.MANAGE_CUSTOM_GROUP_MEMBERS) && g.source.toLowerCase() !== 'ldap' && g.delete_at === 0,
-                can_restore: permissions.has(Permissions.RESTORE_CUSTOM_GROUP) && g.source.toLowerCase() !== 'ldap' && g.delete_at !== 0,
+                can_delete: permissions.has(Permissions.DELETE_CUSTOM_GROUP) && !isSyncableSource(g.source) && g.delete_at === 0,
+                can_manage_members: permissions.has(Permissions.MANAGE_CUSTOM_GROUP_MEMBERS) && !isSyncableSource(g.source) && g.delete_at === 0,
+                can_restore: permissions.has(Permissions.RESTORE_CUSTOM_GROUP) && !isSyncableSource(g.source) && g.delete_at !== 0,
             };
         });
         return groupPermissionsMap;
@@ -191,13 +192,13 @@ export const haveIGroupPermission: (state: GlobalState, groupID: string, permiss
     (state: GlobalState, groupID: string, permission: string) => permission,
     (systemPermissions, permissionGroups, group, permission) => {
         if (permission === Permissions.RESTORE_CUSTOM_GROUP) {
-            if ((group.source !== 'ldap' && group.delete_at !== 0) && (systemPermissions.has(permission) || (permissionGroups[group.id] && permissionGroups[group.id].has(permission)))) {
+            if ((!isSyncableSource(group.source) && group.delete_at !== 0) && (systemPermissions.has(permission) || (permissionGroups[group.id] && permissionGroups[group.id].has(permission)))) {
                 return true;
             }
             return false;
         }
 
-        if (group.source === 'ldap' || group.delete_at !== 0) {
+        if (isSyncableSource(group.source) || group.delete_at !== 0) {
             return false;
         }
 

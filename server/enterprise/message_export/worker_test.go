@@ -263,9 +263,13 @@ func TestDoJobNoPostsToExport(t *testing.T) {
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
 	}
+	retJob := *job
+	retJob.Status = model.JobStatusInProgress
 
 	// claim job succeeds
-	mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.
+		On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).
+		Return(&retJob, nil)
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// no previous job, data will be loaded from config
@@ -285,7 +289,7 @@ func TestDoJobNoPostsToExport(t *testing.T) {
 	)
 
 	// job completed successfully
-	mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(true, nil)
 	mockStore.JobStore.On("UpdateStatus", job.Id, model.JobStatusSuccess).Return(job, nil)
 	mockMetrics.On("DecrementJobActive", model.JobTypeMessageExport)
 
@@ -342,9 +346,13 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
 	}
+	retJob := *job
+	retJob.Status = model.JobStatusInProgress
 
 	// claim job succeeds
-	mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.
+		On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).
+		Return(&retJob, nil)
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// no previous job, data will be loaded from config
@@ -395,7 +403,7 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 	)
 
 	// job completed successfully
-	mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(true, nil)
 	mockStore.JobStore.On("UpdateStatus", job.Id, model.JobStatusSuccess).Return(job, nil)
 	mockMetrics.On("DecrementJobActive", model.JobTypeMessageExport)
 
@@ -503,8 +511,13 @@ func TestDoJobCancel(t *testing.T) {
 	worker, ok := impl.MakeWorker().(*MessageExportWorker)
 	require.True(t, ok)
 
+	retJob := *job
+	retJob.Status = model.JobStatusInProgress
+
 	// Claim job succeeds
-	mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.
+		On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).
+		Return(&retJob, nil)
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// No previous job, data will be loaded from config
