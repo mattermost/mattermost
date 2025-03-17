@@ -601,6 +601,5 @@ func validateDMChannelPattern(ss *SqlStore) []model.IntegrityCheckResult {
 	temp = model.IntegrityCheckResult{}
 	temp.Data = invalidChannelRecords
 	result = append(result, temp)
-
 	return result
 }

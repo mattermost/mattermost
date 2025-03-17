@@ -6,6 +6,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/go-multierror"
 
@@ -66,10 +67,21 @@ func printRelationalIntegrityCheckResult(data model.RelationalIntegrityCheckData
 	}
 }
 
+func printNameIntegrityCheckResult(data model.NameIntegrityCheckData, verbose bool) {
+	printer.PrintT("Found {{len .Names}} invalid channel name(s)", data)
+
+	if !verbose {
+		return
+	}
+	fmt.Printf(" Invalid Channel Name(s): %s\n", strings.Join(data.Names, ","))
+}
+
 func printIntegrityCheckResult(result model.IntegrityCheckResult, verbose bool) {
 	switch data := result.Data.(type) {
 	case model.RelationalIntegrityCheckData:
 		printRelationalIntegrityCheckResult(data, verbose)
+	case model.NameIntegrityCheckData:
+		printNameIntegrityCheckResult(data, verbose)
 	default:
 		printer.PrintError("invalid data type")
 	}
