@@ -24,6 +24,7 @@ import {ensureString} from 'mattermost-redux/utils/post_utils';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import {getIsMobileView} from 'selectors/views/browser';
 
+import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import Markdown from 'components/markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
 import Button from 'components/threading/common/button';
@@ -45,7 +46,6 @@ import {useThreadRouting} from '../../hooks';
 import ThreadMenu from '../thread_menu';
 
 import './thread_item.scss';
-import { makeGetMentionKeysForPost } from 'components/post_markdown';
 
 export type OwnProps = {
     isSelected: boolean;
