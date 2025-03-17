@@ -103,7 +103,7 @@ const ChannelSettingsSubmenu = ({channel, isReadonly, isDefault}: Props): JSX.El
                     }
                 />
             )}
-            
+
             {!isReadonly && (
                 <ChannelPermissionGate
                     channelId={channel.id}
@@ -122,7 +122,7 @@ const ChannelSettingsSubmenu = ({channel, isReadonly, isDefault}: Props): JSX.El
                     />
                 </ChannelPermissionGate>
             )}
-            
+
             {!isReadonly && (
                 <ChannelPermissionGate
                     channelId={channel.id}
