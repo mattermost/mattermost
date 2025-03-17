@@ -3997,7 +3997,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Nieprawidłowy identyfikator."
+    "translation": "Nieprawidłowy identyfikator: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4609,11 +4609,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 130+"
+    "translation": "Wersja 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 130+"
+    "translation": "Wersja 132+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9740,10 +9740,6 @@
     "translation": "Nie można włączyć autouzupełniania kanałów, ponieważ schemat indeksu kanałów jest nieaktualny. Zaleca się regenerację indeksu kanałów. Zobacz dziennik zmian Mattermost, aby uzyskać więcej informacji"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Twój schemat indeksu kanałów wyszukiwania jest nieaktualny. Zalecamy regenerację indeksu kanałów.\nKliknij przycisk `Przebuduj Indeks Kanałów` na stronie [Elasticsearch via the System Console]({{.ElasticsearchSection}}), aby naprawić ten błąd.\nZobacz logi Mattermost, aby uzyskać więcej informacji."
-  },
-  {
     "id": "bleveengine.purge_list.not_implemented",
     "translation": "Funkcja listy czyszczenia nie jest dostępna dla Bleve."
   },
@@ -10316,20 +10312,8 @@
     "translation": "Nie można zaktualizować pola atrybutu profilu niestandardowego"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "Nie można utworzyć wartości właściwości"
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
     "translation": "Nie znaleziono pola atrybutu profilu niestandardowego"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "Nie można pobrać wartości właściwości"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "Nie można zaktualizować wartości właściwości"
   },
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
@@ -10402,5 +10386,81 @@
   {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "Nie można pobrać czytnika plików zip."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nie udało się utworzyć zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Nie udało się zaktualizować kolejności sortowania zakładki kanału."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "próba załatania pola, które nie istnieje"
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Nie można pobrać zakładek dla zarchiwizowanego kanału"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Nie udało się uzyskać liczby wszystkich plików."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Nie udało się uzyskać użycia pamięci masowej dla wszystkich plików."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nie udało się usunąć zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nie udało się zaktualizować zakładki kanału."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Nie można uruchomić polecenia w usuniętym kanale."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Nie znaleziono sesji."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Nie można policzyć liczby pól dla grupy atrybutów profilu niestandardowego"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Nie można wstawić pól atrybutów profilu niestandardowego"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Nieprawidłowy identyfikator użytkownika po stronie klienta: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Liczba elementów w ClientSideUserIds {{.CurrentLength}} jest wyższa niż maksymalny limit {{.MaxLength}}."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Kolor banera kanału nie może być pusty, gdy baner kanału jest włączony"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Baner kanału można skonfigurować tylko na kanałach publicznych i prywatnych"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Tekst informacji o banerze kanału nie może być pusty, gdy baner kanału jest włączony"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Tekst informacji o banerze kanału jest za długi. Maksymalna dozwolona długość to {{.maxLength}} znaków."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Baner kanału można skonfigurować tylko na kanałach publicznych i prywatnych."
   }
 ]
