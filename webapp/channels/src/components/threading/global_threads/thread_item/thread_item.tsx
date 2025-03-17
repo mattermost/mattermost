@@ -92,7 +92,7 @@ function ThreadItem({
     const showListTutorialTip = tipStep === CrtTutorialSteps.LIST_POPOVER;
     const msgDeleted = formatMessage({id: 'post_body.deleted', defaultMessage: '(message deleted)'});
     const postAuthor = ensureString(post.props?.override_username) || displayName;
-    const getMentionKeysForPost = makeGetMentionKeysForPost();
+    const getMentionKeysForPost = useMemo(() => makeGetMentionKeysForPost(), []);
     const mentionsKeys = useSelector((state: GlobalState) => getMentionKeysForPost(state, post, channel));
 
     useEffect(() => {
