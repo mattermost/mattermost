@@ -5,9 +5,9 @@ import {createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable, t
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import styled, {css} from 'styled-components';
+import styled from 'styled-components';
 
-import {MenuVariantIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {PlusIcon} from '@mattermost/compass-icons/components';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
@@ -15,9 +15,10 @@ import LoadingScreen from 'components/loading_screen';
 
 import Constants from 'utils/constants';
 
-import {DangerText, FieldDeleteButton, FieldInput, LinkButton} from './controls';
+import {DangerText, BorderlessInput, LinkButton} from './controls';
 import type {SectionHook} from './section_utils';
-import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
+import DotMenu from './user_properties_dot_menu';
+import SelectType from './user_properties_type_menu';
 import type {UserPropertyFields} from './user_properties_utils';
 import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
 
@@ -132,7 +133,7 @@ export function UserPropertiesTable({data: collection, updateField, deleteField,
 
                     return (
                         <>
-                            <EditableValue
+                            <EditCell
                                 strong={true}
                                 value={getValue()}
                                 label={formatMessage({id: 'admin.system_properties.user_properties.table.property_name.input.name', defaultMessage: 'Property Name'})}
@@ -164,28 +165,12 @@ export function UserPropertiesTable({data: collection, updateField, deleteField,
                         </ColHeaderLeft>
                     );
                 },
-                cell: ({getValue, row}) => {
-                    let type = getValue();
-
-                    if (type === 'text') {
-                        type = (
-                            <>
-                                <MenuVariantIcon
-                                    size={18}
-                                    color={'rgba(var(--center-channel-color-rgb), 0.64)'}
-                                />
-                                <FormattedMessage
-                                    id='admin.system_properties.user_properties.table.type.text'
-                                    defaultMessage='Text'
-                                />
-                            </>
-                        );
-                    }
-
+                cell: ({row}) => {
                     return (
-                        <TypeCellWrapper $deleted={row.original.delete_at !== 0}>
-                            {type}
-                        </TypeCellWrapper>
+                        <SelectType
+                            field={row.original}
+                            updateField={updateField}
+                        />
                     );
                 },
                 enableHiding: false,
@@ -194,8 +179,15 @@ export function UserPropertiesTable({data: collection, updateField, deleteField,
             col.display({
                 id: 'options',
                 size: 300,
-                header: () => <></>,
-                cell: () => <></>,
+                header: () => (
+                    <ColHeaderLeft>
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.table.values'
+                            defaultMessage='Values'
+                        />
+                    </ColHeaderLeft>
+                ),
+                cell: () => (<></>),
                 enableHiding: false,
                 enableSorting: false,
             }),
@@ -213,10 +205,13 @@ export function UserPropertiesTable({data: collection, updateField, deleteField,
                     );
                 },
                 cell: ({row}) => (
-                    <Actions
-                        field={row.original}
-                        deleteField={deleteField}
-                    />
+                    <ActionsRoot>
+                        <DotMenu
+                            field={row.original}
+                            updateField={updateField}
+                            deleteField={deleteField}
+                        />
+                    </ActionsRoot>
                 ),
                 enableHiding: false,
                 enableSorting: false,
@@ -276,8 +271,13 @@ const TableWrapper = styled.div`
                 border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
                 border-bottom-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
                 td {
-                    padding-block-end: 4px;
-                    padding-block-start: 4px;
+                    padding-block-end: 0;
+                    padding-block-start: 0;
+
+                    &:not(:first-child):not(:last-child) {
+                        padding-inline-end: 0;
+                        padding-inline-start: 0;
+                    }
 
                     &:last-child {
                         padding-inline-end: 12px;
@@ -295,50 +295,6 @@ const TableWrapper = styled.div`
     }
 `;
 
-const Actions = ({field, deleteField}: {field: UserPropertyField} & Pick<FieldActions, 'deleteField'>) => {
-    const {promptDelete} = useUserPropertyFieldDelete();
-    const {formatMessage} = useIntl();
-
-    const handleDelete = () => {
-        if (isCreatePending(field)) {
-            // skip prompt when field is pending creation
-            deleteField(field.id);
-        } else {
-            promptDelete(field).then(() => deleteField(field.id));
-        }
-    };
-
-    return (
-        <ActionsRoot>
-            {field.delete_at === 0 && (
-                <FieldDeleteButton
-                    onClick={handleDelete}
-                    aria-label={formatMessage({id: 'admin.system_properties.user_properties.table.actions.delete', defaultMessage: 'Delete'})}
-                >
-                    <TrashCanOutlineIcon
-                        size={18}
-                        color={'rgba(var(--center-channel-color-rgb), 0.64)'}
-                    />
-                </FieldDeleteButton>
-            )}
-        </ActionsRoot>
-    );
-};
-
-const TypeCellWrapper = styled.div<{$deleted?: boolean}>`
-    ${({$deleted}) => $deleted && css`
-        && {
-            color: #D24B4E;
-            text-decoration: line-through;
-        }
-    `};
-
-    vertical-align: middle;
-    display: inline-flex;
-    gap: 6px;
-    align-items: center;
-`;
-
 const ColHeaderLeft = styled.div`
     display: inline-block;
 `;
@@ -353,7 +309,7 @@ const ActionsRoot = styled.div`
     text-align: right;
 `;
 
-type EditableValueProps = {
+type EditCellProps = {
     value: string;
     label?: string;
     testid?: string;
@@ -366,7 +322,7 @@ type EditableValueProps = {
     maxLength?: number;
     borderless?: boolean;
 };
-const EditableValue = (props: EditableValueProps) => {
+const EditCell = (props: EditCellProps) => {
     const [value, setValue] = useState(props.value);
 
     useEffect(() => {
@@ -375,14 +331,13 @@ const EditableValue = (props: EditableValueProps) => {
 
     return (
         <>
-            <FieldInput
+            <BorderlessInput
                 type='text'
                 aria-label={props.label}
                 data-testid={props.testid}
                 disabled={props.disabled ?? props.deleted}
                 $deleted={props.deleted}
                 $strong={props.strong}
-                $borderless={props.borderless}
                 maxLength={props.maxLength}
                 autoFocus={props.autoFocus}
                 onFocus={(e) => {
