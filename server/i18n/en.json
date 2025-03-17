@@ -8874,7 +8874,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
-    "translation": "IndexPrefix cannot be empty is GlobalSearchPrefix is set."
+    "translation": "IndexPrefix cannot be empty if GlobalSearchPrefix is set."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",

@@ -408,45 +408,56 @@ func (c *CommonTestSuite) TestSearchUsersInChannel() {
 		Limit:          100,
 	}
 
-	// Test 1: Search for all users in channel1
-	inChannel, notInChannel, err := c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, nil, "", options)
-	c.Nil(err)
-	c.Len(inChannel, 2)
-	c.Contains(inChannel, user1.Id)
-	c.Contains(inChannel, user2.Id)
-	c.Len(notInChannel, 1)
-	c.Contains(notInChannel, user3.Id)
+	c.Run("All users in channel1", func() {
+		// Test 1: Search for all users in channel1
+		inChannel, notInChannel, err := c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, nil, "", options)
+		c.Nil(err)
+		c.Len(inChannel, 2)
+		c.Contains(inChannel, user1.Id)
+		c.Contains(inChannel, user2.Id)
+		c.Len(notInChannel, 1)
+		c.Contains(notInChannel, user3.Id)
+	})
 
-	// Test 2: Search with term that should match user1 in channel1
-	inChannel, notInChannel, err = c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, nil, "testuser1", options)
-	c.Nil(err)
-	c.Len(inChannel, 1)
-	c.Contains(inChannel, user1.Id)
-	c.Empty(notInChannel)
+	c.Run("Search for specific user in channel1", func() {
+		// Test 2: Search with term that should match user1 in channel1
+		inChannel, notInChannel, err := c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, nil, "testuser1", options)
+		c.Nil(err)
+		c.Len(inChannel, 1)
+		c.Contains(inChannel, user1.Id)
+		c.Empty(notInChannel)
+	})
 
-	// Test 3: Search with restrictedToChannels, user3 should be in notInChannel
-	restrictedChannels := []string{channel2.Id}
-	inChannel, notInChannel, err = c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, restrictedChannels, "", options)
-	c.Nil(err)
-	c.Len(inChannel, 2)
-	c.Contains(inChannel, user1.Id)
-	c.Contains(inChannel, user2.Id)
-	c.Len(notInChannel, 1)
-	c.Contains(notInChannel, user3.Id) // user3 is in channel2 but not channel1
+	c.Run("Search with restricted channels", func() {
+		// Test 3: Search with restrictedToChannels, user3 should be in notInChannel
+		restrictedToChannels := []string{channel2.Id}
+		inChannel, notInChannel, err := c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, restrictedToChannels, "", options)
+		c.Nil(err)
+		c.Len(inChannel, 2)
+		c.Contains(inChannel, user1.Id)
+		c.Contains(inChannel, user2.Id)
+		c.Len(notInChannel, 1)
+		c.Contains(notInChannel, user3.Id) // user3 is in channel2 but not channel1
+	})
 
-	// Test 4: Search with a term in restrictedToChannels
-	inChannel, notInChannel, err = c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, restrictedChannels, "another", options)
-	c.Nil(err)
-	c.Empty(inChannel) // No users in channel1 match "another"
-	c.Len(notInChannel, 1)
-	c.Contains(notInChannel, user3.Id) // user3's name contains "Another" and is in channel2
+	c.Run("Search with term in restricted channels", func() {
+		// Test 4: Search with a term in restrictedToChannels
+		restrictedToChannels := []string{channel2.Id}
+		inChannel, notInChannel, err := c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, restrictedToChannels, "another", options)
+		c.Nil(err)
+		c.Empty(inChannel) // No users in channel1 match "another"
+		c.Len(notInChannel, 1)
+		c.Contains(notInChannel, user3.Id) // user3's name contains "Another" and is in channel2
+	})
 
-	// Test 5: Search with restrictedToChannels but empty (should return no results)
-	emptyRestricted := []string{}
-	inChannel, notInChannel, err = c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, emptyRestricted, "", options)
-	c.Nil(err)
-	c.Empty(inChannel)
-	c.Empty(notInChannel)
+	c.Run("Search with empty restricted channels", func() {
+		// Test 5: Search with restrictedToChannels but empty (should return no results)
+		emptyRestricted := []string{}
+		inChannel, notInChannel, err := c.ESImpl.SearchUsersInChannel(c.TH.BasicTeam.Id, channel1.Id, emptyRestricted, "", options)
+		c.Nil(err)
+		c.Empty(inChannel)
+		c.Empty(notInChannel)
+	})
 
 	// Clean up
 	c.Nil(c.ESImpl.DeleteUser(user1))
@@ -480,66 +491,78 @@ func (c *CommonTestSuite) TestSearchUsersInTeam() {
 		Limit:          100,
 	}
 
-	// Test 1: Search for all users in team1
-	userIds, err := c.ESImpl.SearchUsersInTeam(team1.Id, nil, "testuser", options)
-	c.Nil(err)
-	c.Len(userIds, 2)
-	c.Contains(userIds, user1.Id)
-	c.Contains(userIds, user2.Id)
-	c.NotContains(userIds, user3.Id)
+	c.Run("Search for all users in team1", func() {
+		// Test 1: Search for all users in team1
+		userIds, err := c.ESImpl.SearchUsersInTeam(team1.Id, nil, "testuser", options)
+		c.Nil(err)
+		c.Len(userIds, 2)
+		c.Contains(userIds, user1.Id)
+		c.Contains(userIds, user2.Id)
+		c.NotContains(userIds, user3.Id)
+	})
 
-	// Test 2: Search with term that should match user1 in team1
-	userIds, err = c.ESImpl.SearchUsersInTeam(team1.Id, nil, "testuser1", options)
-	c.Nil(err)
-	c.Len(userIds, 1)
-	c.Contains(userIds, user1.Id)
-	c.NotContains(userIds, user2.Id)
-	c.NotContains(userIds, user3.Id)
+	c.Run("Search for specific user in team1", func() {
+		// Test 2: Search with term that should match user1 in team1
+		userIds, err := c.ESImpl.SearchUsersInTeam(team1.Id, nil, "testuser1", options)
+		c.Nil(err)
+		c.Len(userIds, 1)
+		c.Contains(userIds, user1.Id)
+		c.NotContains(userIds, user2.Id)
+		c.NotContains(userIds, user3.Id)
+	})
 
-	// Test 3: Search in team2
-	userIds, err = c.ESImpl.SearchUsersInTeam(team2.Id, nil, "testuser", options)
-	c.Nil(err)
-	c.Len(userIds, 2)
-	c.Contains(userIds, user2.Id)
-	c.Contains(userIds, user3.Id)
-	c.NotContains(userIds, user1.Id)
+	c.Run("Search in team2", func() {
+		// Test 3: Search in team2
+		userIds, err := c.ESImpl.SearchUsersInTeam(team2.Id, nil, "testuser", options)
+		c.Nil(err)
+		c.Len(userIds, 2)
+		c.Contains(userIds, user2.Id)
+		c.Contains(userIds, user3.Id)
+		c.NotContains(userIds, user1.Id)
+	})
 
-	// Test 4: Search with term in team2
-	userIds, err = c.ESImpl.SearchUsersInTeam(team2.Id, nil, "another", options)
-	c.Nil(err)
-	c.Len(userIds, 1)
-	c.Contains(userIds, user3.Id)
-	c.NotContains(userIds, user1.Id)
-	c.NotContains(userIds, user2.Id)
+	c.Run("Search with term in team2", func() {
+		// Test 4: Search with term in team2
+		userIds, err := c.ESImpl.SearchUsersInTeam(team2.Id, nil, "another", options)
+		c.Nil(err)
+		c.Len(userIds, 1)
+		c.Contains(userIds, user3.Id)
+		c.NotContains(userIds, user1.Id)
+		c.NotContains(userIds, user2.Id)
+	})
 
-	// Test 5: Search with restrictedToChannels
-	// Create channel in team1
-	channel1 := createChannel(team1.Id, "channel1", "Test Channel 1", model.ChannelTypeOpen)
-	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel1, []string{}, []string{}))
+	c.Run("Search with restrictedToChannels", func() {
+		// Test 5: Search with restrictedToChannels
+		// Create channel in team1
+		channel1 := createChannel(team1.Id, "channel1", "Test Channel 1", model.ChannelTypeOpen)
+		c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channel1, []string{}, []string{}))
 
-	// Update user1 to be in channel1
-	c.Nil(c.ESImpl.IndexUser(c.TH.Context, user1, []string{team1.Id}, []string{channel1.Id}))
-	c.NoError(c.RefreshIndexFn())
+		// Update user1 to be in channel1
+		c.Nil(c.ESImpl.IndexUser(c.TH.Context, user1, []string{team1.Id}, []string{channel1.Id}))
+		c.NoError(c.RefreshIndexFn())
 
-	// Search for users in team1 restricted to channel1
-	userIds, err = c.ESImpl.SearchUsersInTeam(team1.Id, []string{channel1.Id}, "", options)
-	c.Nil(err)
-	c.Len(userIds, 1)
-	c.Contains(userIds, user1.Id)
-	c.NotContains(userIds, user2.Id)
-	c.NotContains(userIds, user3.Id)
+		// Search for users in team1 restricted to channel1
+		userIds, err := c.ESImpl.SearchUsersInTeam(team1.Id, []string{channel1.Id}, "", options)
+		c.Nil(err)
+		c.Len(userIds, 1)
+		c.Contains(userIds, user1.Id)
+		c.NotContains(userIds, user2.Id)
+		c.NotContains(userIds, user3.Id)
+		c.Nil(c.ESImpl.DeleteChannel(channel1))
+	})
 
-	// Test 6: Search with empty restrictedToChannels (should return no results)
-	emptyRestricted := []string{}
-	userIds, err = c.ESImpl.SearchUsersInTeam(team1.Id, emptyRestricted, "", options)
-	c.Nil(err)
-	c.Empty(userIds)
+	c.Run("Search with empty restrictedToChannels", func() {
+		// Test 6: Search with empty restrictedToChannels (should return no results)
+		emptyRestricted := []string{}
+		userIds, err := c.ESImpl.SearchUsersInTeam(team1.Id, emptyRestricted, "", options)
+		c.Nil(err)
+		c.Empty(userIds)
+	})
 
 	// Clean up
 	c.Nil(c.ESImpl.DeleteUser(user1))
 	c.Nil(c.ESImpl.DeleteUser(user2))
 	c.Nil(c.ESImpl.DeleteUser(user3))
-	c.Nil(c.ESImpl.DeleteChannel(channel1))
 }
 
 func (c *CommonTestSuite) TestDeleteUser() {
@@ -739,67 +762,75 @@ func (c *CommonTestSuite) TestSearchFiles() {
 	// Create channel list for search
 	channels := model.ChannelList{channel}
 
-	// Test 1: Search by term (file name and content)
-	searchParams := []*model.SearchParams{
-		{
-			Terms:     "apple",
-			IsHashtag: false,
-			OrTerms:   false,
-		},
-	}
+	c.Run("Search by term (file name and content)", func() {
+		// Test 1: Search by term (file name and content)
+		searchParams := []*model.SearchParams{
+			{
+				Terms:     "apple",
+				IsHashtag: false,
+				OrTerms:   false,
+			},
+		}
 
-	fileIds, err := c.ESImpl.SearchFiles(channels, searchParams, 0, 10)
-	c.Nil(err)
-	c.Contains(fileIds, file1.Id)
-	c.NotContains(fileIds, file2.Id)
-	c.NotContains(fileIds, file3.Id)
+		fileIds, err := c.ESImpl.SearchFiles(channels, searchParams, 0, 10)
+		c.Nil(err)
+		c.Contains(fileIds, file1.Id)
+		c.NotContains(fileIds, file2.Id)
+		c.NotContains(fileIds, file3.Id)
+	})
 
-	// Test 2: Search by extension
-	searchParams = []*model.SearchParams{
-		{
-			Terms:      "",
-			IsHashtag:  false,
-			OrTerms:    false,
-			Extensions: []string{"pdf"},
-		},
-	}
+	c.Run("Search by extension", func() {
+		// Test 2: Search by extension
+		searchParams := []*model.SearchParams{
+			{
+				Terms:      "",
+				IsHashtag:  false,
+				OrTerms:    false,
+				Extensions: []string{"pdf"},
+			},
+		}
 
-	fileIds, err = c.ESImpl.SearchFiles(channels, searchParams, 0, 10)
-	c.Nil(err)
-	c.NotContains(fileIds, file1.Id)
-	c.Contains(fileIds, file2.Id)
-	c.NotContains(fileIds, file3.Id)
+		fileIds, err := c.ESImpl.SearchFiles(channels, searchParams, 0, 10)
+		c.Nil(err)
+		c.NotContains(fileIds, file1.Id)
+		c.Contains(fileIds, file2.Id)
+		c.NotContains(fileIds, file3.Id)
+	})
 
-	// Test 3: Search with OR terms
-	searchParams = []*model.SearchParams{
-		{
-			Terms:     "apple banana",
-			IsHashtag: false,
-			OrTerms:   true,
-		},
-	}
+	c.Run("Search with OR terms", func() {
+		// Test 3: Search with OR terms
+		searchParams := []*model.SearchParams{
+			{
+				Terms:     "apple banana",
+				IsHashtag: false,
+				OrTerms:   true,
+			},
+		}
 
-	fileIds, err = c.ESImpl.SearchFiles(channels, searchParams, 0, 10)
-	c.Nil(err)
-	c.Contains(fileIds, file1.Id)
-	c.NotContains(fileIds, file2.Id)
-	c.Contains(fileIds, file3.Id)
+		fileIds, err := c.ESImpl.SearchFiles(channels, searchParams, 0, 10)
+		c.Nil(err)
+		c.Contains(fileIds, file1.Id)
+		c.NotContains(fileIds, file2.Id)
+		c.Contains(fileIds, file3.Id)
+	})
 
-	// Test 4: Search with excluded terms
-	searchParams = []*model.SearchParams{
-		{
-			Terms:         "content",
-			ExcludedTerms: "orange",
-			IsHashtag:     false,
-			OrTerms:       false,
-		},
-	}
+	c.Run("Search with excluded terms", func() {
+		// Test 4: Search with excluded terms
+		searchParams := []*model.SearchParams{
+			{
+				Terms:         "content",
+				ExcludedTerms: "orange",
+				IsHashtag:     false,
+				OrTerms:       false,
+			},
+		}
 
-	fileIds, err = c.ESImpl.SearchFiles(channels, searchParams, 0, 10)
-	c.Nil(err)
-	c.Contains(fileIds, file1.Id)
-	c.NotContains(fileIds, file2.Id)
-	c.Contains(fileIds, file3.Id)
+		fileIds, err := c.ESImpl.SearchFiles(channels, searchParams, 0, 10)
+		c.Nil(err)
+		c.Contains(fileIds, file1.Id)
+		c.NotContains(fileIds, file2.Id)
+		c.Contains(fileIds, file3.Id)
+	})
 
 	// Clean up indexed files
 	c.Nil(c.ESImpl.DeleteFile(file1.Id))
