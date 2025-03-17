@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DateTime} from 'luxon';
-
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
@@ -103,12 +101,6 @@ describe('useTimePostBoxIndicator', () => {
     });
 
     it('should pass base case', () => {
-        const fakeLocal = DateTime.local(2025, 1, 1, 3, {
-            zone: 'Asia/Kolkata',
-        });
-
-        DateTime.local = jest.fn(() => fakeLocal);
-
         const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('dm_channel_id'), getBaseState());
 
         expect(current.isDM).toBe(true);
@@ -135,11 +127,6 @@ describe('useTimePostBoxIndicator', () => {
     });
 
     it('should work for DM with bots', () => {
-        const fakeLocal = DateTime.local(2025, 1, 1, 3, {
-            zone: 'Asia/Kolkata',
-        });
-
-        DateTime.local = jest.fn(() => fakeLocal);
         const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('bot_dm_channel_id'), getBaseState());
 
         expect(current.isDM).toBe(true);
@@ -153,12 +140,6 @@ describe('useTimePostBoxIndicator', () => {
     });
 
     it('should handle teammate not loaded', () => {
-        const fakeLocal = DateTime.local(2025, 1, 1, 1, {
-            zone: 'Asia/Kolkata',
-        });
-
-        DateTime.local = jest.fn(() => fakeLocal);
-
         const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('unknown_dm_channel_id'), getBaseState());
 
         expect(current.isDM).toBe(true);
