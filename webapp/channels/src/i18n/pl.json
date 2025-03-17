@@ -1515,7 +1515,7 @@
   "admin.manage_roles.saveError": "Nie można zapisać ról.",
   "admin.manage_roles.systemAdmin": "Administrator Systemu",
   "admin.manage_roles.systemMember": "Użytkownik",
-  "admin.manage_teams.makeAdminError": "Nie można nadać użytkownikowi statusu administratora zespołu.",
+  "admin.manage_teams.makeAdminError": "Nie można uczynić użytkownika administratorem zespołu.",
   "admin.manage_teams.makeMemberError": "Nie można nadać użytkownikowi statusu członka.",
   "admin.manage_teams.removeError": "Nie można usunąć użytkownika z zespołu.",
   "admin.manage_tokens.manageTokensTitle": "Zarządzanie personalnymi tokenami dostępu",
