@@ -98,19 +98,38 @@ function ChannelSettingsInfoTab({
     const [internalChannelHeader, setInternalChannelHeader] = useState(channelHeader);
     const [internalChannelType, setInternalChannelType] = useState(channelType);
     const [internalUrlError, setInternalUrlError] = useState(urlError);
+    const [channelNameError, setChannelNameError] = useState('');
+
+    // Handler for channel name validation errors
+    const handleChannelNameError = useCallback((isError: boolean, errorMessage?: string) => {
+        setChannelNameError(errorMessage || '');
+
+        // If there's an error, update the server error to show in the SaveChangesPanel
+        if (isError && errorMessage) {
+            setServerError(errorMessage);
+        } else if (serverError === channelNameError) {
+            // Only clear server error if it's the same as the channel name error
+            setServerError('');
+        }
+    }, [channelNameError, serverError, setServerError]);
 
     // Add validation functions
     const checkCharacterLimits = useCallback(() => {
         const isPurposeExceeded = internalChannelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH;
         const isHeaderExceeded = internalChannelHeader.length > headerMaxLength;
+        const hasNameError = Boolean(channelNameError);
 
-        const hasErrors = isPurposeExceeded || isHeaderExceeded;
+        const hasErrors = isPurposeExceeded || isHeaderExceeded || hasNameError;
 
         // Update parent's characterLimitExceeded state if the setter is provided
         if (setCharacterLimitExceeded) {
             setCharacterLimitExceeded(hasErrors);
         }
 
+        if (hasNameError) {
+            // The error message is already set by handleChannelNameError
+            return false;
+        }
         if (isPurposeExceeded) {
             setServerError(formatMessage({
                 id: 'channel_settings.error_purpose_length',
@@ -132,7 +151,7 @@ function ChannelSettingsInfoTab({
         }
 
         return true;
-    }, [internalChannelPurpose, internalChannelHeader, headerMaxLength, formatMessage, setServerError, setCharacterLimitExceeded]);
+    }, [internalChannelPurpose, internalChannelHeader, channelNameError, headerMaxLength, formatMessage, setServerError, setCharacterLimitExceeded]);
 
     // Add effect to notify parent of changes
     useEffect(() => {
@@ -236,6 +255,7 @@ function ChannelSettingsInfoTab({
                     setInternalDisplayName(name);
                 }}
                 onURLChange={handleURLChange}
+                onErrorStateChange={handleChannelNameError}
                 urlError={internalUrlError}
                 currentUrl={internalUrl}
             />

@@ -35,6 +35,7 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
     wrapperClassName?: string;
     inputClassName?: string;
     limit?: number;
+    minLength?: number;
     useLegend?: boolean;
     customMessage?: CustomMessageInputType;
     inputSize?: SIZE;
@@ -61,6 +62,7 @@ const Input = React.forwardRef((
         wrapperClassName,
         inputClassName,
         limit,
+        minLength,
         customMessage,
         maxLength,
         inputSize = SIZE.MEDIUM,
@@ -116,6 +118,28 @@ const Input = React.forwardRef((
     const handleOnChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setCustomInputLabel(null);
 
+        const newValue = event.target.value;
+
+        // Check for maxLength (limit) validation in real-time
+        if (limit && newValue && !Array.isArray(newValue) && newValue.toString().length > limit) {
+            const validationErrorMsg = formatMessage(
+                {id: 'widget.input.max_length', defaultMessage: 'Must be no more than {limit} characters'},
+                {limit},
+            );
+            setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
+        } else if (minLength && newValue !== undefined && !Array.isArray(newValue)) {
+            // Check for minLength validation in real-time
+            if (newValue.toString().length < minLength) {
+                const validationErrorMsg = formatMessage(
+                    {id: 'widget.input.min_length', defaultMessage: 'Must be at least {minLength} characters'},
+                    {minLength},
+                );
+                setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
+            } else {
+                setCustomInputLabel(null);
+            }
+        }
+
         if (onChange) {
             onChange(event);
         }
@@ -128,16 +152,35 @@ const Input = React.forwardRef((
     };
 
     const validateInput = () => {
-        if (!required || (value !== null && value !== '')) {
+        if (required && (value === null || value === '')) {
+            const validationErrorMsg = formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
+            setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
             return;
         }
-        const validationErrorMsg = formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
-        setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
+
+        if (limit && value && !Array.isArray(value) && value.toString().length > limit) {
+            const validationErrorMsg = formatMessage(
+                {id: 'widget.input.max_length', defaultMessage: 'Must be no more than {limit} characters'},
+                {limit},
+            );
+            setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
+            return;
+        }
+
+        if (minLength && value && !Array.isArray(value) && value.toString().length < minLength) {
+            const validationErrorMsg = formatMessage(
+                {id: 'widget.input.min_length', defaultMessage: 'Must be at least {minLength} characters'},
+                {minLength},
+            );
+            setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
+        }
     };
 
     const showLegend = Boolean(focused || value);
     const error = customInputLabel?.type === 'error';
     const limitExceeded = limit && value && !Array.isArray(value) ? value.toString().length - limit : 0;
+    const minLengthNotMet = minLength && value !== undefined && !Array.isArray(value) ? minLength - value.toString().length : (minLength || 0);
+    const isMinLengthError = minLengthNotMet > 0;
 
     const clearButton = value && clearable ? (
         <div
@@ -199,7 +242,7 @@ const Input = React.forwardRef((
         <div className={classNames('Input_container', containerClassName, {disabled})}>
             <fieldset
                 className={classNames('Input_fieldset', className, {
-                    Input_fieldset___error: error || hasError || limitExceeded > 0,
+                    Input_fieldset___error: error || hasError || limitExceeded > 0 || isMinLengthError,
                     Input_fieldset___legend: showLegend,
                 })}
             >
@@ -215,6 +258,11 @@ const Input = React.forwardRef((
                     {limitExceeded > 0 && (
                         <span className='Input_limit-exceeded'>
                             {'-'}{limitExceeded}
+                        </span>
+                    )}
+                    {isMinLengthError && (
+                        <span className='Input_limit-exceeded'>
+                            {'+'}{minLengthNotMet}
                         </span>
                     )}
                     {inputSuffix}

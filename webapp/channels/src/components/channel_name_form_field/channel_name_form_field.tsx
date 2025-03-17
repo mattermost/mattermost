@@ -26,7 +26,7 @@ export type Props = {
     onURLChange: (url: string) => void;
     currentUrl?: string;
     autoFocus?: boolean;
-    onErrorStateChange?: (isError: boolean) => void;
+    onErrorStateChange?: (isError: boolean, errorMessage?: string) => void;
     team?: Team;
     urlError?: string;
 }
@@ -113,7 +113,8 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
 
     useEffect(() => {
         if (props.onErrorStateChange) {
-            props.onErrorStateChange(Boolean(displayNameError) || Boolean(urlError));
+            const errorMessage = displayNameError || urlError || '';
+            props.onErrorStateChange(Boolean(displayNameError) || Boolean(urlError), errorMessage);
         }
     }, [displayNameError, urlError]);
 
@@ -137,6 +138,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 label={formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}
                 placeholder={props.placeholder}
                 limit={Constants.MAX_CHANNELNAME_LENGTH}
+                minLength={Constants.MIN_CHANNELNAME_LENGTH}
                 value={props.value}
                 customMessage={inputCustomMessage}
                 onChange={handleOnDisplayNameChange}
