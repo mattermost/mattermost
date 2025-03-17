@@ -194,7 +194,7 @@ class PushSettings extends OLDAdminSettings<Props, State> {
                     values={{
                         linkIOS: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/pl/ios-app/'
+                                href='https://apps.apple.com/us/app/mattermost/id1257222717'
                                 location='push_settings'
                             >
                                 {msg}
@@ -202,7 +202,7 @@ class PushSettings extends OLDAdminSettings<Props, State> {
                         ),
                         linkAndroid: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/pl/android-app/'
+                                href='https://play.google.com/store/apps/details?id=com.mattermost.rn'
                                 location='push_settings'
                             >
                                 {msg}
@@ -227,7 +227,7 @@ class PushSettings extends OLDAdminSettings<Props, State> {
                     values={{
                         linkIOS: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/pl/ios-app/'
+                                href='https://apps.apple.com/us/app/mattermost/id1257222717'
                                 location='push_settings'
                             >
                                 {msg}
@@ -235,7 +235,7 @@ class PushSettings extends OLDAdminSettings<Props, State> {
                         ),
                         linkAndroid: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/pl/android-app/'
+                                href='https://play.google.com/store/apps/details?id=com.mattermost.rn'
                                 location='push_settings'
                             >
                                 {msg}
