@@ -427,7 +427,7 @@ func TestCPAField_SanitizeAndValidate(t *testing.T) {
 				},
 			},
 			expectError: true,
-			errorId:     "app.custom_profile_attributes.invalid_options.app_error",
+			errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
 		},
 		{
 			name: "invalid field with unknown visibility",
@@ -440,7 +440,7 @@ func TestCPAField_SanitizeAndValidate(t *testing.T) {
 				},
 			},
 			expectError: true,
-			errorId:     "app.custom_profile_attributes.unknown_visibility.app_error",
+			errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
 		},
 	}
 
