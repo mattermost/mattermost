@@ -2037,10 +2037,10 @@ func applyViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.Vie
 		channels[i] = v
 	}
 	resultQuery := query
-	if restrictions.Teams != nil && len(restrictions.Teams) > 0 {
+	if len(restrictions.Teams) > 0 {
 		resultQuery = resultQuery.Join(fmt.Sprintf("TeamMembers rtm ON ( rtm.UserId = Users.Id AND rtm.DeleteAt = 0 AND rtm.TeamId IN (%s))", sq.Placeholders(len(teams))), teams...)
 	}
-	if restrictions.Channels != nil && len(restrictions.Channels) > 0 {
+	if len(restrictions.Channels) > 0 {
 		resultQuery = resultQuery.Join(fmt.Sprintf("ChannelMembers rcm ON ( rcm.UserId = Users.Id AND rcm.ChannelId IN (%s))", sq.Placeholders(len(channels))), channels...)
 	}
 
