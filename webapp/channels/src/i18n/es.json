@@ -4041,7 +4041,6 @@
   "sidebar.types.channels": "CANALES",
   "sidebar.types.direct_messages": "MENSAJES DIRECTOS",
   "sidebar.types.favorites": "FAVORITOS",
-  "sidebar.types.unreads": "SIN LEER",
   "sidebar.unreads": "Más sin leer",
   "sidebar_left.add_channel_dropdown.browseChannels": "Ver Canales",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Crear Nuevo Canal",

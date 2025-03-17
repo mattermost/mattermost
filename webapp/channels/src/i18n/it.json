@@ -3034,7 +3034,6 @@
   "sidebar.types.channels": "CANALI",
   "sidebar.types.direct_messages": "MESSAGGI DIRETTI",
   "sidebar.types.favorites": "PREFERITI",
-  "sidebar.types.unreads": "NON LETTI",
   "sidebar.unreads": "Più non letti",
   "sidebar_left.addChannelsCta": "Aggiugi canali",
   "sidebar_left.add_channel_dropdown.browseChannels": "Sfoglia canali",

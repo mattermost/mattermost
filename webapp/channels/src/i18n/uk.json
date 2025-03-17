@@ -5167,7 +5167,6 @@
   "sidebar.types.channels": "КАНАЛИ",
   "sidebar.types.direct_messages": "ПРИВАТНІ ПОВІДОМЛЕННЯ",
   "sidebar.types.favorites": "ОБРАНІ",
-  "sidebar.types.unreads": "НЕПРОЧИТАНІ",
   "sidebar.unreads": "Більше непрочитаних",
   "sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel": "Перегляд каналів",
   "sidebarLeft.browserOrCreateChannelMenu.createCategoryMenuItem.primaryLabel": "Створити нову Категорію",

@@ -5167,7 +5167,6 @@
   "sidebar.types.channels": "KANALER",
   "sidebar.types.direct_messages": "DIREKTMEDDELANDEN",
   "sidebar.types.favorites": "FAVORITER",
-  "sidebar.types.unreads": "OLÄSTA",
   "sidebar.unreads": "Fler olästa meddelanden",
   "sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel": "Bläddra bland kanaler",
   "sidebarLeft.browserOrCreateChannelMenu.createCategoryMenuItem.primaryLabel": "Skapa ny kategori",

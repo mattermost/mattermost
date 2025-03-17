@@ -3468,7 +3468,6 @@
   "sidebar.types.channels": "KANALER",
   "sidebar.types.direct_messages": "DIREKTEMELDINGER",
   "sidebar.types.favorites": "FAVORITTER",
-  "sidebar.types.unreads": "ULESTE",
   "sidebar.unreads": "Flere uleste",
   "sidebar_left.addChannelsCta": "Legg til kanaler",
   "sidebar_left.add_channel_cta_dropdown.dropdownAriaLabel": "Legg til kanalrullegardin",

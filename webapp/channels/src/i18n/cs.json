@@ -5167,7 +5167,6 @@
   "sidebar.types.channels": "KANÁLY",
   "sidebar.types.direct_messages": "PŘÍMÉ ZPRÁVY",
   "sidebar.types.favorites": "OBLÍBENÉ",
-  "sidebar.types.unreads": "NEPŘEČTENÉ",
   "sidebar.unreads": "Více nepřečtených",
   "sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel": "Procházet Kanály",
   "sidebarLeft.browserOrCreateChannelMenu.createCategoryMenuItem.primaryLabel": "Vytvořit Novou Kategorii",

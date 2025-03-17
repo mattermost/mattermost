@@ -5167,7 +5167,6 @@
   "sidebar.types.channels": "KANALLAR",
   "sidebar.types.direct_messages": "DOĞRUDAN İLETİLER",
   "sidebar.types.favorites": "BEĞENDİKLERİM",
-  "sidebar.types.unreads": "OKUNMAMIŞLAR",
   "sidebar.unreads": "Diğer okunmamışlar",
   "sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel": "Kanallara göz atın",
   "sidebarLeft.browserOrCreateChannelMenu.createCategoryMenuItem.primaryLabel": "Yeni kategori ekle",

@@ -5167,7 +5167,6 @@
   "sidebar.types.channels": "チャンネル",
   "sidebar.types.direct_messages": "ダイレクトメッセージ",
   "sidebar.types.favorites": "お気に入り",
-  "sidebar.types.unreads": "未読",
   "sidebar.unreads": "未読をもっと見る",
   "sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel": "チャンネルを閲覧",
   "sidebarLeft.browserOrCreateChannelMenu.createCategoryMenuItem.primaryLabel": "新しいカテゴリを作成する",
