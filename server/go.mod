@@ -1,8 +1,8 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.22.0
+go 1.23.0
 
-toolchain go1.22.6
+toolchain go1.23.7
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
@@ -242,10 +242,6 @@ require (
 // github.com/bits-and-blooms/bitset and a couple of dependent repos are yet
 // to update their module paths.
 exclude (
-	// goquery requires go >= 1.23. Remove this once we upgrade to 1.23
-	github.com/PuerkitoBio/goquery v1.9.3
-	github.com/PuerkitoBio/goquery v1.10.0
-	github.com/PuerkitoBio/goquery v1.10.1
 	github.com/RoaringBitmap/roaring v0.7.0
 	github.com/RoaringBitmap/roaring v0.7.1
 	github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09
