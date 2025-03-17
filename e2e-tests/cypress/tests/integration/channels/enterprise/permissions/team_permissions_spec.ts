@@ -168,8 +168,8 @@ describe('Team Permissions', () => {
             // * Verify dropdown opens
             cy.get('#channelHeaderDropdownMenu .Menu__content.dropdown-menu').should('be.visible');
 
-            // # Click on `Add Members`
-            cy.get('#channelAddMembers').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+            // # Click on `Invite Members`
+            cy.get('#channelInviteMembers').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
             // # Search and select otherUser
             cy.get('#selectItems input').typeWithForce(otherUser.username).wait(TIMEOUTS.HALF_SEC);

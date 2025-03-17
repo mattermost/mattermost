@@ -61,6 +61,7 @@ const SidebarHeader = (props: Props) => {
                             aria-haspopup='menu'
                             aria-expanded={menuToggled}
                             aria-controls='sidebarDropdownMenu'
+                            id='sidebarDropdownMenuButton'
                         >
                             <span className='title'>{currentTeam.display_name}</span>
                             <i
