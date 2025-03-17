@@ -5162,7 +5162,6 @@
   "sidebar.types.channels": "CHANNELS",
   "sidebar.types.direct_messages": "DIRECT MESSAGES",
   "sidebar.types.favorites": "FAVOURITES",
-  "sidebar.types.unreads": "UNREADS",
   "sidebar.unreads": "More unreads",
   "sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel": "Browse channels",
   "sidebarLeft.browserOrCreateChannelMenu.createCategoryMenuItem.primaryLabel": "Create new category",
