@@ -18,12 +18,12 @@ func CPASortOrder(p *PropertyField) int {
 		return 0
 	}
 
-	sortOrder, ok := value.(int)
+	sortOrder, ok := value.(float64)
 	if !ok {
 		return 0
 	}
 
-	return sortOrder
+	return int(sortOrder)
 }
 
 const (
