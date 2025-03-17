@@ -23,7 +23,7 @@ func isValidSkuShortName(license *model.License) bool {
 	}
 
 	switch license.SkuShortName {
-	case model.LicenseShortSkuE10, model.LicenseShortSkuE20, model.LicenseShortSkuProfessional, model.LicenseShortSkuEnterprise:
+	case model.LicenseShortSkuE10, model.LicenseShortSkuE20, model.LicenseShortSkuProfessional, model.LicenseShortSkuEnterprise, model.LicenseShortSkuPremium:
 		return true
 	default:
 		return false
