@@ -2946,6 +2946,27 @@ func TestGetUsers(t *testing.T) {
 		require.Equal(t, err.Error(), "Invalid or missing role in request body.")
 	})
 
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		user := &model.User{
+			Email:       th.GenerateTestEmail(),
+			Username:    GenerateTestUsername(),
+			AuthService: model.UserAuthServiceLdap,
+			AuthData:    model.NewPointer(model.NewId()),
+		}
+		u, resp, err := c.CreateUser(context.Background(), user)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, u)
+
+		u, resp, err = c.GetUser(context.Background(), u.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, u)
+
+		assert.Equal(t, user.AuthService, u.AuthService)
+		assert.Equal(t, user.AuthData, u.AuthData)
+	}, "AuthData is returned for admins")
+
 	_, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
 	_, resp, err := th.Client.GetUsers(context.Background(), 0, 60, "")
