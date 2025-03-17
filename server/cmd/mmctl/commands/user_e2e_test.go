@@ -163,7 +163,6 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		ldapUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 			Email:       s.th.GenerateTestEmail(),
 			Username:    model.NewUsername(),
-			Password:    model.NewId(),
 			AuthData:    model.NewPointer("1234"),
 			AuthService: model.UserAuthServiceLdap,
 		})
