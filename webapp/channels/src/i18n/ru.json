@@ -4958,7 +4958,7 @@
   "sidebar_left.sidebar_category_menu.createCategory": "Создать категорию",
   "sidebar_left.sidebar_category_menu.deleteCategory": "Удалить категорию",
   "sidebar_left.sidebar_category_menu.dropdownAriaLabel": "Редактировать меню категорий",
-  "sidebar_left.sidebar_category_menu.editCategory": "Настройки категории",
+  "sidebar_left.sidebar_category_menu.editCategory": "Настройки категории {name}",
   "sidebar_left.sidebar_category_menu.muteCategory": "Скрыть категорию",
   "sidebar_left.sidebar_category_menu.renameCategory": "Переименовать категорию",
   "sidebar_left.sidebar_category_menu.sort.dropdownAriaLabel": "Сортировать подменю",
