@@ -783,7 +783,7 @@ type JobStore interface {
 	SaveOnce(job *model.Job) (*model.Job, error)
 	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
 	UpdateStatus(id string, status string) (*model.Job, error)
-	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error)
+	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error)
 	Get(c request.CTX, id string) (*model.Job, error)
 	GetAllByType(c request.CTX, jobType string) ([]*model.Job, error)
 	GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error)
@@ -1039,6 +1039,7 @@ type DraftStore interface {
 	GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt int64, userID string) (int64, string, error)
 	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error
+	PermanentDeleteByUser(userId string) error
 }
 
 type PostAcknowledgementStore interface {
@@ -1059,7 +1060,7 @@ type PostPersistentNotificationStore interface {
 	DeleteByTeam(teamIds []string) error
 }
 type ChannelBookmarkStore interface {
-	ErrorIfBookmarkFileInfoAlreadyAttached(fileID string) error
+	ErrorIfBookmarkFileInfoAlreadyAttached(fileID string, channelID string) error
 	Get(Id string, includeDeleted bool) (b *model.ChannelBookmarkWithFileInfo, err error)
 	Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (b *model.ChannelBookmarkWithFileInfo, err error)
 	Update(bookmark *model.ChannelBookmark) error
@@ -1087,19 +1088,21 @@ type PropertyGroupStore interface {
 
 type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
-	Get(id string) (*model.PropertyField, error)
-	GetMany(ids []string) ([]*model.PropertyField, error)
+	Get(groupID, id string) (*model.PropertyField, error)
+	GetMany(groupID string, ids []string) ([]*model.PropertyField, error)
+	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
-	Update(field []*model.PropertyField) ([]*model.PropertyField, error)
+	Update(fields []*model.PropertyField) ([]*model.PropertyField, error)
 	Delete(id string) error
 }
 
 type PropertyValueStore interface {
 	Create(value *model.PropertyValue) (*model.PropertyValue, error)
-	Get(id string) (*model.PropertyValue, error)
-	GetMany(ids []string) ([]*model.PropertyValue, error)
+	Get(groupID, id string) (*model.PropertyValue, error)
+	GetMany(groupID string, ids []string) ([]*model.PropertyValue, error)
 	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
-	Update(field []*model.PropertyValue) ([]*model.PropertyValue, error)
+	Update(values []*model.PropertyValue) ([]*model.PropertyValue, error)
+	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Delete(id string) error
 	DeleteForField(id string) error
 }

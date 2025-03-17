@@ -9684,10 +9684,6 @@
     "translation": "無法建立使用者。使用者數量超過伺服器安全限制。請聯絡您的管理員，並附上錯誤代碼：ERROR_SAFETY_LIMITS_EXCEEDED。"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "您的 Elasticsearch 頻道索引架構已過期，建議重新生成您的頻道索引。\n請點ㄧ下 [系統管理後台的 Elasticsearch]{{.ElasticsearchSection}} 中的「重建頻道索引」按鈕來修復此問題。 \n有關更多資訊，請參閱 Mattermost 變更記錄。"
-  },
-  {
     "id": "ent.elasticsearch.purge_index.delete_failed",
     "translation": "刪除一條 Elasticsearch 索引失敗"
   },

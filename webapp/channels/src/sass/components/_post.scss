@@ -343,12 +343,6 @@
         }
     }
 
-    .emoji-picker {
-        position: absolute;
-        top: -361px;
-        right: 0;
-    }
-
     .scroll {
         .custom-textarea {
             overflow: auto;
@@ -658,11 +652,9 @@
             visibility: visible;
         }
 
-        .post-add-reaction {
-            .Reaction {
-                opacity: 1;
-                visibility: visible;
-            }
+        .Reaction__add {
+            opacity: 1;
+            visibility: visible;
         }
     }
 
@@ -1201,8 +1193,12 @@
         margin: 0 auto;
         table-layout: fixed;
 
-        > div {
+        .post__img,
+        .post__header-body {
             display: table-cell;
+        }
+
+        > div {
             vertical-align: top;
         }
     }
@@ -1373,13 +1369,10 @@
         }
     }
 
-    .post-add-reaction {
+    .Reaction__add {
         display: inline-block;
-
-        .Reaction {
-            opacity: 0;
-            visibility: hidden;
-        }
+        opacity: 0;
+        visibility: hidden;
     }
 
     .post__body {
@@ -1488,21 +1481,8 @@
         align-items: center;
         padding: 4px 0 0;
 
-        .post-add-reaction-emoji-picker-open {
+        .Reaction__add {
             display: inline-block;
-
-            .Reaction {
-                opacity: 1;
-                visibility: visible;
-            }
-        }
-    }
-
-    .post-add-reaction-emoji-picker-open {
-        .Reaction {
-            background-color: rgba(var(--button-bg-rgb), 0.08);
-            color: functions.v(button-bg);
-            fill: functions.v(button-bg);
         }
     }
 

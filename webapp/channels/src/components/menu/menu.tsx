@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import MuiMenu from '@mui/material/Menu';
 import MuiMenuList from '@mui/material/MenuList';
+import MuiPopover from '@mui/material/Popover';
 import type {PopoverOrigin} from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {
@@ -73,6 +73,7 @@ type MenuProps = {
     onToggle?: (isOpen: boolean) => void;
     onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
     width?: string;
+    isMenuOpen?: boolean;
 }
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
@@ -81,8 +82,11 @@ const defaultTransformOrigin = {vertical: 'top', horizontal: 'left'} as PopoverO
 interface Props {
     menuButton: MenuButtonProps;
     menuButtonTooltip?: MenuButtonTooltipProps;
+    menuHeader?: ReactNode;
+    menuFooter?: ReactNode;
     menu: MenuProps;
     children: ReactNode[];
+    closeMenuOnTab?: boolean;
 
     // Use MUI Anchor Playgroup to try various anchorOrigin
     // and transformOrigin values - https://mui.com/material-ui/react-popover/#anchor-playground
@@ -101,6 +105,7 @@ interface Props {
  * </Menu.Item>
  */
 export function Menu(props: Props) {
+    const {closeMenuOnTab = true} = props;
     const theme = useSelector(getTheme);
 
     const isMobileView = useSelector(getIsMobileView);
@@ -154,6 +159,13 @@ export function Menu(props: Props) {
             // This however is not the case for mouse events as they are handled/closed by menu item click handlers
             props.menu.onKeyDown(event, closeMenu);
         }
+
+        // To handle closing the menu when TAB is pressed by default.
+        // This is added as MUI popover component does not automatically close the menu when TAB is pressed.
+        // `closeMenuOnTab` is used in case if we want to opt out from closing the menu on TAB.
+        if (closeMenuOnTab && isKeyPressed(event, Constants.KeyCodes.TAB)) {
+            closeMenu();
+        }
     }
 
     function handleMenuButtonClick(event: MouseEvent) {
@@ -173,6 +185,8 @@ export function Menu(props: Props) {
                         onModalClose: handleMenuModalClose,
                         children: props.children,
                         onKeyDown: props.menu.onKeyDown,
+                        menuHeader: props.menuHeader,
+                        menuFooter: props.menuFooter,
                     },
                 }),
             );
@@ -214,6 +228,7 @@ export function Menu(props: Props) {
                     title={props.menuButtonTooltip.text}
                     isVertical={props.menuButtonTooltip?.isVertical ?? true}
                     disabled={isMenuOpen || props.menuButton?.disabled}
+                    className={props.menuButtonTooltip.class}
                 >
                     {triggerElement}
                 </WithTooltip>
@@ -229,6 +244,12 @@ export function Menu(props: Props) {
         }
     }, [isMenuOpen]);
 
+    useEffect(() => {
+        if (props.menu.isMenuOpen === false) {
+            setAnchorElement(null);
+        }
+    }, [props.menu.isMenuOpen]);
+
     const providerValue = useMenuContextValue(closeMenu, Boolean(anchorElement));
 
     if (isMobileView) {
@@ -240,7 +261,7 @@ export function Menu(props: Props) {
         <CompassDesignProvider theme={theme}>
             {renderMenuButton()}
             <MenuContext.Provider value={providerValue}>
-                <MuiMenu
+                <MuiPopover
                     anchorEl={anchorElement}
                     open={isMenuOpen}
                     onClose={handleMenuClose}
@@ -250,16 +271,6 @@ export function Menu(props: Props) {
                     marginThreshold={0}
                     anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
                     transformOrigin={props.transformOrigin || defaultTransformOrigin}
-                    disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
-                    MenuListProps={{
-                        id: props.menu.id,
-                        className: props.menu.className,
-                        'aria-label': props.menu?.['aria-label'],
-                        'aria-labelledby': props.menu?.['aria-labelledby'],
-                        style: {
-                            width: props.menu?.width,
-                        },
-                    }}
                     TransitionProps={{
                         mountOnEnter: true,
                         unmountOnExit: true,
@@ -277,8 +288,21 @@ export function Menu(props: Props) {
                     // @ts-expect-error This exists in source code of mui, but its types are missing
                     onTransitionExited={providerValue.handleClosed}
                 >
-                    {props.children}
-                </MuiMenu>
+                    {props.menuHeader}
+                    <MuiMenuList
+                        id={props.menu.id}
+                        aria-label={props.menu?.['aria-label']}
+                        aria-labelledby={props.menu['aria-labelledby']}
+                        autoFocusItem={!disableAutoFocusItem}
+                        className={props.menu.className}
+                        style={{
+                            width: props.menu.width,
+                        }}
+                    >
+                        {props.children}
+                    </MuiMenuList>
+                    {props.menuFooter}
+                </MuiPopover>
             </MenuContext.Provider>
         </CompassDesignProvider>
     );
@@ -292,6 +316,8 @@ interface MenuModalProps {
     onModalClose: (modalId: MenuProps['id']) => void;
     children: Props['children'];
     onKeyDown?: MenuProps['onKeyDown'];
+    menuHeader?: Props['menuHeader'];
+    menuFooter?: Props['menuFooter'];
 }
 
 function MenuModal(props: MenuModalProps) {
@@ -337,7 +363,9 @@ function MenuModal(props: MenuModalProps) {
                     onClick={handleModalClickCapture}
                     className={props.className}
                 >
+                    {props.menuHeader}
                     {props.children}
+                    {props.menuFooter}
                 </MuiMenuList>
             </GenericModal>
         </CompassDesignProvider>
