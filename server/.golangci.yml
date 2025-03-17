@@ -89,13 +89,11 @@ issues:
         channels/app/helper_test.go|\
         channels/app/import_functions.go|\
         channels/app/integration_action.go|\
-        channels/app/permissions.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\
         channels/app/platform/session.go|\
         channels/app/platform/status.go|\
-        channels/app/platform/web_broadcast_hook.go|\
         channels/app/platform/web_hub_test.go|\
         channels/app/plugin_test.go|\
         channels/app/post_helpers_test.go|\

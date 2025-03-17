@@ -20,6 +20,7 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import * as GlobalActions from 'actions/global_actions';
+import type {CreatePostOptions} from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
@@ -54,6 +55,7 @@ import Constants, {
     AdvancedTextEditor as AdvancedTextEditorConst,
     UserStatuses,
     ModalIdentifiers,
+    AdvancedTextEditorTextboxIds,
 } from 'utils/constants';
 import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
@@ -76,7 +78,7 @@ import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar';
-import useEmojiPicker from './use_emoji_picker';
+import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
 import useOrientationHandler from './use_orientation_handler';
 import usePluginItems from './use_plugin_items';
@@ -130,6 +132,19 @@ const AdvancedTextEditor = ({
     const getChannelSelector = useMemo(makeGetChannel, []);
     const getDraftSelector = useMemo(makeGetDraft, []);
     const getDisplayName = useMemo(makeGetDisplayName, []);
+
+    let textboxId: string;
+    if (isInEditMode) {
+        textboxId = AdvancedTextEditorTextboxIds.InEditMode;
+    } else if (location === Locations.CENTER) {
+        textboxId = AdvancedTextEditorTextboxIds.InCenter;
+    } else if (location === Locations.RHS_COMMENT) {
+        textboxId = AdvancedTextEditorTextboxIds.InRHSComment;
+    } else if (location === Locations.MODAL) {
+        textboxId = AdvancedTextEditorTextboxIds.InModal;
+    } else {
+        textboxId = AdvancedTextEditorTextboxIds.Default;
+    }
 
     const isRHS = Boolean(postId && !isThreadView);
 
@@ -197,6 +212,7 @@ const AdvancedTextEditor = ({
     const draftRef = useRef(draftFromStore);
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
+    const messageStatusRef = useRef<HTMLDivElement | null>(null);
 
     const [draft, setDraft] = useState(draftFromStore);
     const [caretPosition, setCaretPosition] = useState(draft.message.length);
@@ -308,12 +324,20 @@ const AdvancedTextEditor = ({
         isInEditMode,
     );
 
-    const emojiPickerOffset = isInEditMode ? {right: 40} : undefined;
     const {
         emojiPicker,
         enableEmojiPicker,
         toggleEmojiPicker,
-    } = useEmojiPicker(isDisabled, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox, emojiPickerOffset);
+    } = useEditorEmojiPicker(
+        textboxId,
+        isDisabled,
+        draft,
+        caretPosition,
+        setCaretPosition,
+        handleDraftChange,
+        showPreview,
+        focusTextbox,
+    );
     const {
         labels: priorityLabels,
         additionalControl: priorityAdditionalControl,
@@ -337,6 +361,19 @@ const AdvancedTextEditor = ({
         undefined,
         isInEditMode,
     );
+
+    const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
+        handleSubmit(submittingDraft, schedulingInfo, options);
+        if (!errorClass) {
+            const messageStatusElement = messageStatusRef.current;
+            const messageStatusInnerText = messageStatusElement?.textContent;
+            if (messageStatusInnerText === 'Message Sent') {
+                messageStatusElement!.textContent = 'Message Sent &nbsp;';
+            } else {
+                messageStatusElement!.textContent = 'Message Sent';
+            }
+        }
+    }, [errorClass, handleSubmit]);
 
     const handleCancel = useCallback(() => {
         handleDraftChange({
@@ -392,8 +429,8 @@ const AdvancedTextEditor = ({
             handleFileChangesOnSave(draft);
         }
 
-        handleSubmit();
-    }, [dispatch, draft, handleFileChangesOnSave, handleSubmit, isInEditMode, isRHS]);
+        handleSubmitWithErrorHandling();
+    }, [dispatch, draft, handleFileChangesOnSave, handleSubmitWithErrorHandling, isInEditMode, isRHS]);
 
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
@@ -418,8 +455,8 @@ const AdvancedTextEditor = ({
 
     const handleSubmitWithEvent = useCallback((e: React.FormEvent) => {
         e.preventDefault();
-        handleSubmit();
-    }, [handleSubmit]);
+        handleSubmitWithErrorHandling();
+    }, [handleSubmitWithErrorHandling]);
 
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
@@ -573,7 +610,9 @@ const AdvancedTextEditor = ({
         draftRef.current = draft;
     }, [draft]);
 
-    const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => handleSubmit(undefined, schedulingInfo), [handleSubmit]);
+    const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => {
+        handleSubmitWithErrorHandling(undefined, schedulingInfo);
+    }, [handleSubmitWithErrorHandling]);
 
     // Set the draft from store when changing post or channels, and store the previous one
     useEffect(() => {
@@ -635,24 +674,6 @@ const AdvancedTextEditor = ({
     }
 
     const messageValue = isDisabled ? '' : draft.message_source || draft.message;
-
-    let textboxId = 'textbox';
-
-    switch (location) {
-    case Locations.CENTER:
-        textboxId = 'post_textbox';
-        break;
-    case Locations.RHS_COMMENT:
-        textboxId = 'reply_textbox';
-        break;
-    case Locations.MODAL:
-        textboxId = 'modal_textbox';
-        break;
-    }
-
-    if (isInEditMode) {
-        textboxId = 'edit_textbox';
-    }
 
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
 
@@ -865,6 +886,11 @@ const AdvancedTextEditor = ({
                     onCancel={handleCancel}
                 />
             )}
+            <div
+                ref={messageStatusRef}
+                aria-live='assertive'
+                className='sr-only'
+            />
         </form>
     );
 };

@@ -104,7 +104,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 cy.reload();
 
                 // * Verify the aria-label in more public channels button
-                cy.uiBrowseOrCreateChannel('Browse channels').click();
+                cy.uiBrowseOrCreateChannel('Browse channels');
 
                 // * Verify the accessibility support in More Channels Dialog
                 cy.findByRole('dialog', {name: 'Browse Channels'}).within(() => {
@@ -206,7 +206,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         cy.get('#invitePeople').should('be.visible').click();
 
         // * Verify accessibility support in Invite People Dialog
-        cy.get('.InvitationModal').should('have.attr', 'aria-modal', 'true').and('have.attr', 'aria-labelledby', 'invitation_modal_title').and('have.attr', 'role', 'dialog');
+        cy.findByTestId('invitationModal').should('have.attr', 'aria-modal', 'true').and('have.attr', 'aria-labelledby', 'invitation_modal_title').and('have.attr', 'role', 'dialog');
         cy.get('#invitation_modal_title').should('be.visible').and('contain.text', 'Invite people to');
 
         // # Press tab

@@ -407,24 +407,6 @@ func (_m *SearchEngineInterface) IsAutocompletionEnabled() bool {
 	return r0
 }
 
-// IsChannelsIndexVerified provides a mock function with given fields:
-func (_m *SearchEngineInterface) IsChannelsIndexVerified() bool {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for IsChannelsIndexVerified")
-	}
-
-	var r0 bool
-	if rf, ok := ret.Get(0).(func() bool); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	return r0
-}
-
 // IsEnabled provides a mock function with given fields:
 func (_m *SearchEngineInterface) IsEnabled() bool {
 	ret := _m.Called()
@@ -557,9 +539,9 @@ func (_m *SearchEngineInterface) RefreshIndexes(rctx request.CTX) *model.AppErro
 	return r0
 }
 
-// SearchChannels provides a mock function with given fields: teamId, userID, term, isGuest
-func (_m *SearchEngineInterface) SearchChannels(teamId string, userID string, term string, isGuest bool) ([]string, *model.AppError) {
-	ret := _m.Called(teamId, userID, term, isGuest)
+// SearchChannels provides a mock function with given fields: teamId, userID, term, isGuest, includeDeleted
+func (_m *SearchEngineInterface) SearchChannels(teamId string, userID string, term string, isGuest bool, includeDeleted bool) ([]string, *model.AppError) {
+	ret := _m.Called(teamId, userID, term, isGuest, includeDeleted)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SearchChannels")
@@ -567,19 +549,19 @@ func (_m *SearchEngineInterface) SearchChannels(teamId string, userID string, te
 
 	var r0 []string
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, string, bool) ([]string, *model.AppError)); ok {
-		return rf(teamId, userID, term, isGuest)
+	if rf, ok := ret.Get(0).(func(string, string, string, bool, bool) ([]string, *model.AppError)); ok {
+		return rf(teamId, userID, term, isGuest, includeDeleted)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, string, bool) []string); ok {
-		r0 = rf(teamId, userID, term, isGuest)
+	if rf, ok := ret.Get(0).(func(string, string, string, bool, bool) []string); ok {
+		r0 = rf(teamId, userID, term, isGuest, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, string, bool) *model.AppError); ok {
-		r1 = rf(teamId, userID, term, isGuest)
+	if rf, ok := ret.Get(1).(func(string, string, string, bool, bool) *model.AppError); ok {
+		r1 = rf(teamId, userID, term, isGuest, includeDeleted)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

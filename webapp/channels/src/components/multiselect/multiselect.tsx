@@ -3,12 +3,11 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {ReactNode} from 'react';
+import type {ComponentProps, ReactNode} from 'react';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-import type {getOptionValue} from 'react-select/src/builtins';
-import type {InputActionMeta} from 'react-select/src/types';
+import type {GetOptionValue, InputActionMeta, SelectInstance} from 'react-select';
 
 import SaveButton from 'components/save_button';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
@@ -30,7 +29,7 @@ export type Value = {
 };
 
 export type Props<T extends Value> = {
-    ariaLabelRenderer: getOptionValue<T>;
+    ariaLabelRenderer: GetOptionValue<T>;
     backButtonClick?: () => void;
     backButtonClass?: string;
     backButtonText?: string | MessageDescriptor;
@@ -80,7 +79,7 @@ const KeyCodes = Constants.KeyCodes;
 
 export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, State> {
     private listRef = React.createRef<MultiSelectList<T>>();
-    private reactSelectRef = React.createRef<ReactSelect>();
+    private reactSelectRef = React.createRef<SelectInstance<T>>();
     private selected: T | null = null;
 
     public static defaultProps = {
@@ -102,7 +101,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
     }
 
     public componentDidMount() {
-        const inputRef: unknown = this.reactSelectRef.current && this.reactSelectRef.current.select.inputRef;
+        const inputRef: unknown = this.reactSelectRef.current && this.reactSelectRef.current.inputRef;
 
         document.addEventListener<'keydown'>('keydown', this.handleEnterPress);
         if (inputRef && typeof (inputRef as HTMLElement).addEventListener === 'function') {
@@ -119,7 +118,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
     }
 
     public componentWillUnmount() {
-        const inputRef: unknown = this.reactSelectRef.current && this.reactSelectRef.current.select.inputRef;
+        const inputRef: unknown = this.reactSelectRef.current && this.reactSelectRef.current.inputRef;
 
         if (inputRef && typeof (inputRef as HTMLElement).addEventListener === 'function') {
             (inputRef as HTMLElement).removeEventListener(A11yCustomEventTypes.ACTIVATE, this.handleA11yActivateEvent);
@@ -185,7 +184,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
         this.selected = null;
 
         if (this.reactSelectRef.current) {
-            this.reactSelectRef.current.select.handleInputChange(
+            this.reactSelectRef.current.handleInputChange(
                 {currentTarget: {value: ''}} as React.KeyboardEvent<HTMLInputElement>,
             );
             this.reactSelectRef.current.focus();
@@ -249,7 +248,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
         this.props.handleSubmit();
     };
 
-    private onChange: ReactSelect['onChange'] = (_, change) => {
+    private onChange: ComponentProps<ReactSelect>['onChange'] = (_, change) => {
         if (change.action !== 'remove-value' && change.action !== 'pop-value') {
             return;
         }

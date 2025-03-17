@@ -8,15 +8,6 @@ else
 	PLATFORM := $(shell uname)
 endif
 
-# Set an environment variable on Linux used to resolve `docker.host.internal` inconsistencies with
-# docker. This can be reworked once https://github.com/docker/for-linux/issues/264 is resolved
-# satisfactorily.
-ifeq ($(PLATFORM),Linux)
-	export IS_LINUX = -linux
-else
-	export IS_LINUX =
-endif
-
 # Detect Apple Silicon and set a flag.
 ifeq ($(shell uname)/$(shell uname -m),Darwin/arm64)
   ARM_BASED_MAC = true
@@ -121,6 +112,7 @@ GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION = 1
 MINIMUM_SUPPORTED_GO_MINOR_VERSION = 15
 GO_VERSION_VALIDATION_ERR_MSG = Golang version is not supported, please update to at least $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION).$(MINIMUM_SUPPORTED_GO_MINOR_VERSION)
+GO_COMPATIBILITY_TEST_VERSIONS := 1.22.7 1.23.6
 
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
 BUILDER_GOOS_GOARCH="$(shell $(GO) env GOOS)_$(shell $(GO) env GOARCH)"
@@ -144,19 +136,19 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.5.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.6.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.1
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.2.1
 # We need to prepackage both versions of playbooks and install the correct one based on the server license. See MM-60025.
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.40.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.0.1
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.1.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
-PLUGIN_PACKAGES += mattermost-plugin-ai-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-boards-v9.0.2
-PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.1.0
+PLUGIN_PACKAGES += mattermost-plugin-ai-v1.1.1
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.1
+PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.1.1
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
@@ -292,6 +284,13 @@ else
 	$(MAKE) mmctl-build
 endif
 
+golang-versions: ## Install Golang versions used for compatibility testing (e.g. plugins)
+	@for version in $(GO_COMPATIBILITY_TEST_VERSIONS); do \
+		$(GO) install golang.org/dl/go$$version@latest && \
+		$(GOBIN)/go$$version download; \
+	done
+	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
+
 golangci-lint: ## Run golangci-lint on codebase
 	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57.1
 
@@ -303,11 +302,6 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 		$(GOBIN)/golangci-lint run $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
-
-app-layers: ## Extract interface from App struct
-	$(GO) install github.com/reflog/struct2interface@v0.6.1
-	$(GOBIN)/struct2interface -f "channels/app" -o "channels/app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./channels/app/layer_generators/app_iface.go.tmpl
-	$(GO) run ./channels/app/layer_generators -in ./channels/app/app_iface.go -out ./channels/app/opentracing/opentracing_layer.go -template ./channels/app/layer_generators/opentracing_layer.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
 	cd ../tools/mmgotool && $(GO) install .
@@ -386,7 +380,7 @@ pluginapi: ## Generates api and hooks glue code for plugins
 
 mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks
 
-layers: app-layers store-layers pluginapi
+layers: store-layers pluginapi
 
 generated: mocks layers
 
@@ -426,7 +420,7 @@ modules-tidy: ## Tidy Go modules
 	-cd public && $(GO) mod tidy
 	mv enterprise/external_imports.go.orig enterprise/external_imports.go
 
-test-server-pre: check-prereqs-enterprise start-docker gotestsum ## Runs tests.
+test-server-pre: check-prereqs-enterprise start-docker gotestsum golang-versions ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
@@ -854,9 +848,12 @@ test-migration:
 	# run pgloader and save the logs
 	pgloader --debug tests/temp.load > migration.log
 
-	$(GO) install github.com/mattermost/dbcmp/cmd/dbcmp@latest
+	$(GO) install github.com/mattermost/dbcmp/cmd/dbcmp@9324978963
 	# compare two database contents
 	# db_migrations differ due to a typo in the 92. migration name
 	# for now we exclude plugins such as playbooks and focalboard
 	# we also exlude systems table temporarily due to adding some keys while running the initial migration
 	bin/dbcmp --source "${MYSQL_DSN}" --target "${POSTGRES_DSN}" --exclude="db_migrations","ir_","focalboard","systems"
+
+test-local-filestore: # Run tests for local filestore
+	$(GO) test ./platform/shared/filestore -run '^TestLocalFileBackend' -v

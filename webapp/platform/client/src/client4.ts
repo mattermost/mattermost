@@ -3,11 +3,6 @@
 
 /* eslint-disable max-lines */
 
-import {
-    TrackPropertyUser,
-    TrackPropertyUserAgent, TrackScheduledPostsFeature,
-} from 'mattermost-webapp/src/packages/mattermost-redux/src/constants/telemetry';
-
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
@@ -615,7 +610,7 @@ export default class Client4 {
         );
     };
 
-    patchUser = (userPatch: Partial<UserProfile> & {id: string}) => {
+    patchUser = (userPatch: PartialExcept<UserProfile, 'id'>) => {
         return this.doFetch<UserProfile>(
             `${this.getUserRoute(userPatch.id)}/patch`,
             {method: 'put', body: JSON.stringify(userPatch)},
@@ -676,6 +671,13 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getUsersRoute()}/password/reset`,
             {method: 'post', body: JSON.stringify({token, new_password: newPassword})},
+        );
+    };
+
+    resetFailedAttempts = (userId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getUserRoute(userId)}/reset_failed_attempts`,
+            {method: 'post'},
         );
     };
 
@@ -1240,7 +1242,7 @@ export default class Client4 {
         );
     };
 
-    patchTeam = (team: Partial<Team> & {id: string}) => {
+    patchTeam = (team: PartialExcept<Team, 'id'>) => {
         return this.doFetch<Team>(
             `${this.getTeamRoute(team.id)}/patch`,
             {method: 'put', body: JSON.stringify(team)},
@@ -1579,7 +1581,7 @@ export default class Client4 {
         );
     }
 
-    createChannel = (channel: Channel) => {
+    createChannel = (channel: PartialExcept<Channel, 'name' | 'display_name' | 'type' | 'team_id'>) => {
         return this.doFetch<ServerChannel>(
             `${this.getChannelsRoute()}`,
             {method: 'post', body: JSON.stringify(channel)},
@@ -2103,13 +2105,10 @@ export default class Client4 {
         );
     };
 
-    updateCustomProfileAttributeValues = (attributeID: string, attributeValue: string) => {
-        const obj: { [key: string]: string } = {};
-        obj[attributeID] = attributeValue;
-
+    updateCustomProfileAttributeValues = (attributeValues: Record<string, string>) => {
         return this.doFetch<Record<string, string>>(
             `${this.getCustomProfileAttributeValuesRoute()}`,
-            {method: 'PATCH', body: JSON.stringify(obj)},
+            {method: 'PATCH', body: JSON.stringify(attributeValues)},
         );
     };
 
@@ -2123,18 +2122,26 @@ export default class Client4 {
 
     // Post Routes
 
-    createPost = async (post: Post) => {
+    createPost = async (post: PartialExcept<Post, 'channel_id' | 'message'>) => {
         const result = await this.doFetch<Post>(
             `${this.getPostsRoute()}`,
             {method: 'post', body: JSON.stringify(post)},
         );
-        const analyticsData = {channel_id: result.channel_id, post_id: result.id, [TrackPropertyUser]: result.user_id, root_id: result.root_id} as PostAnalytics;
+        const analyticsData = {channel_id: result.channel_id, post_id: result.id, user_actual_id: result.user_id, root_id: result.root_id} as PostAnalytics;
         if (post.metadata?.priority) {
             analyticsData.priority = post.metadata.priority.priority;
             analyticsData.requested_ack = post.metadata.priority.requested_ack;
             analyticsData.persistent_notifications = post.metadata.priority.persistent_notifications;
             this.trackEvent('api', 'api_posts_create', analyticsData);
         }
+        return result;
+    };
+
+    createPostEphemeral = async (userID: string, post: PartialExcept<Post, 'channel_id' | 'message'>) => {
+        const result = await this.doFetch<Post>(
+            `${this.getPostsRoute()}/ephemeral`,
+            {method: 'post', body: JSON.stringify({user_id: userID, post})},
+        );
         return result;
     };
 
@@ -2152,7 +2159,7 @@ export default class Client4 {
         );
     };
 
-    patchPost = (postPatch: Partial<Post> & {id: string}) => {
+    patchPost = (postPatch: PartialExcept<Post, 'id'>) => {
         return this.doFetch<Post>(
             `${this.getPostRoute(postPatch.id)}/patch`,
             {method: 'put', body: JSON.stringify(postPatch)},
@@ -2626,7 +2633,7 @@ export default class Client4 {
 
     // Integration Routes
 
-    createIncomingWebhook = (hook: IncomingWebhook) => {
+    createIncomingWebhook = (hook: PartialExcept<IncomingWebhook, 'channel_id'>) => {
         return this.doFetch<IncomingWebhook>(
             `${this.getIncomingHooksRoute()}`,
             {method: 'post', body: JSON.stringify(hook)},
@@ -2791,7 +2798,7 @@ export default class Client4 {
         );
     };
 
-    createOAuthApp = (app: OAuthApp) => {
+    createOAuthApp = (app: PartialExcept<OAuthApp, 'name' | 'description' | 'callback_urls' | 'homepage'>) => {
         return this.doFetch<OAuthApp>(
             `${this.getOAuthAppsRoute()}`,
             {method: 'post', body: JSON.stringify(app)},
@@ -2912,7 +2919,7 @@ export default class Client4 {
 
     // Emoji Routes
 
-    createCustomEmoji = (emoji: CustomEmoji, imageData: File) => {
+    createCustomEmoji = (emoji: PartialExcept<CustomEmoji, 'name' | 'creator_id'>, imageData: File) => {
         const formData = new FormData();
         formData.append('image', imageData);
         formData.append('emoji', JSON.stringify(emoji));
@@ -3515,7 +3522,7 @@ export default class Client4 {
         );
     };
 
-    createScheme = (scheme: Scheme) => {
+    createScheme = (scheme: PartialExcept<Scheme, 'display_name' | 'scope'>) => {
         return this.doFetch<Scheme>(
             `${this.getSchemesRoute()}`,
             {method: 'post', body: JSON.stringify(scheme)},
@@ -3706,14 +3713,14 @@ export default class Client4 {
         );
     };
 
-    getGroupsNotAssociatedToTeam = (teamID: string, q = '', page = 0, perPage = PER_PAGE_DEFAULT, source = 'ldap') => {
+    getGroupsNotAssociatedToTeam = (teamID: string, q = '', page = 0, perPage = PER_PAGE_DEFAULT, source = 'ldap', onlySyncableSources = false) => {
         return this.doFetch<Group[]>(
-            `${this.getGroupsRoute()}${buildQueryString({not_associated_to_team: teamID, page, per_page: perPage, q, include_member_count: true, group_source: source})}`,
+            `${this.getGroupsRoute()}${buildQueryString({not_associated_to_team: teamID, page, per_page: perPage, q, include_member_count: true, group_source: source, only_syncable_sources: onlySyncableSources})}`,
             {method: 'get'},
         );
     };
 
-    getGroupsNotAssociatedToChannel = (channelID: string, q = '', page = 0, perPage = PER_PAGE_DEFAULT, filterParentTeamPermitted = false, source = 'ldap') => {
+    getGroupsNotAssociatedToChannel = (channelID: string, q = '', page = 0, perPage = PER_PAGE_DEFAULT, filterParentTeamPermitted = false, source = 'ldap', onlySyncableSources = false) => {
         const query = {
             not_associated_to_channel: channelID,
             page,
@@ -3722,6 +3729,7 @@ export default class Client4 {
             include_member_count: true,
             filter_parent_team_permitted: filterParentTeamPermitted,
             group_source: source,
+            only_syncable_sources: onlySyncableSources,
         };
         return this.doFetch<Group[]>(
             `${this.getGroupsRoute()}${buildQueryString(query)}`,
@@ -3763,7 +3771,7 @@ export default class Client4 {
             context: {
                 ...call.context,
                 track_as_submit: trackAsSubmit,
-                [TrackPropertyUserAgent]: 'webapp',
+                user_agent: 'webapp',
             },
         };
         return this.doFetch<AppCallResponse>(
@@ -3776,7 +3784,7 @@ export default class Client4 {
         const params = {
             channel_id: channelID,
             team_id: teamID,
-            [TrackPropertyUserAgent]: 'webapp',
+            user_agent: 'webapp',
         };
 
         return this.doFetch<AppBinding[]>(
@@ -4298,8 +4306,8 @@ export default class Client4 {
     };
 
     // Schedule Post methods
-    createScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
-        this.trackFeatureEvent(TrackScheduledPostsFeature, 'create_scheduled_post', {[TrackPropertyUser]: schedulePost.user_id, [TrackPropertyUserAgent]: 'desktop'});
+    createScheduledPost = (schedulePost: PartialExcept<ScheduledPost, 'channel_id' | 'message' | 'scheduled_at'>, connectionId: string) => {
+        this.trackFeatureEvent('scheduled_posts', 'create_scheduled_post', {actual_user_id: schedulePost.user_id, user_agent: 'desktop'});
 
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule`,
@@ -4316,7 +4324,7 @@ export default class Client4 {
     };
 
     updateScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
-        this.trackFeatureEvent(TrackScheduledPostsFeature, 'update_scheduled_post', {[TrackPropertyUser]: schedulePost.user_id, [TrackPropertyUserAgent]: 'desktop'});
+        this.trackFeatureEvent('scheduled_posts', 'update_scheduled_post', {actual_user_id: schedulePost.user_id, user_agent: 'desktop'});
 
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule/${schedulePost.id}`,
@@ -4325,7 +4333,7 @@ export default class Client4 {
     };
 
     deleteScheduledPost = (userId: string, schedulePostId: string, connectionId: string) => {
-        this.trackFeatureEvent(TrackScheduledPostsFeature, 'delete_scheduled_post', {[TrackPropertyUser]: userId, [TrackPropertyUserAgent]: 'desktop'});
+        this.trackFeatureEvent('scheduled_posts', 'delete_scheduled_post', {actual_user_id: userId, user_agent: 'desktop'});
 
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule/${schedulePostId}`,
