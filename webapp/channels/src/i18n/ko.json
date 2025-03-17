@@ -2818,7 +2818,6 @@
   "sidebar.team_select": "{siteName} - 팀에 참여하기",
   "sidebar.types.channels": "채널",
   "sidebar.types.direct_messages": "개인 메시지",
-  "sidebar.types.unreads": "읽지 않음",
   "sidebar.unreads": "읽지 않은 글 더보기",
   "sidebar_left.add_channel_dropdown.browseChannels": "채널 보기",
   "sidebar_left.add_channel_dropdown.createNewChannel": "새로운 채널 생성",
