@@ -18,12 +18,12 @@ func CPASortOrder(p *PropertyField) int {
 		return 0
 	}
 
-	order, ok := value.(float64)
+	sortOrder, ok := value.(int)
 	if !ok {
 		return 0
 	}
 
-	return int(order)
+	return sortOrder
 }
 
 const (
@@ -109,7 +109,7 @@ type CPAField struct {
 
 type CPAAttrs struct {
 	Visibility string                                                `json:"visibility"`
-	SortOrder  string                                                `json:"sort_order"`
+	SortOrder  int                                                   `json:"sort_order"`
 	Options    PropertyOptions[*CustomProfileAttributesSelectOption] `json:"options"`
 	ValueType  string                                                `json:"value_type"`
 	LDAP       string                                                `json:"ldap"`

@@ -26,7 +26,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 				Type:    PropertyFieldTypeSelect,
 				Attrs: StringInterface{
 					CustomProfileAttributesPropertyAttrsVisibility: CustomProfileAttributesVisibilityAlways,
-					CustomProfileAttributesPropertyAttrsSortOrder:  "1",
+					CustomProfileAttributesPropertyAttrsSortOrder:  1,
 					CustomProfileAttributesPropertyAttrsValueType:  CustomProfileAttributesValueTypeEmail,
 					PropertyFieldAttributeOptions: []*CustomProfileAttributesSelectOption{
 						{
@@ -41,7 +41,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			},
 			wantAttrs: CPAAttrs{
 				Visibility: CustomProfileAttributesVisibilityAlways,
-				SortOrder:  "1",
+				SortOrder:  1,
 				ValueType:  CustomProfileAttributesValueTypeEmail,
 				Options: []*CustomProfileAttributesSelectOption{
 					{
@@ -62,14 +62,14 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 				Type:    PropertyFieldTypeText,
 				Attrs: StringInterface{
 					CustomProfileAttributesPropertyAttrsVisibility: CustomProfileAttributesVisibilityWhenSet,
-					CustomProfileAttributesPropertyAttrsSortOrder:  "2",
+					CustomProfileAttributesPropertyAttrsSortOrder:  2,
 				},
 				CreateAt: GetMillis(),
 				UpdateAt: GetMillis(),
 			},
 			wantAttrs: CPAAttrs{
 				Visibility: CustomProfileAttributesVisibilityWhenSet,
-				SortOrder:  "2",
+				SortOrder:  2,
 				ValueType:  "",
 				Options:    nil,
 			},
@@ -87,7 +87,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			},
 			wantAttrs: CPAAttrs{
 				Visibility: "",
-				SortOrder:  "",
+				SortOrder:  0,
 				ValueType:  "",
 				Options:    nil,
 			},
@@ -151,7 +151,7 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 				},
 				Attrs: CPAAttrs{
 					Visibility: CustomProfileAttributesVisibilityAlways,
-					SortOrder:  "1",
+					SortOrder:  1,
 					ValueType:  CustomProfileAttributesValueTypeEmail,
 					Options: []*CustomProfileAttributesSelectOption{
 						{
@@ -176,7 +176,7 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 				},
 				Attrs: CPAAttrs{
 					Visibility: CustomProfileAttributesVisibilityWhenSet,
-					SortOrder:  "2",
+					SortOrder:  2,
 				},
 			},
 		},
