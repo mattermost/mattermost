@@ -3913,7 +3913,6 @@
   "sidebar.types.channels": "CSATORNÁK",
   "sidebar.types.direct_messages": "KÖZVETLEN ÜZENETEK",
   "sidebar.types.favorites": "KEDVENCEK",
-  "sidebar.types.unreads": "OLVASATLAN",
   "sidebar.unreads": "Több olvasatlan",
   "sidebar_left.add_channel_dropdown.browseChannels": "Csatornák böngészése",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Új csatorna létrehozása",
