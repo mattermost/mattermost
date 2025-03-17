@@ -36,10 +36,9 @@ import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
-import {LicenseSkus} from 'utils/constants';
+import {isMinimumEnterpriseLicense, isMinimumProfessionalLicense} from 'utils/license_utils';
 
 import ChannelDetails from './channel_details';
-import {isMinimumEnterpriseLicense, isMinimumProfessionalLicense} from "utils/license_utils";
 
 type OwnProps = {
     match: {

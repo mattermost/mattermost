@@ -20,15 +20,16 @@ import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admi
 
 import WithTooltip from 'components/with_tooltip';
 
-import {LicenseSkus, ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
+import {isMinimumProfessionalLicense} from 'utils/license_utils';
 
 import {ExportErrorModal} from './export_error_modal';
 import {ExportUserDataModal} from './export_user_data_modal';
 import {UpgradeExportDataModal} from './upgrade_export_data_modal';
 
 import {convertTableOptionsToUserReportOptions} from '../utils';
+
 import './system_users_export.scss';
-import {isMinimumProfessionalLicense} from "utils/license_utils";
 
 interface Props {
     currentUserId: UserProfile['id'];
