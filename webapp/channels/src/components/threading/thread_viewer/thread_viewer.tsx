@@ -181,11 +181,14 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
             let highestUpdateAt = posts[order[0]].update_at;
 
             // Check all posts to find the highest update_at
-            (Object.values(posts) as Post[]).forEach((post: Post) => {
-                if (post.update_at > highestUpdateAt) {
-                    highestUpdateAt = post.update_at;
+            for (const postId in posts) {
+                if (Object.hasOwn(posts, postId)) {
+                    const post = posts[postId];
+                    if (post.update_at > highestUpdateAt) {
+                        highestUpdateAt = post.update_at;
+                    }
                 }
-            });
+            }
 
             this.props.actions.updateThreadLastUpdateAt(this.props.selected.id, highestUpdateAt);
         }
