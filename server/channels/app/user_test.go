@@ -93,17 +93,17 @@ func TestGetUserByAuth(t *testing.T) {
 	t.Run("normal user can be retrieved by auth data", func(t *testing.T) {
 		authData := "test_auth_data"
 		authService := "test_service"
-		
+
 		// Create user with auth data
 		user := &model.User{
-			Email:         model.NewId() + "@example.com",
-			Username:      model.NewId(),
-			Password:      "password",
+			Email:    model.NewId() + "@example.com",
+			Username: model.NewId(),
+			Password: "password",
 		}
-		
+
 		user, err := th.App.CreateUser(th.Context, user)
 		require.Nil(t, err)
-		
+
 		// Set auth data
 		userAuth := &model.UserAuth{
 			AuthData:    &authData,
@@ -111,13 +111,17 @@ func TestGetUserByAuth(t *testing.T) {
 		}
 		_, err = th.App.UpdateUserAuth(th.Context, user.Id, userAuth)
 		require.Nil(t, err)
-		
-		defer th.App.PermanentDeleteUser(th.Context, user)
-		
+
+		defer func() {
+			if err := th.App.PermanentDeleteUser(th.Context, user); err != nil {
+				t.Logf("error cleaning up test user: %v", err)
+			}
+		}()
+
 		// Get updated user
 		user, appErr := th.App.GetUser(user.Id)
 		require.Nil(t, appErr)
-		
+
 		// Get user by auth data
 		retrievedUser, appErr := th.App.GetUserByAuth(user.AuthData, user.AuthService)
 		require.Nil(t, appErr)
@@ -127,18 +131,22 @@ func TestGetUserByAuth(t *testing.T) {
 	t.Run("bot accounts cannot be retrieved by auth data", func(t *testing.T) {
 		authData := "bot_auth_data"
 		authService := "bot_service"
-		
+
 		// Create a user first
 		user := &model.User{
-			Email:         model.NewId() + "@example.com",
-			Username:      model.NewId(),
-			Password:      "password",
+			Email:    model.NewId() + "@example.com",
+			Username: model.NewId(),
+			Password: "password",
 		}
-		
+
 		user, err := th.App.CreateUser(th.Context, user)
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteUser(th.Context, user)
-		
+		defer func() {
+			if pErr := th.App.PermanentDeleteUser(th.Context, user); err != nil {
+				t.Logf("error cleaning up test user: %v", pErr)
+			}
+		}()
+
 		// Set auth data on user
 		userAuth := &model.UserAuth{
 			AuthData:    &authData,
@@ -146,18 +154,22 @@ func TestGetUserByAuth(t *testing.T) {
 		}
 		_, err = th.App.UpdateUserAuth(th.Context, user.Id, userAuth)
 		require.Nil(t, err)
-		
+
 		// Verify auth data is set
 		user, appErr := th.App.GetUser(user.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, authService, user.AuthService)
 		require.NotNil(t, user.AuthData)
-		
+
 		// Convert user to bot
 		bot, appErr := th.App.ConvertUserToBot(th.Context, user)
 		require.Nil(t, appErr)
-		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
-		
+		defer func() {
+			if pErr := th.App.PermanentDeleteBot(th.Context, bot.UserId); err != nil {
+				t.Logf("error cleaning up test bot: %v", pErr)
+			}
+		}()
+
 		// User's auth data should be cleared by ConvertUserToBot
 		updatedUser, appErr := th.App.GetUser(user.Id)
 		require.Nil(t, appErr)
@@ -166,7 +178,7 @@ func TestGetUserByAuth(t *testing.T) {
 		if updatedUser.AuthData != nil {
 			require.Empty(t, *updatedUser.AuthData)
 		}
-		
+
 		// Set auth data on the bot user to simulate an incomplete conversion
 		// or a case where a bot somehow has auth data
 		userAuth = &model.UserAuth{
@@ -175,13 +187,13 @@ func TestGetUserByAuth(t *testing.T) {
 		}
 		_, err = th.App.UpdateUserAuth(th.Context, user.Id, userAuth)
 		require.Nil(t, err)
-		
+
 		// Verify bot now has auth data
 		botUser, appErr := th.App.GetUser(user.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, authService, botUser.AuthService)
 		require.NotNil(t, botUser.AuthData)
-		
+
 		// Get user by auth data - this should fail
 		_, appErr = th.App.GetUserByAuth(botUser.AuthData, botUser.AuthService)
 		require.NotNil(t, appErr)

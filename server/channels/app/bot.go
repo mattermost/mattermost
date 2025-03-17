@@ -611,12 +611,12 @@ func (a *App) ConvertUserToBot(rctx request.CTX, user *model.User) (*model.Bot, 
 			AuthService: "",
 			AuthData:    &emptyString,
 		}
-		
+
 		_, err := a.UpdateUserAuth(rctx, user.Id, userAuth)
 		if err != nil {
 			return nil, err
 		}
-		
+
 		// Refresh user data
 		updatedUser, err := a.GetUser(user.Id)
 		if err != nil {

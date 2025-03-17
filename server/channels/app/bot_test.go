@@ -908,15 +908,15 @@ func TestConvertUserToBot(t *testing.T) {
 
 		// Create a user first
 		oauthUser := &model.User{
-			Email:        "oauth_user@example.com",
-			Username:     "oauth_user",
-			Password:     "password",
+			Email:         "oauth_user@example.com",
+			Username:      "oauth_user",
+			Password:      "password",
 			EmailVerified: true,
 		}
-		
+
 		oauthUser, err := th.App.CreateUser(th.Context, oauthUser)
 		require.Nil(t, err)
-		
+
 		// Set OAuth credentials
 		authData := "google_auth_data"
 		userAuth := &model.UserAuth{
@@ -925,13 +925,13 @@ func TestConvertUserToBot(t *testing.T) {
 		}
 		_, err = th.App.UpdateUserAuth(th.Context, oauthUser.Id, userAuth)
 		require.Nil(t, err)
-		
+
 		// Verify OAuth credentials are set
 		oauthUser, appErr := th.App.GetUser(oauthUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "google", oauthUser.AuthService)
 		require.NotNil(t, oauthUser.AuthData)
-		
+
 		// Convert user to bot
 		bot, err := th.App.ConvertUserToBot(th.Context, oauthUser)
 		require.Nil(t, err)
@@ -939,7 +939,7 @@ func TestConvertUserToBot(t *testing.T) {
 			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
 			require.Nil(t, err)
 		}()
-		
+
 		// Get updated user and verify OAuth credentials are cleared
 		updatedUser, err := th.App.GetUser(oauthUser.Id)
 		require.Nil(t, err)
