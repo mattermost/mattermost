@@ -58,7 +58,7 @@ func parseWWWAutolink(data string, position int) (Range, bool) {
 
 func isAllowedBeforeWWWLink(c byte) bool {
 	switch c {
-	case '*', '_', '~', ')':
+	case '*', '_', '~', ')', '<':
 		return true
 	}
 	return false
