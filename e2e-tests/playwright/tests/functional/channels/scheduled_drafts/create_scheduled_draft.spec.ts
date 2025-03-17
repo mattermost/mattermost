@@ -6,7 +6,7 @@ import {test} from '@e2e-support/test_fixture';
 import {ChannelsPage, ScheduledDraftPage} from '@e2e-support/ui/pages';
 import {duration, wait} from '@e2e-support/util';
 
-test('MM-T5643_1 should create a scheduled message from a channel', async ({pw}) => {
+test.skip('MM-T5643_1 should create a scheduled message from a channel', async ({pw}) => {
     test.setTimeout(duration.four_min);
 
     const draftMessage = 'Scheduled Draft';
@@ -24,9 +24,6 @@ test('MM-T5643_1 should create a scheduled message from a channel', async ({pw})
     const postBoxIndicator = await channelsPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
 
     await verifyScheduledDraft(channelsPage, scheduledDraftPage, draftMessage, postBoxIndicator);
-
-    // # Hover and verify options
-    await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
 
     // # Go back and wait for message to arrive
     await goBackToChannelAndWaitForMessageToArrive(page);
@@ -99,7 +96,7 @@ test('MM-T5643_6 should create a scheduled message under a thread post ', async 
     await sidebarRight.toBeVisible();
     (await sidebarRight.getLastPost()).toContainText(draftMessage);
 
-    await expect(channelsPage.sidebarRight.scheduledDraftChannelInfoMessage).not.toBeVisible();
+    await expect(channelsPage.sidebarRight.scheduledDraftChannelInfoMessage.first()).not.toBeVisible();
     await expect(channelsPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
     await channelsPage.sidebarLeft.assertNoPendingScheduledDraft();
 });

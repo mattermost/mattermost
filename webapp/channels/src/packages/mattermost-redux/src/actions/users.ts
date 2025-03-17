@@ -476,6 +476,24 @@ export function getMe(): ActionFuncAsync<UserProfile> {
     };
 }
 
+export function getCustomProfileAttributeValues(userID: string): ActionFuncAsync<Record<string, string>> {
+    return async (dispatch) => {
+        let data;
+        try {
+            data = await Client4.getUserCustomProfileAttributesValues(userID);
+        } catch (error) {
+            return {error};
+        }
+
+        dispatch({
+            type: UserTypes.RECEIVED_CPA_VALUES,
+            data: {userID, customAttributeValues: data},
+        });
+
+        return {data};
+    };
+}
+
 export function updateMyTermsOfServiceStatus(termsOfServiceId: string, accepted: boolean): ActionFuncAsync {
     return async (dispatch, getState) => {
         const response = await dispatch(bindClientFunc({
@@ -1046,6 +1064,24 @@ export function updateUserPassword(userId: string, currentPassword: string, newP
         const profile = getState().entities.users.profiles[userId];
         if (profile) {
             dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, last_password_update: new Date().getTime()}});
+        }
+
+        return {data: true};
+    };
+}
+
+export function resetFailedAttempts(userId: string): ActionFuncAsync<true> {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.resetFailedAttempts(userId);
+        } catch (error) {
+            dispatch(logError(error));
+            return {error};
+        }
+
+        const profile = getState().entities.users.profiles[userId];
+        if (profile) {
+            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, failed_attempts: 0}});
         }
 
         return {data: true};

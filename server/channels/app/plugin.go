@@ -1074,7 +1074,6 @@ var transitionallyPrepackagedPlugins = []string{
 	"focalboard",
 	"mattermost-autolink",
 	"com.mattermost.aws-sns",
-	"com.mattermost.plugin-channel-export",
 	"com.mattermost.confluence",
 	"com.mattermost.custom-attributes",
 	"jenkins",

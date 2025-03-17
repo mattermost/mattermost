@@ -195,6 +195,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                                 name='theme'
                                 checked={!displayCustom}
                                 onChange={this.updateType.bind(this, 'premade')}
+                                aria-controls='premadeThemesSection'
                             />
                             <FormattedMessage
                                 id='user.settings.display.theme.themeColors'
@@ -205,8 +206,6 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                     </div>,
                 );
             }
-
-            inputs.push(premade);
 
             if (this.props.allowCustomThemes) {
                 inputs.push(
@@ -221,6 +220,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                                 name='theme'
                                 checked={displayCustom}
                                 onChange={this.updateType.bind(this, 'custom')}
+                                aria-controls='customThemesSection'
                             />
                             <FormattedMessage
                                 id='user.settings.display.theme.customTheme'
@@ -230,7 +230,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                     </div>,
                 );
 
-                inputs.push(custom);
+                inputs.push(premade, custom);
 
                 inputs.push(
                     <div key='otherThemes'>
@@ -271,7 +271,19 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
             themeUI = (
                 <SettingItemMax
-                    inputs={inputs}
+                    inputs={
+                        <fieldset>
+                            <legend className='hidden-label'>
+                                <FormattedMessage
+                                    id='user.settings.display.theme.title'
+                                    defaultMessage='Theme'
+                                />
+                            </legend>
+                            <div>
+                                {inputs}
+                            </div>
+                        </fieldset>
+                    }
                     submitExtra={allTeamsCheckbox}
                     submit={this.submitTheme}
                     disableEnterSubmit={true}

@@ -64,6 +64,8 @@ describe('Edit Message', () => {
         // * Assert channel autocomplete is not visible
         cy.get('#suggestionList').should('not.exist');
 
+        cy.wait(TIMEOUTS.HALF_SEC);
+
         // # In the modal click the emoji picker icon
         cy.get('div.post-edit__container button#emojiPickerButton').click();
 

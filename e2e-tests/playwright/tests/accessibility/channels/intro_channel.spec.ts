@@ -42,24 +42,20 @@ test('Post actions tab support', async ({pw, axe}) => {
     await post.postMenu.toBeVisible();
 
     // # Open the dot menu
-    await post.postMenu.dotMenuButton.click();
+    await post.postMenu.dotMenuButton.press('Enter');
 
     // * Dot menu should be visible and have focused
     await channelsPage.postDotMenu.toBeVisible();
-    await expect(channelsPage.postDotMenu.container).toBeFocused();
+    await expect(channelsPage.postDotMenu.replyMenuItem).toBeFocused();
 
     // # Analyze the page
     const accessibilityScanResults = await axe
         .builder(page, {disableColorContrast: true})
-        .include('.MuiMenu-list')
+        .include('.MuiList-root.MuiList-padding')
         .analyze();
 
     // * Should have no violation
     expect(accessibilityScanResults.violations).toHaveLength(0);
-
-    // * Should move focus to Reply after arrow down
-    await channelsPage.postDotMenu.container.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.replyMenuItem).toBeFocused();
 
     // * Should move focus to Forward after arrow down
     await channelsPage.postDotMenu.replyMenuItem.press('ArrowDown');
@@ -129,12 +125,10 @@ test('Post actions tab support', async ({pw, axe}) => {
     // # Press arrow right
     await channelsPage.postDotMenu.remindMenuItem.press('ArrowRight');
 
-    // * Reminder menu should be visible and have focused
-    channelsPage.postReminderMenu.toBeVisible();
-    await expect(channelsPage.postReminderMenu.container).toBeFocused();
+    // * Reminder menu should be visible
+    expect(channelsPage.postReminderMenu.container).toBeVisible();
 
-    // * Should move focus to 30 mins after arrow down
-    await channelsPage.postReminderMenu.container.press('ArrowDown');
+    // * Should have focus on 30 mins after submenu opens
     expect(await channelsPage.postReminderMenu.thirtyMinsMenuItem).toBeFocused();
 
     // * Should move focus to 1 hour after arrow down
