@@ -39,6 +39,7 @@ import {setNavigationBlocked} from 'actions/admin_actions';
 import {LicenseSkus} from 'utils/constants';
 
 import ChannelDetails from './channel_details';
+import {isMinimumEnterpriseLicense, isMinimumProfessionalLicense} from "utils/license_utils";
 
 type OwnProps = {
     match: {
@@ -54,11 +55,11 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
     const isLicensed = license?.IsLicensed === 'true';
 
-    // Channel Moderation is only available for Professional, Enterprise and backward compatible with E20
-    const channelModerationEnabled = isLicensed && (license.SkuShortName === LicenseSkus.Professional || license.SkuShortName === LicenseSkus.Enterprise || license.SkuShortName === LicenseSkus.E20);
+    // Channel Moderation is only available for Professional and above
+    const channelModerationEnabled = isLicensed && isMinimumProfessionalLicense(license);
 
-    // Channel Groups is only available for Enterprise and backward compatible with E20
-    const channelGroupsEnabled = isLicensed && (license.SkuShortName === LicenseSkus.Enterprise || license.SkuShortName === LicenseSkus.E20);
+    // Channel Groups is only available for Enterprise and above
+    const channelGroupsEnabled = isLicensed && isMinimumEnterpriseLicense(license);
 
     const guestAccountsEnabled = config.EnableGuestAccounts === 'true';
     const channelID = ownProps.match.params.channel_id;

@@ -28,6 +28,7 @@ import {UpgradeExportDataModal} from './upgrade_export_data_modal';
 
 import {convertTableOptionsToUserReportOptions} from '../utils';
 import './system_users_export.scss';
+import {isMinimumProfessionalLicense} from "utils/license_utils";
 
 interface Props {
     currentUserId: UserProfile['id'];
@@ -47,7 +48,7 @@ export function SystemUsersExport(props: Props) {
     }
 
     const license = useSelector(getLicense);
-    const isLicensed = license.IsLicensed === 'true' && (license.SkuShortName === LicenseSkus.Professional || license.SkuShortName === LicenseSkus.Enterprise);
+    const isLicensed = license.IsLicensed === 'true' && isMinimumProfessionalLicense(license);
 
     async function doExport(checked?: boolean) {
         const {error} = await dispatch(startUsersBatchExport(tableOptionsToUserReport));
