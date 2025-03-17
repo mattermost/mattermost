@@ -1330,7 +1330,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         return (
             <div
                 className={'wrapper--fixed ' + this.state.customComponentWrapperClass}
-                data-testId={`sysconsole_section_${this.props.schema.id}`}
+                data-testid={`sysconsole_section_${this.props.schema.id}`}
             >
                 {this.renderTitle()}
                 <div className='admin-console__wrapper'>
