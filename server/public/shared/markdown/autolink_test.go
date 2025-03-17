@@ -1063,3 +1063,90 @@ func TestAutolinking(t *testing.T) {
 		})
 	}
 }
+
+func Test_isAllowedBeforeWWWLink(t *testing.T) {
+	type args struct {
+		c byte
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "empty space",
+			args: args{
+				c: byte(' '),
+			},
+			want: false,
+		},
+		{
+			name: "asterisk",
+			args: args{
+				c: byte('*'),
+			},
+			want: true,
+		},
+		{
+			name: "underscore",
+			args: args{
+				c: byte('_'),
+			},
+			want: true,
+		},
+		{
+			name: "open parenthesis",
+			args: args{
+				c: byte('('),
+			},
+			want: true,
+		},
+		{
+			name: "close parenthesis",
+			args: args{
+				c: byte(')'),
+			},
+			want: true,
+		},
+		{
+			name: "tilde",
+			args: args{
+				c: byte('~'),
+			},
+			want: true,
+		},
+		{
+			name: "open angle bracket",
+			args: args{
+				c: byte('<'),
+			},
+			want: true,
+		},
+		{
+			name: "close angle bracket",
+			args: args{
+				c: byte('>'),
+			},
+			want: true,
+		},
+		{
+			name: "alphabet",
+			args: args{
+				c: byte('c'),
+			},
+			want: false,
+		},
+		{
+			name: "number",
+			args: args{
+				c: byte('4'),
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, isAllowedBeforeWWWLink(tt.args.c), "isAllowedBeforeWWWLink(%v)", tt.args.c)
+		})
+	}
+}
