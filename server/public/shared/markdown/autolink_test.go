@@ -764,6 +764,28 @@ func TestTrimTrailingCharactersFromLink(t *testing.T) {
 			End:         len("http://🍄.ga/ http://x🍄.ga/"),
 			ExpectedEnd: len("http://🍄.ga/ http://x🍄.ga/"),
 		},
+		{
+			Input:       "<http://www.example.com>",
+			Start:       1,
+			ExpectedEnd: 23,
+		},
+		{
+			Input:       "<http://www.example.com&quot;>",
+			Start:       1,
+			ExpectedEnd: 23,
+		},
+		{
+			Input:       "this is a sentence containing <http://www.example.com> in it",
+			Start:       len("this is a sentence containing <"),
+			End:         len("this is a sentence containing <http://www.example.com>"),
+			ExpectedEnd: 53,
+		},
+		{
+			Input:       "this is a sentence containing <http://www.example.com???>",
+			Start:       len("this is a sentence containing <"),
+			End:         len("this is a sentence containing <http://www.example.com???>"),
+			ExpectedEnd: 53,
+		},
 	}
 
 	for _, testCase := range testCases {
