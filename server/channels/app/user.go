@@ -882,7 +882,7 @@ func (a *App) SetProfileImageFromMultiPartFile(c request.CTX, userID string, fil
 	return a.SetProfileImageFromFile(c, userID, file)
 }
 
-func (a *App) AdjustImage(file io.ReadSeeker) (*bytes.Buffer, *model.AppError) {
+func (a *App) AdjustImage(rctx request.CTX, file io.ReadSeeker) (*bytes.Buffer, *model.AppError) {
 	// Decode image into Image object
 	img, format, err := a.ch.imgDecoder.Decode(file)
 	if err != nil {
@@ -891,7 +891,7 @@ func (a *App) AdjustImage(file io.ReadSeeker) (*bytes.Buffer, *model.AppError) {
 
 	orientation, err := imaging.GetImageOrientation(file, format)
 	if err != nil {
-		mlog.Warn("Failed to get image orientation", mlog.Err(err))
+		rctx.Logger().Warn("Failed to get image orientation", mlog.Err(err))
 	}
 
 	img = imaging.MakeImageUpright(img, orientation)
@@ -909,7 +909,7 @@ func (a *App) AdjustImage(file io.ReadSeeker) (*bytes.Buffer, *model.AppError) {
 }
 
 func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.ReadSeeker) *model.AppError {
-	buf, err := a.AdjustImage(file)
+	buf, err := a.AdjustImage(c, file)
 	if err != nil {
 		return err
 	}

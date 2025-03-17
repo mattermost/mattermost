@@ -894,7 +894,7 @@ func (a *App) parseLinkMetadata(rctx request.CTX, requestURL string, body io.Rea
 
 		return nil, image, nil
 	} else if strings.HasPrefix(contentType, "image") {
-		image, err := parseImages(rctx, io.LimitReader(body, MaxMetadataImageSize))
+		image, err := parseImages(rctx, requestURL, io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {
 		og := a.parseOpenGraphMetadata(requestURL, body, contentType)
@@ -910,7 +910,7 @@ func (a *App) parseLinkMetadata(rctx request.CTX, requestURL string, body io.Rea
 	return nil, nil, nil
 }
 
-func parseImages(rctx request.CTX, body io.Reader) (*model.PostImage, error) {
+func parseImages(rctx request.CTX, requestURL string, body io.Reader) (*model.PostImage, error) {
 	// Store any data that is read for the config for any further processing
 	buf := &bytes.Buffer{}
 	t := io.TeeReader(body, buf)
@@ -935,7 +935,7 @@ func parseImages(rctx request.CTX, body io.Reader) (*model.PostImage, error) {
 				imageOrientation == imaging.RotatedCW) {
 			image.Width, image.Height = image.Height, image.Width
 		} else if err != nil {
-			rctx.Logger().Warn("Failed to get image orientation", mlog.Err(err))
+			rctx.Logger().Warn("Failed to get image orientation", mlog.Err(err), mlog.String("request_url", requestURL))
 		}
 	}
 

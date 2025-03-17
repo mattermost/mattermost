@@ -772,10 +772,6 @@ func (t *UploadFileTask) init(a *App) {
 func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader,
 	opts ...func(*UploadFileTask),
 ) (*model.FileInfo, *model.AppError) {
-	c = c.WithLogger(c.Logger().With(
-		mlog.String("file_name", name),
-	))
-
 	t := &UploadFileTask{
 		Logger:         c.Logger(),
 		ChannelId:      filepath.Base(channelID),
@@ -790,6 +786,12 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 	for _, o := range opts {
 		o(t)
 	}
+
+	c = c.WithLogger(c.Logger().With(
+		mlog.String("file_name", name),
+		mlog.String("channel_id", channelID),
+		mlog.String("user_id", t.UserId),
+	))
 
 	if *a.Config().FileSettings.DriverName == "" {
 		return nil, t.newAppError("api.file.upload_file.storage.app_error", http.StatusNotImplemented)
@@ -1055,7 +1057,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 			orientation == imaging.RotatedCW) {
 		info.Width, info.Height = info.Height, info.Width
 	} else if err != nil {
-		c.Logger().Warn("Failed to get image orientation", mlog.Err(err), mlog.String("file_name", filename))
+		c.Logger().Warn("Failed to get image orientation", mlog.Err(err))
 	}
 
 	info.Id = model.NewId()

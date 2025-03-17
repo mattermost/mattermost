@@ -2852,7 +2852,7 @@ func TestParseImages(t *testing.T) {
 			file, err := testutils.ReadTestFile(testCase.FileName)
 			require.NoError(t, err)
 
-			result, err := parseImages(request.EmptyContext(mlog.CreateConsoleTestLogger(t)), bytes.NewReader(file))
+			result, err := parseImages(request.EmptyContext(mlog.CreateConsoleTestLogger(t)), "", bytes.NewReader(file))
 			if testCase.ExpectError {
 				assert.Error(t, err)
 			} else {
