@@ -92,44 +92,54 @@ const ChannelSettingsSubmenu = ({channel, isReadonly, isDefault}: Props): JSX.El
             menuAriaLabel={formatMessage({id: 'channelSettings', defaultMessage: 'Channel Settings'})}
         >
             {!isReadonly && (
-                <>
+                <Menu.Item
+                    id='channelRename'
+                    onClick={handleRenameChannel}
+                    labels={
+                        <FormattedMessage
+                            id='channel_header.rename'
+                            defaultMessage='Rename Channel'
+                        />
+                    }
+                />
+            )}
+            
+            {!isReadonly && (
+                <ChannelPermissionGate
+                    channelId={channel.id}
+                    teamId={channel.team_id}
+                    permissions={[channelPropertiesPermission]}
+                >
                     <Menu.Item
-                        id='channelRename'
-                        onClick={handleRenameChannel}
+                        id='channelEditHeader'
+                        onClick={handleEditHeader}
                         labels={
                             <FormattedMessage
-                                id='channel_header.rename'
-                                defaultMessage='Rename Channel'
+                                id='channel_header.setHeader'
+                                defaultMessage='Edit Channel Header'
                             />
                         }
                     />
-                    <ChannelPermissionGate
-                        channelId={channel.id}
-                        teamId={channel.team_id}
-                        permissions={[channelPropertiesPermission]}
-                    >
-                        <Menu.Item
-                            id='channelEditHeader'
-                            onClick={handleEditHeader}
-                            labels={
-                                <FormattedMessage
-                                    id='channel_header.setHeader'
-                                    defaultMessage='Edit Channel Header'
-                                />
-                            }
-                        />
-                        <Menu.Item
-                            id='channelEditPurpose'
-                            onClick={handleEditPurpose}
-                            labels={
-                                <FormattedMessage
-                                    id='channel_header.setPurpose'
-                                    defaultMessage='Edit Channel Purpose'
-                                />
-                            }
-                        />
-                    </ChannelPermissionGate>
-                </>
+                </ChannelPermissionGate>
+            )}
+            
+            {!isReadonly && (
+                <ChannelPermissionGate
+                    channelId={channel.id}
+                    teamId={channel.team_id}
+                    permissions={[channelPropertiesPermission]}
+                >
+                    <Menu.Item
+                        id='channelEditPurpose'
+                        onClick={handleEditPurpose}
+                        labels={
+                            <FormattedMessage
+                                id='channel_header.setPurpose'
+                                defaultMessage='Edit Channel Purpose'
+                            />
+                        }
+                    />
+                </ChannelPermissionGate>
             )}
 
             {!isDefault && channel.type === Constants.OPEN_CHANNEL && (
