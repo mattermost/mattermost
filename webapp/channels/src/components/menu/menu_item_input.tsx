@@ -16,6 +16,7 @@ export interface Props extends InputProps {
 export function MenuItemInput(props: Props) {
     const {
         type,
+        customStyles,
         onChange,
         ...otherProps
     } = props;
@@ -32,7 +33,7 @@ export function MenuItemInput(props: Props) {
     };
 
     return (
-        <Container $customStyles={props.customStyles}>
+        <Container $customStyles={customStyles}>
             <Input
                 type={type}
                 onChange={changeHandler}

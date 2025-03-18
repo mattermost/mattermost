@@ -61,6 +61,7 @@ const SelectType = (props: Props) => {
                     </>
                 ),
                 dataTestId: 'searchTeamsSelectorMenuButton',
+                disabled: props.field.delete_at !== 0,
             }}
             menu={{
                 id: 'type-selector-menu',

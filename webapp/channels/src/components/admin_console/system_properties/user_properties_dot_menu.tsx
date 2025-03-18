@@ -77,6 +77,7 @@ const DotMenu = ({
                     </>
                 ),
                 dataTestId: `${menuId}-${field.id}`,
+                disabled: field.delete_at !== 0,
             }}
             menu={{
                 id: `${menuId}-menu`,

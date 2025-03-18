@@ -88,7 +88,7 @@ const UserPropertyValues = ({
                 isClearable={true}
                 isMulti={true}
                 menuIsOpen={false}
-
+                isDisabled={field.delete_at !== 0}
                 onChange={(newValue) => {
                     setOptions(newValue.map((option) => ({id: option.id, name: option.value})));
                 }}
