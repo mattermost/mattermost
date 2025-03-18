@@ -96,15 +96,16 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
             <div>
                 <FormattedMessage
                     id="about.teamEditionLearnAnswer"
-                    defaultMessage="Arriving in the U.S. as students, we encountered numerous challenges, from securing on-campus jobs to navigating internships and selecting the right courses. Lacking guidance, we often found ourselves sending countless LinkedIn requests and messages to seniors, seeking answers. This inspired us to create Nimbupani.ai—a platform designed to streamline these crucial aspects of university life for students like you. Our goal is to ensure no one feels lost or overwhelmed as they navigate their academic and professional paths."
+                    defaultMessage="Arriving in the U.S. as students, we encountered numerous challenges, from securing on-campus jobs to navigating internships and selecting the right courses. Lacking guidance, we often found ourselves sending countless LinkedIn requests and messages to seniors, seeking answers. This inspired us to create Nimbupani.ai—a platform designed to streamline these crucial aspects of university life for students like you. Our goal is to ensure no one feels lost or overwhelmed as they navigate their academic and professional paths. "
                 />
-
-                <ExternalLink
-                    location="about_build_modal"
-                    href="https://nimbupani.ai"
-                >
-                    {"nimbupani.ai"}
-                </ExternalLink>
+                <div>
+                    <ExternalLink
+                        location="about_build_modal"
+                        href="https://nimbupani.ai"
+                    >
+                        {"nimbupani.ai"}
+                    </ExternalLink>
+                </div>
             </div>
         );
 
@@ -112,7 +113,7 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
             <div>
                 <FormattedMessage
                     id="about.teamEditionLearnMattermost"
-                    defaultMessage="Nimbupani is built using the open-source Mattermost platform, reconfigured to enhance collaboration and community engagement for students. We value open source communities and are grateful for the contributions of the Mattermost community. "
+                    defaultMessage="Nimbupani chats is built using the open-source Mattermost platform, reconfigured to enhance collaboration and community engagement for students and alumni. "
                 />
                 <ExternalLink
                     location="about_build_modal"
@@ -122,21 +123,6 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                 </ExternalLink>
             </div>
         );
-
-        // let learnMore = (
-        //     <div>
-        //         <FormattedMessage
-        //             id='about.teamEditionLearn'
-        //             defaultMessage='Join the Mattermost community at '
-        //         />
-        //         <ExternalLink
-        //             location='about_build_modal'
-        //             href='https://mattermost.com/community/'
-        //         >
-        //             {'mattermost.com/community/'}
-        //         </ExternalLink>
-        //     </div>
-        // );
 
         let licensee;
         if (config.BuildEnterpriseReady === "true") {
@@ -363,83 +349,6 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                             </div>
                         </div>
                     </div>
-
-                    {/* <div className='form-group'>
-                            <div className='about-modal__copyright'>
-                                <FormattedMessage
-                                    id='about.copyright'
-                                    defaultMessage='Copyright 2015 - {currentYear} Mattermost, Inc. All rights reserved'
-                                    values={{
-                                        currentYear: new Date().getFullYear(),
-                                    }}
-                                />
-                            </div>
-                            <div className='about-modal__links'>
-                                {termsOfService}
-                                {' - '}
-                                {privacyPolicy}
-                            </div>
-                        </div>
-                    </div> */}
-                    {/* <div className='about-modal__notice form-group pt-3'>
-                        <p>
-                            <FormattedMessage
-                                id='about.notice'
-                                defaultMessage='Mattermost is made possible by the open source software used in our <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> and <linkMobile>mobile</linkMobile> apps.'
-                                values={{
-                                    linkServer: (msg: React.ReactNode) => (
-                                        <ExternalLink
-                                            location='about_build_modal'
-                                            href='https://github.com/mattermost/mattermost-server/blob/master/NOTICE.txt'
-                                        >
-                                            {msg}
-                                        </ExternalLink>
-                                    ),
-                                    linkDesktop: (msg: React.ReactNode) => (
-                                        <ExternalLink
-                                            location='about_build_modal'
-                                            href='https://github.com/mattermost/desktop/blob/master/NOTICE.txt'
-                                        >
-                                            {msg}
-                                        </ExternalLink>
-                                    ),
-                                    linkMobile: (msg: React.ReactNode) => (
-                                        <ExternalLink
-                                            location='about_build_modal'
-                                            href='https://github.com/mattermost/mattermost-mobile/blob/master/NOTICE.txt'
-                                        >
-                                            {msg}
-                                        </ExternalLink>
-                                    ),
-                                }}
-                            />
-                        </p>
-                    </div>
-                    <div className='about-modal__hash'>
-                        <p>
-                            <FormattedMessage
-                                id='about.hash'
-                                defaultMessage='Build Hash:'
-                            />
-                            <Nbsp/>
-                            {config.BuildHash}
-                            <br/>
-                            <FormattedMessage
-                                id='about.hashee'
-                                defaultMessage='EE Build Hash:'
-                            />
-                            <Nbsp/>
-                            {config.BuildHashEnterprise}
-                        </p>
-                        <p>
-                            <FormattedMessage
-                                id='about.date'
-                                defaultMessage='Build Date:'
-                            />
-                            <Nbsp/>
-                            {config.BuildDate}
-                        </p>
-                    </div> */}
                 </Modal.Body>
             </Modal>
         );
