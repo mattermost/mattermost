@@ -302,7 +302,10 @@ describe('Keyboard Shortcuts', () => {
         cy.uiGetPostTextBox().type('{uparrow}');
 
         // # Add some text to the previous message and save
-        cy.get('#edit_textbox').type('Test').type('{enter}');
+        // cy.get('#edit_textbox').type('Test').type('{enter}');
+        cy.get('#edit_textbox').type('Test');
+        cy.wait(TIMEOUTS.ONE_SEC);
+        cy.get('#edit_textbox').type('{enter}');
         cy.wait(TIMEOUTS.ONE_SEC);
 
         cy.getLastPost().within(() => {
