@@ -3390,6 +3390,7 @@
   "channel_settings.modal.title": "Channel Settings",
   "channel_settings.purpose.description": "Describe how this channel should be used.",
   "channel_settings.purpose.header": "This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).",
+  "channel_settings.save_changes_panel.reset": "Reset",
   "channel_settings.save_changes_panel.standard_error": "There are errors in the form above",
   "channel_settings.tab.archive": "Archive Channel",
   "channel_settings.tab.configuration": "Configuration",

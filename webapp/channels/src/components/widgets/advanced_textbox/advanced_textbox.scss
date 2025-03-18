@@ -20,9 +20,9 @@
     .advanced-textbox__error-message {
         display: flex;
         align-items: center;
+        margin-top: 4px;
         color: var(--error-text);
         font-size: 12px;
-        margin-top: 4px;
         
         i {
             margin-right: 4px;
@@ -31,10 +31,10 @@
     }
     
     .advanced-textbox__character-count {
-        font-size: 12px;
-        margin-top: 4px;
         position: absolute;
         right: 0;
+        margin-top: 4px;
+        font-size: 12px;
         
         &.exceeds-limit {
             color: var(--error-text);
