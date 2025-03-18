@@ -104,7 +104,7 @@ test('should show mobile security upsell when not licensed', async ({pw}) => {
     }
 
     // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);  
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Visit system console
     await systemConsolePage.goto();

@@ -21,7 +21,6 @@ class SystemConsolePage {
     readonly systemUsersColumnToggleMenu;
     readonly systemUsersActionMenus;
 
-
     readonly mobileSecurity;
 
     readonly featureDiscovery;
@@ -40,7 +39,9 @@ class SystemConsolePage {
 
         // Sections and sub-sections
         this.systemUsers = new components.SystemUsers(page.getByTestId('systemUsersSection'));
-        this.mobileSecurity = new components.MobileSecurity(page.getByTestId('sysconsole_section_MobileSecuritySettings'));
+        this.mobileSecurity = new components.MobileSecurity(
+            page.getByTestId('sysconsole_section_MobileSecuritySettings'),
+        );
         this.featureDiscovery = new components.FeatureDiscovery(page.getByTestId('featureDiscovery'));
 
         // Menus & Popovers

@@ -21,14 +21,26 @@ export default class MobileSecurity {
     constructor(container: Locator) {
         this.container = container;
 
-        this.enableBiometricAuthenticationToggleTrue = this.container.getByTestId('NativeAppSettings.MobileEnableBiometricstrue');
-        this.enableBiometricAuthenticationToggleFalse = this.container.getByTestId('NativeAppSettings.MobileEnableBiometricsfalse');
+        this.enableBiometricAuthenticationToggleTrue = this.container.getByTestId(
+            'NativeAppSettings.MobileEnableBiometricstrue',
+        );
+        this.enableBiometricAuthenticationToggleFalse = this.container.getByTestId(
+            'NativeAppSettings.MobileEnableBiometricsfalse',
+        );
 
-        this.preventScreenCaptureToggleTrue = this.container.getByTestId('NativeAppSettings.MobilePreventScreenCapturetrue');
-        this.preventScreenCaptureToggleFalse = this.container.getByTestId('NativeAppSettings.MobilePreventScreenCapturefalse');
+        this.preventScreenCaptureToggleTrue = this.container.getByTestId(
+            'NativeAppSettings.MobilePreventScreenCapturetrue',
+        );
+        this.preventScreenCaptureToggleFalse = this.container.getByTestId(
+            'NativeAppSettings.MobilePreventScreenCapturefalse',
+        );
 
-        this.jailbreakProtectionToggleTrue = this.container.getByTestId('NativeAppSettings.MobileJailbreakProtectiontrue');
-        this.jailbreakProtectionToggleFalse = this.container.getByTestId('NativeAppSettings.MobileJailbreakProtectionfalse');
+        this.jailbreakProtectionToggleTrue = this.container.getByTestId(
+            'NativeAppSettings.MobileJailbreakProtectiontrue',
+        );
+        this.jailbreakProtectionToggleFalse = this.container.getByTestId(
+            'NativeAppSettings.MobileJailbreakProtectionfalse',
+        );
 
         this.saveButton = this.container.getByRole('button', {name: 'Save'});
     }
