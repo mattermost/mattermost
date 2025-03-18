@@ -103,18 +103,34 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         const {target: {value: url}} = e;
 
         const cleanURL = url.toLowerCase().replace(/\s/g, '-');
-        const urlErrors = validateChannelUrl(cleanURL, intl) as string[];
 
-        setURLError(urlErrors.length ? urlErrors[urlErrors.length - 1] : '');
+        // Update the URL without validation during typing
         setURL(cleanURL);
         urlModified.current = true;
         props.onURLChange(cleanURL);
-    }, [props.onURLChange]);
+
+        // Clear any previous URL errors during typing
+        if (urlError) {
+            setURLError('');
+        }
+    }, [props.onURLChange, urlError]);
+
+    // Add a URL blur handler to validate the URL when the user moves away from the field
+    const handleOnURLBlur = useCallback(() => {
+        // Only validate if the URL has been modified
+        if (urlModified.current) {
+            const urlErrors = validateChannelUrl(url, intl) as string[];
+            setURLError(urlErrors.length ? urlErrors[urlErrors.length - 1] : '');
+        }
+    }, [url, intl]);
 
     useEffect(() => {
         if (props.onErrorStateChange) {
-            const errorMessage = displayNameError || urlError || '';
-            props.onErrorStateChange(Boolean(displayNameError) || Boolean(urlError), errorMessage);
+            // Only report URL errors if the URL has been explicitly modified and validated
+            // This prevents showing errors during typing
+            const shouldReportUrlError = urlModified.current && urlError;
+            const errorMessage = displayNameError || (shouldReportUrlError ? urlError : '');
+            props.onErrorStateChange(Boolean(displayNameError) || Boolean(shouldReportUrlError), errorMessage);
         }
     }, [displayNameError, urlError]);
 
@@ -153,6 +169,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 shortenLength={Constants.DEFAULT_CHANNELURL_SHORTEN_LENGTH}
                 error={urlError || props.urlError}
                 onChange={handleOnURLChange}
+                onBlur={handleOnURLBlur}
             />
         </>
     );

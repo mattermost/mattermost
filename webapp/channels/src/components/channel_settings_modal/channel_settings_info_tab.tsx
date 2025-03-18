@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState, useEffect} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel, ChannelType} from '@mattermost/types/channels';
@@ -16,13 +16,12 @@ import {
     showPreviewOnChannelSettingsPurposeModal,
 } from 'selectors/views/textbox';
 
-import ShowFormat from 'components/advanced_text_editor/show_formatting/show_formatting';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
-import Textbox from 'components/textbox';
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
+import SettingsTextbox from 'components/widgets/settings_textbox/settings_textbox';
 
 import Constants from 'utils/constants';
 
@@ -278,76 +277,42 @@ function ChannelSettingsInfoTab({
             />
 
             {/* Purpose Section*/}
-            <div className='textarea-wrapper'>
-                <Textbox
-                    value={internalChannelPurpose}
-                    onChange={handlePurposeChange}
-                    onKeyPress={() => {
-                        // No specific key press handling needed for the settings modal
-                    }}
-                    supportsCommands={false}
-                    suggestionListPosition='bottom'
-                    createMessage={formatMessage({
-                        id: 'channel_settings_modal.purpose.placeholder',
-                        defaultMessage: 'Enter a purpose for this channel',
-                    })}
-                    ref={purposeTextboxRef}
-                    channelId={channel.id}
-                    id='channel_settings_purpose_textbox'
-                    characterLimit={Constants.MAX_CHANNELPURPOSE_LENGTH}
-                    preview={shouldShowPreviewPurpose}
-                    useChannelMentions={false}
-                />
-                <ShowFormat
-                    onClick={togglePurposePreview}
-                    active={shouldShowPreviewPurpose}
-                />
-                <p
-                    data-testid='mm-modal-generic-section-item__description'
-                    className='mm-modal-generic-section-item__description'
-                >
-                    <FormattedMessage
-                        id='channel_settings.purpose.description'
-                        defaultMessage='Describe how this channel should be used.'
-                    />
-                </p>
-            </div>
+            <SettingsTextbox
+                id='channel_settings_purpose_textbox'
+                value={internalChannelPurpose}
+                channelId={channel.id}
+                onChange={handlePurposeChange}
+                createMessage={formatMessage({
+                    id: 'channel_settings_modal.purpose.placeholder',
+                    defaultMessage: 'Enter a purpose for this channel',
+                })}
+                characterLimit={Constants.MAX_CHANNELPURPOSE_LENGTH}
+                preview={shouldShowPreviewPurpose}
+                togglePreview={togglePurposePreview}
+                textboxRef={purposeTextboxRef}
+                useChannelMentions={false}
+                descriptionMessageId='channel_settings.purpose.description'
+                descriptionMessageDefault='Describe how this channel should be used.'
+            />
 
             {/* Channel Header Section*/}
-            <div className='textarea-wrapper'>
-                <Textbox
-                    value={internalChannelHeader}
-                    onChange={handleHeaderChange}
-                    onKeyPress={() => {
-                        // No specific key press handling needed for the settings modal
-                    }}
-                    supportsCommands={false}
-                    suggestionListPosition='bottom'
-                    createMessage={formatMessage({
-                        id: 'channel_settings_modal.header.placeholder',
-                        defaultMessage: 'Enter a header description or important links',
-                    })}
-                    channelId={channel.id}
-                    id='channel_settings_header_textbox'
-                    ref={headerTextboxRef}
-                    characterLimit={headerMaxLength}
-                    preview={shouldShowPreviewHeader}
-                    useChannelMentions={false}
-                />
-                <p
-                    data-testid='mm-modal-generic-section-item__description'
-                    className='mm-modal-generic-section-item__description'
-                >
-                    <FormattedMessage
-                        id='channel_settings.purpose.header'
-                        defaultMessage='This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).'
-                    />
-                </p>
-                <ShowFormat
-                    onClick={toggleHeaderPreview}
-                    active={shouldShowPreviewHeader}
-                />
-            </div>
+            <SettingsTextbox
+                id='channel_settings_header_textbox'
+                value={internalChannelHeader}
+                channelId={channel.id}
+                onChange={handleHeaderChange}
+                createMessage={formatMessage({
+                    id: 'channel_settings_modal.header.placeholder',
+                    defaultMessage: 'Enter a header description or important links',
+                })}
+                characterLimit={headerMaxLength}
+                preview={shouldShowPreviewHeader}
+                togglePreview={toggleHeaderPreview}
+                textboxRef={headerTextboxRef}
+                useChannelMentions={false}
+                descriptionMessageId='channel_settings.purpose.header'
+                descriptionMessageDefault='This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).'
+            />
 
             {/* SaveChangesPanel for unsaved changes */}
             {requireConfirm && (
