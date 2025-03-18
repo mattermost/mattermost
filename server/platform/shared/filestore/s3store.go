@@ -80,7 +80,7 @@ func isFileExtImage(ext string) bool {
 }
 func isFileExtVideo(ext string) bool {
 	ext = strings.ToLower(ext)
-	_,ok :=imageTypes[ext]
+	_,ok :=videoTypes[ext]
 	return ok
 }
 
