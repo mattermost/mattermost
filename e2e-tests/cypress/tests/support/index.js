@@ -14,6 +14,7 @@ import '@testing-library/cypress/add-commands';
 import 'cypress-file-upload';
 import 'cypress-wait-until';
 import 'cypress-plugin-tab';
+import 'cypress-real-events';
 import addContext from 'mochawesome/addContext';
 
 import './api';
