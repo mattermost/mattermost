@@ -2238,7 +2238,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'SupportSettings.AllowDownloadLogs',
                             label: defineMessage({id: 'admin.support.problemAllowDownloadTitle', defaultMessage: 'Allow Mobile App Log Downloads:'}),
-                            help_text: defineMessage({id: 'admin.support.reportAProblemLinkDescription', defaultMessage: 'When enabled, users can download app logs for troubleshooting. If a ‘Report a Problem’ link is shown, logs can be downloaded as part of that flow; if the ‘Report a Problem’ link is hidden, logs remain accessible as a separate option.'}),
+                            help_text: defineMessage({id: 'admin.support.problemAllowDownloadDescription', defaultMessage: 'When enabled, users can download app logs for troubleshooting. If a ‘Report a Problem’ link is shown, logs can be downloaded as part of that flow; if the ‘Report a Problem’ link is hidden, logs remain accessible as a separate option.'}),
                         },
                         {
                             type: 'text',
