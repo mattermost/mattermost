@@ -63,11 +63,8 @@ const (
 )
 
 var (
-	imageExtensions = map[string]bool{".jpg": true, ".jpeg": true, ".gif": true, ".bmp": true, ".png": true, ".tiff": true, "tif": true}
-	imageMimeTypes  = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
-
-	videoExtensions = map[string]bool{".mp4": true, ".mov": true, ".avi": true, ".webm": true, ".mkv": true, ".wmv": true, ".mpg": true, ".mpeg": true}
-	videoMimeTypes  = map[string]string{".mp4": "video/mp4", ".mov": "video/quicktime", ".avi": "video/x-msvideo", ".webm": "video/webm", ".mkv": "video/x-matroska", ".wmv": "video/x-ms-wmv", ".mpg": "video/mpeg", ".mpeg": "video/mpeg"}
+	imageTypes =map[string]string{".jpg":"image/jpeg",".jpeg":"image/jpeg",".gif":"image/gif",".bmp":"image/bmp",".png":"image/png",".tiff": "image/tiff",".tif":"image/tif"}
+	videoTypes=map[string]string{".mp4": "video/mp4",".mpeg":"video/mpeg",".avi":"video/avi"}
 )
 
 var (
@@ -78,27 +75,31 @@ var (
 
 func isFileExtImage(ext string) bool {
 	ext = strings.ToLower(ext)
-	return imageExtensions[ext]
+	_,ok :=imageTypes[ext]
+	return ok 
 }
 func isFileExtVideo(ext string) bool {
 	ext = strings.ToLower(ext)
-	return videoExtensions[ext]
+	_,ok :=imageTypes[ext]
+	return ok
 }
 
 func getImageMimeType(ext string) string {
 	ext = strings.ToLower(ext)
-	if imageMimeTypes[ext] == "" {
-		return "image"
+	if mimeType,ok:=imageTypes[ext]; ok{
+	return mimeType
 	}
-	return imageMimeTypes[ext]
+	return "image"
+
 }
 func getVideoMimeType(ext string) string {
 	ext = strings.ToLower(ext)
-	if videoMimeTypes[ext] == "" {
+	if mimeType,ok :=videoTypes[ext]; ok{
+		return mimeType
+	}
 		return "video/mp4"
 	}
-	return videoMimeTypes[ext]
-}
+
 func (s *S3FileBackendAuthError) Error() string {
 	return s.DetailedError
 }

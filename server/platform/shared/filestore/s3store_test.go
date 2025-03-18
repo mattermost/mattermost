@@ -417,70 +417,16 @@ func TestWriteFileVideoMimeTypes(t *testing.T) {
 	err = fileBackend.MakeBucket()
 	require.NoError(t, err)
 
-	tests := []struct {
-		name         string
-		extension    string
-		expectedType string
-		content      []byte
-	}{
-		{
-			name:         "mp4",
-			extension:    ".mp4",
-			expectedType: "video/mp4",
-			content:      []byte("test-video-content"),
-		},
-		{
-			name:         "mov",
-			extension:    ".mov",
-			expectedType: "video/quicktime",
-			content:      []byte("test-video-content"),
-		},
-		{
-			name:         "avi",
-			extension:    ".avi",
-			expectedType: "video/x-msvideo",
-			content:      []byte("test-video-content"),
-		},
-		{
-			name:         "webm",
-			extension:    ".webm",
-			expectedType: "video/webm",
-			content:      []byte("test-video-content"),
-		},
-		{
-			name:         "wmv",
-			extension:    ".wmv",
-			expectedType: "video/x-ms-wmv",
-			content:      []byte("test-video-content"),
-		},
-		{
-			name:         "mkv",
-			extension:    ".mkv",
-			expectedType: "video/x-matroska",
-			content:      []byte("test-video-content"),
-		},
-		{
-			name:         "mpg",
-			extension:    ".mpg",
-			expectedType: "video/mpeg",
-			content:      []byte("test-video-content"),
-		},
-		{
-			name:         "mpeg",
-			extension:    ".mpeg",
-			expectedType: "video/mpeg",
-			content:      []byte("test-video-content"),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			path := "test" + tt.extension
-			reader := bytes.NewReader(tt.content)
+	// Test video types
+	testContent := []byte("test-video-content")
+	for ext, mimeType := range videoTypes {
+		t.Run(strings.TrimPrefix(ext, "."), func(t *testing.T) {
+			path := "test" + ext
+			reader := bytes.NewReader(testContent)
 
 			written, err := fileBackend.WriteFile(reader, path)
 			require.NoError(t, err)
-			require.Equal(t, int64(len(tt.content)), written)
+			require.Equal(t, int64(len(testContent)), written)
 
 			// Verify the file exists with correct mime type
 			props, err := fileBackend.client.StatObject(
@@ -490,11 +436,13 @@ func TestWriteFileVideoMimeTypes(t *testing.T) {
 				s3.StatObjectOptions{},
 			)
 			require.NoError(t, err)
-			require.Equal(t, tt.expectedType, props.ContentType)
+			require.Equal(t, mimeType, props.ContentType)
 
-			// Cleanup
-			err = fileBackend.RemoveFile(path)
-			require.NoError(t, err)
+			
+			defer func() {
+				err = fileBackend.RemoveFile(path)
+				require.NoError(t, err)
+			}()
 		})
 	}
 }
