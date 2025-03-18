@@ -890,7 +890,7 @@ func testDeleteForTarget(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorAs(t, err, &eii)
 
 		// Verify values were not deleted
-		values, err := ss.PropertyValue().GetMany([]string{value1.ID, value2.ID})
+		values, err := ss.PropertyValue().GetMany("", []string{value1.ID, value2.ID})
 		require.NoError(t, err)
 		require.NotZero(t, values)
 		require.Len(t, values, 2)
@@ -902,22 +902,22 @@ func testDeleteForTarget(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify values from first group and first target were hard-deleted
-		deletedValues, err := ss.PropertyValue().GetMany([]string{value1.ID, value2.ID})
+		deletedValues, err := ss.PropertyValue().GetMany("", []string{value1.ID, value2.ID})
 		require.Error(t, err)
 		require.Zero(t, deletedValues)
 
 		// Verify value from second group was not deleted
-		nonDeletedGroupValue, err := ss.PropertyValue().Get(value3.ID)
+		nonDeletedGroupValue, err := ss.PropertyValue().Get("", value3.ID)
 		require.NoError(t, err)
 		require.NotNil(t, nonDeletedGroupValue)
 
 		// Verify value from first group but different target was not deleted
-		nonDeletedTargetValue, err := ss.PropertyValue().Get(value4.ID)
+		nonDeletedTargetValue, err := ss.PropertyValue().Get("", value4.ID)
 		require.NoError(t, err)
 		require.NotNil(t, nonDeletedTargetValue)
 
 		// Verify value with different target type was not deleted
-		nonDeletedTypeValue, err := ss.PropertyValue().Get(value5.ID)
+		nonDeletedTypeValue, err := ss.PropertyValue().Get("", value5.ID)
 		require.NoError(t, err)
 		require.NotNil(t, nonDeletedTypeValue)
 	})
@@ -927,17 +927,17 @@ func testDeleteForTarget(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify values from other groups with targetID1 were deleted
-		deletedValues, err := ss.PropertyValue().GetMany([]string{value3.ID, value6.ID})
+		deletedValues, err := ss.PropertyValue().GetMany("", []string{value3.ID, value6.ID})
 		require.Error(t, err)
 		require.Zero(t, deletedValues)
 
 		// Verify value with different target ID was not deleted
-		nonDeletedValue, err := ss.PropertyValue().Get(value4.ID)
+		nonDeletedValue, err := ss.PropertyValue().Get("", value4.ID)
 		require.NoError(t, err)
 		require.NotNil(t, nonDeletedValue)
 
 		// Verify value with different target type was not deleted
-		nonDeletedTypeValue, err := ss.PropertyValue().Get(value5.ID)
+		nonDeletedTypeValue, err := ss.PropertyValue().Get("", value5.ID)
 		require.NoError(t, err)
 		require.NotNil(t, nonDeletedTypeValue)
 	})
