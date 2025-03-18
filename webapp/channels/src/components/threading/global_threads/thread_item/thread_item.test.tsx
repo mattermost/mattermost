@@ -102,22 +102,22 @@ describe('components/threading/global_threads/thread_item', () => {
                     currentUserId: user.id,
                     profiles: {
                         [user.id]: user,
-                    }
+                    },
                 },
                 groups: {
                     groups: {},
-                    myGroups: []
+                    myGroups: [],
                 },
                 teams: {
                     teams: {
                         currentTeamId: 'tid',
                     },
                     groupsAssociatedToTeam: {
-                        "tid": {},
-                    }
+                        tid: {},
+                    },
                 },
                 channels: {
-                    channels : [mockChannel],
+                    channels: [mockChannel],
                     groupsAssociatedToChannel: {
                         [mockChannel.id]: {},
                     },
