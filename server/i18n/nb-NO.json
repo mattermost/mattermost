@@ -282,5 +282,9 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Har allerede varslet admin"
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Kan ikke fjerne brukeren fra standardkanalen {{.Channel}}."
   }
 ]
