@@ -20,8 +20,19 @@ type Props = {
     tabChangeError?: boolean;
     state: SaveChangesPanelState;
     customErrorMessage?: string;
+    saveButtonText?: React.ReactNode;
+    cancelButtonText?: React.ReactNode;
 }
-function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeError = false, state = 'editing', customErrorMessage}: Props) {
+function SaveChangesPanel({
+    handleSubmit,
+    handleCancel,
+    handleClose,
+    tabChangeError = false,
+    state = 'editing',
+    customErrorMessage,
+    saveButtonText,
+    cancelButtonText,
+}: Props) {
     const panelClassName = classNames('SaveChangesPanel', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const messageClassName = classNames('SaveChangesPanel__message', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const cancelButtonClassName = classNames('SaveChangesPanel__cancel-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
@@ -97,10 +108,12 @@ function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeErr
                     className={cancelButtonClassName}
                     onClick={handleCancel}
                 >
-                    <FormattedMessage
-                        id='saveChangesPanel.cancel'
-                        defaultMessage='Undo'
-                    />
+                    {cancelButtonText || (
+                        <FormattedMessage
+                            id='saveChangesPanel.cancel'
+                            defaultMessage='Undo'
+                        />
+                    )}
                 </button>
                 <button
                     data-testid='SaveChangesPanel__save-btn'
@@ -108,10 +121,12 @@ function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeErr
                     onClick={handleSubmit}
                     disabled={saveButtonDisabled}
                 >
-                    <FormattedMessage
-                        id='saveChangesPanel.save'
-                        defaultMessage='Save'
-                    />
+                    {saveButtonText || (
+                        <FormattedMessage
+                            id='saveChangesPanel.save'
+                            defaultMessage='Save'
+                        />
+                    )}
                 </button>
             </div>
         );
