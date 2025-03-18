@@ -1855,6 +1855,7 @@
   "admin.permissions.sysconsole_section_environment_high_availability.name": "High Availability",
   "admin.permissions.sysconsole_section_environment_image_proxy.name": "Image Proxy",
   "admin.permissions.sysconsole_section_environment_logging.name": "Logging",
+  "admin.permissions.sysconsole_section_environment_mobile_security.name": "Mobile Security",
   "admin.permissions.sysconsole_section_environment_performance_monitoring.name": "Performance Monitoring",
   "admin.permissions.sysconsole_section_environment_push_notification_server.name": "Push Notification Server",
   "admin.permissions.sysconsole_section_environment_rate_limiting.name": "Rate Limiting",
