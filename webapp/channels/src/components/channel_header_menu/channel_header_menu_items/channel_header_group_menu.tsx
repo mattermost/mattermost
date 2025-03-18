@@ -74,6 +74,7 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
             )}
             {(isArchived && isGroupConstrained && isGuest(user.roles)) && (
                 <EditConversationHeader
+                    leadingElement={<CogOutlineIcon size='18px'/>}
                     channel={channel}
                 />
             )}
@@ -120,7 +121,7 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                 </ChannelPermissionGate>
             )}
             <ChannelMoveToSubMenu channel={channel}/>
-            {isMobile && (
+            {!isMobile && (
                 <MenuItemPluginItems pluginItems={pluginItems}/>
             )}
             <Menu.Separator/>

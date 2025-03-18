@@ -4,6 +4,7 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 
+import {CogOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -51,13 +52,14 @@ const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, 
                 </>
             )}
             <EditConversationHeader
+                leadingElement={<CogOutlineIcon size='18px'/>}
                 channel={channel}
             />
             <Menu.Separator/>
             <ChannelMoveToSubMenu
                 channel={channel}
             />
-            {isMobile && (
+            {!isMobile && (
                 <MenuItemPluginItems pluginItems={pluginItems}/>
             )}
             <Menu.Separator/>

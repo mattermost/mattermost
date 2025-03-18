@@ -5,7 +5,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {CogOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import {openModal} from 'actions/views/modals';
@@ -17,9 +16,10 @@ import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;
+    leadingElement?: React.ReactNode;
 }
 
-const EditConversationHeader = ({channel}: Props): JSX.Element => {
+const EditConversationHeader = ({channel, leadingElement}: Props): JSX.Element => {
     const dispatch = useDispatch();
     const handleEditHeader = () => {
         dispatch(
@@ -34,7 +34,7 @@ const EditConversationHeader = ({channel}: Props): JSX.Element => {
     return (
         <Menu.Item
             id='channelEditHeader'
-            leadingElement={<CogOutlineIcon size='18px'/>}
+            leadingElement={leadingElement}
             onClick={handleEditHeader}
             labels={
                 <FormattedMessage
