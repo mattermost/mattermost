@@ -4939,7 +4939,6 @@
   "sidebar.types.channels": "КАНАЛЫ",
   "sidebar.types.direct_messages": "ЛИЧНЫЕ СООБЩЕНИЯ",
   "sidebar.types.favorites": "ИЗБРАННОЕ",
-  "sidebar.types.unreads": "НЕПРОЧИТАННЫЕ",
   "sidebar.unreads": "Больше непрочитанных",
   "sidebar_left.addChannelsCta": "Добавить каналы",
   "sidebar_left.add_channel_cta_dropdown.dropdownAriaLabel": "Добавить раскрывающийся список каналов",

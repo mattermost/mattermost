@@ -3674,7 +3674,6 @@
   "sidebar.types.channels": "کانال ها",
   "sidebar.types.direct_messages": "پیام مستقیم",
   "sidebar.types.favorites": "موارد دلخواه",
-  "sidebar.types.unreads": "خوانده نشده ها",
   "sidebar.unreads": "خوانده نشده های بیشتر",
   "sidebar_left.add_channel_dropdown.browseChannels": "کانال ها را مرور کنید",
   "sidebar_left.add_channel_dropdown.createNewChannel": "ایجاد کانال جدید",
