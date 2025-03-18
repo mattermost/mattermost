@@ -80,7 +80,7 @@ describe('ChannelSettingsModal', () => {
         // After change, the SaveChangesPanel should be visible with Save button
         await waitFor(() => {
             expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
-            expect(screen.getByTestId('mm-save-changes-panel__save-btn')).toBeInTheDocument();
+            expect(screen.getByTestId('SaveChangesPanel__save-btn')).toBeInTheDocument();
         });
     });
 
@@ -112,7 +112,7 @@ describe('ChannelSettingsModal', () => {
         });
 
         // Click the Save button in the SaveChangesPanel
-        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await act(async () => {
             await userEvent.click(saveButton);
         });
@@ -134,15 +134,15 @@ describe('ChannelSettingsModal', () => {
         await userEvent.type(purposeTextarea, 'New purpose');
 
         // Wait for the lazy-loaded sidebar to render the "Configuration" tab.
-        const configTabButton = await screen.findByRole('tab', {name: 'configuration'});
+        const archiveTabButton = await screen.findByRole('tab', {name: 'archive channel'});
         await act(async () => {
-            await userEvent.click(configTabButton);
+            await userEvent.click(archiveTabButton);
         });
 
         // Expect the SaveChangesPanel to be shown.
         expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
-        expect(screen.getByTestId('mm-save-changes-panel__save-btn')).toBeInTheDocument();
-        expect(screen.getByTestId('mm-save-changes-panel__cancel-btn')).toBeInTheDocument();
+        expect(screen.getByTestId('SaveChangesPanel__save-btn')).toBeInTheDocument();
+        expect(screen.getByTestId('SaveChangesPanel__cancel-btn')).toBeInTheDocument();
     });
 
     // Verify that clicking Undo in the SaveChangesPanel resets the form.
@@ -161,7 +161,7 @@ describe('ChannelSettingsModal', () => {
         });
 
         // Click the Undo button in the SaveChangesPanel
-        const undoButton = screen.getByTestId('mm-save-changes-panel__cancel-btn');
+        const undoButton = screen.getByTestId('SaveChangesPanel__cancel-btn');
         await act(async () => {
             await userEvent.click(undoButton);
         });
@@ -196,7 +196,7 @@ describe('ChannelSettingsModal', () => {
         patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
         // Click the Save button in the SaveChangesPanel
-        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await act(async () => {
             await userEvent.click(saveButton);
         });
@@ -227,15 +227,16 @@ describe('ChannelSettingsModal', () => {
         patchChannel.mockReturnValue({type: 'MOCK_ACTION', error: {message: 'Error saving channel'}});
 
         // Click the Save button in the SaveChangesPanel
-        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await act(async () => {
             await userEvent.click(saveButton);
         });
 
         // Verify error message appears
         await waitFor(() => {
-            expect(screen.getByText('There was an error saving your settings')).toBeInTheDocument();
-            expect(screen.getByText('Try again')).toBeInTheDocument();
+            expect(screen.getByText('There are errors in the form above')).toBeInTheDocument();
+            expect(screen.getByText('Save')).toBeInTheDocument();
+            expect(screen.getByText('Save')).toBeDisabled();
         });
     });
 
@@ -253,9 +254,6 @@ describe('ChannelSettingsModal', () => {
         await waitFor(() => {
             // Verify that the Info tab is shown
             expect(screen.getByRole('tab', {name: 'info'})).toBeInTheDocument();
-
-            // Verify that the Configuration tab is shown
-            expect(screen.getByRole('tab', {name: 'configuration'})).toBeInTheDocument();
 
             // Verify that the Archive tab is NOT shown
             expect(screen.queryByRole('tab', {name: 'archive channel'})).not.toBeInTheDocument();

@@ -357,7 +357,10 @@ function ChannelSettingsInfoTab({
                     handleClose={handleClose}
                     tabChangeError={characterLimitExceeded}
                     state={characterLimitExceeded ? 'error' : saveChangesPanelState}
-                    customErrorMessage={serverError}
+                    customErrorMessage={formatMessage({
+                        id: 'channel_settings.save_changes_panel.standard_error',
+                        defaultMessage: 'There are errors in the form above'})
+                    }
                 />
             )}
         </div>

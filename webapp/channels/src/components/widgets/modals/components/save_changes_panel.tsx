@@ -11,6 +11,8 @@ import './save_changes_panel.scss';
 
 export type SaveChangesPanelState = 'editing' | 'saved' | 'error' | undefined;
 
+const CLOSE_TIMEOUT = 1200;
+
 type Props = {
     handleSubmit: () => void;
     handleCancel: () => void;
@@ -20,17 +22,17 @@ type Props = {
     customErrorMessage?: string;
 }
 function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeError = false, state = 'editing', customErrorMessage}: Props) {
-    const panelClassName = classNames('mm-save-changes-panel', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
-    const messageClassName = classNames('mm-save-changes-panel__message', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
-    const cancelButtonClassName = classNames('mm-save-changes-panel__cancel-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
-    const saveButtonClassName = classNames('mm-save-changes-panel__save-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
+    const panelClassName = classNames('SaveChangesPanel', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
+    const messageClassName = classNames('SaveChangesPanel__message', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
+    const cancelButtonClassName = classNames('SaveChangesPanel__cancel-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
+    const saveButtonClassName = classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
 
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;
         if (state === 'saved') {
             timeoutId = setTimeout(() => {
                 handleClose();
-            }, 1200);
+            }, CLOSE_TIMEOUT);
         }
 
         return () => clearTimeout(timeoutId);
@@ -70,7 +72,7 @@ function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeErr
     const generateControlButtons = () => {
         if (state === 'saved') {
             return (
-                <div className='mm-save-changes-panel__btn-ctr'>
+                <div className='SaveChangesPanel__btn-ctr'>
                     <button
                         id='panelCloseButton'
                         data-testid='panelCloseButton'
@@ -86,10 +88,12 @@ function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeErr
             );
         }
 
+        const saveButtonDisabled = tabChangeError || state === 'error';
+
         return (
-            <div className='mm-save-changes-panel__btn-ctr'>
+            <div className='SaveChangesPanel__btn-ctr'>
                 <button
-                    data-testid='mm-save-changes-panel__cancel-btn'
+                    data-testid='SaveChangesPanel__cancel-btn'
                     className={cancelButtonClassName}
                     onClick={handleCancel}
                 >
@@ -99,21 +103,15 @@ function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeErr
                     />
                 </button>
                 <button
-                    data-testid='mm-save-changes-panel__save-btn'
+                    data-testid='SaveChangesPanel__save-btn'
                     className={saveButtonClassName}
                     onClick={handleSubmit}
-                    disabled={tabChangeError}
+                    disabled={saveButtonDisabled}
                 >
-                    {state === 'error' ?
-                        <FormattedMessage
-                            id='saveChangesPanel.tryAgain'
-                            defaultMessage='Try again'
-                        /> :
-                        <FormattedMessage
-                            id='saveChangesPanel.save'
-                            defaultMessage='Save'
-                        />
-                    }
+                    <FormattedMessage
+                        id='saveChangesPanel.save'
+                        defaultMessage='Save'
+                    />
                 </button>
             </div>
         );

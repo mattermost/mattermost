@@ -70,7 +70,7 @@ describe('components/TeamSettings', () => {
             userEvent.upload(input, file);
         });
 
-        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await act(async () => {
             userEvent.click(saveButton);
         });
@@ -87,7 +87,7 @@ describe('components/TeamSettings', () => {
             userEvent.upload(input, file);
         });
 
-        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await act(async () => {
             userEvent.click(saveButton);
         });
@@ -107,7 +107,7 @@ describe('components/TeamSettings', () => {
         act(() => {
             userEvent.clear(input);
         });
-        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await act(async () => {
             userEvent.click(saveButton);
         });
@@ -124,7 +124,7 @@ describe('components/TeamSettings', () => {
             await userEvent.clear(input);
             await userEvent.type(input, 'a');
         });
-        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await act(async () => {
             userEvent.click(saveButton);
         });
@@ -139,7 +139,7 @@ describe('components/TeamSettings', () => {
         const input = screen.getByTestId('teamNameInput');
         userEvent.clear(input);
         userEvent.type(input, 'new_team_name');
-        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await act(async () => {
             userEvent.click(saveButton);
         });
@@ -155,7 +155,7 @@ describe('components/TeamSettings', () => {
             await userEvent.clear(input);
             await userEvent.type(input, 'new_team_description');
         });
-        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await act(async () => {
             userEvent.click(saveButton);
         });
@@ -172,7 +172,7 @@ describe('components/TeamSettings', () => {
         userEvent.type(nameInput, 'new_team_name');
         userEvent.clear(descriptionInput);
         userEvent.type(descriptionInput, 'new_team_description');
-        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await act(async () => {
             userEvent.click(saveButton);
         });
