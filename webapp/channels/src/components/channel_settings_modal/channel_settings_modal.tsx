@@ -355,9 +355,6 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     // For the main modal heading
     const modalTitle = formatMessage({id: 'channel_settings.modal.title', defaultMessage: 'Channel Settings'});
 
-    // Error text to show in the GenericModal "footer area"
-    const errorText = serverError;
-
     return (
         <GenericModal
             id='channelSettingsModal'
@@ -370,7 +367,6 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
 
             // The main heading:
             modalHeaderText={modalTitle}
-            errorText={errorText}
 
             // If pressing Enter in a sub‐form, we also want to handle saving:
             handleEnterKeyPress={handleSaveChanges}

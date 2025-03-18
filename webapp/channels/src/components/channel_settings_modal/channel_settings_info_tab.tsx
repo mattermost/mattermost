@@ -19,9 +19,9 @@ import {
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
+import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
-import SettingsTextbox from 'components/widgets/settings_textbox/settings_textbox';
 
 import Constants from 'utils/constants';
 
@@ -277,7 +277,7 @@ function ChannelSettingsInfoTab({
             />
 
             {/* Purpose Section*/}
-            <SettingsTextbox
+            <AdvancedTextbox
                 id='channel_settings_purpose_textbox'
                 value={internalChannelPurpose}
                 channelId={channel.id}
@@ -291,12 +291,15 @@ function ChannelSettingsInfoTab({
                 togglePreview={togglePurposePreview}
                 textboxRef={purposeTextboxRef}
                 useChannelMentions={false}
-                descriptionMessageId='channel_settings.purpose.description'
-                descriptionMessageDefault='Describe how this channel should be used.'
+                onKeypress={() => {}}
+                descriptionMessage={formatMessage({
+                    id: 'channel_settings.purpose.description',
+                    defaultMessage: 'Describe how this channel should be used.',
+                })}
             />
 
             {/* Channel Header Section*/}
-            <SettingsTextbox
+            <AdvancedTextbox
                 id='channel_settings_header_textbox'
                 value={internalChannelHeader}
                 channelId={channel.id}
@@ -310,8 +313,11 @@ function ChannelSettingsInfoTab({
                 togglePreview={toggleHeaderPreview}
                 textboxRef={headerTextboxRef}
                 useChannelMentions={false}
-                descriptionMessageId='channel_settings.purpose.header'
-                descriptionMessageDefault='This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).'
+                onKeypress={() => {}}
+                descriptionMessage={formatMessage({
+                    id: 'channel_settings.purpose.header',
+                    defaultMessage: 'This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).',
+                })}
             />
 
             {/* SaveChangesPanel for unsaved changes */}
