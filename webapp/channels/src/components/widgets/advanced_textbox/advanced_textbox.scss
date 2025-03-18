@@ -1,0 +1,43 @@
+@import 'utils/mixins';
+
+.advanced-textbox {
+    position: relative;
+
+    .textarea-wrapper {
+        position: relative;
+
+        .textarea--has-errors{
+            border-color: var(--error-text) !important;
+            
+            &:focus {
+                border-color: var(--error-text) !important;
+                box-shadow: 0 0 0 1px var(--error-text) !important;
+            }
+        }
+    }
+    
+    
+    .advanced-textbox__error-message {
+        display: flex;
+        align-items: center;
+        color: var(--error-text);
+        font-size: 12px;
+        margin-top: 4px;
+        
+        i {
+            margin-right: 4px;
+            font-size: 14px;
+        }
+    }
+    
+    .advanced-textbox__character-count {
+        font-size: 12px;
+        margin-top: 4px;
+        position: absolute;
+        right: 0;
+        
+        &.exceeds-limit {
+            color: var(--error-text);
+        }
+    }
+}

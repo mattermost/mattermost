@@ -74,6 +74,7 @@ export type Props = {
     openWhenEmpty?: boolean;
     priorityProfiles?: UserProfile[];
     hasLabels?: boolean;
+    hasError?: boolean;
     isInEditMode?: boolean;
 };
 
@@ -275,6 +276,10 @@ export default class Textbox extends React.PureComponent<Props> {
         }
         if (this.props.hasLabels) {
             textboxClassName += ' textarea--has-labels';
+        }
+
+        if (this.props.hasError) {
+            textboxClassName += ' textarea--has-errors';
         }
 
         return (

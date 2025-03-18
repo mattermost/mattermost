@@ -47,14 +47,25 @@
             overflow: visible !important;
             flex: 1;
             flex-direction: column;
-            padding-bottom: 50px !important;
+
+            .advanced-textbox {
+                position: relative;
+            }
+
+            .channel-settings-name-container, .advanced-textbox {
+                margin-top: 24px;
+            }
         }
     }
 
     &__infoTab {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        padding-bottom: 30px;
+
+        &.save-changes-panel-shown {
+            padding-bottom: 45px !important;
+        }
 
         label.Input_legend {
             margin-bottom: 4px;
@@ -86,7 +97,7 @@
     }
 
     &__typeSelector {
-        margin-top: 24px;
+        margin-top: 16px;
     }
 
     &__purposeContainer, &__headerContainer {

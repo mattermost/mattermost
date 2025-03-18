@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useCallback, useState, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -240,7 +241,11 @@ function ChannelSettingsInfoTab({
     }, [serverError, setServerError, formatMessage]);
 
     return (
-        <div className='ChannelSettingsModal__infoTab'>
+        <div
+            className={classNames('ChannelSettingsModal__infoTab', {
+                'save-changes-panel-shown': requireConfirm,
+            })}
+        >
             {/* Channel Name Section*/}
             <label className='Input_legend'>{formatMessage({id: 'channel_settings.label.name', defaultMessage: 'Channel Name'})}</label>
             <ChannelNameFormField
@@ -296,6 +301,15 @@ function ChannelSettingsInfoTab({
                     id: 'channel_settings.purpose.description',
                     defaultMessage: 'Describe how this channel should be used.',
                 })}
+                hasError={internalChannelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH}
+                errorMessage={internalChannelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH ? formatMessage({
+                    id: 'channel_settings.error_purpose_length',
+                    defaultMessage: 'The channel purpose exceeds the maximum character limit of {maxLength} characters.',
+                }, {
+                    maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
+                }) : undefined
+                }
+                showCharacterCount={true}
             />
 
             {/* Channel Header Section*/}
@@ -318,6 +332,15 @@ function ChannelSettingsInfoTab({
                     id: 'channel_settings.purpose.header',
                     defaultMessage: 'This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).',
                 })}
+                hasError={internalChannelHeader.length > headerMaxLength}
+                errorMessage={internalChannelHeader.length > headerMaxLength ? formatMessage({
+                    id: 'edit_channel_header_modal.error',
+                    defaultMessage: 'The channel header exceeds the maximum character limit of {maxLength} characters.',
+                }, {
+                    maxLength: headerMaxLength,
+                }) : undefined
+                }
+                showCharacterCount={true}
             />
 
             {/* SaveChangesPanel for unsaved changes */}
