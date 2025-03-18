@@ -98,6 +98,21 @@ const Input = React.forwardRef((
         }
     }, [customMessage]);
 
+    // Re-validate input when value changes (e.g. when a parent component sets a new value,not just when the user types)
+    useEffect(() => {
+        // Only run validation if we're not focused (to avoid validating during typing)
+        // and if there's currently an error displayed
+        if (!focused && customInputLabel?.type === 'error') {
+            // Clear error state when value changes
+            setCustomInputLabel(null);
+
+            // Re-run validation to check if the new value is valid
+            if (value !== undefined && value !== null && value !== '') {
+                validateInput();
+            }
+        }
+    }, [value]); // Only run when value changes
+
     const handleOnFocus = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFocused(true);
 
