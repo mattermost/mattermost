@@ -44,11 +44,11 @@ export const AdminWrapper = (props: {children: ReactNode}) => {
 };
 
 export const BorderlessInput = styled.input.attrs({className: 'Input form-control'})<{$deleted?: boolean; $strong?: boolean}>`
-    font-weight: normal;
-
     && {
         height: 40px;
         border-color: transparent;
+        border-top: 0;
+        background: none;
         box-shadow: none;
         &:hover,
         &:focus {

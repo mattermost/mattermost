@@ -21,6 +21,7 @@ import DotMenu from './user_properties_dot_menu';
 import SelectType from './user_properties_type_menu';
 import type {UserPropertyFields} from './user_properties_utils';
 import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
+import UserPropertyValues from './user_properties_values';
 
 import {AdminConsoleListTable} from '../list_table';
 
@@ -187,13 +188,20 @@ export function UserPropertiesTable({data: collection, updateField, deleteField,
                         />
                     </ColHeaderLeft>
                 ),
-                cell: () => (<></>),
+                cell: ({row}) => (
+                    <>
+                        <UserPropertyValues
+                            field={row.original}
+                            updateField={updateField}
+                        />
+                    </>
+                ),
                 enableHiding: false,
                 enableSorting: false,
             }),
             col.display({
                 id: 'actions',
-                size: 100,
+                size: 40,
                 header: () => {
                     return (
                         <ColHeaderRight>
@@ -281,6 +289,9 @@ const TableWrapper = styled.div`
 
                     &:last-child {
                         padding-inline-end: 12px;
+                    }
+                    &.pinned {
+                        background: none;
                     }
                 }
             }
