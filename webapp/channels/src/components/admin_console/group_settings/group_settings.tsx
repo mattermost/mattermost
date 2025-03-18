@@ -9,6 +9,7 @@ import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
+import Pluggable from 'plugins/pluggable';
 import {DocLinks} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
@@ -66,6 +67,9 @@ const GroupSettings = ({isDisabled}: Props) => {
                             readOnly={isDisabled}
                         />
                     </AdminPanel>
+                    <Pluggable
+                        pluggableName='SystemConsoleGroupTable'
+                    />
                 </div>
             </div>
         </div>
