@@ -3429,6 +3429,22 @@ func (s *TimerLayerDraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigra
 	return result, resultVar1, err
 }
 
+func (s *TimerLayerDraftStore) PermanentDeleteByUser(userId string) error {
+	start := time.Now()
+
+	err := s.DraftStore.PermanentDeleteByUser(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 	start := time.Now()
 
@@ -5091,7 +5107,7 @@ func (s *TimerLayerJobStore) UpdateStatus(id string, status string) (*model.Job,
 	return result, err
 }
 
-func (s *TimerLayerJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error) {
+func (s *TimerLayerJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error) {
 	start := time.Now()
 
 	result, err := s.JobStore.UpdateStatusOptimistically(id, currentStatus, newStatus)

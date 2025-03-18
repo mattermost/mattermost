@@ -783,7 +783,7 @@ type JobStore interface {
 	SaveOnce(job *model.Job) (*model.Job, error)
 	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
 	UpdateStatus(id string, status string) (*model.Job, error)
-	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error)
+	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error)
 	Get(c request.CTX, id string) (*model.Job, error)
 	GetAllByType(c request.CTX, jobType string) ([]*model.Job, error)
 	GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error)
@@ -1039,6 +1039,7 @@ type DraftStore interface {
 	GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt int64, userID string) (int64, string, error)
 	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error
+	PermanentDeleteByUser(userId string) error
 }
 
 type PostAcknowledgementStore interface {
