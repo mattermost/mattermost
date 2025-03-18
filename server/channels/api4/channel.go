@@ -1839,7 +1839,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Security check: if the user is a guest, they must have access to the channel
 	// to view its members
-	if c.AppContext.Session().Props[model.SessionPropIsGuest] == "true" && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+	if c.AppContext.Session().IsGuest() && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
