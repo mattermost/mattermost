@@ -8,7 +8,7 @@ import type {GroupChannel, GroupTeam} from '@mattermost/types/groups';
 
 import GroupTeamsAndChannelsRow from 'components/admin_console/group_settings/group_details/group_teams_and_channels_row';
 
-export type Props = {
+type Props = {
     id: string;
     teams?: GroupTeam[];
     channels?: GroupChannel[];
@@ -18,7 +18,7 @@ export type Props = {
     isDisabled?: boolean;
 };
 
-export type State = {
+type State = {
     collapsed: Record<string, boolean>;
 };
 

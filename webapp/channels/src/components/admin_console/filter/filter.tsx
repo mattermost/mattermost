@@ -8,11 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import FilterList from './filter_list';
 import './filter.scss';
 
-export type Filters = {
-    [filterKey: string]: string[];
-};
-
-export type FilterValue = {
+type FilterValue = {
     name: string | JSX.Element;
     value: boolean | string | string[];
 };

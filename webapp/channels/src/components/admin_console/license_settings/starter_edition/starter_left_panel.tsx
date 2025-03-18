@@ -10,7 +10,7 @@ import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import {FileTypes} from 'utils/constants';
 
 import './starter_edition.scss';
-export interface StarterEditionProps {
+interface StarterEditionProps {
     openEELicenseModal: () => void;
     currentPlan: JSX.Element;
     upgradedFromTE: boolean;
