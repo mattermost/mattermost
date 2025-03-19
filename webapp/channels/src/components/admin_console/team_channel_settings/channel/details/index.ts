@@ -16,6 +16,7 @@ import {
     patchChannel,
     patchChannelModerations,
     removeChannelMember,
+    removeNonGroupMembersFromChannel,
     unarchiveChannel,
     updateChannelMemberSchemeRoles,
     updateChannelPrivacy,
@@ -105,6 +106,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             updateChannelMemberSchemeRoles,
             deleteChannel,
             unarchiveChannel,
+            removeNonGroupMembersFromChannel,
         }, dispatch),
     };
 }

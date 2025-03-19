@@ -1453,6 +1453,20 @@ export function fetchMissingChannels(channelIDs: string[]): ActionFuncAsync<Arra
     };
 }
 
+export function removeNonGroupMembersFromChannel(channelId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.removeNonGroupMembersFromChannel(channelId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        return {data: true};
+    };
+}
+
 export default {
     selectChannel,
     createChannel,
@@ -1476,6 +1490,7 @@ export default {
     addChannelMember,
     addChannelMembers,
     removeChannelMember,
+    removeNonGroupMembersFromChannel,
     markChannelAsRead,
     favoriteChannel,
     unfavoriteChannel,

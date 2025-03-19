@@ -1774,6 +1774,13 @@ export default class Client4 {
         );
     };
 
+    removeNonGroupMembersFromChannel = (channelId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getChannelRoute(channelId)}/non_group_members`,
+            {method: 'delete'},
+        );
+    };
+
     updateChannelMemberRoles = (channelId: string, userId: string, roles: string) => {
         return this.doFetch<StatusOK>(
             `${this.getChannelMemberRoute(channelId, userId)}/roles`,

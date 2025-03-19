@@ -29,6 +29,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/mark_read", api.APISessionRequired(readMultipleChannels)).Methods(http.MethodPost)
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.APISessionRequired(updateChannelScheme)).Methods(http.MethodPut)
 	api.BaseRoutes.Channels.Handle("/stats/member_count", api.APISessionRequired(getChannelsMemberCount)).Methods(http.MethodPost)
+	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/non_group_members", api.APISessionRequired(removeNonGroupMembers)).Methods(http.MethodDelete)
 
 	api.BaseRoutes.ChannelsForTeam.Handle("", api.APISessionRequired(getPublicChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.APISessionRequired(getDeletedChannelsForTeam)).Methods(http.MethodGet)
@@ -2453,4 +2454,51 @@ func canEditChannelBanner(license *model.License, originalChannel *model.Channel
 	}
 
 	return nil
+}
+
+func removeNonGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if !*c.App.Channels().License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !channel.IsGroupConstrained() {
+		c.Err = model.NewAppError("deleteNonGroupMembers", "api.channel.delete_non_group_members.not_group_constrained", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("deleteNonGroupMembers", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("channel_id", channel.Id)
+
+	var permission *model.Permission
+	if channel.Type == model.ChannelTypePrivate {
+		permission = model.PermissionManagePrivateChannelMembers
+	} else {
+		permission = model.PermissionManagePublicChannelMembers
+	}
+
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, permission) {
+		c.SetPermissionError(permission)
+		return
+	}
+
+	if err := c.App.DeleteGroupConstrainedChannelMemberships(c.AppContext, &channel.Id); err != nil {
+		c.Err = model.NewAppError("deleteNonGroupMembers", "api.channel.delete_non_group_members.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }

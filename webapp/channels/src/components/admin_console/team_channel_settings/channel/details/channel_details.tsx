@@ -99,6 +99,7 @@ export type ChannelDetailsActions = {
     loadScheme: (schemeID: string) => Promise<ActionResult>;
     addChannelMember: (channelId: string, userId: string, postRootId?: string) => Promise<ActionResult>;
     removeChannelMember: (channelId: string, userId: string) => Promise<ActionResult>;
+    removeNonGroupMembersFromChannel: (channelId: string) => Promise<ActionResult>;
     updateChannelMemberSchemeRoles: (channelId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean) => Promise<ActionResult>;
     deleteChannel: (channelId: string) => Promise<ActionResult>;
     unarchiveChannel: (channelId: string) => Promise<ActionResult>;
@@ -498,6 +499,20 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                         );
                     }
                 }
+                
+                // If the channel is being converted to a synced channel (wasn't synced before but now is)
+                // and there are no other group changes (no links or unlinks), remove non-group members
+                const wasSynced = Boolean(channel.group_constrained);
+                const isNowSynced = isSynced;
+                const noGroupChanges = link.length === 0 && unlink.length === 0;
+                console.log('wasSynced', wasSynced);
+                console.log('isNowSynced', isNowSynced);
+                console.log('noGroupChanges', noGroupChanges);
+
+                if (!wasSynced && isNowSynced && noGroupChanges && groups.length > 0) {
+                    actionsToAwait.push(actions.removeNonGroupMembersFromChannel(channelID));
+                }
+                
                 if (actionsToAwait.length > 0) {
                     await Promise.all(actionsToAwait);
                 }
@@ -764,17 +779,17 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 />
 
                 {this.props.channelGroupsEnabled &&
-                    <ChannelGroups
-                        synced={isSynced}
-                        channel={channel}
-                        totalGroups={totalGroups}
-                        groups={groups}
-                        removedGroups={removedGroups}
-                        onAddCallback={this.handleGroupChange}
-                        onGroupRemoved={this.handleGroupRemoved}
-                        setNewGroupRole={this.setNewGroupRole}
-                        isDisabled={this.props.isDisabled}
-                    />
+                        <ChannelGroups
+                            synced={isSynced}
+                            channel={channel}
+                            totalGroups={totalGroups}
+                            groups={groups}
+                            removedGroups={removedGroups}
+                            onAddCallback={this.handleGroupChange}
+                            onGroupRemoved={this.handleGroupRemoved}
+                            setNewGroupRole={this.setNewGroupRole}
+                            isDisabled={this.props.isDisabled}
+                        />
                 }
 
                 {!isSynced &&

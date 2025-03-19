@@ -142,7 +142,7 @@ func (a *App) CreateDefaultMemberships(rctx request.CTX, params model.CreateDefa
 // DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed
 // groups of all group-constrained teams and channels.
 func (a *App) DeleteGroupConstrainedMemberships(rctx request.CTX) error {
-	err := a.deleteGroupConstrainedChannelMemberships(rctx, nil)
+	err := a.DeleteGroupConstrainedChannelMemberships(rctx, nil)
 	if err != nil {
 		return err
 	}
@@ -183,10 +183,10 @@ func (a *App) deleteGroupConstrainedTeamMemberships(rctx request.CTX, teamID *st
 	return multiErr.ErrorOrNil()
 }
 
-// deleteGroupConstrainedChannelMemberships deletes channel memberships of users who aren't members of the allowed
+// DeleteGroupConstrainedChannelMemberships deletes channel memberships of users who aren't members of the allowed
 // groups of the given group-constrained channel. If a channelID is given then the procedure is scoped to the given team,
 // if channelID is nil then the procedure affects all teams.
-func (a *App) deleteGroupConstrainedChannelMemberships(rctx request.CTX, channelID *string) error {
+func (a *App) DeleteGroupConstrainedChannelMemberships(rctx request.CTX, channelID *string) error {
 	channelMembers, appErr := a.ChannelMembersToRemove(channelID)
 	if appErr != nil {
 		return appErr
@@ -309,7 +309,7 @@ func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncab
 		if err := a.createDefaultChannelMemberships(rctx, params); err != nil {
 			rctx.Logger().Warn("Error creating default channel memberships", mlog.Err(err))
 		}
-		if err := a.deleteGroupConstrainedChannelMemberships(rctx, &syncableID); err != nil {
+		if err := a.DeleteGroupConstrainedChannelMemberships(rctx, &syncableID); err != nil {
 			rctx.Logger().Warn("Error deleting group constrained team memberships", mlog.Err(err))
 		}
 	}
