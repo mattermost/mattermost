@@ -329,6 +329,7 @@ type ServiceSettings struct {
 	TLSKeyFile          *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	TLSMinVer           *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	TLSStrictTransport  *bool   `access:"write_restrictable,cloud_restrictable"`
+	EnableCrossTeamSearch *bool `access:"site_posts"`
 	// In seconds.
 	TLSStrictTransportMaxAge            *int64   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	TLSOverwriteCiphers                 []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
@@ -972,6 +973,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.FrameAncestors == nil {
 		s.FrameAncestors = NewPointer("")
+	}
+
+	if s.EnableCrossTeamSearch == nil {
+		s.EnableCrossTeamSearch = NewPointer(true)
 	}
 }
 
