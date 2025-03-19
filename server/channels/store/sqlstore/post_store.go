@@ -644,7 +644,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 			query = query.Where(sq.Or{
 				direction,
 				sq.And{
-					sq.Eq{"Posts.CreateAt": opts.FromUpdateAt},
+					sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
 					pagination,
 				},
 			})
