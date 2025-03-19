@@ -26,8 +26,8 @@ const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
 type ChannelSettingsModalProps = {
     channel: Channel;
     onExited: () => void;
-    focusOriginElement?: string;
     isOpen: boolean;
+    focusOriginElement?: string;
 };
 
 enum ChannelSettingsTabs {
@@ -85,7 +85,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     };
 
     // Called after the fade-out completes
-    const handleHidden = () => {
+    const handleExited = () => {
         // Clear anything if needed
         setActiveTab(ChannelSettingsTabs.INFO);
         if (focusOriginElement) {
@@ -192,7 +192,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
             className='ChannelSettingsModal settings-modal'
             show={show}
             onHide={handleHide}
-            onExited={handleHidden}
+            onExited={handleExited}
             compassDesign={true}
             modalHeaderText={modalTitle}
             bodyPadding={false}

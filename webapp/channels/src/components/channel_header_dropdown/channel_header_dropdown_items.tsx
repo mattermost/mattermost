@@ -57,8 +57,6 @@ export type Props = {
     isChannelBookmarksEnabled: boolean;
 }
 
-const SHOW_SETTINGS_MODAL = true;
-
 export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
     render() {
         const {
@@ -130,10 +128,13 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                     />
                     <Menu.ItemToggleModalRedux
                         id='channelSettings'
-                        show={!isArchived && channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && SHOW_SETTINGS_MODAL}
+                        show={!isArchived && channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL}
                         modalId={ModalIdentifiers.CHANNEL_SETTINGS}
                         dialogType={ChannelSettingsModal}
-                        dialogProps={{channel}}
+                        dialogProps={{
+                            channel,
+                            focusOriginElement: 'channelHeaderMenuButton',
+                        }}
                         text={localizeMessage({id: 'channel_header.settings', defaultMessage: 'Channel Settings'})}
 
                     />
