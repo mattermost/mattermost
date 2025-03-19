@@ -393,6 +393,7 @@ type ServiceSettings struct {
 	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
 	PostEditTimeLimit                                 *int    `access:"user_management_permissions"`
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnableCrossTeamSearch                             *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnableFileSearch                                  *bool   `access:"write_restrictable"`
 	MinimumHashtagLength                              *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
