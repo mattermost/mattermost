@@ -329,7 +329,6 @@ type ServiceSettings struct {
 	TLSKeyFile          *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	TLSMinVer           *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	TLSStrictTransport  *bool   `access:"write_restrictable,cloud_restrictable"`
-	EnableCrossTeamSearch *bool `access:"site_posts"`
 	// In seconds.
 	TLSStrictTransportMaxAge            *int64   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	TLSOverwriteCiphers                 []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
@@ -620,6 +619,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.TimeBetweenUserTypingUpdatesMilliseconds == nil {
 		s.TimeBetweenUserTypingUpdatesMilliseconds = NewPointer(int64(5000))
+	}
+
+	if s.EnableCrossTeamSearch == nil {
+		s.EnableCrossTeamSearch = NewPointer(true)
 	}
 
 	if s.EnablePostSearch == nil {
@@ -974,10 +977,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.FrameAncestors == nil {
 		s.FrameAncestors = NewPointer("")
-	}
-
-	if s.EnableCrossTeamSearch == nil {
-		s.EnableCrossTeamSearch = NewPointer(true)
 	}
 }
 
@@ -3651,9 +3650,11 @@ func (s *ExportSettings) SetDefaults() {
 
 type ConfigFunc func() *Config
 
-const ConfigAccessTagType = "access"
-const ConfigAccessTagWriteRestrictable = "write_restrictable"
-const ConfigAccessTagCloudRestrictable = "cloud_restrictable"
+const (
+	ConfigAccessTagType              = "access"
+	ConfigAccessTagWriteRestrictable = "write_restrictable"
+	ConfigAccessTagCloudRestrictable = "cloud_restrictable"
+)
 
 // Allows read access if any PermissionSysconsoleRead* is allowed
 const ConfigAccessTagAnySysConsoleRead = "*_read"
