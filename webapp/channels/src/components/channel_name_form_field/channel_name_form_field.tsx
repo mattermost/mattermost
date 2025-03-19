@@ -103,17 +103,13 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         const {target: {value: url}} = e;
 
         const cleanURL = url.toLowerCase().replace(/\s/g, '-');
+        const urlErrors = validateChannelUrl(cleanURL, intl) as string[];
 
-        // Update the URL without validation during typing
+        setURLError(urlErrors.length ? urlErrors[urlErrors.length - 1] : '');
         setURL(cleanURL);
         urlModified.current = true;
         props.onURLChange(cleanURL);
-
-        // Clear any previous URL errors during typing
-        if (urlError) {
-            setURLError('');
-        }
-    }, [props.onURLChange, urlError]);
+    }, [props.onURLChange]);
 
     // Add a URL blur handler to validate the URL when the user moves away from the field
     const handleOnURLBlur = useCallback(() => {

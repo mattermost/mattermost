@@ -196,6 +196,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
             compassDesign={true}
             modalHeaderText={modalTitle}
             bodyPadding={false}
+            modalLocation={'top'}
         >
             <div className='ChannelSettingsModal__bodyWrapper'>
                 {renderModalBody()}

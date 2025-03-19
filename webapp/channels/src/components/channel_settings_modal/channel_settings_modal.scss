@@ -2,19 +2,16 @@
 // See LICENSE.txt for license information.
 
 .ChannelSettingsModal {
-    width: 800px !important;
-    margin-top: 5vh !important;
-
     .GenericModal__wrapper {
         display: flex;
         overflow: visible;
-
         max-width: 1200px;
         max-height: 90vh;
         flex-direction: column;
         border: var(--border-default);
         border-radius: var(--radius-l);
         box-shadow: var(--elevation-6);
+
         .modal-body {
             display: flex;
             overflow: visible;
@@ -44,7 +41,7 @@
 
         .settings-content {
             display: flex;
-            overflow: visible !important;
+            overflow: visible !important; // This is necessary to override the overflow hidden from the modal for emoji list
             flex: 1;
             flex-direction: column;
 
@@ -61,11 +58,7 @@
     &__infoTab {
         display: flex;
         flex-direction: column;
-        padding-bottom: 30px;
-
-        &.save-changes-panel-shown {
-            padding-bottom: 45px !important;
-        }
+        padding-bottom: 60px;
 
         label.Input_legend {
             margin-bottom: 4px;
@@ -82,11 +75,13 @@
             right: 5px;
         }
 
+        // This is a workaround forcing styles to override the ones from the textbox component that affect post input
         .textbox-preview-area, #channel_settings_purpose_textbox,  #channel_settings_header_textbox {
             height: 80px !important;
             box-shadow: none !important;
         }
 
+        // forcing z-index on the emoji list to be on top of the modal
         .suggestion-list {
             z-index: 100000;
         }
@@ -199,6 +194,7 @@
     }
 }
 
+// styles for the archive channel confirm modal
 .archiveChannelConfirmModal {
     display: flex;
     flex-direction: column;
