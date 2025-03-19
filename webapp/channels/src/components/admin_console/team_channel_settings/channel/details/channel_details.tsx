@@ -505,9 +505,6 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 const wasSynced = Boolean(channel.group_constrained);
                 const isNowSynced = isSynced;
                 const noGroupChanges = link.length === 0 && unlink.length === 0;
-                console.log('wasSynced', wasSynced);
-                console.log('isNowSynced', isNowSynced);
-                console.log('noGroupChanges', noGroupChanges);
 
                 if (!wasSynced && isNowSynced && noGroupChanges && groups.length > 0) {
                     actionsToAwait.push(actions.removeNonGroupMembersFromChannel(channelID));

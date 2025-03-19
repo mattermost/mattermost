@@ -2049,6 +2049,43 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+          
+  "/api/v4/channels/{channel_id}/non_group_members":
+    delete:
+      tags:
+        - channels
+      summary: Remove non-group members from a channel
+      description: >
+        Remove members from the channel that are not members of the groups
+        associated with the channel.
+
+        ##### Permissions
+
+        Must have `manage_public_channel_members` permission if the channel is public.
+        Must have `manage_private_channel_members` permission if the channel is private.
+
+        __Minimum server version__: 10.7
+      operationId: RemoveNonGroupMembersFromChannel
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully removed non-group members from the channel.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   "/api/v4/channels/{channel_id}/moderations":
     get:
       tags:
