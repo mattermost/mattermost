@@ -7,13 +7,14 @@ import {useSelector} from 'react-redux';
 
 import {channelBannerEnabled} from '@mattermost/types/channels';
 
-import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import Markdown from 'components/markdown';
 import WithTooltip from 'components/with_tooltip';
 
+import Constants from 'utils/constants';
 import {isEnterpriseLicense} from 'utils/license_utils';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 
@@ -36,21 +37,23 @@ export default function ChannelBanner({channelId}: Props) {
     // TODO - check for premium license here once the corresponding PR is merged
     const isEnterprise = isEnterpriseLicense(license);
     const channelBannerInfo = useSelector((state: GlobalState) => getChannelBanner(state, channelId));
+    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
+    const isValidChannelType = channel && (channel.type === Constants.PRIVATE_CHANNEL || channel.type === Constants.OPEN_CHANNEL);
+    const showChannelBanner = isEnterprise && isValidChannelType && channelBannerEnabled(channelBannerInfo);
+
     const intl = useIntl();
-
-    const showChannelBanner = isEnterprise && channelBannerEnabled(channelBannerInfo);
-
     const channelBannerTextAriaLabel = intl.formatMessage({id: 'channel_banner.aria_label', defaultMessage: 'Channel banner text'});
+
     const content = (
         <Markdown
-            message={channelBannerInfo!.text}
+            message={channelBannerInfo?.text}
             options={markdownRenderingOptions}
         />
     );
 
     const channelBannerStyle = useMemo(() => {
         return {
-            backgroundColor: channelBannerInfo!.background_color,
+            backgroundColor: channelBannerInfo?.background_color,
         };
     }, [channelBannerInfo]);
 
@@ -60,8 +63,15 @@ export default function ChannelBanner({channelId}: Props) {
             return {};
         }
 
+        const color = getContrastingSimpleColor(channelBannerInfo.background_color);
+
+        // The CSS variable is declared here, and is being used in the stylesheet being imported in this component.
+        // This is needed because if the user sets background color a share of blue similar to the default link color,
+        // the markdown link will become almost invisible. So, the CSS variable declared here is used
+        // to set the color of the text in anchor tag in the stylesheet.
         return {
-            color: getContrastingSimpleColor(channelBannerInfo.background_color),
+            color,
+            '--channel-banner-text-color': color,
         };
     }, [channelBannerInfo]);
 

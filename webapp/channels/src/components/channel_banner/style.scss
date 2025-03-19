@@ -17,6 +17,10 @@
         max-width: 100%;
         text-align: center;
         text-overflow: ellipsis;
+
+        a {
+            color: var(--channel-banner-text-color);
+        }
     }
 }
 
