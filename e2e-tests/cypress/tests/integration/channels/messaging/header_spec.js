@@ -30,16 +30,16 @@ describe('Header', () => {
 
     it('MM-T88 An ellipsis indicates the channel header is too long - public or private channel Quote icon displays at beginning of channel header', () => {
         // * Verify with short channel header
-        updateAndVerifyChannelHeader('>', 'newheader');
+        updateAndVerifyChannelHeader(false, '>', 'newheader');
 
         // * Verify with long channel header
-        updateAndVerifyChannelHeader('>', 'newheader'.repeat(20));
+        updateAndVerifyChannelHeader(false, '>', 'newheader'.repeat(20));
     });
 
     it('MM-T881_1 - Header: Markdown quote', () => {
         // # Update channel header text
         const header = 'This is a quote in the header';
-        updateAndVerifyChannelHeader('>', header);
+        updateAndVerifyChannelHeader(false, '>', header);
     });
 
     it('MM-T89 An ellipsis indicates the channel header is too long - DM', () => {
@@ -56,7 +56,7 @@ describe('Header', () => {
         // # Update DM channel header
         const header = `quote ${'newheader'.repeat(15)}`;
 
-        updateAndVerifyChannelHeader('>', header);
+        updateAndVerifyChannelHeader(true, '>', header);
 
         // # Hover on channel header
         cy.get('#channelHeaderDescription .header-description__text').trigger('mouseenter');
@@ -70,9 +70,13 @@ describe('Header', () => {
     });
 });
 
-function updateAndVerifyChannelHeader(prefix, header) {
+function updateAndVerifyChannelHeader(isDM, prefix, header) {
     // # Update channel header
-    cy.updateChannelHeader(prefix + header);
+    if (isDM) {
+        cy.updateDMGMChannelHeader(prefix + header);
+    } else {
+        cy.updateChannelHeader(prefix + header);
+    }
 
     // * Should render blockquote if it starts with ">"
     if (prefix === '>') {
