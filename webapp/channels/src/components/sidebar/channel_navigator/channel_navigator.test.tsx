@@ -16,6 +16,7 @@ describe('Components/ChannelNavigator', () => {
         props = {
             showUnreadsCategory: true,
             isQuickSwitcherOpen: false,
+            intl: {} as any,
             actions: {
                 openModal: jest.fn(),
                 closeModal: jest.fn(),

@@ -28,6 +28,7 @@ import (
 
 // Regex to get quoted strings
 var quotedStringsRegex = regexp.MustCompile(`("[^"]*")`)
+var wildCardRegex = regexp.MustCompile(`\*($| )`)
 
 type SqlPostStore struct {
 	*SqlStore
@@ -2093,12 +2094,10 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		// we've already confirmed that we have a channel or user to search for
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		// Parse text for wildcards
-		var wildcard *regexp.Regexp
-		if wildcard, err = regexp.Compile(`\*($| )`); err == nil {
-			terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
-			excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
-		}
+		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
+		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, ":* ")
 
+		simpleSearch := false
 		// Replace spaces with to_tsquery symbols
 		replaceSpaces := func(input string, excludedInput bool) string {
 			if input == "" {
@@ -2110,6 +2109,11 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 			// Replace spaces within quoted strings with '<->'
 			input = quotedStringsRegex.ReplaceAllStringFunc(input, func(match string) string {
+				// If the whole search term is a quoted string,
+				// we don't want to do stemming.
+				if input == match {
+					simpleSearch = true
+				}
 				return strings.Replace(match, " ", "<->", -1)
 			})
 
@@ -2129,7 +2133,12 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			tsQueryClause += " &!(" + excludedClause + ")"
 		}
 
-		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
+		textSearchCfg := s.pgDefaultTextSearchConfig
+		if simpleSearch {
+			textSearchCfg = "simple"
+		}
+
+		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", textSearchCfg, searchType)
 		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {
