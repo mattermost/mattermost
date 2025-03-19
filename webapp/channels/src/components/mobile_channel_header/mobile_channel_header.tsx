@@ -20,17 +20,10 @@ import UnmuteChannelButton from './unmute_channel_button';
 
 type Props = {
     channel?: Channel;
-
-    /**
-     * Relative url for the team, used to redirect if a link in the channel header is clicked
-     */
-    currentRelativeTeamUrl?: string;
-
     inGlobalThreads?: boolean;
     inDrafts?: boolean;
     isMobileView: boolean;
     isMuted?: boolean;
-    isReadOnly?: boolean;
     isRHSOpen?: boolean;
     user: UserProfile;
     actions: {
@@ -40,7 +33,7 @@ type Props = {
     };
 }
 
-export default class ChannelHeaderMobile extends React.PureComponent<Props> {
+export default class MobileChannelHeader extends React.PureComponent<Props> {
     componentDidMount() {
         document.querySelector('.inner-wrap')?.addEventListener('click', this.hideSidebars);
     }
@@ -97,12 +90,15 @@ export default class ChannelHeaderMobile extends React.PureComponent<Props> {
         }
 
         return (
-            <nav
-                id='navbar'
-                className='navbar navbar-default navbar-fixed-top'
-                role='navigation'
+            <div
+                id='navbar_wrapper'
+                className='row header'
             >
-                <div className='container-fluid theme'>
+                <nav
+                    id='navbar'
+                    className='navbar navbar-default navbar-fixed-top'
+                    role='navigation'
+                >
                     <div className='navbar-header'>
                         <CollapseLhsButton/>
                         <div className={classNames('navbar-brand', {GlobalThreads___title: inGlobalThreads})}>
@@ -123,8 +119,8 @@ export default class ChannelHeaderMobile extends React.PureComponent<Props> {
                         )}
                         <CollapseRhsButton/>
                     </div>
-                </div>
-            </nav>
+                </nav>
+            </div>
         );
     }
 }
