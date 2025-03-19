@@ -15,7 +15,6 @@ import Markdown from 'components/markdown';
 import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
-import {LicenseSkus} from 'utils/constants';
 import {isEnterpriseLicense} from 'utils/license_utils';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 
@@ -35,14 +34,12 @@ type Props = {
 export default function ChannelBanner({channelId}: Props) {
     const license = useSelector(getLicense);
 
-    // Check for both enterprise and premium licenses
+    // TODO - check for premium license here once the corresponding PR is merged
     const isEnterprise = isEnterpriseLicense(license);
-    const isPremium = license?.SkuShortName === LicenseSkus.Professional;
-    const isLicensed = isEnterprise || isPremium;
     const channelBannerInfo = useSelector((state: GlobalState) => getChannelBanner(state, channelId));
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const isValidChannelType = channel && (channel.type === Constants.PRIVATE_CHANNEL || channel.type === Constants.OPEN_CHANNEL);
-    const showChannelBanner = isLicensed && isValidChannelType && channelBannerEnabled(channelBannerInfo);
+    const showChannelBanner = isEnterprise && isValidChannelType && channelBannerEnabled(channelBannerInfo);
 
     const intl = useIntl();
     const channelBannerTextAriaLabel = intl.formatMessage({id: 'channel_banner.aria_label', defaultMessage: 'Channel banner text'});

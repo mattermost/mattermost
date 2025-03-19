@@ -4,7 +4,7 @@
 import {screen} from '@testing-library/react';
 import React from 'react';
 
-import {ChannelType} from '@mattermost/types/channels';
+import type {ChannelType} from '@mattermost/types/channels';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {LicenseSkus, Constants} from 'utils/constants';
@@ -110,7 +110,9 @@ describe('components/channel_banner', () => {
         },
     };
 
-    test('should not render when license is not enterprise', () => {
+    test('should not render when license is professional', () => {
+        // TODO: add a test for premium and enterprise license SKU as well once they are added
+
         const nonEnterpriseLicenseState = {
             ...baseState,
             entities: {
@@ -131,30 +133,20 @@ describe('components/channel_banner', () => {
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
-    test('should render when license is premium', () => {
-        // This test is for the TODO comment in the component
-        const premiumLicenseState = {
+    test('should not render when there is no license', () => {
+        const noLicenseState = {
             ...baseState,
             entities: {
                 ...baseState.entities,
-                general: {
-                    license: {
-                        IsLicensed: 'true',
-                        SkuShortName: LicenseSkus.Professional,
-                    },
-                },
+                general: {},
             },
         };
 
-        // This test will fail until the TODO in the component is implemented
-        // Uncomment when the feature is implemented
-        /*
         renderWithContext(
             <ChannelBanner channelId={'channel_id_1'}/>,
-            premiumLicenseState,
+            noLicenseState,
         );
-        expect(screen.getByTestId('channel_banner_container')).toBeInTheDocument();
-        */
+        expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
     test('should not render when banner is disabled', () => {
@@ -266,17 +258,49 @@ describe('components/channel_banner', () => {
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
-    test('should apply contrasting text color based on background color', () => {
-        // Dark background should have light text
+    test('should apply contrasting text color based on dark background color', () => {
+        // dark background should have dark text
+        const darkBgChannel = TestHelper.getChannelMock({
+            id: 'light_bg_channel',
+            team_id: 'team_id',
+            display_name: 'Light BG Channel',
+            name: 'light-bg-channel',
+            type: Constants.OPEN_CHANNEL as ChannelType,
+            banner_info: {
+                text: 'Light background banner',
+                background_color: '#000000',
+                enabled: true,
+            },
+        });
+
+        const stateWithLightBgChannel = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                channels: {
+                    ...baseState.entities.channels,
+                    channels: {
+                        ...baseState.entities.channels.channels,
+                        [darkBgChannel.id]: darkBgChannel,
+                    },
+                },
+            },
+        };
+
         renderWithContext(
-            <ChannelBanner channelId={'channel_id_3'}/>,
-            baseState,
+            <ChannelBanner channelId={'light_bg_channel'}/>,
+            stateWithLightBgChannel,
         );
 
+        // This test might be flaky depending on how getContrastingSimpleColor is implemented
+        // We're expecting dark text on light background
         const darkBgBannerText = screen.getByTestId('channel_banner_text');
+        expect(darkBgBannerText).toBeInTheDocument();
         expect(darkBgBannerText).toHaveStyle('color: rgb(255, 255, 255)');
-        expect(darkBgBannerText).toHaveStyle('--channel-banner-text-color: rgb(255, 255, 255)');
+        expect(darkBgBannerText).toHaveStyle('--channel-banner-text-color: #FFFFFF');
+    });
 
+    test('should apply contrasting text color based on light background color', () => {
         // Light background should have dark text
         const lightBgChannel = TestHelper.getChannelMock({
             id: 'light_bg_channel',
@@ -314,5 +338,7 @@ describe('components/channel_banner', () => {
         // We're expecting dark text on light background
         const lightBgBannerText = screen.getByTestId('channel_banner_text');
         expect(lightBgBannerText).toBeInTheDocument();
+        expect(lightBgBannerText).toHaveStyle('color: rgb(0, 0, 0)');
+        expect(lightBgBannerText).toHaveStyle('--channel-banner-text-color: #000000');
     });
 });
