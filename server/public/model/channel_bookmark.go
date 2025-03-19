@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -142,6 +143,7 @@ func (o *ChannelBookmark) PreSave() {
 	}
 
 	o.DisplayName = SanitizeUnicode(o.DisplayName)
+	o.Emoji = strings.Trim(o.Emoji, ":")
 	if o.CreateAt == 0 {
 		o.CreateAt = GetMillis()
 	}
@@ -151,6 +153,7 @@ func (o *ChannelBookmark) PreSave() {
 func (o *ChannelBookmark) PreUpdate() {
 	o.UpdateAt = GetMillis()
 	o.DisplayName = SanitizeUnicode(o.DisplayName)
+	o.Emoji = strings.Trim(o.Emoji, ":")
 }
 
 func (o *ChannelBookmark) ToBookmarkWithFileInfo(f *FileInfo) *ChannelBookmarkWithFileInfo {
@@ -167,7 +170,7 @@ func (o *ChannelBookmark) ToBookmarkWithFileInfo(f *FileInfo) *ChannelBookmarkWi
 			SortOrder:   o.SortOrder,
 			LinkUrl:     o.LinkUrl,
 			ImageUrl:    o.ImageUrl,
-			Emoji:       o.Emoji,
+			Emoji:       strings.Trim(o.Emoji, ":"),
 			Type:        o.Type,
 			OriginalId:  o.OriginalId,
 			ParentId:    o.ParentId,

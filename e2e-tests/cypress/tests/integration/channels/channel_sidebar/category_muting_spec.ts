@@ -38,7 +38,7 @@ describe('Category muting', () => {
         cy.get('#sidebarItem_off-topic').should('not.have.class', 'muted');
 
         // # Mute the category
-        clickCategoryMenuItem('CHANNELS', 'Mute Category');
+        clickCategoryMenuItem({categoryDisplayName: 'CHANNELS', menuItemText: 'Mute Category', categoryMenuButtonName: 'Channels'});
 
         // * Verify that the category has been muted
         cy.get('.SidebarChannelGroupHeader:contains(CHANNELS)').should('have.class', 'muted');
@@ -46,7 +46,7 @@ describe('Category muting', () => {
         cy.get('#sidebarItem_off-topic').should('have.class', 'muted');
 
         // # Unmute the category
-        clickCategoryMenuItem('CHANNELS', 'Unmute Category');
+        clickCategoryMenuItem({categoryDisplayName: 'CHANNELS', menuItemText: 'Unmute Category', categoryMenuButtonName: 'Channels'});
 
         // * Verify that the category is no longer muted
         cy.get('.SidebarChannelGroupHeader:contains(CHANNELS)').should('not.have.class', 'muted');
@@ -58,7 +58,7 @@ describe('Category muting', () => {
         // # Create a new category
         cy.uiCreateSidebarCategory().then((category) => {
             // # Mute the new category
-            clickCategoryMenuItem(category.displayName, 'Mute Category');
+            clickCategoryMenuItem({categoryDisplayName: category.displayName, menuItemText: 'Mute Category', categoryMenuButtonName: category.displayName.toLowerCase()});
 
             // * Verify that Town Square starts unmuted
             cy.get('#sidebarItem_town-square').should('not.have.class', 'muted');
@@ -85,7 +85,7 @@ describe('Category muting', () => {
         cy.get('.SidebarChannelGroupHeader:contains(CHANNELS)').should('be.visible').should('not.have.class', 'muted');
 
         // # Mute Channels
-        clickCategoryMenuItem('CHANNELS', 'Mute Category');
+        clickCategoryMenuItem({categoryDisplayName: 'CHANNELS', menuItemText: 'Mute Category', categoryMenuButtonName: 'Channels'});
 
         cy.makeClient({user: getAdminAccount()}).then((client) => {
             // # Have another user create a channel

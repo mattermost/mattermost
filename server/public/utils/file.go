@@ -59,8 +59,14 @@ func CopyFile(src, dst string) (err error) {
 // src must exist and dst must not exist.
 // Permissions are preserved when possible. Symlinks are skipped.
 func CopyDir(src string, dst string) (err error) {
-	src = filepath.Clean(src)
-	dst = filepath.Clean(dst)
+	src, err = filepath.Abs(src)
+	if err != nil {
+		return
+	}
+	dst, err = filepath.Abs(dst)
+	if err != nil {
+		return
+	}
 
 	stat, err := os.Stat(src)
 	if err != nil {

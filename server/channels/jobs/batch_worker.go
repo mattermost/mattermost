@@ -119,27 +119,20 @@ func (worker *BatchWorker) DoJob(job *model.Job) {
 	logger.Debug("Worker received a new candidate job.")
 	defer worker.jobServer.HandleJobPanic(logger, job)
 
-	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		logger.Warn("Worker experienced an error while trying to claim job", mlog.Err(err))
-		return
-	} else if !claimed {
-		return
-	}
-
-	c := request.EmptyContext(logger)
 	var appErr *model.AppError
-
-	// We get the job again because ClaimJob changes the job status.
-	job, appErr = worker.jobServer.GetJob(c, job.Id)
+	job, appErr = worker.jobServer.ClaimJob(job)
 	if appErr != nil {
-		worker.logger.Error("Worker: job execution error", mlog.Err(appErr))
-		worker.setJobError(logger, job, appErr)
+		logger.Warn("Worker experienced an error while trying to claim job", mlog.Err(appErr))
+		return
+	} else if job == nil {
 		return
 	}
 
 	if job.Data == nil {
 		job.Data = make(model.StringMap)
 	}
+
+	c := request.EmptyContext(logger)
 
 	for {
 		select {

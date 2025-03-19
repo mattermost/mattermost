@@ -59,8 +59,8 @@ describe('Verify Guest User Identification in different screens', () => {
 
     it('MM-T1370 Verify Guest Badge in Channel Members dropdown and dialog', () => {
         // # Open Channel Members RHS
-        cy.get('#channelHeaderDropdownIcon').click();
-        cy.get('#channelManageMembers').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('#channelHeaderTitle').click();
+        cy.get('#channelMembers').click().wait(TIMEOUTS.HALF_SEC);
         cy.uiGetRHS().findByTestId(`memberline-${guestUser.id}`).within(($el) => {
             cy.wrap($el).get('.Tag').should('be.visible').should('have.text', 'GUEST');
         });
@@ -142,7 +142,9 @@ describe('Verify Guest User Identification in different screens', () => {
         });
 
         // # Close Dialog
-        cy.get('#quickSwitchModalLabel > .close').click();
+        cy.get('#quickSwitchModal').within(() => {
+            cy.get('button.close[aria-label="Close"]').click();
+        });
     });
 
     it('MM-T1377 Verify Guest Badge in DM Search dialog', () => {
@@ -164,7 +166,7 @@ describe('Verify Guest User Identification in different screens', () => {
         // # Open a DM with Guest User
         cy.uiAddDirectMessage().click();
         cy.findByRole('dialog', {name: 'Direct Messages'}).should('be.visible').wait(TIMEOUTS.ONE_SEC);
-        cy.findByRole('textbox', {name: 'Search for people'}).
+        cy.findByRole('combobox', {name: 'Search for people'}).
             should('have.focused').
             typeWithForce(guestUser.username).
             wait(TIMEOUTS.ONE_SEC).
@@ -180,12 +182,12 @@ describe('Verify Guest User Identification in different screens', () => {
         // # Open a GM with Guest User and Sysadmin
         cy.uiAddDirectMessage().click();
         cy.findByRole('dialog', {name: 'Direct Messages'}).should('be.visible').wait(TIMEOUTS.ONE_SEC);
-        cy.findByRole('textbox', {name: 'Search for people'}).
+        cy.findByRole('combobox', {name: 'Search for people'}).
             should('have.focused').
             typeWithForce(guestUser.username).
             wait(TIMEOUTS.ONE_SEC).
             typeWithForce('{enter}');
-        cy.findByRole('textbox', {name: 'Search for people'}).
+        cy.findByRole('combobox', {name: 'Search for people'}).
             should('have.focused').
             typeWithForce(admin.username).
             wait(TIMEOUTS.ONE_SEC).
