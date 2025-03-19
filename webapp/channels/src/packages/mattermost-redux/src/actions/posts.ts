@@ -618,7 +618,7 @@ async function getPaginatedPostThread(rootId: string, options: FetchPaginatedThr
         if (options.updatesOnly) {
             newOptions = {
                 ...options,
-                fromUpdateAt: nextPostPointer.create_at,
+                fromUpdateAt: nextPostPointer.update_at,
                 fromPost: nextPostId,
             };
         } else {

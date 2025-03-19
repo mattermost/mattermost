@@ -629,62 +629,42 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 	}
 
 	if opts.FromCreateAt != 0 {
+		var direction sq.Sqlizer
+		var pagination sq.Sqlizer
+
 		if opts.Direction == "down" {
-			direction := sq.Gt{"Posts.CreateAt": opts.FromCreateAt}
-			if opts.FromPost != "" {
-				query = query.Where(sq.Or{
-					direction,
-					sq.And{
-						sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
-						sq.Gt{"Posts.Id": opts.FromPost},
-					},
-				})
-			} else {
-				query = query.Where(direction)
-			}
+			direction = sq.Gt{"Posts.CreateAt": opts.FromCreateAt}
+			pagination = sq.Gt{"Posts.Id": opts.FromPost}
 		} else {
-			direction := sq.Lt{"Posts.CreateAt": opts.FromCreateAt}
-			if opts.FromPost != "" {
-				query = query.Where(sq.Or{
-					direction,
-					sq.And{
-						sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
-						sq.Lt{"Posts.Id": opts.FromPost},
-					},
-				})
-			} else {
-				query = query.Where(direction)
-			}
+			direction = sq.Lt{"Posts.CreateAt": opts.FromCreateAt}
+			pagination = sq.Lt{"Posts.Id": opts.FromPost}
+		}
+
+		if opts.FromPost != "" {
+			query = query.Where(sq.Or{
+				direction,
+				sq.And{
+					sq.Eq{"Posts.CreateAt": opts.FromUpdateAt},
+					pagination,
+				},
+			})
+		} else {
+			query = query.Where(direction)
 		}
 	}
 
-	if opts.FromUpdateAt != 0 {
-		if opts.Direction == "down" {
-			direction := sq.Gt{"Posts.UpdateAt": opts.FromUpdateAt}
-			if opts.FromPost != "" {
-				query = query.Where(sq.Or{
-					direction,
-					sq.And{
-						sq.Eq{"Posts.UpdateAt": opts.FromUpdateAt},
-						sq.Gt{"Posts.Id": opts.FromPost},
-					},
-				})
-			} else {
-				query = query.Where(direction)
-			}
+	if opts.FromUpdateAt != 0 && opts.Direction == "down" {
+		direction := sq.Gt{"Posts.UpdateAt": opts.FromUpdateAt}
+		if opts.FromPost != "" {
+			query = query.Where(sq.Or{
+				direction,
+				sq.And{
+					sq.Eq{"Posts.UpdateAt": opts.FromUpdateAt},
+					sq.Gt{"Posts.Id": opts.FromPost},
+				},
+			})
 		} else {
-			direction := sq.Lt{"Posts.UpdateAt": opts.FromUpdateAt}
-			if opts.FromPost != "" {
-				query = query.Where(sq.Or{
-					direction,
-					sq.And{
-						sq.Eq{"Posts.UpdateAt": opts.FromUpdateAt},
-						sq.Lt{"Posts.Id": opts.FromPost},
-					},
-				})
-			} else {
-				query = query.Where(direction)
-			}
+			query = query.Where(direction)
 		}
 	}
 

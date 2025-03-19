@@ -710,7 +710,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		SkipFetchThreads:         r.URL.Query().Get("skipFetchThreads") == "true",
 		CollapsedThreads:         r.URL.Query().Get("collapsedThreads") == "true",
 		CollapsedThreadsExtended: r.URL.Query().Get("collapsedThreadsExtended") == "true",
-		UpdatesOnly:              r.URL.Query().Get("updatesOnly") == "true",
+		UpdatesOnly:              updatesOnly,
 		PerPage:                  perPage,
 		Direction:                direction,
 		FromPost:                 fromPost,

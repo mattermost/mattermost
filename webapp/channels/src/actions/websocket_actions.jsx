@@ -847,9 +847,11 @@ async function handlePostDeleteEvent(msg) {
             }
         } else {
             const res = await dispatch(getPostThread(post.root_id));
-            const {order, posts} = res.data;
-            const rootPost = posts[order[0]];
-            dispatch(receivedPost(rootPost));
+            if (res.data) {
+                const {order, posts} = res.data;
+                const rootPost = posts[order[0]];
+                dispatch(receivedPost(rootPost));
+            }
         }
     }
 

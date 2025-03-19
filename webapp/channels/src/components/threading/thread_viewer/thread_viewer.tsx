@@ -176,21 +176,23 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         this.setState({isLoading: !reconnected});
         const res = await this.props.actions.getPostThread(this.props.selected?.id || this.props.rootPostId, !reconnected, this.props.lastUpdateAt);
 
-        if (this.props.selected) {
+        if (this.props.selected && res.data) {
             const {order, posts} = res.data;
-            let highestUpdateAt = posts[order[0]].update_at;
+            if (order.length > 0 && posts[order[0]]) {
+                let highestUpdateAt = posts[order[0]].update_at;
 
-            // Check all posts to find the highest update_at
-            for (const postId in posts) {
-                if (Object.hasOwn(posts, postId)) {
-                    const post = posts[postId];
-                    if (post.update_at > highestUpdateAt) {
-                        highestUpdateAt = post.update_at;
+                // Check all posts to find the highest update_at
+                for (const postId in posts) {
+                    if (Object.hasOwn(posts, postId)) {
+                        const post = posts[postId];
+                        if (post.update_at > highestUpdateAt) {
+                            highestUpdateAt = post.update_at;
+                        }
                     }
                 }
-            }
 
-            this.props.actions.updateThreadLastUpdateAt(this.props.selected.id, highestUpdateAt);
+                this.props.actions.updateThreadLastUpdateAt(this.props.selected.id, highestUpdateAt);
+            }
         }
 
         if (
