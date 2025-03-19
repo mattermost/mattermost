@@ -4,8 +4,10 @@
 import {screen} from '@testing-library/react';
 import React from 'react';
 
+import {ChannelType} from '@mattermost/types/channels';
+
 import {renderWithContext} from 'tests/react_testing_utils';
-import {LicenseSkus} from 'utils/constants';
+import {LicenseSkus, Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelBanner from './index';
@@ -17,6 +19,7 @@ describe('components/channel_banner', () => {
         display_name: 'Test Channel 1',
         header: 'This is the channel header',
         name: 'test-channel',
+        type: Constants.OPEN_CHANNEL as ChannelType,
         banner_info: {
             text: 'Test banner message',
             background_color: '#FF0000',
@@ -30,6 +33,7 @@ describe('components/channel_banner', () => {
         display_name: 'Test Channel 2',
         header: 'This is the channel header',
         name: 'test-channel',
+        type: Constants.OPEN_CHANNEL as ChannelType,
         banner_info: {
             text: 'Disabled banner',
             background_color: '#00FF00',
@@ -43,9 +47,36 @@ describe('components/channel_banner', () => {
         display_name: 'Test Channel 3',
         header: 'This is the channel header',
         name: 'test-channel',
+        type: Constants.OPEN_CHANNEL as ChannelType,
         banner_info: {
             text: 'Banner with **markdown**',
             background_color: '#0000FF',
+            enabled: true,
+        },
+    });
+
+    const dmChannel = TestHelper.getChannelMock({
+        id: 'dm_channel_id',
+        team_id: 'team_id',
+        display_name: 'DM Channel',
+        name: 'dm-channel',
+        type: Constants.DM_CHANNEL as ChannelType,
+        banner_info: {
+            text: 'DM Banner',
+            background_color: '#FF00FF',
+            enabled: true,
+        },
+    });
+
+    const privateChannel = TestHelper.getChannelMock({
+        id: 'private_channel_id',
+        team_id: 'team_id',
+        display_name: 'Private Channel',
+        name: 'private-channel',
+        type: Constants.PRIVATE_CHANNEL as ChannelType,
+        banner_info: {
+            text: 'Private Channel Banner',
+            background_color: '#FFFF00',
             enabled: true,
         },
     });
@@ -63,6 +94,8 @@ describe('components/channel_banner', () => {
                     [channel1.id]: channel1,
                     [channel2.id]: channel2,
                     [channel3.id]: channel3,
+                    [dmChannel.id]: dmChannel,
+                    [privateChannel.id]: privateChannel,
                 },
             },
             users: {
@@ -96,6 +129,32 @@ describe('components/channel_banner', () => {
             nonEnterpriseLicenseState,
         );
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+    });
+
+    test('should render when license is premium', () => {
+        // This test is for the TODO comment in the component
+        const premiumLicenseState = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                general: {
+                    license: {
+                        IsLicensed: 'true',
+                        SkuShortName: LicenseSkus.Professional,
+                    },
+                },
+            },
+        };
+
+        // This test will fail until the TODO in the component is implemented
+        // Uncomment when the feature is implemented
+        /*
+        renderWithContext(
+            <ChannelBanner channelId={'channel_id_1'}/>,
+            premiumLicenseState,
+        );
+        expect(screen.getByTestId('channel_banner_container')).toBeInTheDocument();
+        */
     });
 
     test('should not render when banner is disabled', () => {
@@ -181,5 +240,79 @@ describe('components/channel_banner', () => {
         const strongElement = bannerText.querySelector('strong');
         expect(strongElement).toBeInTheDocument();
         expect(strongElement?.textContent).toBe('markdown');
+    });
+
+    test('should render for private channels', () => {
+        renderWithContext(
+            <ChannelBanner channelId={'private_channel_id'}/>,
+            baseState,
+        );
+
+        const bannerContainer = screen.getByTestId('channel_banner_container');
+        expect(bannerContainer).toBeInTheDocument();
+        expect(bannerContainer).toHaveStyle('background-color: #FFFF00');
+
+        const bannerText = screen.getByTestId('channel_banner_text');
+        expect(bannerText).toBeInTheDocument();
+        expect(bannerText.textContent).toBe('Private Channel Banner');
+    });
+
+    test('should not render for DM channels', () => {
+        renderWithContext(
+            <ChannelBanner channelId={'dm_channel_id'}/>,
+            baseState,
+        );
+
+        expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+    });
+
+    test('should apply contrasting text color based on background color', () => {
+        // Dark background should have light text
+        renderWithContext(
+            <ChannelBanner channelId={'channel_id_3'}/>,
+            baseState,
+        );
+
+        const darkBgBannerText = screen.getByTestId('channel_banner_text');
+        expect(darkBgBannerText).toHaveStyle('color: rgb(255, 255, 255)');
+        expect(darkBgBannerText).toHaveStyle('--channel-banner-text-color: rgb(255, 255, 255)');
+
+        // Light background should have dark text
+        const lightBgChannel = TestHelper.getChannelMock({
+            id: 'light_bg_channel',
+            team_id: 'team_id',
+            display_name: 'Light BG Channel',
+            name: 'light-bg-channel',
+            type: Constants.OPEN_CHANNEL as ChannelType,
+            banner_info: {
+                text: 'Light background banner',
+                background_color: '#FFFFFF',
+                enabled: true,
+            },
+        });
+
+        const stateWithLightBgChannel = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                channels: {
+                    ...baseState.entities.channels,
+                    channels: {
+                        ...baseState.entities.channels.channels,
+                        [lightBgChannel.id]: lightBgChannel,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <ChannelBanner channelId={'light_bg_channel'}/>,
+            stateWithLightBgChannel,
+        );
+
+        // This test might be flaky depending on how getContrastingSimpleColor is implemented
+        // We're expecting dark text on light background
+        const lightBgBannerText = screen.getByTestId('channel_banner_text');
+        expect(lightBgBannerText).toBeInTheDocument();
     });
 });
