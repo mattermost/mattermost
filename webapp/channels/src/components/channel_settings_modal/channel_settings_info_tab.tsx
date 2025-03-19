@@ -38,8 +38,10 @@ type ChannelSettingsInfoTabProps = {
     setServerError: (error: string) => void;
     onCancel?: () => void;
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
-    switchingTabsWithUnsavedChanges?: boolean;
+    IsTabSwitchActionWithUnsaved?: boolean;
 };
+
+const SAVE_CHANGES_PANEL_ERROR_TIMEOUT = 3000;
 
 function ChannelSettingsInfoTab({
     channel,
@@ -47,7 +49,7 @@ function ChannelSettingsInfoTab({
     setServerError,
     onCancel,
     setAreThereUnsavedChanges,
-    switchingTabsWithUnsavedChanges,
+    IsTabSwitchActionWithUnsaved,
 }: ChannelSettingsInfoTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -69,7 +71,7 @@ function ChannelSettingsInfoTab({
     const [channelNameError, setChannelNameError] = useState('');
     const [characterLimitExceeded, setCharacterLimitExceeded] = useState(false);
 
-    const [switchingTabs, setSwitchingTabs] = useState(switchingTabsWithUnsavedChanges);
+    const [switchingTabsWithUnsaved, setSwitchingTabsWithUnsaved] = useState(IsTabSwitchActionWithUnsaved);
 
     // Refs
     const headerTextboxRef = useRef<TextboxClass>(null);
@@ -119,13 +121,16 @@ function ChannelSettingsInfoTab({
         const unsavedChanges = hasUnsavedChanges();
         setRequireConfirm(unsavedChanges);
         setAreThereUnsavedChanges?.(unsavedChanges);
-        setSwitchingTabs(switchingTabsWithUnsavedChanges);
-        if (switchingTabsWithUnsavedChanges) {
+        setSwitchingTabsWithUnsaved(IsTabSwitchActionWithUnsaved);
+
+        // If switching tabs with unsaved changes, show the error state in the save changes panel for a few seconds
+        if (IsTabSwitchActionWithUnsaved) {
             setTimeout(() => {
-                setSwitchingTabs(false);
-            }, 3000);
+                setSwitchingTabsWithUnsaved(false);
+            }, SAVE_CHANGES_PANEL_ERROR_TIMEOUT);
         }
-    }, [displayName, channelUrl, channelPurpose, channelHeader, channelType, switchingTabsWithUnsavedChanges]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [displayName, channelUrl, channelPurpose, channelHeader, channelType, IsTabSwitchActionWithUnsaved]);
 
     // Update the form fields when the channel prop changes
     useEffect(() => {
@@ -235,6 +240,7 @@ function ChannelSettingsInfoTab({
         }
 
         return true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType]);
 
     const handleServerError = (err: ServerError) => {
@@ -284,11 +290,12 @@ function ChannelSettingsInfoTab({
     const hasErrors = Boolean(serverError) ||
                      characterLimitExceeded ||
                      Boolean(channelNameError) ||
-                     Boolean(switchingTabs) ||
+                     Boolean(switchingTabsWithUnsaved) ||
                      Boolean(internalUrlError);
 
     return (
         <div className='ChannelSettingsModal__infoTab'>
+
             {/* Channel Name Section*/}
             <label className='Input_legend'>{formatMessage({id: 'channel_settings.label.name', defaultMessage: 'Channel Name'})}</label>
             <ChannelNameFormField

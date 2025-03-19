@@ -91,6 +91,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "type": "O",
             "update_at": 0,
           },
+          "focusOriginElement": "channelHeaderMenuButton",
         }
       }
       dialogType={[Function]}
@@ -953,6 +954,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "type": "O",
             "update_at": 0,
           },
+          "focusOriginElement": "channelHeaderMenuButton",
         }
       }
       dialogType={[Function]}

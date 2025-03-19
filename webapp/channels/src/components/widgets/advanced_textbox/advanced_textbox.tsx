@@ -95,7 +95,7 @@ const AdvancedTextbox = ({
     };
 
     return (
-        <div className='advanced-textbox'>
+        <div className='AdvancedTextbox'>
             <Textbox
                 value={value}
                 onChange={handleChange}
@@ -119,7 +119,7 @@ const AdvancedTextbox = ({
             {/* Character count display */}
             {(showCharacterCount && internalError) && (
                 <div
-                    className={classNames('advanced-textbox__character-count', {
+                    className={classNames('AdvancedTextbox__character-count', {
                         'exceeds-limit': characterCount > characterLimit,
                     })}
                 >
@@ -130,7 +130,7 @@ const AdvancedTextbox = ({
 
             {/* Error message display */}
             {internalError && (
-                <div className='advanced-textbox__error-message'>
+                <div className='AdvancedTextbox__error-message'>
                     <i className='icon icon-alert-circle-outline'/>
                     <span>{internalError}</span>
                 </div>
@@ -139,8 +139,8 @@ const AdvancedTextbox = ({
             {/* Error message display */}
             {(descriptionMessage && !internalError) && (
                 <p
-                    data-testid='mm-modal-generic-section-item__description'
-                    className='mm-modal-generic-section-item__description'
+                    data-testid='AdvancedTextbox__description'
+                    className='AdvancedTextbox__description'
                 >
                     {descriptionMessage}
                 </p>

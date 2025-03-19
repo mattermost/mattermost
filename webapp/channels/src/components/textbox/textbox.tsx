@@ -28,8 +28,6 @@ import * as Utils from 'utils/utils';
 
 import type {TextboxElement} from './index';
 
-import './textbox.scss';
-
 const ALL = ['all'];
 
 export type Props = {
@@ -201,7 +199,9 @@ export default class Textbox extends React.PureComponent<Props> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        this.preview.current?.focus();
+        if (!prevProps.preview && this.props.preview) {
+            this.preview.current?.focus();
+        }
         this.updateSuggestions(prevProps);
     }
 

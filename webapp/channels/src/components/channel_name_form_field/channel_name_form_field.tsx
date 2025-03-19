@@ -130,7 +130,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         }
     }, [displayNameError, urlError]);
 
-    // Effect to set URL from props if it's modified
+    // Effect to set URL from props if it's modified (used in modals for reset button event which sets the value outside the onChange event)
     useEffect(() => {
         if (props.currentUrl) {
             setURL(props.currentUrl);

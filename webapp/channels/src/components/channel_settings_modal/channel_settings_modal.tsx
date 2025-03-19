@@ -36,6 +36,8 @@ enum ChannelSettingsTabs {
     ARCHIVE = 'archive',
 }
 
+const SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT = 3000;
+
 function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
 
@@ -44,8 +46,10 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     // Active tab
     const [activeTab, setActiveTab] = useState<ChannelSettingsTabs>(ChannelSettingsTabs.INFO);
 
-    // State for controlling when switching tabs with unsaved changes
-    const [switchingTabsWithUnsavedChanges, setSwitchingTabsWithUnsavedChanges] = useState(false);
+    // State (used as prop) for controlling when switching tabs with unsaved changes (passed to child tab to be provided to save changes panel)
+    const [IsTabSwitchActionWithUnsaved, setIsTabSwitchActionWithUnsaved] = useState(false);
+
+    // Ref to control if there are unsaved changes avoid and a setter for ease of use
     const areThereUnsavedChanges = useRef(false);
     const setAreThereUnsavedChanges = (value: boolean) => {
         areThereUnsavedChanges.current = value;
@@ -59,11 +63,15 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
 
     // Called to set the active tab, prompting save changes panel if there are unsaved changes
     const updateTab = (newTab: string) => {
+        /**
+         * If there are unsaved changes, and the tab switch action is triggered which causes this functione execution,
+         * set the state value to cause a rerender of the tab component in order to show the save changes panel and reset it after 3 seconds.
+         */
         if (areThereUnsavedChanges.current) {
-            setSwitchingTabsWithUnsavedChanges(true);
+            setIsTabSwitchActionWithUnsaved(true);
             setTimeout(() => {
-                setSwitchingTabsWithUnsavedChanges(false);
-            }, 3000);
+                setIsTabSwitchActionWithUnsaved(false);
+            }, SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT);
             return;
         }
 
@@ -115,7 +123,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
                 serverError={serverError}
                 setServerError={setServerError}
                 setAreThereUnsavedChanges={setAreThereUnsavedChanges}
-                switchingTabsWithUnsavedChanges={switchingTabsWithUnsavedChanges}
+                IsTabSwitchActionWithUnsaved={IsTabSwitchActionWithUnsaved}
             />
         );
     };
@@ -156,7 +164,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
             icon: 'icon icon-archive-outline',
             iconTitle: formatMessage({id: 'generic_icons.archive', defaultMessage: 'Archive Icon'}),
             newGroup: true,
-            display: channel.name !== Constants.DEFAULT_CHANNEL,
+            display: channel.name !== Constants.DEFAULT_CHANNEL, // archive is not available for the default channel
         },
     ];
 
