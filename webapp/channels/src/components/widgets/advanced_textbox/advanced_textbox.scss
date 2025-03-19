@@ -39,6 +39,10 @@
         &.exceeds-limit {
             color: var(--error-text);
         }
+
+        &.below-minimum {
+            color: var(--error-text);
+        }
     }
 
     &__description {

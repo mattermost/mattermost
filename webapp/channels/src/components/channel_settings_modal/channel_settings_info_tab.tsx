@@ -359,7 +359,7 @@ function ChannelSettingsInfoTab({
                     maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
                 }) : undefined
                 }
-                showCharacterCount={true}
+                showCharacterCount={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH}
             />
 
             {/* Channel Header Section*/}
@@ -390,7 +390,7 @@ function ChannelSettingsInfoTab({
                     maxLength: headerMaxLength,
                 }) : undefined
                 }
-                showCharacterCount={true}
+                showCharacterCount={channelHeader.length > headerMaxLength}
             />
 
             {/* SaveChangesPanel for unsaved changes */}

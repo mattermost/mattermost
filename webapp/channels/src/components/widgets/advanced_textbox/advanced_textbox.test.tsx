@@ -152,4 +152,63 @@ describe('AdvancedTextbox', () => {
         expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
         expect(screen.getByText('This text is too long and exceeds the limit'.length + '/' + props.characterLimit)).toBeInTheDocument();
     });
+
+    test('shows error when text is below minimum character limit', async () => {
+        const props = {
+            ...defaultProps,
+            characterLimit: 100,
+            minCharacterLimit: 10,
+            value: '',
+            showCharacterCount: true,
+        };
+
+        const {rerender} = render(<AdvancedTextbox {...props}/>);
+
+        // Empty text should not trigger min length error
+        expect(screen.queryByText(/must be at least/)).not.toBeInTheDocument();
+
+        // Update with text that is below the minimum limit
+        rerender(<AdvancedTextbox {...{...props, value: 'Too short'}}/>);
+
+        // Should show error message
+        expect(screen.getByText(/must be at least 10 characters/)).toBeInTheDocument();
+        expect(screen.getByText('9/10')).toBeInTheDocument();
+    });
+
+    test('allows custom error message for minimum length', async () => {
+        const props = {
+            ...defaultProps,
+            characterLimit: 100,
+            minCharacterLimit: 10,
+            minLengthErrorMessage: 'Custom minimum length error',
+            value: 'Short',
+            showCharacterCount: true,
+        };
+
+        render(<AdvancedTextbox {...props}/>);
+
+        // Should show custom error message
+        expect(screen.getByText('Custom minimum length error')).toBeInTheDocument();
+    });
+
+    test('clears minimum length error when text meets requirements', async () => {
+        const props = {
+            ...defaultProps,
+            characterLimit: 100,
+            minCharacterLimit: 5,
+            value: 'abc',
+            showCharacterCount: true,
+        };
+
+        const {rerender} = render(<AdvancedTextbox {...props}/>);
+
+        // Initially below the minimum
+        expect(screen.getByText(/must be at least 5 characters/)).toBeInTheDocument();
+
+        // Update with text that meets the minimum
+        rerender(<AdvancedTextbox {...{...props, value: 'abcdef'}}/>);
+
+        // Error should be cleared
+        expect(screen.queryByText(/must be at least 5 characters/)).not.toBeInTheDocument();
+    });
 });

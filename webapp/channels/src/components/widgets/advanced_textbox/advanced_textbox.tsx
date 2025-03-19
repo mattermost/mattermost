@@ -19,6 +19,8 @@ type AdvancedTextboxProps = {
     onKeypress: (e: React.KeyboardEvent<TextboxElement>) => void;
     createMessage: string;
     characterLimit: number;
+    minCharacterLimit?: number;
+    minLengthErrorMessage?: string;
     preview: boolean;
     togglePreview: () => void;
     textboxRef?: React.RefObject<TextboxClass>;
@@ -38,6 +40,8 @@ const AdvancedTextbox = ({
     onKeypress,
     createMessage,
     characterLimit,
+    minCharacterLimit,
+    minLengthErrorMessage,
     preview,
     togglePreview,
     textboxRef,
@@ -50,6 +54,7 @@ const AdvancedTextbox = ({
 }: AdvancedTextboxProps) => {
     const [internalError, setInternalError] = useState<string | JSX.Element | undefined>(errorMessage);
     const [characterCount, setCharacterCount] = useState(value.length);
+    const [errorType, setErrorType] = useState<'min' | 'max' | null>(null);
 
     // Update internal error when prop changes
     useEffect(() => {
@@ -60,19 +65,27 @@ const AdvancedTextbox = ({
     useEffect(() => {
         setCharacterCount(value.length);
 
-        // Validate character limit
+        // Validate maximum character limit
         if (value && value.length > characterLimit) {
             setInternalError(`Text exceeds the maximum character limit of ${characterLimit} characters.`);
+            setErrorType('max');
+        } else if (minCharacterLimit && value && value.length > 0 && value.length < minCharacterLimit) {
+            // Validate minimum character limit (only if field is not empty)
+            setInternalError(minLengthErrorMessage ||
+                `Text must be at least ${minCharacterLimit} characters.`);
+            setErrorType('min');
+        } else {
+            // Clear internal error if value is now valid
+            const shouldClearError = internalError &&
+                                   errorMessage === undefined &&
+                                   (!minCharacterLimit || value.length === 0 || value.length >= minCharacterLimit) &&
+                                   value.length <= characterLimit;
+            if (shouldClearError) {
+                setInternalError(undefined);
+                setErrorType(null);
+            }
         }
-
-        // Clear internal error if it was a character limit error and value is now valid
-        const shouldClearError = internalError &&
-                               errorMessage === undefined &&
-                               value.length <= characterLimit;
-        if (shouldClearError) {
-            setInternalError(undefined);
-        }
-    }, [value, characterLimit, internalError, errorMessage]);
+    }, [value, characterLimit, minCharacterLimit, minLengthErrorMessage, internalError, errorMessage]);
 
     // Handle validation on change
     const handleChange = (e: React.ChangeEvent<TextboxElement>) => {
@@ -117,14 +130,15 @@ const AdvancedTextbox = ({
             />
 
             {/* Character count display */}
-            {(showCharacterCount && internalError) && (
+            {(showCharacterCount && (internalError || errorType)) && (
                 <div
                     className={classNames('AdvancedTextbox__character-count', {
                         'exceeds-limit': characterCount > characterLimit,
+                        'below-minimum': minCharacterLimit && characterCount > 0 && characterCount < minCharacterLimit,
                     })}
                 >
                     {characterCount}{'/'}
-                    {characterLimit}
+                    {errorType === 'min' ? minCharacterLimit : characterLimit}
                 </div>
             )}
 
