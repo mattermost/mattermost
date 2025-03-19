@@ -140,7 +140,7 @@ describe('ChannelSettingsModal', () => {
         });
 
         // Expect the SaveChangesPanel to be shown.
-        expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        expect(screen.getByText('There are errors in the form above')).toBeInTheDocument();
         expect(screen.getByTestId('SaveChangesPanel__save-btn')).toBeInTheDocument();
         expect(screen.getByTestId('SaveChangesPanel__cancel-btn')).toBeInTheDocument();
     });

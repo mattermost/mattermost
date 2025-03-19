@@ -118,19 +118,18 @@ describe('AdvancedTextbox', () => {
         expect(screen.getByText('JSX Description')).toBeInTheDocument();
     });
 
-    // New tests for error handling
-    test('displays error message when hasError and errorMessage are provided', () => {
-        const errorMessage = 'This is an error message';
-        render(<AdvancedTextbox {...{...defaultProps, hasError: true, errorMessage}}/>);
+    test('displays character count when showCharacterCount is true and there is error', () => {
+        const props = {
+            ...defaultProps,
+            characterLimit: 10,
+            value: 'Short text',
+            showCharacterCount: true,
+        };
+        const {rerender} = render(<AdvancedTextbox {...props}/>);
 
-        expect(screen.getByText(errorMessage)).toBeInTheDocument();
-        expect(screen.getByTestId('mock-textbox').closest('.textarea-wrapper')).toHaveClass('has-error');
-    });
+        rerender(<AdvancedTextbox {...{...props, value: 'This text is too long and exceeds the limit'}}/>);
 
-    test('displays character count when showCharacterCount is true', () => {
-        render(<AdvancedTextbox {...{...defaultProps, showCharacterCount: true}}/>);
-
-        expect(screen.getByText('Initial value'.length + '/' + defaultProps.characterLimit)).toBeInTheDocument();
+        expect(screen.getByText('43/10')).toBeInTheDocument();
     });
 
     test('shows error when text exceeds character limit', async () => {

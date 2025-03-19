@@ -24,13 +24,6 @@ export function setShowPreviewOnEditChannelHeaderModal(showPreview) {
     };
 }
 
-export function setShowPreviewOnChannelSettingsModal(showPreview) {
-    return {
-        type: ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_MODAL,
-        showPreview,
-    };
-}
-
 export function setShowPreviewOnChannelSettingsHeaderModal(showPreview) {
     return {
         type: ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL,
