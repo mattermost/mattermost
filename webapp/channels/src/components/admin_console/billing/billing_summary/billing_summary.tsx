@@ -98,21 +98,21 @@ export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
                 {daysLeftOnTrial > TrialPeriodDays.TRIAL_WARNING_THRESHOLD &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.description'
-                        defaultMessage='Your free trial will expire in {daysLeftOnTrial} days. Add your payment information to continue after the trial ends.'
+                        defaultMessage='Your free trial will expire in {daysLeftOnTrial} days. Contact our sales team to continue using Mattermost after the trial ends.'
                         values={{daysLeftOnTrial}}
                     />
                 }
                 {(daysLeftOnTrial > TrialPeriodDays.TRIAL_1_DAY && daysLeftOnTrial <= TrialPeriodDays.TRIAL_WARNING_THRESHOLD) &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.lessThan3Days.description'
-                        defaultMessage='Your free trial will end in {daysLeftOnTrial, number} {daysLeftOnTrial, plural, one {day} other {days}}. Add payment information to continue enjoying the benefits of Cloud Professional.'
+                        defaultMessage='Your free trial will end in {daysLeftOnTrial, number} {daysLeftOnTrial, plural, one {day} other {days}}. Contact our sales team to continue using Mattermost after the trial ends.'
                         values={{daysLeftOnTrial}}
                     />
                 }
                 {(daysLeftOnTrial === TrialPeriodDays.TRIAL_1_DAY || daysLeftOnTrial === TrialPeriodDays.TRIAL_0_DAYS) &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.lastDay.description'
-                        defaultMessage='Your free trial has ended. Add payment information to continue enjoying the benefits of Cloud Professional.'
+                        defaultMessage='Your free trial has ended. Contact our sales team to continue using Mattermost.'
                     />
                 }
             </div>
