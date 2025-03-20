@@ -18,7 +18,7 @@ import {pageVisited} from 'actions/telemetry_actions';
 
 import CloudTrialBanner from 'components/admin_console/billing/billing_subscriptions/cloud_trial_banner';
 import CloudFetchError from 'components/cloud_fetch_error';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {
@@ -52,10 +52,9 @@ const BillingSubscriptions = () => {
     const trialEndDate = subscription?.trial_end_at || 0;
     const query = useQuery();
     const actionQueryParam = query.get('action');
+    const openPricingDetails = useOpenPricingDetails();
 
     const product = useSelector(getSubscriptionProduct);
-
-    const openPricingModal = useOpenPricingModal();
 
     let isFreeTrial = false;
     let daysLeftOnTrial = 0;
@@ -76,7 +75,7 @@ const BillingSubscriptions = () => {
         pageVisited('cloud_admin', 'pageview_billing_subscription');
 
         if (actionQueryParam === 'show_pricing_modal') {
-            openPricingModal({trackingLocation: 'billing_subscriptions_external_direct_link'});
+            openPricingDetails({trackingLocation: 'billing_subscriptions_external_direct_link'});
         }
     }, []);
 
@@ -108,7 +107,7 @@ const BillingSubscriptions = () => {
                         <ContactSalesCard
                             isFreeTrial={isFreeTrial}
                             subscriptionPlan={product?.sku}
-                            onUpgradeMattermostCloud={openPricingModal}
+                            onUpgradeMattermostCloud={() => openPricingDetails({trackingLocation: 'billing_subscriptions_contact_sales_card'})}
                         />
                     </>}
                 </div>

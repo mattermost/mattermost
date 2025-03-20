@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {notifyMe} from 'actions/notification_actions';
+import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
 import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
@@ -9,7 +10,6 @@ import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMembersModal from 'components/channel_members_modal';
-import {openPricingModal} from 'components/global_header/right_controls/plan_upgrade_button';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 import StartTrialFormModal from 'components/start_trial_form_modal';
@@ -20,7 +20,7 @@ import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import {getHistory} from 'utils/browser_history';
-import {ModalIdentifiers} from 'utils/constants';
+import {CloudLinks, ModalIdentifiers} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 import * as NotificationSounds from 'utils/notification_sounds';
@@ -31,7 +31,7 @@ import {imageURLForUser} from 'utils/utils';
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
 import Textbox from './textbox';
 
-interface WindowWithLibraries {
+interface WindowWithLibraries extends Window {
     React: typeof import('react');
     ReactDOM: typeof import('react-dom');
     ReactIntl: typeof import('react-intl');
@@ -61,7 +61,8 @@ interface WindowWithLibraries {
         openUserSettings: (dialogProps: any) => void;
         browserHistory: ReturnType<typeof getHistory>;
     };
-    openPricingModal: () => typeof openPricingModal;
+    openPricingModal: () => void;
+    open: (url: string, target?: string, features?: string) => Window | null;
     Components: {
         Textbox: typeof Textbox;
         Timestamp: typeof Timestamp;
@@ -133,11 +134,22 @@ window.WebappUtils = {
     }),
 };
 
-// This need to be a function because `openPricingModal`
-// is initialized when `UpgradeCloudButton` is loaded.
-// So if we export `openPricingModal` directly, it will be locked
-// to the initial value of undefined.
-window.openPricingModal = () => openPricingModal;
+// Provide a redirecting implementation for backwards compatibility with plugins
+window.openPricingModal = () => {
+    // When directly called, open the pricing page with default tracking
+    trackEvent('self_hosted_pricing', 'click_open_pricing_page', {
+        callerInfo: 'plugins_api',
+    });
+    window.open(CloudLinks.PRICING, '_blank', 'noopener,noreferrer');
+
+    // When the returned function is called (previous API pattern), also use the same URL
+    return () => {
+        trackEvent('self_hosted_pricing', 'click_open_pricing_page', {
+            callerInfo: 'plugins_api_returned_function',
+        });
+        window.open(CloudLinks.PRICING, '_blank', 'noopener,noreferrer');
+    };
+};
 
 // Components exposed on window FOR INTERNAL PLUGIN USE ONLY. These components may have breaking changes in the future
 // outside of major releases. They will be replaced by common components once that project is more mature and able to

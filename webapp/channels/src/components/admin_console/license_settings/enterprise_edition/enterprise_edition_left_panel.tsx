@@ -10,7 +10,7 @@ import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
 
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import Tag from 'components/widgets/tag/tag';
 
@@ -55,7 +55,7 @@ const EnterpriseEditionLeftPanel = ({
 }: EnterpriseEditionProps) => {
     const {formatMessage} = useIntl();
     const [unsanitizedLicense, setUnsanitizedLicense] = useState(license);
-    const openPricingModal = useOpenPricingModal();
+    const openPricingDetails = useOpenPricingDetails();
     const [openContactSales] = useOpenSalesLink();
 
     useEffect(() => {
@@ -76,7 +76,7 @@ const EnterpriseEditionLeftPanel = ({
     const viewPlansButton = (
         <button
             id='enterprise_edition_view_plans'
-            onClick={() => openPricingModal({trackingLocation: 'license_settings_view_plans'})}
+            onClick={() => openPricingDetails({trackingLocation: 'license_settings_view_plans'})}
             className='btn btn-secondary PlanDetails__viewPlansButton'
         >
             {formatMessage({

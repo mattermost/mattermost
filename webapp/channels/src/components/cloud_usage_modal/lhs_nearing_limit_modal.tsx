@@ -12,7 +12,7 @@ import {closeModal} from 'actions/views/modals';
 import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 
 import {ModalIdentifiers} from 'utils/constants';
 import type {Message} from 'utils/i18n';
@@ -25,7 +25,7 @@ export default function LHSNearingLimitsModal() {
     const product = useSelector(getSubscriptionProduct);
     const usage = useGetUsage();
     const intl = useIntl();
-    const openPricingModal = useOpenPricingModal();
+    const openPricingDetails = useOpenPricingDetails();
 
     const [limits] = useGetLimits();
 
@@ -34,7 +34,7 @@ export default function LHSNearingLimitsModal() {
             id: 'workspace_limits.modals.view_plans',
             defaultMessage: 'View plans',
         }),
-        onClick: () => openPricingModal({trackingLocation: 'cloud_usage_lhs_nearing_limit_modal'}),
+        onClick: () => openPricingDetails({trackingLocation: 'cloud_usage_lhs_nearing_limit_modal'}),
     };
     const secondaryAction = {
         message: defineMessage({

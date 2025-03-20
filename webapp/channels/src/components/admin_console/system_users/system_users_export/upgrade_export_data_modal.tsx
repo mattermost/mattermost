@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
 import ConfirmModalRedux from 'components/confirm_modal_redux';
 
@@ -15,10 +15,10 @@ type Props = {
 }
 
 export function UpgradeExportDataModal({onExited}: Props) {
-    const openPricingModal = useOpenPricingModal();
+    const openPricingDetails = useOpenPricingDetails();
 
     const confirm = () => {
-        openPricingModal();
+        openPricingDetails({trackingLocation: 'upgrade_export_data_modal'});
     };
 
     const title = (

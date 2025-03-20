@@ -14,7 +14,7 @@ import {get as getPreference} from 'mattermost-redux/selectors/entities/preferen
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 
 import {AnnouncementBarTypes, CloudBanners, CloudProducts, Preferences} from 'utils/constants';
 
@@ -43,8 +43,7 @@ interface ToPaidPlanDismissPreference {
 export const ToPaidPlanBannerDismissable = () => {
     const dispatch = useDispatch();
 
-    const openPricingModal = useOpenPricingModal();
-
+    const openPricingDetails = useOpenPricingDetails();
     const currentUser = useSelector(getCurrentUser);
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
     const product = useSelector(selectSubscriptionProduct);
@@ -156,7 +155,7 @@ export const ToPaidPlanBannerDismissable = () => {
             id='cloud-free-deprecation-announcement-bar'
             type={announcementType}
             showCloseButton={daysToCloudFreeEnd > 10}
-            onButtonClick={openPricingModal}
+            onButtonClick={() => openPricingDetails({trackingLocation: 'to_paid_plan_nudge_banner'})}
             modalButtonText={messages.viewPlans}
             message={<FormattedMessage {...message}/>}
             showLinkAsButton={true}

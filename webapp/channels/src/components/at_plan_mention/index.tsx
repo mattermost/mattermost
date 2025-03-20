@@ -3,18 +3,18 @@
 
 import React from 'react';
 
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 
 type Props = {
     plan: string;
 }
 
 function AtPlanMention(props: Props) {
-    const openPricingModal = useOpenPricingModal();
+    const openPricingDetails = useOpenPricingDetails();
 
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         e.preventDefault();
-        openPricingModal({trackingLocation: 'notify_admin_message_view'});
+        openPricingDetails({trackingLocation: 'notify_admin_message_view'});
     };
     return (
         <a

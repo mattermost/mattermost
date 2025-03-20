@@ -14,7 +14,7 @@ import SystemRolesSVG from 'components/admin_console/feature_discovery/features/
 import WorkspaceLimitsPanel from 'components/cloud_usage_modal/workspace_limits_panel';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
 
@@ -35,7 +35,6 @@ type Props = {
 function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
-    const openPricingModal = useOpenPricingModal();
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.THREE_DAYS_LEFT_TRIAL_MODAL));
     const usage = useGetUsage();
     const [limits] = useGetLimits();
@@ -48,9 +47,11 @@ function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
         await dispatch(closeModal(ModalIdentifiers.THREE_DAYS_LEFT_TRIAL_MODAL));
     };
 
+    const openPricingDetails = useOpenPricingDetails();
+
     const handleOpenPricingModal = async () => {
         await dispatch(closeModal(ModalIdentifiers.THREE_DAYS_LEFT_TRIAL_MODAL));
-        openPricingModal({trackingLocation: 'three_days_left_trial_modal'});
+        openPricingDetails({trackingLocation: 'three_days_left_trial_modal'});
     };
 
     const buttonLabel = formatMessage({id: 'three_days_left_trial_modal.learnMore', defaultMessage: 'Learn more'});

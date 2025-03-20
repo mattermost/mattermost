@@ -9,7 +9,7 @@
 
 // Group: @channels @enterprise @not_cloud
 
-describe('Self hosted Pricing modal', () => {
+describe('Self hosted View plans button', () => {
     let urlL: string | undefined;
     let createdUser: Cypress.UserProfile | undefined;
 
@@ -58,7 +58,7 @@ describe('Self hosted Pricing modal', () => {
         cy.get('#UpgradeButton').should('not.exist');
     });
 
-    it('Upgrade button should open pricing modal admin users when no trial has ever been added on free plan', () => {
+    it('View plans button should open pricing page in new tab when clicked by admin users when no trial has ever been added on free plan', () => {
         // *Ensure the server has had no trial license before
         withTrialBefore('false');
 
@@ -66,26 +66,21 @@ describe('Self hosted Pricing modal', () => {
         cy.apiAdminLogin();
         cy.visit(urlL);
 
-        // * Open pricing modal
-        cy.get('#UpgradeButton').should('exist').click();
+        // * Check that the view plans button exists
+        cy.get('#UpgradeButton').should('exist');
 
-        // * Check that free card Downgrade button is disabled
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#free').should('be.visible');
-        cy.get('#free_action').should('be.disabled').contains('Downgrade');
+        // * Spy on window.open and click the button
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen');
+        });
 
-        // * Check that professional upgrade button is available
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#professional').should('be.visible');
-        cy.get('#professional_action').should('not.be.disabled').contains('Upgrade');
+        cy.get('#UpgradeButton').click();
 
-        // * Check that enteprise trial button is available
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#enterprise').should('be.visible');
-        cy.get('#start_trial_btn').should('not.be.disabled').contains('Start trial');
+        // * Verify it tried to open the pricing page
+        cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
     });
 
-    it('Upgrade button should open pricing modal admin users when the server has requested a trial before on free plan', () => {
+    it('View plans button should open pricing page in new tab when the server has requested a trial before on free plan', () => {
         // *Ensure the server has had no trial license before
         withTrialBefore('true');
 
@@ -93,30 +88,22 @@ describe('Self hosted Pricing modal', () => {
         cy.apiAdminLogin();
         cy.visit(urlL);
 
-        // * Open pricing modal
-        cy.get('#UpgradeButton').should('exist').click();
+        // * Check that the view plans button exists
+        cy.get('#UpgradeButton').should('exist');
 
-        // *Check that option to get cloud exists
-        cy.get('.alert-option').should('be.visible');
-        cy.get('span').contains('Looking for a cloud option?');
+        // * Spy on window.open and click the button
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen');
+        });
 
-        // * Check that free card Downgrade button is disabled
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#free').should('be.visible');
-        cy.get('#free_action').should('be.disabled').contains('Downgrade');
+        cy.get('#UpgradeButton').click();
 
-        // * Check that professional upgrade button is available
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#professional').should('be.visible');
-        cy.get('#professional_action').should('not.be.disabled').contains('Upgrade');
-
-        // * Check that contact sales button is now showing and not trial button
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#enterprise').should('be.visible');
-        cy.get('#enterprise_action').should('not.be.disabled').contains('Contact Sales');
+        // * Verify it tried to open the pricing page
+        cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
+        cy.get('.alert-option').should('not.exist');
     });
 
-    it('Upgrade button should open pricing modal admin users when the server is on a trial', () => {
+    it('View plans button should open pricing page when the server is on a trial', () => {
         // * Ensure the server has trial license
         withTrialBefore('false');
         withTrialLicense('true');
@@ -124,32 +111,27 @@ describe('Self hosted Pricing modal', () => {
         cy.apiLogout();
         cy.apiAdminLogin();
 
-        // * Verify the license is not trial
+        // * Verify the license is a trial
         cy.visit('admin_console/about/license');
         cy.get('div.Badge').should('exist').should('contain', 'Trial');
         cy.findByTitle('Back Icon').should('be.visible').click();
         cy.visit(urlL);
 
-        // * Open pricing modal
-        cy.get('#UpgradeButton').should('exist').click();
+        // * Check that the view plans button exists
+        cy.get('#UpgradeButton').should('exist');
 
-        // *Check that free card Downgrade button is disabled
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#free').should('be.visible');
-        cy.get('#free_action').should('be.disabled').contains('Downgrade');
+        // * Spy on window.open and click the button
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen');
+        });
 
-        // * Check that professional upgrade button is available
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#professional').should('be.visible');
-        cy.get('#professional_action').should('not.be.disabled').contains('Upgrade');
+        cy.get('#UpgradeButton').click();
 
-        // * Check that contact sales button is now showing and not trial button
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#enterprise').should('be.visible');
-        cy.get('#start_trial_btn').should('not.be.disabled');
+        // * Verify it tried to open the pricing page
+        cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
     });
 
-    it('Upgrade button should open air gapped modal when hosted signup is not available', () => {
+    it('View plans button should open pricing page in new tab even when hosted signup is not available', () => {
         cy.apiAdminLogin();
 
         cy.intercept('GET', '**/api/v4/hosted_customer/signup_available', {
@@ -159,17 +141,19 @@ describe('Self hosted Pricing modal', () => {
             },
         }).as('airGappedCheck');
 
-        // * Open pricing modal
-        cy.get('#UpgradeButton').should('exist').click();
+        // * Check that the view plans button exists
+        cy.get('#UpgradeButton').should('exist');
 
-        cy.wait('@airGappedCheck');
+        // * Spy on window.open and click the button
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen');
+        });
 
-        // * Click the upgrade button to open the modal
-        cy.get('#professional_action').should('exist').click();
+        cy.get('#UpgradeButton').click();
 
-        cy.get('.air-gapped-purchase-modal').should('exist');
+        // * Verify it tried to open the pricing page
+        cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
 
-        cy.findByText('https://mattermost.com/pl/pricing/#self-hosted').last().should('exist');
     });
 
     function withTrialBefore(trialed: string) {

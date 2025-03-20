@@ -14,7 +14,7 @@ import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selecto
 import AlertBanner from 'components/alert_banner';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 import NotifyAdminCTA from 'components/notify_admin_cta/notify_admin_cta';
 
 import {CloudProducts, LicenseSkus, MattermostFeatures, Preferences} from 'utils/constants';
@@ -42,7 +42,7 @@ function FileLimitStickyBanner() {
 
     const usage = useGetUsage();
     const [cloudLimits] = useGetLimits();
-    const openPricingModal = useOpenPricingModal();
+    const openPricingDetails = useOpenPricingDetails();
 
     const user = useSelector(getCurrentUser);
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
@@ -116,7 +116,7 @@ function FileLimitStickyBanner() {
                                 onClick={
                                     (e) => {
                                         e.preventDefault();
-                                        openPricingModal({trackingLocation: 'file_limit_sticky_banner'});
+                                        openPricingDetails({trackingLocation: 'file_limit_sticky_banner'});
                                     }
                                 }
                             >{chunks}</a>
