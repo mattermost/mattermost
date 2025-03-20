@@ -86,26 +86,6 @@ const CloudTrialBanner = ({trialEndDate}: Props): JSX.Element | null => {
                 />
             )}
             hideIcon={true}
-            actionButtonLeft={(
-                <UpgradeLink
-                    buttonText={formatMessage({id: 'admin.subscription.cloudTrialCard.upgrade', defaultMessage: 'Upgrade'})}
-                    styleButton={true}
-                    telemetryInfo='billing_subscriptions_cloud_trial_banner'
-                />
-            )}
-            actionButtonRight={(
-                <button
-                    onClick={openSalesLink}
-                    className='AlertBanner__buttonRight'
-                >
-                    <FormattedMessage
-                        id='admin.billing.subscription.privateCloudCard.contactSalesy'
-                        defaultMessage={
-                            'Contact sales'
-                        }
-                    />
-                </button>
-            )}
         />
     );
 };
