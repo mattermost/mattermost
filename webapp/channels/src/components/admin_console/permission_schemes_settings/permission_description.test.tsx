@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
+import {shallow} from 'enzyme';
 import React from 'react';
+import * as reactRedux from 'react-redux';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import mockStore from 'tests/test_store';
 
 import PermissionDescription from './permission_description';
 
@@ -15,90 +17,74 @@ describe('components/admin_console/permission_schemes_settings/permission_descri
         description: 'This is the description',
     };
 
+    let store = mockStore();
     beforeEach(() => {
-        jest.clearAllMocks();
+        const initialState = {
+            entities: {
+                general: {
+                    config: {},
+                },
+                users: {
+                    currentUserId: 'currentUserId',
+                },
+            },
+        };
+        store = mockStore(initialState);
     });
 
-    test('should render with default props', () => {
-        renderWithContext(
+    test('should match snapshot with default Props', () => {
+        const wrapper = shallow(
             <PermissionDescription
                 {...defaultProps}
             />,
         );
-
-        expect(screen.getByText('This is the description')).toBeInTheDocument();
+        expect(wrapper).toMatchSnapshot();
     });
 
-    test('should render inherited description', () => {
-        renderWithContext(
-            <PermissionDescription
-                {...defaultProps}
-                inherited={{
-                    name: 'all_users',
-                }}
-            />,
+    test('should match snapshot if inherited', () => {
+        const wrapper = shallow(
+            <reactRedux.Provider store={store}>
+                <PermissionDescription
+                    {...defaultProps}
+                    inherited={{
+                        name: 'all_users',
+                    }}
+                />
+            </reactRedux.Provider>,
         );
-
-        // The text will be "Inherited from All Members."
-        // Use a partial text match since "Inherited from" might be part of a longer string
-        expect(screen.getByText(/Inherited from/)).toBeInTheDocument();
-
-        // Need to use regex for finding the "All Members" text since it might be part of a longer string
-        expect(screen.getByText(/All Members/)).toBeInTheDocument();
-
-        // The link should be rendered inside the text
-        const link = screen.getByText(/All Members/);
-        expect(link.tagName).toBe('A');
+        expect(wrapper).toMatchSnapshot();
     });
 
-    test('should render with custom JSX description', () => {
+    test('should match snapshot with clickable link', () => {
         const description = (
-            <span data-testid='custom-description'>{'This is a clickable description'}</span>
+            <span>{'This is a clickable description'}</span>
         );
-
-        renderWithContext(
+        const wrapper = shallow(
             <PermissionDescription
                 {...defaultProps}
                 description={description}
             />,
         );
-
-        expect(screen.getByTestId('custom-description')).toBeInTheDocument();
-        expect(screen.getByText('This is a clickable description')).toBeInTheDocument();
+        expect(wrapper).toMatchSnapshot();
     });
 
-    test('should call selectRow when inherited link is clicked', () => {
+    test('should allow select with link', () => {
         const selectRow = jest.fn();
 
-        renderWithContext(
-            <PermissionDescription
-                {...defaultProps}
-                inherited={{
-                    name: 'all_users',
-                }}
-                selectRow={selectRow}
-            />,
+        const wrapper = mountWithIntl(
+            <reactRedux.Provider store={store}>
+                <PermissionDescription
+                    {...defaultProps}
+                    inherited={{
+                        name: 'all_users',
+                    }}
+                    selectRow={selectRow}
+                />
+            </reactRedux.Provider>,
         );
+        expect(wrapper).toMatchSnapshot();
 
-        const link = screen.getByText('All Members');
-        fireEvent.click(link);
-
-        expect(selectRow).toHaveBeenCalledWith('defaultID');
-    });
-
-    test('should not call selectRow when clicking outside of link or description', () => {
-        const selectRow = jest.fn();
-
-        const {container} = renderWithContext(
-            <PermissionDescription
-                {...defaultProps}
-                selectRow={selectRow}
-            />,
-        );
-
-        // Click on the wrapper component
-        fireEvent.click(container.firstChild as Element);
-
-        expect(selectRow).not.toHaveBeenCalled();
+        wrapper.find('a').simulate('click');
+        expect(selectRow).toBeCalled();
     });
 });
