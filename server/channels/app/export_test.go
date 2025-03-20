@@ -623,7 +623,7 @@ func TestExportPostWithProps(t *testing.T) {
 		ChannelId: dmChannel.Id,
 		Message:   "aa" + model.NewId() + "a",
 		Props: map[string]any{
-			"attachments": attachments,
+			model.PostPropsAttachments: attachments,
 		},
 		UserId: th1.BasicUser.Id,
 	}
@@ -634,7 +634,7 @@ func TestExportPostWithProps(t *testing.T) {
 		ChannelId: gmChannel.Id,
 		Message:   "dd" + model.NewId() + "a",
 		Props: map[string]any{
-			"attachments": attachments,
+			model.PostPropsAttachments: attachments,
 		},
 		UserId: th1.BasicUser.Id,
 	}
@@ -673,8 +673,8 @@ func TestExportPostWithProps(t *testing.T) {
 	assert.Len(t, posts, 2)
 	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)
 	assert.ElementsMatch(t, dmMembers, *posts[1].ChannelMembers)
-	assert.Contains(t, posts[0].Props["attachments"].([]any)[0], "footer")
-	assert.Contains(t, posts[1].Props["attachments"].([]any)[0], "footer")
+	assert.Contains(t, posts[0].Props[model.PostPropsAttachments].([]any)[0], "footer")
+	assert.Contains(t, posts[1].Props[model.PostPropsAttachments].([]any)[0], "footer")
 }
 
 func TestExportUserCustomStatus(t *testing.T) {
@@ -938,18 +938,49 @@ func TestExportFileWarnings(t *testing.T) {
 
 			exportFile, err := os.Create(filepath.Join(dir, "export.zip"))
 			require.NoError(t, err)
-			defer exportFile.Close()
+
+			job, appErr := th.App.Srv().Jobs.CreateJob(th.Context, model.JobTypeExportProcess, nil)
+			require.Nil(t, appErr)
+			newJob, appErr := th.App.Srv().Jobs.ClaimJob(job)
+			require.Nil(t, appErr)
+			require.NotNil(t, newJob)
 
 			opts := model.BulkExportOpts{
 				IncludeAttachments: true,
 				CreateArchive:      true,
 			}
-			appErr = th.App.BulkExport(th.Context, exportFile, dir, nil, opts)
+			appErr = th.App.BulkExport(th.Context, exportFile, dir, newJob, opts)
 			// should not get an error for the missing file
 			require.Nil(t, appErr)
 
 			// should get a warning instead:
 			testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Unable to export file attachment")
+
+			// should get info in the newJob data:
+			newJob, appErr = th.App.Srv().Jobs.GetJob(th.Context, newJob.Id)
+			require.Nil(t, appErr)
+			warnings, ok := newJob.Data["num_warnings"]
+			require.True(t, ok)
+			require.Equal(t, "1", warnings)
+
+			exportFile.Close()
+
+			// Verify warnings.txt exists in the zip and contains expected content
+			exportZipPath := filepath.Join(dir, "export.zip")
+			exportZipFile, err := os.Open(exportZipPath)
+			require.NoError(t, err)
+			defer exportZipFile.Close()
+
+			info, err := exportZipFile.Stat()
+			require.NoError(t, err)
+
+			paths, err := utils.UnzipToPath(exportZipFile, info.Size(), dir)
+			require.NoError(t, err)
+			require.Contains(t, paths, filepath.Join(dir, warningsFilename))
+
+			warningsContent, err := os.ReadFile(filepath.Join(dir, warningsFilename))
+			require.NoError(t, err)
+			require.Contains(t, string(warningsContent), "Unable to export file attachment, attachment path:")
 		})
 	}
 }

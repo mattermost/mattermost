@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	saml2 "github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -61,7 +62,8 @@ const (
 	OnSharedChannelsAttachmentSyncMsgID       = 43
 	OnSharedChannelsProfileImageSyncMsgID     = 44
 	GenerateSupportDataID                     = 45
-	OnOmniSearchID                            = 46
+	OnSAMLLoginID                             = 46
+	OnOmniSearchID                            = 47
 	TotalHooksID                              = iota
 )
 
@@ -396,6 +398,11 @@ type Hooks interface {
 	//
 	// Minimum server version: 9.8
 	GenerateSupportData(c *Context) ([]*model.FileData, error)
+
+	// OnSAMLLogin is invoked after a successful SAML login.
+	//
+	// Minimum server version: 10.7
+	OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
 
 	// OnOmniSearch is invoked when a search is executed to allow the plugin to provide results to that search.
 	// It allows plugins to include their own content in the Support Packet.
