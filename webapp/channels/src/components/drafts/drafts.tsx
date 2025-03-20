@@ -5,7 +5,8 @@ import {Badge} from '@mui/base';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import {type match, useHistory, useRouteMatch} from 'react-router-dom';
+import {useHistory, useRouteMatch} from 'react-router-dom';
+import type {match} from 'react-router-dom';
 
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
@@ -21,7 +22,7 @@ import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
 import type {Draft} from 'selectors/drafts';
 
 import DraftList from 'components/drafts/draft_list/draft_list';
-import ScheduledPostList from 'components/drafts/scheduled_post_list/scheduled_post_list';
+import ScheduledPostList from 'components/drafts/scheduled_post_list';
 import Tab from 'components/tabs/tab';
 import Tabs from 'components/tabs/tabs';
 import Header from 'components/widgets/header';
@@ -41,7 +42,7 @@ type Props = {
     displayName: string;
     status: UserStatus['status'];
     draftRemotes: Record<string, boolean>;
-}
+};
 
 function Drafts({
     displayName,
@@ -87,14 +88,12 @@ function Drafts({
                     id='schedule_post.tab.heading'
                     defaultMessage='Scheduled'
                 />
-
-                {
-                    scheduledPosts?.length > 0 &&
+                {scheduledPosts?.length > 0 && (
                     <Badge
                         className='badge'
                         badgeContent={scheduledPosts.length}
                     />
-                }
+                )}
             </div>
         );
     }, [scheduledPosts?.length]);
@@ -106,14 +105,12 @@ function Drafts({
                     id='drafts.heading'
                     defaultMessage='Drafts'
                 />
-
-                {
-                    drafts.length > 0 &&
+                {drafts.length > 0 && (
                     <Badge
                         className='badge'
                         badgeContent={drafts.length}
                     />
-                }
+                )}
             </div>
         );
     }, [drafts?.length]);
@@ -130,8 +127,8 @@ function Drafts({
     const subtitle = useMemo(() => {
         return (
             <FormattedMessage
-                id={'drafts.subtitle'}
-                defaultMessage={'Any messages you\'ve started will show here'}
+                id='drafts.subtitle'
+                defaultMessage="Any messages you've started will show here"
             />
         );
     }, []);
@@ -150,8 +147,7 @@ function Drafts({
                 subtitle={subtitle}
             />
 
-            {
-                isScheduledPostEnabled &&
+            {isScheduledPostEnabled && (
                 <Tabs
                     id='draft_tabs'
                     activeKey={activeTab}
@@ -189,10 +185,9 @@ function Drafts({
                         />
                     </Tab>
                 </Tabs>
-            }
+            )}
 
-            {
-                !isScheduledPostEnabled &&
+            {!isScheduledPostEnabled && (
                 <DraftList
                     drafts={drafts}
                     user={user}
@@ -200,7 +195,7 @@ function Drafts({
                     draftRemotes={draftRemotes}
                     status={status}
                 />
-            }
+            )}
         </div>
     );
 }
