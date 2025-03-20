@@ -38,29 +38,24 @@ describe('components/admin_console/workspace-optimization/cta_buttons', () => {
         expect(buttons).toHaveLength(2);
     });
 
-    // Test is disabled because of issues with React Router v5 integration
-    test('should navigate on button click - disabled', async () => {
-        // This test is disabled because we're having issues with React Router v5 integration
-        // The history object isn't correctly connected to the Router in the test environment
-        // Implementation left as a comment for future reference
-        /*
-        const history = createMemoryHistory();
-        const historyPushSpy = jest.spyOn(history, 'push').mockImplementation(() => {});
+    test('should navigate on button click', async () => {
+        // Create a mock history for testing
+        const mockHistory = {
+            push: jest.fn(),
+        };
 
-        render(
-            <Router history={history}>
-                <CtaButtons {...baseProps}/>
-            </Router>,
-        );
+        // Mock the useHistory hook to return our mock history
+        jest.spyOn(require('react-router-dom'), 'useHistory').mockReturnValue(mockHistory);
+
+        renderWithContext(<CtaButtons {...baseProps}/>);
 
         // Click on action button
         await userEvent.click(screen.getByText('Action Text'));
-        expect(historyPushSpy).toHaveBeenCalledWith('/action_link');
+        expect(mockHistory.push).toHaveBeenCalledWith('/action_link');
 
         // Click on learn more button
         await userEvent.click(screen.getByText('Learn More'));
-        expect(historyPushSpy).toHaveBeenCalledWith('/learn_more');
-        */
+        expect(mockHistory.push).toHaveBeenCalledWith('/learn_more');
     });
 
     test('should call callback when provided', async () => {
