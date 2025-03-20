@@ -30,14 +30,11 @@ const PermissionDescription = ({
     const {formatMessage} = useIntl();
 
     const parentPermissionClicked = (e: MouseEvent) => {
-        const target = e.target as HTMLElement;
-        const parent = target.parentElement;
+        const parent = (e.target as HTMLSpanElement).parentElement;
         const isInheritLink = parent?.parentElement?.className === 'inherit-link-wrapper';
-        const isLink = target.tagName === 'A';
-
-        if (parent?.className !== 'permission-description' && !isInheritLink && !isLink) {
+        if (parent?.className !== 'permission-description' && !isInheritLink) {
             e.stopPropagation();
-        } else if (isInheritLink || isLink) {
+        } else if (isInheritLink) {
             selectRow(id);
             e.stopPropagation();
         }
