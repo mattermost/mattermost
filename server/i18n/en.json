@@ -4051,10 +4051,6 @@
     "translation": "Error retrieving endpoint from Discovery Document."
   },
   {
-    "id": "api.user.get_by_auth.bot_login_forbidden.app_error",
-    "translation": "Bot accounts should not be accessed through OAuth"
-  },
-  {
     "id": "api.user.get_profile_image_path.app_error",
     "translation": "Error while checking if a user has a custom profile image."
   },

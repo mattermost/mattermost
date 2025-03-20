@@ -488,11 +488,6 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 		}
 	}
 
-	// Prevent bot accounts from being accessed through OAuth
-	if user.IsBot {
-		return nil, model.NewAppError("GetUserByAuth", "api.user.get_by_auth.bot_login_forbidden.app_error", nil, "authData="+*authData, http.StatusForbidden)
-	}
-
 	return user, nil
 }
 
