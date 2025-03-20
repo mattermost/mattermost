@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 
-import {renderHookWithContext, act} from 'tests/react_testing_utils';
+import {renderHookWithContext, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -127,12 +129,15 @@ describe('useTimePostBoxIndicator', () => {
     });
 
     it('should not show remote hour indicator when a user becomes a bot', () => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2021-01-01T00:00:00Z').getTime());
         const initialState = getBaseState();
-        const {result, rerender} = renderHookWithContext(() => useTimePostBoxIndicator('dm_channel_id'), initialState);
-        
-        // Initially not a bot
-        expect(result.current.isBot).toBe(false);
-        
+        const TestComponent = () => {
+            const {isBot, showRemoteUserHour} = useTimePostBoxIndicator('dm_channel_id')
+            return <div><div title="isBot">{isBot.toString()}</div><div title="showRemoteUserHour">{showRemoteUserHour.toString()}</div></div>;
+        }
+        const {replaceStoreState} = renderWithContext(<TestComponent/>, initialState);
+
         // Update the state to make the teammate a bot
         const updatedState = {
             ...initialState,
@@ -150,23 +155,30 @@ describe('useTimePostBoxIndicator', () => {
                 },
             },
         };
-        
+
         // Rerender with updated state
-        rerender(updatedState);
-        
+        replaceStoreState(updatedState);
+
         // Now it should be a bot and remote hour indicator should be false
-        expect(result.current.isBot).toBe(true);
-        expect(result.current.showRemoteUserHour).toBe(false);
+        expect(screen.queryByTitle("isBot")?.textContent).toBe("true");
+        expect(screen.queryByTitle("showRemoteUserHour")?.textContent).toBe("false");
     });
 
     it('should properly update when a bot becomes a regular user', () => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2021-01-01T00:00:00Z').getTime());
         const initialState = getBaseState();
-        const {result, rerender} = renderHookWithContext(() => useTimePostBoxIndicator('bot_dm_channel_id'), initialState);
-        
+        const TestComponent = () => {
+            const {isBot, showRemoteUserHour} = useTimePostBoxIndicator('bot_dm_channel_id')
+            return <div><div title="isBot">{isBot.toString()}</div><div title="showRemoteUserHour">{showRemoteUserHour.toString()}</div></div>;
+        }
+
+        const {replaceStoreState} = renderWithContext(<TestComponent/>, initialState);
+
         // Initially a bot
-        expect(result.current.isBot).toBe(true);
-        expect(result.current.showRemoteUserHour).toBe(false);
-        
+        expect(screen.queryByTitle("isBot")?.textContent).toBe("true");
+        expect(screen.queryByTitle("showRemoteUserHour")?.textContent).toBe("false");
+
         // Update the state to make the teammate not a bot
         const updatedState = {
             ...initialState,
@@ -184,14 +196,12 @@ describe('useTimePostBoxIndicator', () => {
                 },
             },
         };
-        
+
         // Rerender with updated state
-        rerender(updatedState);
-        
-        // Now it should not be a bot
-        expect(result.current.isBot).toBe(false);
-        
-        // The showRemoteUserHour would be determined by the time logic in useEffect
-        // We can't directly test the time-based logic without mocking DateTime
+        replaceStoreState(updatedState);
+
+        // Now it should be a bot and remote hour indicator should be false
+        expect(screen.queryByTitle("isBot")?.textContent).toBe("false");
+        expect(screen.queryByTitle("showRemoteUserHour")?.textContent).toBe("true");
     });
 });
