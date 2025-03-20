@@ -427,24 +427,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         const promises = [];
         if (isPrivacyChanging) {
             const convert = actions.updateChannelPrivacy(channel.id, isPublic ? Constants.OPEN_CHANNEL : Constants.PRIVATE_CHANNEL);
-            promises.push(
-                convert.then((res: ActionResult) => {
-                    if ('error' in res) {
-                        return res;
-                    }
-                    return actions.patchChannel(channel.id, {
-                        ...channel,
-                        group_constrained: isSynced,
-                    });
-                }),
-            );
-        } else {
-            promises.push(
-                actions.patchChannel(channel.id, {
-                    ...channel,
-                    group_constrained: isSynced,
-                }),
-            );
+            promises.push(convert);
         }
 
         const patchChannelSyncable = groups.
@@ -466,43 +449,55 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             map((g) => actions.linkGroupSyncable(g.id, channelID, SyncableType.Channel, {auto_add: true, scheme_admin: g.scheme_admin}));
 
         const groupActions = [...promises, ...patchChannelSyncable, ...unlink, ...link];
+        let resultWithError = undefined;
         if (groupActions.length > 0) {
             const result = await Promise.all(groupActions);
-            const resultWithError = result.find((r) => 'error' in r);
+            resultWithError = result.find((r) => 'error' in r);
             if (resultWithError && 'error' in resultWithError) {
                 serverError = <FormError error={resultWithError.error.message}/>;
-            } else {
-                if (unlink.length > 0) {
-                    trackEvent('admin_channel_config_page', 'groups_removed_from_channel', {count: unlink.length, channel_id: channelID});
-                }
-                if (link.length > 0) {
-                    trackEvent('admin_channel_config_page', 'groups_added_to_channel', {count: link.length, channel_id: channelID});
-                }
-
-                const actionsToAwait: any[] = [];
-                if (this.props.channelModerationEnabled) {
-                    actionsToAwait.push(actions.getGroups(channelID));
-                }
-                if (isPrivacyChanging) {
-                    // If the privacy is changing update the manage_members value for the channel moderation widget
-                    if (this.props.channelModerationEnabled) {
-                        actionsToAwait.push(
-                            actions.getChannelModerations(channelID).then(() => {
-                                const manageMembersIndex = channelPermissions.findIndex((element) => element.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_MEMBERS);
-                                if (channelPermissions) {
-                                    const updatedManageMembers = this.props.channelPermissions.find((element) => element.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_MEMBERS);
-                                    channelPermissions[manageMembersIndex] = updatedManageMembers || channelPermissions[manageMembersIndex];
-                                }
-                                this.setState({channelPermissions});
-                            }),
-                        );
-                    }
-                }
-                if (actionsToAwait.length > 0) {
-                    await Promise.all(actionsToAwait);
-                }
-                await Promise.resolve();
             }
+        }
+        
+        // Call patchChannel after group actions are complete
+        const patchResult = await actions.patchChannel(channel.id, {
+            ...channel,
+            group_constrained: isSynced,
+        });
+        
+        if ('error' in patchResult) {
+            serverError = <FormError error={patchResult.error.message}/>;
+        } 
+        if (!(resultWithError && 'error' in resultWithError) && !('error' in patchResult)) {
+            if (unlink.length > 0) {
+                trackEvent('admin_channel_config_page', 'groups_removed_from_channel', {count: unlink.length, channel_id: channelID});
+            }
+            if (link.length > 0) {
+                trackEvent('admin_channel_config_page', 'groups_added_to_channel', {count: link.length, channel_id: channelID});
+            }
+
+            const actionsToAwait: any[] = [];
+            if (this.props.channelModerationEnabled) {
+                actionsToAwait.push(actions.getGroups(channelID));
+            }
+            if (isPrivacyChanging) {
+                // If the privacy is changing update the manage_members value for the channel moderation widget
+                if (this.props.channelModerationEnabled) {
+                    actionsToAwait.push(
+                        actions.getChannelModerations(channelID).then(() => {
+                            const manageMembersIndex = channelPermissions.findIndex((element) => element.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_MEMBERS);
+                            if (channelPermissions) {
+                                const updatedManageMembers = this.props.channelPermissions.find((element) => element.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_MEMBERS);
+                                channelPermissions[manageMembersIndex] = updatedManageMembers || channelPermissions[manageMembersIndex];
+                            }
+                            this.setState({channelPermissions});
+                        }),
+                    );
+                }
+            }
+            if (actionsToAwait.length > 0) {
+                await Promise.all(actionsToAwait);
+            }
+            await Promise.resolve();
         }
         if (this.props.channelModerationEnabled) {
             const patchChannelPermissionsArray: ChannelModerationPatch[] = channelPermissions.map((p) => {
