@@ -106,7 +106,7 @@ func TestDMWithAttachments(t *testing.T) {
 		ChannelId: dmChannelID,
 		Type:      model.PostTypeSlackAttachment,
 		Props: model.StringInterface{
-			"attachments": attachments,
+			model.PostPropsAttachments: attachments,
 		},
 	}
 
