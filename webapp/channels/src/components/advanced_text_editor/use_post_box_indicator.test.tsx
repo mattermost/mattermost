@@ -133,9 +133,9 @@ describe('useTimePostBoxIndicator', () => {
         jest.setSystemTime(new Date('2021-01-01T00:00:00Z').getTime());
         const initialState = getBaseState();
         const TestComponent = () => {
-            const {isBot, showRemoteUserHour} = useTimePostBoxIndicator('dm_channel_id')
-            return <div><div title="isBot">{isBot.toString()}</div><div title="showRemoteUserHour">{showRemoteUserHour.toString()}</div></div>;
-        }
+            const {isBot, showRemoteUserHour} = useTimePostBoxIndicator('dm_channel_id');
+            return <div><div title='isBot'>{isBot.toString()}</div><div title='showRemoteUserHour'>{showRemoteUserHour.toString()}</div></div>;
+        };
         const {replaceStoreState} = renderWithContext(<TestComponent/>, initialState);
 
         // Update the state to make the teammate a bot
@@ -160,8 +160,8 @@ describe('useTimePostBoxIndicator', () => {
         replaceStoreState(updatedState);
 
         // Now it should be a bot and remote hour indicator should be false
-        expect(screen.queryByTitle("isBot")?.textContent).toBe("true");
-        expect(screen.queryByTitle("showRemoteUserHour")?.textContent).toBe("false");
+        expect(screen.queryByTitle('isBot')?.textContent).toBe('true');
+        expect(screen.queryByTitle('showRemoteUserHour')?.textContent).toBe('false');
     });
 
     it('should properly update when a bot becomes a regular user', () => {
@@ -169,15 +169,15 @@ describe('useTimePostBoxIndicator', () => {
         jest.setSystemTime(new Date('2021-01-01T00:00:00Z').getTime());
         const initialState = getBaseState();
         const TestComponent = () => {
-            const {isBot, showRemoteUserHour} = useTimePostBoxIndicator('bot_dm_channel_id')
-            return <div><div title="isBot">{isBot.toString()}</div><div title="showRemoteUserHour">{showRemoteUserHour.toString()}</div></div>;
-        }
+            const {isBot, showRemoteUserHour} = useTimePostBoxIndicator('bot_dm_channel_id');
+            return <div><div title='isBot'>{isBot.toString()}</div><div title='showRemoteUserHour'>{showRemoteUserHour.toString()}</div></div>;
+        };
 
         const {replaceStoreState} = renderWithContext(<TestComponent/>, initialState);
 
         // Initially a bot
-        expect(screen.queryByTitle("isBot")?.textContent).toBe("true");
-        expect(screen.queryByTitle("showRemoteUserHour")?.textContent).toBe("false");
+        expect(screen.queryByTitle('isBot')?.textContent).toBe('true');
+        expect(screen.queryByTitle('showRemoteUserHour')?.textContent).toBe('false');
 
         // Update the state to make the teammate not a bot
         const updatedState = {
@@ -201,7 +201,7 @@ describe('useTimePostBoxIndicator', () => {
         replaceStoreState(updatedState);
 
         // Now it should be a bot and remote hour indicator should be false
-        expect(screen.queryByTitle("isBot")?.textContent).toBe("false");
-        expect(screen.queryByTitle("showRemoteUserHour")?.textContent).toBe("true");
+        expect(screen.queryByTitle('isBot')?.textContent).toBe('false');
+        expect(screen.queryByTitle('showRemoteUserHour')?.textContent).toBe('true');
     });
 });
