@@ -107,8 +107,9 @@ endif
 GOFLAGS ?= $(GOFLAGS:)
 # We need to export GOBIN to allow it to be set
 # for processes spawned from the Makefile
-export GOBIN ?= $(PWD)/bin
-GO ?= go
+# export GOBIN ?= $(PWD)/bin
+export GOBIN ?= bin
+GO ?= docker run --rm -u 1000:1000 -v $(PWD)/../../:/build -v $(PWD)/.go:/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH cgr.dev/mattermost.com/go-msft-fips:1.22-dev
 DELVE ?= dlv
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildNumber=$(BUILD_NUMBER)"
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)"

@@ -45,7 +45,9 @@ else
 	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
 endif
 
-build-cmd-linux:
+build-cmd-linux: build-cmd-linux-amd64 build-cmd-linux-arm64
+
+build-cmd-linux-amd64:
 	@echo Build CMD Linux amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
 	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
@@ -53,6 +55,8 @@ else
 	mkdir -p $(GOBIN)/linux_amd64
 	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN)/linux_amd64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
 endif
+
+build-cmd-linux-arm64:
 	@echo Build CMD Linux arm64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_arm64")
 	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
