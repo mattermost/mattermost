@@ -24,8 +24,8 @@ var ChannelUsersRolesCmd = &cobra.Command{
 
 var ChannelUsersRolesAddCmd = &cobra.Command{
 	Use:   "add [team]:[channel]",
-	Short: "Give user(s) role(s) in a channel",
-	Long:  "Give user(s) role(s) in a channel",
+	Short: "Assigns the specified role(s) to the listed user(s) in a channel, removing any unlisted roles.",
+	Long:  "This command assigns the specified role(s) to the listed user(s) in a given channel. Any roles that are not explicitly listed in the command will be removed from the affected users, ensuring that they only retain the specified roles.",
 	Example: `  channel users roles add myteam:mychannel userA,userB roleA,roleB
   Ex: channel users roles add myteam:mychannel user@example.com,user1@example.com scheme_admin,scheme_user
   Roles available: scheme_admin,scheme_user,scheme_guest`,
