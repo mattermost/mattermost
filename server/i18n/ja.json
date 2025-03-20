@@ -4599,7 +4599,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 130+"
+    "translation": "Version 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
@@ -10428,5 +10428,25 @@
   {
     "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
     "translation": "ClientSideUserIds {{.CurrentLength}} 内の要素数が上限値 {{.MaxLength}}を超えています。"
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "チャンネルバナーは公開チャンネルと非公開チャンネルでのみ設定可能です。"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "チャンネルバナーが有効な場合、チャンネルバナーの色は空にできません"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "チャンネルバナーは公開チャンネルと非公開チャンネルでのみ設定可能です"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "チャンネルバナーが有効な場合、チャンネルバナー情報テキストは空にできません"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "チャンネルバナー情報テキストが長すぎます。最大長は{{.maxLength}}文字です。"
   }
 ]

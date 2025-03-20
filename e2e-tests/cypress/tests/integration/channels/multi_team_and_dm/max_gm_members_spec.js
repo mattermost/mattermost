@@ -62,10 +62,11 @@ describe('Multi-user group messages', () => {
             and('have.css', 'text-overflow', 'ellipsis');
 
         // # From the group message's window, click on the user list's dropdown
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
 
         // # From the dropdown menu, click on "Add members"
-        cy.get('#channelAddMembers').click();
+        cy.get('#channelMembers').click();
+        cy.uiGetButton('Add').click();
 
         // # Try to add one more user from the group message's list
         addUsersToGMViaModal(1);

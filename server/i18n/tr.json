@@ -3992,7 +3992,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Kimlik geçersiz."
+    "translation": "Kimlik geçersiz: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -5664,11 +5664,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 130+"
+    "translation": "Sürüm 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 130+"
+    "translation": "Sürüm 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -10418,5 +10418,45 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "Kanal yer imi sıralaması güncellenemedi."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Oturum bulunamadı."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Özel profil öznitelik grubu için alan sayısı belirlenemedi"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "ClientSideUserIds {{.CurrentLength}} içindeki öge sayısı olabilecek en fazla {{.MaxLength}} değerinden büyük."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Özel profil özniteliği alanları eklenemedi"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "İstemci tarafı kullanıcı kimliği geçersiz: {{.Id}}"
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Kanal duyurusu yalnızca Herkese açık ve Özel kanallarda yapılandırılabilir."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Kanal duyurusu açıldığında kanal duyurusu rengi boş olamaz"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Kanal duyurusu yalnızca Herkese açık ve Özel kanallarda yapılandırılabilir"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Kanal duyurusu açıldığında kanal duyurusu bilgi metni boş olamaz"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Kanal duyurusu bilgi metni çok uzun. En fazla {{.maxLength}} karakter uzunluğunda olabilir."
   }
 ]
