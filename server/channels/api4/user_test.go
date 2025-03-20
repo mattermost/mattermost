@@ -6375,9 +6375,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	user := th.BasicUser
-	_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, model.SystemGuestRoleId, false)
-	require.Nil(t, appErr)
+	user := th.CreateGuestUser(t)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		_, _, err := c.GetUser(context.Background(), user.Id, "")
