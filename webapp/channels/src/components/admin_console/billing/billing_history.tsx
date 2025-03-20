@@ -45,18 +45,6 @@ export const NoBillingHistorySection = (props: NoBillingHistorySectionProps) => 
                 defaultMessage='In the future, this is where your billing history will show.'
             />
         </div>
-        <ExternalLink
-            data-testid='billingHistoryLink'
-            location='billing_history'
-            href={props.selfHosted ? HostedCustomerLinks.SELF_HOSTED_BILLING : CloudLinks.BILLING_DOCS}
-            className='BillingHistory__noHistory-link'
-            onClick={() => trackEvent('cloud_admin', 'click_billing_history', {screen: 'billing'})}
-        >
-            <FormattedMessage
-                id='admin.billing.history.seeHowBillingWorks'
-                defaultMessage='See how billing works'
-            />
-        </ExternalLink>
     </div>
 );
 
