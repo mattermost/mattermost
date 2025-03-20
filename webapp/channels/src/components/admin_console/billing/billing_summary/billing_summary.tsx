@@ -52,17 +52,6 @@ export const noBillingHistory = (
                 defaultMessage='In the future, this is where your most recent bill summary will show.'
             />
         </div>
-        <ExternalLink
-            location='billing_summary'
-            href={CloudLinks.BILLING_DOCS}
-            className='BillingSummary__noBillingHistory-link'
-            onClick={() => trackEvent('cloud_admin', 'click_how_billing_works', {screen: 'subscriptions'})}
-        >
-            <FormattedMessage
-                id='admin.billing.subscriptions.billing_summary.noBillingHistory.link'
-                defaultMessage='See how billing works'
-            />
-        </ExternalLink>
     </div>
 );
 
