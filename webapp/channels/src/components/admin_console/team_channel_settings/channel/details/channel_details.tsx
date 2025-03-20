@@ -449,7 +449,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             map((g) => actions.linkGroupSyncable(g.id, channelID, SyncableType.Channel, {auto_add: true, scheme_admin: g.scheme_admin}));
 
         const groupActions = [...promises, ...patchChannelSyncable, ...unlink, ...link];
-        let resultWithError = undefined;
+        let resultWithError;
         if (groupActions.length > 0) {
             const result = await Promise.all(groupActions);
             resultWithError = result.find((r) => 'error' in r);
@@ -457,16 +457,16 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 serverError = <FormError error={resultWithError.error.message}/>;
             }
         }
-        
+
         // Call patchChannel after group actions are complete
         const patchResult = await actions.patchChannel(channel.id, {
             ...channel,
             group_constrained: isSynced,
         });
-        
+
         if ('error' in patchResult) {
             serverError = <FormError error={patchResult.error.message}/>;
-        } 
+        }
         if (!(resultWithError && 'error' in resultWithError) && !('error' in patchResult)) {
             if (unlink.length > 0) {
                 trackEvent('admin_channel_config_page', 'groups_removed_from_channel', {count: unlink.length, channel_id: channelID});
