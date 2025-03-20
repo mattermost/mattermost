@@ -86,8 +86,17 @@ export const useUserPropertyFields = () => {
             // update
             await Promise.all(process.edit.map(async (pendingItem) => {
                 const {id, name, type, attrs} = pendingItem;
+                let patch = {name, type, attrs};
 
-                return Client4.patchCustomProfileAttributeField(id, {name, type, attrs}).
+                // clear options if not select/multiselect
+                if (type !== 'select' && type !== 'multiselect') {
+                    const attrs = {...patch.attrs};
+                    Reflect.deleteProperty(attrs, 'options');
+
+                    patch = {...patch, attrs};
+                }
+
+                return Client4.patchCustomProfileAttributeField(id, patch).
                     then((nextItem) => {
                         // data:updated
                         next.data[id] = nextItem;
@@ -151,6 +160,13 @@ export const useUserPropertyFields = () => {
                     if (correspondingPending.delete_at === 0) {
                         // not going to be deleted, so in conflict
                         acc[field.id] = {name: ValidationWarningNameTaken};
+                    }
+                }
+
+                if (field.type === 'select' || field.type === 'multiselect') {
+                    const options = field.attrs?.options;
+                    if (!options?.length) {
+                        acc[field.id] = {attrs: ValidationWarningOptionsRequired};
                     }
                 }
 
@@ -225,6 +241,7 @@ export const useUserPropertyFields = () => {
 export const ValidationWarningNameRequired = 'user_properties.validation.name_required';
 export const ValidationWarningNameUnique = 'user_properties.validation.name_unique';
 export const ValidationWarningNameTaken = 'user_properties.validation.name_taken';
+export const ValidationWarningOptionsRequired = 'user_properties.validation.options_required';
 
 const getIncrementedName = (desiredName: string, collection: UserPropertyFields) => {
     const names = new Set(Object.values(collection.data).map(({name}) => name));

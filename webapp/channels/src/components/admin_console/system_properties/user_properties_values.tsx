@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import max from 'lodash/max';
-import type {ComponentProps, FocusEventHandler, KeyboardEventHandler} from 'react';
-import React from 'react';
+import type {FocusEventHandler, KeyboardEventHandler} from 'react';
+import React, {useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import type {GroupBase} from 'react-select';
 import {components} from 'react-select';
@@ -13,6 +12,8 @@ import CreatableSelect from 'react-select/creatable';
 import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
 
 import Constants from 'utils/constants';
+
+import {DangerText} from './controls';
 
 // import './user_properties_dot_menu.scss';
 
@@ -31,17 +32,18 @@ const UserPropertyValues = ({
     const {formatMessage} = useIntl();
 
     const [query, setQuery] = React.useState('');
+    const isQueryValid = useMemo(() => !checkForDuplicates(field.attrs.options, query.trim()), [field?.attrs?.options, query]);
 
     const addOption = (name: string) => {
         const option: PropertyFieldOption = {
             id: '',
-            name,
+            name: name.trim(),
         };
 
         updateField({...field, attrs: {...field.attrs, options: [...field.attrs.options ?? [], option]}});
     };
 
-    const setOptions = (options: PropertyFieldOption[]) => {
+    const setFieldOptions = (options: PropertyFieldOption[]) => {
         updateField({...field, attrs: {...field.attrs, options}});
     };
 
@@ -51,7 +53,7 @@ const UserPropertyValues = ({
     };
 
     const handleKeyDown: KeyboardEventHandler = (event) => {
-        if (!query) {
+        if (!query || !isQueryValid) {
             return;
         }
 
@@ -64,7 +66,7 @@ const UserPropertyValues = ({
     };
 
     const handleOnBlur: FocusEventHandler = (event) => {
-        if (!query) {
+        if (!query || !isQueryValid) {
             return;
         }
 
@@ -89,30 +91,44 @@ const UserPropertyValues = ({
                 isMulti={true}
                 menuIsOpen={false}
                 isDisabled={field.delete_at !== 0}
-                onChange={(newValue) => {
-                    setOptions(newValue.map((option) => ({id: option.id, name: option.value})));
+                onChange={(newValues) => {
+                    setFieldOptions(newValues.map(({id, value}) => ({id, name: value})));
                 }}
                 onInputChange={(newValue) => setQuery(newValue)}
                 onKeyDown={handleKeyDown}
                 onBlur={handleOnBlur}
-                placeholder={formatMessage({id: 'admin.system_properties.user_properties.table.values.placeholder', defaultMessage: 'Add values (required)'})}
+                placeholder={formatMessage({id: 'admin.system_properties.user_properties.table.values.placeholder', defaultMessage: 'Add values… (required)'})}
                 value={field.attrs.options?.map((option) => ({label: option.name, value: option.name, id: option.id}))}
                 menuPortalTarget={document.body}
                 styles={styles}
             />
+            {!isQueryValid && (
+                <FormattedMessage
+                    tagName={DangerText}
+                    id='admin.system_properties.user_properties.table.validation.values_unique'
+                    defaultMessage='Values must be unique.'
+                />
+            )}
         </>
     );
+};
+
+const checkForDuplicates = (options: PropertyFieldOption[] | undefined, newOptionName: string) => {
+    return options?.some((option) => option.name === newOptionName);
 };
 
 const customComponents: SelectProps['components'] = {
     DropdownIndicator: undefined,
     ClearIndicator: undefined,
-    Input: (props) => (
-        <components.Input
-            {...props}
-            maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
-        />
-    ),
+    IndicatorsContainer: () => null,
+    Input: (props) => {
+        return (
+            <components.Input
+                {...props}
+                maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+            />
+        );
+    },
 };
 
 const styles: SelectProps['styles'] = {
@@ -145,7 +161,6 @@ const styles: SelectProps['styles'] = {
     control: (base, props) => ({
         ...base,
         minHeight: '40px',
-        maxHeight: '40px',
         overflowY: 'auto',
         border: 'none',
         borderRadius: '0',
@@ -153,7 +168,6 @@ const styles: SelectProps['styles'] = {
             border: 'none',
             boxShadow: 'none',
             background: 'rgba(var(--button-bg-rgb), 0.08)',
-            maxHeight: 'none',
         },
         '&:hover': {
             background: 'rgba(var(--button-bg-rgb), 0.08)',
