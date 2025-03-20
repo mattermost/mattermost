@@ -3597,6 +3597,111 @@ func TestUpdateChannelNotifyProps(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestRemoveNonGroupMembers(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+	// Create a test group
+	group := th.CreateGroup()
+
+	// Create a channel and set it as group-constrained
+	channel := th.CreatePrivateChannel()
+	// Add user to the channel
+	th.AddUserToChannel(th.BasicUser2, channel)
+
+	channel.GroupConstrained = model.NewPointer(true)
+	channel, appErr := th.App.UpdateChannel(th.Context, channel)
+	require.Nil(t, appErr)
+
+	// Create a group user
+	groupUser := th.CreateUser()
+	th.LinkUserToTeam(groupUser, th.BasicTeam)
+
+	// Create a group member
+	_, appErr = th.App.UpsertGroupMember(group.Id, groupUser.Id)
+	require.Nil(t, appErr)
+
+	// Associate the group with the channel
+	autoAdd := true
+	schemeAdmin := true
+	_, r, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), group.Id, channel.Id, model.GroupSyncableTypeChannel, &model.GroupSyncablePatch{AutoAdd: &autoAdd, SchemeAdmin: &schemeAdmin})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, r)
+
+	// Create a non-group-constrained channel for testing
+	channel2 := th.CreatePrivateChannel()
+
+	testCases := []struct {
+		name           string
+		channelId      string
+		client         *model.Client4
+		expectedStatus int
+		expectedError  bool
+		setup          func()
+		verify         func()
+	}{
+		{
+			name:           "Regular user cannot remove non-group members",
+			channelId:      channel.Id,
+			client:         th.Client,
+			expectedStatus: http.StatusForbidden,
+			expectedError:  true,
+			setup: func() {
+				th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+			},
+		},
+		{
+			name:           "System admin can remove non-group members",
+			channelId:      channel.Id,
+			client:         th.SystemAdminClient,
+			expectedStatus: http.StatusOK,
+			expectedError:  false,
+			verify: func() {
+				members, appErr := th.App.GetChannelMembersPage(th.Context, channel.Id, 0, 100)
+				require.Nil(t, appErr)
+				require.Len(t, members, 1)
+				require.Equal(t, groupUser.Id, members[0].UserId)
+			},
+		},
+		{
+			name:           "Cannot remove from non-group-constrained channel",
+			channelId:      channel2.Id,
+			client:         th.SystemAdminClient,
+			expectedStatus: http.StatusBadRequest,
+			expectedError:  true,
+		},
+		{
+			name:           "Cannot remove with invalid channel ID",
+			channelId:      model.NewId(),
+			client:         th.SystemAdminClient,
+			expectedStatus: http.StatusNotFound,
+			expectedError:  true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.setup != nil {
+				tc.setup()
+			}
+
+			resp, err := tc.client.RemoveNonGroupMembers(context.Background(), tc.channelId)
+
+			if tc.expectedError {
+				require.Equal(t, tc.expectedStatus, resp.StatusCode)
+			} else {
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+			}
+
+			if tc.verify != nil {
+				tc.verify()
+			}
+		})
+	}
+}
+
 func TestAddChannelMember(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

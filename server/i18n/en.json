@@ -376,6 +376,14 @@
     "translation": "Unable to delete direct or group message channels"
   },
   {
+    "id": "api.channel.delete_non_group_members.error",
+    "translation": "An error occurred when removing non-group members from the channel."
+  },
+  {
+    "id": "api.channel.delete_non_group_members.not_group_constrained",
+    "translation": "The channel is not group constrained."
+  },
+  {
     "id": "api.channel.get_channel_moderations.license.error",
     "translation": "Your license does not support channel moderation"
   },

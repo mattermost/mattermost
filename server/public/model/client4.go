@@ -8203,6 +8203,16 @@ func (c *Client4) GetChannelMemberCountsByGroup(ctx context.Context, channelID s
 	return ch, BuildResponse(r), nil
 }
 
+// RemoveNonGroupMembers removes non-group members from a channel with group constraints.
+func (c *Client4) RemoveNonGroupMembers(ctx context.Context, channelId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.channelRoute(channelId)+"/non_group_members")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) RequestTrialLicenseWithExtraFields(ctx context.Context, trialRequest *TrialLicenseRequest) (*Response, error) {
 	b, err := json.Marshal(trialRequest)
 	if err != nil {

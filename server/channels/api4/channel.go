@@ -2473,15 +2473,6 @@ func removeNonGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !channel.IsGroupConstrained() {
-		c.Err = model.NewAppError("deleteNonGroupMembers", "api.channel.delete_non_group_members.not_group_constrained", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	auditRec := c.MakeAuditRecord("deleteNonGroupMembers", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("channel_id", channel.Id)
-
 	var permission *model.Permission
 	if channel.Type == model.ChannelTypePrivate {
 		permission = model.PermissionManagePrivateChannelMembers
@@ -2493,6 +2484,15 @@ func removeNonGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(permission)
 		return
 	}
+
+	if !channel.IsGroupConstrained() {
+		c.Err = model.NewAppError("deleteNonGroupMembers", "api.channel.delete_non_group_members.not_group_constrained", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("deleteNonGroupMembers", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("channel_id", channel.Id)
 
 	if err := c.App.DeleteGroupConstrainedChannelMemberships(c.AppContext, &channel.Id); err != nil {
 		c.Err = model.NewAppError("deleteNonGroupMembers", "api.channel.delete_non_group_members.error", nil, "", http.StatusInternalServerError).Wrap(err)
