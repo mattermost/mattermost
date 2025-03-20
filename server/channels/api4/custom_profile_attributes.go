@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -54,7 +53,7 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var pf *model.CPAField
+	var pf *model.PropertyField
 	err := json.NewDecoder(r.Body).Decode(&pf)
 	if err != nil || pf == nil {
 		c.SetInvalidParamWithErr("property_field", err)
@@ -174,15 +173,7 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func sanitizePropertyValue(cpaField *model.CPAField, rawValue json.RawMessage) (json.RawMessage, error) {
-	fieldType := cpaField.Type
-
-	// build a list of existing options so we can check later if the values exist
-	optionsMap := map[string]struct{}{}
-	for _, v := range cpaField.Attrs.Options {
-		optionsMap[v.ID] = struct{}{}
-	}
-
+func sanitizePropertyValue(fieldType model.PropertyFieldType, rawValue json.RawMessage) (json.RawMessage, error) {
 	switch fieldType {
 	case model.PropertyFieldTypeText, model.PropertyFieldTypeDate, model.PropertyFieldTypeSelect, model.PropertyFieldTypeUser:
 		var value string
@@ -190,26 +181,6 @@ func sanitizePropertyValue(cpaField *model.CPAField, rawValue json.RawMessage) (
 			return nil, err
 		}
 		value = strings.TrimSpace(value)
-
-		if fieldType == model.PropertyFieldTypeText {
-			if cpaField.Attrs.ValueType == model.CustomProfileAttributesValueTypeEmail && !model.IsValidEmail(value) {
-				return nil, fmt.Errorf("invalid email")
-			}
-
-			if cpaField.Attrs.ValueType == model.CustomProfileAttributesValueTypeURL {
-				_, err := url.Parse(value)
-				if err != nil {
-					return nil, fmt.Errorf("invalid url: %w", err)
-				}
-			}
-		}
-
-		if fieldType == model.PropertyFieldTypeSelect && value != "" {
-			if _, ok := optionsMap[value]; !ok {
-				return nil, fmt.Errorf("option \"%s\" does not exist", value)
-			}
-		}
-
 		if fieldType == model.PropertyFieldTypeUser && value != "" && !model.IsValidId(value) {
 			return nil, fmt.Errorf("invalid user id")
 		}
@@ -226,12 +197,6 @@ func sanitizePropertyValue(cpaField *model.CPAField, rawValue json.RawMessage) (
 			if trimmed == "" {
 				continue
 			}
-			if fieldType == model.PropertyFieldTypeMultiselect {
-				if _, ok := optionsMap[v]; !ok {
-					return nil, fmt.Errorf("option \"%s\" does not exist", v)
-				}
-			}
-
 			if fieldType == model.PropertyFieldTypeMultiuser && !model.IsValidId(trimmed) {
 				return nil, fmt.Errorf("invalid user id: %s", trimmed)
 			}
@@ -288,13 +253,7 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		cpaField, err := model.NewCPAFieldFromPropertyField(field)
-		if err != nil {
-			c.Err = model.NewAppError("Api4.patchCPAValues", "api.custom_profile_attributes.field_conversion_error", nil, "", http.StatusInternalServerError)
-			return
-		}
-
-		sanitizedValue, err := sanitizePropertyValue(cpaField, rawValue)
+		sanitizedValue, err := sanitizePropertyValue(field.Type, rawValue)
 		if err != nil {
 			c.SetInvalidParam(fmt.Sprintf("value for field %s: %v", fieldID, err))
 			return
