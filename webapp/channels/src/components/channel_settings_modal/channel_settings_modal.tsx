@@ -64,9 +64,6 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     // Refs
     const modalBodyRef = useRef<HTMLDivElement>(null);
 
-    // UI Feedback: errors, states
-    const [serverError, setServerError] = useState('');
-
     // Called to set the active tab, prompting save changes panel if there are unsaved changes
     const updateTab = (newTab: string) => {
         /**
@@ -126,8 +123,6 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         return (
             <ChannelSettingsInfoTab
                 channel={channel}
-                serverError={serverError}
-                setServerError={setServerError}
                 setAreThereUnsavedChanges={setAreThereUnsavedChanges}
                 IsTabSwitchActionWithUnsaved={IsTabSwitchActionWithUnsaved}
             />

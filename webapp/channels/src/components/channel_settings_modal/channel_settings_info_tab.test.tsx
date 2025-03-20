@@ -42,8 +42,6 @@ const mockChannel = TestHelper.getChannelMock({
 
 const baseProps = {
     channel: mockChannel,
-    serverError: '',
-    setServerError: jest.fn(),
     setAreThereUnsavedChanges: jest.fn(),
 };
 
@@ -169,11 +167,9 @@ describe('ChannelSettingsInfoTab', () => {
     // Instead of clicking a non-existent element to trigger a channel name error,
     // simulate an invalid input by clearing the channel name (which is required).
     it('should show error when channel name field has an error', async () => {
-        const setServerError = jest.fn();
         renderWithContext(
             <ChannelSettingsInfoTab
                 {...baseProps}
-                setServerError={setServerError}
             />,
         );
 
@@ -182,9 +178,6 @@ describe('ChannelSettingsInfoTab', () => {
         await userEvent.clear(nameInput);
         nameInput.blur();
 
-        // Expect the server error to be set (for example, "Channel names must have at least 2 characters.").
-        expect(setServerError).toHaveBeenCalledWith('Channel names must have at least 2 characters.');
-
         // SaveChangesPanel should show error state.
         const errorMessage = screen.getByText(/There are errors in the form above/);
         const errorPanel = errorMessage.closest('.SaveChangesPanel');
@@ -192,11 +185,9 @@ describe('ChannelSettingsInfoTab', () => {
     });
 
     it('should show error when purpose exceeds character limit', async () => {
-        const setServerError = jest.fn();
         renderWithContext(
             <ChannelSettingsInfoTab
                 {...baseProps}
-                setServerError={setServerError}
             />,
         );
 
@@ -206,16 +197,16 @@ describe('ChannelSettingsInfoTab', () => {
         await userEvent.clear(purposeInput);
         await userEvent.type(purposeInput, longPurpose);
 
-        // Expect that setServerError was called.
-        expect(setServerError).toHaveBeenCalledWith('The text entered exceeds the character limit. The channel purpose is limited to 250 characters.');
+        // SaveChangesPanel should show error state.
+        const errorMessage = screen.getByText(/There are errors in the form above/);
+        const errorPanel = errorMessage.closest('.SaveChangesPanel');
+        expect(errorPanel).toHaveClass('error');
     });
 
     it('should show error when header exceeds character limit', async () => {
-        const setServerError = jest.fn();
         renderWithContext(
             <ChannelSettingsInfoTab
                 {...baseProps}
-                setServerError={setServerError}
             />,
         );
 
@@ -225,7 +216,9 @@ describe('ChannelSettingsInfoTab', () => {
         await userEvent.clear(headerInput);
         await userEvent.type(headerInput, longHeader);
 
-        // Expect that setServerError was called.
-        expect(setServerError).toHaveBeenCalled();
+        // SaveChangesPanel should show error state.
+        const errorMessage = screen.getByText(/There are errors in the form above/);
+        const errorPanel = errorMessage.closest('.SaveChangesPanel');
+        expect(errorPanel).toHaveClass('error');
     });
 });

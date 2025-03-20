@@ -34,8 +34,6 @@ import type {GlobalState} from 'types/store';
 
 type ChannelSettingsInfoTabProps = {
     channel: Channel;
-    serverError: string;
-    setServerError: (error: string) => void;
     onCancel?: () => void;
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
     IsTabSwitchActionWithUnsaved?: boolean;
@@ -45,8 +43,6 @@ const SAVE_CHANGES_PANEL_ERROR_TIMEOUT = 3000;
 
 function ChannelSettingsInfoTab({
     channel,
-    serverError,
-    setServerError,
     onCancel,
     setAreThereUnsavedChanges,
     IsTabSwitchActionWithUnsaved,
@@ -84,6 +80,9 @@ function ChannelSettingsInfoTab({
     const [channelHeader, setChannelHeader] = useState(channel?.header ?? '');
     const [channelType, setChannelType] = useState<ChannelType>(channel?.type as ChannelType ?? Constants.OPEN_CHANNEL as ChannelType);
 
+    // UI Feedback: errors, states
+    const [formError, setFormError] = useState('');
+
     // SaveChangesPanel state
     const [requireConfirm, setRequireConfirm] = useState(false);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
@@ -94,12 +93,12 @@ function ChannelSettingsInfoTab({
 
         // If there's an error, update the server error to show in the SaveChangesPanel
         if (isError && errorMessage) {
-            setServerError(errorMessage);
-        } else if (serverError === channelNameError) {
+            setFormError(errorMessage);
+        } else if (formError === channelNameError) {
             // Only clear server error if it's the same as the channel name error
-            setServerError('');
+            setFormError('');
         }
-    }, [channelNameError, serverError, setServerError]);
+    }, [channelNameError, formError, setFormError]);
 
     // For checking unsaved changes, we compare the current form values with the original channel values
     const hasUnsavedChanges = useCallback(() => {
@@ -164,7 +163,7 @@ function ChannelSettingsInfoTab({
             return;
         }
         setChannelType(type);
-        setServerError('');
+        setFormError('');
     };
 
     const handleHeaderChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
@@ -175,18 +174,18 @@ function ChannelSettingsInfoTab({
 
         // Check for character limit
         if (newValue.length > headerMaxLength) {
-            setServerError(formatMessage({
+            setFormError(formatMessage({
                 id: 'edit_channel_header_modal.error',
                 defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
             }, {
                 maxLength: headerMaxLength,
             }));
-        } else if (serverError && !channelNameError) {
-            // Only clear server error if there's no channel name error
+        } else if (formError && !channelNameError) {
+            // Only clear form error if there's no channel name error
             // This prevents clearing channel name errors when editing the header
-            setServerError('');
+            setFormError('');
         }
-    }, [headerMaxLength, serverError, channelNameError, setServerError, formatMessage]);
+    }, [headerMaxLength, formError, channelNameError, setFormError, formatMessage]);
 
     const handlePurposeChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
         const newValue = e.target.value;
@@ -196,18 +195,18 @@ function ChannelSettingsInfoTab({
 
         // Check for character limit
         if (newValue.length > Constants.MAX_CHANNELPURPOSE_LENGTH) {
-            setServerError(formatMessage({
+            setFormError(formatMessage({
                 id: 'channel_settings.error_purpose_length',
                 defaultMessage: 'The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.',
             }, {
                 maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
             }));
-        } else if (serverError && !channelNameError) {
+        } else if (formError && !channelNameError) {
             // Only clear server error if there's no channel name error
             // This prevents clearing channel name errors when editing the purpose
-            setServerError('');
+            setFormError('');
         }
-    }, [serverError, channelNameError, setServerError, formatMessage]);
+    }, [formError, channelNameError, setFormError, formatMessage]);
 
     // Validate & Save - using useCallback to ensure it has the latest state values
     const handleSave = useCallback(async (): Promise<boolean> => {
@@ -216,7 +215,7 @@ function ChannelSettingsInfoTab({
         }
 
         if (!displayName.trim()) {
-            setServerError(formatMessage({
+            setFormError(formatMessage({
                 id: 'channel_settings.error_display_name_required',
                 defaultMessage: 'Channel name is required',
             }));
@@ -244,7 +243,7 @@ function ChannelSettingsInfoTab({
     }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType]);
 
     const handleServerError = (err: ServerError) => {
-        setServerError(err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'}));
+        setFormError(err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'}));
     };
 
     // Handle save changes panel actions
@@ -276,7 +275,7 @@ function ChannelSettingsInfoTab({
 
         // Clear errors
         setUrlError('');
-        setServerError('');
+        setFormError('');
         setCharacterLimitExceeded(false);
         setChannelNameError('');
 
@@ -284,10 +283,10 @@ function ChannelSettingsInfoTab({
         if (onCancel) {
             onCancel();
         }
-    }, [channel, onCancel, setServerError]);
+    }, [channel, onCancel, setFormError]);
 
     // Calculate if there are errors
-    const hasErrors = Boolean(serverError) ||
+    const hasErrors = Boolean(formError) ||
                      characterLimitExceeded ||
                      Boolean(channelNameError) ||
                      Boolean(switchingTabsWithUnsaved) ||
