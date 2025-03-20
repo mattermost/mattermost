@@ -16,10 +16,13 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
       id="more_direct_channels.title"
     />
   }
+  modalLocation="top"
   onEntered={[Function]}
   onExited={[Function]}
   onHide={[Function]}
   show={true}
+  showCloseButton={true}
+  showHeader={true}
 >
   <div
     role="application"
@@ -262,10 +265,13 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
       id="more_direct_channels.title"
     />
   }
+  modalLocation="top"
   onEntered={[Function]}
   onExited={[Function]}
   onHide={[Function]}
   show={true}
+  showCloseButton={true}
+  showHeader={true}
 >
   <div
     role="application"

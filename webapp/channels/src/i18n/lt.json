@@ -4179,7 +4179,6 @@
   "sidebar.types.channels": "KANALAI",
   "sidebar.types.direct_messages": "TIESIOGINĖS ŽINUTĖS",
   "sidebar.types.favorites": "MĖGSTAMIAUSI",
-  "sidebar.types.unreads": "NESKAITYTA",
   "sidebar.unreads": "Daugiau neskaitytų",
   "sidebar_left.add_channel_dropdown.browseChannels": "Naršyti kanalus",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Sukurti naują kanalą",
