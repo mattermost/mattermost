@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {screen, waitFor} from '@testing-library/react';
 import React from 'react';
-import {render, screen, waitFor} from '@testing-library/react';
 import {act} from 'react-dom/test-utils';
 
 import {General} from 'mattermost-redux/constants';
 
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal/manage_teams_modal';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -16,7 +17,7 @@ jest.mock('./manage_teams_dropdown', () => {
     return jest.fn((props) => {
         // Store props on mock function for later assertions
         (jest.fn as any).mockDropdownProps = props;
-        return <div data-testid="mock-manage-teams-dropdown" />;
+        return <div data-testid='mock-manage-teams-dropdown'/>;
     });
 });
 

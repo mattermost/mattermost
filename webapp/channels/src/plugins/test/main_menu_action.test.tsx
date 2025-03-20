@@ -27,7 +27,7 @@ describe('plugins/MainMenuActions', () => {
             pluginId: 'test',
             text: 'some plugin text',
             action: pluginAction,
-            mobileIcon: <i className='fa fa-anchor'/>,
+            mobileIcon: <i className={'fa fa-anchor'}/>,
         }],
         canManageIntegrations: true,
         moreTeamsToJoin: true,
@@ -56,7 +56,7 @@ describe('plugins/MainMenuActions', () => {
         const {container} = renderWithContext(
             <MainMenu
                 {...requiredProps}
-            />
+            />,
         );
 
         expect(screen.getByText('some plugin text')).toBeInTheDocument();
@@ -72,7 +72,7 @@ describe('plugins/MainMenuActions', () => {
         const {container} = renderWithContext(
             <MainMenu
                 {...props}
-            />
+            />,
         );
 
         expect(screen.getByText('some plugin text')).toBeInTheDocument();

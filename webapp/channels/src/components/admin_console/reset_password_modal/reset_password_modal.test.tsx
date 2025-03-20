@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
@@ -49,7 +49,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
 
     test('should render correctly', () => {
         renderWithContext(<ResetPasswordModal {...baseProps}/>);
-        
+
         expect(screen.getByText('Switch Account to Email/Password')).toBeInTheDocument();
         expect(screen.getByText('Current Password')).toBeInTheDocument();
         expect(screen.getByText('New Password')).toBeInTheDocument();
@@ -60,7 +60,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
     test('should render empty div when there is no user', () => {
         const props = {...baseProps, user: undefined};
         const {container} = renderWithContext(<ResetPasswordModal {...props}/>);
-        
+
         expect(container.firstChild).toBeEmptyDOMElement();
     });
 
@@ -69,15 +69,15 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         const oldPassword = 'oldPassword123!';
         const newPassword = 'newPassword123!';
         const props = {...baseProps, actions: {updateUserPassword}};
-        
+
         renderWithContext(<ResetPasswordModal {...props}/>);
 
         const currentPasswordInput = screen.getByText('Current Password').closest('.input-group')?.querySelector('input');
         const newPasswordInput = screen.getByText('New Password').closest('.input-group')?.querySelector('input');
-        
+
         expect(currentPasswordInput).toBeInTheDocument();
         expect(newPasswordInput).toBeInTheDocument();
-        
+
         await userEvent.type(currentPasswordInput!, oldPassword);
         await userEvent.type(newPasswordInput!, newPassword);
         await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
@@ -90,12 +90,12 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
         const newPassword = 'newPassword123!';
         const props = {...baseProps, actions: {updateUserPassword}};
-        
+
         renderWithContext(<ResetPasswordModal {...props}/>);
 
         const newPasswordInput = screen.getByText('New Password').closest('.input-group')?.querySelector('input');
         expect(newPasswordInput).toBeInTheDocument();
-        
+
         await userEvent.type(newPasswordInput!, newPassword);
         await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
 
@@ -115,7 +115,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         // When currentUserId !== user.id, there should be only one password field
         const passwordInput = screen.getByText('New Password').closest('.input-group')?.querySelector('input');
         expect(passwordInput).toBeInTheDocument();
-        
+
         await userEvent.type(passwordInput!, password);
         await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
 

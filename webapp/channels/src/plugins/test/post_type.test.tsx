@@ -1,20 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {screen} from '@testing-library/react';
 import type {ComponentProps} from 'react';
 import React from 'react';
-import {screen} from '@testing-library/react';
 
 import {Preferences} from 'mattermost-redux/constants';
 
 import PostMessageView from 'components/post_view/post_message_view/post_message_view';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 
 // Mock the ShowMore component to avoid context issues
-jest.mock('components/post_view/show_more', () => () => <div data-testid="show-more">Show More</div>);
+jest.mock('components/post_view/show_more', () => () => <div data-testid={'show-more'}>{'Show More'}</div>);
 
 const PostTypePlugin = () => (
-    <span data-testid='pluginId'>{'PostTypePlugin'}</span>
+    <span data-testid={'pluginId'}>{'PostTypePlugin'}</span>
 );
 
 describe('plugins/PostMessageView', () => {

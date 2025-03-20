@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// No direct testing library imports needed
 import React from 'react';
-import {render} from '@testing-library/react';
-import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import TeamMembers from './team_members';
@@ -15,16 +15,16 @@ import TeamMembers from './team_members';
 // Mock components to simplify testing
 jest.mock('components/admin_console/user_grid/user_grid', () => {
     return function MockUserGrid() {
-        return <div data-testid="user-grid" />;
+        return <div data-testid='user-grid'/>;
     };
 });
 
 jest.mock('components/widgets/admin_console/admin_panel', () => {
     return function MockAdminPanel(props: any) {
         return (
-            <div data-testid="admin-panel">
-                <div className="header">{typeof props.title === 'object' ? props.title.defaultMessage : props.title}</div>
-                <div className="body">{props.children}</div>
+            <div data-testid='admin-panel'>
+                <div className='header'>{typeof props.title === 'object' ? props.title.defaultMessage : props.title}</div>
+                <div className='body'>{props.children}</div>
             </div>
         );
     };
@@ -32,7 +32,7 @@ jest.mock('components/widgets/admin_console/admin_panel', () => {
 
 jest.mock('components/toggle_modal_button', () => {
     return function MockToggleModalButton(props: any) {
-        return <button data-testid="toggle-modal-button">{props.children}</button>;
+        return <button data-testid='toggle-modal-button'>{props.children}</button>;
     };
 });
 
@@ -78,9 +78,9 @@ describe('admin_console/team_channel_settings/team/TeamMembers', () => {
 
     test('should render properly with users', () => {
         const {container, getByTestId} = renderWithContext(
-            <TeamMembers {...baseProps}/>
+            <TeamMembers {...baseProps}/>,
         );
-        
+
         expect(getByTestId('admin-panel')).toBeInTheDocument();
         expect(getByTestId('user-grid')).toBeInTheDocument();
         expect(container).toMatchSnapshot();
@@ -94,11 +94,11 @@ describe('admin_console/team_channel_settings/team/TeamMembers', () => {
             totalCount: 0,
             loading: true,
         };
-        
+
         const {container, getByTestId} = renderWithContext(
-            <TeamMembers {...props}/>
+            <TeamMembers {...props}/>,
         );
-        
+
         expect(getByTestId('admin-panel')).toBeInTheDocument();
         expect(getByTestId('user-grid')).toBeInTheDocument();
         expect(container).toMatchSnapshot();

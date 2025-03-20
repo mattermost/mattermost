@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 
 import RadioSetting from './radio_setting';
 
@@ -28,10 +28,10 @@ describe('components/admin_console/RadioSetting', () => {
 
     test('onChange handler is called when radio button is changed', () => {
         render(<RadioSetting {...baseProps}/>);
-        
+
         // Find the first radio button (engineering) by its label text
         const engineeringRadio = screen.getByLabelText('this is engineering');
-        
+
         // Click the radio button
         userEvent.click(engineeringRadio);
 

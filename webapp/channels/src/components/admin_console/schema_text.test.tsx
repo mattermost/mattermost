@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {render, screen} from '@testing-library/react';
+import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+
 import SchemaText from './schema_text';
 
 describe('SchemaText', () => {
@@ -15,7 +16,7 @@ describe('SchemaText', () => {
 
     test('should render plain text correctly', () => {
         render(<SchemaText {...baseProps}/>);
-        
+
         expect(screen.getByText('This is help text')).toBeInTheDocument();
     });
 
@@ -27,7 +28,7 @@ describe('SchemaText', () => {
         };
 
         render(<SchemaText {...props}/>);
-        
+
         const element = screen.getByText(/This is/);
         expect(element).toBeInTheDocument();
         expect(element.innerHTML).toContain('<strong>HELP TEXT</strong>');
@@ -42,7 +43,7 @@ describe('SchemaText', () => {
         };
 
         renderWithContext(<SchemaText {...props}/>);
-        
+
         expect(screen.getByText('This is help text')).toBeInTheDocument();
     });
 
@@ -56,7 +57,7 @@ describe('SchemaText', () => {
         };
 
         renderWithContext(<SchemaText {...props}/>);
-        
+
         const link = screen.getByRole('link', {name: 'a help link'});
         expect(link).toBeInTheDocument();
         expect(link).toHaveAttribute('href', 'https://example.com');
@@ -72,7 +73,7 @@ describe('SchemaText', () => {
         };
 
         render(<SchemaText {...props}/>);
-        
+
         // Find the link element
         const link = screen.getByRole('link', {name: 'a link'});
         expect(link).toBeInTheDocument();
@@ -89,7 +90,7 @@ describe('SchemaText', () => {
         };
 
         render(<SchemaText {...props}/>);
-        
+
         // Find the link element
         const link = screen.getByRole('link', {name: 'a link'});
         expect(link).toBeInTheDocument();
@@ -106,7 +107,7 @@ describe('SchemaText', () => {
         };
 
         render(<SchemaText {...props}/>);
-        
+
         // Find the link element
         const link = screen.getByRole('link', {name: 'a link'});
         expect(link).toBeInTheDocument();

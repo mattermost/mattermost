@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {render, screen, fireEvent, waitFor} from '@testing-library/react';
+import {screen, fireEvent, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
+
+import GroupRow from 'components/admin_console/group_settings/group_row';
 
 import {renderWithContext} from 'tests/react_testing_utils';
-import GroupRow from 'components/admin_console/group_settings/group_row';
 
 describe('components/admin_console/group_settings/GroupRow', () => {
     const defaultProps = {
@@ -29,13 +30,13 @@ describe('components/admin_console/group_settings/GroupRow', () => {
                 has_syncables={true}
             />,
         );
-        
+
         // Verify the name is displayed
         expect(screen.getByText('name')).toBeInTheDocument();
-        
+
         // Verify the "Linked" text is displayed
         expect(screen.getByText('Linked')).toBeInTheDocument();
-        
+
         // Verify the "Edit" link is displayed
         expect(screen.getByText('Edit')).toBeInTheDocument();
         expect(screen.getByText('Edit').closest('a')).toHaveAttribute('href', '/admin_console/user_management/groups/group-id');
@@ -49,13 +50,13 @@ describe('components/admin_console/group_settings/GroupRow', () => {
                 has_syncables={false}
             />,
         );
-        
+
         // Verify the name is displayed
         expect(screen.getByText('name')).toBeInTheDocument();
-        
+
         // Verify the "Linked" text is displayed
         expect(screen.getByText('Linked')).toBeInTheDocument();
-        
+
         // Verify the "Configure" link is displayed instead of "Edit"
         expect(screen.getByText('Configure')).toBeInTheDocument();
         expect(screen.getByText('Configure').closest('a')).toHaveAttribute('href', '/admin_console/user_management/groups/group-id');
@@ -69,13 +70,13 @@ describe('components/admin_console/group_settings/GroupRow', () => {
                 has_syncables={undefined}
             />,
         );
-        
+
         // Verify the name is displayed
         expect(screen.getByText('name')).toBeInTheDocument();
-        
+
         // Verify the "Not Linked" text is displayed
         expect(screen.getByText('Not Linked')).toBeInTheDocument();
-        
+
         // Verify no Edit/Configure links are displayed
         expect(screen.queryByText('Edit')).not.toBeInTheDocument();
         expect(screen.queryByText('Configure')).not.toBeInTheDocument();
@@ -90,13 +91,13 @@ describe('components/admin_console/group_settings/GroupRow', () => {
                 has_syncables={undefined}
             />,
         );
-        
+
         // Verify the name is displayed
         expect(screen.getByText('name')).toBeInTheDocument();
-        
+
         // Verify the row has the checked class
         expect(screen.getByText('name').closest('.group')).toHaveClass('checked');
-        
+
         // Verify the checkbox element is displayed (the SVG icon)
         const checkboxContainer = screen.getByText('name').closest('.group')?.querySelector('.group-check.checked');
         expect(checkboxContainer).toBeInTheDocument();
@@ -111,13 +112,13 @@ describe('components/admin_console/group_settings/GroupRow', () => {
                 failed={true}
             />,
         );
-        
+
         // Verify the name is displayed
         expect(screen.getByText('name')).toBeInTheDocument();
-        
+
         // Verify the "Unlink failed" text is displayed
         expect(screen.getByText('Unlink failed')).toBeInTheDocument();
-        
+
         // Verify the warning class and icon
         const unlinkFailedLink = screen.getByText('Unlink failed').closest('a');
         expect(unlinkFailedLink).toHaveClass('warning');
@@ -133,13 +134,13 @@ describe('components/admin_console/group_settings/GroupRow', () => {
                 failed={true}
             />,
         );
-        
+
         // Verify the name is displayed
         expect(screen.getByText('name')).toBeInTheDocument();
-        
+
         // Verify the "Link failed" text is displayed
         expect(screen.getByText('Link failed')).toBeInTheDocument();
-        
+
         // Verify the warning class and icon
         const linkFailedLink = screen.getByText('Link failed').closest('a');
         expect(linkFailedLink).toHaveClass('warning');
@@ -157,10 +158,10 @@ describe('components/admin_console/group_settings/GroupRow', () => {
                 has_syncables={undefined}
             />,
         );
-        
+
         // Click on the group row
         await userEvent.click(screen.getByText('name').closest('.group')!);
-        
+
         // Verify onCheckToggle was called with the right args
         expect(onCheckToggle).toHaveBeenCalledWith('primary_key');
     });
@@ -178,11 +179,11 @@ describe('components/admin_console/group_settings/GroupRow', () => {
                 }}
             />,
         );
-        
+
         // Find and click on the "Not Linked" link
         const notLinkedLink = screen.getByText('Not Linked').closest('a')!;
         fireEvent.click(notLinkedLink);
-        
+
         // Wait for the async action to complete
         await waitFor(() => {
             expect(link).toHaveBeenCalledWith('primary_key');
@@ -202,11 +203,11 @@ describe('components/admin_console/group_settings/GroupRow', () => {
                 }}
             />,
         );
-        
+
         // Find and click on the "Linked" link
         const linkedLink = screen.getByText('Linked').closest('a')!;
         fireEvent.click(linkedLink);
-        
+
         // Wait for the async action to complete
         await waitFor(() => {
             expect(unlink).toHaveBeenCalledWith('primary_key');

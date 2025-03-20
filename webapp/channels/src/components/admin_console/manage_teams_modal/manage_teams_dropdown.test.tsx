@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen} from '@testing-library/react';
+import React from 'react';
+
+import ManageTeamsDropdown from 'components/admin_console/manage_teams_modal/manage_teams_dropdown';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
-
-import ManageTeamsDropdown from 'components/admin_console/manage_teams_modal/manage_teams_dropdown';
 
 describe('ManageTeamsDropdown', () => {
     const baseProps = {

@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen, waitFor} from '@testing-library/react';
+import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
-
-import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {AdminConfig} from '@mattermost/types/config';
 
 import CustomTermsOfServiceSettings from 'components/admin_console/custom_terms_of_service_settings/custom_terms_of_service_settings';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/admin_console/CustomTermsOfServiceSettings', () => {
     const baseProps = {
@@ -35,7 +35,7 @@ describe('components/admin_console/CustomTermsOfServiceSettings', () => {
         renderWithContext(
             <MemoryRouter>
                 <CustomTermsOfServiceSettings {...baseProps}/>
-            </MemoryRouter>
+            </MemoryRouter>,
         );
 
         // Wait for loading screen to disappear
@@ -68,7 +68,7 @@ describe('components/admin_console/CustomTermsOfServiceSettings', () => {
         renderWithContext(
             <MemoryRouter>
                 <CustomTermsOfServiceSettings {...baseProps}/>
-            </MemoryRouter>
+            </MemoryRouter>,
         );
 
         expect(baseProps.actions.getTermsOfService).toHaveBeenCalledTimes(1);
@@ -86,7 +86,7 @@ describe('components/admin_console/CustomTermsOfServiceSettings', () => {
         renderWithContext(
             <MemoryRouter>
                 <CustomTermsOfServiceSettings {...props}/>
-            </MemoryRouter>
+            </MemoryRouter>,
         );
 
         // Wait for loading screen to disappear
@@ -113,7 +113,7 @@ describe('components/admin_console/CustomTermsOfServiceSettings', () => {
         renderWithContext(
             <MemoryRouter>
                 <CustomTermsOfServiceSettings {...props}/>
-            </MemoryRouter>
+            </MemoryRouter>,
         );
 
         // Wait for loading screen to disappear

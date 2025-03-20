@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen, fireEvent} from '@testing-library/react';
+import React from 'react';
 
 import type {AdminConfig} from '@mattermost/types/config';
 
-import {renderWithContext} from 'tests/react_testing_utils';
 import * as adminActions from 'actions/admin_actions.jsx';
 
 import ElasticSearchSettings from 'components/admin_console/elasticsearch_settings';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 jest.mock('actions/admin_actions.jsx', () => {
     return {
@@ -23,21 +24,21 @@ jest.mock('actions/admin_actions.jsx', () => {
 jest.mock('components/admin_console/jobs', () => {
     return {
         __esModule: true,
-        default: () => <div data-testid="mock-jobs-table">Jobs Table</div>,
+        default: () => <div data-testid='mock-jobs-table'>{'Jobs Table'}</div>,
     };
 });
 
 // Also mock the SaveButton to avoid issues with button disabled state
 jest.mock('components/save_button', () => {
-    return function MockSaveButton(props) {
+    return function MockSaveButton(props: {disabled?: boolean; defaultMessage?: string; savingMessage?: string; saving?: boolean}) {
         return (
             <button
-                id="saveSetting"
-                data-testid="saveSetting"
+                id='saveSetting'
+                data-testid='saveSetting'
                 className={`save-button ${props.disabled ? 'disabled' : ''}`}
                 disabled={props.disabled}
             >
-                Save
+                {'Save'}
             </button>
         );
     };
@@ -71,12 +72,12 @@ describe('components/ElasticSearchSettings', () => {
 
         expect(screen.getByText('Elasticsearch')).toBeInTheDocument();
         expect(screen.getByText('Enable Elasticsearch Indexing:')).toBeInTheDocument();
-        
+
         // Verify connection options exist but are disabled
         const connectionUrlInput = screen.getByLabelText('Server Connection Address:');
         expect(connectionUrlInput).toBeInTheDocument();
         expect(connectionUrlInput).toBeDisabled();
-        
+
         // Test button should be disabled when indexing is disabled
         const testButton = screen.getByText('Test Connection');
         expect(testButton).toBeDisabled();
@@ -101,7 +102,7 @@ describe('components/ElasticSearchSettings', () => {
         const connectionUrlInput = screen.getByLabelText('Server Connection Address:');
         expect(connectionUrlInput).toBeInTheDocument();
         expect(connectionUrlInput).toBeEnabled();
-        
+
         // Test button should be enabled when indexing is enabled
         const testButton = screen.getByText('Test Connection');
         expect(testButton).toBeEnabled();

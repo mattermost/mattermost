@@ -1,18 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {act, waitFor, screen, fireEvent} from '@testing-library/react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {renderWithContext} from 'tests/react_testing_utils';
 import RequestButton from 'components/admin_console/request_button/request_button';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/admin_console/request_button/request_button.jsx', () => {
     const defaultProps = {
         requestAction: jest.fn(),
-        helpText: <FormattedMessage id='test1' defaultMessage='Help Text' />,
-        buttonText: <FormattedMessage id='test2' defaultMessage='Button Text' />,
+        helpText: (
+            <FormattedMessage
+                id='test1'
+                defaultMessage='Help Text'
+            />
+        ),
+        buttonText: (
+            <FormattedMessage
+                id='test2'
+                defaultMessage='Button Text'
+            />
+        ),
     };
 
     beforeEach(() => {
@@ -23,15 +34,15 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         renderWithContext(
             <RequestButton
                 {...defaultProps}
-            />
+            />,
         );
 
         // Verify button text
         expect(screen.getByText('Button Text')).toBeInTheDocument();
-        
+
         // Verify help text
         expect(screen.getByText('Help Text')).toBeInTheDocument();
-        
+
         // Verify button is enabled
         const button = screen.getByRole('button');
         expect(button).not.toBeDisabled();
@@ -47,7 +58,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
                 requestAction={requestActionSuccess}
                 saveNeeded={false}
                 saveConfigAction={saveConfigActionSuccess}
-            />
+            />,
         );
 
         // Click the button
@@ -70,7 +81,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
                 requestAction={requestActionSuccess}
                 saveNeeded={true}
                 saveConfigAction={saveConfigActionSuccess}
-            />
+            />,
         );
 
         // Click the button
@@ -95,7 +106,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
                     id: 'success.message',
                     defaultMessage: 'Success Message',
                 }}
-            />
+            />,
         );
 
         // Click the button
@@ -122,7 +133,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
                     id: 'success.message',
                     defaultMessage: 'Success Message',
                 }}
-            />
+            />,
         );
 
         // Click the button
@@ -151,7 +162,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
                     id: 'error.message',
                     defaultMessage: 'Error Message: {error}',
                 }}
-            />
+            />,
         );
 
         // Click the button
@@ -181,7 +192,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
                     id: 'error.message',
                     defaultMessage: 'Error Message: {error}',
                 }}
-            />
+            />,
         );
 
         // Click the button
@@ -195,23 +206,23 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
             expect(screen.queryByText('Error Message: __message__ - __detailed_error__')).not.toBeInTheDocument();
         });
     });
-    
+
     test('should show loading text when button is clicked', async () => {
         // Mock implementation that doesn't immediately resolve
         const slowRequestAction = jest.fn(() => {
             // Don't call success or error callbacks immediately
         });
-        
+
         renderWithContext(
             <RequestButton
                 {...defaultProps}
                 requestAction={slowRequestAction}
-            />
+            />,
         );
-        
+
         // Click the button
         fireEvent.click(screen.getByRole('button'));
-        
+
         // Verify loading text is shown
         expect(screen.getByText('Loading...')).toBeInTheDocument();
     });

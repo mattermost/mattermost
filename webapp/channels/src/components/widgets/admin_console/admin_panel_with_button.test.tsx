@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen, fireEvent} from '@testing-library/react';
+import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
@@ -36,13 +36,13 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
         expect(screen.getByText('test-title-default')).toBeInTheDocument();
         expect(screen.getByText('test-subtitle-default')).toBeInTheDocument();
         expect(screen.getByText('Test')).toBeInTheDocument();
-        
+
         // Verify button is rendered and clickable
         const button = screen.getByTestId('test-button-text-default');
         expect(button).toBeInTheDocument();
         expect(button).toHaveTextContent('test-button-text-default');
         expect(button).not.toHaveClass('disabled');
-        
+
         // Test click handler
         fireEvent.click(button);
         expect(defaultProps.onButtonClick).toHaveBeenCalledTimes(1);
@@ -61,33 +61,33 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
         // Verify panel elements still render
         expect(screen.getByText('test-title-default')).toBeInTheDocument();
         expect(screen.getByText('test-subtitle-default')).toBeInTheDocument();
-        
+
         // Verify button is disabled
         const button = screen.getByTestId('test-button-text-default');
         expect(button).toBeInTheDocument();
         expect(button).toHaveClass('disabled');
-        
+
         // Test that click handler is not called when disabled
         fireEvent.click(button);
         expect(defaultProps.onButtonClick).not.toHaveBeenCalled();
     });
-    
+
     test('should not render button when onButtonClick is not provided', () => {
         const propsWithoutButton = {
             ...defaultProps,
             onButtonClick: undefined,
         };
-        
+
         renderWithContext(
             <AdminPanelWithButton {...propsWithoutButton}>
                 {'Test'}
             </AdminPanelWithButton>,
         );
-        
+
         // Verify panel elements render
         expect(screen.getByText('test-title-default')).toBeInTheDocument();
         expect(screen.getByText('test-subtitle-default')).toBeInTheDocument();
-        
+
         // Verify button is not rendered
         expect(screen.queryByTestId('test-button-text-default')).not.toBeInTheDocument();
     });

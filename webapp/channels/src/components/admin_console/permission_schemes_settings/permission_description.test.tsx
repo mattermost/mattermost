@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen, fireEvent} from '@testing-library/react';
+import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+
 import PermissionDescription from './permission_description';
 
 describe('components/admin_console/permission_schemes_settings/permission_description', () => {
@@ -22,7 +23,7 @@ describe('components/admin_console/permission_schemes_settings/permission_descri
         renderWithContext(
             <PermissionDescription
                 {...defaultProps}
-            />
+            />,
         );
 
         expect(screen.getByText('This is the description')).toBeInTheDocument();
@@ -35,28 +36,31 @@ describe('components/admin_console/permission_schemes_settings/permission_descri
                 inherited={{
                     name: 'all_users',
                 }}
-            />
+            />,
         );
 
         // The text will be "Inherited from All Members."
-        expect(screen.getByText('Inherited from')).toBeInTheDocument();
-        expect(screen.getByText('All Members')).toBeInTheDocument();
-        
+        // Use a partial text match since "Inherited from" might be part of a longer string
+        expect(screen.getByText(/Inherited from/)).toBeInTheDocument();
+
+        // Need to use regex for finding the "All Members" text since it might be part of a longer string
+        expect(screen.getByText(/All Members/)).toBeInTheDocument();
+
         // The link should be rendered inside the text
-        const link = screen.getByText('All Members');
+        const link = screen.getByText(/All Members/);
         expect(link.tagName).toBe('A');
     });
 
     test('should render with custom JSX description', () => {
         const description = (
-            <span data-testid="custom-description">{'This is a clickable description'}</span>
+            <span data-testid='custom-description'>{'This is a clickable description'}</span>
         );
-        
+
         renderWithContext(
             <PermissionDescription
                 {...defaultProps}
                 description={description}
-            />
+            />,
         );
 
         expect(screen.getByTestId('custom-description')).toBeInTheDocument();
@@ -73,28 +77,28 @@ describe('components/admin_console/permission_schemes_settings/permission_descri
                     name: 'all_users',
                 }}
                 selectRow={selectRow}
-            />
+            />,
         );
 
         const link = screen.getByText('All Members');
         fireEvent.click(link);
-        
+
         expect(selectRow).toHaveBeenCalledWith('defaultID');
     });
-    
+
     test('should not call selectRow when clicking outside of link or description', () => {
         const selectRow = jest.fn();
-        
+
         const {container} = renderWithContext(
             <PermissionDescription
                 {...defaultProps}
                 selectRow={selectRow}
-            />
+            />,
         );
-        
+
         // Click on the wrapper component
         fireEvent.click(container.firstChild as Element);
-        
+
         expect(selectRow).not.toHaveBeenCalled();
     });
 });

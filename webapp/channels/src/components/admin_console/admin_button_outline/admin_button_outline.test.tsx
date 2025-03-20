@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 
 import AdminButtonOutline from './admin_button_outline';
 
@@ -17,7 +17,7 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
                 disabled={false}
             />,
         );
-        
+
         const button = screen.getByRole('button');
         expect(button).toBeInTheDocument();
         expect(button).not.toBeDisabled();
@@ -33,7 +33,7 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
                 disabled={true}
             />,
         );
-        
+
         const button = screen.getByRole('button');
         expect(button).toBeInTheDocument();
         expect(button).toBeDisabled();
@@ -51,7 +51,7 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
                 {'Test children'}
             </AdminButtonOutline>,
         );
-        
+
         const button = screen.getByRole('button', {name: 'Test children'});
         expect(button).toBeInTheDocument();
         expect(button).toBeDisabled();
@@ -70,7 +70,7 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
                 {'Test children'}
             </AdminButtonOutline>,
         );
-        
+
         const button = screen.getByRole('button', {name: 'Test children'});
         expect(button).toBeInTheDocument();
         expect(button).toHaveClass('AdminButtonOutline', 'btn', 'btn-default');
@@ -87,7 +87,7 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
                 {'Test children'}
             </AdminButtonOutline>,
         );
-        
+
         const button = screen.getByRole('button', {name: 'Test children'});
         await userEvent.click(button);
         expect(onClick).toHaveBeenCalledTimes(1);
