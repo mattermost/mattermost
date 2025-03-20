@@ -499,7 +499,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                         );
                     }
                 }
-                
+
                 // If the channel is being converted to a synced channel (wasn't synced before but now is)
                 // and there are no other group changes (no links or unlinks), remove non-group members
                 const wasSynced = Boolean(channel.group_constrained);
@@ -509,7 +509,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 if (!wasSynced && isNowSynced && noGroupChanges && groups.length > 0) {
                     actionsToAwait.push(actions.removeNonGroupMembersFromChannel(channelID));
                 }
-                
+
                 if (actionsToAwait.length > 0) {
                     await Promise.all(actionsToAwait);
                 }
@@ -776,17 +776,17 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 />
 
                 {this.props.channelGroupsEnabled &&
-                        <ChannelGroups
-                            synced={isSynced}
-                            channel={channel}
-                            totalGroups={totalGroups}
-                            groups={groups}
-                            removedGroups={removedGroups}
-                            onAddCallback={this.handleGroupChange}
-                            onGroupRemoved={this.handleGroupRemoved}
-                            setNewGroupRole={this.setNewGroupRole}
-                            isDisabled={this.props.isDisabled}
-                        />
+                    <ChannelGroups
+                        synced={isSynced}
+                        channel={channel}
+                        totalGroups={totalGroups}
+                        groups={groups}
+                        removedGroups={removedGroups}
+                        onAddCallback={this.handleGroupChange}
+                        onGroupRemoved={this.handleGroupRemoved}
+                        setNewGroupRole={this.setNewGroupRole}
+                        isDisabled={this.props.isDisabled}
+                    />
                 }
 
                 {!isSynced &&

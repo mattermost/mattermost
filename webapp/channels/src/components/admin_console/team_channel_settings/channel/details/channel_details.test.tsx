@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import exp from 'constants';
+
 import {render, screen, waitFor, fireEvent} from '@testing-library/react';
+import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 import {MemoryRouter} from 'react-router-dom';
@@ -16,7 +18,6 @@ import type {Scheme} from '@mattermost/types/schemes';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelDetails from './channel_details';
-import exp from 'constants';
 
 // Mock the history object
 jest.mock('utils/browser_history', () => ({
@@ -40,7 +41,7 @@ const store = mockStore({
         users: {
             profiles: {},
             profilesInChannel: {
-                '123': {}, // Add empty profiles object for the test channel ID
+                123: {}, // Add empty profiles object for the test channel ID
             },
         },
         teams: {
@@ -50,10 +51,10 @@ const store = mockStore({
             channels: {},
             channelsInTeam: {},
             membersInChannel: {
-                '123': {}, // Add empty members object for the test channel ID
+                123: {}, // Add empty members object for the test channel ID
             },
             stats: {
-                '123': {
+                123: {
                     channel_id: '123',
                     member_count: 0,
                 }, // Add empty stats object for the test channel ID
@@ -164,12 +165,12 @@ const createTestScheme = (): Scheme => ({
 const renderChannelDetails = (props: any) => {
     return render(
         <Provider store={store}>
-            <IntlProvider locale="en">
+            <IntlProvider locale='en'>
                 <MemoryRouter>
-                    <ChannelDetails {...props} />
+                    <ChannelDetails {...props}/>
                 </MemoryRouter>
             </IntlProvider>
-        </Provider>
+        </Provider>,
     );
 };
 
@@ -177,7 +178,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
     test('should render with team', () => {
         const groups = createTestGroups();
         const allGroups = {
-            '123': groups[0],
+            123: groups[0],
         };
         const testChannel = createTestChannel();
         const team = TestHelper.getTeamMock({
@@ -213,7 +214,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
     test('should render without team', () => {
         const groups = createTestGroups();
         const allGroups = {
-            '123': groups[0],
+            123: groups[0],
         };
         const testChannel = createTestChannel();
         const teamScheme = createTestScheme();
@@ -246,7 +247,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
     test('should render for Professional', () => {
         const groups = createTestGroups();
         const allGroups = {
-            '123': groups[0],
+            123: groups[0],
         };
         const testChannel = createTestChannel();
         const team = TestHelper.getTeamMock({
@@ -282,7 +283,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
     test('should render for Enterprise', () => {
         const groups = createTestGroups();
         const allGroups = {
-            '123': groups[0],
+            123: groups[0],
         };
         const testChannel = createTestChannel();
         const team = TestHelper.getTeamMock({
@@ -319,19 +320,19 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         // Create a channel that is not synced initially
         const testChannel = createTestChannel(false);
         const channelID = testChannel.id;
-        
+
         // Create groups and actions
         const groups = createTestGroups();
         const allGroups = {
-            '123': groups[0],
+            123: groups[0],
         };
         const actions = createTestActions();
-        
+
         // Mock the necessary functions
         actions.getGroups.mockResolvedValue({data: groups});
         actions.patchChannel.mockResolvedValue({data: true});
         actions.membersMinusGroupMembers.mockResolvedValue({data: {total_count: 0, users: []}});
-        
+
         const additionalProps = {
             channelPermissions: [],
             guestAccountsEnabled: true,
@@ -339,7 +340,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             channelGroupsEnabled: true,
             isDisabled: false,
         };
-        
+
         // Render the component
         renderChannelDetails({
             groups,
@@ -351,33 +352,33 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             allGroups,
             ...additionalProps,
         });
-        
+
         // Find and click the sync toggle to enable group syncing
         const syncToggle = screen.getByTestId('syncGroupSwitch-button');
         await waitFor(() => {
             expect(syncToggle).toBeInTheDocument();
         });
         fireEvent.click(syncToggle);
-        
+
         // Wait for state to update
         await waitFor(() => {
             expect(syncToggle).toBeInTheDocument();
         });
-        
+
         // Find the Save button and click it to trigger handleSubmit
         const saveButton = screen.getByText('Save');
         fireEvent.click(saveButton);
-        
+
         // Use a longer timeout for the async operations
         await waitFor(() => {
             expect(actions.patchChannel).toHaveBeenCalled();
-        }, { timeout: 3000 });
-        
+        }, {timeout: 3000});
+
         // Verify patchChannel was called with the correct parameters
         expect(actions.patchChannel).toHaveBeenCalledWith(testChannel.id, expect.objectContaining({
             group_constrained: true,
         }));
-        
+
         // Verify removeNonGroupMembersFromChannel was called with the correct channel ID
         expect(actions.removeNonGroupMembersFromChannel).toHaveBeenCalledWith(channelID);
     });
@@ -385,7 +386,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
     test('should NOT call removeNonGroupMembersFromChannel when channel was already synced', async () => {
         const groups = createTestGroups();
         const allGroups = {
-            '123': groups[0],
+            123: groups[0],
         };
         const testChannel = createTestChannel(true); // Already synced
         const actions = createTestActions();
@@ -400,7 +401,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         };
 
         // We don't need to spy on handleSubmit since we'll trigger it through the UI
-        
+
         // Render the component
         renderChannelDetails({
             groups,
@@ -412,11 +413,11 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             allGroups,
             ...additionalProps,
         });
-        
+
         // Find the Save button and click it to trigger handleSubmit
         const saveButton = screen.getByText('Save');
         fireEvent.click(saveButton);
-        
+
         // Verify removeNonGroupMembersFromChannel was NOT called
         expect(actions.removeNonGroupMembersFromChannel).not.toHaveBeenCalled();
     });
