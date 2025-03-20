@@ -30,7 +30,7 @@ const ChannelSettingsMenu = ({channel}: Props): JSX.Element => {
                 modalId: ModalIdentifiers.CHANNEL_SETTINGS,
                 dialogType: ChannelSettingsModal,
                 dialogProps: {
-                    channel,
+                    channelId: channel.id,
                     focusOriginElement: 'channelHeaderDropdownButton',
                     isOpen: true,
                 },

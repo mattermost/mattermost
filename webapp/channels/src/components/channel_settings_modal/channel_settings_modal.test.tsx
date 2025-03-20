@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor, act} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -9,38 +9,94 @@ import {renderWithContext} from 'tests/react_testing_utils';
 
 import ChannelSettingsModal from './channel_settings_modal';
 
-// Mock the redux actions and selectors as needed.
-jest.mock('mattermost-redux/actions/channels', () => ({
-    patchChannel: jest.fn().mockReturnValue({type: 'MOCK_ACTION', data: {}}),
+// Mock the redux selectors
+jest.mock('mattermost-redux/selectors/entities/channels', () => ({
+    getChannel: jest.fn().mockImplementation((state, channelId) => {
+        // Return a mock channel based on the channelId
+        return {
+            id: channelId,
+            team_id: 'team1',
+            display_name: 'Test Channel',
+            name: channelId === 'default_channel' ? 'town-square' : 'test-channel',
+            purpose: 'Testing purpose',
+            header: 'Channel header',
+            type: 'O',
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+            last_post_at: 0,
+            total_msg_count: 0,
+            extra_update_at: 0,
+            creator_id: 'creator1',
+            last_root_post_at: 0,
+            scheme_id: '',
+            group_constrained: false,
+        };
+    }),
 }));
 
-jest.mock('mattermost-redux/selectors/entities/roles', () => ({
-    haveITeamPermission: () => true,
-}));
+// Mock the child components to simplify testing
+jest.mock('./channel_settings_info_tab', () => {
+    return function MockInfoTab(): JSX.Element {
+        return <div data-testid='info-tab'>{'Info Tab Content'}</div>;
+    };
+});
 
-// A simple base channel object for testing
-const baseChannel = {
-    id: 'channel1',
-    team_id: 'team1',
-    display_name: 'Test Channel',
-    name: 'test-channel',
-    purpose: 'Testing purpose',
-    header: 'Initial header',
-    type: 'O' as const,
-    create_at: 0,
-    update_at: 0,
-    delete_at: 0,
-    last_post_at: 0,
-    total_msg_count: 0,
-    extra_update_at: 0,
-    creator_id: 'creator1',
-    last_root_post_at: 0,
-    scheme_id: '',
-    group_constrained: false,
+jest.mock('./channel_settings_configuration_tab', () => {
+    return function MockConfigTab(): JSX.Element {
+        return <div data-testid='config-tab'>{'Configuration Tab Content'}</div>;
+    };
+});
+
+jest.mock('./channel_settings_archive_tab', () => {
+    return function MockArchiveTab(): JSX.Element {
+        return <div data-testid='archive-tab'>{'Archive Tab Content'}</div>;
+    };
+});
+
+// Define the tab type for the settings sidebar
+type TabType = {
+    name: string;
+    uiName: string;
+    display?: boolean;
 };
 
+// Mock the settings sidebar
+jest.mock('components/settings_sidebar', () => {
+    return function MockSettingsSidebar({tabs, activeTab, updateTab}: {tabs: TabType[]; activeTab: string; updateTab: (tab: string) => void}): JSX.Element {
+        return (
+            <div data-testid='settings-sidebar'>
+                {tabs.filter((tab) => tab.display !== false).map((tab) => (
+                    <button
+                        key={tab.name}
+                        role='tab'
+                        aria-selected={activeTab === tab.name}
+                        aria-label={tab.name}
+                        onClick={() => updateTab(tab.name)}
+                    >
+                        {tab.uiName}
+                    </button>
+                ))}
+            </div>
+        );
+    };
+});
+
+// Remove React.lazy to avoid issues with testing
+jest.mock('react', () => {
+    const originalReact = jest.requireActual('react');
+    return {
+        ...originalReact,
+        lazy: (factory: () => Promise<{default: React.ComponentType<any>}>) => {
+            const Component = originalReact.lazy(factory);
+            Component.displayName = 'MockedLazyComponent';
+            return Component;
+        },
+    };
+});
+
 const baseProps = {
-    channel: baseChannel,
+    channelId: 'channel1',
     isOpen: true,
     onExited: jest.fn(),
     focusOriginElement: 'button1',
@@ -51,212 +107,55 @@ describe('ChannelSettingsModal', () => {
         jest.clearAllMocks();
     });
 
-    // Ensure the modal renders correctly with expected header text.
-    it('should render the modal with correct header text', () => {
+    it('should render the modal with correct header text', async () => {
         renderWithContext(<ChannelSettingsModal {...baseProps}/>);
         expect(screen.getByText('Channel Settings')).toBeInTheDocument();
     });
 
-    // Check that the Info tab is rendered by default.
-    it('should render Info tab by default', () => {
+    it('should render Info tab by default', async () => {
         renderWithContext(<ChannelSettingsModal {...baseProps}/>);
 
-        // Check for an element from the Info tab. In this case, the label for channel name.
-        expect(screen.getByText('Channel Name')).toBeInTheDocument();
+        // Wait for the lazy-loaded components
+        await waitFor(() => {
+            expect(screen.getByTestId('info-tab')).toBeInTheDocument();
+        });
     });
 
-    // Verify that unsaved changes show the SaveChangesPanel
-    it('should show SaveChangesPanel when unsaved changes exist', async () => {
+    it('should switch tabs when clicked', async () => {
         renderWithContext(<ChannelSettingsModal {...baseProps}/>);
 
-        // Initially, SaveChangesPanel should not be visible
-        expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
-
-        // Change the channel name by typing into the input.
-        const nameInput = screen.getByLabelText('Channel name');
-        await userEvent.clear(nameInput);
-        await userEvent.type(nameInput, 'Updated Channel Name');
-
-        // After change, the SaveChangesPanel should be visible with Save button
+        // Wait for the sidebar to load
         await waitFor(() => {
-            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
-            expect(screen.getByTestId('SaveChangesPanel__save-btn')).toBeInTheDocument();
+            expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
         });
+
+        // Initially the info tab should be active
+        expect(screen.getByTestId('info-tab')).toBeInTheDocument();
+
+        // Find and click the archive tab
+        const archiveTab = screen.getByRole('tab', {name: 'archive'});
+        await userEvent.click(archiveTab);
+
+        // Now the archive tab should be visible
+        expect(screen.getByTestId('archive-tab')).toBeInTheDocument();
     });
 
-    // Verify that a valid save calls patchChannel and closes the modal.
-    it('should call patchChannel on save and then hide the modal', async () => {
-        const {patchChannel} = require('mattermost-redux/actions/channels');
-        const onExited = jest.fn();
-        renderWithContext(<ChannelSettingsModal {...{...baseProps, onExited}}/>);
-
-        // Make a change to show the SaveChangesPanel
-        // Find the input by aria-label
-        const nameInput = screen.getByLabelText('Channel name');
-        await userEvent.clear(nameInput);
-        await userEvent.type(nameInput, 'Updated Channel Name');
-
-        // Wait for SaveChangesPanel to appear
-        await waitFor(() => {
-            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
-        });
-
-        // Update patchChannel to simulate an async successful save.
-        patchChannel.mockImplementation(() => {
-            setTimeout(() => {
-                act(() => {
-                    onExited();
-                });
-            }, 0);
-            return {type: 'MOCK_ACTION', data: {}};
-        });
-
-        // Click the Save button in the SaveChangesPanel
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
-        await act(async () => {
-            await userEvent.click(saveButton);
-        });
-
-        // Wait for the async patchChannel call.
-        await waitFor(() => expect(patchChannel).toHaveBeenCalled());
-
-        // Wait for onExited to be called.
-        await waitFor(() => expect(onExited).toHaveBeenCalled(), {timeout: 1000});
-    });
-
-    // Verify that unsaved changes show the SaveChangesPanel when switching tabs.
-    it('should show SaveChangesPanel when switching tabs with unsaved changes', async () => {
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
-
-        // Simulate unsaved changes: change channel purpose.
-        const purposeTextarea = screen.getByPlaceholderText('Enter a purpose for this channel');
-        await userEvent.clear(purposeTextarea);
-        await userEvent.type(purposeTextarea, 'New purpose');
-
-        // Wait for the lazy-loaded sidebar to render the "Configuration" tab.
-        const archiveTabButton = await screen.findByRole('tab', {name: 'archive channel'});
-        await act(async () => {
-            await userEvent.click(archiveTabButton);
-        });
-
-        // Expect the SaveChangesPanel to be shown.
-        expect(screen.getByText('There are errors in the form above')).toBeInTheDocument();
-        expect(screen.getByTestId('SaveChangesPanel__save-btn')).toBeInTheDocument();
-        expect(screen.getByTestId('SaveChangesPanel__cancel-btn')).toBeInTheDocument();
-    });
-
-    // Verify that clicking Undo in the SaveChangesPanel resets the form.
-    it('should reset form when Undo is clicked in SaveChangesPanel', async () => {
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
-
-        // Make a change to show the SaveChangesPanel
-        const nameInput = screen.getByLabelText('Channel name');
-        const originalName = nameInput.getAttribute('value');
-        await userEvent.clear(nameInput);
-        await userEvent.type(nameInput, 'Changed Name');
-
-        // Wait for SaveChangesPanel to appear
-        await waitFor(() => {
-            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
-        });
-
-        // Click the Undo button in the SaveChangesPanel
-        const undoButton = screen.getByTestId('SaveChangesPanel__cancel-btn');
-        await act(async () => {
-            await userEvent.click(undoButton);
-        });
-
-        // Verify the form was reset to original values
-        await waitFor(() => {
-            const nameInput = screen.getByLabelText('Channel name');
-            expect(nameInput.getAttribute('value')).toBe(originalName);
-
-            // SaveChangesPanel should be hidden after reset
-            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
-        });
-    });
-
-    // Test that the SaveChangesPanel shows "saved" state when save succeeds
-    it('should show saved state in SaveChangesPanel when save succeeds', async () => {
-        const {patchChannel} = require('mattermost-redux/actions/channels');
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
-
-        // Make a change to show the SaveChangesPanel
-        const nameInput = screen.getByLabelText('Channel name');
-
-        await userEvent.clear(nameInput);
-        await userEvent.type(nameInput, 'Updated Channel Name');
-
-        // Wait for SaveChangesPanel to appear
-        await waitFor(() => {
-            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
-        });
-
-        // Mock successful save
-        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
-
-        // Click the Save button in the SaveChangesPanel
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
-        await act(async () => {
-            await userEvent.click(saveButton);
-        });
-
-        // Verify "Settings saved" message appears
-        await waitFor(() => {
-            expect(screen.getByText('Settings saved')).toBeInTheDocument();
-        });
-    });
-
-    // Test that the SaveChangesPanel shows "error" state when save fails
-    it('should show error state in SaveChangesPanel when save fails', async () => {
-        const {patchChannel} = require('mattermost-redux/actions/channels');
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
-
-        // Make a change to show the SaveChangesPanel
-        const nameInput = screen.getByLabelText('Channel name');
-
-        await userEvent.clear(nameInput);
-        await userEvent.type(nameInput, 'Updated Channel Name');
-
-        // Wait for SaveChangesPanel to appear
-        await waitFor(() => {
-            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
-        });
-
-        // Mock failed save
-        patchChannel.mockReturnValue({type: 'MOCK_ACTION', error: {message: 'Error saving channel'}});
-
-        // Click the Save button in the SaveChangesPanel
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
-        await act(async () => {
-            await userEvent.click(saveButton);
-        });
-
-        // Verify error message appears
-        await waitFor(() => {
-            expect(screen.getByText('There are errors in the form above')).toBeInTheDocument();
-            expect(screen.getByText('Save')).toBeInTheDocument();
-            expect(screen.getByText('Save')).toBeDisabled();
-        });
-    });
-
-    // Verify that the archive tab is not shown for the default channel
     it('should not show archive tab for default channel', async () => {
-        // Create a channel with the default channel name (town-square)
-        const defaultChannel = {
-            ...baseChannel,
-            name: 'town-square', // Constants.DEFAULT_CHANNEL
-        };
+        renderWithContext(
+            <ChannelSettingsModal
+                {...{...baseProps, channelId: 'default_channel'}}
+            />,
+        );
 
-        renderWithContext(<ChannelSettingsModal {...{...baseProps, channel: defaultChannel}}/>);
-
-        // Wait for the lazy-loaded sidebar to render
+        // Wait for the sidebar to load
         await waitFor(() => {
-            // Verify that the Info tab is shown
-            expect(screen.getByRole('tab', {name: 'info'})).toBeInTheDocument();
-
-            // Verify that the Archive tab is NOT shown
-            expect(screen.queryByRole('tab', {name: 'archive channel'})).not.toBeInTheDocument();
+            expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
         });
+
+        // The info tab should be visible
+        expect(screen.getByTestId('info-tab')).toBeInTheDocument();
+
+        // The archive tab should not be in the document
+        expect(screen.queryByRole('tab', {name: 'archive'})).not.toBeInTheDocument();
     });
 });

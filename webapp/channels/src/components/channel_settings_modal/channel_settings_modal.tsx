@@ -6,13 +6,18 @@ import React, {
     useRef,
 } from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+
 import {focusElement} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
 import {stopTryNotificationRing} from 'utils/notification_sounds';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelSettingsArchiveTab from './channel_settings_archive_tab';
 import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
@@ -24,7 +29,7 @@ import './channel_settings_modal.scss';
 const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
 
 type ChannelSettingsModalProps = {
-    channel: Channel;
+    channelId: string;
     onExited: () => void;
     isOpen: boolean;
     focusOriginElement?: string;
@@ -38,8 +43,9 @@ enum ChannelSettingsTabs {
 
 const SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT = 3000;
 
-function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
+function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
+    const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
 
     const [show, setShow] = useState(isOpen);
 
