@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -44,6 +45,11 @@ const (
 	CustomProfileAttributesVisibilityWhenSet = "when_set"
 	CustomProfileAttributesVisibilityAlways  = "always"
 	CustomProfileAttributesVisibilityDefault = CustomProfileAttributesVisibilityWhenSet
+)
+
+const (
+	CPAOptionNameMaxLength  = 128
+	CPAOptionColorMaxLength = 128
 )
 
 func IsKnownCPAValueType(valueType string) bool {
@@ -97,6 +103,14 @@ func (c CustomProfileAttributesSelectOption) IsValid() error {
 
 	if c.Name == "" {
 		return errors.New("name cannot be empty")
+	}
+
+	if len(c.Name) > CPAOptionNameMaxLength {
+		return fmt.Errorf("name is too long, max length is %d", CPAOptionNameMaxLength)
+	}
+
+	if c.Color != "" && len(c.Color) > CPAOptionColorMaxLength {
+		return fmt.Errorf("color is too long, max length is %d", CPAOptionColorMaxLength)
 	}
 
 	return nil

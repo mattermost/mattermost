@@ -4,6 +4,8 @@
 package model
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -274,6 +276,42 @@ func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
 				Color: "#FF0000",
 			},
 			wantErr: "name cannot be empty",
+		},
+		{
+			name: "name too long",
+			option: CustomProfileAttributesSelectOption{
+				ID:    NewId(),
+				Name:  strings.Repeat("a", CPAOptionNameMaxLength+1),
+				Color: "#FF0000",
+			},
+			wantErr: fmt.Sprintf("name is too long, max length is %d", CPAOptionNameMaxLength),
+		},
+		{
+			name: "color too long",
+			option: CustomProfileAttributesSelectOption{
+				ID:    NewId(),
+				Name:  "Test Option",
+				Color: strings.Repeat("a", CPAOptionColorMaxLength+1),
+			},
+			wantErr: fmt.Sprintf("color is too long, max length is %d", CPAOptionColorMaxLength),
+		},
+		{
+			name: "name exactly at max length",
+			option: CustomProfileAttributesSelectOption{
+				ID:    NewId(),
+				Name:  strings.Repeat("a", CPAOptionNameMaxLength),
+				Color: "#FF0000",
+			},
+			wantErr: "",
+		},
+		{
+			name: "color exactly at max length",
+			option: CustomProfileAttributesSelectOption{
+				ID:    NewId(),
+				Name:  "Test Option",
+				Color: strings.Repeat("a", CPAOptionColorMaxLength),
+			},
+			wantErr: "",
 		},
 	}
 
