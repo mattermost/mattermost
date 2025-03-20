@@ -16,6 +16,7 @@ import (
 
 const (
 	DefaultPageSize = 200
+	MaxPageSize     = 200
 )
 
 func checkInteractiveTerminal() error {
@@ -118,4 +119,65 @@ func getPages[T any](fn func(page, numPerPage int, etag string) ([]T, *model.Res
 		etag = resp.Etag
 	}
 	return results, nil
+}
+
+func MergePluginConfigs(base, patch map[string]map[string]any) map[string]map[string]any {
+	mergedConfigs := map[string]map[string]any{}
+	for k, baseVal := range base {
+		if patchVal, ok := patch[k]; ok {
+			// both values are present, so we do a deep merge
+			mergedConfigs[k] = DeepMergeMaps(baseVal, patchVal)
+			continue
+		}
+
+		// value was not present in patch, so we use base
+		mergedConfigs[k] = baseVal
+	}
+
+	for k, patchVal := range patch {
+		if _, ok := mergedConfigs[k]; ok {
+			// value has already been merged
+			continue
+		}
+
+		// value was not present in base, so we use patch
+		mergedConfigs[k] = patchVal
+	}
+
+	return mergedConfigs
+}
+
+func DeepMergeMaps(base, patch map[string]any) map[string]any {
+	mergedMaps := map[string]any{}
+	for k, baseVal := range base {
+		if patchVal, ok := patch[k]; ok {
+			if baseMap, ok := baseVal.(map[string]any); ok {
+				if patchMap, ok := patchVal.(map[string]any); ok {
+					// both values are map, so we merge recursively
+					mergedMaps[k] = DeepMergeMaps(baseMap, patchMap)
+					continue
+				}
+			}
+
+			// either base is a map but patch is not, or base is not a
+			// map; in any case, patch has precedence
+			mergedMaps[k] = patchVal
+			continue
+		}
+
+		// patch doesn't contain the key, so we use base
+		mergedMaps[k] = baseVal
+	}
+
+	for k, patchVal := range patch {
+		if _, ok := mergedMaps[k]; ok {
+			// value has already been calculated
+			continue
+		}
+
+		// value was not present in base, so we directly use patch
+		mergedMaps[k] = patchVal
+	}
+
+	return mergedMaps
 }

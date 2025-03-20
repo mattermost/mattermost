@@ -76,7 +76,7 @@ describe('Teams Suite', () => {
             // # Open team menu and click "Invite People"
             cy.uiOpenTeamMenu();
             cy.uiGetLHSTeamMenu().findByText('Add people to the team');
-            cy.uiGetLHSTeamMenu().findByText('Invite People').click();
+            cy.uiGetLHSTeamMenu().findByText('Invite People').click().wait(TIMEOUTS.HALF_SEC);
 
             // * Check that the Invitation Modal opened up
             cy.findByTestId('invitationModal', {timeout: TIMEOUTS.HALF_SEC}).should('be.visible');
@@ -134,7 +134,7 @@ describe('Teams Suite', () => {
                     and('have.text', 'System');
                 cy.wrap($el).get('.post-message__text-container').
                     should('be.visible').
-                    and('contain', `@${sysadmin.username} joined the team.`).
+                    and('contain', `@${sysadmin.username} and @${testUser.username} joined the team.`).
                     and('contain', `You were added to the team by @${sysadmin.username}.`);
             });
 
@@ -145,7 +145,7 @@ describe('Teams Suite', () => {
                     and('have.text', 'System');
                 cy.wrap($el).get('.post-message__text-container').
                     should('be.visible').
-                    and('contain', `@${sysadmin.username} joined the channel.`).
+                    and('contain', `@${sysadmin.username} and @${testUser.username} joined the channel.`).
                     and('contain', `You were added to the channel by @${sysadmin.username}.`);
             });
 
@@ -283,7 +283,7 @@ describe('Teams Suite', () => {
 
         // # Verify Town square is visible
         cy.url().should('include', `/${testTeam.name}/channels/town-square`);
-        cy.findByText('Beginning of Town Square').should('be.visible');
+        cy.get('h2.channel-intro__title').should('be.visible').should('have.text', 'Town Square');
     });
 
     it('MM-T2322 Do not allow anyone to join this team', () => {

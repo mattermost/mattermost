@@ -57,8 +57,18 @@ exports[`components/AddGroupsToChannelModal should match snapshot 1`] = `
   >
     <MultiSelect
       ariaLabelRenderer={[Function]}
-      buttonSubmitLoadingText="Adding..."
-      buttonSubmitText="Add"
+      buttonSubmitLoadingText={
+        Object {
+          "defaultMessage": "Adding...",
+          "id": "multiselect.adding",
+        }
+      }
+      buttonSubmitText={
+        Object {
+          "defaultMessage": "Add",
+          "id": "multiselect.add",
+        }
+      }
       focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
@@ -87,7 +97,12 @@ exports[`components/AddGroupsToChannelModal should match snapshot 1`] = `
       optionRenderer={[Function]}
       options={Array []}
       perPage={50}
-      placeholderText="Search and add groups"
+      placeholderText={
+        Object {
+          "defaultMessage": "Search and add groups",
+          "id": "multiselect.addGroupsPlaceholder",
+        }
+      }
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}
@@ -114,7 +129,7 @@ exports[`components/AddGroupsToChannelModal should match when renderOption is ca
     alt="group picture"
     className="more-modal__image"
     height="32"
-    src={null}
+    src=""
     width="32"
   />
   <div
@@ -142,13 +157,14 @@ exports[`components/AddGroupsToChannelModal should match when renderOption is ca
   <div
     className="more-modal__actions"
   >
-    <div
+    <button
+      aria-label="Add groups to channel"
       className="more-modal__actions--round"
     >
       <i
         className="icon icon-plus"
       />
-    </div>
+    </button>
   </div>
 </div>
 `;
@@ -163,7 +179,7 @@ exports[`components/AddGroupsToChannelModal should match when renderOption is ca
     alt="group picture"
     className="more-modal__image"
     height="32"
-    src={null}
+    src=""
     width="32"
   />
   <div
@@ -191,13 +207,14 @@ exports[`components/AddGroupsToChannelModal should match when renderOption is ca
   <div
     className="more-modal__actions"
   >
-    <div
+    <button
+      aria-label="Add groups to channel"
       className="more-modal__actions--round"
     >
       <i
         className="icon icon-plus"
       />
-    </div>
+    </button>
   </div>
 </div>
 `;
@@ -212,7 +229,7 @@ exports[`components/AddGroupsToChannelModal should match when renderOption is ca
     alt="group picture"
     className="more-modal__image"
     height="32"
-    src={null}
+    src=""
     width="32"
   />
   <div
@@ -240,13 +257,14 @@ exports[`components/AddGroupsToChannelModal should match when renderOption is ca
   <div
     className="more-modal__actions"
   >
-    <div
+    <button
+      aria-label="Add groups to channel"
       className="more-modal__actions--round"
     >
       <i
         className="icon icon-plus"
       />
-    </div>
+    </button>
   </div>
 </div>
 `;

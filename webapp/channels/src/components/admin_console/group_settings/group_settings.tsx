@@ -9,6 +9,7 @@ import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
+import Pluggable from 'plugins/pluggable';
 import {DocLinks} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
@@ -54,6 +55,7 @@ const GroupSettings = ({isDisabled}: Props) => {
                         subtitleValues={{
                             link: (msg: React.ReactNode) => (
                                 <ExternalLink
+                                    location='group_settings.ldap_groups'
                                     href={`${siteURL}/admin_console/authentication/ldap`}
                                 >
                                     {msg}
@@ -65,6 +67,9 @@ const GroupSettings = ({isDisabled}: Props) => {
                             readOnly={isDisabled}
                         />
                     </AdminPanel>
+                    <Pluggable
+                        pluggableName='SystemConsoleGroupTable'
+                    />
                 </div>
             </div>
         </div>

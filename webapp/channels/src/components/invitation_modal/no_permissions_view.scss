@@ -1,37 +1,30 @@
 .NoPermissionsView {
+    padding-top: 20px;
+
+    &__header {
+        display: flex;
+        align-items: flex-start;
+        align-self: stretch;
+        padding: var(--spacing-xxl, 24px) 32px;
+        gap: 10px;
+    }
+
     &__body {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-
-        .icon-close {
-            position: absolute;
-            top: 20px;
-            right: 15px;
-            padding: 0;
-            border: none;
-            -moz-appearance: none;
-            -webkit-appearance: none;
-            appearance: none;
-            background: none;
-            color: inherit;
-            color: rgba(var(--center-channel-color-rgb), 0.64);
-            cursor: pointer;
-            font: inherit;
-            font-size: 24px;
-            outline: inherit;
-        }
+        margin-bottom: var(--spacing-l, 12px);
     }
 
     &__title {
-        margin: 10px 0 22px;
+        font-family: 'Metropolis', sans-serif;
         font-size: 22px;
         font-weight: 600;
-        text-align: center;
     }
 
     &__description {
+        margin-bottom: 32px;
         font-size: 14px;
         text-align: left;
     }

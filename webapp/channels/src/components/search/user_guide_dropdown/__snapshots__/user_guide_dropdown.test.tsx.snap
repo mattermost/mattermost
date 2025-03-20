@@ -6,26 +6,12 @@ exports[`UserGuideDropdown should match snapshot 1`] = `
   className="userGuideHelp"
   onToggle={[Function]}
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={500}
-    overlay={
-      <Tooltip
-        className="hidden-xs"
-        id="userGuideHelpTooltip"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Help"
-          id="channel_header.userHelpGuide"
-        />
-      </Tooltip>
-    }
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+  <WithTooltip
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Help"
+        id="channel_header.userHelpGuide"
+      />
     }
   >
     <button
@@ -38,7 +24,7 @@ exports[`UserGuideDropdown should match snapshot 1`] = `
         className="icon"
       />
     </button>
-  </OverlayTrigger>
+  </WithTooltip>
   <Menu
     ariaLabel="Add Channel Dropdown"
     id="AddChannelDropdown"
@@ -82,26 +68,12 @@ exports[`UserGuideDropdown should match snapshot for false of enableAskCommunity
   className="userGuideHelp"
   onToggle={[Function]}
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={500}
-    overlay={
-      <Tooltip
-        className="hidden-xs"
-        id="userGuideHelpTooltip"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Help"
-          id="channel_header.userHelpGuide"
-        />
-      </Tooltip>
-    }
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+  <WithTooltip
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Help"
+        id="channel_header.userHelpGuide"
+      />
     }
   >
     <button
@@ -114,7 +86,7 @@ exports[`UserGuideDropdown should match snapshot for false of enableAskCommunity
         className="icon"
       />
     </button>
-  </OverlayTrigger>
+  </WithTooltip>
   <Menu
     ariaLabel="Add Channel Dropdown"
     id="AddChannelDropdown"

@@ -3,16 +3,18 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import {defineMessages, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
-import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import {fetchAllMyTeamsChannelsAndChannelMembersREST, searchAllChannels} from 'mattermost-redux/actions/channels';
+import {fetchAllMyTeamsChannels, searchAllChannels} from 'mattermost-redux/actions/channels';
 import {logError} from 'mattermost-redux/actions/errors';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
@@ -58,6 +60,7 @@ import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
 import {Constants, StoragePrefixes} from 'utils/constants';
+import {getIntl} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -110,7 +113,7 @@ interface WrappedChannel {
     unread_mentions?: number;
 }
 
-type Props = SuggestionProps<WrappedChannel> & {
+type Props = SuggestionProps<WrappedChannel> & WrappedComponentProps & {
     channelMember: ChannelMembership;
     collapsedThreads: boolean;
     dmChannelTeammate?: UserProfile;
@@ -118,9 +121,10 @@ type Props = SuggestionProps<WrappedChannel> & {
     isPartOfOnlyOneTeam: boolean;
     status?: string;
     team?: Team;
+    id: string;
 }
 
-const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, ref) => {
+const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, ref) => {
     const {item, status, collapsedThreads, team, isPartOfOnlyOneTeam} = props;
     const channel = item.channel;
     const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
@@ -219,7 +223,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
 
         let deactivated = '';
         if (teammate.delete_at) {
-            deactivated = (' - ' + Utils.localizeMessage('channel_switch_modal.deactivated', 'Deactivated'));
+            deactivated = (' - ' + props.intl.formatMessage({id: 'channel_switch_modal.deactivated', defaultMessage: 'Deactivated'}));
         }
 
         if (channel.display_name && !(teammate && teammate.is_bot)) {
@@ -227,7 +231,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
         } else {
             name = teammate.username;
             if (teammate.id === currentUserId) {
-                name += (' ' + Utils.localizeMessage('suggestion.user.isCurrent', '(you)'));
+                name += (' ' + props.intl.formatMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'}));
             }
             description = deactivated;
         }
@@ -242,7 +246,6 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
         sharedIcon = (
             <SharedChannelIndicator
                 className='shared-channel-icon'
-                channelType={channel.type as ChannelType}
             />
         );
     }
@@ -253,18 +256,31 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
     }
     const showSlug = (isPartOfOnlyOneTeam || channel.type === Constants.DM_CHANNEL) && channel.type !== Constants.THREADS;
 
+    const getId = () => {
+        if (channel.type === Constants.DM_CHANNEL) {
+            if (prefix) {
+                return `quickSwitchInput_${(channel as FakeDirectChannel).userId}`;
+            }
+        }
+        return `quickSwitchInput_${channel.id}`;
+    };
+
     return (
         <SuggestionContainer
             ref={ref}
-            id={`switchChannel_${channel.name}`}
             data-testid={channel.name}
-            role='listitem'
+            role='option'
+            aria-labelledby={`${name.toLowerCase().replaceAll(' ', '-')}-item-name`}
             {...props}
+            id={getId()}
         >
             {icon}
             <div className='suggestion-list__ellipsis suggestion-list__flex'>
                 <span className='suggestion-list__main'>
-                    <span className={classNames({'suggestion-list__unread': item.unread && !channelIsArchived})}>{name}</span>
+                    <span
+                        className={classNames({'suggestion-list__unread': item.unread && !channelIsArchived})}
+                        id={`${name.toLowerCase().replaceAll(' ', '-')}-item-name`}
+                    >{name}</span>
                     {showSlug && description && <span className='ml-2 suggestion-list__desc'>{description}</span>}
                 </span>
                 {customStatus}
@@ -317,7 +333,7 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
     };
 }
 
-const ConnectedSwitchChannelSuggestion = connect(mapStateToPropsForSwitchChannelSuggestion, null, null, {forwardRef: true})(SwitchChannelSuggestion);
+const ConnectedSwitchChannelSuggestion = connect(mapStateToPropsForSwitchChannelSuggestion, null, null, {forwardRef: true})(injectIntl(SwitchChannelSuggestion));
 
 let prefix = '';
 
@@ -528,6 +544,8 @@ export default class SwitchChannelProvider extends Provider {
     }
 
     userWrappedChannel(user: UserProfile, channel?: ChannelItem): WrappedChannel {
+        const intl = getIntl();
+
         let displayName = '';
         const currentUserId = getCurrentUserId(this.store.getState());
 
@@ -545,7 +563,7 @@ export default class SwitchChannelProvider extends Provider {
         }
 
         if (user.id === currentUserId && displayName) {
-            displayName += (' ' + Utils.localizeMessage('suggestion.user.isCurrent', '(you)'));
+            displayName += (' ' + intl.formatMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'}));
         }
 
         return {
@@ -838,12 +856,12 @@ export default class SwitchChannelProvider extends Provider {
         if (!teamId) {
             return;
         }
-        const channelsAsync = this.store.dispatch(fetchAllMyTeamsChannelsAndChannelMembersREST());
+        const channelsAsync = this.store.dispatch(fetchAllMyTeamsChannels());
         let channels;
 
         try {
             const {data} = await channelsAsync;
-            channels = data.channels as Channel[];
+            channels = data as Channel[];
         } catch (err) {
             this.store.dispatch(logError(err));
             return;
@@ -863,3 +881,22 @@ export default class SwitchChannelProvider extends Provider {
         });
     }
 }
+
+defineMessages({
+    moreChannels: {
+        id: 'suggestion.mention.morechannels',
+        defaultMessage: 'Other Channels',
+    },
+    privateChannelsDivider: {
+        id: 'suggestion.mention.private.channels',
+        defaultMessage: 'Private Channels',
+    },
+    recentChannels: {
+        id: 'suggestion.mention.recent.channels',
+        defaultMessage: 'Recent',
+    },
+    unreadChannels: {
+        id: 'suggestion.mention.unread',
+        defaultMessage: 'Unread',
+    },
+});

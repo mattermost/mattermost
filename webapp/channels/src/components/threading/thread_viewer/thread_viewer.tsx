@@ -13,6 +13,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import deferComponentRender from 'components/deferComponentRender';
 import FileUploadOverlay from 'components/file_upload_overlay';
+import {DropOverlayIdThreads} from 'components/file_upload_overlay/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -31,7 +32,7 @@ export type Props = Attrs & {
     isCollapsedThreadsEnabled: boolean;
     appsEnabled: boolean;
     userThread?: UserThread | null;
-    channel: Channel | null;
+    channel?: Channel;
     selected?: Post | FakePost;
     currentUserId: string;
     currentTeamId: string;
@@ -219,7 +220,10 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                 <div className={classNames('ThreadViewer', this.props.className)}>
                     <div className='post-right-comments-container'>
                         <>
-                            <FileUploadOverlay overlayType='right'/>
+                            <FileUploadOverlay
+                                overlayType='right'
+                                id={DropOverlayIdThreads}
+                            />
                             {this.props.selected && (
                                 <DeferredThreadViewerVirt
                                     inputPlaceholder={this.props.inputPlaceholder}

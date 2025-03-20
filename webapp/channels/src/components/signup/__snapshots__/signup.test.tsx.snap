@@ -1,5 +1,77 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`components/signup/Signup should match snapshot for all signup options enabled with EnableUserCreaton disabled 1`] = `
+<div
+  className="signup-body"
+>
+  <div
+    className="signup-body-content"
+  >
+    <div
+      className="signup-body-message with-alternate-link"
+    >
+      <h1
+        className="signup-body-message-title"
+      >
+        Let’s get started
+      </h1>
+      <p
+        className="signup-body-message-subtitle"
+      >
+        Create your Mattermost account to start collaborating with your team
+      </p>
+    </div>
+    <div
+      className="signup-body-action"
+    >
+      <AlternateLink
+        alternateLinkLabel="Log in"
+        alternateLinkPath="/login"
+        alternateMessage="Already have an account?"
+        className="signup-body-alternate-link"
+      />
+      <div
+        className="signup-body-card"
+      >
+        <div
+          className="signup-body-card-content"
+          onKeyDown={[Function]}
+          tabIndex={0}
+        >
+          <p
+            className="signup-body-card-title"
+          >
+            Create your account with one of the following:
+          </p>
+          <div
+            className="signup-body-card-form-login-options column"
+          >
+            <ExternalLoginButton
+              direction="column"
+              icon={<LockIcon />}
+              id="ldap"
+              key="ldap"
+              label="AD/LDAP Credentials"
+              onClick={[Function]}
+              url="/login?extra=create_ldap"
+            />
+            <ExternalLoginButton
+              direction="column"
+              icon={<LockIcon />}
+              id="saml"
+              key="saml"
+              label="SAML"
+              onClick={[Function]}
+              url="/login/sso/saml?action=signup"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`components/signup/Signup should match snapshot for all signup options enabled with isLicensed disabled 1`] = `
 <div
   className="signup-body"
@@ -20,11 +92,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         Create your Mattermost account to start collaborating with your team
       </p>
-      <div
-        className="signup-body-message-svg"
-      >
-        <Svg />
-      </div>
     </div>
     <div
       className="signup-body-action"
@@ -105,18 +172,17 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 className="link"
               >
                 Sign up at 
-                <ExternalLink
+                <ForwardRef
                   href="https://mattermost.com/security-updates/"
                   key=".1"
                   location="signup"
                 >
                   https://mattermost.com/security-updates/
-                </ExternalLink>
+                </ForwardRef>
                 .
               </span>
             </div>
             <SaveButton
-              btnClass=""
               defaultMessage="Create account"
               disabled={true}
               extraClasses="signup-body-card-form-button-submit large"
@@ -155,14 +221,14 @@ exports[`components/signup/Signup should match snapshot for all signup options e
           <p
             className="signup-body-card-agreement"
           >
-            <FormattedMarkdownMessage
-              defaultMessage="By proceeding to create your account and use {siteName}, you agree to our [Terms of Use]({TermsOfServiceLink}) and [Privacy Policy]({PrivacyPolicyLink}). If you do not agree, you cannot use {siteName}."
-              id="create_team.agreement"
+            <MemoizedFormattedMessage
+              defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <termsOfUseLink>Terms of Use</termsOfUseLink> and <privacyPolicyLink>Privacy Policy</privacyPolicyLink>.  If you do not agree, you cannot use {siteName}."
+              id="signup.agreement"
               values={
                 Object {
-                  "PrivacyPolicyLink": "!undefined",
-                  "TermsOfServiceLink": "!undefined",
+                  "privacyPolicyLink": [Function],
                   "siteName": "Mattermost",
+                  "termsOfUseLink": [Function],
                 }
               }
             />
@@ -194,11 +260,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         Create your Mattermost account to start collaborating with your team
       </p>
-      <div
-        className="signup-body-message-svg"
-      >
-        <Svg />
-      </div>
     </div>
     <div
       className="signup-body-action"
@@ -279,18 +340,17 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 className="link"
               >
                 Sign up at 
-                <ExternalLink
+                <ForwardRef
                   href="https://mattermost.com/security-updates/"
                   key=".1"
                   location="signup"
                 >
                   https://mattermost.com/security-updates/
-                </ExternalLink>
+                </ForwardRef>
                 .
               </span>
             </div>
             <SaveButton
-              btnClass=""
               defaultMessage="Create account"
               disabled={true}
               extraClasses="signup-body-card-form-button-submit large"
@@ -334,10 +394,10 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               url="/oauth/google/signup"
             />
             <ExternalLoginButton
-              icon={<LoginOffice365Icon />}
+              icon={<EntraIdIcon />}
               id="office365"
               key="office365"
-              label="Office 365"
+              label="Entra ID"
               onClick={[Function]}
               url="/oauth/office365/signup"
             />
@@ -375,14 +435,14 @@ exports[`components/signup/Signup should match snapshot for all signup options e
           <p
             className="signup-body-card-agreement"
           >
-            <FormattedMarkdownMessage
-              defaultMessage="By proceeding to create your account and use {siteName}, you agree to our [Terms of Use]({TermsOfServiceLink}) and [Privacy Policy]({PrivacyPolicyLink}). If you do not agree, you cannot use {siteName}."
-              id="create_team.agreement"
+            <MemoizedFormattedMessage
+              defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <termsOfUseLink>Terms of Use</termsOfUseLink> and <privacyPolicyLink>Privacy Policy</privacyPolicyLink>.  If you do not agree, you cannot use {siteName}."
+              id="signup.agreement"
               values={
                 Object {
-                  "PrivacyPolicyLink": "!undefined",
-                  "TermsOfServiceLink": "!undefined",
+                  "privacyPolicyLink": [Function],
                   "siteName": "Mattermost",
+                  "termsOfUseLink": [Function],
                 }
               }
             />

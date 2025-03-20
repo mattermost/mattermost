@@ -627,7 +627,7 @@ func (a *App) LoginByOAuth(c request.CTX, service string, userData io.Reader, te
 			map[string]any{"Service": service}, "", http.StatusBadRequest)
 	}
 
-	user, err := a.GetUserByAuth(model.NewString(*authUser.AuthData), service)
+	user, err := a.GetUserByAuth(model.NewPointer(*authUser.AuthData), service)
 	if err != nil {
 		if err.Id == MissingAuthAccountError {
 			user, err = a.CreateOAuthUser(c, service, bytes.NewReader(buf.Bytes()), teamID, tokenUser)
@@ -956,7 +956,7 @@ func (a *App) SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.R
 		return "", err
 	}
 
-	if err = a.CheckPasswordAndAllCriteria(c, user, password, code); err != nil {
+	if err = a.CheckPasswordAndAllCriteria(c, user.Id, password, code); err != nil {
 		return "", err
 	}
 

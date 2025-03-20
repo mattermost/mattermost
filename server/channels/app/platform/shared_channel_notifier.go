@@ -88,7 +88,7 @@ func handleContentSync(ps *PlatformService, syncService SharedChannelServiceIFac
 			OnlyConfirmed:  true,
 			RequireOptions: model.BitflagOptionAutoShareDMs,
 		}
-		remotes, err := ps.Store.RemoteCluster().GetAll(filter) // empty list returned if none found,  no error
+		remotes, err := ps.Store.RemoteCluster().GetAll(0, 999999, filter) // empty list returned if none found,  no error
 		if err != nil {
 			return fmt.Errorf("cannot fetch remote clusters: %w", err)
 		}
@@ -140,7 +140,7 @@ func handleInvitation(ps *PlatformService, syncService SharedChannelServiceIFace
 		return nil
 	}
 
-	rc, err := ps.Store.RemoteCluster().Get(*participant.RemoteId)
+	rc, err := ps.Store.RemoteCluster().Get(*participant.RemoteId, false)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("couldn't find remote cluster %s, for creating shared channel invitation for a DM", *participant.RemoteId))
 	}

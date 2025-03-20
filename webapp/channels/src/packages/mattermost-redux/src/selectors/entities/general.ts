@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GiphyFetch} from '@giphy/js-fetch-api';
-
 import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
+import type {UserPropertyField} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General} from 'mattermost-redux/constants';
@@ -20,6 +19,28 @@ export function getConfig(state: GlobalState): Partial<ClientConfig> {
 export function getFeatureFlagValue(state: GlobalState, key: keyof FeatureFlags): string | undefined {
     return getConfig(state)?.[`FeatureFlag${key}` as keyof Partial<ClientConfig>];
 }
+
+export type PasswordConfig = {
+    minimumLength: number;
+    requireLowercase: boolean;
+    requireUppercase: boolean;
+    requireNumber: boolean;
+    requireSymbol: boolean;
+};
+
+export const getPasswordConfig: (state: GlobalState) => PasswordConfig = createSelector(
+    'getPasswordConfig',
+    getConfig,
+    (config) => {
+        return {
+            minimumLength: parseInt(config.PasswordMinimumLength!, 10),
+            requireLowercase: config.PasswordRequireLowercase === 'true',
+            requireUppercase: config.PasswordRequireUppercase === 'true',
+            requireNumber: config.PasswordRequireNumber === 'true',
+            requireSymbol: config.PasswordRequireSymbol === 'true',
+        };
+    },
+);
 
 export function getLicense(state: GlobalState): ClientLicense {
     return state.entities.general.license;
@@ -110,15 +131,31 @@ export const isMarketplaceEnabled: (state: GlobalState) => boolean = createSelec
     },
 );
 
-export const getGiphyFetchInstance: (state: GlobalState) => GiphyFetch | null = createSelector(
-    'getGiphyFetchInstance',
-    (state) => getConfig(state).GiphySdkKey,
-    (giphySdkKey) => {
-        if (giphySdkKey) {
-            const giphyFetch = new GiphyFetch(giphySdkKey);
-            return giphyFetch;
+export const getUsersStatusAndProfileFetchingPollInterval: (state: GlobalState) => number | null = createSelector(
+    'getUsersStatusAndProfileFetchingPollInterval',
+    getConfig,
+    (config) => {
+        const usersStatusAndProfileFetchingPollInterval = config.UsersStatusAndProfileFetchingPollIntervalMilliseconds;
+        if (usersStatusAndProfileFetchingPollInterval) {
+            return parseInt(usersStatusAndProfileFetchingPollInterval, 10);
         }
 
         return null;
+    },
+);
+
+export function developerModeEnabled(state: GlobalState): boolean {
+    return state.entities.general.config.EnableDeveloper === 'true';
+}
+
+export function testingEnabled(state: GlobalState): boolean {
+    return state.entities.general.config.EnableTesting === 'true';
+}
+
+export const getCustomProfileAttributes: (state: GlobalState) => UserPropertyField[] = createSelector(
+    'getCustomProfileAttributes',
+    (state) => state.entities.general.customProfileAttributes,
+    (fields) => {
+        return Object.values(fields).sort((a, b) => (a.attrs?.sort_order ?? 0) - (b.attrs?.sort_order ?? 0));
     },
 );

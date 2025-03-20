@@ -27,7 +27,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
-const TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
+const (
+	TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
+	cpuProfileDuration                              = 5 * time.Second
+)
 
 type platformMetrics struct {
 	server *http.Server
@@ -159,7 +162,9 @@ func (pm *platformMetrics) initMetricsRouter() error {
 	}
 
 	rootHandler := func(w http.ResponseWriter, r *http.Request) {
-		metricsPageTmpl.Execute(w, pm.metricsImpl != nil)
+		if err := metricsPageTmpl.Execute(w, pm.metricsImpl != nil); err != nil {
+			pm.logger.Error("Failed to execute template", mlog.Err(err))
+		}
 	}
 
 	pm.router.HandleFunc("/", rootHandler)
@@ -198,7 +203,9 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 		mlog.Error(appErr.Error())
 		w.WriteHeader(appErr.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(appErr.ToJSON()))
+		if _, writeErr := w.Write([]byte(appErr.ToJSON())); writeErr != nil {
+			mlog.Error("Failed to write error response", mlog.Err(writeErr))
+		}
 		return
 	}
 
@@ -219,7 +226,9 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 		mlog.Error(appErr.Error())
 		w.WriteHeader(appErr.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(appErr.ToJSON()))
+		if _, writeErr := w.Write([]byte(appErr.ToJSON())); writeErr != nil {
+			mlog.Error("Failed to write error response", mlog.Err(writeErr))
+		}
 		return
 	}
 

@@ -240,9 +240,14 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
     />
   }
   emptyTextSearch={
-    <FormattedMarkdownMessage
-      defaultMessage="No outgoing webhooks match {searchTerm}"
-      id="installed_outgoing_webhooks.emptySearch"
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="No outgoing webhooks match <b>{searchTerm}</b>"
+      id="installed_outgoing_webhooks.search.empty"
+      values={
+        Object {
+          "b": [Function],
+        }
+      }
     />
   }
   header={
@@ -257,7 +262,7 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
       id="installed_outgoing_webhooks.help"
       values={
         Object {
-          "appDirectory": <ExternalLink
+          "appDirectory": <ForwardRef
             href="https://mattermost.com/marketplace"
             location="installed_outgoing_webhooks"
           >
@@ -265,8 +270,8 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
               defaultMessage="App Directory"
               id="installed_outgoing_webhooks.help.appDirectory"
             />
-          </ExternalLink>,
-          "buildYourOwn": <ExternalLink
+          </ForwardRef>,
+          "buildYourOwn": <ForwardRef
             href="https://mattermost.com/pl/setup-outgoing-webhooks"
             location="installed_outgoing_webhooks"
           >
@@ -274,7 +279,7 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
               defaultMessage="Build your own"
               id="installed_outgoing_webhooks.help.buildYourOwn"
             />
-          </ExternalLink>,
+          </ForwardRef>,
         }
       }
     />

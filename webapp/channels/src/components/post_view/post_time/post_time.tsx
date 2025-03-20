@@ -7,9 +7,8 @@ import {Link} from 'react-router-dom';
 
 import * as GlobalActions from 'actions/global_actions';
 
-import OverlayTrigger from 'components/overlay_trigger';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {Locations} from 'utils/constants';
 import {isMobile} from 'utils/user_agent';
@@ -94,25 +93,18 @@ export default class PostTime extends React.PureComponent<Props> {
         );
 
         return (
-            <OverlayTrigger
-                delayShow={500}
-                placement='top'
-                overlay={
-                    <Tooltip
-                        id={eventTime.toString()}
-                        className='hidden-xs'
-                    >
-                        <Timestamp
-                            value={eventTime}
-                            ranges={POST_TOOLTIP_RANGES}
-                            useSemanticOutput={false}
-                            useTime={getTimeFormat}
-                        />
-                    </Tooltip>
+            <WithTooltip
+                title={
+                    <Timestamp
+                        value={eventTime}
+                        ranges={POST_TOOLTIP_RANGES}
+                        useSemanticOutput={false}
+                        useTime={getTimeFormat}
+                    />
                 }
             >
                 {content}
-            </OverlayTrigger>
+            </WithTooltip>
         );
     }
 }

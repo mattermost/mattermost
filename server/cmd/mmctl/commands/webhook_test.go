@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"strconv"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/mocks"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/spf13/cobra"
@@ -23,19 +25,40 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 	outgoingWebhookID := "outgoingWebhookID"
 	outgoingWebhookDisplayName := "outgoingWebhookDisplayName"
 
+	mockIncomingWebhook := model.IncomingWebhook{
+		Id:          incomingWebhookID,
+		DisplayName: incomingWebhookDisplayName,
+	}
+	mockOutgoingWebhook := model.OutgoingWebhook{
+		Id:          outgoingWebhookID,
+		DisplayName: outgoingWebhookDisplayName,
+	}
+
+	var mockIncomingWebhooksPage1 []*model.IncomingWebhook
+	for i := 0; i < 200; i++ {
+		mockIncomingWebhooksPage1 = append(mockIncomingWebhooksPage1, &mockIncomingWebhook)
+	}
+
+	var mockIncomingWebhooksPage2 []*model.IncomingWebhook
+	for i := 0; i < 50; i++ {
+		mockIncomingWebhooksPage2 = append(mockIncomingWebhooksPage2, &mockIncomingWebhook)
+	}
+
+	var mockOutgoingWebhooksPage1 []*model.OutgoingWebhook
+	for i := 0; i < 200; i++ {
+		mockOutgoingWebhooksPage1 = append(mockOutgoingWebhooksPage1, &mockOutgoingWebhook)
+	}
+
+	var mockOutgoingWebhooksPage2 []*model.OutgoingWebhook
+	for i := 0; i < 50; i++ {
+		mockOutgoingWebhooksPage2 = append(mockOutgoingWebhooksPage2, &mockOutgoingWebhook)
+	}
+
 	s.Run("Listing all webhooks", func() {
 		printer.Clean()
 
 		mockTeam := model.Team{
 			Id: teamID,
-		}
-		mockIncomingWebhook := model.IncomingWebhook{
-			Id:          incomingWebhookID,
-			DisplayName: incomingWebhookDisplayName,
-		}
-		mockOutgoingWebhook := model.OutgoingWebhook{
-			Id:          outgoingWebhookID,
-			DisplayName: outgoingWebhookDisplayName,
 		}
 
 		s.client.
@@ -52,38 +75,63 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhooksForTeam(context.TODO(), teamID, 0, 100000000, "").
-			Return([]*model.IncomingWebhook{&mockIncomingWebhook}, &model.Response{}, nil).
+			GetIncomingWebhooksForTeam(context.TODO(), teamID, 0, 200, "").
+			Return(mockIncomingWebhooksPage1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 0, 100000000, "").
-			Return([]*model.OutgoingWebhook{&mockOutgoingWebhook}, &model.Response{}, nil).
+			GetIncomingWebhooksForTeam(context.TODO(), teamID, 1, 200, "").
+			Return(mockIncomingWebhooksPage2, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetIncomingWebhooksForTeam(context.TODO(), teamID, 2, 200, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 0, 200, "").
+			Return(mockOutgoingWebhooksPage1, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 1, 200, "").
+			Return(mockOutgoingWebhooksPage2, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 2, 200, "").
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := listWebhookCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 2)
+		if s.Len(printer.GetLines(), 500) {
+			for i := 0; i < 250; i++ {
+				s.Require().Equal(&mockIncomingWebhook, printer.GetLines()[i])
+			}
+			for i := 250; i < 500; i++ {
+				s.Require().Equal(&mockOutgoingWebhook, printer.GetLines()[i])
+			}
+		}
+
 		s.Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(&mockIncomingWebhook, printer.GetLines()[0])
-		s.Require().Equal(&mockOutgoingWebhook, printer.GetLines()[1])
 	})
 
 	s.Run("List webhooks by team", func() {
 		printer.Clean()
+		s.mockCtrl = gomock.NewController(s.T())
+		s.client = mocks.NewMockClient(s.mockCtrl)
 
 		mockTeam := model.Team{
 			Id: teamID,
 		}
-		mockIncomingWebhook := model.IncomingWebhook{
-			Id:          incomingWebhookID,
-			DisplayName: incomingWebhookDisplayName,
-		}
-		mockOutgoingWebhook := model.OutgoingWebhook{
-			Id:          outgoingWebhookID,
-			DisplayName: outgoingWebhookDisplayName,
-		}
+
 		s.client.
 			EXPECT().
 			GetTeam(context.TODO(), teamID, "").
@@ -92,26 +140,57 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhooksForTeam(context.TODO(), teamID, 0, 100000000, "").
-			Return([]*model.IncomingWebhook{&mockIncomingWebhook}, &model.Response{}, nil).
+			GetIncomingWebhooksForTeam(context.TODO(), teamID, 0, 200, "").
+			Return(mockIncomingWebhooksPage1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 0, 100000000, "").
-			Return([]*model.OutgoingWebhook{&mockOutgoingWebhook}, &model.Response{}, nil).
+			GetIncomingWebhooksForTeam(context.TODO(), teamID, 1, 200, "").
+			Return(mockIncomingWebhooksPage2, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetIncomingWebhooksForTeam(context.TODO(), teamID, 2, 200, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 0, 200, "").
+			Return(mockOutgoingWebhooksPage1, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 1, 200, "").
+			Return(mockOutgoingWebhooksPage2, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 2, 200, "").
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := listWebhookCmdF(s.client, &cobra.Command{}, []string{teamID})
 		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 2)
 		s.Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(&mockIncomingWebhook, printer.GetLines()[0])
-		s.Require().Equal(&mockOutgoingWebhook, printer.GetLines()[1])
+		if s.Len(printer.GetLines(), 500) {
+			for i := 0; i < 250; i++ {
+				s.Require().Equal(&mockIncomingWebhook, printer.GetLines()[i])
+			}
+			for i := 250; i < 500; i++ {
+				s.Require().Equal(&mockOutgoingWebhook, printer.GetLines()[i])
+			}
+		}
 	})
 
 	s.Run("Unable to list webhooks", func() {
 		printer.Clean()
+		s.mockCtrl = gomock.NewController(s.T())
+		s.client = mocks.NewMockClient(s.mockCtrl)
 
 		mockTeam := model.Team{
 			Id: teamID,
@@ -132,13 +211,13 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhooksForTeam(context.TODO(), teamID, 0, 100000000, "").
+			GetIncomingWebhooksForTeam(context.TODO(), teamID, 0, 200, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 0, 100000000, "").
+			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 0, 200, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -146,8 +225,8 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 2)
-		s.Require().Equal("Unable to list incoming webhooks for '"+teamID+"'", printer.GetErrorLines()[0])
-		s.Require().Equal("Unable to list outgoing webhooks for '"+teamID+"'", printer.GetErrorLines()[1])
+		s.Require().Equal("Unable to list incoming webhooks for '"+teamID+"': mock error", printer.GetErrorLines()[0])
+		s.Require().Equal("Unable to list outgoing webhooks for '"+teamID+"': mock error", printer.GetErrorLines()[1])
 	})
 }
 
@@ -192,7 +271,7 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailID, "").
+			GetUserByUsername(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -236,7 +315,7 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailID, "").
+			GetUserByUsername(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -381,7 +460,7 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailID, "").
+			GetUserByUsername(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -427,7 +506,7 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailID, "").
+			GetUserByUsername(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 

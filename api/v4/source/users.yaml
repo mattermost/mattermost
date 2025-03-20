@@ -142,6 +142,10 @@
                   type: string
                 nickname:
                   type: string
+                position:
+                  type: string
+                timezone:
+                  $ref: "#/components/schemas/Timezone"
                 auth_data:
                   description: Service-specific authentication data, such as email address.
                   type: string
@@ -911,6 +915,8 @@
                   type: string
                 position:
                   type: string
+                timezone:
+                  $ref: "#/components/schemas/Timezone"
                 props:
                   type: object
                 notify_props:
@@ -1746,26 +1752,36 @@
     put:
       tags:
         - users
-      summary: Attach mobile device
+      summary: Attach mobile device and extra props to the session object
       description: >
-        Attach a mobile device id to the currently logged in session. This will
-        enable push notifications for a user, if configured by the server.
+        Attach extra props to the session object of the currently logged in session.
+
+        Adding a mobile device id will enable push notifications for a user,
+        if configured by the server.
+
+        Other props are also available, like whether the device has notifications
+        disabled and the mobile version.
 
         ##### Permissions
 
         Must be authenticated.
-      operationId: AttachDeviceId
+      operationId: AttachDeviceExtraProps
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              required:
-                - device_id
               properties:
                 device_id:
                   description: Mobile device id. For Android prefix the id with `android:`
                     and Apple with `apple:`
+                  type: string
+                deviceNotificationDisabled:
+                  description: Whether the mobile device has notifications disabled.
+                    Accepted values are "true" or "false".
+                  type: string
+                mobileVersion:
+                  description: Mobile app version. The version must be parseable as a semver.
                   type: string
         required: true
       responses:
@@ -2612,16 +2628,16 @@
             type: string
         - name: page
           in: query
-          description: Page specifies which part of the results to return, by PageSize.
+          description: Page specifies which part of the results to return, by perPage.
           required: false
           schema:
             type: integer
-        - name: pageSize
+        - name: per_page
           in: query
-          description: PageSize specifies the size of the returned chunk of results.
-          required: false
+          description: The size of the returned chunk of results.
           schema:
-           type: integer
+            type: integer
+            default: 60
       responses:
         "200":
           description: User's uploads retrieval successful
@@ -2781,18 +2797,17 @@
           default: false
       - name: page
         in: query
-        description: Page specifies which part of the results to return, by PageSize.
+        description: Page specifies which part of the results to return, by per_page.
         required: false
         schema:
           type: integer
           default: 0
-      - name: pageSize
+      - name: per_page
         in: query
-        description: PageSize specifies the size of the returned chunk of results.
-        required: false
+        description: The size of the returned chunk of results.
         schema:
-         default: 30
-         type: integer
+          type: integer
+          default: 60
       - name: totalsOnly
         in: query
         description: Setting this to true will only return the total counts.
@@ -3251,3 +3266,25 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/reset_failed_attempts":
+    post:
+      tags:
+        - users
+      summary: Reset the failed password attempts for a user
+      description: |
+        Reset the FailedAttempts field for a user to 0. This will only work for ldap and email/password users.
+
+        ##### Permissions
+
+        Requires `sysconsole_write_user_management_users` permission.
+
+      operationId: resetPasswordFailedAttempts
+      responses:
+        "200":
+          description: User's thread update successful
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"

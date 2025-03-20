@@ -53,7 +53,9 @@ func TestDecoderDecode(t *testing.T) {
 		imgFile, err := os.Open(imgDir + "/test.png")
 		require.NoError(t, err)
 		require.NotNil(t, imgFile)
-		defer imgFile.Close()
+		defer func() {
+			require.NoError(t, imgFile.Close())
+		}()
 
 		img, format, err := d.Decode(imgFile)
 		require.NoError(t, err)
@@ -80,7 +82,10 @@ func TestDecoderDecode(t *testing.T) {
 			imgFile, err := os.Open(imgDir + "/test.png")
 			require.NoError(t, err)
 			require.NotNil(t, imgFile)
-			defer imgFile.Close()
+
+			defer func() {
+				require.NoError(t, imgFile.Close())
+			}()
 
 			img, format, err := d.Decode(imgFile)
 			require.NoError(t, err)
@@ -94,7 +99,10 @@ func TestDecoderDecode(t *testing.T) {
 			imgFile, err := os.Open(imgDir + "/test.png")
 			require.NoError(t, err)
 			require.NotNil(t, imgFile)
-			defer imgFile.Close()
+
+			defer func() {
+				require.NoError(t, imgFile.Close())
+			}()
 
 			img, format, err := d.Decode(imgFile)
 			require.NoError(t, err)
@@ -121,7 +129,10 @@ func TestDecoderDecodeMemBounded(t *testing.T) {
 		imgFile, err := os.Open(imgDir + "/test.png")
 		require.NoError(t, err)
 		require.NotNil(t, imgFile)
-		defer imgFile.Close()
+
+		defer func() {
+			require.NoError(t, imgFile.Close())
+		}()
 
 		var wg sync.WaitGroup
 		wg.Add(2)
@@ -131,11 +142,14 @@ func TestDecoderDecodeMemBounded(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			img, format, release, err := d.DecodeMemBounded(imgFile)
-			lock.Lock()
-			imgFile.Seek(0, 0)
-			lock.Unlock()
 			require.NoError(t, err)
 			defer release()
+
+			lock.Lock()
+			_, err = imgFile.Seek(0, 0)
+			require.NoError(t, err)
+			lock.Unlock()
+
 			require.NotNil(t, img)
 			require.Equal(t, "png", format)
 			require.NotNil(t, release)
@@ -145,11 +159,14 @@ func TestDecoderDecodeMemBounded(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			img, format, release, err := d.DecodeMemBounded(imgFile)
-			lock.Lock()
-			imgFile.Seek(0, 0)
-			lock.Unlock()
 			require.NoError(t, err)
 			defer release()
+
+			lock.Lock()
+			_, err = imgFile.Seek(0, 0)
+			require.NoError(t, err)
+			lock.Unlock()
+
 			require.NotNil(t, img)
 			require.Equal(t, "png", format)
 			require.NotNil(t, release)
@@ -207,7 +224,9 @@ func TestDecoderDecodeMemBounded(t *testing.T) {
 		imgFile, err := os.Open(imgDir + "/test.png")
 		require.NoError(t, err)
 		require.NotNil(t, imgFile)
-		defer imgFile.Close()
+		defer func() {
+			require.NoError(t, imgFile.Close())
+		}()
 
 		img, format, release, err := d.DecodeMemBounded(imgFile)
 		require.NoError(t, err)

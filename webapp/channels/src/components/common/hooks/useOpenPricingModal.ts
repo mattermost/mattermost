@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
@@ -19,8 +20,9 @@ export type TelemetryProps = {
 export default function useOpenPricingModal() {
     const dispatch = useDispatch();
     const isCloud = useSelector(isCurrentLicenseCloud);
-    let category;
-    return (telemetryProps?: TelemetryProps) => {
+    const openPricingModal = useCallback((telemetryProps?: TelemetryProps) => {
+        let category;
+
         if (isCloud) {
             category = TELEMETRY_CATEGORIES.CLOUD_PRICING;
         } else {
@@ -36,5 +38,7 @@ export default function useOpenPricingModal() {
                 callerCTA: telemetryProps?.trackingLocation,
             },
         }));
-    };
+    }, [dispatch, isCloud]);
+
+    return openPricingModal;
 }

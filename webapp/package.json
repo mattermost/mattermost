@@ -7,33 +7,36 @@
   },
   "scripts": {
     "postinstall": "patch-package && npm run build --workspace=platform/types --workspace=platform/client --workspace=platform/components",
-    "build": "node scripts/build.js",
-    "run": "node scripts/run.js",
-    "dev-server": "node scripts/dev-server.js",
+    "build": "node scripts/build.mjs",
+    "run": "node scripts/run.mjs",
+    "dev-server": "node scripts/dev-server.mjs",
     "test": "npm run test --workspaces --if-present",
     "test:updatesnapshot": "npm run test:updatesnapshot --workspaces --if-present",
     "test-ci": "npm run test-ci --workspaces --if-present",
     "check": "npm run check --workspaces --if-present",
     "fix": "npm run fix --workspaces --if-present",
     "check-types": "npm run check-types --workspaces --if-present",
-    "clean": "npm run clean --workspaces --if-present"
+    "clean": "npm run clean --workspaces --if-present",
+    "gen-lang-imports": "node scripts/gen_lang_imports.mjs"
   },
   "dependencies": {
-    "react-intl": "6.6.2"
+    "react-intl": "6.6.2",
+    "typescript": "5.6.3"
   },
   "devDependencies": {
-    "@babel/core": "7.21.8",
+    "@babel/core": "7.22.0",
     "@babel/preset-env": "7.21.5",
     "@babel/preset-react": "7.18.6",
     "@babel/preset-typescript": "7.21.5",
-    "@types/webpack-env": "1.18.1",
+    "@types/node": "20.11.30",
+    "@types/webpack-env": "1.18.5",
     "babel-loader": "9.1.2",
     "babel-plugin-formatjs": "10.5.1",
     "babel-plugin-styled-components": "2.1.1",
     "babel-plugin-typescript-to-proptypes": "2.1.0",
     "blessed": "0.1.81",
-    "chalk": "4.1.2",
-    "concurrently": "7.6.0",
+    "chalk": "5.3.0",
+    "concurrently": "9.0.1",
     "cross-env": "7.0.3",
     "css-loader": "6.7.3",
     "eslint": "8.57.0",
@@ -43,19 +46,70 @@
     "eslint-plugin-react-hooks": "4.6.0",
     "mini-css-extract-plugin": "2.7.5",
     "patch-package": "8.0.0",
-    "sass": "1.71.1",
-    "sass-loader": "14.1.1",
-    "strip-ansi": "6.0.1",
-    "style-loader": "3.3.2",
-    "webpack": "5.81.0",
-    "webpack-cli": "5.0.2",
-    "webpack-dev-server": "4.13.3"
+    "sass": "1.80.5",
+    "sass-loader": "16.0.2",
+    "strip-ansi": "7.1.0",
+    "style-loader": "4.0.0",
+    "typescript-eslint-language-service": "5.0.5",
+    "webpack": "5.95.0",
+    "webpack-cli": "5.1.4",
+    "webpack-dev-server": "5.1.0"
+  },
+  "overrides": {
+    "@floating-ui/react": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "@giphy/react-components": {
+      "styled-components": "5.3.6"
+    },
+    "@mui/base": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "enzyme-adapter-utils": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "react-bootstrap": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "react-color": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "react-contextmenu": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "react-custom-scrollbars": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "react-overlays": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "react-select": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "react-transition-group": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    },
+    "braces": "3.0.3",
+    "cheerio": "1.0.0-rc.12",
+    "@types/estree": "0.0.51",
+    "asn1.js": "5.4.1"
   },
   "workspaces": [
     "channels",
     "platform/client",
     "platform/components",
     "platform/eslint-plugin",
+    "platform/mattermost-redux",
     "platform/types"
   ]
 }

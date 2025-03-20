@@ -20,16 +20,6 @@ func CheckUserPassword(user *model.User, password string) error {
 	return nil
 }
 
-// HashPassword generates a hash using the bcrypt.GenerateFromPassword
-func HashPassword(password string) string {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-	if err != nil {
-		panic(err)
-	}
-
-	return string(hash)
-}
-
 func ComparePassword(hash string, password string) error {
 	if password == "" || hash == "" {
 		return errors.New("empty password or hash")
@@ -47,47 +37,48 @@ func (us *UserService) isPasswordValid(password string) error {
 func IsPasswordValidWithSettings(password string, settings *model.PasswordSettings) error {
 	id := "model.user.is_valid.pwd"
 	isError := false
+	isMinMaxError := false
 
 	if len(password) < *settings.MinimumLength {
 		isError = true
+		isMinMaxError = true
 		id = id + "_min_length"
 	}
 
 	if len(password) > model.PasswordMaximumLength {
 		isError = true
+		isMinMaxError = true
 		id = id + "_max_length"
 	}
 
-	if *settings.Lowercase {
-		if !strings.ContainsAny(password, model.LowercaseLetters) {
-			isError = true
+	if !isMinMaxError {
+		if *settings.Lowercase {
+			if !strings.ContainsAny(password, model.LowercaseLetters) {
+				isError = true
+				id = id + "_lowercase"
+			}
 		}
 
-		id = id + "_lowercase"
-	}
-
-	if *settings.Uppercase {
-		if !strings.ContainsAny(password, model.UppercaseLetters) {
-			isError = true
+		if *settings.Uppercase {
+			if !strings.ContainsAny(password, model.UppercaseLetters) {
+				isError = true
+				id = id + "_uppercase"
+			}
 		}
 
-		id = id + "_uppercase"
-	}
-
-	if *settings.Number {
-		if !strings.ContainsAny(password, model.NUMBERS) {
-			isError = true
+		if *settings.Number {
+			if !strings.ContainsAny(password, model.NUMBERS) {
+				isError = true
+				id = id + "_number"
+			}
 		}
 
-		id = id + "_number"
-	}
-
-	if *settings.Symbol {
-		if !strings.ContainsAny(password, model.SYMBOLS) {
-			isError = true
+		if *settings.Symbol {
+			if !strings.ContainsAny(password, model.SYMBOLS) {
+				isError = true
+				id = id + "_symbol"
+			}
 		}
-
-		id = id + "_symbol"
 	}
 
 	if isError {

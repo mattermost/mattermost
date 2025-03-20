@@ -83,7 +83,7 @@ describe('component/create_user_groups_modal', () => {
         expect(baseProps.actions.createGroupWithUserIds).toHaveBeenCalledTimes(0);
         process.nextTick(() => {
             expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('Invalid character in mention.');
+            expect((wrapper.state('mentionInputErrorText') as React.JSX.Element).props.defaultMessage).toEqual('Invalid character in mention.');
         });
     });
 
@@ -115,7 +115,7 @@ describe('component/create_user_groups_modal', () => {
         expect(baseProps.actions.createGroupWithUserIds).toHaveBeenCalledTimes(0);
         process.nextTick(() => {
             expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('nameInputErrorText')).toEqual('Name is a required field.');
+            expect((wrapper.state('nameInputErrorText') as React.JSX.Element).props.defaultMessage).toEqual('Name is a required field.');
         });
     });
 
@@ -131,7 +131,7 @@ describe('component/create_user_groups_modal', () => {
         expect(baseProps.actions.createGroupWithUserIds).toHaveBeenCalledTimes(0);
         process.nextTick(() => {
             expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('Mention is a required field.');
+            expect((wrapper.state('mentionInputErrorText') as React.JSX.Element).props.defaultMessage).toEqual('Mention is a required field.');
         });
     });
 
@@ -193,7 +193,7 @@ describe('component/create_user_groups_modal', () => {
         expect(instance.props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(1);
         process.nextTick(() => {
             expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('Mention needs to be unique.');
+            expect((wrapper.state('mentionInputErrorText') as React.JSX.Element).props.defaultMessage).toEqual('Mention needs to be unique.');
             expect(wrapper.state('nameInputErrorText')).toEqual('');
         });
     });
@@ -210,7 +210,7 @@ describe('component/create_user_groups_modal', () => {
         expect(baseProps.actions.createGroupWithUserIds).toHaveBeenCalledTimes(0);
         process.nextTick(() => {
             expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('Mention contains a reserved word.');
+            expect((wrapper.state('mentionInputErrorText') as React.JSX.Element).props.defaultMessage).toEqual('Mention contains a reserved word.');
         });
 
         wrapper.setState({name: 'Ursa', mention: 'here'});
@@ -219,7 +219,7 @@ describe('component/create_user_groups_modal', () => {
         expect(baseProps.actions.createGroupWithUserIds).toHaveBeenCalledTimes(0);
         process.nextTick(() => {
             expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('Mention contains a reserved word.');
+            expect((wrapper.state('mentionInputErrorText') as React.JSX.Element).props.defaultMessage).toEqual('Mention contains a reserved word.');
         });
 
         wrapper.setState({name: 'Ursa', mention: 'channel'});
@@ -228,7 +228,7 @@ describe('component/create_user_groups_modal', () => {
         expect(baseProps.actions.createGroupWithUserIds).toHaveBeenCalledTimes(0);
         process.nextTick(() => {
             expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('Mention contains a reserved word.');
+            expect((wrapper.state('mentionInputErrorText') as React.JSX.Element).props.defaultMessage).toEqual('Mention contains a reserved word.');
         });
     });
     test('should fail to create with duplicate mention error', () => {
@@ -249,7 +249,7 @@ describe('component/create_user_groups_modal', () => {
         expect(instance.props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(1);
         process.nextTick(() => {
             expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('A username already exists with this name. Mention must be unique.');
+            expect((wrapper.state('mentionInputErrorText') as React.JSX.Element).props.defaultMessage).toEqual('A username already exists with this name. Mention must be unique.');
             expect(wrapper.state('nameInputErrorText')).toEqual('');
         });
     });

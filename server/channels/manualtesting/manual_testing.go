@@ -15,7 +15,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/app/slashcommands"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -34,12 +33,7 @@ type TestEnvironment struct {
 	Request       *http.Request
 }
 
-// Init adds manualtest endpoint to the API.
-func Init(api4 *api4.API) {
-	api4.BaseRoutes.Root.Handle("/manualtest", api4.APIHandler(manualTest)).Methods("GET")
-}
-
-func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
+func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	// Let the world know
 	c.Logger.Info("Setting up for manual test...")
 
@@ -177,7 +171,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getChannelID(a app.AppIface, channelname string, teamid string, userid string) (string, bool) {
+func getChannelID(a *app.App, channelname string, teamid string, userid string) (string, bool) {
 	// Grab all the channels
 	channels, err := a.Srv().Store().Channel().GetChannels(teamid, userid, &model.ChannelSearchOpts{
 		IncludeDeleted: false,

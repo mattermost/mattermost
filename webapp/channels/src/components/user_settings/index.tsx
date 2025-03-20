@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {PluginConfiguration} from 'types/plugins/user_settings';
@@ -23,9 +24,10 @@ export type Props = {
     updateTab: (notifications: string) => void;
     closeModal: () => void;
     collapseModal: () => void;
-    setEnforceFocus: () => void;
     setRequireConfirm: () => void;
     pluginSettings: {[tabName: string]: PluginConfiguration};
+    userPreferences?: PreferencesType;
+    adminMode?: boolean;
 };
 
 export default function UserSettings(props: Props) {
@@ -64,6 +66,8 @@ export default function UserSettings(props: Props) {
                     updateSection={props.updateSection}
                     closeModal={props.closeModal}
                     collapseModal={props.collapseModal}
+                    adminMode={props.adminMode}
+                    userPreferences={props.userPreferences}
                 />
             </div>
         );
@@ -76,8 +80,9 @@ export default function UserSettings(props: Props) {
                     updateSection={props.updateSection}
                     closeModal={props.closeModal}
                     collapseModal={props.collapseModal}
-                    setEnforceFocus={props.setEnforceFocus}
                     setRequireConfirm={props.setRequireConfirm}
+                    adminMode={props.adminMode}
+                    userPreferences={props.userPreferences}
                 />
             </div>
         );
@@ -89,6 +94,9 @@ export default function UserSettings(props: Props) {
                     updateSection={props.updateSection}
                     closeModal={props.closeModal}
                     collapseModal={props.collapseModal}
+                    adminMode={props.adminMode}
+                    userId={props.user.id}
+                    userPreferences={props.userPreferences}
                 />
             </div>
         );
@@ -100,6 +108,9 @@ export default function UserSettings(props: Props) {
                     updateSection={props.updateSection}
                     closeModal={props.closeModal}
                     collapseModal={props.collapseModal}
+                    adminMode={props.adminMode}
+                    user={props.user}
+                    userPreferences={props.userPreferences}
                 />
             </div>
         );

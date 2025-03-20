@@ -16,7 +16,7 @@ import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
-import InvitationModal, {View, InvitationModal as BaseInvitationModal} from './invitation_modal';
+import InvitationModal, {View} from './invitation_modal';
 import type {Props} from './invitation_modal';
 import InviteView from './invite_view';
 import NoPermissionsView from './no_permissions_view';
@@ -48,6 +48,7 @@ const defaultProps: Props = deepFreeze({
     townSquareDisplayName: '',
     onExited: jest.fn(),
     roleForTrackFlow: {started_by_role: General.SYSTEM_USER_ROLE},
+    focusOriginElement: 'elementId',
 });
 
 let props = defaultProps;
@@ -129,7 +130,7 @@ describe('InvitationModal', () => {
                 <InvitationModal {...props}/>
             </Provider>,
         );
-        wrapper.find(BaseInvitationModal).at(0).setState({view: View.RESULT});
+        wrapper.find(InvitationModal).at(0).setState({view: View.RESULT});
 
         wrapper.update();
         expect(wrapper.find(ResultView).length).toBe(1);

@@ -129,10 +129,10 @@ Array [
   </p>,
   "
 ",
-  <Memo(Connect(LatexBlock))
+  <Memo(Connect(Component))
     content="x^2 + y^2 = z^2"
   />,
-  <Memo(Connect(LatexBlock))
+  <Memo(Connect(Component))
     content="F_m - 2 = F_0 F_1 \\\\dots F_{m-1}"
   />,
   <p>
@@ -144,26 +144,18 @@ Array [
 exports[`messageHtmlToComponent link with enabled a tooltip plugin 1`] = `
 <p>
   lorem ipsum 
-  <a
-    className="theme markdown__link"
-    href="http://www.dolor.com"
-    rel="noreferrer"
-    target="_blank"
-  >
-    <LinkTooltip
-      attributes={
-        Object {
-          "class": "theme markdown__link",
-          "href": "http://www.dolor.com",
-          "rel": "noreferrer",
-          "target": "_blank",
-        }
+  <PluginLinkTooltip
+    nodeAttributes={
+      Object {
+        "className": "theme markdown__link",
+        "href": "http://www.dolor.com",
+        "rel": "noreferrer",
+        "target": "_blank",
       }
-      href="http://www.dolor.com"
-    >
-      www.dolor.com
-    </LinkTooltip>
-  </a>
+    }
+  >
+    www.dolor.com
+  </PluginLinkTooltip>
    sit amet
 </p>
 `;

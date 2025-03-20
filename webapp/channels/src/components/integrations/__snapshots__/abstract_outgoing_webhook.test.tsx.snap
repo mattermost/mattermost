@@ -291,7 +291,7 @@ callbackUrl2.com
               id="add_outgoing_webhook.callbackUrls.help"
               values={
                 Object {
-                  "link": <ExternalLink
+                  "link": <ForwardRef
                     href="https://mattermost.com/pl/default-allow-untrusted-internal-connections"
                     location="abstract_outgoing_webhook"
                   >
@@ -299,7 +299,7 @@ callbackUrl2.com
                       defaultMessage="trusted internal connection"
                       id="add_outgoing_webhook.callbackUrls.helpLinkText"
                     />
-                  </ExternalLink>,
+                  </ForwardRef>,
                 }
               }
             />
@@ -309,8 +309,7 @@ callbackUrl2.com
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -333,7 +332,12 @@ callbackUrl2.com
           id="saveWebhook"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage

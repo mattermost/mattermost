@@ -52,7 +52,7 @@ func (ms *mockServer) GetStore() store.Store {
 
 	remoteClusterStoreMock := &mocks.RemoteClusterStore{}
 	remoteClusterStoreMock.On("GetByTopic", "share").Return(ms.remotes, nil)
-	remoteClusterStoreMock.On("GetAll", anyQueryFilter).Return(ms.remotes, nil)
+	remoteClusterStoreMock.On("GetAll", 0, 999999, anyQueryFilter).Return(ms.remotes, nil)
 	remoteClusterStoreMock.On("SetLastPingAt", anyId).Return(nil)
 
 	userStoreMock := &mocks.UserStore{}

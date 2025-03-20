@@ -33,14 +33,8 @@ Cypress.Commands.add('uiGetSystemConsoleMainMenu', () => {
     return getMenu(SYSTEM_CONSOLE_MAIN_MENU);
 });
 
-Cypress.Commands.add('uiOpenDndStatusSubMenu', () => {
-    cy.uiOpenUserMenu();
+Cypress.Commands.add('uiOpenDndStatusSubMenuAndClick30Mins', () => {
+    cy.uiOpenUserMenu().findByText('Do not disturb').should('be.visible').trigger('mouseover');
 
-    // # Wait for status menu to transition in
-    cy.get('.MenuWrapper.status-dropdown-menu .Menu__content.dropdown-menu').should('be.visible');
-
-    // # Hover over Do Not Disturb option
-    cy.get('.MenuWrapper.status-dropdown-menu .Menu__content.dropdown-menu li#status-menu-dnd_menuitem').trigger('mouseover');
-
-    return cy.get('#status-menu-dnd');
+    cy.findByText('30 mins').should('be.visible').click({force: true});
 });

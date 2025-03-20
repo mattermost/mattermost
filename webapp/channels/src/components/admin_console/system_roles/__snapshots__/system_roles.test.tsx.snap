@@ -6,7 +6,7 @@ exports[`admin_console/system_roles should match snapshot 1`] = `
 >
   <AdminHeader>
     <MemoizedFormattedMessage
-      defaultMessage="System Roles"
+      defaultMessage="Delegated Granular Administration"
       id="admin.permissions.systemRoles"
     />
   </AdminHeader>
@@ -99,7 +99,6 @@ exports[`admin_console/system_roles should match snapshot 1`] = `
                 },
               ]
             }
-            searchPlaceholder=""
             startCount={0}
             term=""
           />

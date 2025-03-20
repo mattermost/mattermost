@@ -10,7 +10,7 @@ exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should
     <CompletedWrapper>
       <img
         alt="completed tasks image"
-        src={null}
+        src=""
       />
       <h2>
         <MemoizedFormattedMessage
@@ -41,7 +41,6 @@ exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should
         />
       </span>
       <StartTrialBtn
-        message="Start free 30-day trial"
         onClick={[MockFunction]}
         telemetryId="start_trial_from_onboarding_completed_task"
       />

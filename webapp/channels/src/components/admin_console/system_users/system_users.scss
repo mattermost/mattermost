@@ -1,4 +1,4 @@
-@import "sass/utils/_mixins";
+@use 'utils/_mixins';
 
 table.systemUsersTable {
     thead {
@@ -47,7 +47,7 @@ table.systemUsersTable {
                     font-weight: 600;
                     grid-area: displayName;
 
-                    @include textEllipsis;
+                    @include mixins.textEllipsis;
 
                     .icon {
                         color: rgba(var(--sys-denim-center-channel-text-rgb), 0.8);
@@ -58,7 +58,7 @@ table.systemUsersTable {
                     align-self: start;
                     grid-area: userName;
 
-                    @include textEllipsis;
+                    @include mixins.textEllipsis;
                 }
 
                 .error {
@@ -66,7 +66,7 @@ table.systemUsersTable {
                     align-self: start;
                     grid-area: error;
 
-                    @include textEllipsis;
+                    @include mixins.textEllipsis;
 
                     // this need to be here, after textEllipsis because
                     // we need to override white-space property coming from the mixing

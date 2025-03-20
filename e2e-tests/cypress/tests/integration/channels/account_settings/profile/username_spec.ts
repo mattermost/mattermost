@@ -116,8 +116,8 @@ describe('Settings > Sidebar > General > Edit', () => {
             // # Step 3
             // * Verify that we've logged in as the temp user
             cy.visit(offTopicUrl);
-            cy.uiOpenUserMenu().findByText(`@${newTempUserName}`);
-            cy.uiGetSetStatusButton().click();
+            cy.uiOpenUserMenu().findByText(`@${newTempUserName}`).should('exist');
+            cy.get('body').type('{esc}');
 
             // # Step 4
             const text = `${newTempUserName} test message!`;
@@ -205,7 +205,7 @@ describe('Settings > Sidebar > General > Edit', () => {
             });
 
             // * Verify username in profile popover
-            cy.get('#user-profile-popover').within(() => {
+            cy.get('div.user-profile-popover').within(() => {
                 cy.get('#userPopoverUsername').should('be.visible').and('contain', `${testUser.username}`);
             });
         });
@@ -238,7 +238,7 @@ describe('Settings > Sidebar > General > Edit', () => {
             });
 
             // * Verify that new username is in profile popover
-            cy.get('#user-profile-popover').within(() => {
+            cy.get('div.user-profile-popover').within(() => {
                 cy.get('#userPopoverUsername').should('be.visible').and('contain', `${otherUser.username}-${randomId}`);
             });
         });

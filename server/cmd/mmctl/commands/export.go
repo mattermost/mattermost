@@ -205,7 +205,7 @@ func exportGeneratePresignedURLCmdF(c client.Client, command *cobra.Command, arg
 		return fmt.Errorf("failed to generate export link: %w", err)
 	}
 
-	printer.PrintT("Export link: {{.Link}}\nExpiration: {{.Expiration}}", map[string]interface{}{
+	printer.PrintT("Export link: {{.Link}}\nExpiration: {{.Expiration}}", map[string]any{
 		"Link":       presignedURL.URL,
 		"Expiration": presignedURL.Expiration.String(),
 	})
@@ -270,7 +270,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 }
 
 func exportJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
-	return jobListCmdF(c, command, model.JobTypeExportProcess)
+	return jobListCmdF(c, command, model.JobTypeExportProcess, "")
 }
 
 func exportJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {

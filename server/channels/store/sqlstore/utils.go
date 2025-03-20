@@ -5,6 +5,8 @@ package sqlstore
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"io"
 	"net/url"
 	"strconv"
@@ -53,7 +55,7 @@ func MapStringsToQueryParams(list []string, paramPrefix string) (string, map[str
 // finalizeTransactionX ensures a transaction is closed after use, rolling back if not already committed.
 func finalizeTransactionX(transaction *sqlxTxWrapper, perr *error) {
 	// Rollback returns sql.ErrTxDone if the transaction was already closed.
-	if err := transaction.Rollback(); err != nil && err != sql.ErrTxDone {
+	if err := transaction.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
 		*perr = merror.Append(*perr, err)
 	}
 }
@@ -125,14 +127,6 @@ func constructMySQLJSONArgs(props map[string]string) ([]any, string) {
 	return args, argString
 }
 
-func makeStringArgs(params []string) []any {
-	args := make([]any, len(params))
-	for i, name := range params {
-		args[i] = name
-	}
-	return args
-}
-
 func constructArrayArgs(ids []string) (string, []any) {
 	var placeholder strings.Builder
 	values := make([]any, 0, len(ids))
@@ -159,8 +153,7 @@ func wrapBinaryParamStringMap(ok bool, props model.StringMap) model.StringMap {
 // morphWriter is a target to pass to the logger instance of morph.
 // For now, everything is just logged at a debug level. If we need to log
 // errors/warnings from the library also, that needs to be seen later.
-type morphWriter struct {
-}
+type morphWriter struct{}
 
 func (l *morphWriter) Write(in []byte) (int, error) {
 	mlog.Debug(string(in))
@@ -191,9 +184,15 @@ func trimInput(input string) string {
 	return input
 }
 
-func maxInt64(a, b int64) int64 {
-	if a > b {
-		return a
+// Adds backtiks to the column name for MySQL, this is required if
+// the column name is a reserved keyword.
+//
+//	`ColumnName` -  MySQL
+//	ColumnName   -  Postgres
+func quoteColumnName(driver string, columnName string) string {
+	if driver == model.DatabaseDriverMysql {
+		return fmt.Sprintf("`%s`", columnName)
 	}
-	return b
+
+	return columnName
 }

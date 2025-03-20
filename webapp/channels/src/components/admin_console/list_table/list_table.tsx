@@ -6,9 +6,13 @@ import {flexRender} from '@tanstack/react-table';
 import classNames from 'classnames';
 import React, {useMemo} from 'react';
 import type {AriaAttributes, MouseEvent, ReactNode} from 'react';
+import type {DropResult} from 'react-beautiful-dnd';
+import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-import type {IndicatorContainerProps, ValueType} from 'react-select';
+import type {IndicatorsContainerProps, OnChangeValue} from 'react-select';
+
+import {DragVerticalIcon} from '@mattermost/compass-icons/components';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -56,8 +60,10 @@ export type TableMeta = {
     loadingState?: LoadingStates;
     emptyDataMessage?: ReactNode;
     onRowClick?: (row: string) => void;
+    onReorder?: (prev: number, next: number) => void;
     disablePrevPage?: boolean;
     disableNextPage?: boolean;
+    disablePaginationControls?: boolean;
     onPreviousPageClick?: () => void;
     onNextPageClick?: () => void;
     paginationInfo?: ReactNode;
@@ -88,6 +94,8 @@ export function ListTable<TableType extends TableMandatoryTypes>(
     const rowIdPrefix = `${tableMeta.tableId}-row-`;
     const cellIdPrefix = `${tableMeta.tableId}-cell-`;
 
+    const hasPagination = !tableMeta.disablePaginationControls;
+
     const pageSizeOptions = useMemo(() => {
         return PAGE_SIZES.map((size) => {
             return {
@@ -99,7 +107,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
 
     const selectedPageSize = pageSizeOptions.find((option) => option.value === props.table.getState().pagination.pageSize) || pageSizeOptions[0];
 
-    function handlePageSizeChange(selectedOption: ValueType<PageSizeOption>) {
+    function handlePageSizeChange(selectedOption: OnChangeValue<PageSizeOption, false>) {
         const {value} = selectedOption as PageSizeOption;
         props.table.setPageSize(Number(value));
     }
@@ -114,25 +122,35 @@ export function ListTable<TableType extends TableMandatoryTypes>(
         }
     }
 
+    const handleDragEnd = (result: DropResult) => {
+        const {source, destination} = result;
+        if (!destination) {
+            return;
+        }
+        tableMeta.onReorder?.(source.index, destination.index);
+    };
+
     const colCount = props.table.getAllColumns().length;
     const rowCount = props.table.getRowModel().rows.length;
 
     return (
         <div className='adminConsoleListTableContainer'>
-            <div className='adminConsoleListTabletOptionalHead'>
-                {tableMeta.hasDualSidedPagination && (
-                    <>
-                        {tableMeta.paginationInfo}
-                        <Pagination
-                            disablePrevPage={tableMeta.disablePrevPage}
-                            disableNextPage={tableMeta.disableNextPage}
-                            isLoading={tableMeta.loadingState === LoadingStates.Loading}
-                            onPreviousPageClick={tableMeta.onPreviousPageClick}
-                            onNextPageClick={tableMeta.onNextPageClick}
-                        />
-                    </>
-                )}
-            </div>
+            {hasPagination && (
+                <div className='adminConsoleListTabletOptionalHead'>
+                    {tableMeta.hasDualSidedPagination && (
+                        <>
+                            {tableMeta.paginationInfo}
+                            <Pagination
+                                disablePrevPage={tableMeta.disablePrevPage}
+                                disableNextPage={tableMeta.disableNextPage}
+                                isLoading={tableMeta.loadingState === LoadingStates.Loading}
+                                onPreviousPageClick={tableMeta.onPreviousPageClick}
+                                onNextPageClick={tableMeta.onNextPageClick}
+                            />
+                        </>
+                    )}
+                </div>
+            )}
             <table
                 id={tableMeta.tableId}
                 aria-colcount={colCount}
@@ -159,6 +177,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                                     })}
                                     disabled={header.column.getCanSort() && tableMeta.loadingState === LoadingStates.Loading}
                                     onClick={header.column.getToggleSortingHandler()}
+                                    style={{width: header.column.getSize()}}
                                 >
                                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
 
@@ -188,69 +207,104 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                         </tr>
                     ))}
                 </thead>
-                <tbody>
-                    {props.table.getRowModel().rows.map((row) => (
-                        <tr
-                            id={`${rowIdPrefix}${row.original.id}`}
-                            key={row.id}
-                            onClick={handleRowClick}
-                        >
-                            {row.getVisibleCells().map((cell) => (
-                                <td
-                                    key={cell.id}
-                                    id={`${cellIdPrefix}${cell.id}`}
-                                    headers={`${headerIdPrefix}${cell.column.id}`}
-                                    className={classNames(`${cell.column.id}`, {
-                                        [PINNED_CLASS]: cell.column.getCanPin(),
-                                    })}
-                                >
-                                    {cell.getIsPlaceholder() ? null : flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
-
-                    {/* State where it is initially loading the data */}
-                    {(tableMeta.loadingState === LoadingStates.Loading && rowCount === 0) && (
-                        <tr>
-                            <td
-                                colSpan={colCount}
-                                className='noRows'
-                                disabled={true}
+                <DragDropContext onDragEnd={handleDragEnd}>
+                    <Droppable droppableId='table-body'>
+                        {(provided, snap) => (
+                            <tbody
+                                ref={provided.innerRef}
+                                {...provided.droppableProps}
                             >
-                                <LoadingSpinner
-                                    text={formatMessage({id: 'adminConsole.list.table.genericLoading', defaultMessage: 'Loading'})}
-                                />
-                            </td>
-                        </tr>
-                    )}
+                                {props.table.getRowModel().rows.map((row) => (
+                                    <Draggable
+                                        draggableId={row.original.id}
+                                        key={row.original.id}
+                                        index={row.index}
+                                        isDragDisabled={!tableMeta.onReorder}
+                                    >
+                                        {(provided) => {
+                                            return (
+                                                <tr
+                                                    id={`${rowIdPrefix}${row.original.id}`}
+                                                    key={row.id}
+                                                    onClick={handleRowClick}
+                                                    className={classNames({clickable: Boolean(tableMeta.onRowClick) && !snap.isDraggingOver})}
+                                                    ref={provided.innerRef}
+                                                    {...provided.draggableProps}
+                                                >
+                                                    {row.getVisibleCells().map((cell, i) => (
+                                                        <td
+                                                            key={cell.id}
+                                                            id={`${cellIdPrefix}${cell.id}`}
+                                                            headers={`${headerIdPrefix}${cell.column.id}`}
+                                                            className={classNames(`${cell.column.id}`, {
+                                                                [PINNED_CLASS]: cell.column.getCanPin(),
+                                                            })}
+                                                            style={{width: cell.column.getSize()}}
+                                                        >
+                                                            {tableMeta.onReorder && i === 0 && (
+                                                                <span
+                                                                    className='dragHandle'
+                                                                    {...provided.dragHandleProps}
+                                                                >
+                                                                    <DragVerticalIcon size={18}/>
+                                                                </span>
+                                                            )}
+                                                            {cell.getIsPlaceholder() ? null : flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            );
+                                        }}
+                                    </Draggable>
 
-                    {/* State where there is no data */}
-                    {(tableMeta.loadingState === LoadingStates.Loaded && rowCount === 0) && (
-                        <tr>
-                            <td
-                                colSpan={colCount}
-                                className='noRows'
-                                disabled={true}
-                            >
-                                {tableMeta.emptyDataMessage || formatMessage({id: 'adminConsole.list.table.genericNoData', defaultMessage: 'No data'})}
-                            </td>
-                        </tr>
-                    )}
+                                ))}
 
-                    {/* State where there is an error loading the data */}
-                    {tableMeta.loadingState === LoadingStates.Failed && (
-                        <tr>
-                            <td
-                                colSpan={colCount}
-                                className='noRows'
-                                disabled={true}
-                            >
-                                {formatMessage({id: 'adminConsole.list.table.genericError', defaultMessage: 'There was an error loading the data, please try again'})}
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
+                                {provided.placeholder}
+
+                                {/* State where it is initially loading the data */}
+                                {(tableMeta.loadingState === LoadingStates.Loading && rowCount === 0) && (
+                                    <tr>
+                                        <td
+                                            colSpan={colCount}
+                                            className='noRows'
+                                            disabled={true}
+                                        >
+                                            <LoadingSpinner
+                                                text={formatMessage({id: 'adminConsole.list.table.genericLoading', defaultMessage: 'Loading'})}
+                                            />
+                                        </td>
+                                    </tr>
+                                )}
+
+                                {/* State where there is no data */}
+                                {(tableMeta.loadingState === LoadingStates.Loaded && rowCount === 0) && (
+                                    <tr>
+                                        <td
+                                            colSpan={colCount}
+                                            className='noRows'
+                                            disabled={true}
+                                        >
+                                            {tableMeta.emptyDataMessage || formatMessage({id: 'adminConsole.list.table.genericNoData', defaultMessage: 'No data'})}
+                                        </td>
+                                    </tr>
+                                )}
+
+                                {/* State where there is an error loading the data */}
+                                {tableMeta.loadingState === LoadingStates.Failed && (
+                                    <tr>
+                                        <td
+                                            colSpan={colCount}
+                                            className='noRows'
+                                            disabled={true}
+                                        >
+                                            {formatMessage({id: 'adminConsole.list.table.genericError', defaultMessage: 'There was an error loading the data, please try again'})}
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        )}
+                    </Droppable>
+                </DragDropContext>
                 <tfoot>
                     {props.table.getFooterGroups().map((footerGroup) => (
                         <tr key={footerGroup.id}>
@@ -269,9 +323,9 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                     ))}
                 </tfoot>
             </table>
-            <div className='adminConsoleListTabletOptionalFoot'>
-                {tableMeta.paginationInfo}
-                {handlePageSizeChange && (
+            {hasPagination && (
+                <div className='adminConsoleListTabletOptionalFoot'>
+                    {tableMeta.paginationInfo}
                     <div
                         className='adminConsoleListTablePageSize'
                         aria-label={formatMessage({id: 'adminConsole.list.table.rowCount.label', defaultMessage: 'Show {count} rows per page'}, {count: selectedPageSize.label})}
@@ -302,20 +356,21 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                             defaultMessage='rows per page'
                         />
                     </div>
-                )}
-                <Pagination
-                    disablePrevPage={tableMeta.disablePrevPage}
-                    disableNextPage={tableMeta.disableNextPage}
-                    isLoading={tableMeta.loadingState === LoadingStates.Loading}
-                    onPreviousPageClick={tableMeta.onPreviousPageClick}
-                    onNextPageClick={tableMeta.onNextPageClick}
-                />
-            </div>
+                    <Pagination
+                        disablePrevPage={tableMeta.disablePrevPage}
+                        disableNextPage={tableMeta.disableNextPage}
+                        isLoading={tableMeta.loadingState === LoadingStates.Loading}
+                        onPreviousPageClick={tableMeta.onPreviousPageClick}
+                        onNextPageClick={tableMeta.onNextPageClick}
+                    />
+
+                </div>
+            )}
         </div>
     );
 }
 
-function IndicatorsContainer(props: IndicatorContainerProps<PageSizeOption>) {
+function IndicatorsContainer(props: IndicatorsContainerProps<PageSizeOption>) {
     return (
         <components.IndicatorsContainer {...props}>
             <i className='icon icon-chevron-down'/>

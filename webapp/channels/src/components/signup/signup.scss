@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .signup-body {
     display: flex;
@@ -130,7 +130,7 @@
             box-shadow: var(--elevation-5);
 
             &.with-error {
-                @include shake-horizontally;
+                @include mixins.shake-horizontally;
             }
 
             .signup-body-card-content {
@@ -183,8 +183,8 @@
                     }
 
                     .signup-body-card-form-button-submit {
-                        @include primary-button;
-                        @include button-large;
+                        @include mixins.primary-button;
+                        @include mixins.button-large;
 
                         width: 100%;
                         margin-top: 30px;
@@ -230,7 +230,7 @@
                     line-height: 16px;
 
                     a {
-                        @include link;
+                        @include mixins.link;
 
                         font-size: 11px;
                     }
@@ -273,8 +273,8 @@
             justify-content: center;
 
             .signup-body-content-button-return {
-                @include primary-button;
-                @include button-medium;
+                @include mixins.primary-button;
+                @include mixins.button-medium;
             }
         }
     }
@@ -403,7 +403,6 @@
                 padding: 24px;
 
                 .signup-body-message-title {
-                    max-width: 271px;
                     padding-right: 0;
                     font-size: 45px;
                     line-height: 56px;

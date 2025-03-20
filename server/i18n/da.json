@@ -173,11 +173,11 @@
   },
   {
     "id": "api.command.invite_people.name",
-    "translation": "invite_people"
+    "translation": "inviter_personer"
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
-    "translation": "Kan ikke tilføje bruger til denne type kanal."
+    "translation": "Kan ikke fjerne bruger fra denne kanaltype."
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
@@ -353,15 +353,15 @@
   },
   {
     "id": "api.command_custom_status.clear.success",
-    "translation": "Din status blev slettet."
+    "translation": "Din status blev nulstillet."
   },
   {
     "id": "api.command_custom_status.clear.app_error",
-    "translation": "Fejl ved rømning af status."
+    "translation": "Fejl ved nulstilling af status."
   },
   {
     "id": "api.command_custom_status.app_error",
-    "translation": "Fejl under oprettelse af status."
+    "translation": "Fejl ved indstilling af status."
   },
   {
     "id": "api.back_to_app",
@@ -509,7 +509,7 @@
   },
   {
     "id": "api.channel.remove_member.group_constrained.app_error",
-    "translation": "Kan ikke fjerne en bruger fra en kanal med gruppemedlemsskab."
+    "translation": "Det er ikke muligt at fjerne en bruger fra en gruppebegrænset kanal."
   },
   {
     "id": "api.channel.remove_members.denied",
@@ -618,5 +618,461 @@
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
     "translation": "Ugyldig opdatering af teammedlem: Du kan ikke tilføje eller fjerne gæsterollen manuelt."
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Kan ikke slette direkte- eller gruppebesked kanalen"
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "Din licens understøtter ikke kanalmoderation"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Brugeren har ikke lov til at konvertere gruppebeskeder til private kanaler"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} oprettede denne kanal fra en gruppebesked med {{.GMMembers}}."
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v sluttede sig til kanalen som gæst."
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "Du er det eneste medlem tilbage, prøv at fjerne den private kanal i stedet for at forlade den."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Din licens understøtter ikke kanalmoderation"
+  },
+  {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Kan ikke flytte kanaler med direkte eller gruppebeskeder"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Fejl ved annullering af cache"
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Kanalen kunne ikke opdateres."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Du må ikke opdatere navnet, display_name eller formålet med direkte beskeder eller gruppebeskeder."
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "Kunne ikke sende besked om opdatering af kanalens privatliv."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "Du har ikke de nødvendige tilladelser."
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v sluttede sig til kanalen."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "Kan ikke forlade standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Kan ikke efterlade en kanal for direkte beskeder."
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v har forladt kanalen."
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "Kunne ikke hente bruger under opdatering af kanalens DisplayName-felt"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%s opdaterede kanalens visningsnavn fra: %s til: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Kunne ikke sende besked om opdatering af displaynavn"
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Mangler display_name i request-meddelelsen"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Mangler team_id i request-meddelelsen"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s opdaterede kanalemne fra: %s til: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "Kunne ikke hente bruger under opdatering af kanalemne"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s opdaterede kanalemne til: %s"
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "Kunne ikke sende join/leave-meddelelse"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s fjernede kanalens emne (var: %s)"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "Kunne ikke sende besked om opdatering af kanalemne"
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Kunne ikke fjerne brugeren fra standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Det er ikke muligt at fjerne bruger fra en kanal."
+  },
+  {
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v fjernet fra kanalen."
+  },
+  {
+    "id": "api.command.admin_only.app_error",
+    "translation": "Integrationer er begrænset til udelukkende administratorer."
+  },
+  {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "Den angivne bruger er ikke medlem af den angivne kanal."
+  },
+  {
+    "id": "api.command.disabled.app_error",
+    "translation": "Kommandoer er blevet deaktiveret af systemadministratoren."
+  },
+  {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "Dette aktiveringsord er allerede i brug. Vælg venligst et andet ord."
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[name@domain.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "Brugeroprettelse er deaktiveret på denne server, ingen invitation(er) sendt"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Venligst angiv en eller flere gyldige emailadresser"
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "E-mailinvitationer er sendt"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Du er nu Midlertidigt væk"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Fejl ved hentning af den nuværende kanal."
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Rediger kanalens emne"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Teksten skal angives med kommandoen /header."
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[tekst]"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Det er ikke muligt at angive formålet med kanaler til direkte beskeder. Brug /header til at indstille emnet i stedet."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Rediger kanalens formål"
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "Fejl ved hentning af den aktuelle kanal."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Fejl ved hentning af nuværende kanal."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Omdøb kanalen"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "Det er ikke muligt at omdøbe kanaler til direkte beskeder."
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Du har ikke de nødvendige rettigheder for at omdøbe kanalen."
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Kanalens navn skal være på {{.Length}} eller færre karakterer."
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Kanalens navn skal være {{.Length}} eller flere karakterer."
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "Aktiver automatisk kollaps af billedeksempler"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "kollaps"
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "Billedlinks kollapser nu som standard"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Din status er sat til \"{{.EmojiName}} {{.StatusMessage}}\". Du kan ændre din status med status-popup i kanalens sidebjælkeoverskrift."
+  },
+  {
+    "id": "api.command_dnd.desc",
+    "translation": "Forstyr ikke deaktiverer push-meddelelser på computer og mobil."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "Forstyr ikke"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "Deaktiver automatisk sammenlægning af billedeksempler"
+  },
+  {
+    "id": "api.command_echo.hint",
+    "translation": "'besked' [forsinkelse i sekunder]"
+  },
+  {
+    "id": "api.command_echo.message.app_error",
+    "translation": "Kommandoen /echo skal angive en besked."
+  },
+  {
+    "id": "api.command_echo.name",
+    "translation": "ekko"
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "Den givne rolle administreres af et skema og kan derfor ikke anvendes direkte på et teammedlem."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Intern fejl under cloud API-anmodning."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Kan ikke oprette team, fordi grænsen for antallet af teams er nået"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Kan ikke genskabe team, fordi grænsen for antallet af teams er nået"
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "Kommandoen '{{.Trigger}}' kunne ikke sende svar. Kontakt venligst din systemadministrator."
+  },
+  {
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "Kommando med aktiveringsordet '{{.Trigger}}' ikke fundet. Hvis du vil sende en besked, der begynder med \"/\", kan du prøve at tilføje et tomt mellemrum i begyndelsen af beskeden."
+  },
+  {
+    "id": "api.command.execute_command.format.app_error",
+    "translation": "Aktiveringsordet mangler den forreste skråstreg"
+  },
+  {
+    "id": "api.command.invite_people.desc",
+    "translation": "Send en e-mailinvitation til dit Mattermost-team"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "Midlertidigt væk"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Kan ikke opdatere kommandoer på tværs af teams."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "emne"
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Angiv din status som midlertidigt væk"
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[tekst]"
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "omdøb"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Fejl ved opdatering af kanalens formål."
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "Fejl ved opdatering af den nuværende kanal."
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "Kommandoen /code skal indeholde en besked."
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "kode"
+  },
+  {
+    "id": "api.command_echo.desc",
+    "translation": "Ekko af tekst fra din konto"
+  },
+  {
+    "id": "api.command_echo.delay.app_error",
+    "translation": "Forsinkelser skal være under 10000 sekunder."
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "Forstyr ikke er aktiveret. Du vil ikke modtage push-meddelelser på computer eller mobil, før Forstyr ikke er slået fra."
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "Billedlinks udvides nu som standard"
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Generer et link til at downloade en eksport."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "Driveren til fillageret understøtter ikke linkgenerering."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Der er ikke fundet nogen eksportfil."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip filnavn|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook-hændelsen blev ikke håndteret. Enten mangler den, eller også er den ikke gyldig."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Din licens understøtter ikke cloud-anmodninger."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Har allerede givet besked til administrator"
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Fejl ved behandling af anmodning til CWS."
+  },
+  {
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "Kommandoen med aktiveringsordet '{{.Trigger}}' mislykkedes."
+  },
+  {
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "Kommando med aktiveringsordet '{{.Trigger}}' returnerede et tomt svar."
+  },
+  {
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "Kommando med aktiveringsordet '{{.Trigger}}' returnerede svaret {{.Status}}."
+  },
+  {
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "Der blev ikke fundet nogle aktiveringsord."
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "E-mailinvitationer er deaktiveret, ingen invitation(er) sendt"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "E-mail er ikke konfigureret, ingen invitation(er) sendt"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "Der opstod en fejl ved afsendelse af e-mailinvitation(er)"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Du har ikke rettigheder til at ændre kanalens emne."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Fejl ved opdatering af kanalens emne."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Den indtastede tekst overskrider tegngrænsen. Kanalemnet er begrænset til {{.MaxLength}} tegn."
+  },
+  {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Fejl ved hentning af nuværende kanal."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "formål"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Du har ikke de nødvendige rettigheder til at ændre kanalens formål."
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "En besked skal angives med kommandoen /purpose."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Den indtastede tekst overskrider tegngrænsen. Kanalens formål er begrænset til {{.MaxLength}} tegn."
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[tekst]"
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "Kommandoen /rename skal indeholde en besked."
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Vis tekst som kodeblok"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[tekst]"
+  },
+  {
+    "id": "api.command_echo.high_volume.app_error",
+    "translation": "Stor mængde ekko-anmodninger, kan ikke behandle anmodningen."
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "udvid"
   }
 ]

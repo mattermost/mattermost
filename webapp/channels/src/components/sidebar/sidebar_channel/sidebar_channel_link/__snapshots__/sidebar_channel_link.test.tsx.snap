@@ -21,7 +21,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
     >
       channel_label
     </span>
-    <Connect(Pluggable)
+    <Pluggable
       channel={
         Object {
           "create_at": 0,
@@ -103,7 +103,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
     >
       channel_label
     </span>
-    <Connect(Pluggable)
+    <Pluggable
       channel={
         Object {
           "create_at": 0,
@@ -180,36 +180,16 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
   <div
     className="SidebarChannelLinkLabel_wrapper"
   >
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={400}
-      onEntering={[Function]}
-      overlay={
-        <Tooltip
-          id="channel-displayname__tooltip"
-        >
-          channel_label
-        </Tooltip>
-      }
-      placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
-      }
+    <WithTooltip
+      title="channel_label"
     >
-      <div
-        className="truncated"
+      <span
+        className="SidebarChannelLinkLabel"
       >
-        <span
-          className="SidebarChannelLinkLabel"
-        >
-          channel_label
-        </span>
-      </div>
-    </OverlayTrigger>
-    <Connect(Pluggable)
+        channel_label
+      </span>
+    </WithTooltip>
+    <Pluggable
       channel={
         Object {
           "create_at": 0,
@@ -291,7 +271,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
     >
       channel_label
     </span>
-    <Connect(Pluggable)
+    <Pluggable
       channel={
         Object {
           "create_at": 0,

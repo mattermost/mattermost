@@ -3,14 +3,15 @@
 
 import classNames from 'classnames';
 import React, {useState, useEffect} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
 import {CloseCircleIcon} from '@mattermost/compass-icons/components';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {ItemStatus} from 'utils/constants';
+import {ItemStatus} from 'utils/constants';
+import {formatAsString} from 'utils/i18n';
 
 import './input.scss';
 
@@ -19,16 +20,17 @@ export enum SIZE {
     LARGE = 'large',
 }
 
-export type CustomMessageInputType = {type: 'info' | 'error' | 'warning' | 'success'; value: React.ReactNode} | null;
+export type CustomMessageInputType = {type?: 'info' | 'error' | 'warning' | 'success'; value: React.ReactNode} | null;
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, 'placeholder'> {
     required?: boolean;
     hasError?: boolean;
     addon?: React.ReactElement;
     textPrefix?: string;
     inputPrefix?: JSX.Element;
     inputSuffix?: JSX.Element;
-    label?: string;
+    label?: string | MessageDescriptor;
+    placeholder?: MessageDescriptor | string;
     containerClassName?: string;
     wrapperClassName?: string;
     inputClassName?: string;
@@ -143,21 +145,18 @@ const Input = React.forwardRef((
             onMouseDown={handleOnClear}
             onTouchEnd={handleOnClear}
         >
-            <OverlayTrigger
-                delayShow={Constants.OVERLAY_TIME_DELAY}
-                placement='bottom'
-                overlay={(
-                    <Tooltip id={'InputClearTooltip'}>
-                        {clearableTooltipText || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'})}
-                    </Tooltip>
-                )}
+            <WithTooltip
+                title={clearableTooltipText || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'})}
             >
                 <CloseCircleIcon size={18}/>
-            </OverlayTrigger>
+            </WithTooltip>
         </div>
     ) : null;
 
     const generateInput = () => {
+        const placeholderValue = formatAsString(formatMessage, focused ? (label && placeholder) || label : label || placeholder);
+        const ariaLabel = formatAsString(formatMessage, label || placeholder);
+
         if (otherProps.type === 'textarea') {
             return (
                 <textarea
@@ -165,8 +164,8 @@ const Input = React.forwardRef((
                     id={`input_${name || ''}`}
                     className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
                     value={value}
-                    placeholder={focused ? (label && placeholder) || label : label || placeholder}
-                    aria-label={label || placeholder}
+                    placeholder={placeholderValue}
+                    aria-label={ariaLabel}
                     rows={3}
                     name={name}
                     disabled={disabled}
@@ -183,8 +182,8 @@ const Input = React.forwardRef((
                 id={`input_${name || ''}`}
                 className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
                 value={value}
-                placeholder={focused ? (label && placeholder) || label : label || placeholder}
-                aria-label={label || placeholder}
+                placeholder={placeholderValue}
+                aria-label={ariaLabel}
                 name={name}
                 disabled={disabled}
                 {...otherProps}
@@ -206,7 +205,7 @@ const Input = React.forwardRef((
             >
                 {useLegend && (
                     <legend className={classNames('Input_legend', {Input_legend___focus: showLegend})}>
-                        {showLegend ? label || placeholder : null}
+                        {showLegend ? formatAsString(formatMessage, label || placeholder) : null}
                     </legend>
                 )}
                 <div className={classNames('Input_wrapper', wrapperClassName)}>
@@ -225,14 +224,15 @@ const Input = React.forwardRef((
             </fieldset>
             {customInputLabel && (
                 <div className={`Input___customMessage Input___${customInputLabel.type}`}>
-                    <i
-                        className={classNames(`icon ${customInputLabel.type}`, {
-                            'icon-alert-outline': customInputLabel.type === ItemStatus.WARNING,
-                            'icon-alert-circle-outline': customInputLabel.type === ItemStatus.ERROR,
-                            'icon-information-outline': customInputLabel.type === ItemStatus.INFO,
-                            'icon-check': customInputLabel.type === ItemStatus.SUCCESS,
-                        })}
-                    />
+                    {customInputLabel.type && (
+                        <i
+                            className={classNames(`icon ${customInputLabel.type}`, {
+                                'icon-alert-outline': customInputLabel.type === ItemStatus.WARNING,
+                                'icon-alert-circle-outline': customInputLabel.type === ItemStatus.ERROR,
+                                'icon-information-outline': customInputLabel.type === ItemStatus.INFO,
+                                'icon-check': customInputLabel.type === ItemStatus.SUCCESS,
+                            })}
+                        />)}
                     <span>{customInputLabel.value}</span>
                 </div>
             )}

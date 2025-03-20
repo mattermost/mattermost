@@ -9,10 +9,163 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/timezones"
 )
+
+func TestUserAuditable(t *testing.T) {
+	t.Run("zero value", func(t *testing.T) {
+		var u User
+		m := u.Auditable()
+		require.NotNil(t, m)
+		assert.Equal(t, "", m["remote_id"])
+	})
+
+	t.Run("values set", func(t *testing.T) {
+		id := NewId()
+		now := GetMillis()
+		u := User{
+			Id:             id,
+			CreateAt:       now,
+			UpdateAt:       now,
+			DeleteAt:       now,
+			Username:       "some user_name",
+			Password:       "some password",
+			AuthData:       NewPointer("some_auth_data"),
+			AuthService:    UserAuthServiceLdap,
+			Email:          "test@example.org",
+			EmailVerified:  true,
+			Position:       "some position",
+			Roles:          strings.Join([]string{ChannelAdminRoleId, SystemManagerRoleId}, ","),
+			AllowMarketing: true,
+			Props: StringMap{
+				"foo": "bar",
+			},
+			NotifyProps: StringMap{
+				"bar": "foo",
+			},
+			Locale:    DefaultLocale,
+			Timezone:  timezones.DefaultUserTimezone(),
+			MfaActive: true,
+			RemoteId:  NewPointer("some_remote"),
+		}
+		m := u.Auditable()
+
+		expected := map[string]any{
+			"id":              id,
+			"create_at":       now,
+			"update_at":       now,
+			"delete_at":       now,
+			"username":        "some user_name",
+			"auth_service":    "ldap",
+			"email":           "test@example.org",
+			"email_verified":  true,
+			"position":        "some position",
+			"roles":           "channel_admin,system_manager",
+			"allow_marketing": true,
+			"props": StringMap{
+				"foo": "bar",
+			},
+			"notify_props": StringMap{
+				"bar": "foo",
+			},
+			"last_password_update":       int64(0),
+			"last_picture_update":        int64(0),
+			"failed_attempts":            0,
+			"locale":                     "en",
+			"timezone":                   StringMap(timezones.DefaultUserTimezone()),
+			"mfa_active":                 true,
+			"remote_id":                  "some_remote",
+			"last_activity_at":           int64(0),
+			"is_bot":                     false,
+			"bot_description":            "",
+			"bot_last_icon_update":       int64(0),
+			"terms_of_service_id":        "",
+			"terms_of_service_create_at": int64(0),
+			"disable_welcome_email":      false,
+		}
+
+		assert.Equal(t, expected, m)
+	})
+}
+
+func TestUserLogClone(t *testing.T) {
+	t.Run("zero value", func(t *testing.T) {
+		var u User
+		l := u.LogClone()
+		require.NotNil(t, l)
+
+		m, ok := l.(map[string]interface{})
+		require.True(t, ok)
+		assert.Equal(t, "", m["remote_id"])
+	})
+
+	t.Run("values set", func(t *testing.T) {
+		id := NewId()
+		now := GetMillis()
+
+		u := User{
+			Id:             id,
+			CreateAt:       now,
+			UpdateAt:       now,
+			DeleteAt:       now,
+			Username:       "some user_name",
+			Password:       "some password",
+			AuthData:       NewPointer("some_auth_data"),
+			AuthService:    UserAuthServiceLdap,
+			Email:          "test@example.org",
+			EmailVerified:  true,
+			Position:       "some position",
+			Roles:          strings.Join([]string{ChannelAdminRoleId, SystemManagerRoleId}, ","),
+			AllowMarketing: true,
+			Props: StringMap{
+				"foo": "bar",
+			},
+			NotifyProps: StringMap{
+				"bar": "foo",
+			},
+			Locale:    DefaultLocale,
+			Timezone:  timezones.DefaultUserTimezone(),
+			MfaActive: true,
+			RemoteId:  NewPointer("some_remote"),
+		}
+
+		l := u.LogClone()
+		m, ok := l.(map[string]interface{})
+		require.True(t, ok)
+
+		expected := map[string]any{
+			"id":              id,
+			"create_at":       now,
+			"update_at":       now,
+			"delete_at":       now,
+			"username":        "some user_name",
+			"auth_data":       "some_auth_data",
+			"auth_service":    "ldap",
+			"email":           "test@example.org",
+			"email_verified":  true,
+			"position":        "some position",
+			"roles":           "channel_admin,system_manager",
+			"allow_marketing": true,
+			"props": StringMap{
+				"foo": "bar",
+			},
+			"notify_props": StringMap{
+				"bar": "foo",
+			},
+			"locale":     "en",
+			"timezone":   StringMap(timezones.DefaultUserTimezone()),
+			"mfa_active": true,
+			"remote_id":  "some_remote",
+		}
+
+		assert.Equal(t, expected, m)
+	})
+}
 
 func TestUserDeepCopy(t *testing.T) {
 	id := NewId()
@@ -20,7 +173,7 @@ func TestUserDeepCopy(t *testing.T) {
 	mapKey := "key"
 	mapValue := "key"
 
-	user := &User{Id: id, AuthData: NewString(authData), Props: map[string]string{}, NotifyProps: map[string]string{}, Timezone: map[string]string{}}
+	user := &User{Id: id, AuthData: NewPointer(authData), Props: map[string]string{}, NotifyProps: map[string]string{}, Timezone: map[string]string{}}
 	user.Props[mapKey] = mapValue
 	user.NotifyProps[mapKey] = mapValue
 	user.Timezone[mapKey] = mapValue
@@ -46,15 +199,44 @@ func TestUserDeepCopy(t *testing.T) {
 
 func TestUserPreSave(t *testing.T) {
 	user := User{Password: "test"}
-	user.PreSave()
+	err := user.PreSave()
+	require.Nil(t, err)
 	user.Etag(true, true)
 	assert.NotNil(t, user.Timezone, "Timezone is nil")
 	assert.Equal(t, user.Timezone["useAutomaticTimezone"], "true", "Timezone is not set to default")
+
+	// Set default user with notify props
+	userWithDefaultNotifyProps := User{}
+	userWithDefaultNotifyProps.SetDefaultNotifications()
+
+	for notifyPropKey, expectedNotifyPropValue := range userWithDefaultNotifyProps.NotifyProps {
+		actualNotifyPropValue, ok := user.NotifyProps[notifyPropKey]
+
+		assert.True(t, ok, "Notify prop %s is not set", notifyPropKey)
+		assert.Equal(t, expectedNotifyPropValue, actualNotifyPropValue, "Notify prop %s is not set to default", notifyPropKey)
+	}
+}
+
+func TestUserPreSavePwdTooLong(t *testing.T) {
+	user := User{Password: strings.Repeat("1234567890", 8)}
+	err := user.PreSave()
+	assert.ErrorIs(t, err, bcrypt.ErrPasswordTooLong)
 }
 
 func TestUserPreUpdate(t *testing.T) {
 	user := User{Password: "test"}
 	user.PreUpdate()
+
+	// Set default user with notify props
+	userWithDefaultNotifyProps := User{}
+	userWithDefaultNotifyProps.SetDefaultNotifications()
+
+	for notifyPropKey, expectedNotifyPropValue := range userWithDefaultNotifyProps.NotifyProps {
+		actualNotifyPropValue, ok := user.NotifyProps[notifyPropKey]
+
+		assert.True(t, ok, "Notify prop %s is not set", notifyPropKey)
+		assert.Equal(t, expectedNotifyPropValue, actualNotifyPropValue, "Notify prop %s is not set to default", notifyPropKey)
+	}
 }
 
 func TestUserUpdateMentionKeysFromUsername(t *testing.T) {
@@ -92,11 +274,11 @@ func TestUserIsValid(t *testing.T) {
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "username", user.Id, user.Username), "expected user is valid error: %s", appErr.Error())
 
-	user.Username = NewId() + "^hello#"
+	user.Username = NewUsername() + "^hello#"
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "username", user.Id, user.Username), "expected user is valid error: %s", appErr.Error())
 
-	user.Username = NewId()
+	user.Username = NewUsername()
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
 
@@ -115,6 +297,13 @@ func TestUserIsValid(t *testing.T) {
 
 	user.FirstName = ""
 	user.LastName = ""
+	require.Nil(t, user.IsValid())
+
+	user.Email = NewId()
+	appErr = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
+
+	user.RemoteId = NewPointer(NewId())
 	require.Nil(t, user.IsValid())
 
 	user.FirstName = strings.Repeat("a", 65)
@@ -142,6 +331,54 @@ func TestUserIsValid(t *testing.T) {
 	user.Roles = strings.Repeat("a", UserRolesMaxLength+1)
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "roles_limit", user.Id, user.Roles), "expected user is valid error: %s", appErr.Error())
+}
+
+func TestUserSanitizeInput(t *testing.T) {
+	user := User{}
+	user.CreateAt = GetMillis()
+	user.UpdateAt = GetMillis()
+	user.DeleteAt = GetMillis()
+	user.LastPasswordUpdate = GetMillis()
+	user.LastPictureUpdate = GetMillis()
+
+	user.Username = "username"
+	user.Email = "  user@example.com "
+	user.Nickname = "nickname"
+	user.FirstName = "firstname"
+	user.LastName = "lastname"
+	user.RemoteId = NewPointer(NewId())
+	user.Position = "position"
+	user.Roles = "system_admin"
+	user.AuthData = NewPointer("authdata")
+	user.AuthService = "saml"
+	user.EmailVerified = true
+	user.FailedAttempts = 10
+	user.LastActivityAt = GetMillis()
+	user.MfaUsedTimestamps = StringArray{"1234", "4566"}
+
+	user.SanitizeInput(false)
+
+	// these fields should be reset
+	require.Equal(t, NewPointer(""), user.AuthData)
+	require.Equal(t, "", user.AuthService)
+	require.False(t, user.EmailVerified)
+	require.Equal(t, NewPointer(""), user.RemoteId)
+	require.Equal(t, int64(0), user.CreateAt)
+	require.Equal(t, int64(0), user.UpdateAt)
+	require.Equal(t, int64(0), user.DeleteAt)
+	require.Equal(t, int64(0), user.LastPasswordUpdate)
+	require.Equal(t, int64(0), user.LastPictureUpdate)
+	require.Equal(t, int64(0), user.LastActivityAt)
+	require.Equal(t, 0, user.FailedAttempts)
+	require.Equal(t, StringArray{}, user.MfaUsedTimestamps)
+
+	// these fields should remain intact
+	require.Equal(t, "user@example.com", user.Email)
+	require.Equal(t, "username", user.Username)
+	require.Equal(t, "nickname", user.Nickname)
+	require.Equal(t, "firstname", user.FirstName)
+	require.Equal(t, "lastname", user.LastName)
+	require.Equal(t, "position", user.Position)
 }
 
 func HasExpectedUserIsValidError(err *AppError, fieldName, userId string, fieldValue any) bool {
@@ -374,5 +611,24 @@ func TestValidateCustomStatus(t *testing.T) {
 
 		user0.Props[UserPropsKeyCustomStatus] = "{\"wrong\": \"hello\"}"
 		assert.True(t, user0.ValidateCustomStatus())
+	})
+}
+
+func TestSanitizeProfile(t *testing.T) {
+	t.Run("should correctly sanitize email and remote email", func(t *testing.T) {
+		user := &User{
+			Email: "john@doe.com",
+			Props: StringMap{UserPropsKeyRemoteEmail: "remote@doe.com"},
+		}
+
+		user.SanitizeProfile(nil, false)
+
+		require.Equal(t, "john@doe.com", user.Email)
+		require.Equal(t, "remote@doe.com", user.Props[UserPropsKeyRemoteEmail])
+
+		user.SanitizeProfile(map[string]bool{"email": false}, false)
+
+		require.Empty(t, user.Email)
+		require.Empty(t, user.Props[UserPropsKeyRemoteEmail])
 	})
 }

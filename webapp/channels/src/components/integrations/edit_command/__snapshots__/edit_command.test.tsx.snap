@@ -29,7 +29,7 @@ exports[`components/integrations/EditCommand should have match renderExtra 1`] =
 `;
 
 exports[`components/integrations/EditCommand should match snapshot 1`] = `
-<injectIntl(AbstractCommand)
+<AbstractCommand
   action={[Function]}
   footer={
     Object {

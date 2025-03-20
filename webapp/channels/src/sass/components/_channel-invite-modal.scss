@@ -1,7 +1,5 @@
-@charset "UTF-8";
-
-@import 'utils/variables';
-@import 'utils/mixins';
+@use 'utils/variables';
+@use 'utils/mixins';
 
 .modal .channel-invite__content,
 .modal .user-groups-modal__content {

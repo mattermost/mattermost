@@ -4,6 +4,7 @@
 import type {AdminState} from './admin';
 import type {AppsState} from './apps';
 import type {Bot} from './bots';
+import type {ChannelBookmarksState} from './channel_bookmarks';
 import type {ChannelCategoriesState} from './channel_categories';
 import type {ChannelsState} from './channels';
 import type {CloudState, CloudUsage} from './cloud';
@@ -24,6 +25,7 @@ import type {
     TeamsRequestsStatuses, UsersRequestsStatuses,
 } from './requests';
 import type {Role} from './roles';
+import type {ScheduledPostsState} from './schedule_post';
 import type {SchemesState} from './schemes';
 import type {SearchState} from './search';
 import type {TeamsState} from './teams';
@@ -38,6 +40,7 @@ export type GlobalState = {
         limits: LimitsState;
         teams: TeamsState;
         channels: ChannelsState;
+        channelBookmarks: ChannelBookmarksState;
         posts: PostsState;
         threads: ThreadsState;
         bots: {
@@ -46,6 +49,11 @@ export type GlobalState = {
         preferences: {
             myPreferences: {
                 [x: string]: PreferenceType;
+            };
+            userPreferences: {
+                [userID: string]: {
+                    [x: string]: PreferenceType;
+                };
             };
         };
         admin: AdminState;
@@ -68,6 +76,7 @@ export type GlobalState = {
         cloud: CloudState;
         hostedCustomer: HostedCustomerState;
         usage: CloudUsage;
+        scheduledPosts: ScheduledPostsState;
     };
     errors: any[];
     requests: {
@@ -85,5 +94,6 @@ export type GlobalState = {
         lastConnectAt: number;
         lastDisconnectAt: number;
         connectionId: string;
+        serverHostname: string;
     };
 };

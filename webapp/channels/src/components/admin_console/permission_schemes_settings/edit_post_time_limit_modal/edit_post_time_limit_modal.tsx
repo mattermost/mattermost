@@ -3,18 +3,14 @@
 
 import React, {useState} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import {Constants} from 'utils/constants';
-import {t} from 'utils/i18n';
-import {localizeMessage} from 'utils/utils';
 
 const INT32_MAX = 2147483647;
 
@@ -30,6 +26,8 @@ type Props ={
 export default function EditPostTimeLimitModal(props: Props) {
     const {ServiceSettings} = props.config;
 
+    const intl = useIntl();
+
     const [saving, setSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [postEditTimeLimit, setPostEditTimeLimit] = useState<number>(ServiceSettings?.PostEditTimeLimit || Constants.UNSET_POST_EDIT_TIME_LIMIT);
@@ -40,7 +38,7 @@ export default function EditPostTimeLimitModal(props: Props) {
         setErrorMessage('');
 
         if (isNaN(postEditTimeLimit) || postEditTimeLimit < 0 || postEditTimeLimit > INT32_MAX) {
-            setErrorMessage(localizeMessage('edit_post.time_limit_modal.invalid_time_limit', 'Invalid time limit'));
+            setErrorMessage(intl.formatMessage({id: 'edit_post.time_limit_modal.invalid_time_limit', defaultMessage: 'Invalid time limit'}));
             setSaving(false);
             setPostEditTimeLimit(0);
             return false;
@@ -71,7 +69,7 @@ export default function EditPostTimeLimitModal(props: Props) {
         <Modal
             dialogClassName='a11y__modal admin-modal edit-post-time-limit-modal'
             show={props.show}
-            role='dialog'
+            role='none'
             aria-labelledby='editPostTimeModalLabel'
             onHide={props.onClose}
         >
@@ -87,9 +85,12 @@ export default function EditPostTimeLimitModal(props: Props) {
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <FormattedMarkdownMessage
-                    id='edit_post.time_limit_modal.description'
-                    defaultMessage='Setting a time limit **applies to all users** who have the "Edit Post" permissions in any permission scheme.'
+                <FormattedMessage
+                    id='editPost.timeLimitModal.description'
+                    defaultMessage='Setting a time limit <b>applies to all users</b> who have the "Edit Post" permissions in any permission scheme.'
+                    values={{
+                        b: (chunks: string) => <b>{chunks}</b>,
+                    }}
                 />
                 <div className='pt-3'>
                     <div className='pt-3'>
@@ -170,10 +171,17 @@ export default function EditPostTimeLimitModal(props: Props) {
                     onClick={save}
                     disabled={saving}
                 >
-                    <FormattedMessage
-                        id={saving ? t('save_button.saving') : t('edit_post.time_limit_modal.save_button')}
-                        defaultMessage='Save Edit Time'
-                    />
+                    {saving ? (
+                        <FormattedMessage
+                            id='save_button.saving'
+                            defaultMessage='Saving'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='edit_post.time_limit_modal.save_button'
+                            defaultMessage='Save Edit Time'
+                        />
+                    )}
                 </button>
             </Modal.Footer>
         </Modal>

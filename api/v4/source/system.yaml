@@ -222,6 +222,30 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/notifications/test:
+    post:
+      tags:
+        - system
+      summary: Send a test notification
+      description: >
+        Send a test notification to make sure you have your notification settings
+        configured correctly.
+
+        ##### Permissions
+
+        Must be logged in.
+      operationId: TestNotification
+      responses:
+        "200":
+          description: Notification successfully sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/site_url/test:
     post:
       tags:
@@ -309,6 +333,27 @@
         ##### Permissions
         Must have `manage_system` permission.
       operationId: GetConfig
+      parameters:
+        - name: remove_masked
+          in: query
+          description: |
+            Remove masked values from the exported configuration.
+
+            __Minimum server version__: 10.4.0
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: remove_defaults
+          in: query
+          description: |
+            Remove default values from the exported configuration.
+
+            __Minimum server version__: 10.4.0
+          required: false
+          schema:
+            type: string
+            default: false
       responses:
         "200":
           description: Configuration retrieval successful
@@ -1138,7 +1183,7 @@
         - name: plugin_packets
           in: query
           description: |
-            Specifies plugin identifiers whose content should be included in the support packet.
+            Specifies plugin identifiers whose content should be included in the Support Packet.
 
             __Minimum server version__: 9.8.0
           required: false

@@ -9,8 +9,6 @@ import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import Constants from 'utils/constants';
 
 type Props = {
@@ -53,7 +51,7 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='unarchiveChannelModalLabel'
                 id='unarchiveChannelModal'
             >
@@ -70,11 +68,12 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
                 </Modal.Header>
                 <Modal.Body>
                     <div className='alert alert-danger'>
-                        <FormattedMarkdownMessage
-                            id='unarchive_channel.viewArchived.question'
-                            defaultMessage={'Are you sure you wish to unarchive the **{display_name}** channel?'}
+                        <FormattedMessage
+                            id='unarchiveChannelModal.viewArchived.question'
+                            defaultMessage={'Are you sure you wish to unarchive the <b>{display_name}</b> channel?'}
                             values={{
                                 display_name: this.props.channel.display_name,
+                                b: (chunks: string) => <b>{chunks}</b>,
                             }}
                         />
                     </div>

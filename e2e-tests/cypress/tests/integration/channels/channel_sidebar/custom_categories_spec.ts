@@ -34,7 +34,7 @@ describe('Channel sidebar', () => {
         const categoryName = createCategoryFromSidebarMenu();
 
         // # Create new category from category menu
-        clickCategoryMenuItem(categoryName, 'Create New Category');
+        clickCategoryMenuItem({categoryDisplayName: categoryName, menuItemText: 'Create New Category'});
 
         const newCategoryName = `category-${getRandomId()}`;
         cy.get('#editCategoryModal input').type(newCategoryName).type('{enter}');
@@ -57,7 +57,7 @@ describe('Channel sidebar', () => {
         const categoryName = createCategoryFromSidebarMenu();
 
         // # Rename category from category menu
-        clickCategoryMenuItem(categoryName, 'Rename Category');
+        clickCategoryMenuItem({categoryDisplayName: categoryName, menuItemText: 'Rename Category'});
 
         const renameCategory = `category-${getRandomId()}`;
 
@@ -75,7 +75,7 @@ describe('Channel sidebar', () => {
         const categoryName = createCategoryFromSidebarMenu();
 
         // # Delete category from category menu
-        clickCategoryMenuItem(categoryName, 'Delete Category');
+        clickCategoryMenuItem({categoryDisplayName: categoryName, menuItemText: 'Delete Category'});
 
         // # Click on delete button
         cy.get('.GenericModal__button.delete').click();
@@ -89,11 +89,8 @@ function createCategoryFromSidebarMenu() {
     // # Start with a new category
     const categoryName = `category-${getRandomId()}`;
 
-    // # Click on the sidebar menu dropdown
-    cy.uiGetLHSAddChannelButton().click();
-
-    // # Click on create category link
-    cy.findByText('Create new category').should('be.visible').click();
+    // # Click on the sidebar menu dropdown and select Create Category
+    cy.uiBrowseOrCreateChannel('Create new category');
 
     // # Verify that Create Category modal has shown up.
     // # Wait for a while until the modal has fully loaded, especially during first-time access.

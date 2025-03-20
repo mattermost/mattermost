@@ -2,7 +2,7 @@
     display: flex;
     align-items: center;
     padding: 20px 20px 20px 32px;
-    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    border-bottom: var(--border-light);
     background: none;
     gap: 8px;
 

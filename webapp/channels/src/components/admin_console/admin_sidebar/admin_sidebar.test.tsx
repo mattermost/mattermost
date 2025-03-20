@@ -3,7 +3,6 @@
 
 import React from 'react';
 
-import {SelfHostedSignupProgress} from '@mattermost/types/cloud';
 import type {ExperimentalSettings, PluginSettings, SSOSettings, Office365Settings} from '@mattermost/types/config';
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
@@ -93,9 +92,6 @@ describe('components/AdminSidebar', () => {
                 limits: {},
             },
             errors: {},
-            selfHostedSignup: {
-                progress: SelfHostedSignupProgress.START,
-            },
         },
         showTaskList: false,
     };

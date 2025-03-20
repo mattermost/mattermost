@@ -1,0 +1,470 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/AdminConsole/ClientSideUserIdsSetting initial state with multiple items 1`] = `
+<ClientSideUserIdsSetting
+  disabled={false}
+  id="MySetting"
+  onChange={[MockFunction]}
+  setByEnv={false}
+  value={
+    Array [
+      "userid1",
+      "userid2",
+      "id3",
+    ]
+  }
+>
+  <Memo(Settings)
+    helpText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Set the user ids you want to track for client side metrics. Separate values with a comma."
+        id="admin.customization.clientSideUserIdsDesc"
+      />
+    }
+    inputId="MySetting"
+    label={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Client side user ids:"
+        id="admin.customization.clientSideUserIds"
+      />
+    }
+    setByEnv={false}
+  >
+    <div
+      className="form-group"
+      data-testid="MySetting"
+    >
+      <label
+        className="control-label col-sm-4"
+        htmlFor="MySetting"
+      >
+        <FormattedMessage
+          defaultMessage="Client side user ids:"
+          id="admin.customization.clientSideUserIds"
+        >
+          <span>
+            Client side user ids:
+          </span>
+        </FormattedMessage>
+      </label>
+      <div
+        className="col-sm-8"
+      >
+        <LocalizedPlaceholderInput
+          className="form-control"
+          disabled={false}
+          id="MySetting"
+          onChange={[Function]}
+          placeholder={
+            Object {
+              "defaultMessage": "E.g.: \\"userid1,userid2\\"",
+              "id": "admin.customization.clientSideUserIdsPlaceholder",
+            }
+          }
+          type="text"
+          value="userid1,userid2,id3"
+        >
+          <input
+            className="form-control"
+            disabled={false}
+            id="MySetting"
+            onChange={[Function]}
+            placeholder="E.g.: \\"userid1,userid2\\""
+            type="text"
+            value="userid1,userid2,id3"
+          />
+        </LocalizedPlaceholderInput>
+        <div
+          className="help-text"
+          data-testid="MySettinghelp-text"
+        >
+          <FormattedMessage
+            defaultMessage="Set the user ids you want to track for client side metrics. Separate values with a comma."
+            id="admin.customization.clientSideUserIdsDesc"
+          >
+            <span>
+              Set the user ids you want to track for client side metrics. Separate values with a comma.
+            </span>
+          </FormattedMessage>
+        </div>
+      </div>
+    </div>
+  </Memo(Settings)>
+</ClientSideUserIdsSetting>
+`;
+
+exports[`components/AdminConsole/ClientSideUserIdsSetting initial state with no items 1`] = `
+<ClientSideUserIdsSetting
+  disabled={false}
+  id="MySetting"
+  onChange={[MockFunction]}
+  setByEnv={false}
+  value={Array []}
+>
+  <Memo(Settings)
+    helpText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Set the user ids you want to track for client side metrics. Separate values with a comma."
+        id="admin.customization.clientSideUserIdsDesc"
+      />
+    }
+    inputId="MySetting"
+    label={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Client side user ids:"
+        id="admin.customization.clientSideUserIds"
+      />
+    }
+    setByEnv={false}
+  >
+    <div
+      className="form-group"
+      data-testid="MySetting"
+    >
+      <label
+        className="control-label col-sm-4"
+        htmlFor="MySetting"
+      >
+        <FormattedMessage
+          defaultMessage="Client side user ids:"
+          id="admin.customization.clientSideUserIds"
+        >
+          <span>
+            Client side user ids:
+          </span>
+        </FormattedMessage>
+      </label>
+      <div
+        className="col-sm-8"
+      >
+        <LocalizedPlaceholderInput
+          className="form-control"
+          disabled={false}
+          id="MySetting"
+          onChange={[Function]}
+          placeholder={
+            Object {
+              "defaultMessage": "E.g.: \\"userid1,userid2\\"",
+              "id": "admin.customization.clientSideUserIdsPlaceholder",
+            }
+          }
+          type="text"
+          value=""
+        >
+          <input
+            className="form-control"
+            disabled={false}
+            id="MySetting"
+            onChange={[Function]}
+            placeholder="E.g.: \\"userid1,userid2\\""
+            type="text"
+            value=""
+          />
+        </LocalizedPlaceholderInput>
+        <div
+          className="help-text"
+          data-testid="MySettinghelp-text"
+        >
+          <FormattedMessage
+            defaultMessage="Set the user ids you want to track for client side metrics. Separate values with a comma."
+            id="admin.customization.clientSideUserIdsDesc"
+          >
+            <span>
+              Set the user ids you want to track for client side metrics. Separate values with a comma.
+            </span>
+          </FormattedMessage>
+        </div>
+      </div>
+    </div>
+  </Memo(Settings)>
+</ClientSideUserIdsSetting>
+`;
+
+exports[`components/AdminConsole/ClientSideUserIdsSetting initial state with one item 1`] = `
+<ClientSideUserIdsSetting
+  disabled={false}
+  id="MySetting"
+  onChange={[MockFunction]}
+  setByEnv={false}
+  value={
+    Array [
+      "userid1",
+    ]
+  }
+>
+  <Memo(Settings)
+    helpText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Set the user ids you want to track for client side metrics. Separate values with a comma."
+        id="admin.customization.clientSideUserIdsDesc"
+      />
+    }
+    inputId="MySetting"
+    label={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Client side user ids:"
+        id="admin.customization.clientSideUserIds"
+      />
+    }
+    setByEnv={false}
+  >
+    <div
+      className="form-group"
+      data-testid="MySetting"
+    >
+      <label
+        className="control-label col-sm-4"
+        htmlFor="MySetting"
+      >
+        <FormattedMessage
+          defaultMessage="Client side user ids:"
+          id="admin.customization.clientSideUserIds"
+        >
+          <span>
+            Client side user ids:
+          </span>
+        </FormattedMessage>
+      </label>
+      <div
+        className="col-sm-8"
+      >
+        <LocalizedPlaceholderInput
+          className="form-control"
+          disabled={false}
+          id="MySetting"
+          onChange={[Function]}
+          placeholder={
+            Object {
+              "defaultMessage": "E.g.: \\"userid1,userid2\\"",
+              "id": "admin.customization.clientSideUserIdsPlaceholder",
+            }
+          }
+          type="text"
+          value="userid1"
+        >
+          <input
+            className="form-control"
+            disabled={false}
+            id="MySetting"
+            onChange={[Function]}
+            placeholder="E.g.: \\"userid1,userid2\\""
+            type="text"
+            value="userid1"
+          />
+        </LocalizedPlaceholderInput>
+        <div
+          className="help-text"
+          data-testid="MySettinghelp-text"
+        >
+          <FormattedMessage
+            defaultMessage="Set the user ids you want to track for client side metrics. Separate values with a comma."
+            id="admin.customization.clientSideUserIdsDesc"
+          >
+            <span>
+              Set the user ids you want to track for client side metrics. Separate values with a comma.
+            </span>
+          </FormattedMessage>
+        </div>
+      </div>
+    </div>
+  </Memo(Settings)>
+</ClientSideUserIdsSetting>
+`;
+
+exports[`components/AdminConsole/ClientSideUserIdsSetting renders properly when disabled 1`] = `
+<ClientSideUserIdsSetting
+  disabled={true}
+  id="MySetting"
+  onChange={[MockFunction]}
+  setByEnv={false}
+  value={
+    Array [
+      "userid1",
+      "userid2",
+    ]
+  }
+>
+  <Memo(Settings)
+    helpText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Set the user ids you want to track for client side metrics. Separate values with a comma."
+        id="admin.customization.clientSideUserIdsDesc"
+      />
+    }
+    inputId="MySetting"
+    label={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Client side user ids:"
+        id="admin.customization.clientSideUserIds"
+      />
+    }
+    setByEnv={false}
+  >
+    <div
+      className="form-group"
+      data-testid="MySetting"
+    >
+      <label
+        className="control-label col-sm-4"
+        htmlFor="MySetting"
+      >
+        <FormattedMessage
+          defaultMessage="Client side user ids:"
+          id="admin.customization.clientSideUserIds"
+        >
+          <span>
+            Client side user ids:
+          </span>
+        </FormattedMessage>
+      </label>
+      <div
+        className="col-sm-8"
+      >
+        <LocalizedPlaceholderInput
+          className="form-control"
+          disabled={true}
+          id="MySetting"
+          onChange={[Function]}
+          placeholder={
+            Object {
+              "defaultMessage": "E.g.: \\"userid1,userid2\\"",
+              "id": "admin.customization.clientSideUserIdsPlaceholder",
+            }
+          }
+          type="text"
+          value="userid1,userid2"
+        >
+          <input
+            className="form-control"
+            disabled={true}
+            id="MySetting"
+            onChange={[Function]}
+            placeholder="E.g.: \\"userid1,userid2\\""
+            type="text"
+            value="userid1,userid2"
+          />
+        </LocalizedPlaceholderInput>
+        <div
+          className="help-text"
+          data-testid="MySettinghelp-text"
+        >
+          <FormattedMessage
+            defaultMessage="Set the user ids you want to track for client side metrics. Separate values with a comma."
+            id="admin.customization.clientSideUserIdsDesc"
+          >
+            <span>
+              Set the user ids you want to track for client side metrics. Separate values with a comma.
+            </span>
+          </FormattedMessage>
+        </div>
+      </div>
+    </div>
+  </Memo(Settings)>
+</ClientSideUserIdsSetting>
+`;
+
+exports[`components/AdminConsole/ClientSideUserIdsSetting renders properly when set by environment variable 1`] = `
+<ClientSideUserIdsSetting
+  disabled={false}
+  id="MySetting"
+  onChange={[MockFunction]}
+  setByEnv={true}
+  value={
+    Array [
+      "userid1",
+      "userid2",
+    ]
+  }
+>
+  <Memo(Settings)
+    helpText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Set the user ids you want to track for client side metrics. Separate values with a comma."
+        id="admin.customization.clientSideUserIdsDesc"
+      />
+    }
+    inputId="MySetting"
+    label={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Client side user ids:"
+        id="admin.customization.clientSideUserIds"
+      />
+    }
+    setByEnv={true}
+  >
+    <div
+      className="form-group"
+      data-testid="MySetting"
+    >
+      <label
+        className="control-label col-sm-4"
+        htmlFor="MySetting"
+      >
+        <FormattedMessage
+          defaultMessage="Client side user ids:"
+          id="admin.customization.clientSideUserIds"
+        >
+          <span>
+            Client side user ids:
+          </span>
+        </FormattedMessage>
+      </label>
+      <div
+        className="col-sm-8"
+      >
+        <LocalizedPlaceholderInput
+          className="form-control"
+          disabled={true}
+          id="MySetting"
+          onChange={[Function]}
+          placeholder={
+            Object {
+              "defaultMessage": "E.g.: \\"userid1,userid2\\"",
+              "id": "admin.customization.clientSideUserIdsPlaceholder",
+            }
+          }
+          type="text"
+          value="userid1,userid2"
+        >
+          <input
+            className="form-control"
+            disabled={true}
+            id="MySetting"
+            onChange={[Function]}
+            placeholder="E.g.: \\"userid1,userid2\\""
+            type="text"
+            value="userid1,userid2"
+          />
+        </LocalizedPlaceholderInput>
+        <div
+          className="help-text"
+          data-testid="MySettinghelp-text"
+        >
+          <FormattedMessage
+            defaultMessage="Set the user ids you want to track for client side metrics. Separate values with a comma."
+            id="admin.customization.clientSideUserIdsDesc"
+          >
+            <span>
+              Set the user ids you want to track for client side metrics. Separate values with a comma.
+            </span>
+          </FormattedMessage>
+        </div>
+        <SetByEnv>
+          <div
+            className="alert alert-warning"
+          >
+            <FormattedMessage
+              defaultMessage="This setting has been set through an environment variable. It cannot be changed through the System Console."
+              id="admin.set_by_env"
+            >
+              <span>
+                This setting has been set through an environment variable. It cannot be changed through the System Console.
+              </span>
+            </FormattedMessage>
+          </div>
+        </SetByEnv>
+      </div>
+    </div>
+  </Memo(Settings)>
+</ClientSideUserIdsSetting>
+`;

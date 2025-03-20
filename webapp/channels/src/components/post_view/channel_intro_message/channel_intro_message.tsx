@@ -18,7 +18,6 @@ import ChannelIntroPrivateSvg from 'components/common/svg_images_components/chan
 import ChannelIntroPublicSvg from 'components/common/svg_images_components/channel_intro_public_svg';
 import ChannelIntroTownSquareSvg from 'components/common/svg_images_components/channel_intro_town_square_svg';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import ProfilePicture from 'components/profile_picture';
@@ -34,7 +33,7 @@ import PluggableIntroButtons from './pluggable_intro_buttons';
 
 type Props = {
     currentUserId: string;
-    channel: Channel;
+    channel?: Channel;
     fullWidth: boolean;
     locale: string;
     channelProfiles: UserProfileType[];
@@ -59,6 +58,10 @@ type Props = {
 
 export default class ChannelIntroMessage extends React.PureComponent<Props> {
     toggleFavorite = () => {
+        if (!this.props.channel) {
+            return;
+        }
+
         if (this.props.isFavorite) {
             this.props.actions.unfavoriteChannel(this.props.channel.id);
         } else {
@@ -96,6 +99,10 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
         let centeredIntro = '';
         if (!fullWidth) {
             centeredIntro = 'channel-intro--centered';
+        }
+
+        if (!channel) {
+            return null;
         }
 
         if (channel.type === Constants.DM_CHANNEL) {
@@ -269,17 +276,15 @@ function createDMIntroMessage(
                         status={teammate.is_bot ? '' : channel.status}
                         userId={teammate?.id}
                         username={teammate?.username}
-                        hasMention={true}
                     />
                 </div>
                 <h2 className='channel-intro__title'>
                     <UserProfile
                         userId={teammate?.id}
-                        disablePopover={false}
                     />
                 </h2>
                 <p className='channel-intro__text'>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='intro_messages.DM'
                         defaultMessage='This is the start of your direct message history with {teammate}. Messages and files shared here are not shown to anyone else.'
                         values={{
@@ -701,7 +706,7 @@ function createSetHeaderButton(channel: Channel) {
     return (
         <ToggleModalButton
             modalId={ModalIdentifiers.EDIT_CHANNEL_HEADER}
-            ariaLabel={Utils.localizeMessage('intro_messages.setHeader', 'Set header')}
+            ariaLabel={Utils.localizeMessage({id: 'intro_messages.setHeader', defaultMessage: 'Set header'})}
             className={'action-button'}
             dialogType={EditChannelHeaderModal}
             dialogProps={{channel}}
@@ -748,11 +753,12 @@ function createFavoriteButton(isFavorite: boolean, toggleFavorite: () => void, c
 function createNotificationPreferencesButton(channel: Channel, currentUser: UserProfileType) {
     return (
         <ToggleModalButton
+            id='channelIntroNotificationPreferencesButton'
             modalId={ModalIdentifiers.CHANNEL_NOTIFICATIONS}
-            ariaLabel={Utils.localizeMessage('intro_messages.notificationPreferences', 'Notification Preferences')}
+            ariaLabel={Utils.localizeMessage({id: 'intro_messages.notificationPreferences', defaultMessage: 'Notification Preferences'})}
             className={'action-button'}
             dialogType={ChannelNotificationsModal}
-            dialogProps={{channel, currentUser}}
+            dialogProps={{channel, currentUser, focusOriginElement: 'channelIntroNotificationPreferencesButton'}}
         >
             <BellRingOutlineIcon size={24}/>
             <FormattedMessage

@@ -3,18 +3,18 @@
 
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {TermsOfService} from '@mattermost/types/terms_of_service';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import AdminSettings from 'components/admin_console/admin_settings';
-import type {BaseProps, BaseState} from 'components/admin_console/admin_settings';
 import BooleanSetting from 'components/admin_console/boolean_setting';
+import OLDAdminSettings from 'components/admin_console/old_admin_settings';
+import type {BaseProps, BaseState} from 'components/admin_console/old_admin_settings';
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
 
 import {Constants} from 'utils/constants';
@@ -53,7 +53,7 @@ export const messages = defineMessages({
     termsOfServiceTextHelp: {id: 'admin.support.termsOfServiceTextHelp', defaultMessage: 'Text that will appear in your custom Terms of Service. Supports Markdown-formatted text.'},
     termsOfServiceReAcceptanceTitle: {id: 'admin.support.termsOfServiceReAcceptanceTitle', defaultMessage: 'Re-Acceptance Period:'},
     termsOfServiceReAcceptanceHelp: {id: 'admin.support.termsOfServiceReAcceptanceHelp', defaultMessage: 'The number of days before Terms of Service acceptance expires, and the terms must be re-accepted.'},
-    enableTermsOfServiceHelp: {id: 'admin.support.enableTermsOfServiceHelp', defaultMessage: 'When true, new users must accept the terms of service before accessing any Mattermost teams on desktop, web or mobile. Existing users must accept them after login or a page refresh. To update terms of service link displayed in account creation and login pages, go to [Site Configuration > Customization](../site_config/customization).'},
+    enableTermsOfServiceHelp: {id: 'admin.support.enableTermsOfServiceHelp', defaultMessage: 'When true, new users must accept the terms of service before accessing any Mattermost teams on desktop, web or mobile. Existing users must accept them after login or a page refresh. To update terms of service link displayed in account creation and login pages, go to <a>Site Configuration > Customization</a>'},
 });
 
 export const searchableStrings = [
@@ -66,7 +66,7 @@ export const searchableStrings = [
     messages.termsOfServiceReAcceptanceHelp,
 ];
 
-export default class CustomTermsOfServiceSettings extends AdminSettings<Props, State> {
+export default class CustomTermsOfServiceSettings extends OLDAdminSettings<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -201,7 +201,14 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
                     key={'customTermsOfServiceEnabled'}
                     id={'SupportSettings.CustomTermsOfServiceEnabled'}
                     label={<FormattedMessage {...messages.enableTermsOfServiceTitle}/>}
-                    helpText={<FormattedMarkdownMessage {...messages.enableTermsOfServiceHelp}/>}
+                    helpText={
+                        <FormattedMessage
+                            {...messages.enableTermsOfServiceHelp}
+                            values={{
+                                a: (chunks: string) => <Link to='/admin_console/site_config/customization'>{chunks}</Link>,
+                            }}
+                        />
+                    }
                     value={Boolean(this.state.termsEnabled)}
                     onChange={this.handleTermsEnabledChange}
                     setByEnv={this.isSetByEnv('SupportSettings.CustomTermsOfServiceEnabled')}

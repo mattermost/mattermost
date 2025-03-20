@@ -7,10 +7,10 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @not_cloud @system_console
 
 import {fileSizeToString} from '../../../utils';
+import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Unsaved Changes', () => {
     let defaultMaxFileSize;
@@ -26,7 +26,7 @@ describe('Unsaved Changes', () => {
     it('MM-T955 Warning leaving changed page without saving: Leave page, discard changes', () => {
         // # Make a change on any page.
         cy.visit('/admin_console/environment/file_storage');
-        cy.findByTestId('FileSettings.MaxFileSizenumber').clear().type('150');
+        cy.findByTestId('FileSettings.MaxFileSizenumber', {timeout: TIMEOUTS.FIVE_SEC}).clear().type('150');
 
         // # Click a navigation item in left nav.
         cy.findByText('Database').click();
@@ -38,7 +38,7 @@ describe('Unsaved Changes', () => {
         // * Opens other page, changes discarded.
         cy.url().should('include', '/environment/database');
         cy.visit('/admin_console/environment/file_storage');
-        cy.findByTestId('FileSettings.MaxFileSizenumber').should('have.value', fileSizeToString(defaultMaxFileSize).replace('MB', ''));
+        cy.findByTestId('FileSettings.MaxFileSizenumber', {timeout: TIMEOUTS.FIVE_SEC}).should('have.value', fileSizeToString(defaultMaxFileSize).replace('MB', ''));
     });
 
     it('MM-T956 Warning leaving changed page without saving: Cancel leaving page', () => {
@@ -46,7 +46,7 @@ describe('Unsaved Changes', () => {
 
         // # Make a change on any page.
         cy.visit('/admin_console/environment/file_storage');
-        cy.findByTestId('FileSettings.MaxFileSizenumber').clear().type(draftValue);
+        cy.findByTestId('FileSettings.MaxFileSizenumber', {timeout: TIMEOUTS.FIVE_SEC}).clear().type(draftValue);
 
         // # Click a navigation item in left nav.
         cy.findByText('Database').click();
@@ -57,7 +57,7 @@ describe('Unsaved Changes', () => {
 
         // * Stays on current page, changes kept.
         cy.url().should('include', '/environment/file_storage');
-        cy.findByTestId('FileSettings.MaxFileSizenumber').should('have.value', draftValue);
+        cy.findByTestId('FileSettings.MaxFileSizenumber', {timeout: TIMEOUTS.FIVE_SEC}).should('have.value', draftValue);
     });
 });
 

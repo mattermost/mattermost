@@ -214,7 +214,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                 onHide={this.hideModal}
                 onEntering={this.handleEntering}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='editChannelHeaderModalLabel'
             >
                 <Modal.Header closeButton={true}>
@@ -227,12 +227,15 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                 </Modal.Header>
                 <Modal.Body bsClass='modal-body edit-modal-body'>
                     <div>
-                        <p>
+                        <label
+                            htmlFor='edit_textbox'
+                            className='textarea-label'
+                        >
                             <FormattedMessage
                                 id='edit_channel_header_modal.description'
                                 defaultMessage='Edit the text appearing next to the channel name in the header.'
                             />
-                        </p>
+                        </label>
                         <div className='textarea-wrapper'>
                             <Textbox
                                 value={this.state.header!}
@@ -253,7 +256,6 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                         </div>
                         <div className='post-create-footer'>
                             <TextboxLinks
-                                isMarkdownPreviewEnabled={this.props.markdownPreviewFeatureIsEnabled}
                                 showPreview={this.props.shouldShowPreview}
                                 updatePreview={this.setShowPreview}
                                 hasText={this.state.header ? this.state.header.length > 0 : false}

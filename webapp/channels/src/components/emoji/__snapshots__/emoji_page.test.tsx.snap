@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EmojiPage should render without crashing 1`] = `
+<div
+  className="backstage-content emoji-list"
+>
+  <div
+    className="backstage-header"
+  >
+    <h1>
+      <MemoizedFormattedMessage
+        defaultMessage="Custom Emoji"
+        id="emoji_list.header"
+      />
+    </h1>
+    <Memo(AnyTeamPermissionGate)
+      permissions={
+        Array [
+          "create_emojis",
+        ]
+      }
+    >
+      <Link
+        className="add-link"
+        to="/team/emoji/add"
+      >
+        <button
+          className="btn btn-primary"
+          type="button"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Add Custom Emoji"
+            id="emoji_list.add"
+          />
+        </button>
+      </Link>
+    </Memo(AnyTeamPermissionGate)>
+  </div>
+  <Connect(EmojiList)
+    scrollToTop={[MockFunction]}
+  />
+</div>
+`;

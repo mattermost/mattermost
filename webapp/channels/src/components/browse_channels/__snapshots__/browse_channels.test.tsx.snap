@@ -2,7 +2,6 @@
 
 exports[`components/BrowseChannels should match snapshot and state 1`] = `
 <GenericModal
-  aria-labelledby="browseChannelsModalLabel"
   aria-modal={true}
   autoCloseOnCancelButton={true}
   autoCloseOnConfirmButton={false}
@@ -10,7 +9,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
   compassDesign={true}
   enforceFocus={false}
   headerButton={
-    <Memo(Connect(TeamPermissionGate))
+    <Memo(TeamPermissionGate)
       permissions={
         Array [
           "create_public_channel",
@@ -30,7 +29,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
           id="more_channels.create"
         />
       </button>
-    </Memo(Connect(TeamPermissionGate))>
+    </Memo(TeamPermissionGate)>
   }
   id="browseChannelsModal"
   keyboardEscape={true}
@@ -40,8 +39,11 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
       id="more_channels.title"
     />
   }
+  modalLocation="center"
   onExited={[Function]}
   show={true}
+  showCloseButton={true}
+  showHeader={true}
 >
   <injectIntl(SearchableChannelList)
     canShowArchivedChannels={true}
@@ -128,7 +130,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
             id="more_channels.searchError"
           />
         </p>
-        <Memo(Connect(TeamPermissionGate))
+        <Memo(TeamPermissionGate)
           permissions={
             Array [
               "create_public_channel",
@@ -151,7 +153,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
               id="more_channels.create"
             />
           </button>
-        </Memo(Connect(TeamPermissionGate))>
+        </Memo(TeamPermissionGate)>
       </React.Fragment>
     }
     rememberHideJoinedChannelsChecked={false}

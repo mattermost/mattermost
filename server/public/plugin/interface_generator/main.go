@@ -307,6 +307,15 @@ var hooksTemplate = `// Copyright (c) 2015-present Mattermost, Inc. All Rights R
 
 package plugin
 
+import (
+	"fmt"
+	"log"
+
+	saml2 "github.com/mattermost/gosaml2"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+)
+
 {{range .HooksMethods}}
 
 func init() {
@@ -432,6 +441,7 @@ import (
 	"net/http"
 	timePkg "time"
 
+	saml2 "github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -511,7 +521,10 @@ func generateHooksGlue(info *PluginInterfaceInfo) {
 		})
 	}
 	templateResult := &bytes.Buffer{}
-	hooksTemplate.Execute(templateResult, &templateParams)
+	err = hooksTemplate.Execute(templateResult, &templateParams)
+	if err != nil {
+		panic(err)
+	}
 
 	formatted, err := imports.Process("", templateResult.Bytes(), nil)
 	if err != nil {
@@ -565,7 +578,10 @@ func generatePluginTimerLayer(info *PluginInterfaceInfo) {
 		}
 
 		templateResult := &bytes.Buffer{}
-		parsedTemplate.Execute(templateResult, &templateParams)
+		err = parsedTemplate.Execute(templateResult, &templateParams)
+		if err != nil {
+			panic(err)
+		}
 
 		formatted, err := imports.Process("", templateResult.Bytes(), nil)
 		if err != nil {

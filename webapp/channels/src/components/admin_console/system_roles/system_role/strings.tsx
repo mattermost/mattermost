@@ -105,7 +105,11 @@ export const sectionStrings: Record<string, Record<string, MessageDescriptor>> =
     user_management_system_roles: defineMessages({
         name: {
             id: 'admin.permissions.sysconsole_section_user_management_system_roles.name',
-            defaultMessage: 'System Roles',
+            defaultMessage: 'Delegated Granular Administration',
+        },
+        description: {
+            id: 'admin.permissions.sysconsole_section_user_management_system_roles.description',
+            defaultMessage: 'Restricts the System Console interface only. The underlying API endpoints are accessible to all users in a read-only state for basic product functionality.',
         },
     }),
     environment: defineMessages({
@@ -359,7 +363,7 @@ export const sectionStrings: Record<string, Record<string, MessageDescriptor>> =
     integrations_gif: defineMessages({
         name: {
             id: 'admin.permissions.sysconsole_section_integrations_gif.name',
-            defaultMessage: 'GIF (Beta)',
+            defaultMessage: 'GIF',
         },
     }),
     integrations_cors: defineMessages({

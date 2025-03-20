@@ -30,7 +30,6 @@ func (wh webSocketHandler) ServeWebSocket(conn *platform.WebConn, r *model.WebSo
 		return
 	}
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
-	defer wh.app.ReturnSessionToPool(session)
 
 	if sessionErr != nil {
 		mlog.Error(

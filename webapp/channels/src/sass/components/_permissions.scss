@@ -1,8 +1,11 @@
+@use "utils/functions";
+@use "utils/variables";
+
 @use 'sass:color';
 
 @keyframes rowhighlight {
     0% {
-        background-color: $transparent;
+        background-color: variables.$transparent;
     }
 
     20% {
@@ -14,7 +17,7 @@
     }
 
     100% {
-        background-color: $transparent;
+        background-color: variables.$transparent;
     }
 }
 
@@ -38,7 +41,7 @@
         padding: 20px;
         margin: 20px;
         background: rgba(255, 255, 255, 0.5);
-        color: $gray;
+        color: variables.$gray;
         font-size: 16px;
         text-align: center;
     }
@@ -50,7 +53,7 @@
 
         .team-override-unavailable__inner {
             padding: 20px;
-            background-color: $white;
+            background-color: variables.$white;
         }
     }
 
@@ -113,14 +116,14 @@
         .permission-description {
             display: block;
             width: 100%;
-            color: $black;
+            color: variables.$black;
             opacity: 1;
         }
     }
 
     .permissions-tree--body {
-        background-color: $bg--gray;
-        background-image: linear-gradient(transparent 50%, alpha-color($white, 0.5) 50%);
+        background-color: variables.$bg--gray;
+        background-image: linear-gradient(transparent 50%, functions.alpha-color(variables.$white, 0.5) 50%);
         background-size: 68px 68px;
         cursor: pointer;
     }
@@ -148,7 +151,7 @@
         min-height: 18px;
         align-items: center;
         justify-content: space-around;
-        border: 2px solid $dark-gray;
+        border: 2px solid variables.$dark-gray;
         border-radius: 3px;
         margin-right: 5px;
 
@@ -157,8 +160,8 @@
             border: 0;
 
             svg {
-                background: $white;
-                fill: $primary-color;
+                background: variables.$white;
+                fill: variables.$primary-color;
             }
         }
     }
@@ -172,6 +175,7 @@
         display: flex;
         overflow: hidden;
         width: 100%;
+        width: fit-content;
         height: 100%;
         align-items: center;
         opacity: 0.75;
@@ -252,11 +256,11 @@
         height: 34px;
         flex-direction: row;
         align-items: center;
-        border: 2px solid $transparent;
+        border: 2px solid variables.$transparent;
 
         &:hover {
-            border-left: 2px solid $primary-color;
-            background-color: color.adjust($primary-color, $lightness: 40%);
+            border-left: 2px solid variables.$primary-color;
+            background-color: color.adjust(variables.$primary-color, $lightness: 40%);
 
             .permission-description {
                 opacity: 1;
@@ -271,13 +275,13 @@
         &.read-only {
             .permission-check {
                 border: none;
-                background-color: $gray;
+                background-color: variables.$gray;
 
                 &.checked,
                 &.intermediate {
                     svg {
-                        background: $white;
-                        fill: $gray;
+                        background: variables.$white;
+                        fill: variables.$gray;
                     }
                 }
             }
@@ -287,7 +291,7 @@
 
 .permissions-scheme-summary {
     padding: 10px 20px 0 20px;
-    border-left: 2px solid $transparent;
+    border-left: 2px solid variables.$transparent;
     margin: 0 20px;
     cursor: pointer;
 
@@ -304,8 +308,8 @@
     }
 
     &:hover {
-        border-left: 2px solid $primary-color;
-        background-color: color.adjust($primary-color, $lightness: 40%);
+        border-left: 2px solid variables.$primary-color;
+        background-color: color.adjust(variables.$primary-color, $lightness: 40%);
     }
 
     .permissions-scheme-summary--header {
@@ -342,7 +346,7 @@
             margin-right: 10px;
             margin-bottom: 10px;
             background: rgba(0, 0, 0, 0.05);
-            color: alpha-color($black, 0.75);
+            color: functions.alpha-color(variables.$black, 0.75);
             font-size: 11px;
         }
     }
@@ -356,7 +360,7 @@
 }
 
 .permission-scheme-summary-error-message {
-    color: $red;
+    color: variables.$red;
 }
 
 .team-scheme-details {

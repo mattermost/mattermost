@@ -27,7 +27,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <div
@@ -65,7 +65,11 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
     <ModalBody
       bsClass="modal-body"
       componentClass="div"
+      tabIndex={0}
     >
+      <div
+        tabIndex={-1}
+      />
       <div
         className="row"
       >
@@ -324,14 +328,14 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   Messages
                 </strong>
               </h3>
-              <span>
-                <strong>
-                  Works inside an empty input field
-                </strong>
-              </span>
               <div
                 className="subsection"
               >
+                <h4
+                  className="subsection-title"
+                >
+                  Works inside an empty input field
+                </h4>
                 <Memo(KeyboardShortcutSequence)
                   shortcut={
                     Object {
@@ -391,14 +395,14 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 />
               </div>
-              <span>
-                <strong>
-                  Autocomplete
-                </strong>
-              </span>
               <div
                 className="subsection"
               >
+                <h4
+                  className="subsection-title"
+                >
+                  Autocomplete
+                </h4>
                 <Memo(KeyboardShortcutSequence)
                   shortcut={
                     Object {
@@ -424,14 +428,14 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 />
               </div>
-              <span>
-                <strong>
-                  Formatting
-                </strong>
-              </span>
               <div
                 className="subsection"
               >
+                <h4
+                  className="subsection-title"
+                >
+                  Formatting
+                </h4>
                 <Memo(KeyboardShortcutSequence)
                   shortcut={
                     Object {
@@ -475,14 +479,14 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 />
               </div>
-              <span>
-                <strong>
-                  Searching
-                </strong>
-              </span>
               <div
                 className="subsection"
               >
+                <h4
+                  className="subsection-title"
+                >
+                  Searching
+                </h4>
                 <Memo(KeyboardShortcutSequence)
                   shortcut={
                     Object {
@@ -498,6 +502,29 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 />
               </div>
+              <div
+                className="subsection"
+              >
+                <h4
+                  className="subsection-title"
+                >
+                  Files
+                </h4>
+                <Memo(KeyboardShortcutSequence)
+                  shortcut={
+                    Object {
+                      "default": Object {
+                        "defaultMessage": "Upload files:	Ctrl|U",
+                        "id": "shortcuts.files.upload",
+                      },
+                      "mac": Object {
+                        "defaultMessage": "Upload files:	⌘|U",
+                        "id": "shortcuts.files.upload.mac",
+                      },
+                    }
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -507,29 +534,6 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
           <div
             className="section"
           >
-            <div>
-              <h3
-                className="section-title"
-              >
-                <strong>
-                  Files
-                </strong>
-              </h3>
-              <Memo(KeyboardShortcutSequence)
-                shortcut={
-                  Object {
-                    "default": Object {
-                      "defaultMessage": "Upload files:	Ctrl|U",
-                      "id": "shortcuts.files.upload",
-                    },
-                    "mac": Object {
-                      "defaultMessage": "Upload files:	⌘|U",
-                      "id": "shortcuts.files.upload.mac",
-                    },
-                  }
-                }
-              />
-            </div>
             <div
               className="section--lower"
             >
@@ -596,14 +600,14 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <span>
-                <strong>
-                  Works inside an input field
-                </strong>
-              </span>
               <div
                 className="subsection"
               >
+                <h4
+                  className="subsection-title"
+                >
+                  Works inside an input field
+                </h4>
                 <Memo(KeyboardShortcutSequence)
                   shortcut={
                     Object {
@@ -670,7 +674,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <div
@@ -708,7 +712,11 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
     <ModalBody
       bsClass="modal-body"
       componentClass="div"
+      tabIndex={0}
     >
+      <div
+        tabIndex={-1}
+      />
       <div
         className="row"
       >
@@ -967,14 +975,14 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   Messages
                 </strong>
               </h3>
-              <span>
-                <strong>
-                  Works inside an empty input field
-                </strong>
-              </span>
               <div
                 className="subsection"
               >
+                <h4
+                  className="subsection-title"
+                >
+                  Works inside an empty input field
+                </h4>
                 <Memo(KeyboardShortcutSequence)
                   shortcut={
                     Object {
@@ -1034,14 +1042,14 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 />
               </div>
-              <span>
-                <strong>
-                  Autocomplete
-                </strong>
-              </span>
               <div
                 className="subsection"
               >
+                <h4
+                  className="subsection-title"
+                >
+                  Autocomplete
+                </h4>
                 <Memo(KeyboardShortcutSequence)
                   shortcut={
                     Object {
@@ -1067,14 +1075,14 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 />
               </div>
-              <span>
-                <strong>
-                  Formatting
-                </strong>
-              </span>
               <div
                 className="subsection"
               >
+                <h4
+                  className="subsection-title"
+                >
+                  Formatting
+                </h4>
                 <Memo(KeyboardShortcutSequence)
                   shortcut={
                     Object {
@@ -1118,14 +1126,14 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 />
               </div>
-              <span>
-                <strong>
-                  Searching
-                </strong>
-              </span>
               <div
                 className="subsection"
               >
+                <h4
+                  className="subsection-title"
+                >
+                  Searching
+                </h4>
                 <Memo(KeyboardShortcutSequence)
                   shortcut={
                     Object {
@@ -1141,6 +1149,29 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 />
               </div>
+              <div
+                className="subsection"
+              >
+                <h4
+                  className="subsection-title"
+                >
+                  Files
+                </h4>
+                <Memo(KeyboardShortcutSequence)
+                  shortcut={
+                    Object {
+                      "default": Object {
+                        "defaultMessage": "Upload files:	Ctrl|U",
+                        "id": "shortcuts.files.upload",
+                      },
+                      "mac": Object {
+                        "defaultMessage": "Upload files:	⌘|U",
+                        "id": "shortcuts.files.upload.mac",
+                      },
+                    }
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1150,29 +1181,6 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
           <div
             className="section"
           >
-            <div>
-              <h3
-                className="section-title"
-              >
-                <strong>
-                  Files
-                </strong>
-              </h3>
-              <Memo(KeyboardShortcutSequence)
-                shortcut={
-                  Object {
-                    "default": Object {
-                      "defaultMessage": "Upload files:	Ctrl|U",
-                      "id": "shortcuts.files.upload",
-                    },
-                    "mac": Object {
-                      "defaultMessage": "Upload files:	⌘|U",
-                      "id": "shortcuts.files.upload.mac",
-                    },
-                  }
-                }
-              />
-            </div>
             <div
               className="section--lower"
             >
@@ -1239,14 +1247,14 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <span>
-                <strong>
-                  Works inside an input field
-                </strong>
-              </span>
               <div
                 className="subsection"
               >
+                <h4
+                  className="subsection-title"
+                >
+                  Works inside an input field
+                </h4>
                 <Memo(KeyboardShortcutSequence)
                   shortcut={
                     Object {
@@ -1274,14 +1282,6 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
               </div>
             </div>
           </div>
-        </div>
-      </div>
-      <div
-        className="row"
-      >
-        <div
-          className="col-sm-4"
-        >
           <div
             className="section"
           >
@@ -1293,14 +1293,14 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   Calls
                 </strong>
               </h3>
-              <span>
-                <strong>
-                  Global
-                </strong>
-              </span>
               <div
                 className="subsection"
               >
+                <h4
+                  className="subsection-title"
+                >
+                  Global
+                </h4>
                 <Memo(KeyboardShortcutSequence)
                   key="callsJoinCall"
                   shortcut={
@@ -1317,14 +1317,14 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 />
               </div>
-              <span>
-                <strong>
-                  Call widget
-                </strong>
-              </span>
               <div
                 className="subsection"
               >
+                <h4
+                  className="subsection-title"
+                >
+                  Call widget
+                </h4>
                 <Memo(KeyboardShortcutSequence)
                   key="callsMuteToggle"
                   shortcut={
@@ -1401,14 +1401,14 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 />
               </div>
-              <span>
-                <strong>
-                  Expanded view (pop-out window)
-                </strong>
-              </span>
               <div
                 className="subsection"
               >
+                <h4
+                  className="subsection-title"
+                >
+                  Expanded view (pop-out window)
+                </h4>
                 <Memo(KeyboardShortcutSequence)
                   key="callsPushToTalk"
                   shortcut={

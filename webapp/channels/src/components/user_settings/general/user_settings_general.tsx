@@ -4,11 +4,14 @@
 /* eslint-disable max-lines */
 
 import React, {PureComponent} from 'react';
-import {defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
+import {defineMessage, defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import type {UserPropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {LogErrorOptions} from 'mattermost-redux/actions/errors';
+import {LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
@@ -106,13 +109,16 @@ export type Props = {
     collapseModal: () => void;
     isMobileView: boolean;
     maxFileSize: number;
+    customProfileAttributeFields: UserPropertyField[];
     actions: {
-        logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
+        logError: ({message, type}: {message: any; type: string}, options?: LogErrorOptions) => void;
         clearErrors: () => void;
         updateMe: (user: UserProfile) => Promise<ActionResult>;
         sendVerificationEmail: (email: string) => Promise<ActionResult>;
         setDefaultProfileImage: (id: string) => void;
         uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
+        saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult<Record<string, string>>>;
+        getCustomProfileAttributeValues: (userID: string) => Promise<ActionResult<Record<string, string>>>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;
@@ -124,6 +130,7 @@ export type Props = {
     ldapPositionAttributeSet?: boolean;
     samlPositionAttributeSet?: boolean;
     ldapPictureAttributeSet?: boolean;
+    enableCustomProfileAttributes: boolean;
 }
 
 type State = {
@@ -144,6 +151,7 @@ type State = {
     clientError?: string | null;
     serverError?: string | {server_error_id: string; message: string};
     emailError?: string;
+    customAttributeValues: Record<string, string>;
 }
 
 export class UserSettingsGeneralTab extends PureComponent<Props, State> {
@@ -151,8 +159,13 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
     constructor(props: Props) {
         super(props);
-
         this.state = this.setupInitialState(props);
+    }
+
+    componentDidMount() {
+        if (this.props.enableCustomProfileAttributes && !this.props.user.custom_profile_attributes) {
+            this.props.actions.getCustomProfileAttributeValues(this.props.user.id);
+        }
     }
 
     handleEmailResend = (email: string) => {
@@ -171,7 +184,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             <span className='resend-verification-wrapper'>
                 <LoadingWrapper
                     loading={this.state.showSpinner}
-                    text={Utils.localizeMessage('user.settings.general.sending', 'Sending')}
+                    text={defineMessage({id: 'user.settings.general.sending', defaultMessage: 'Sending'})}
                 >
                     <a
                         onClick={() => {
@@ -305,7 +318,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         this.props.actions.logError({
                             message: AnnouncementBarMessages.EMAIL_VERIFICATION_REQUIRED,
                             type: AnnouncementBarTypes.SUCCESS,
-                        }, true);
+                        }, {errorBarMode: LogErrorBarMode.Always});
                     }
                 } else if (err) {
                     let serverError;
@@ -393,6 +406,29 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         this.submitUser(user, false);
     };
 
+    submitAttribute = async (settings: string[]) => {
+        const attributeID = settings[0];
+        const attributeValue = this.state.customAttributeValues?.[attributeID];
+        if (attributeValue == null) {
+            return;
+        }
+
+        trackEvent('settings', 'user_settings_update', {field: 'customAttributeValues-' + attributeID});
+
+        this.setState({sectionIsSaving: true});
+
+        this.props.actions.saveCustomProfileAttribute(this.props.user.id, attributeID, attributeValue).
+            then(({data, error: err}) => {
+                if (data) {
+                    this.updateSection('');
+                    this.setState({customAttributeValues: {...this.state.customAttributeValues, ...data}});
+                } else if (err) {
+                    const serverError = err;
+                    this.setState({serverError, emailError: '', clientError: '', sectionIsSaving: false});
+                }
+            });
+    };
+
     updateUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({username: e.target.value});
     };
@@ -436,6 +472,13 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         }
     };
 
+    updateAttribute = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const attributeValues = Object.assign({}, this.state.customAttributeValues);
+        const id = e.target.id.substring(e.target.id.indexOf('_') + 1);
+        attributeValues[id] = e.target.value;
+        this.setState({customAttributeValues: attributeValues});
+    };
+
     updateSection = (section: string) => {
         this.setState(Object.assign({}, this.setupInitialState(this.props), {clientError: '', serverError: '', emailError: '', sectionIsSaving: false}));
         this.submitActive = false;
@@ -444,7 +487,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
     setupInitialState(props: Props) {
         const user = props.user;
-
         return {
             username: user.username,
             firstName: user.first_name,
@@ -460,6 +502,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             sectionIsSaving: false,
             showSpinner: false,
             serverError: '',
+            customAttributeValues: user.custom_profile_attributes || {},
         };
     }
 
@@ -494,14 +537,14 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 inputs.push(
                     <div key='currentEmailSetting'>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                            <span className='as-bs-label col-sm-5 control-label'>
                                 <FormattedMessage
                                     id='user.settings.general.currentEmail'
                                     defaultMessage='Current Email'
                                 />
-                            </label>
+                            </span>
                             <div className='col-sm-7'>
-                                <label className='control-label word-break--all text-left'>{this.state.originalEmail}</label>
+                                <span className='as-bs-label control-label word-break--all text-left'>{this.state.originalEmail}</span>
                             </div>
                         </div>
                     </div>,
@@ -510,7 +553,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 inputs.push(
                     <div key='emailSetting'>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                            <label
+                                className='col-sm-5 control-label'
+                                htmlFor='primaryEmail'
+                            >
                                 <FormattedMessage
                                     id='user.settings.general.newEmail'
                                     defaultMessage='New Email'
@@ -535,7 +581,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 inputs.push(
                     <div key='confirmEmailSetting'>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                            <label
+                                className='col-sm-5 control-label'
+                                htmlFor='confirmEmail'
+                            >
                                 <FormattedMessage
                                     id='user.settings.general.confirmEmail'
                                     defaultMessage='Confirm Email'
@@ -559,7 +608,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 inputs.push(
                     <div key='currentPassword'>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                            <label
+                                className='col-sm-5 control-label'
+                                htmlFor='currentPassword'
+                            >
                                 <FormattedMessage
                                     id='user.settings.general.currentPassword'
                                     defaultMessage='Current Password'
@@ -626,7 +678,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         <div className='setting-list__hint pb-3'>
                             <FormattedMessage
                                 id='user.settings.general.emailOffice365CantUpdate'
-                                defaultMessage='Login occurs through Office 365. Email cannot be updated. Email address used for notifications is {email}.'
+                                defaultMessage='Login occurs through Entra ID. Email cannot be updated. Email address used for notifications is {email}.'
                                 values={{
                                     email: this.state.originalEmail,
                                 }}
@@ -735,7 +787,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.general.loginOffice365'
-                    defaultMessage='Login done through Office 365 ({email})'
+                    defaultMessage='Login done through Entra ID ({email})'
                     values={{
                         email: this.state.originalEmail,
                     }}
@@ -813,7 +865,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         key='firstNameSetting'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>
+                        <label
+                            className='col-sm-5 control-label'
+                            htmlFor='firstName'
+                        >
                             <FormattedMessage
                                 id='user.settings.general.firstName'
                                 defaultMessage='First Name'
@@ -840,7 +895,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         key='lastNameSetting'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>
+                        <label
+                            className='col-sm-5 control-label'
+                            htmlFor='lastName'
+                        >
                             <FormattedMessage
                                 id='user.settings.general.lastName'
                                 defaultMessage='Last Name'
@@ -1261,6 +1319,112 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         );
     };
 
+    createCustomAttributeSection = () => {
+        if (!this.props.enableCustomProfileAttributes || this.props.customProfileAttributeFields == null) {
+            return <></>;
+        }
+
+        const attributeSections = this.props.customProfileAttributeFields.map((attribute) => {
+            const sectionName = 'customAttribute_' + attribute.id;
+            const active = this.props.activeSection === sectionName;
+            let max = null;
+
+            if (active) {
+                const inputs = [];
+
+                let attributeLabel: JSX.Element | string = (
+                    attribute.name
+                );
+                if (this.props.isMobileView) {
+                    attributeLabel = '';
+                }
+
+                inputs.push(
+                    <div
+                        key={sectionName}
+                        className='form-group'
+                    >
+                        <label className='col-sm-5 control-label'>{attributeLabel}</label>
+                        <div className='col-sm-7'>
+                            <input
+                                id={sectionName}
+                                autoFocus={true}
+                                className='form-control'
+                                type='text'
+                                onChange={this.updateAttribute}
+                                value={this.state.customAttributeValues[attribute.id] || ''}
+                                maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                                autoCapitalize='off'
+                                onFocus={Utils.moveCursorToEnd}
+                                aria-label={attribute.name}
+                            />
+                        </div>
+                    </div>,
+                );
+
+                const extraInfo = (
+                    <span>
+                        <FormattedMessage
+                            id='user.settings.general.attributeExtra'
+                            defaultMessage='This will be shown in your profile popover.'
+                        />
+                    </span>
+                );
+
+                max = (
+                    <SettingItemMax
+                        key={'settingItemMax_' + attribute.id}
+                        title={attribute.name}
+                        inputs={inputs}
+                        submit={this.submitAttribute.bind(this, [attribute.id])}
+                        saving={this.state.sectionIsSaving}
+                        serverError={this.state.serverError}
+                        clientError={this.state.clientError}
+                        updateSection={this.updateSection}
+                        extraInfo={extraInfo}
+                    />
+                );
+            }
+            let describe: JSX.Element|string = '';
+            const attributeValue = this.props.user.custom_profile_attributes?.[attribute.id];
+            if (attributeValue) {
+                describe = attributeValue;
+            } else {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.general.emptyAttribute'
+                        defaultMessage="Click 'Edit' to add your custom attribute"
+                    />
+                );
+                if (this.props.isMobileView) {
+                    describe = (
+                        <FormattedMessage
+                            id='user.settings.general.mobile.emptyAttribute'
+                            defaultMessage='Click to add your custom attribute'
+                        />
+                    );
+                }
+            }
+
+            return (
+                <div key={sectionName}>
+                    <SettingItem
+                        key={'settingItem_' + attribute.id}
+                        active={active}
+                        areAllSectionsInactive={this.props.activeSection === ''}
+                        title={attribute.name}
+                        describe={describe}
+                        section={sectionName}
+                        updateSection={this.updateSection}
+                        max={max}
+                    />
+                    <div className='divider-dark'/>
+                </div>
+            );
+        });
+        return <>{attributeSections}</>;
+    };
+
     createPictureSection = () => {
         const user = this.props.user;
         const {formatMessage} = this.props.intl;
@@ -1360,10 +1524,15 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         const usernameSection = this.createUsernameSection();
         const positionSection = this.createPositionSection();
         const emailSection = this.createEmailSection();
+        const customAttributeSection = this.createCustomAttributeSection();
         const pictureSection = this.createPictureSection();
 
         return (
-            <div id='generalSettings'>
+            <div
+                id='profileSettings'
+                aria-labelledby='profileButton'
+                role='tabpanel'
+            >
                 <SettingMobileHeader
                     closeModal={this.props.closeModal}
                     collapseModal={this.props.collapseModal}
@@ -1395,6 +1564,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     <div className='divider-light'/>
                     {emailSection}
                     <div className='divider-light'/>
+                    {customAttributeSection}
                     {pictureSection}
                     <div className='divider-dark'/>
                 </div>

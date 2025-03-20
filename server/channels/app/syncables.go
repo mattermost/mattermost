@@ -234,31 +234,63 @@ func (a *App) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableTyp
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		nErr := a.Srv().Store().Team().UpdateMembersRole(syncableID, permittedAdmins)
-		if nErr != nil {
-			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		var updatedMembers []*model.TeamMember
+		updatedMembers, err = a.Srv().Store().Team().UpdateMembersRole(syncableID, permittedAdmins)
+		if err != nil {
+			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		return nil
+
+		for _, member := range updatedMembers {
+			a.ClearSessionCacheForUser(member.UserId)
+
+			if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {
+				rctx.Logger().Warn("Error sending channel member updated websocket event", mlog.Err(appErr))
+			}
+		}
 	case model.GroupSyncableTypeChannel:
-		nErr := a.Srv().Store().Channel().UpdateMembersRole(syncableID, permittedAdmins)
-		if nErr != nil {
-			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		var updatedMembers []*model.ChannelMember
+		updatedMembers, err = a.Srv().Store().Channel().UpdateMembersRole(syncableID, permittedAdmins)
+		if err != nil {
+			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		return nil
+
+		for _, member := range updatedMembers {
+			a.ClearSessionCacheForUser(member.UserId)
+
+			if appErr := a.sendUpdateChannelMemberEvent(member); appErr != nil {
+				rctx.Logger().Warn("Error sending channel member updated websocket event", mlog.Err(appErr))
+			}
+		}
 	default:
 		return model.NewAppError("App.SyncSyncableRoles", "groups.unsupported_syncable_type", map[string]any{"Value": syncableType}, "", http.StatusInternalServerError)
 	}
+
+	return nil
 }
 
 // SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 // syncable.
-func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
-	a.SyncSyncableRoles(rctx, syncableID, syncableType)
+func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, groupID string) {
+	group, appErr := a.GetGroup(groupID, nil, nil)
+	if appErr != nil {
+		rctx.Logger().Warn("Error getting group", mlog.Err(appErr))
+		return
+	}
 
-	lastJob, _ := a.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
+	appErr = a.SyncSyncableRoles(rctx, syncableID, syncableType)
+	if appErr != nil {
+		rctx.Logger().Warn("Error syncing syncable roles", mlog.Err(appErr))
+	}
+
 	var since int64
-	if lastJob != nil {
-		since = lastJob.StartAt
+	includeRemovedMembers := true
+	if group.Source == model.GroupSourceLdap {
+		lastJob, _ := a.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
+		if lastJob != nil {
+			since = lastJob.StartAt
+		}
+
+		includeRemovedMembers = false
 	}
 
 	params := model.CreateDefaultMembershipParams{Since: since, ReAddRemovedMembers: includeRemovedMembers}
@@ -272,9 +304,6 @@ func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncab
 		if err := a.deleteGroupConstrainedTeamMemberships(rctx, &syncableID); err != nil {
 			rctx.Logger().Warn("Error deleting group constrained team memberships", mlog.Err(err))
 		}
-		if err := a.ClearTeamMembersCache(syncableID); err != nil {
-			rctx.Logger().Warn("Error clearing team members cache", mlog.Err(err))
-		}
 	case model.GroupSyncableTypeChannel:
 		params.ScopedChannelID = &syncableID
 		if err := a.createDefaultChannelMemberships(rctx, params); err != nil {
@@ -282,9 +311,6 @@ func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncab
 		}
 		if err := a.deleteGroupConstrainedChannelMemberships(rctx, &syncableID); err != nil {
 			rctx.Logger().Warn("Error deleting group constrained team memberships", mlog.Err(err))
-		}
-		if err := a.ClearChannelMembersCache(rctx, syncableID); err != nil {
-			rctx.Logger().Warn("Error clearing channel members cache", mlog.Err(err))
 		}
 	}
 }

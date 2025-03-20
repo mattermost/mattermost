@@ -404,6 +404,69 @@ components:
           type: string
         metadata:
           $ref: "#/components/schemas/PostMetadata"
+    PropertyField:
+      type: object
+      properties:
+        id:
+          type: string
+        group_id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        attrs:
+          type: object
+        target_id:
+          type: string
+        target_type:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        update_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
+    PropertyFieldPatch:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        attrs:
+          type: object
+        target_id:
+          type: string
+        target_type:
+          type: string
+    PropertyValue:
+      type: object
+      properties:
+        id:
+          type: string
+        target_id:
+          type: string
+        target_type:
+          type: string
+        group_id:
+          type: string
+        field_id:
+          type: string
+        value:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        update_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
     FileInfoList:
       type: object
       properties:
@@ -1429,6 +1492,8 @@ components:
               type: string
             AmazonS3SSL:
               type: boolean
+            AmazonS3StorageClass:
+              type: string
         EmailSettings:
           type: object
           properties:
@@ -1901,6 +1966,8 @@ components:
               type: boolean
             AmazonS3SSL:
               type: boolean
+            AmazonS3StorageClass:
+              type: string
         EmailSettings:
           type: object
           properties:
@@ -2205,29 +2272,29 @@ components:
         emails:
           type: string
     ClusterInfo:
-      type: object
+      type: array
       properties:
-        id:
-          description: The unique ID for the node
-          type: string
-        version:
-          description: The server version the node is on
-          type: string
-        config_hash:
-          description: The hash of the configuartion file the node is using
-          type: string
-        internode_url:
-          description: The URL used to communicate with those node from other nodes
-          type: string
-        hostname:
-          description: The hostname for this node
-          type: string
-        last_ping:
-          description: The time of the last ping to this node
-          type: integer
-        is_alive:
-          description: Whether or not the node is alive and well
-          type: boolean
+        items:
+          type: object
+          properties:
+            id:
+              description: The unique ID for the node
+              type: string
+            version:
+              description: The server version the node is on
+              type: string
+            schema_version:
+              description: The number of the latest DB migration successfully executed for the node
+              type: string
+            config_hash:
+              description: The hash of the configuration file the node is using
+              type: string
+            ipaddress:
+              description: The IP address of the node
+              type: string
+            hostname:
+              description: The hostname for this node
+              type: string
     AppError:
       type: object
       properties:
@@ -3055,6 +3122,19 @@ components:
           format: int64
         has_syncables:
           type: boolean
+    GroupMember:
+      type: object
+      properties:
+        group_id:
+          type: string
+        user_id:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
     GroupSyncableTeam:
       type: object
       properties:
@@ -3485,6 +3565,45 @@ components:
         remote_id:
           description: Id of the remote cluster where the shared channel is homed
           type: string
+    RemoteCluster:
+      type: object
+      properties:
+        remote_id:
+          type: string
+        remote_team_id:
+          type: string
+        name:
+          type: string
+        display_name:
+          type: string
+        site_url:
+          description: URL of the remote cluster
+          type: string
+        default_team_id:
+          description: The team where channels from invites are created
+          type: string
+        create_at:
+          description: Time in milliseconds that the remote cluster was created
+          type: integer
+        delete_at:
+          description: Time in milliseconds that the remote cluster record was deleted
+          type: integer
+        last_ping_at:
+          description: Time in milliseconds when the last ping to the remote cluster was run
+          type: integer
+        token:
+          type: string
+        remote_token:
+          type: string
+        topics:
+          type: string
+        creator_id:
+          type: string
+        plugin_id:
+          type: string
+        options:
+          description: A bitmask with a set of option flags
+          type: integer
     RemoteClusterInfo:
       type: object
       properties:
@@ -3499,6 +3618,47 @@ components:
           description: The time in milliseconds a remote cluster was last pinged successfully
           type: integer
           format: int64
+    SharedChannelRemote:
+      type: object
+      properties:
+        id:
+          description: The id of the shared channel remote
+          type: string
+        channel_id:
+          description: The id of the channel
+          type: string
+        creator_id:
+          description: Id of the user that invited the remote to share the channel
+          type: string
+        create_at:
+          description: Time in milliseconds that the remote was invited to the channel
+          type: integer
+        update_at:
+          description: Time in milliseconds that the shared channel remote record was last updated
+          type: integer
+        delete_at:
+          description: Time in milliseconds that the shared chanenl remote record was deleted
+          type: integer
+        is_invite_accepted:
+          description: Indicates if the invite has been accepted by the remote
+          type: boolean
+        is_invite_confirmed:
+          description: Indicates if the invite has been confirmed by the remote
+          type: boolean
+        remote_id:
+          description: Id of the remote cluster that the channel is shared with
+          type: string
+        last_post_update_at:
+          description: Time in milliseconds of the last post in the channel that was synchronized with the remote update_at
+          type: integer
+        last_post_id:
+          description: Id of the last post in the channel that was synchronized with the remote
+          type: string
+        last_post_create_at:
+          description: Time in milliseconds of the last post in the channel that was synchronized with the remote create_at
+          type: string
+        last_post_create_id:
+          type: string
     SystemStatusResponse:
       type: object
       properties:
@@ -3601,14 +3761,39 @@ components:
           description: The time in milliseconds a user was created
           type: integer
           format: int64
+        update_at:
+          description: The time in milliseconds a user was last updated
+          type: integer
+          format: int64
+        delete_at:
+          description: The time in milliseconds a user was deleted
+          type: integer
+          format: int64
         username:
+          type: string
+        auth_data:
+          type: string
+        auth_service:
           type: string
         email:
           type: string
-        display_name:
+        nickname:
           type: string
-          description: Calculated display name based on user
-        last_login_at:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        position:
+          type: string
+        roles:
+          type: string
+        locale:
+          type: string
+        timezone:
+          $ref: "#/components/schemas/Timezone"
+        disable_welcome_email:
+          type: boolean
+        last_login:
           description: Last time the user was logged in
           type: integer
           format: int64
@@ -3699,6 +3884,46 @@ components:
         audiences:
           description: The audiences of the outgoing OAuth connection.
           type: string
+    ScheduledPost:
+      type: object
+      properties:
+        id:
+          type: string
+        create_at:
+          description: The time in milliseconds a scheduled post was created
+          type: integer
+          format: int64
+        update_at:
+          description: The time in milliseconds a scheduled post was last updated
+          type: integer
+          format: int64
+        user_id:
+          type: string
+        channel_id:
+          type: string
+        root_id:
+          type: string
+        message:
+          type: string
+        props:
+          type: object
+        file_ids:
+          type: array
+          items:
+            type: string
+        scheduled_at:
+          description: The time in milliseconds a scheduled post is scheduled to be sent at
+          type: integer
+          format: int64
+        processed_at:
+          description: The time in milliseconds a scheduled post was processed at
+          type: integer
+          format: int64
+        error_code:
+          type: string
+          description: Explains the error behind why a scheduled post could not have been sent
+        metadata:
+          $ref: "#/components/schemas/PostMetadata"
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState} from '@mattermost/types/admin';
@@ -15,11 +14,12 @@ import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/type
 import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilities';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {AdminTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Stats} from 'mattermost-redux/constants';
 import PluginState from 'mattermost-redux/constants/plugins';
 
-function logs(state: string[] = [], action: AnyAction) {
+function logs(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_LOGS: {
         return action.data;
@@ -32,7 +32,7 @@ function logs(state: string[] = [], action: AnyAction) {
     }
 }
 
-function plainLogs(state: string[] = [], action: AnyAction) {
+function plainLogs(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_PLAIN_LOGS: {
         return action.data;
@@ -45,7 +45,7 @@ function plainLogs(state: string[] = [], action: AnyAction) {
     }
 }
 
-function audits(state: Record<string, Audit> = {}, action: AnyAction) {
+function audits(state: Record<string, Audit> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_AUDITS: {
         const nextState = {...state};
@@ -62,7 +62,7 @@ function audits(state: Record<string, Audit> = {}, action: AnyAction) {
     }
 }
 
-function config(state: Partial<AdminConfig> = {}, action: AnyAction) {
+function config(state: Partial<AdminConfig> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_CONFIG: {
         return action.data;
@@ -89,7 +89,7 @@ function config(state: Partial<AdminConfig> = {}, action: AnyAction) {
     }
 }
 
-function prevTrialLicense(state: Partial<AdminConfig> = {}, action: AnyAction) {
+function prevTrialLicense(state: Partial<AdminConfig> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.PREV_TRIAL_LICENSE_SUCCESS: {
         return action.data;
@@ -99,7 +99,7 @@ function prevTrialLicense(state: Partial<AdminConfig> = {}, action: AnyAction) {
     }
 }
 
-function environmentConfig(state: Partial<EnvironmentConfig> = {}, action: AnyAction) {
+function environmentConfig(state: Partial<EnvironmentConfig> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_ENVIRONMENT_CONFIG: {
         return action.data;
@@ -112,7 +112,7 @@ function environmentConfig(state: Partial<EnvironmentConfig> = {}, action: AnyAc
     }
 }
 
-function complianceReports(state: Record<string, Compliance> = {}, action: AnyAction) {
+function complianceReports(state: Record<string, Compliance> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_COMPLIANCE_REPORT: {
         const nextState = {...state};
@@ -134,7 +134,7 @@ function complianceReports(state: Record<string, Compliance> = {}, action: AnyAc
     }
 }
 
-function clusterInfo(state: ClusterInfo[] = [], action: AnyAction) {
+function clusterInfo(state: ClusterInfo[] = [], action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_CLUSTER_STATUS: {
         return action.data;
@@ -147,7 +147,7 @@ function clusterInfo(state: ClusterInfo[] = [], action: AnyAction) {
     }
 }
 
-function samlCertStatus(state: Partial<SamlCertificateStatus> = {}, action: AnyAction) {
+function samlCertStatus(state: Partial<SamlCertificateStatus> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_SAML_CERT_STATUS: {
         return action.data;
@@ -218,12 +218,6 @@ export function convertAnalyticsRowsToStats(data: AnalyticsRow[], name: string):
         case 'monthly_active_users':
             key = Stats.MONTHLY_ACTIVE_USERS;
             break;
-        case 'file_post_count':
-            key = Stats.TOTAL_FILE_POSTS;
-            break;
-        case 'hashtag_post_count':
-            key = Stats.TOTAL_HASHTAG_POSTS;
-            break;
         case 'incoming_webhook_count':
             key = Stats.TOTAL_IHOOKS;
             break;
@@ -239,6 +233,12 @@ export function convertAnalyticsRowsToStats(data: AnalyticsRow[], name: string):
         case 'registered_users':
             key = Stats.REGISTERED_USERS;
             break;
+        case 'total_file_count':
+            key = Stats.TOTAL_FILE_COUNT;
+            break;
+        case 'total_file_size':
+            key = Stats.TOTAL_FILE_SIZE;
+            break;
         }
 
         if (key) {
@@ -249,7 +249,7 @@ export function convertAnalyticsRowsToStats(data: AnalyticsRow[], name: string):
     return stats;
 }
 
-function analytics(state: AdminState['analytics'] = {}, action: AnyAction) {
+function analytics(state: AdminState['analytics'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_SYSTEM_ANALYTICS: {
         const stats = convertAnalyticsRowsToStats(action.data, action.name);
@@ -263,7 +263,7 @@ function analytics(state: AdminState['analytics'] = {}, action: AnyAction) {
     }
 }
 
-function teamAnalytics(state: AdminState['teamAnalytics'] = {}, action: AnyAction) {
+function teamAnalytics(state: AdminState['teamAnalytics'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_TEAM_ANALYTICS: {
         const nextState = {...state};
@@ -280,7 +280,7 @@ function teamAnalytics(state: AdminState['teamAnalytics'] = {}, action: AnyActio
     }
 }
 
-function userAccessTokens(state: Record<string, UserAccessToken> = {}, action: AnyAction) {
+function userAccessTokens(state: Record<string, UserAccessToken> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_USER_ACCESS_TOKEN: {
         return {...state, [action.data.id]: action.data};
@@ -314,7 +314,7 @@ function userAccessTokens(state: Record<string, UserAccessToken> = {}, action: A
     }
 }
 
-function userAccessTokensByUser(state: RelationOneToOne<UserProfile, Record<string, UserAccessToken>> = {}, action: AnyAction) {
+function userAccessTokensByUser(state: RelationOneToOne<UserProfile, Record<string, UserAccessToken>> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_USER_ACCESS_TOKEN: { // UserAccessToken
         const nextUserState: UserAccessToken | Record<string, UserAccessToken> = {...(state[action.data.user_id] || {})};
@@ -380,7 +380,7 @@ function userAccessTokensByUser(state: RelationOneToOne<UserProfile, Record<stri
     }
 }
 
-function plugins(state: Record<string, PluginRedux> = {}, action: AnyAction) {
+function plugins(state: Record<string, PluginRedux> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_PLUGINS: {
         const nextState = {...state};
@@ -426,7 +426,7 @@ function plugins(state: Record<string, PluginRedux> = {}, action: AnyAction) {
     }
 }
 
-function pluginStatuses(state: Record<string, PluginStatusRedux> = {}, action: AnyAction) {
+function pluginStatuses(state: Record<string, PluginStatusRedux> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_PLUGIN_STATUSES: {
         const nextState: any = {};
@@ -527,7 +527,7 @@ function pluginStatuses(state: Record<string, PluginStatusRedux> = {}, action: A
     }
 }
 
-function ldapGroupsCount(state = 0, action: AnyAction) {
+function ldapGroupsCount(state = 0, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_LDAP_GROUPS:
         return action.data.count;
@@ -538,7 +538,7 @@ function ldapGroupsCount(state = 0, action: AnyAction) {
     }
 }
 
-function ldapGroups(state: Record<string, MixedUnlinkedGroupRedux> = {}, action: AnyAction) {
+function ldapGroups(state: Record<string, MixedUnlinkedGroupRedux> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_LDAP_GROUPS: {
         const nextState: any = {};
@@ -594,7 +594,7 @@ function ldapGroups(state: Record<string, MixedUnlinkedGroupRedux> = {}, action:
     }
 }
 
-function samlMetadataResponse(state: Partial<SamlMetadataResponse> = {}, action: AnyAction) {
+function samlMetadataResponse(state: Partial<SamlMetadataResponse> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_SAML_METADATA_RESPONSE: {
         return action.data;
@@ -604,7 +604,7 @@ function samlMetadataResponse(state: Partial<SamlMetadataResponse> = {}, action:
     }
 }
 
-function dataRetentionCustomPolicies(state: IDMappedObjects<DataRetentionCustomPolicy> = {}, action: AnyAction): IDMappedObjects<DataRetentionCustomPolicy> {
+function dataRetentionCustomPolicies(state: IDMappedObjects<DataRetentionCustomPolicy> = {}, action: MMReduxAction): IDMappedObjects<DataRetentionCustomPolicy> {
     switch (action.type) {
     case AdminTypes.CREATE_DATA_RETENTION_CUSTOM_POLICY_SUCCESS:
     case AdminTypes.RECEIVED_DATA_RETENTION_CUSTOM_POLICY:
@@ -638,7 +638,7 @@ function dataRetentionCustomPolicies(state: IDMappedObjects<DataRetentionCustomP
         return state;
     }
 }
-function dataRetentionCustomPoliciesCount(state = 0, action: AnyAction) {
+function dataRetentionCustomPoliciesCount(state = 0, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_DATA_RETENTION_CUSTOM_POLICIES:
         return action.data.total_count;
@@ -654,7 +654,7 @@ export default combineReducers({
     // array of LogObjects each representing a log entry (JSON)
     logs,
 
-    // array of strings each representing a log entry (legacy)
+    // array of strings each representing a log entry (legacy) with pagination
     plainLogs,
 
     // object where every key is an audit id and has an object with audit details

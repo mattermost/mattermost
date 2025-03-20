@@ -129,7 +129,6 @@ function SelfHostedContent(props: ContentProps) {
     const trialButton = () => {
         return (
             <StartTrialBtn
-                message={formatMessage({id: 'pricing_modal.btn.tryDays', defaultMessage: 'Try free for {days} days'}, {days: '30'})}
                 telemetryId='start_trial_from_self_hosted_pricing_modal'
                 renderAsButton={true}
                 disabled={isSelfHostedEnterpriseTrial}
@@ -183,7 +182,7 @@ function SelfHostedContent(props: ContentProps) {
                             action: () => {},
                             text: formatMessage({id: 'pricing_modal.btn.downgrade', defaultMessage: 'Downgrade'}),
                             disabled: true,
-                            customClass: ButtonCustomiserClasses.secondary,
+                            customClass: ButtonCustomiserClasses.active,
                         }}
                         briefing={{
                             title: formatMessage({id: 'pricing_modal.briefing.title', defaultMessage: 'Top features'}),
@@ -251,7 +250,7 @@ function SelfHostedContent(props: ContentProps) {
                                 openContactSales();
                             },
                             text: formatMessage({id: 'pricing_modal.btn.contactSales', defaultMessage: 'Contact Sales'}),
-                            customClass: ButtonCustomiserClasses.active,
+                            customClass: ButtonCustomiserClasses.special,
                         } : undefined}
                         customButtonDetails={(!isPostSelfHostedEnterpriseTrial && isAdmin) ? (
                             trialButton()

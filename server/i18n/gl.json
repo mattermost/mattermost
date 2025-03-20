@@ -232,20 +232,8 @@
     "translation": "Produciuse un erro ao analizar a solicitude multiforme"
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "A súa factura de Mattermost Cloud está pendente de pago"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Pagar agora"
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "Envíenos un correo-e en calquera momento a "
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2017 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",

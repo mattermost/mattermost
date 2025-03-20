@@ -39,6 +39,7 @@ import {
     goBack,
     showChannelMembers,
     openShowEditHistory,
+    updateSearchTeam,
 } from 'actions/views/rhs';
 
 import mockStore from 'tests/test_store';
@@ -53,6 +54,8 @@ import type {ViewsState} from 'types/store/views';
 const currentChannelId = '123';
 const currentTeamId = '321';
 const currentUserId = 'user123';
+const currentUsername = 'user-name';
+const currentUserFirstName = 'first-name';
 const pluggableId = 'pluggableId';
 const previousSelectedPost = {
     id: 'post123',
@@ -102,6 +105,8 @@ describe('rhs view actions', () => {
                 currentUserId,
                 profiles: {
                     user123: {
+                        username: currentUsername,
+                        first_name: currentUserFirstName,
                         timezone: {
                             useAutomaticTimezone: true,
                             automaticTimezone: '',
@@ -121,6 +126,7 @@ describe('rhs view actions', () => {
             rhs: {
                 rhsState: null,
                 filesSearchExtFilter: [] as string[],
+                searchType: '',
             },
             posts: {
                 editingPost: {
@@ -214,23 +220,56 @@ describe('rhs view actions', () => {
     });
 
     describe('performSearch', () => {
-        const terms = '@here test search';
+        // timezone offset in seconds
+        let timeZoneOffset = getBrowserUtcOffset() * 60;
+
+        // Avoid problems with negative cero
+        if (timeZoneOffset === 0) {
+            timeZoneOffset = 0;
+        }
 
         test('it dispatches searchPosts correctly', () => {
-            store.dispatch(performSearch(terms, false));
-
-            // timezone offset in seconds
-            const timeZoneOffset = getBrowserUtcOffset() * 60;
+            const terms = '@here test search';
+            store.dispatch(performSearch(terms, currentTeamId, false));
 
             const compareStore = mockStore(initialState);
             compareStore.dispatch(SearchActions.searchPostsWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
             compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
+        });
 
-            store.dispatch(performSearch(terms, true));
-            compareStore.dispatch(SearchActions.searchPostsWithParams('', {include_deleted_channels: false, terms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
-            compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+        test('it dispatches searchFiles correctly', () => {
+            store = mockStore({
+                ...initialState,
+                views: {
+                    ...initialState.views,
+                    rhs: {
+                        ...initialState.views.rhs,
+                        filesSearchExtFilter: ['txt', 'jpeg'],
+                    },
+                } as ViewsState,
+            });
+
+            const terms = '@here test search';
+            store.dispatch(performSearch(terms, currentTeamId, false));
+
+            const filesExtTerms = '@here test search ext:txt ext:jpeg';
+            const compareStore = mockStore(initialState);
+            compareStore.dispatch(SearchActions.searchPostsWithParams(currentTeamId, {include_deleted_channels: false, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+            compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, {include_deleted_channels: false, terms: filesExtTerms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+
+            expect(store.getActions()).toEqual(compareStore.getActions());
+        });
+
+        test('it dispatches searchPosts correctly for Recent Mentions', () => {
+            const terms = `@here test search ${currentUsername} @${currentUsername} ${currentUserFirstName}`;
+            store.dispatch(performSearch(terms, '', true));
+
+            const mentionsQuotedTerms = `@here test search "${currentUsername}" "@${currentUsername}" "${currentUserFirstName}"`;
+            const compareStore = mockStore(initialState);
+            compareStore.dispatch(SearchActions.searchPostsWithParams('', {include_deleted_channels: false, terms: mentionsQuotedTerms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+            compareStore.dispatch(SearchActions.searchFilesWithParams('', {include_deleted_channels: false, terms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
@@ -244,6 +283,8 @@ describe('rhs view actions', () => {
             views: {
                 rhs: {
                     searchTerms: terms,
+                    searchTeam: null,
+                    searchType: 'messages',
                     filesSearchExtFilter: [] as string[],
                 },
             },
@@ -260,7 +301,11 @@ describe('rhs view actions', () => {
                 type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TERMS,
                 terms,
             });
-            compareStore.dispatch(performSearch(terms));
+            compareStore.dispatch({
+                type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TYPE,
+                searchType: 'messages',
+            });
+            compareStore.dispatch(performSearch(terms, currentTeamId));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
@@ -440,7 +485,7 @@ describe('rhs view actions', () => {
 
             const compareStore = mockStore(initialState);
 
-            compareStore.dispatch(performSearch('@mattermost ', true));
+            compareStore.dispatch(performSearch('@mattermost ', '', true));
             compareStore.dispatch(batchActions([
                 {
                     type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
@@ -697,6 +742,7 @@ describe('rhs view actions', () => {
 
             compareStore.dispatch(SearchActions.clearSearch());
             compareStore.dispatch(updateSearchTerms(''));
+            compareStore.dispatch(updateSearchTeam(null));
             compareStore.dispatch({
                 type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TERMS,
                 terms: '',
@@ -716,7 +762,7 @@ describe('rhs view actions', () => {
             store.dispatch(openAtPrevious({isMentionSearch: true}));
             const compareStore = mockStore(initialState);
 
-            compareStore.dispatch(performSearch('@mattermost ', true));
+            compareStore.dispatch(performSearch('@mattermost ', '', true));
             compareStore.dispatch(batchActions([
                 {
                     type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
@@ -829,6 +875,8 @@ describe('rhs view actions', () => {
                 views: {
                     rhs: {
                         searchTerms: terms,
+                        searchTeam: null,
+                        searchType: 'messages',
                         filesSearchExtFilter: [] as string[],
                     },
                 },
@@ -843,7 +891,12 @@ describe('rhs view actions', () => {
                 type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TERMS,
                 terms,
             });
-            compareStore.dispatch(performSearch(terms));
+            compareStore.dispatch({
+                type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TYPE,
+                searchType: 'messages',
+            });
+
+            compareStore.dispatch(performSearch(terms, currentTeamId));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });

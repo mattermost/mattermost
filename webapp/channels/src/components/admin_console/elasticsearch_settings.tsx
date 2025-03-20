@@ -14,16 +14,18 @@ import ExternalLink from 'components/external_link';
 
 import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
 
-import AdminSettings from './admin_settings';
-import type {BaseProps, BaseState} from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import JobsTable from './jobs';
+import OLDAdminSettings from './old_admin_settings';
+import type {BaseProps, BaseState} from './old_admin_settings';
 import RequestButton from './request_button/request_button';
+import SettingSet from './setting_set';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
 interface State extends BaseState {
     connectionUrl: string;
+    backend: string;
     skipTLSVerification: boolean;
     ca: string;
     clientCert: string;
@@ -97,9 +99,10 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
     messages.enableSearchingDescription,
 ];
 
-export default class ElasticsearchSettings extends AdminSettings<Props, State> {
+export default class ElasticsearchSettings extends OLDAdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.ElasticsearchSettings.ConnectionURL = this.state.connectionUrl;
+        config.ElasticsearchSettings.Backend = this.state.backend;
         config.ElasticsearchSettings.SkipTLSVerification = this.state.skipTLSVerification;
         config.ElasticsearchSettings.CA = this.state.ca;
         config.ElasticsearchSettings.ClientCert = this.state.clientCert;
@@ -118,6 +121,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
     getStateFromConfig(config: AdminConfig) {
         return {
             connectionUrl: config.ElasticsearchSettings.ConnectionURL,
+            backend: config.ElasticsearchSettings.Backend,
             skipTLSVerification: config.ElasticsearchSettings.SkipTLSVerification,
             ca: config.ElasticsearchSettings.CA,
             clientCert: config.ElasticsearchSettings.ClientCert,
@@ -150,7 +154,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
             }
         }
 
-        if (id === 'connectionUrl' || id === 'skipTLSVerification' || id === 'username' || id === 'password' || id === 'sniff' || id === 'ca' || id === 'clientCert' || id === 'clientKey') {
+        if (id === 'connectionUrl' || id === 'backend' || id === 'skipTLSVerification' || id === 'username' || id === 'password' || id === 'sniff' || id === 'ca' || id === 'clientCert' || id === 'clientKey') {
             this.setState({
                 configTested: false,
                 canSave: false,
@@ -260,6 +264,26 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.EnableIndexing')}
                     disabled={this.props.isDisabled}
+                />
+                <TextSetting
+                    id='backend'
+                    label={
+                        <FormattedMessage
+                            id='admin.elasticsearch.backendTitle'
+                            defaultMessage='Backend type:'
+                        />
+                    }
+                    placeholder={defineMessage({id: 'admin.elasticsearch.backendExample', defaultMessage: 'E.g.: "elasticsearch"'})}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.elasticsearch.backendDescription'
+                            defaultMessage='The type of the search backend.'
+                        />
+                    }
+                    value={this.state.backend}
+                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    onChange={this.handleSettingChanged}
+                    setByEnv={this.isSetByEnv('ElasticsearchSettings.Backend')}
                 />
                 <TextSetting
                     id='connectionUrl'
@@ -396,27 +420,24 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                     })}
                     disabled={!this.state.enableIndexing}
                 />
-                <div className='form-group'>
-                    <label className='control-label col-sm-4'>
-                        <FormattedMessage {...messages.bulkIndexingTitle}/>
-                    </label>
-                    <div className='col-sm-8'>
-                        <div className='job-table-setting'>
-                            <JobsTable
-                                jobType={JobTypes.ELASTICSEARCH_POST_INDEXING as JobType}
-                                disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
-                                createJobButtonText={
-                                    <FormattedMessage
-                                        id='admin.elasticsearch.createJob.title'
-                                        defaultMessage='Index Now'
-                                    />
-                                }
-                                createJobHelpText={<FormattedMessage {...messages.help}/>}
-                                getExtraInfoText={this.getExtraInfo}
-                            />
-                        </div>
+                <SettingSet
+                    label={<FormattedMessage {...messages.bulkIndexingTitle}/>}
+                >
+                    <div className='job-table-setting'>
+                        <JobsTable
+                            jobType={JobTypes.ELASTICSEARCH_POST_INDEXING as JobType}
+                            disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
+                            createJobButtonText={
+                                <FormattedMessage
+                                    id='admin.elasticsearch.createJob.title'
+                                    defaultMessage='Index Now'
+                                />
+                            }
+                            createJobHelpText={<FormattedMessage {...messages.help}/>}
+                            getExtraInfoText={this.getExtraInfo}
+                        />
                     </div>
-                </div>
+                </SettingSet>
                 <RequestButton
                     id='rebuildChannelsIndexButton'
                     requestAction={rebuildChannelsIndex}

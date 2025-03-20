@@ -884,8 +884,8 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		publicChannel2 := &model.Channel{Name: "publicChannelName2"}
 		publicChannels := []*model.Channel{publicChannel1, publicChannel2}
 
-		privateChannel1 := &model.Channel{Name: "archivedChannelName1"}
-		privateChannel2 := &model.Channel{Name: "archivedChannelName2"}
+		privateChannel1 := &model.Channel{Name: "privateChannel1"}
+		privateChannel2 := &model.Channel{Name: "privateChannel2"}
 		privateChannels := []*model.Channel{privateChannel1, privateChannel2}
 		userChannels := []*model.Channel{}
 
@@ -964,8 +964,8 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		archivedChannel1 := &model.Channel{Name: "archivedChannelName1"}
 		publicChannel1 := &model.Channel{Name: "publicChannelName1"}
 
-		privateChannel1 := &model.Channel{Name: "archivedChannelName1", Type: model.ChannelTypePrivate}
-		privateChannel2 := &model.Channel{Name: "archivedChannelName2", Type: model.ChannelTypePrivate}
+		privateChannel1 := &model.Channel{Name: "privateChannel1", Type: model.ChannelTypePrivate}
+		privateChannel2 := &model.Channel{Name: "privateChannel2", Type: model.ChannelTypePrivate}
 		userChannels := []*model.Channel{archivedChannel1, publicChannel1, privateChannel1, privateChannel2}
 
 		mockError := errors.New("user does not have permissions to list all private channels in team")
@@ -1783,13 +1783,13 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 			Times(1)
 
 		err := unarchiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		expectedError := fmt.Sprintf("Unable to find channel '%s'", args[0])
+
+		s.Require().ErrorContains(err, expectedError)
+		s.Require().Equal(expectedError, printer.GetErrorLines()[0])
+
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-
-		actual := printer.GetErrorLines()[0]
-		expected := fmt.Sprintf("Unable to find channel '%s'", args[0])
-		s.Require().Equal(expected, actual)
 	})
 
 	s.Run("Fail to unarchive a non-existing channel on an existent team", func() {
@@ -1821,13 +1821,13 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 			Times(1)
 
 		err := unarchiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		expectedError := fmt.Sprintf("Unable to find channel '%s'", args[0])
+
+		s.Require().ErrorContains(err, expectedError)
+		s.Require().Equal(expectedError, printer.GetErrorLines()[0])
+
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-
-		actual := printer.GetErrorLines()[0]
-		expected := fmt.Sprintf("Unable to find channel '%s'", args[0])
-		s.Require().Equal(expected, actual)
 	})
 
 	s.Run("Fail to unarchive a non-existing channel", func() {
@@ -1844,13 +1844,13 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 			Times(1)
 
 		err := unarchiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		expectedError := fmt.Sprintf("Unable to find channel '%s'", args[0])
+
+		s.Require().ErrorContains(err, expectedError)
+		s.Require().Equal(expectedError, printer.GetErrorLines()[0])
+
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-
-		actual := printer.GetErrorLines()[0]
-		expected := fmt.Sprintf("Unable to find channel '%s'", args[0])
-		s.Require().Equal(expected, actual)
 	})
 
 	s.Run("Fail to unarchive an existing channel when client throws error", func() {
@@ -1875,13 +1875,13 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 			Times(1)
 
 		err := unarchiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		expectedError := fmt.Sprintf("Unable to unarchive channel '%s'. Error: %s", channelName, mockErr.Error())
+
+		s.Require().ErrorContains(err, expectedError)
+		s.Require().Equal(expectedError, printer.GetErrorLines()[0])
+
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-
-		actual := printer.GetErrorLines()[0]
-		expected := fmt.Sprintf("Unable to unarchive channel '%s'. Error: %s", channelName, mockErr.Error())
-		s.Require().Equal(expected, actual)
 	})
 
 	s.Run("Fail to unarchive when team and channel not provided", func() {
@@ -1891,13 +1891,13 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		args := []string{":"}
 
 		err := unarchiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		expectedError := fmt.Sprintf("Unable to find channel '%s'", args[0])
+
+		s.Require().ErrorContains(err, expectedError)
+		s.Require().Equal(expectedError, printer.GetErrorLines()[0])
+
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-
-		actual := printer.GetErrorLines()[0]
-		expected := fmt.Sprintf("Unable to find channel '%s'", args[0])
-		s.Require().Equal(expected, actual)
 	})
 }
 

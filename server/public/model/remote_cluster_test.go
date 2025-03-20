@@ -27,6 +27,8 @@ func TestRemoteClusterIsValid(t *testing.T) {
 		{name: "Missing create_at", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com"}, valid: false},
 		{name: "Missing last_ping_at", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreatorId: creator, CreateAt: now}, valid: true},
 		{name: "Missing creator", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreateAt: now, LastPingAt: now}, valid: false},
+		{name: "Bad default_team_id", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreateAt: now, LastPingAt: now, CreatorId: creator, DefaultTeamId: "bad-id"}, valid: false},
+		{name: "Valid default_team_id", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreateAt: now, LastPingAt: now, CreatorId: creator, DefaultTeamId: NewId()}, valid: true},
 		{name: "RemoteCluster valid", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreateAt: now, LastPingAt: now, CreatorId: creator}, valid: true},
 		{name: "Include protocol", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "http://example.com", CreateAt: now, LastPingAt: now, CreatorId: creator}, valid: true},
 		{name: "Include protocol & port", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "http://example.com:8065", CreateAt: now, LastPingAt: now, CreatorId: creator}, valid: true},
@@ -68,6 +70,34 @@ func TestRemoteClusterMsgIsValid(t *testing.T) {
 
 	for _, item := range data {
 		appErr := item.msg.IsValid()
+		if item.valid {
+			assert.Nil(t, appErr, item.name)
+		} else {
+			assert.NotNil(t, appErr, item.name)
+		}
+	}
+}
+
+func TestRemoteClusterInviteIsValid(t *testing.T) {
+	id := NewId()
+	url := "https://localhost:8080/test"
+	token := NewId()
+
+	data := []struct {
+		name   string
+		invite *RemoteClusterInvite
+		valid  bool
+	}{
+		{name: "Zero value", invite: &RemoteClusterInvite{}, valid: false},
+		{name: "Missing remote id", invite: &RemoteClusterInvite{Token: token, SiteURL: url}, valid: false},
+		{name: "Missing site url", invite: &RemoteClusterInvite{RemoteId: id, Token: token}, valid: false},
+		{name: "Bad site url", invite: &RemoteClusterInvite{RemoteId: id, Token: token, SiteURL: ":/localhost"}, valid: false},
+		{name: "Missing token", invite: &RemoteClusterInvite{RemoteId: id, SiteURL: url}, valid: false},
+		{name: "RemoteClusterInvite valid", invite: &RemoteClusterInvite{RemoteId: id, Token: token, SiteURL: url}, valid: true},
+	}
+
+	for _, item := range data {
+		appErr := item.invite.IsValid()
 		if item.valid {
 			assert.Nil(t, appErr, item.name)
 		} else {
@@ -130,10 +160,9 @@ func TestRemoteClusterInviteEncryption(t *testing.T) {
 
 func makeInvite(url string) RemoteClusterInvite {
 	return RemoteClusterInvite{
-		RemoteId:     NewId(),
-		RemoteTeamId: NewId(),
-		SiteURL:      url,
-		Token:        NewId(),
+		RemoteId: NewId(),
+		SiteURL:  url,
+		Token:    NewId(),
 	}
 }
 

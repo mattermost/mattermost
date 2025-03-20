@@ -2300,10 +2300,6 @@
     "translation": "Должны быть заданы trigger_words или channel_id."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Не удалось декодировать многочастную полезную нагрузку входящего вебхука."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Не удалось обновить вебхук в разных командах."
   },
@@ -3004,60 +3000,8 @@
     "translation": "Системная консоль устанавливается только для чтения, если включена Высокая доступность, если только ReadOnlyConfig не отключен в файле конфигурации."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Неизвестный формат вывода {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Невозможно скопировать вложение в zip-файл."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Невозможно добавить вложение в экспорт CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Невозможно создать временный файл экспорта CSV."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Невозможно добавить заголовок в экспорт CSV."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Невозможно добавить файл метаданных в zip-файл."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Невозможно преобразовать метаданные в формат json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Невозможно экспортировать сообщение."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Невозможно создать файл экспорта zip."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Загруженный файл был удален из экспорта Global Relay, поскольку он был слишком большим для отправки."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Невозможно открыть временный файл экспорта."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Невозможно перечитать файл временного экспорта Global Relay."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Функция комплаенса недоступна при текущей лицензии. Пожалуйста, свяжитесь с системным администратором по поводу улучшения вашей корпоративной лицензии."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Невозможно загрузить шаблоны экспорта. Пожалуйста, попробуйте еще раз."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3069,31 +3013,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Работнику агрегатора Elasticsearch не удалось создать задание индексации"
+    "translation": "Рабочий агрегатор {{.Backend}} не смог создать задание на индексирование"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Работнику агрегатора Elasticsearch не удалось удалить индексы"
+    "translation": "Рабочему агрегатору {{.Backend}} не удалось удалить индексы"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Работнику агрегатора Elasticsearch не удалось получить индексы"
+    "translation": "Рабочему агрегатору {{.Backend}} не удалось получить индексы"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Сбой в работе сборщика Elasticsearch из-за сбоя задания индексирования"
+    "translation": "Сбой в работе сборщика {{.Backend}} из-за сбоя задания индексирования"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Ошибка установки клиента Elasticsearch"
+    "translation": "Ошибка установки клиента {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Не удалось удалить индекс Elasticsearch"
+    "translation": "Не удалось удалить индекс {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Не удалось получить индексы Elasticsearch"
+    "translation": "Не удалось получить индексы {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3101,7 +3045,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Поиск Elasticsearch не включен на этом сервере"
+    "translation": "Поиск {{.Backend}} не включен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3109,23 +3053,19 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Работнику индексирования Elasticsearch не удалось проанализировать время окончания"
+    "translation": "Работнику индексирования {{.Backend}} не удалось проанализировать время окончания"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Работнику индексирования Elasticsearch не удалось проанализировать время начала"
+    "translation": "Работнику индексирования {{.Backend}} не удалось проанализировать время начала"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch не запущен"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Не удалось удалить индекс Elasticsearch"
+    "translation": "{{.Backend}} не запущен"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Поиск Elasticsearch отключен на этом сервере"
+    "translation": "Поиск {{.Backend}} отключен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3140,28 +3080,20 @@
     "translation": "Не удалось декодировать результаты поиска"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Не удалось создать массовый обработчик Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Не удалось запустить массовый обработчик Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch уже остановлен."
+    "translation": "{{.Backend}} уже остановлен."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch отключён."
+    "translation": "{{.Backend}} отключён."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Ваша версия сервера Mattermost не поддерживает Elasticsearch."
+    "translation": "Ваша лицензия Mattermost не поддерживает индексированный поиск."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "URL или имя пользователя сервера Elasticsearch были изменены. Пожалуйста, введите пароль Elasticsearch еще раз, чтобы проверить соединение."
+    "translation": "URL поискового сервера или имя пользователя изменились. Пожалуйста, повторно введите пароль, чтобы проверить соединение."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3246,58 +3178,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "ошибка при получении групп для пользователя"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Невозможно добавить вложение в экспорт Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Невозможно закрыть zip-файл."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Невозможно создать файл eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Невозможно сгенерировать данные файла eml."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Невозможно доставить письмо в Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Невозможно установить адрес \"От кого\" электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Невозможно установить сообщение электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Невозможно написать сообщение электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Невозможно прочитать информацию электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Невозможно установить адрес \"Кому\" электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Невозможно получить информацию о временном файле экспорта."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Невозможно получить письмо из временного файла."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Невозможно открыть временный файл экспорта."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3721,27 +3601,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Параметр Elasticsearch AggregatePostsAfterDays должен быть числом больше или равным 1."
+    "translation": "Настройка поиска AggregatePostsAfterDays должна быть числом больше или равным 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Настройка Search ConnectionUrl должна быть указана, если включена индексация."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Для параметра Elasticsearch EnableIndexing должно быть установлено значение true, если для параметра Elasticsearch SearchEnabled установлено значение true"
+    "translation": "{{.EnableIndexing}} параметр должен быть установлен в true, когда {{.Searching}} установлен в true"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Размер пакета живого индексирования Elasticsearch должен быть не менее 1."
+    "translation": "Размер пакета живого индексирования должен быть не менее 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Параметр Elasticsearch PostsAggregatorJobStartTime должен быть временем в формате «чч:мм»."
+    "translation": "Параметр поиска PostsAggregatorJobStartTime должен быть временем в формате «чч:мм»."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Время ожидания запроса Elasticsearch должно составлять не менее 1 секунды."
+    "translation": "Время ожидания запроса должно составлять не менее 1 секунды."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4117,7 +3997,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Недопустимый идентификатор."
+    "translation": "Неверный идентификатор: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4322,10 +4202,6 @@
   {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Недопустимый идентификатор."
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Неверное сообщение."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -4625,11 +4501,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Не удалось найти команду."
+    "translation": "Не удалось найти команду {{.command_id}}."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Невозможно разобрать входящие данные."
+    "translation": "Невозможно разобрать входящие данные вебхука {{.hook_id}}."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4641,7 +4517,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Этому вебхуку не разрешено публиковать сообщения на запрошенном канале."
+    "translation": "Этому вебхуку не разрешено публиковать сообщения на запрошенном канале {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4657,7 +4533,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Несоответствующие права канала."
+    "translation": "Пользователь {{.user}} не имеет соответствующих прав на канал {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4669,7 +4545,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Не удалось найти пользователя."
+    "translation": "Не удалось найти пользователя {{.user}}"
   },
   {
     "id": "api.license.request-trial.bad-request",
@@ -5004,12 +4880,8 @@
     "translation": "Тайм-аут ожидания ответа кластера"
   },
   {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Невозможно создать файл уведомления."
-  },
-  {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для каналов"
+    "translation": "Не удалось создать шаблон {{.Backend}} для каналов"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
@@ -5025,11 +4897,11 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Не удалось обновить индексы Elasticsearch"
+    "translation": "Не удалось обновить поисковые индексы"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Поиск Elasticsearch отключен на этом сервере"
+    "translation": "Поиск {{.Backend}} отключен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
@@ -5045,15 +4917,11 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Не удалось получить версию сервера Elasticsearch."
+    "translation": "Не удалось получить версию сервера {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Не удалось проанализировать версию сервера Elasticsearch."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "ошибка при удалении участия в команде или канале"
+    "translation": "Не удалось проанализировать версию сервера {{.Backend}}."
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -5214,10 +5082,6 @@
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Недопустимое обновление участника команды: пользователь должен быть гостем или пользователем, но не обоими."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Продлить лицензию прямо сейчас"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
@@ -5420,16 +5284,12 @@
     "translation": "Произошла ошибка во время маршалирования запроса JSON"
   },
   {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Невозможно создать файл zip"
-  },
-  {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для сообщений"
+    "translation": "Не удалось создать шаблон {{.Backend}} для сообщений"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для пользователей"
+    "translation": "Не удалось создать шаблон {{.Backend}} для пользователей"
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
@@ -5469,7 +5329,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Параметр Elasticsearch IndexingEnabled должен иметь значение true, если для Elasticsearch AutocompleteEnabled установлено значение true"
+    "translation": "{{.EnableIndexing}} параметр должен быть установлен в true, когда {{.Autocomplete}} установлен в true"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -5541,15 +5401,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
     "translation": "Эта версия вашего браузера больше не поддерживается Mattermost"
-  },
-  {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Не удалось получить пользователей в канале в течение указанного периода времени."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
@@ -5725,11 +5581,11 @@
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Не удалось найти существующий канал."
+    "translation": "Не удалось найти существующий канал {{.channel_id}}."
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Возникла проблема при поиске канала."
+    "translation": "Возникла проблема при поиске канала {{.channel_id}}."
   },
   {
     "id": "app.channel.get_all_channels.app_error",
@@ -5809,19 +5665,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 118+"
+    "translation": "Версия 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 118+"
+    "translation": "Версия 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Версия 115+"
+    "translation": "Версия 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Версия 16.2+"
+    "translation": "Версия 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -6472,16 +6328,8 @@
     "translation": "Достигнут тайм-аут задания синхронизации AD/LDAP."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Не найдена конечная точка API кластера."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " прикрепил файл."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Не удалось экспортировать в XML."
   },
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
@@ -7024,10 +6872,6 @@
     "translation": "Авторизация завершена"
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Ошибка получения ссылки обновления лицензии"
-  },
-  {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Параметры Before и After запроса getThreadsForUser являются взаимоисключающими"
   },
@@ -7184,22 +7028,6 @@
     "translation": "Возникла ошибка по время проверки ответа от провайдера учётных записей. Пожалуйста, свяжитесь с системным администратором."
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Не удалось получить информацию о файле для сообщения."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Не удалось подключиться к серверу smtp"
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Не удалось получить информацию о файле для сообщения."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Не удалось получить информацию о файле для сообщения."
-  },
-  {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "Пользователи LDAP не найдены, проверьте пользовательский фильтр и сертификаты."
   },
@@ -7225,7 +7053,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "На этом сервере отключена функция поиска файлов Elasticsearch"
+    "translation": "На этом сервере отключена функция поиска файлов {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -7253,19 +7081,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для файлов"
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Невозможно записать global relay файл."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Невозможно записать csv-файл."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Не удалось записать экспортный файл."
+    "translation": "Не удалось создать шаблон {{.Backend}} для файлов"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -7350,10 +7166,6 @@
   {
     "id": "app.user.update.find.app_error",
     "translation": "Не удалось найти действующую учетную запись для обновления."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Ни одно email-сообщение не было успешно отправлено"
   },
   {
     "id": "app.user.search.app_error",
@@ -7516,18 +7328,6 @@
     "translation": "Не удалось получить пакет файлов для индексации."
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Лицензия отсутствует"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Этот тип лицензии не поддерживает генерацию токенов обновления"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Не удалось сгенерировать новый токен обновления."
-  },
-  {
     "id": "app.insert_error",
     "translation": "ошибка insert"
   },
@@ -7664,46 +7464,6 @@
     "translation": "Нужна помощь или есть вопросы? Пишите нам на e-mail адрес "
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Ваш счёт за Mattermost Cloud к оплате"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Оплата производится за подписку на Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Чтобы просмотреть счёт и добавить способ оплаты, выберите Оплатить сейчас."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Ваш счёт Mattermost Cloud за последний расчётный период был обработан. Однако у нас нет ваших платёжных реквизитов."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Оплатить сейчас"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Платёж не прошёл"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Требуется действие: Оплата за Mattermost {{.Plan}} не произведена"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Чтобы обеспечить бесперебойный доступ к Mattermost {{.Plan}}, свяжитесь с вашим финансовым учреждением для устранения основной проблемы или обновите платёжную информацию. После обновления платёжных данных Mattermost предпримет попытку погасить остаток задолженности."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Они привели следующую причину:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Ваше финансовое учреждение отклонило платёж вашей карты {{.CardBrand}}. ****{{.LastFour}}, связанный с вашим рабочим пространством Mattermost Cloud."
-  },
-  {
     "id": "api.templates.invite_body_guest.subTitle",
     "translation": "Вы были приглашены в качестве гостя в команду"
   },
@@ -7730,10 +7490,6 @@
   {
     "id": "api.templates.email_footer_v2",
     "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -8001,7 +7757,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Безопасное соединение | Отображаемое имя | Идентификатор подключения | URL сайта | Приглашение принято | Онлайн | Последний пинг |"
+    "translation": "| Безопасное соединение | Отображаемое имя | Идентификатор подключения | Адрес сайта | Команда по умолчанию | Приглашение принято | Онлайн | Последний пинг | Удалено |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8058,10 +7814,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "Приглашение от защищенного соединения"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Не удалось расшифровать приглашение. Неправильный пароль или испорченное приглашение: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",
@@ -8126,10 +7878,6 @@
   {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": "Одно или несколько сообщений не могут быть доставлены на удалённый сайт {{.Remote}}, так как он в оффлайне. Сообщения будут доставлены, когда сайт будет онлайн."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Возникла ошибка при создании прямого общего канала."
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
@@ -8532,20 +8280,12 @@
     "translation": "Ваша подписка Mattermost подлежит продлению"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Войдите в свою учетную запись клиента, чтобы продлить"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, срок действия Вашей подписки истекает через {{.Days}} дней. Мы надеемся, что Вам нравится гибкое и безопасное командное сотрудничество, которое обеспечивает Mattermost. Продлите подписку в ближайшее время, чтобы Ваша команда могла продолжать пользоваться этими преимуществами."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "Ваша лицензия подлежит продлению"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Обнови сейчас"
   },
   {
     "id": "api.templates.invite_body.title.reminder",
@@ -8560,10 +8300,6 @@
     "translation": "Не удалось отправить лицензию для обновлений по электронной почте"
   },
   {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Не удалось сгенерировать ссылку для продления лицензии"
-  },
-  {
     "id": "api.push_notification.title.collapsed_threads_dm",
     "translation": "Ответить в личном сообщении"
   },
@@ -8574,10 +8310,6 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
     "translation": " ответил в обсуждении."
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Продление этой лицензии на портале невозможно"
   },
   {
     "id": "model.user.is_valid.roles_limit.app_error",
@@ -8725,7 +8457,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Размер пакета массового индексирования Elasticsearch должен быть не менее {{.BatchSize}}."
+    "translation": "Размер пакета массового индексирования должен быть не менее {{.BatchSize}}."
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
@@ -8784,34 +8516,6 @@
     "translation": "В настройки электронной почты есть не заданные значения."
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Обновление прошло успешно!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Подтверждение обновления Mattermost"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Платеж не получен"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "Пожалуйста, свяжитесь с вашим финансовым учреждением для решения возникших вопросов. Затем обновите свои платёжные реквизиты при необходимости."
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Мы не смогли снять деньги с имеющейся у нас кредитной карты. Это означает, что ваше рабочее пространство может быть переведено в категорию Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "Просрочена оплата вашего Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Обновить платёж"
-  },
-  {
     "id": "api.team.invite_guests_to_channels.license.error",
     "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
   },
@@ -8854,10 +8558,6 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Администратор уже уведомлен"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Отсутствуют обязательные поля для отправки электронного письма о просрочке."
   },
   {
     "id": "model.group.name.reserved_name.app_error",
@@ -8952,174 +8652,6 @@
     "translation": "{{.UsersNum}} пользователя(ей) рабочего пространства {{.WorkspaceName}} запросили включение пробной версии Enterprise для доступа к: "
   },
   {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "Подписка не просрочена"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "Не удалось получить подписку на облако"
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "Невозможно получить имя текущего тарифного плана"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "Не удалось получить облачные продукты"
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Ваше рабочее пространство Mattermost было понижено в статусе"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "Чтобы снять архивацию данных и сохранить оплаченные функции, обновите информацию об оплате."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Кроме того, ваши данные могут быть заархивированы из-за ограничений Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "Если вы используете функции Cloud Professional или Enterprise для важных бизнес-операций, они больше не будут доступны, и вы столкнетесь с ухудшением производительности."
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Ваше рабочее пространство Mattermost Cloud было понижено"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "Посмотреть тарифные планы и цены"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Обновить платёж"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "Ваше рабочее пространство будет понижено через 15 дней"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Ваше рабочее пространство будет понижено до уровня Cloud Free. Ваши функции {{.Plan}} будут заблокированы, а некоторые данные рабочего пространства могут быть заархивированы до полного погашения задолженности."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Это последнее напоминание о том, что мы не получили оплату за ваше рабочее пространство Mattermost Cloud с {{.DelinquencyDate}}."
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Ваш Mattermost {{.Plan}} будет понижен через 15 дней"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Обновить платёж"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "Ваш платёж не был завершен"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "Чтобы ваш план {{.Plan}} оставался активным, как можно скорее свяжитесь с вашим финансовым учреждением. Затем, при необходимости, обновите свои платежные реквизиты."
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Мы не смогли обработать ваш последний платёж."
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Обновить платёж"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Ваше рабочее пространство Mattermost будет понижено в течение 30 дней"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Free ниже."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "Мы автоматически понизим уровень вашего рабочего пространства через 30 дней, если не сможем обработать ваш платёж."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "Пожалуйста, обновите свою платёжную информацию в ближайшее время, чтобы обработать неоплаченные счета."
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "Необходимые действия: Рабочее пространство будет понижено в течение 30 дней"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Обновить платёж"
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "Ваше рабочее пространство будет понижено по тарифной сетке в ближайшее время"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "Обновите информацию о своей кредитной карте прямо сейчас."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Мы не смогли получить оплату по неоплаченным счетам от {{.DelinquencyDate}}. Ваше рабочее пространство находится под угрозой понижения."
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "Уведомление: В ближайшее время ваш Mattermost {{.Plan}} будет понижен"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Обновить платёж"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "Ваше рабочее пространство будет понижено по тарифной сетке в ближайшее время"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "Если не предпринять никаких действий, ваше рабочее пространство будет понижено по тарифной сетке, а следующие данные могут быть заархивированы:"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "У вас есть время, чтобы сохранить ваш Mattermost {{.Plan}} активным, но вам нужно решить проблемы с методом оплаты."
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Действуйте, чтобы сохранить функционал Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "Посмотреть всю документацию по ограничениям."
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Обновить платёж"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "История сообщений"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Файлы"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Понижение статуса до Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Понижение статуса до Cloud Free"
-  },
-  {
     "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
     "translation": "не является пользователем ldap"
   },
@@ -9146,10 +8678,6 @@
   {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Некорректные свойства."
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Неверное сообщение."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",
@@ -9233,7 +8761,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Вы не можете подтвердить в архивированном канале."
+    "translation": "Вы не можете сохранить подтверждение в архивированном канале."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -9248,18 +8776,6 @@
     "translation": "Неверный приоритет"
   },
   {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "Просмотр счета-фактуры"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "Ваше рабочее пространство {{.WorkspaceName}} теперь обновлено."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "Ваше рабочее пространство {{.WorkspaceName}} обновлено. Вам будет выставлен счет с {{.Date}}"
-  },
-  {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Ошибка при получении ролей во время проверки."
   },
@@ -9269,59 +8785,23 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Не удалось открыть файл клиентского ключа для Elasticsearch"
+    "translation": "Не удалось открыть файл клиентского ключа для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Не удалось открыть файл сертификата клиента для Elasticsearch"
+    "translation": "Не удалось открыть файл сертификата клиента для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Не удалось декодировать сертификат клиента для Elasticsearch"
+    "translation": "Не удалось декодировать сертификат клиента для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Не удалось открыть файл CA для Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Расшифровка CA для Elasticsearch не удалась"
+    "translation": "Не удалось открыть файл CA для {{.Backend}}"
   },
   {
     "id": "api.server.cws.health_check.app_error",
     "translation": "Сервер CWS не доступен."
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Не удалось получить общее количество исходящих вебхуков"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Не удалось получить общее количество входящих вебхуков"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Не удалось получить общее количество активных пользователей"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "Для облачных экземпляров не допускается пересмотр в сторону увеличения"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "Для проверки достоверности требуется лицензия"
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Не удалось получить запись истинного состояния"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Не удалось создать запись истинного состояния"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Пониженное рабочее пространство может негативно повлиять на критически важные рабочие процессы, интеграции и другие важные для бизнеса действия, выполняемые в вашем рабочем пространстве."
   },
   {
     "id": "app.group.username_conflict",
@@ -9342,10 +8822,6 @@
   {
     "id": "api.system.logs.invalidFilter",
     "translation": "Неверный фильтр журнала"
-  },
-  {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "Серверу CWS не удалось удалить рабочее пространство."
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
@@ -9373,7 +8849,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Версия Elasticsearch {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
+    "translation": "Версия {{.Backend}} {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
@@ -9398,10 +8874,6 @@
   {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
     "translation": "Проверка постоянного уведомления не прошла."
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Не удалось отправить точный профиль проверки в CWS."
   },
   {
     "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
@@ -9896,10 +9368,6 @@
     "translation": "Произошла ошибка при обновлении исходящего oauth-соединения: {{ .Error }}"
   },
   {
-    "id": "api.templates.cloud_renewal_60.subject",
-    "translation": "Продление годовой подписки через 60 дней"
-  },
-  {
     "id": "app.report.date_range.last_6_months",
     "translation": "последние 6 месяцев"
   },
@@ -9938,18 +9406,6 @@
   {
     "id": "app.report.start_users_batch_export.job_exists",
     "translation": "Задание уже существует для этого пользователя и диапазона дат."
-  },
-  {
-    "id": "api.templates.cloud_renewal.button",
-    "translation": "Продлить сейчас"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.subject",
-    "translation": "Необходимые действия: Обновление годовой подписки через 7 дней"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.title",
-    "translation": "Вы потеряете доступ к своему рабочему пространству через 7 дней"
   },
   {
     "id": "api.user.get_profile_image_path.app_error",
@@ -10016,24 +9472,8 @@
     "translation": "Неверный максимальный размер полезной нагрузки для настроек сервиса. Должно быть целое число больше нуля."
   },
   {
-    "id": "api.templates.cloud_renewal_30.subject",
-    "translation": "Годовой счет к оплате через 30 дней"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.title",
-    "translation": "Ваш годовой счет будет выставлен через 30 дней"
-  },
-  {
     "id": "api.team.user.missing_account",
     "translation": "Пользователь не найден."
-  },
-  {
-    "id": "api.templates.cloud_renewal.subtitle",
-    "translation": "Пожалуйста, продлите, чтобы избежать перебоев в работе"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.title",
-    "translation": "Продление годовой подписки через 60 дней"
   },
   {
     "id": "app.compile_report_chunks.unsupported_format",
@@ -10345,7 +9785,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Не удалось удалить индекс Elasticsearch"
+    "translation": "Не удалось удалить поисковый индекс"
   },
   {
     "id": "model.user.is_valid.pwd_min_length.app_error",
@@ -10362,10 +9802,6 @@
   {
     "id": "api.user.auth_switch.not_available.login_disabled.app_error",
     "translation": "Передача аутентификации недоступна, так как не включен ни вход по электронной почте, ни вход по имени пользователя."
-  },
-  {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Схема индекса Elasticsearch для вашего канала устарела. Рекомендуется перегенерировать индекс каналов.\nНажмите кнопку `Rebuild Channels Index` в разделе [Elasticsearch в Системной консоли]({{.ElasticsearchSection}}), чтобы исправить проблему.\nБолее подробную информацию смотрите в журнале изменений Mattermost."
   },
   {
     "id": "api.post.check_for_out_of_team_mentions.message.multiple",
@@ -10386,5 +9822,281 @@
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
     "translation": "Автозаполнение каналов не может быть включено, так как схема индекса каналов устарела. Рекомендуется перегенерировать индекс каналов. Более подробную информацию можно найти в журнале изменений Mattermost"
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Ошибка при чтении статуса файла: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Ошибка при поиске файла: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Не удалось получить количество пользователей"
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "Команда с таким URL уже существует."
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "У вас нет прав на управление этим типом задания"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Невозможно обновить статус задания. Установлен неверный статус"
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Ошибка при определении количества учётных записей системного администратора."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Невозможно понизить роль последнего системного администратора."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Невозможно определить, существует ли уже это имя пользователя"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Установлен неверный статус"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Не удалось записать журналы в буфер"
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Произошла внутренняя ошибка при сохранении пароля."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Ваш пароль должен содержать не более 72 символов."
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Произошла внутренняя ошибка при сохранении пароля."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Не удалось принять приглашение удаленного кластера"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Не удалось декодировать строку base64"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Удаленный (remote) кластер не был удален"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Не удалось зашифровать приглашение на удаленный кластер с помощью предоставленного пароля"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Удаленный (remote) кластер не найден"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Невозможно установить пользовательский статус."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Не удалось получить URL сайта экземпляра"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Не удалось расшифровать приглашение удаленного кластера с помощью предоставленного пароля"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Неверный поисковый бэкэнд. Должен быть либо elasticsearch, либо opensearch."
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Невозможно обработать запрос. Тело запроса слишком большое."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Недопустимая максимальная длина URL для настроек сервиса. Должно быть целое число больше нуля."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Недопустимое значение для limit_visible_dms_gms."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress должен быть указан для типа кэша redis."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Тип кэша должен быть либо lru, либо redis."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB должен иметь значение, большее или равное нулю."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Невозможно получить вебхук для teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "Пользователь не является пользователем OAuth или SAML."
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Размер загруженного плагина превышает лимит. Этот лимит можно изменить в Системной консоли через File Storage > Maximum File Size"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Для канала личных сообщений нет участников"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Не удалось загрузить файл. Канал загрузки не используется совместно с удаленным."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Невозможно сгенерировать код приглашения для подтвержденного кластера"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Не удалось определить, является ли канал общим с удаленным"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Неверный запрос."
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "для функции запланированных сообщений требуется лицензия"
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "функция запланированных сообщений отключена"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Невозможно удалить сообщение, ServiceSettings.EnableAPIPostDeletion не включен."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Невозможно создать канал личных сообщений с удаленным пользователем"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Невозможно создать канал в группе с удалёнными пользователями"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Не удалось скопировать содержимое файла лицензии в буфер"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Не удалось создать приглашение на удаленный кластер"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Невозможно обновить бота."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Вы не можете изменить статус пользователя. Пользователь управляется из LDAP-каталога"
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Невозможно отфильтровать конфигурацию."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Не удалось закешировать сообщение после дедупликации клиента, повторяющего один и тот же запрос."
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Не удалось получить данные управления общим каналом"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Не удалось пригласить удалённо на канал"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Не удалось отменить приглашение дистанционного пользователя на канал"
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Невозможно зарегистрировать группу свойств \"Атрибуты пользовательского профиля\""
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Невозможно создать поле \"Атрибут пользовательского профиля\""
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Невозможно получить поле \"Атрибут пользовательского профиля\""
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Достигнут лимит поля \"Атрибуты пользовательского профиля\""
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Невозможно получить значения пользовательских атрибутов профиля"
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Ваша лицензия не поддерживает пользовательские атрибуты профиля."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Невозможно получить программу для чтения zip-файлов."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось создать закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось удалить закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось обновить закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось обновить порядок сортировки закладок канала."
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Невозможно получить закладки для заархивированного канала"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "У вас нет разрешения на удаление этого ресурса."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Невозможно выполнить команду в удаленном канале."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "пытаюсь исправить поле, которого не существует"
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Сеанс не найден."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Невозможно подсчитать количество полей для группы атрибутов пользовательского профиля"
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Баннер канала можно настроить только на публичных и приватных каналах."
   }
 ]

@@ -17,8 +17,7 @@ import type {FakePost, RhsState} from 'types/store/rhs';
 
 type Props = {
     currentTeam?: Team;
-    posts: Post[];
-    channel: Channel | null;
+    channel?: Channel;
     selected: Post | FakePost;
     previousRhsState?: RhsState;
 }
@@ -26,7 +25,6 @@ type Props = {
 const RhsThread = ({
     currentTeam,
     channel,
-    posts,
     selected,
     previousRhsState,
 }: Props) => {
@@ -37,9 +35,9 @@ const RhsThread = ({
             // if team-scoped and mismatched team, close rhs
             dispatch(closeRightHandSide());
         }
-    }, [currentTeam, channel]);
+    }, [currentTeam, channel, dispatch]);
 
-    if (posts == null || selected == null || !channel) {
+    if (selected == null || !channel) {
         return (
             <div/>
         );

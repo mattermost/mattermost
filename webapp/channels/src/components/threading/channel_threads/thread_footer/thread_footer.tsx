@@ -10,6 +10,7 @@ import type {UserThread} from '@mattermost/types/threads';
 import {threadIsSynthetic} from '@mattermost/types/threads';
 
 import {setThreadFollow, getThread as fetchThread} from 'mattermost-redux/actions/threads';
+import {Posts} from 'mattermost-redux/constants';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
@@ -22,8 +23,8 @@ import Button from 'components/threading/common/button';
 import FollowButton from 'components/threading/common/follow_button';
 import {THREADING_TIME} from 'components/threading/common/options';
 import Timestamp from 'components/timestamp';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Avatars from 'components/widgets/users/avatars';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
@@ -79,14 +80,17 @@ function ThreadFooter({
         dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
     }, [isFollowing]);
 
+    if (post.delete_at > 0 || post.state === Posts.POST_DELETED) {
+        return null;
+    }
+
     return (
         <div className='ThreadFooter'>
             {!isFollowing || threadIsSynthetic(thread) || !thread.unread_replies ? (
                 <div className='indicator'/>
             ) : (
-                <SimpleTooltip
-                    id='threadFooterIndicator'
-                    content={
+                <WithTooltip
+                    title={
                         <FormattedMessage
                             id='threading.numNewMessages'
                             defaultMessage='{newReplies, plural, =0 {no unread messages} =1 {one unread message} other {# unread messages}}'
@@ -100,7 +104,7 @@ function ThreadFooter({
                     >
                         <div className='dot-unreads'/>
                     </div>
-                </SimpleTooltip>
+                </WithTooltip>
             )}
 
             {participantIds && participantIds.length > 0 ? (

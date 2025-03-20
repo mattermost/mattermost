@@ -14,9 +14,9 @@ type ChannelBookmarkStore struct {
 	mock.Mock
 }
 
-// Delete provides a mock function with given fields: bookmarkId, deleteFile
-func (_m *ChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) error {
-	ret := _m.Called(bookmarkId, deleteFile)
+// Delete provides a mock function with given fields: bookmarkID, deleteFile
+func (_m *ChannelBookmarkStore) Delete(bookmarkID string, deleteFile bool) error {
+	ret := _m.Called(bookmarkID, deleteFile)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
@@ -24,7 +24,7 @@ func (_m *ChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) error
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, bool) error); ok {
-		r0 = rf(bookmarkId, deleteFile)
+		r0 = rf(bookmarkID, deleteFile)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -32,17 +32,17 @@ func (_m *ChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) error
 	return r0
 }
 
-// ErrorIfBookmarkFileInfoAlreadyAttached provides a mock function with given fields: fileId
-func (_m *ChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileId string) error {
-	ret := _m.Called(fileId)
+// ErrorIfBookmarkFileInfoAlreadyAttached provides a mock function with given fields: fileID, channelID
+func (_m *ChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileID string, channelID string) error {
+	ret := _m.Called(fileID, channelID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ErrorIfBookmarkFileInfoAlreadyAttached")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(fileId)
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(fileID, channelID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -80,9 +80,9 @@ func (_m *ChannelBookmarkStore) Get(Id string, includeDeleted bool) (*model.Chan
 	return r0, r1
 }
 
-// GetBookmarksForChannelSince provides a mock function with given fields: channelId, since
-func (_m *ChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
-	ret := _m.Called(channelId, since)
+// GetBookmarksForChannelSince provides a mock function with given fields: channelID, since
+func (_m *ChannelBookmarkStore) GetBookmarksForChannelSince(channelID string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
+	ret := _m.Called(channelID, since)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetBookmarksForChannelSince")
@@ -91,10 +91,10 @@ func (_m *ChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, si
 	var r0 []*model.ChannelBookmarkWithFileInfo
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, int64) ([]*model.ChannelBookmarkWithFileInfo, error)); ok {
-		return rf(channelId, since)
+		return rf(channelID, since)
 	}
 	if rf, ok := ret.Get(0).(func(string, int64) []*model.ChannelBookmarkWithFileInfo); ok {
-		r0 = rf(channelId, since)
+		r0 = rf(channelID, since)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ChannelBookmarkWithFileInfo)
@@ -102,7 +102,7 @@ func (_m *ChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, si
 	}
 
 	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
-		r1 = rf(channelId, since)
+		r1 = rf(channelID, since)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -158,9 +158,9 @@ func (_m *ChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error {
 	return r0
 }
 
-// UpdateSortOrder provides a mock function with given fields: bookmarkId, channelId, newIndex
-func (_m *ChannelBookmarkStore) UpdateSortOrder(bookmarkId string, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
-	ret := _m.Called(bookmarkId, channelId, newIndex)
+// UpdateSortOrder provides a mock function with given fields: bookmarkID, channelID, newIndex
+func (_m *ChannelBookmarkStore) UpdateSortOrder(bookmarkID string, channelID string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
+	ret := _m.Called(bookmarkID, channelID, newIndex)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateSortOrder")
@@ -169,10 +169,10 @@ func (_m *ChannelBookmarkStore) UpdateSortOrder(bookmarkId string, channelId str
 	var r0 []*model.ChannelBookmarkWithFileInfo
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, string, int64) ([]*model.ChannelBookmarkWithFileInfo, error)); ok {
-		return rf(bookmarkId, channelId, newIndex)
+		return rf(bookmarkID, channelID, newIndex)
 	}
 	if rf, ok := ret.Get(0).(func(string, string, int64) []*model.ChannelBookmarkWithFileInfo); ok {
-		r0 = rf(bookmarkId, channelId, newIndex)
+		r0 = rf(bookmarkID, channelID, newIndex)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ChannelBookmarkWithFileInfo)
@@ -180,7 +180,7 @@ func (_m *ChannelBookmarkStore) UpdateSortOrder(bookmarkId string, channelId str
 	}
 
 	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
-		r1 = rf(bookmarkId, channelId, newIndex)
+		r1 = rf(bookmarkID, channelID, newIndex)
 	} else {
 		r1 = ret.Error(1)
 	}

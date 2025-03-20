@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
+import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {FileInfo, FileSearchResultItem} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
-import {FileTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
+import type {MMReduxAction} from 'mattermost-redux/action_types';
+import {FileTypes, PostTypes, UserTypes, ChannelBookmarkTypes} from 'mattermost-redux/action_types';
 
-export function files(state: Record<string, FileInfo> = {}, action: AnyAction) {
+export function files(state: Record<string, FileInfo> = {}, action: MMReduxAction) {
     switch (action.type) {
     case FileTypes.RECEIVED_UPLOAD_FILES:
     case FileTypes.RECEIVED_FILES_FOR_POST: {
@@ -53,6 +54,55 @@ export function files(state: Record<string, FileInfo> = {}, action: AnyAction) {
         return state;
     }
 
+    case FileTypes.REMOVED_FILE: {
+        const nextState = {...state};
+        const {fileIds} = action.data;
+        if (fileIds) {
+            fileIds.forEach((id: string) => {
+                Reflect.deleteProperty(nextState, id);
+            });
+        }
+
+        return nextState;
+    }
+
+    case ChannelBookmarkTypes.RECEIVED_BOOKMARKS: {
+        const bookmarks: ChannelBookmark[] = action.data.bookmarks;
+
+        const nextState = {...state};
+
+        bookmarks.forEach(({file}) => {
+            if (file) {
+                nextState[file.id] = file;
+            }
+        });
+
+        return nextState;
+    }
+
+    case ChannelBookmarkTypes.RECEIVED_BOOKMARK: {
+        const {file}: ChannelBookmark = action.data;
+
+        if (file) {
+            return {...state, [file.id]: file};
+        }
+
+        return state;
+    }
+
+    case ChannelBookmarkTypes.BOOKMARK_DELETED: {
+        const {file}: ChannelBookmark = action.data;
+
+        if (!file) {
+            return state;
+        }
+
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, file.id);
+
+        return nextState;
+    }
+
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:
@@ -60,7 +110,7 @@ export function files(state: Record<string, FileInfo> = {}, action: AnyAction) {
     }
 }
 
-export function filesFromSearch(state: Record<string, FileSearchResultItem> = {}, action: AnyAction) {
+export function filesFromSearch(state: Record<string, FileSearchResultItem> = {}, action: MMReduxAction) {
     switch (action.type) {
     case FileTypes.RECEIVED_FILES_FOR_SEARCH: {
         return {...state,
@@ -112,7 +162,7 @@ function storeFilesForPost(state: Record<string, FileInfo>, post: Post) {
     }, state);
 }
 
-export function fileIdsByPostId(state: Record<string, string[]> = {}, action: AnyAction) {
+export function fileIdsByPostId(state: Record<string, string[]> = {}, action: MMReduxAction) {
     switch (action.type) {
     case FileTypes.RECEIVED_FILES_FOR_POST: {
         const {data, postId} = action;
@@ -166,7 +216,7 @@ function storeFilesIdsForPost(state: Record<string, string[]>, post: Post) {
     };
 }
 
-function filePublicLink(state: {link: string} = {link: ''}, action: AnyAction) {
+function filePublicLink(state: {link: string} = {link: ''}, action: MMReduxAction) {
     switch (action.type) {
     case FileTypes.RECEIVED_FILE_PUBLIC_LINK: {
         return action.data;

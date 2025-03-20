@@ -9,7 +9,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import type {BaseProps} from 'components/admin_console/admin_settings';
+import type {BaseProps} from 'components/admin_console/old_admin_settings';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 

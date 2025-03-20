@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon} from '@mattermost/compass-icons/components';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -21,10 +21,8 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
 import {isKeyPressed} from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
-import {localizeMessage, localizeAndFormatMessage} from 'utils/utils';
 
 import type {FilterType} from './browse_channels/browse_channels';
 import {Filter} from './browse_channels/browse_channels';
@@ -130,14 +128,6 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
 
         if (isArchivedChannel(channel)) {
             channelTypeIcon = <ArchiveOutlineIcon size={18}/>;
-        } else if (channel.shared) {
-            channelTypeIcon = (
-                <SharedChannelIndicator
-                    className='shared-channel-icon'
-                    channelType={channel.type}
-                    withTooltip={true}
-                />
-            );
         } else if (isPrivateChannel(channel)) {
             channelTypeIcon = <LockOutlineIcon size={18}/>;
         } else {
@@ -151,7 +141,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         const membershipIndicator = this.isMemberOfChannel(channel.id) ? (
             <div
                 id='membershipIndicatorContainer'
-                aria-label={localizeMessage('more_channels.membership_indicator', 'Membership Indicator: Joined')}
+                aria-label={this.props.intl.formatMessage({id: 'more_channels.membership_indicator', defaultMessage: 'Membership Indicator: Joined'})}
             >
                 <CheckIcon size={14}/>
                 <FormattedMessage
@@ -161,9 +151,8 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             </div>
         ) : null;
 
-        const channelPurposeContainerAriaLabel = localizeAndFormatMessage(
-            t('more_channels.channel_purpose'),
-            'Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
+        const channelPurposeContainerAriaLabel = this.props.intl.formatMessage(
+            messages.channelPurpose,
             {memberCount, channelPurpose: channel.purpose || ''},
         );
 
@@ -193,11 +182,11 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 className={joinViewChannelButtonClass}
                 disabled={Boolean(this.state.joiningChannel)}
                 tabIndex={-1}
-                aria-label={this.isMemberOfChannel(channel.id) ? localizeMessage('more_channels.view', 'View') : localizeMessage('joinChannel.JoinButton', 'Join')}
+                aria-label={this.isMemberOfChannel(channel.id) ? this.props.intl.formatMessage({id: 'more_channels.view', defaultMessage: 'View'}) : this.props.intl.formatMessage({id: 'joinChannel.JoinButton', defaultMessage: 'Join'})}
             >
                 <LoadingWrapper
                     loading={this.state.joiningChannel === channel.id}
-                    text={localizeMessage('joinChannel.joiningButton', 'Joining...')}
+                    text={messages.joiningButton}
                 >
                     <FormattedMessage
                         id={this.isMemberOfChannel(channel.id) ? 'more_channels.view' : 'joinChannel.JoinButton'}
@@ -206,6 +195,13 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 </LoadingWrapper>
             </button>
         );
+
+        const sharedChannelIcon = channel.shared ? (
+            <SharedChannelIndicator
+                className='shared-channel-icon'
+                withTooltip={true}
+            />
+        ) : null;
 
         return (
             <div
@@ -221,6 +217,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     <div className='style--none more-modal__name'>
                         {channelTypeIcon}
                         <span id='channelName'>{channel.display_name}</span>
+                        {sharedChannelIcon}
                     </div>
                     {channelPurposeContainer}
                 </div>
@@ -248,6 +245,12 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
     doSearch = () => {
         this.props.search(this.state.channelSearchValue);
         if (this.state.channelSearchValue === '') {
+            this.setState({page: 0});
+        }
+    };
+    filterChange = (filterType: FilterType) => {
+        this.props.changeFilter(filterType);
+        if (this.props.filter !== filterType) {
             this.setState({page: 0});
         }
     };
@@ -358,7 +361,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             listContent = (
                 <div
                     className='no-channel-message'
-                    aria-label={this.state.channelSearchValue.length > 0 ? localizeAndFormatMessage(t('more_channels.noMore'), 'No results for {text}', {text: this.state.channelSearchValue}) : localizeMessage('widgets.channels_input.empty', 'No channels found')
+                    aria-label={this.state.channelSearchValue.length > 0 ? this.props.intl.formatMessage(messages.noMore, {text: this.state.channelSearchValue}) : this.props.intl.formatMessage({id: 'widgets.channels_input.empty', defaultMessage: 'No channels found'})
                     }
                 >
                     <MagnifyingGlassSVG/>
@@ -380,7 +383,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                         className='btn btn-sm btn-tertiary filter-control filter-control__next'
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
-                        aria-label={localizeMessage('more_channels.next', 'Next')}
+                        aria-label={this.props.intl.formatMessage({id: 'more_channels.next', defaultMessage: 'Next'})}
                     >
                         <FormattedMessage
                             id='more_channels.next'
@@ -395,7 +398,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     <button
                         className='btn btn-sm btn-tertiary filter-control filter-control__prev'
                         onClick={this.previousPage}
-                        aria-label={localizeMessage('more_channels.prev', 'Previous')}
+                        aria-label={this.props.intl.formatMessage({id: 'more_channels.prev', defaultMessage: 'Previous'})}
                     >
                         <FormattedMessage
                             id='more_channels.prev'
@@ -423,7 +426,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     clearable={true}
                     onClear={this.handleClear}
                     value={this.state.channelSearchValue}
-                    aria-label={localizeMessage('filtered_channels_list.search', 'Search Channels')}
+                    aria-label={this.props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search Channels'})}
                 />
             </div>
         );
@@ -438,7 +441,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             <Menu.Item
                 key='channelsMoreDropdownAll'
                 id='channelsMoreDropdownAll'
-                onClick={() => this.props.changeFilter(Filter.All)}
+                onClick={() => this.filterChange(Filter.All)}
                 leadingElement={<GlobeCheckedIcon size={16}/>}
                 labels={
                     <FormattedMessage
@@ -447,12 +450,12 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     />
                 }
                 trailingElements={this.props.filter === Filter.All ? checkIcon : null}
-                aria-label={localizeMessage('suggestion.all', 'All channel types')}
+                aria-label={this.props.intl.formatMessage({id: 'suggestion.all', defaultMessage: 'All channel types'})}
             />,
             <Menu.Item
                 key='channelsMoreDropdownPublic'
                 id='channelsMoreDropdownPublic'
-                onClick={() => this.props.changeFilter(Filter.Public)}
+                onClick={() => this.filterChange(Filter.Public)}
                 leadingElement={<GlobeIcon size={16}/>}
                 labels={
                     <FormattedMessage
@@ -461,12 +464,12 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     />
                 }
                 trailingElements={this.props.filter === Filter.Public ? checkIcon : null}
-                aria-label={localizeMessage('suggestion.public', 'Public channels')}
+                aria-label={this.props.intl.formatMessage({id: 'suggestion.public', defaultMessage: 'Public channels'})}
             />,
             <Menu.Item
                 key='channelsMoreDropdownPrivate'
                 id='channelsMoreDropdownPrivate'
-                onClick={() => this.props.changeFilter(Filter.Private)}
+                onClick={() => this.filterChange(Filter.Private)}
                 leadingElement={<LockOutlineIcon size={16}/>}
                 labels={
                     <FormattedMessage
@@ -475,7 +478,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     />
                 }
                 trailingElements={this.props.filter === Filter.Private ? checkIcon : null}
-                aria-label={localizeMessage('suggestion.private', 'Private channels')}
+                aria-label={this.props.intl.formatMessage({id: 'suggestion.private', defaultMessage: 'Private channels'})}
             />,
         ];
 
@@ -485,7 +488,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 <Menu.Item
                     key='channelsMoreDropdownArchived'
                     id='channelsMoreDropdownArchived'
-                    onClick={() => this.props.changeFilter(Filter.Archived)}
+                    onClick={() => this.filterChange(Filter.Archived)}
                     leadingElement={<ArchiveOutlineIcon size={16}/>}
                     labels={
                         <FormattedMessage
@@ -494,7 +497,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                         />
                     }
                     trailingElements={this.props.filter === Filter.Archived ? checkIcon : null}
-                    aria-label={localizeMessage('suggestion.archive', 'Archived channels')}
+                    aria-label={this.props.intl.formatMessage({id: 'suggestion.archive', defaultMessage: 'Archived channels'})}
                 />,
             );
         }
@@ -515,7 +518,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 }}
                 menu={{
                     id: 'browseChannelsDropdown',
-                    'aria-label': localizeMessage('more_channels.title', 'Browse channels'),
+                    'aria-label': this.props.intl.formatMessage({id: 'more_channels.title', defaultMessage: 'Browse channels'}),
                 }}
             >
                 {channelDropdownItems.map((item) => item)}
@@ -530,7 +533,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             >
                 <button
                     className={hideJoinedButtonClass}
-                    aria-label={this.props.rememberHideJoinedChannelsChecked ? localizeMessage('more_channels.hide_joined_checked', 'Hide joined channels checkbox, checked') : localizeMessage('more_channels.hide_joined_not_checked', 'Hide joined channels checkbox, not checked')}
+                    aria-label={this.props.rememberHideJoinedChannelsChecked ? this.props.intl.formatMessage({id: 'more_channels.hide_joined_checked', defaultMessage: 'Hide joined channels checkbox, checked'}) : this.props.intl.formatMessage({id: 'more_channels.hide_joined_not_checked', defaultMessage: 'Hide joined channels checkbox, not checked'})}
                 >
                     {this.props.rememberHideJoinedChannelsChecked ? <CheckboxCheckedIcon/> : null}
                 </button>
@@ -543,13 +546,13 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
 
         let channelCountLabel;
         if (channels.length === 0) {
-            channelCountLabel = localizeMessage('more_channels.count_zero', '0 Results');
+            channelCountLabel = this.props.intl.formatMessage({id: 'more_channels.count_zero', defaultMessage: '0 Results'});
         } else if (channels.length === 1) {
-            channelCountLabel = localizeMessage('more_channels.count_one', '1 Result');
+            channelCountLabel = this.props.intl.formatMessage({id: 'more_channels.count_one', defaultMessage: '1 Result'});
         } else if (channels.length > 1) {
-            channelCountLabel = localizeAndFormatMessage(t('more_channels.count'), '0 Results', {count: channels.length});
+            channelCountLabel = this.props.intl.formatMessage(messages.channelCount, {count: channels.length});
         } else {
-            channelCountLabel = localizeMessage('more_channels.count_zero', '0 Results');
+            channelCountLabel = this.props.intl.formatMessage({id: 'more_channels.count_zero', defaultMessage: '0 Results'});
         }
 
         const dropDownContainer = (
@@ -587,5 +590,24 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         );
     }
 }
+
+const messages = defineMessages({
+    channelCount: {
+        id: 'more_channels.count',
+        defaultMessage: '{count} Results',
+    },
+    channelPurpose: {
+        id: 'more_channels.channel_purpose',
+        defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount} , Purpose: {channelPurpose}',
+    },
+    joiningButton: {
+        id: 'joinChannel.joiningButton',
+        defaultMessage: 'Joining...',
+    },
+    noMore: {
+        id: 'more_channels.noMore',
+        defaultMessage: 'No results for {text}',
+    },
+});
 
 export default injectIntl(SearchableChannelList);

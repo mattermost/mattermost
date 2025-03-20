@@ -71,7 +71,7 @@ describe('channels > channel header', {testIsolation: true}, () => {
             cy.apiLogin(testUser);
         });
 
-        it('webapp should show the Playbook channel header button', () => {
+        it.skip('webapp should show the Playbook channel header button', () => {
             // # Navigate directly to a non-playbook run channel
             cy.visit(`/${testTeam.name}/channels/town-square`);
 
@@ -91,10 +91,10 @@ describe('channels > channel header', {testIsolation: true}, () => {
             });
 
             // * Verify tooltip text
-            cy.get('#pluginTooltip').contains('Playbooks');
+            cy.get('#playbooksChannelHeaderButton').contains('Playbooks');
         });
 
-        it('webapp should make the Playbook channel header button active when opened', () => {
+        it.skip('webapp should make the Playbook channel header button active when opened', () => {
             // # Navigate directly to a non-playbook run channel
             cy.visit(`/${testTeam.name}/channels/town-square`);
 

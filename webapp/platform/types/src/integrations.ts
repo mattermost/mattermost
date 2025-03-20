@@ -19,6 +19,11 @@ export type IncomingWebhook = {
     channel_locked: boolean;
 };
 
+export type IncomingWebhooksWithCount = {
+    incoming_webhooks: IncomingWebhook[];
+    total_count: number;
+};
+
 export type OutgoingWebhook = {
     id: string;
     token: string;
@@ -121,6 +126,7 @@ export type OutgoingOAuthConnection = {
 
 export type IntegrationsState = {
     incomingHooks: IDMappedObjects<IncomingWebhook>;
+    incomingHooksTotalCount: number;
     outgoingHooks: IDMappedObjects<OutgoingWebhook>;
     oauthApps: IDMappedObjects<OAuthApp>;
     outgoingOAuthConnections: IDMappedObjects<OutgoingOAuthConnection>;
@@ -128,9 +134,11 @@ export type IntegrationsState = {
     appsBotIDs: string[];
     systemCommands: IDMappedObjects<Command>;
     commands: IDMappedObjects<Command>;
+    dialogTriggerId: string;
     dialog?: {
         url: string;
         dialog: Dialog;
+        trigger_id: string;
     };
 };
 

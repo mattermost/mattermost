@@ -120,6 +120,8 @@ func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.A
 				return nil, model.NewAppError("CreateTeam", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			case invErr.Entity == "Channel" && invErr.Field == "Id":
 				return nil, model.NewAppError("CreateTeam", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest).Wrap(err)
+			case invErr.Entity == "Team" && invErr.Field == "id":
+				return nil, model.NewAppError("CreateTeam", "store.sql_team.save_team.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest).Wrap(err)
 			default:
 				return nil, model.NewAppError("CreateTeam", "app.team.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
@@ -467,7 +469,7 @@ func (a *App) UpdateTeamMemberRoles(c request.CTX, teamID string, userID string,
 
 	a.ClearSessionCacheForUser(userID)
 
-	if appErr := a.sendUpdatedMemberRoleEvent(userID, member); appErr != nil {
+	if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {
 		return nil, appErr
 	}
 
@@ -494,7 +496,7 @@ func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID s
 
 	// If the migration is not completed, we also need to check the default team_admin/team_user roles are not present in the roles field.
 	if err = a.IsPhase2MigrationCompleted(); err != nil {
-		member.ExplicitRoles = RemoveRoles([]string{model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId}, member.ExplicitRoles)
+		member.ExplicitRoles = removeRoles([]string{model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId}, member.ExplicitRoles)
 	}
 
 	member, nErr := a.Srv().Store().Team().UpdateMember(c, member)
@@ -510,15 +512,15 @@ func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID s
 
 	a.ClearSessionCacheForUser(userID)
 
-	if appErr := a.sendUpdatedMemberRoleEvent(userID, member); appErr != nil {
+	if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {
 		return nil, appErr
 	}
 
 	return member, nil
 }
 
-func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember) *model.AppError {
-	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", userID, nil, "")
+func (a *App) sendUpdatedTeamMemberEvent(member *model.TeamMember) *model.AppError {
+	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", member.UserId, nil, "")
 	tmJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
 		return model.NewAppError("sendUpdatedMemberRoleEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -801,7 +803,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.UserHasJoinedTeam(pluginContext, teamMember, actor)
 			return true
 		}, plugin.UserHasJoinedTeamID)
@@ -967,8 +969,8 @@ func (a *App) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
-func (a *App) GetTeamMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
-	teamMember, err := a.Srv().Store().Team().GetMember(sqlstore.RequestContextWithMaster(c), teamID, userID)
+func (a *App) GetTeamMember(rctx request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
+	teamMember, err := a.Srv().Store().Team().GetMember(sqlstore.RequestContextWithMaster(rctx), teamID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1094,12 +1096,11 @@ func (a *App) AddTeamMemberByInviteId(c request.CTX, inviteId, userID string) (*
 
 func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.AppError) {
 	channelUnreads, err := a.Srv().Store().Team().GetChannelUnreadsForTeam(teamID, userID)
-
 	if err != nil {
 		return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	var teamUnread = &model.TeamUnread{
+	teamUnread := &model.TeamUnread{
 		MsgCount:         0,
 		MentionCount:     0,
 		MentionCountRoot: 0,
@@ -1173,7 +1174,7 @@ func (a *App) postProcessTeamMemberLeave(c request.CTX, teamMember *model.TeamMe
 
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.UserHasLeftTeam(pluginContext, teamMember, actor)
 			return true
 		}, plugin.UserHasLeftTeamID)
@@ -1284,7 +1285,7 @@ func (a *App) postLeaveTeamMessage(c request.CTX, user *model.User, channel *mod
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
+	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1302,7 +1303,7 @@ func (a *App) postRemoveFromTeamMessage(c request.CTX, user *model.User, channel
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
+	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postRemoveFromTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

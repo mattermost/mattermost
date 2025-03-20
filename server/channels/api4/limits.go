@@ -13,7 +13,7 @@ import (
 )
 
 func (api *API) InitLimits() {
-	api.BaseRoutes.Limits.Handle("/server", api.APISessionRequired(getServerLimits)).Methods("GET")
+	api.BaseRoutes.Limits.Handle("/server", api.APISessionRequired(getServerLimits)).Methods(http.MethodGet)
 }
 
 func getServerLimits(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -29,6 +29,6 @@ func getServerLimits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(serverLimits); err != nil {
-		c.Logger.Error("Error writing server limits response", mlog.Err(err))
+		c.Logger.Warn("Error writing server limits response", mlog.Err(err))
 	}
 }

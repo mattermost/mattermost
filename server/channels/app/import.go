@@ -96,6 +96,16 @@ func processAttachments(c request.CTX, line *imports.LineImportData, basePath st
 				}
 			}
 		}
+	case "bot":
+		if line.Bot.ProfileImage != nil {
+			path := filepath.Join(basePath, *line.Bot.ProfileImage)
+			*line.Bot.ProfileImage = path
+			if len(filesMap) > 0 {
+				if line.Bot.ProfileImageData, ok = filesMap[path]; !ok {
+					return fmt.Errorf("attachment %q not found in map", path)
+				}
+			}
+		}
 	case "emoji":
 		if line.Emoji.Image != nil {
 			path := filepath.Join(basePath, *line.Emoji.Image)
@@ -339,6 +349,11 @@ func (a *App) importLine(c request.CTX, line imports.LineImportData, dryRun bool
 			return model.NewAppError("BulkImport", "app.import.import_line.null_user.error", nil, "", http.StatusBadRequest)
 		}
 		return a.importUser(c, line.User, dryRun)
+	case line.Type == "bot":
+		if line.Bot == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_bot.error", nil, "", http.StatusBadRequest)
+		}
+		return a.importBot(c, line.Bot, dryRun)
 	case line.Type == "direct_channel":
 		if line.DirectChannel == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_direct_channel.error", nil, "", http.StatusBadRequest)

@@ -1,4 +1,4 @@
-@charset "UTF-8";
+@use "utils/variables";
 
 /* Height durations for height and opacity of sidebar channels needs to be different for optimum fps see PR #9732 */
 $sidebarHeightTransitionDuration: 0.18s;
@@ -7,7 +7,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 #TeamSidebar {
     z-index: 13;
     display: flex;
-    width: 65px;
+    width: 64px;
     height: 100%;
     flex-direction: column;
     background-color: var(--sidebar-header-bg);
@@ -28,17 +28,17 @@ $sidebarOpacityAnimationDuration: 0.15s;
     z-index: 16;
     left: 0;
     display: flex;
-    width: var(--overrideLhsWidth, 240px);
     min-width: 240px;
     max-width: 240px;
     height: 100%;
     flex-direction: column;
-    border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     background-color: var(--sidebar-bg);
 
     @media screen and (min-width: 769px) {
+        width: var(--overrideLhsWidth, 264px);
         min-width: 200px;
         max-width: 264px;
+        background: none;
     }
 
     @media screen and (min-width: 1201px) {
@@ -109,8 +109,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarHeader {
-        background-color: var(--sidebar-header-bg);
-
         .header__info {
             color: var(--sidebar-header-text-color);
 
@@ -163,7 +161,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &.desktop {
             display: block;
 
-            .AddChannelDropdown_dropdownButton,
             .SidebarFilters_filterButton,
             .SidebarChannelNavigator_backButton,
             .SidebarChannelNavigator_inviteUsers,
@@ -180,7 +177,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &.webapp {
             display: flex;
 
-            .AddChannelDropdown_dropdownButton,
             .SidebarChannelNavigator_inviteUsers,
             .SidebarChannelNavigator_jumpToButton,
             .SidebarFilters_filterButton {
@@ -215,11 +211,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
             &--untouched {
                 color: var(--sidebar-unread-text);
-                font-weight: $font-weight--semibold;
-
-                i::before {
-                    font-weight: $font-weight--semibold;
-                }
+                font-weight: variables.$font-weight--semibold;
             }
         }
 
@@ -234,7 +226,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
             }
         }
 
-        .AddChannelDropdown_dropdownButton,
         .SidebarChannelNavigator_inviteUsers,
         .SidebarChannelNavigator_jumpToButton,
         .SidebarFilters_filterButtontton,
@@ -337,35 +328,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         color: var(--sidebar-bg);
     }
 
-    .AddChannelDropdown {
-        height: 30px;
-
-        .dropdown-menu {
-            min-width: 250px;
-            margin-top: 0;
-            line-height: 19px;
-
-            span {
-                color: rgba(var(--center-channel-color-rgb), 0.9);
-
-                &:not(.MenuItem__help-text) {
-                    white-space: nowrap;
-                }
-            }
-
-            button {
-                padding: 1px 16px;
-            }
-
-            i {
-                color: rgba(var(--center-channel-color-rgb), 0.64);
-                font-size: 16px;
-                line-height: 16px;
-            }
-        }
-    }
-
-    .AddChannelDropdown_dropdownButton,
     .SidebarChannelNavigator_inviteUsers {
         z-index: 1;
         width: 28px;
@@ -376,18 +338,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         background: transparent;
         color: rgba(var(--sidebar-text-rgb), 0.8);
         font-size: 20px;
-    }
-
-    .AddChannelDropdown_dropdownButton:hover,
-    .AddChannelDropdown_dropdownButton:active,
-    .AddChannelDropdown_dropdownButton:focus {
-        background-color: rgba(var(--sidebar-text-rgb), 0.16);
-        color: var(--sidebar-text);
-        cursor: pointer;
-    }
-
-    .AddChannelDropdown_dropdownButton:focus {
-        outline-style: none;
     }
 
     .sidebar-header {
@@ -412,11 +362,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &.MenuWrapper--open {
             background-color: rgba(var(--sidebar-text-rgb), 0.16);
         }
-    }
-
-    .AddChannelDropdown_dropdownButton {
-        background-color: rgba(var(--sidebar-text-rgb), 0.08);
-        color: rgba(var(--sidebar-text-rgb), 0.64);
     }
 
     .SidebarMenu {
@@ -832,6 +777,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         font-family: 'Open Sans', sans-serif;
         font-size: 12px;
         font-weight: 600;
+        letter-spacing: 0.05em;
         text-align: left;
         text-transform: uppercase;
         transition: box-shadow 0.25s ease-in-out;
@@ -1137,10 +1083,12 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
 
         & span.SidebarChannelLinkLabel {
+            overflow: hidden;
             max-width: 100%;
             height: 18px;
             line-height: 18px;
             text-align: justify;
+            text-overflow: ellipsis;
             user-select: none;
             white-space: nowrap;
         }
@@ -1283,10 +1231,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarChannel.unread .SidebarChannelLinkLabel,
-    .SidebarChannel.unread .SidebarLink > i,
     .SidebarChannel.unread .SidebarLink:hover .SidebarChannelLinkLabel {
         color: var(--sidebar-unread-text);
         font-weight: 600;
+    }
+
+    .SidebarChannel.unread .SidebarLink > i {
+        color: var(--sidebar-unread-text);
     }
 
     .SidebarChannel .SidebarLink > i {
@@ -1300,13 +1251,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         display: flex;
         overflow: hidden;
         flex-grow: 1;
-    }
-
-    .SidebarChannelLinkLabel_wrapper > div.truncated {
-        display: block;
-        overflow: hidden;
-        width: 100%;
-        text-overflow: ellipsis;
+        gap: 8px;
     }
 
     .DirectChannel__profile-picture {
@@ -1404,7 +1349,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     &:hover {
         background: #489dfe;
-        color: $white;
+        color: variables.$white;
     }
 
     &:focus,

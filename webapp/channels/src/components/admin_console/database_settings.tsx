@@ -13,11 +13,12 @@ import ExternalLink from 'components/external_link';
 
 import {DocLinks} from 'utils/constants';
 
-import type {BaseState} from './admin_settings';
-import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import MigrationsTable from './database';
+import type {BaseState} from './old_admin_settings';
+import OLDAdminSettings from './old_admin_settings';
 import RequestButton from './request_button/request_button';
+import SettingSet from './setting_set';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
@@ -98,7 +99,7 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
     messages.traceDescription,
 ];
 
-export default class DatabaseSettings extends AdminSettings<Props, State> {
+export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -378,31 +379,29 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                     setByEnv={this.isSetByEnv('SqlSettings.DisableDatabaseSearch')}
                     disabled={this.props.isDisabled}
                 />
-                <div className='form-group'>
-                    <label
-                        className='control-label col-sm-4'
-                    >
+                <SettingSet
+                    label={
                         <FormattedMessage
                             id='admin.database.migrations_table.title'
                             defaultMessage='Schema Migrations:'
                         />
-                    </label>
-                    <div className='col-sm-8'>
-                        <div className='migrations-table-setting'>
-                            <MigrationsTable
-                                createHelpText={
-                                    <FormattedMessage
-                                        id='admin.database.migrations_table.help_text'
-                                        defaultMessage='All applied migrations.'
-                                    />
-                                }
-                            />
-                        </div>
+                    }
+                >
+                    <div className='migrations-table-setting'>
+                        <MigrationsTable
+                            createHelpText={
+                                <FormattedMessage
+                                    id='admin.database.migrations_table.help_text'
+                                    defaultMessage='All applied migrations.'
+                                />
+                            }
+                        />
                     </div>
-                </div>
+                </SettingSet>
                 <div className='form-group'>
                     <label
                         className='control-label col-sm-4'
+                        htmlFor='activeSearchBackend'
                     >
                         <FormattedMessage
                             id='admin.database.search_backend.title'
@@ -411,6 +410,7 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                     </label>
                     <div className='col-sm-8'>
                         <input
+                            id='activeSearchBackend'
                             type='text'
                             className='form-control'
                             value={this.state.searchBackend}

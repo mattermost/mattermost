@@ -13,7 +13,7 @@
 import * as TIMEOUTS from '../../../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../../../support/env';
 
-import {promoteToChannelOrTeamAdmin} from '../channel_moderation/helpers.js';
+import {promoteToChannelOrTeamAdmin} from '../channel_moderation/helpers.ts';
 
 describe('System console', () => {
     const sysadmin = getAdminAccount();
@@ -105,7 +105,7 @@ function verifyCreatePublicChannel(teamName, testUsers) {
         cy.visit(`/${teamName}/channels/town-square`);
 
         // # Click on create new channel at LHS
-        cy.uiBrowseOrCreateChannel('Create new channel').click();
+        cy.uiBrowseOrCreateChannel('Create new channel');
 
         cy.findByRole('dialog', {name: 'Create a new channel'}).within(() => {
             // * Verify if creating a public channel is disabled or not
@@ -125,7 +125,7 @@ function verifyRenamePrivateChannel(teamName, privateChannelName, testUsers) {
         cy.visit(`/${teamName}/channels/${privateChannelName}`);
 
         // * Click the dropdown menu and verify if the rename option is visible or not
-        cy.get('#channelHeaderDropdownIcon', {timeout: TIMEOUTS.TWO_MIN}).should('be.visible').click();
+        cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.TWO_MIN}).should('be.visible').click();
         cy.get('#channelRename').should(canRename ? 'be.visible' : 'not.exist');
     }
 }

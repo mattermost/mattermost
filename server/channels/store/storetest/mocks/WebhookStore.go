@@ -14,9 +14,9 @@ type WebhookStore struct {
 	mock.Mock
 }
 
-// AnalyticsIncomingCount provides a mock function with given fields: teamID
-func (_m *WebhookStore) AnalyticsIncomingCount(teamID string) (int64, error) {
-	ret := _m.Called(teamID)
+// AnalyticsIncomingCount provides a mock function with given fields: teamID, userID
+func (_m *WebhookStore) AnalyticsIncomingCount(teamID string, userID string) (int64, error) {
+	ret := _m.Called(teamID, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AnalyticsIncomingCount")
@@ -24,17 +24,17 @@ func (_m *WebhookStore) AnalyticsIncomingCount(teamID string) (int64, error) {
 
 	var r0 int64
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
-		return rf(teamID)
+	if rf, ok := ret.Get(0).(func(string, string) (int64, error)); ok {
+		return rf(teamID, userID)
 	}
-	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(teamID)
+	if rf, ok := ret.Get(0).(func(string, string) int64); ok {
+		r0 = rf(teamID, userID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(teamID)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(teamID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}

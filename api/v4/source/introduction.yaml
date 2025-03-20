@@ -475,6 +475,13 @@ tags:
 
 
       To see how these actions work, please refer to either the [Golang WebSocket driver](https://github.com/mattermost/mattermost/blob/master/server/public/model/websocket_client.go) or our [JavaScript WebSocket driver](https://github.com/mattermost/mattermost/blob/master/webapp/platform/client/src/websocket.ts).
+  - name: common parameters
+    description: >
+      - `per_page`: For paged APIs, the number of items to return per page.
+
+        The maximum number of items returned per request is capped at 200. If `per_page` exceeds 200, the list will be silently truncated to 200 items.
+
+        If a paged API requires a `per_page` parameter and it is not provided, the default value is 60.
   - name: users
     description: >
       Endpoints for creating, getting and interacting with users.
@@ -552,6 +559,8 @@ tags:
     description: Endpoints related to import files.
   - name: exports
     description: Endpoints related to export files.
+  - name: metrics
+    description: Endpoints related to metrics, including the Client Performance Monitoring feature.
 x-tagGroups:
   - name: Overview
     tags:
@@ -564,6 +573,7 @@ x-tagGroups:
       - errors
       - rate limiting
       - WebSocket
+      - common parameters
   - name: Endpoints
     tags:
       - users
@@ -598,12 +608,16 @@ x-tagGroups:
       - roles
       - schemes
       - integration_actions
+      - remote clusters
       - shared channels
       - terms of service
       - imports
       - permissions
       - exports
       - usage
+      - reports
+      - custom profile attributes
+      - metrics
 servers:
   - url: http://your-mattermost-url.com
   - url: https://your-mattermost-url.com

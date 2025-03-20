@@ -33,7 +33,7 @@ func TestUpdateConfigRace(t *testing.T) {
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()
-	cfg.ClusterSettings.GossipPort = model.NewInt(9999)
+	cfg.ClusterSettings.GossipPort = model.NewPointer(9999)
 	searchEngine := searchengine.NewBroker(cfg)
 	layer := searchlayer.NewSearchLayer(&testlib.TestStore{Store: store}, searchEngine, cfg)
 	var wg sync.WaitGroup

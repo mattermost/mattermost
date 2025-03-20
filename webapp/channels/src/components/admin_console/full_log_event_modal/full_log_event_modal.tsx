@@ -65,7 +65,7 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
                 show={this.props.show}
                 onHide={this.props.onModalDismissed}
                 dialogClassName='a11y__modal full-log-event'
-                role='dialog'
+                role='none'
                 aria-labelledby='fullLogEventModalLabel'
             >
                 <Modal.Header closeButton={true}>

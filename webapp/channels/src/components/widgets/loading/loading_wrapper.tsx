@@ -2,16 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 
 import LoadingSpinner from './loading_spinner';
 
 type Props = {
     loading?: boolean;
-    text?: React.ReactNode;
+    text?: MessageDescriptor | React.ReactNode;
     children?: React.ReactNode;
 }
 
-const LoadingWrapper = ({loading = true, text = null, children = null}: Props) => {
+const LoadingWrapper = ({loading = true, text, children}: Props) => {
     return (
         <>
             {loading ? <LoadingSpinner text={text}/> : children}

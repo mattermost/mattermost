@@ -3,3 +3,5 @@ package.json
 package-lock.json
 playwright-report
 storage_state
+test-results
+results

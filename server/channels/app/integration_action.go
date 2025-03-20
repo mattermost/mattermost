@@ -67,7 +67,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 	// Start all queries here for parallel execution
 	pchan := make(chan store.StoreResult[*model.Post], 1)
 	go func() {
-		post, err := a.Srv().Store().Post().GetSingle(postID, false)
+		post, err := a.Srv().Store().Post().GetSingle(c, postID, false)
 		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
@@ -107,12 +107,13 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 
 		channel, err := a.Srv().Store().Channel().Get(cookie.ChannelId, true)
 		if err != nil {
+			errCtx := map[string]any{"channel_id": cookie.ChannelId}
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
 			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 
@@ -233,6 +234,15 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Log request, regardless of whether destination is internal or external
+	c.Logger().Info("DoPostActionWithCookie POST request, through DoActionRequest",
+		mlog.String("url", upstreamURL),
+		mlog.String("user_id", upstreamRequest.UserId),
+		mlog.String("post_id", upstreamRequest.PostId),
+		mlog.String("channel_id", upstreamRequest.ChannelId),
+		mlog.String("team_id", upstreamRequest.TeamId),
+	)
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(c.WithContext(ctx), upstreamURL, requestJSON)
@@ -270,7 +280,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		response.Update.IsPinned = originalIsPinned
 		response.Update.HasReactions = originalHasReactions
 
-		if _, appErr = a.UpdatePost(c, response.Update, false); appErr != nil {
+		if _, appErr = a.UpdatePost(c, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
 			return "", appErr
 		}
 	}
@@ -296,7 +306,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 	return clientTriggerId, nil
 }
 
-// Perform an HTTP POST request to an integration's action endpoint.
+// DoActionRequest performs an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
 // For internal requests, requests are routed directly to a plugin ServerHTTP hook
 func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError) {
@@ -453,11 +463,15 @@ func (a *App) DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.R
 	return a.doPluginRequest(c, "POST", rawURL, nil, body)
 }
 
-func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
+func (a *App) OpenInteractiveDialog(c request.CTX, request model.OpenDialogRequest) *model.AppError {
 	timeout := time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
 	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey(), timeout)
 	if appErr != nil {
 		return appErr
+	}
+
+	if dialogErr := request.IsValid(); dialogErr != nil {
+		c.Logger().Warn("Interactive dialog is invalid", mlog.Err(dialogErr))
 	}
 
 	request.TriggerId = clientTriggerId
@@ -483,6 +497,14 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 	if err != nil {
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.json_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
+
+	// Log request, regardless of whether destination is internal or external
+	c.Logger().Info("SubmitInteractiveDialog POST request, through DoActionRequest",
+		mlog.String("url", url),
+		mlog.String("user_id", request.UserId),
+		mlog.String("channel_id", request.ChannelId),
+		mlog.String("team_id", request.TeamId),
+	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()

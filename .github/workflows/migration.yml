@@ -7,14 +7,17 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       COMPOSE_PROJECT_NAME: ghactions
-      BUILD_IMAGE: mattermost/mattermost-build-server:1.21.8
       TEST_IMAGE: migration-test-image
     defaults:
       run:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Calculate Golang Version
+        id: go
+        working-directory: ./server
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Run docker compose
         run: |
           cd build
@@ -29,15 +32,17 @@ jobs:
           docker exec ${COMPOSE_PROJECT_NAME}-mysql-1 sh -c "mysql -u root -pmostest -e \"ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'mostest';\""
           docker restart ${COMPOSE_PROJECT_NAME}-mysql-1 && sleep 10
       - name: Build test image
+        env:
+          BUILD_IMAGE: golang:${{ steps.go.outputs.GO_VERSION }}-bookworm
+          PGLOADER_IMAGE: mattermost/mattermost-pgloader:v3.6.9
         run: |
-          echo -e "FROM $BUILD_IMAGE\n\nRUN apt update && \
-            apt remove -y pgloader && \
-            apt install -y sbcl unzip libsqlite3-dev make curl gawk freetds-dev libzip-dev && \
-            git clone https://github.com/dimitri/pgloader.git && \
-            cd pgloader && \
-            make && \
-            mv build/bin/pgloader /bin" >> dockerfile_tmp
-          docker build -t $TEST_IMAGE - < dockerfile_tmp
+          docker build -t $TEST_IMAGE - <<EOF
+          FROM $PGLOADER_IMAGE AS pgloader
+          FROM $BUILD_IMAGE
+          COPY --from=pgloader /usr/bin/pgloader /usr/bin/pgloader
+          EOF
+          # Print out installed pgloader version
+          docker run --rm $TEST_IMAGE pgloader --version
       - name: Generate test-data
         run: |
           docker run --net ${COMPOSE_PROJECT_NAME}_mm-test \
@@ -61,7 +66,7 @@ jobs:
           $TEST_IMAGE \
           make test-migration
       - name: Upload artifacts
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: Migration logs
           path: server/migration.log

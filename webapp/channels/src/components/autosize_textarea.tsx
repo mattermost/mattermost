@@ -25,9 +25,12 @@ const styles = {
         overflow: 'hidden',
     },
     reference: {
-        display: 'inline-block',
         height: 'auto',
         width: 'auto',
+        display: 'inline-block',
+        position: 'relative' as const,
+        transform: 'translateY(-100%)',
+        wordBreak: 'break-word' as const,
     },
     placeholder: {
         overflow: 'hidden',
@@ -38,6 +41,9 @@ const styles = {
         whiteSpace: 'nowrap' as const,
         background: 'none',
         borderColor: 'transparent',
+    },
+    textArea: {
+        overflowY: 'auto' as const,
     },
 };
 
@@ -124,21 +130,6 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
         heightProps.height = height.current;
     }
 
-    let textareaPlaceholder = null;
-    const placeholderAriaLabel = placeholder ? placeholder.toLowerCase() : '';
-    if (!value && !defaultValue) {
-        textareaPlaceholder = (
-            <div
-                {...otherProps}
-                id={`${id}_placeholder`}
-                data-testid={`${id}_placeholder`}
-                style={styles.placeholder}
-            >
-                {placeholder}
-            </div>
-        );
-    }
-
     let referenceValue = value || defaultValue;
     if (referenceValue?.endsWith('\n')) {
         // In a div, the browser doesn't always count characters at the end of a line when measuring the dimensions
@@ -152,22 +143,22 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
     }
 
     return (
-        <div>
-            {textareaPlaceholder}
+        <div >
             <textarea
                 ref={setTextareaRef}
                 data-testid={id}
                 id={id}
                 {...heightProps}
                 {...otherProps}
+                placeholder={placeholder}
                 role='textbox'
-                aria-label={placeholderAriaLabel}
                 dir='auto'
                 disabled={disabled}
                 onChange={onChange}
                 onInput={onInput}
                 value={value}
                 defaultValue={defaultValue}
+                style={styles.textArea}
             />
             <div style={styles.container}>
                 <div

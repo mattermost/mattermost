@@ -11,7 +11,7 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
       <div
         className="multi-select__container react-select"
       >
-        <StateManager
+        <ForwardRef
           className=""
           classNamePrefix="react-select-auto react-select"
           components={
@@ -22,9 +22,6 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
               "MultiValueRemove": [Function],
             }
           }
-          defaultInputValue=""
-          defaultMenuIsOpen={false}
-          defaultValue={null}
           getOptionLabel={[Function]}
           getOptionValue={[Function]}
           id="selectItems"
@@ -96,24 +93,10 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
           }
         />
         <SaveButton
-          btnClass=""
-          defaultMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Save"
-              id="save_button.save"
-            />
-          }
           disabled={false}
-          extraClasses=""
           id="saveItems"
           onClick={[Function]}
           saving={false}
-          savingMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Saving"
-              id="save_button.saving"
-            />
-          }
         />
       </div>
       <div
@@ -212,7 +195,7 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
       <div
         className="multi-select__container react-select"
       >
-        <StateManager
+        <ForwardRef
           className=""
           classNamePrefix="react-select-auto react-select"
           components={
@@ -223,9 +206,6 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
               "MultiValueRemove": [Function],
             }
           }
-          defaultInputValue=""
-          defaultMenuIsOpen={false}
-          defaultValue={null}
           getOptionLabel={[Function]}
           getOptionValue={[Function]}
           id="selectItems"
@@ -297,24 +277,10 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
           }
         />
         <SaveButton
-          btnClass=""
-          defaultMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Save"
-              id="save_button.save"
-            />
-          }
           disabled={false}
-          extraClasses=""
           id="saveItems"
           onClick={[Function]}
           saving={false}
-          savingMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Saving"
-              id="save_button.saving"
-            />
-          }
         />
       </div>
       <div
@@ -404,7 +370,7 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
       <div
         className="multi-select__container react-select"
       >
-        <StateManager
+        <ForwardRef
           className=""
           classNamePrefix="react-select-auto react-select"
           components={
@@ -415,9 +381,6 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
               "MultiValueRemove": [Function],
             }
           }
-          defaultInputValue=""
-          defaultMenuIsOpen={false}
-          defaultValue={null}
           getOptionLabel={[Function]}
           getOptionValue={[Function]}
           id="selectItems"
@@ -489,24 +452,10 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
           }
         />
         <SaveButton
-          btnClass=""
-          defaultMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Save"
-              id="save_button.save"
-            />
-          }
           disabled={false}
-          extraClasses=""
           id="saveItems"
           onClick={[Function]}
           saving={false}
-          savingMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Saving"
-              id="save_button.saving"
-            />
-          }
         />
       </div>
       <div

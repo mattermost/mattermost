@@ -52,6 +52,7 @@ export default function SaveConfirmationModal({onExited, onConfirm, title, subti
                                     values={{
                                         customerportal: (msg) => (
                                             <ExternalLink
+                                                location='save_confirmation_modal'
                                                 href='https://customers.mattermost.com/console/ip_filtering'
                                             >
                                                 {msg}

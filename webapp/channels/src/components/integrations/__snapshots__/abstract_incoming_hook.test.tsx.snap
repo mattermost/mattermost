@@ -223,8 +223,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -247,7 +246,12 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
           id="saveWebhook"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage
@@ -484,8 +488,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -508,7 +511,12 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
           id="saveWebhook"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage
@@ -745,8 +753,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -772,7 +779,12 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           id="saveWebhook"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage
@@ -976,8 +988,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -1000,7 +1011,12 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           id="saveWebhook"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage
@@ -1204,8 +1220,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -1228,7 +1243,12 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           id="saveWebhook"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage
@@ -1465,8 +1485,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "serverError",
@@ -1489,7 +1508,12 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           id="saveWebhook"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage

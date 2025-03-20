@@ -8,7 +8,4 @@ export type LimitsState = {
 export type ServerLimits = {
     activeUserCount: number;
     maxUsersLimit: number;
-
-    maxPostLimit: number;
-    postCount: number;
 };

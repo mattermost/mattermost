@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
@@ -86,6 +86,9 @@ func (a *App) SearchEngine() *searchengine.Broker {
 }
 func (a *App) Ldap() einterfaces.LdapInterface {
 	return a.ch.Ldap
+}
+func (a *App) LdapDiagnostic() einterfaces.LdapDiagnosticInterface {
+	return a.ch.srv.platform.LdapDiagnostic()
 }
 func (a *App) MessageExport() einterfaces.MessageExportInterface {
 	return a.ch.MessageExport

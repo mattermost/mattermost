@@ -263,7 +263,11 @@ func (es *Service) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSp
 	data.Props["SignInSubInfo"] = T("api.templates.cloud_welcome_email.signin_sub_info")
 	data.Props["MMApps"] = T("api.templates.cloud_welcome_email.mm_apps")
 	data.Props["SignInSubInfo2"] = T("api.templates.cloud_welcome_email.signin_sub_info2")
-	data.Props["DownloadMMAppsLink"] = "https://mattermost.com/download/"
+	if es.config().NativeAppSettings.AppDownloadLink != nil && *es.config().NativeAppSettings.AppDownloadLink != "" {
+		data.Props["DownloadMMAppsLink"] = es.config().NativeAppSettings.AppDownloadLink
+	} else {
+		data.Props["DownloadMMAppsLink"] = "https://mattermost.com/pl/download-apps"
+	}
 	data.Props["Button"] = T("api.templates.cloud_welcome_email.button")
 	data.Props["GettingStartedQuestions"] = T("api.templates.cloud_welcome_email.start_questions")
 

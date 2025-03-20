@@ -1,24 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {CloudTypes} from 'mattermost-redux/action_types';
+import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
+import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
+import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {
-    getMentionsAndStatusesForPosts,
     getPostThreads,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
+import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {getUser} from 'mattermost-redux/actions/users';
+import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
+import {getStatusForUserId, getUser as stateUser} from 'mattermost-redux/selectors/entities/users';
 
 import {handleNewPost} from 'actions/post_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {closeRightHandSide} from 'actions/views/rhs';
+import realConfigureStore from 'store';
 import store from 'stores/redux_store';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
-import Constants, {SocketEvents, UserStatuses, ActionTypes} from 'utils/constants';
+import Constants, {SocketEvents, ActionTypes, UserStatuses} from 'utils/constants';
 
 import {
     handleChannelUpdatedEvent,
@@ -36,12 +42,32 @@ import {
     handleAppsPluginDisabled,
     handleCloudSubscriptionChanged,
     handleGroupAddedMemberEvent,
+    handleStatusChangedEvent,
+    handleCustomAttributeValuesUpdated,
+    handleCustomAttributesCreated,
+    handleCustomAttributesUpdated,
+    handleCustomAttributesDeleted,
 } from './websocket_actions';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     ...jest.requireActual('mattermost-redux/actions/posts'),
     getPostThreads: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
     getMentionsAndStatusesForPosts: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/actions/channel_categories', () => ({
+    ...jest.requireActual('mattermost-redux/actions/channel_categories'),
+    fetchMyCategories: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
+    ...jest.requireActual('mattermost-redux/actions/status_profile_polling'),
+    batchFetchStatusesProfilesGroupsFromPosts: jest.fn(() => ({type: ''})),
+}));
+
+jest.mock('mattermost-redux/actions/general', () => ({
+    ...jest.requireActual('mattermost-redux/actions/general'),
+    getCustomProfileAttributeFields: jest.fn(() => ({type: 'CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED'})),
 }));
 
 jest.mock('mattermost-redux/actions/groups', () => ({
@@ -57,11 +83,18 @@ jest.mock('mattermost-redux/actions/users', () => ({
 
 jest.mock('mattermost-redux/actions/channels', () => ({
     getChannelStats: jest.fn(() => ({type: 'GET_CHANNEL_STATS'})),
+    fetchAllMyChannelMembers: jest.fn(() => ({type: 'FETCH_ALL_MY_CHANNEL_MEMBERS'})),
+    fetchAllMyTeamsChannels: jest.fn(),
 }));
 
 jest.mock('actions/post_actions', () => ({
     ...jest.requireActual('actions/post_actions'),
     handleNewPost: jest.fn(() => ({type: 'HANDLE_NEW_POST'})),
+}));
+
+jest.mock('actions/user_actions', () => ({
+    ...jest.requireActual('actions/user_actions'),
+    loadProfilesForSidebar: jest.fn(),
 }));
 
 jest.mock('actions/global_actions', () => ({
@@ -81,6 +114,9 @@ jest.mock('plugins', () => ({
 
 let mockState = {
     entities: {
+        apps: {
+            enablePlugin: false,
+        },
         users: {
             currentUserId: 'currentUserId',
             profiles: {
@@ -476,6 +512,8 @@ describe('handleNewPostEvent', () => {
         },
     };
 
+    const otherUserId = 'user2';
+
     test('should receive post correctly', () => {
         const testStore = configureStore(initialState);
 
@@ -488,14 +526,14 @@ describe('handleNewPostEvent', () => {
         };
 
         testStore.dispatch(handleNewPostEvent(msg));
-        expect(getMentionsAndStatusesForPosts).toHaveBeenCalledWith([post], expect.anything(), expect.anything());
         expect(handleNewPost).toHaveBeenCalledWith(post, msg);
+        expect(batchFetchStatusesProfilesGroupsFromPosts).toHaveBeenCalledWith([post]);
     });
 
     test('should set other user to online', () => {
-        const testStore = configureStore(initialState);
+        const testStore = realConfigureStore(initialState);
 
-        const post = {id: 'post1', channel_id: 'channel1', user_id: 'user2'};
+        const post = {id: 'post1', channel_id: 'channel1', user_id: otherUserId};
         const msg = {
             data: {
                 post: JSON.stringify(post),
@@ -503,18 +541,17 @@ describe('handleNewPostEvent', () => {
             },
         };
 
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(undefined);
+
         testStore.dispatch(handleNewPostEvent(msg));
 
-        expect(testStore.getActions()).toContainEqual({
-            type: UserTypes.RECEIVED_STATUSES,
-            data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
-        });
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(UserStatuses.ONLINE);
     });
 
     test('should not set other user to online if post was from autoresponder', () => {
-        const testStore = configureStore(initialState);
+        const testStore = realConfigureStore(initialState);
 
-        const post = {id: 'post1', channel_id: 'channel1', user_id: 'user2', type: Constants.AUTO_RESPONDER};
+        const post = {id: 'post1', channel_id: 'channel1', user_id: otherUserId, type: Constants.AUTO_RESPONDER};
         const msg = {
             data: {
                 post: JSON.stringify(post),
@@ -522,21 +559,23 @@ describe('handleNewPostEvent', () => {
             },
         };
 
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(undefined);
+
         testStore.dispatch(handleNewPostEvent(msg));
 
-        expect(testStore.getActions()).not.toContainEqual({
-            type: UserTypes.RECEIVED_STATUSES,
-            data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
-        });
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(undefined);
     });
 
     test('should not set other user to online if status was manually set', () => {
-        const testStore = configureStore({
+        const testStore = realConfigureStore({
             ...initialState,
             entities: {
                 ...initialState.entities,
                 users: {
                     ...initialState.entities.users,
+                    statuses: {
+                        [otherUserId]: UserStatuses.AWAY,
+                    },
                     isManualStatus: {
                         user2: true,
                     },
@@ -544,7 +583,7 @@ describe('handleNewPostEvent', () => {
             },
         });
 
-        const post = {id: 'post1', channel_id: 'channel1', user_id: 'user2'};
+        const post = {id: 'post1', channel_id: 'channel1', user_id: otherUserId};
         const msg = {
             data: {
                 post: JSON.stringify(post),
@@ -552,18 +591,19 @@ describe('handleNewPostEvent', () => {
             },
         };
 
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(UserStatuses.AWAY);
+
         testStore.dispatch(handleNewPostEvent(msg));
 
-        expect(testStore.getActions()).not.toContainEqual({
-            type: UserTypes.RECEIVED_STATUSES,
-            data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
-        });
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(UserStatuses.AWAY);
     });
 
     test('should not set other user to online based on data from the server', () => {
-        const testStore = configureStore(initialState);
+        const testStore = realConfigureStore(initialState);
 
-        const post = {id: 'post1', channel_id: 'channel1', user_id: 'user2'};
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(undefined);
+
+        const post = {id: 'post1', channel_id: 'channel1', user_id: otherUserId};
         const msg = {
             data: {
                 post: JSON.stringify(post),
@@ -573,10 +613,7 @@ describe('handleNewPostEvent', () => {
 
         testStore.dispatch(handleNewPostEvent(msg));
 
-        expect(testStore.getActions()).not.toContainEqual({
-            type: UserTypes.RECEIVED_STATUSES,
-            data: [{user_id: post.user_id, status: UserStatuses.ONLINE}],
-        });
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(undefined);
     });
 });
 
@@ -609,18 +646,17 @@ describe('handleNewPostEvents', () => {
 
         testStore.dispatch(handleNewPostEvents(queue));
 
-        expect(testStore.getActions()).toEqual([
-            {
-                meta: {batch: true},
-                payload: posts.map((post) => receivedNewPost(post, false)),
-                type: 'BATCHING_REDUCER.BATCH',
-            },
-            {
-                type: 'GET_THREADS_FOR_POSTS',
-            },
-        ]);
+        expect(testStore.getActions()[0]).toEqual({
+            type: 'BATCHING_REDUCER.BATCH',
+            meta: {batch: true},
+            payload: posts.map((post) => receivedNewPost(post, false)),
+        });
+        expect(testStore.getActions()[1]).toEqual({
+            type: 'GET_THREADS_FOR_POSTS',
+        });
+
         expect(getPostThreads).toHaveBeenCalledWith(posts);
-        expect(getMentionsAndStatusesForPosts).toHaveBeenCalledWith(posts, expect.anything(), expect.anything());
+        expect(batchFetchStatusesProfilesGroupsFromPosts).toHaveBeenCalledWith(posts);
     });
 });
 
@@ -628,6 +664,21 @@ describe('reconnect', () => {
     test('should call syncPostsInChannel when socket reconnects', () => {
         reconnect();
         expect(syncPostsInChannel).toHaveBeenCalledWith('otherChannel', '12345');
+    });
+
+    test('should call fetchMyCategories when socket reconnects', () => {
+        reconnect();
+        expect(fetchMyCategories).toHaveBeenCalledWith('currentTeamId');
+    });
+
+    test('should call fetchAllMyTeamsChannels when socket reconnects', () => {
+        reconnect();
+        expect(fetchAllMyTeamsChannels).toHaveBeenCalled();
+    });
+
+    test('should reload custom profile attribute fields on reconnect', () => {
+        reconnect();
+        expect(getCustomProfileAttributeFields).toHaveBeenCalled();
     });
 });
 
@@ -1192,5 +1243,196 @@ describe('handleLeaveTeam', () => {
             type: 'BATCHING_REDUCER.BATCH',
         };
         expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+});
+
+describe('handleStatusChangedEvent', () => {
+    const currentUserId = 'user1';
+
+    function makeInitialState() {
+        return {
+            entities: {
+                users: {
+                    currentUserId,
+                    statuses: {
+                        [currentUserId]: 'online',
+                    },
+                },
+            },
+        };
+    }
+
+    test('should modify the status of the current user', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.ONLINE);
+
+        testStore.dispatch(handleStatusChangedEvent({
+            event: SocketEvents.STATUS_CHANGED,
+            data: {
+                user_id: currentUserId,
+                status: UserStatuses.AWAY,
+            },
+        }));
+
+        expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.AWAY);
+
+        testStore.dispatch(handleStatusChangedEvent({
+            event: SocketEvents.STATUS_CHANGED,
+            data: {
+                user_id: currentUserId,
+                status: UserStatuses.ONLINE,
+            },
+        }));
+
+        expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.ONLINE);
+
+        testStore.dispatch(handleStatusChangedEvent({
+            event: SocketEvents.STATUS_CHANGED,
+            data: {
+                user_id: currentUserId,
+                status: UserStatuses.OFFLINE,
+            },
+        }));
+
+        expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.OFFLINE);
+    });
+});
+
+describe('handleCustomAttributeValuesUpdated', () => {
+    const currentUserId = 'user1';
+
+    function makeInitialState() {
+        return {
+            entities: {
+                users: {
+                    profiles: {
+                        user1: {id: currentUserId},
+                    },
+                },
+            },
+        };
+    }
+
+    test('should add the CustomAttributeValues to the user', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        expect(stateUser(testStore.getState(), currentUserId)).toEqual({id: currentUserId});
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({
+            event: SocketEvents.CPA_VALUES_UPDATED,
+            data: {
+                user_id: currentUserId,
+                values: {field1: 'value1', field2: 'value2'},
+            },
+        }));
+
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes).toBeTruthy();
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field1).toEqual('value1');
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field2).toEqual('value2');
+
+        // update one field, add new field
+        testStore.dispatch(handleCustomAttributeValuesUpdated({
+            event: SocketEvents.CPA_VALUES_UPDATED,
+            data: {
+                user_id: currentUserId,
+                values: {field1: 'valueChanged', field3: 'new field'},
+            },
+        }));
+
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes).toBeTruthy();
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field1).toEqual('valueChanged');
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field2).toEqual('value2');
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field3).toEqual('new field');
+    });
+
+    test('should ignore the CustomAttributeValues if no user', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        expect(stateUser(testStore.getState(), currentUserId)).toEqual({id: currentUserId});
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({
+            event: SocketEvents.CPA_VALUES_UPDATED,
+            data: {
+                user_id: 'nonExistantUser',
+                values: {field1: 'value1', field2: 'value2'},
+            },
+        }));
+
+        expect(stateUser(testStore.getState(), 'nonExistintUser')).toBeFalsy();
+        expect(stateUser(testStore.getState(), currentUserId)).toBeTruthy();
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes).toBeFalsy();
+    });
+});
+
+describe('handleCustomAttributeCRUD', () => {
+    const field1 = {id: 'field1', groupid: 'group1', name: 'FIELD ONE', type: 'text'};
+    const field2 = {id: 'field2', groupid: 'group1', name: 'FIELD TWO', type: 'text'};
+
+    function makeInitialState() {
+        return {
+            entities: {
+                general: {
+                },
+            },
+        };
+    }
+
+    test('should add the CustomAttributeField to the state', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        testStore.dispatch(handleCustomAttributesCreated({
+            event: SocketEvents.CPA_FIELD_CREATED,
+            data: {
+                field: field1,
+            },
+        }));
+
+        let cpaFields = getCustomProfileAttributes(testStore.getState());
+        expect(cpaFields).toBeTruthy();
+        expect(cpaFields.length).toEqual(1);
+        expect(cpaFields.filter(({id}) => id === field1.id)[0].type).toEqual(field1.type);
+        expect(cpaFields.filter(({id}) => id === field1.id)[0].name).toEqual(field1.name);
+
+        // create second field
+        testStore.dispatch(handleCustomAttributesCreated({
+            event: SocketEvents.CPA_FIELD_CREATED,
+            data: {
+                field: field2,
+            },
+        }));
+
+        cpaFields = getCustomProfileAttributes(testStore.getState());
+        expect(cpaFields).toBeTruthy();
+        expect(cpaFields.length).toEqual(2);
+        expect(cpaFields.filter(({id}) => id === field2.id)[0].type).toEqual(field2.type);
+        expect(cpaFields.filter(({id}) => id === field2.id)[0].name).toEqual(field2.name);
+
+        // update field
+        testStore.dispatch(handleCustomAttributesUpdated({
+            event: SocketEvents.CPA_FIELD_UPDATED,
+            data: {
+                field: {...field1, name: 'Updated Name'},
+            },
+        }));
+
+        cpaFields = getCustomProfileAttributes(testStore.getState());
+        expect(cpaFields).toBeTruthy();
+        expect(cpaFields.length).toEqual(2);
+        expect(cpaFields.filter(({id}) => id === field1.id)[0].name).toEqual('Updated Name');
+        expect(cpaFields.filter(({id}) => id === field2.id)[0].name).toEqual(field2.name);
+
+        // delete field
+        testStore.dispatch(handleCustomAttributesDeleted({
+            event: SocketEvents.CPA_FIELD_DELETED,
+            data: {
+                field_id: field1.id,
+            },
+        }));
+
+        cpaFields = getCustomProfileAttributes(testStore.getState());
+        expect(cpaFields).toBeTruthy();
+        expect(cpaFields.length).toEqual(1);
+        expect(cpaFields.filter(({id}) => id === field2.id)[0]).toBeTruthy();
     });
 });

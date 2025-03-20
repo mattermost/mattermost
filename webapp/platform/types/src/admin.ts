@@ -87,13 +87,13 @@ export type AnalyticsState = {
     TOTAL_READ_DB_CONNECTIONS?: number;
     DAILY_ACTIVE_USERS?: number;
     MONTHLY_ACTIVE_USERS?: number;
-    TOTAL_FILE_POSTS?: number;
-    TOTAL_HASHTAG_POSTS?: number;
     TOTAL_IHOOKS?: number;
     TOTAL_OHOOKS?: number;
     TOTAL_COMMANDS?: number;
     TOTAL_SESSIONS?: number;
     REGISTERED_USERS?: number;
+    TOTAL_FILE_COUNT?: number;
+    TOTAL_FILE_SIZE?: number;
 }
 
 export type ClusterInfo = {
@@ -114,11 +114,18 @@ export type IndexedPluginAnalyticsRow = {
     [key: string]: PluginAnalyticsRow;
 }
 
+export enum AnalyticsVisualizationType {
+    Count = 'count',
+    LineChart = 'line_chart',
+    DoughnutChart = 'doughnut_chart',
+}
+
 export type PluginAnalyticsRow = {
     id: string;
     name: React.ReactNode;
-    icon: string;
-    value: number;
+    icon?: string;
+    value: any;
+    visualizationType?: AnalyticsVisualizationType;
 };
 
 export type SchemaMigration = {

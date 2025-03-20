@@ -17,7 +17,7 @@ enable_docker_service() {
 
 assert_docker_services_validity() {
   local SERVICES_TO_CHECK="$*"
-  local SERVICES_VALID="postgres minio inbucket openldap elasticsearch keycloak cypress webhook-interactions playwright"
+  local SERVICES_VALID="postgres minio inbucket openldap elasticsearch opensearch redis keycloak cypress webhook-interactions playwright"
   local SERVICES_REQUIRED="postgres inbucket"
   for SERVICE_NAME in $SERVICES_TO_CHECK; do
     if ! mme2e_is_token_in_list "$SERVICE_NAME" "$SERVICES_VALID"; then
@@ -45,7 +45,6 @@ generate_docker_compose_file() {
 # Image hashes in this file are for amd64 systems
 # NB:  May include paths relative to the "server/build" directory, which contains the original compose file that this yaml is overriding
 
-version: "2.4"
 services:
   server:
     image: \${SERVER_IMAGE}
@@ -56,19 +55,14 @@ services:
       MM_SERVICESETTINGS_ALLOWCORSFROM: "*"
       MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
       MM_SERVICESETTINGS_ENABLESECURITYFIXALERT: "false"
-      MM_PLUGINSETTINGS_ENABLED: "true"
-      MM_PLUGINSETTINGS_ENABLEUPLOADS: "true"
-      MM_PLUGINSETTINGS_AUTOMATICPREPACKAGEDPLUGINS: "true"
-      MM_TEAMSETTINGS_ENABLEOPENSERVER: "true"
       MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
       MM_SQLSETTINGS_DRIVERNAME: "postgres"
       MM_EMAILSETTINGS_SMTPSERVER: "localhost"
       MM_CLUSTERSETTINGS_READONLYCONFIG: "false"
-      MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: "false"
-      MM_FEATUREFLAGS_ONBOARDINGTOURTIPS: "false"
       MM_SERVICEENVIRONMENT: "test"
       MM_FEATUREFLAGS_MOVETHREADSENABLED: "true"
       MM_LOGSETTINGS_ENABLEDIAGNOSTICS: "false"
+      MM_LOGSETTINGS_CONSOLELEVEL: "DEBUG"
     network_mode: host
     depends_on:
 $(for service in $ENABLED_DOCKER_SERVICES; do
@@ -84,73 +78,119 @@ $(for service in $ENABLED_DOCKER_SERVICES; do
 $(if mme2e_is_token_in_list "postgres" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   postgres:
-    image: mattermostdevelopment/mirrored-postgres:12
-    restart: always
-    environment:
-      POSTGRES_USER: mmuser
-      POSTGRES_PASSWORD: mostest
-      POSTGRES_DB: mattermost_test
-    command: postgres -c "config_file=/etc/postgresql/postgresql.conf"
-    volumes:
-      - ../../server/build/docker/postgres.conf:/etc/postgresql/postgresql.conf
+    image: mattermostdevelopment/mirrored-postgres:13
+    restart: "no"
     network_mode: host
-    healthcheck:
-      test: ["CMD", "pg_isready", "-h", "localhost"]
-      interval: 10s
-      timeout: 15s
-      retries: 12'
+    networks: !reset []
+    extends:
+        file: ../../server/build/docker-compose.common.yml
+        service: postgres'
   fi)
 
 $(if mme2e_is_token_in_list "inbucket" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   inbucket:
-    restart: "no"
     network_mode: host
+    networks: !reset []
+    restart: "no"
     extends:
-        file: ../../server/build/gitlab-dc.common.yml
-        service: inbucket'
+        file: ../../server/build/docker-compose.common.yml
+        service: inbucket
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "-w1", "127.0.0.1", "10025" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12'
   fi)
 
 $(if mme2e_is_token_in_list "minio" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   minio:
-    restart: "no"
     network_mode: host
+    networks: !reset []
+    restart: "no"
     extends:
-      file: ../../server/build/gitlab-dc.common.yml
-      service: minio'
+      file: ../../server/build/docker-compose.common.yml
+      service: minio
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "127.0.0.1:9000/minio/health/live" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12'
   fi)
 
 $(if mme2e_is_token_in_list "openldap" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   openldap:
-    restart: "no"
     network_mode: host
+    networks: !reset []
+    restart: "no"
     extends:
-        file: ../../server/build/gitlab-dc.common.yml
-        service: openldap'
+        file: ../../server/build/docker-compose.common.yml
+        service: openldap
+    healthcheck:
+      test: [ "CMD", "bash", "-o", "pipefail", "-c", "ss -ltn \"sport = :636\" | grep -qE \"^LISTEN\"" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12'
   fi)
 
 $(if mme2e_is_token_in_list "elasticsearch" "$ENABLED_DOCKER_SERVICES"; then
+      echo '
+  elasticsearch:
+    restart: "no"
+    network_mode: host
+    networks: !reset []
+    environment:
+        xpack.security.enabled: "false"
+        action.destructive_requires_name: "false"
+    extends:
+        file: ../../server/build/docker-compose.common.yml
+        service: elasticsearch
+    healthcheck:
+      test: [ "CMD", "curl", "-fsS", "localhost:9200/_cluster/health?wait_for_status=green&timeout=5s" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12'
     if [ "$MME2E_ARCHTYPE" = "arm64" ]; then
       echo '
-  elasticsearch:
-    image: mattermostdevelopment/mattermost-elasticsearch:7.17.10
-    platform: linux/arm64/v8
-    restart: "no"
-    network_mode: host
-    extends:
-        file: ../../server/build/gitlab-dc.common.yml
-        service: elasticsearch'
-    else
-      echo '
-  elasticsearch:
-    restart: "no"
-    network_mode: host
-    extends:
-        file: ../../server/build/gitlab-dc.common.yml
-        service: elasticsearch'
+    image: mattermostdevelopment/mattermost-elasticsearch:8.9.0
+    platform: linux/arm64/v8'
     fi
+  fi)
+
+$(if mme2e_is_token_in_list "opensearch" "$ENABLED_DOCKER_SERVICES"; then
+      echo '
+  opensearch:
+    restart: "no"
+    network_mode: host
+    networks: !reset []
+    environment:
+        http.port: 9200
+    extends:
+        file: ../../server/build/docker-compose.common.yml
+        service: opensearch
+    healthcheck:
+      test: [ "CMD", "curl", "-fsS", "localhost:9200/_cluster/health?wait_for_status=green&timeout=5s" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12'
+  fi)
+
+$(if mme2e_is_token_in_list "redis" "$ENABLED_DOCKER_SERVICES"; then
+      echo '
+  redis:
+    restart: "no"
+    network_mode: host
+    networks: !reset []
+    extends:
+        file: ../../server/build/docker-compose.common.yml
+        service: redis
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12'
   fi)
 
 $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
@@ -158,9 +198,21 @@ $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
   keycloak:
     restart: "no"
     network_mode: host
+    networks: !reset []
+    environment:
+        JAVA_OPTS: "-Xms64m -Xmx2G -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true"
+    volumes:
+     - "../../server/build/docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json"
+     - "../../server/build/docker/keycloak/kc-healthcheck.sh:/usr/local/bin/kc-healthcheck.sh"
     extends:
-        file: ../../server/build/gitlab-dc.common.yml
-        service: keycloak'
+        file: ../../server/build/docker-compose.common.yml
+        service: keycloak
+    healthcheck:
+      # We cannot use a simple curl --silent localhost:9990/health | grep -q \"status\":\"UP\" because theres no curl in the image: https://www.keycloak.org/server/health#_using_the_health_checks
+      test: [ "CMD", "/usr/local/bin/kc-healthcheck.sh" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12'
   fi)
 
 $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
@@ -224,14 +276,14 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   playwright:
-    image: mcr.microsoft.com/playwright:v1.43.0-jammy
+    image: mcr.microsoft.com/playwright:v1.49.1-noble
     entrypoint: ["/bin/bash", "-c"]
     command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
     env_file:
       - "./.env.playwright"
     environment:
       CI: "true"
-      NODE_OPTIONS: --no-experimental-fetch
+      PLAYWRIGHT_SKIP_BROWSER_GC: 1
       PW_BASE_URL: http://localhost:8065
       PW_ADMIN_USERNAME: sysadmin
       PW_ADMIN_PASSWORD: Sys@dmin-sample1
@@ -281,9 +333,17 @@ generate_env_files() {
     echo "$env" >>.env.server
   done
 
+  # Generating service-specific env vars
+  for SERVICE in $ENABLED_DOCKER_SERVICES; do
+  case $SERVICE in
+    opensearch)
+      echo "MM_ELASTICSEARCHSETTINGS_BACKEND=opensearch" >>.env.server
+      ;;
+  esac
+  done
+
   # Generating TEST-specific env files
   # Some are defaulted in .e2erc due to being needed to other scripts as well
-  export CI_BASE_URL="${CI_BASE_URL:-http://localhost:8065}"
   export REPO=mattermost # Static, but declared here for making generate_test_cycle.js easier to run
   export HEADLESS=true   # Static, but declared here for making generate_test_cycle.js easier to run
   case "$TEST" in
@@ -313,7 +373,7 @@ generate_env_files() {
       keycloak)
         echo "CYPRESS_keycloakBaseUrl=http://localhost:8484" >>.env.cypress
         ;;
-      elasticsearch)
+      elasticsearch|opensearch)
         echo "CYPRESS_elasticsearchConnectionURL=http://localhost:9200" >>.env.cypress
         ;;
       esac
@@ -322,6 +382,8 @@ generate_env_files() {
     case "$SERVER" in
     cloud)
       echo "CYPRESS_serverEdition=Cloud" >>.env.cypress
+      echo "CYPRESS_cwsURL=${CWS_URL}" >> .env.cypress
+      echo "CYPRESS_cwsAPIURL=${CWS_URL}" >> .env.cypress
       ;;
     *)
       echo "CYPRESS_serverEdition=E20" >>.env.cypress

@@ -18,7 +18,7 @@
         align-items: center;
         padding: 8px 12px;
         border: none;
-        border-radius: 4px;
+        border-radius: var(--radius-s);
         background: none;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         gap: 8px;

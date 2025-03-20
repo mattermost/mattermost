@@ -3,7 +3,7 @@
 
 import marked from 'marked';
 import React, {useRef} from 'react';
-import {FormattedDate, FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedDate, FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
@@ -18,14 +18,14 @@ import {getCurrentLocale} from 'selectors/i18n';
 import {isModalOpen} from 'selectors/views/modals';
 
 import FileSvg from 'components/common/svg_images_components/file_svg';
-import HandsSvg from 'components/common/svg_images_components/hands_svg';
-import WomanArmOnTable from 'components/common/svg_images_components/woman_arm_on_table_svg';
+import SuccessSvg from 'components/common/svg_images_components/success_svg';
+import UploadLicenseSvg from 'components/common/svg_images_components/upload_license';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {FileTypes, ModalIdentifiers} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
 import {getSkuDisplayName} from 'utils/subscription';
-import {fileSizeToString, localizeMessage} from 'utils/utils';
+import {fileSizeToString} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -110,9 +110,9 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
         <>
             <div className='content-body'>
                 <div className='svg-image'>
-                    <WomanArmOnTable
-                        width={200}
-                        height={200}
+                    <UploadLicenseSvg
+                        width={151}
+                        height={103}
                     />
                 </div>
                 <div className='title'>
@@ -205,7 +205,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                     >
                         <LoadingWrapper
                             loading={Boolean(isUploading)}
-                            text={localizeMessage('admin.license.modal.uploading', 'Uploading')}
+                            text={defineMessage({id: 'admin.license.modal.uploading', defaultMessage: 'Uploading'})}
                         >
                             <FormattedMessage
                                 id='admin.license.modal.upload'
@@ -242,9 +242,9 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
             <>
                 <div className='content-body'>
                     <div className='svg-image hands-svg'>
-                        <HandsSvg
-                            width={100}
-                            height={100}
+                        <SuccessSvg
+                            width={162}
+                            height={103.5}
                         />
                     </div>
                     <div className='title'>

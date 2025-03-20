@@ -105,6 +105,11 @@ func (u *UserReport) ToReport() []string {
 		lastLogin = time.UnixMilli(u.LastLogin).String()
 	}
 
+	deleteAt := ""
+	if u.DeleteAt > 0 {
+		deleteAt = time.UnixMilli(u.DeleteAt).String()
+	}
+
 	return []string{
 		u.Id,
 		u.Username,
@@ -117,6 +122,7 @@ func (u *UserReport) ToReport() []string {
 		lastPostDate,
 		daysActive,
 		totalPosts,
+		deleteAt,
 	}
 }
 
@@ -144,7 +150,7 @@ func (u *UserReportOptions) IsValid() *AppError {
 }
 
 func (u *UserReportQuery) ToReport() *UserReport {
-	u.ClearNonProfileFields()
+	u.ClearNonProfileFields(true)
 	return &UserReport{
 		User:          u.User,
 		UserPostStats: u.UserPostStats,

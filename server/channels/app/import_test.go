@@ -23,22 +23,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
-func ptrStr(s string) *string {
-	return &s
-}
-
-func ptrInt64(i int64) *int64 {
-	return &i
-}
-
-func ptrInt(i int) *int {
-	return &i
-}
-
-func ptrBool(b bool) *bool {
-	return &b
-}
-
 func checkPreference(t *testing.T, a *App, userID string, category string, name string, value string) {
 	preferences, err := a.Srv().Store().Preference().GetCategory(userID, category)
 	require.NoErrorf(t, err, "Failed to get preferences for user %v with category %v", userID, category)
@@ -69,6 +53,8 @@ func checkNoError(t *testing.T, err *model.AppError) {
 }
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
+	t.Helper()
+	require.NoError(t, a.Srv().Store().Post().RefreshPostStats())
 	result, err := a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamName})
 	require.NoError(t, err)
 	require.Equal(t, initialCount+change, result, "Did not find the expected number of posts.")
@@ -166,9 +152,9 @@ func TestImportBulkImport(t *testing.T) {
 
 	teamName := model.NewRandomTeamName()
 	channelName := model.NewId()
-	username := model.NewId()
-	username2 := model.NewId()
-	username3 := model.NewId()
+	username := model.NewUsername()
+	username2 := model.NewUsername()
+	username3 := model.NewUsername()
 	emojiName := model.NewId()
 	testsDir, _ := fileutils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")
@@ -250,7 +236,7 @@ func TestImportBulkImport(t *testing.T) {
 func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 	data := imports.LineImportData{
 		Type:    "version",
-		Version: ptrInt(1),
+		Version: model.NewPointer(1),
 	}
 	version, err := processImportDataFileVersionLine(data)
 	require.Nil(t, err, "Expected no error")
@@ -295,10 +281,10 @@ func TestProcessAttachments(t *testing.T) {
 	genAttachments := func() *[]imports.AttachmentImportData {
 		return &[]imports.AttachmentImportData{
 			{
-				Path: model.NewString("file.jpg"),
+				Path: model.NewPointer("file.jpg"),
 			},
 			{
-				Path: model.NewString("somedir/file.jpg"),
+				Path: model.NewPointer("somedir/file.jpg"),
 			},
 		}
 	}
@@ -320,24 +306,26 @@ func TestProcessAttachments(t *testing.T) {
 	userLine := imports.LineImportData{
 		Type: "user",
 		User: &imports.UserImportData{
-			ProfileImage: model.NewString("profile.jpg"),
+			Avatar: imports.Avatar{
+				ProfileImage: model.NewPointer("profile.jpg"),
+			},
 		},
 	}
 
 	emojiLine := imports.LineImportData{
 		Type: "emoji",
 		Emoji: &imports.EmojiImportData{
-			Image: model.NewString("emoji.png"),
+			Image: model.NewPointer("emoji.png"),
 		},
 	}
 
 	t.Run("empty path", func(t *testing.T) {
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewString("file.jpg"),
+				Path: model.NewPointer("file.jpg"),
 			},
 			{
-				Path: model.NewString("somedir/file.jpg"),
+				Path: model.NewPointer("somedir/file.jpg"),
 			},
 		}
 
@@ -352,10 +340,10 @@ func TestProcessAttachments(t *testing.T) {
 	t.Run("valid path", func(t *testing.T) {
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewString("/tmp/file.jpg"),
+				Path: model.NewPointer("/tmp/file.jpg"),
 			},
 			{
-				Path: model.NewString("/tmp/somedir/file.jpg"),
+				Path: model.NewPointer("/tmp/somedir/file.jpg"),
 			},
 		}
 
@@ -499,7 +487,7 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 	}
 	require.NotNil(t, jsonFile)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewInt(1000) })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewPointer(1000) })
 
 	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, true, 1, model.ExportDataDir)
 	require.Nil(t, appErr)

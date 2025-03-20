@@ -10,10 +10,9 @@ import IconButton from '@mattermost/compass-components/components/icon-button'; 
 import {closeRightHandSide, showFlaggedPosts} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {RHSStates} from 'utils/constants';
+import {RHSStates} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -31,21 +30,14 @@ const SavedPostsButton = (): JSX.Element | null => {
         }
     };
 
-    const tooltip = (
-        <Tooltip id='recentMentions'>
-            <FormattedMessage
-                id='channel_header.flagged'
-                defaultMessage='Saved messages'
-            />
-        </Tooltip>
-    );
-
     return (
-        <OverlayTrigger
-            trigger={['hover', 'focus']}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='bottom'
-            overlay={tooltip}
+        <WithTooltip
+            title={
+                <FormattedMessage
+                    id='channel_header.flagged'
+                    defaultMessage='Saved messages'
+                />
+            }
         >
             <IconButton
                 size={'sm'}
@@ -58,7 +50,7 @@ const SavedPostsButton = (): JSX.Element | null => {
                 aria-controls='searchContainer' // Must be changed if the ID of the container changes
                 aria-label={formatMessage({id: 'channel_header.flagged', defaultMessage: 'Saved messages'})}
             />
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -25,11 +26,13 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
-		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
-		mlog.Error(err.Error())
-		w.WriteHeader(err.StatusCode)
+		appErr := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
+		mlog.Error(appErr.Error())
+		w.WriteHeader(appErr.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(err.ToJSON()))
+		if _, err := w.Write([]byte(appErr.ToJSON())); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
@@ -49,11 +52,13 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string) {
 	pluginsEnvironment := a.ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
-		err := model.NewAppError("ServeInterPluginRequest", "app.plugin.disabled.app_error", nil, "Plugin environment not found.", http.StatusNotImplemented)
-		a.Log().Error(err.Error())
-		w.WriteHeader(err.StatusCode)
+		appErr := model.NewAppError("ServeInterPluginRequest", "app.plugin.disabled.app_error", nil, "Plugin environment not found.", http.StatusNotImplemented)
+		a.Log().Error(appErr.Error())
+		w.WriteHeader(appErr.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(err.ToJSON()))
+		if _, err := w.Write([]byte(appErr.ToJSON())); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
@@ -142,23 +147,41 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		token = r.URL.Query().Get("access_token")
 	}
 
+	// If MFA is required and user has not activated it, we wipe the token.
+	app := New(ServerConnector(ch))
+	rctx := request.EmptyContext(ch.srv.Log()).WithPath(r.URL.Path)
+
+	// The appErr is later used at L176 and L226.
+	session, appErr := app.GetSession(token)
+	if session != nil {
+		rctx = rctx.WithSession(session)
+	}
+
+	if mfaAppErr := app.MFARequired(rctx); mfaAppErr != nil {
+		pluginID := mux.Vars(r)["plugin_id"]
+		ch.srv.Log().Warn("Treating session as unauthenticated since MFA required",
+			mlog.String("plugin_id", pluginID),
+			mlog.String("url", r.URL.Path),
+			mlog.Err(mfaAppErr),
+		)
+		token = ""
+	}
+
 	// Mattermost-Plugin-ID can only be set by inter-plugin requests
 	r.Header.Del("Mattermost-Plugin-ID")
 
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
-		session, err := New(ServerConnector(ch)).GetSession(token)
-		defer ch.srv.platform.ReturnSessionToPool(session)
-
 		csrfCheckPassed := false
-
-		if session != nil && err == nil && cookieAuth && r.Method != "GET" {
+		if (session != nil && session.Id != "") && appErr == nil && cookieAuth && r.Method != "GET" {
 			sentToken := ""
 
 			if r.Header.Get(model.HeaderCsrfToken) == "" {
 				bodyBytes, _ := io.ReadAll(r.Body)
 				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-				r.ParseForm()
+				if err := r.ParseForm(); err != nil {
+					mlog.Warn("Failed to parse form data for plugin request", mlog.Err(err))
+				}
 				sentToken = r.FormValue("csrf")
 				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 			} else {
@@ -200,7 +223,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 			csrfCheckPassed = true
 		}
 
-		if (session != nil && session.Id != "") && err == nil && csrfCheckPassed {
+		if (session != nil && session.Id != "") && appErr == nil && csrfCheckPassed {
 			r.Header.Set("Mattermost-User-Id", session.UserId)
 			context.SessionId = session.Id
 

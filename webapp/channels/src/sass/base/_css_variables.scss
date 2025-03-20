@@ -78,13 +78,18 @@
     --elevation-5: 0 12px 32px 0 rgba(0, 0, 0, 0.12);
     --elevation-6: 0 20px 32px 0 rgba(0, 0, 0, 0.12);
 
-    //Corner Radius variables
+    // Corner Radius variables
     --radius-xs: 2px;
     --radius-s: 4px;
     --radius-m: 8px;
     --radius-l: 12px;
     --radius-xl: 16px;
     --radius-full: 50%;
+
+    // Border variables
+    --border-default: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
+    --border-light: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
+    --border-dark: solid 1px rgba(var(--center-channel-color-rgb), 0.16);
 
     // Global Header variables
     --global-header-background: var(--sidebar-teambar-bg);
@@ -105,4 +110,11 @@
     --center-channel-text: var(--center-channel-color);
     // use --center-channel-color-rgb instead
     --center-channel-text-rgb: var(--center-channel-color-rgb);
+
+    //Colors used in svgs but not themed
+    --indigo-400: #28427B;
+    --indigo-300: #32539A;
+    --sand: #CCC4AE;
+    --neutral-0: #FFFFFF;
+    --neutral-1200: #090A0B;
 }

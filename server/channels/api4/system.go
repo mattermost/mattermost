@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path"
 	"reflect"
 	"runtime"
@@ -19,7 +20,9 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/web"
@@ -33,45 +36,47 @@ const (
 	MaxServerBusySeconds          = 86400
 )
 
-var redirectLocationDataCache = cache.NewLRU(cache.LRUOptions{
+var redirectLocationDataCache = cache.NewLRU(&cache.CacheOptions{
 	Size: RedirectLocationCacheSize,
 })
 
 func (api *API) InitSystem() {
-	api.BaseRoutes.System.Handle("/ping", api.APIHandler(getSystemPing)).Methods("GET")
+	api.BaseRoutes.System.Handle("/ping", api.APIHandler(getSystemPing)).Methods(http.MethodGet)
 
-	api.BaseRoutes.System.Handle("/timezones", api.APISessionRequired(getSupportedTimezones)).Methods("GET")
+	api.BaseRoutes.System.Handle("/timezones", api.APISessionRequired(getSupportedTimezones)).Methods(http.MethodGet)
 
-	api.BaseRoutes.APIRoot.Handle("/audits", api.APISessionRequired(getAudits)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/email/test", api.APISessionRequired(testEmail)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/site_url/test", api.APISessionRequired(testSiteURL)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequired(testS3)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/database/recycle", api.APISessionRequired(databaseRecycle)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/audits", api.APISessionRequired(getAudits)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/notifications/test", api.APISessionRequired(testNotifications)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/email/test", api.APISessionRequired(testEmail)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/site_url/test", api.APISessionRequired(testSiteURL)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequired(testS3)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/database/recycle", api.APISessionRequired(databaseRecycle)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods(http.MethodPost)
 
-	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/logs/query", api.APISessionRequired(queryLogs)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/logs/download", api.APISessionRequired(downloadLogs)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/logs/query", api.APISessionRequired(queryLogs)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods(http.MethodPost)
 
-	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/latest_version", api.APISessionRequired(getLatestVersion)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/latest_version", api.APISessionRequired(getLatestVersion)).Methods(http.MethodGet)
 
-	api.BaseRoutes.APIRoot.Handle("/redirect_location", api.APISessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/redirect_location", api.APISessionRequiredTrustRequester(getRedirectLocation)).Methods(http.MethodGet)
 
-	api.BaseRoutes.APIRoot.Handle("/notifications/ack", api.APISessionRequired(pushNotificationAck)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/notifications/ack", api.APISessionRequired(pushNotificationAck)).Methods(http.MethodPost)
 
-	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(setServerBusy)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(getServerBusyExpires)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(clearServerBusy)).Methods("DELETE")
-	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise", api.APISessionRequired(upgradeToEnterprise)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise/status", api.APISessionRequired(upgradeToEnterpriseStatus)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/restart", api.APISessionRequired(restart)).Methods("POST")
-	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods("GET")
-	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods("PUT")
-	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
-	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(getOnboarding)).Methods("GET")
-	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(completeOnboarding)).Methods("POST")
-	api.BaseRoutes.System.Handle("/schema/version", api.APISessionRequired(getAppliedSchemaMigrations)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(setServerBusy)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(getServerBusyExpires)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(clearServerBusy)).Methods(http.MethodDelete)
+	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise", api.APISessionRequired(upgradeToEnterprise)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise/status", api.APISessionRequired(upgradeToEnterpriseStatus)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/restart", api.APISessionRequired(restart)).Methods(http.MethodPost)
+	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods(http.MethodGet)
+	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods(http.MethodPut)
+	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods(http.MethodGet)
+	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(getOnboarding)).Methods(http.MethodGet)
+	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(completeOnboarding)).Methods(http.MethodPost)
+	api.BaseRoutes.System.Handle("/schema/version", api.APISessionRequired(getAppliedSchemaMigrations)).Methods(http.MethodGet)
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -83,7 +88,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Support packet generation is limited to system admins (MM-42271).
+	// Support Packet generation is limited to system admins (MM-42271).
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
@@ -108,14 +113,10 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileDatas := c.App.GenerateSupportPacket(c.AppContext, supportPacketOptions)
 
-	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
-	// Note that this filename is also being checked at the webapp, please update the
-	// regex within the commercial_support_modal.tsx file if the naming convention ever changes.
 	now := time.Now()
-	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", now.Format("2006-01-02-03-04"))
+	outputZipFilename := supportPacketFileName(now, c.App.License().Customer.Company)
 
 	fileStorageBackend := c.App.FileBackend()
-
 	// We do this incase we get concurrent requests, we will always have a unique directory.
 	// This is to avoid the situation where we try to write to the same directory while we are trying to delete it (further down)
 	outputDirectoryToUse := OutputDirectory + "_" + model.NewId()
@@ -126,7 +127,11 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileBytes, err := fileStorageBackend.ReadFile(path.Join(outputDirectoryToUse, outputZipFilename))
-	defer fileStorageBackend.RemoveDirectory(outputDirectoryToUse)
+	defer func() {
+		if err = fileStorageBackend.RemoveDirectory(outputDirectoryToUse); err != nil {
+			c.Logger.Warn("Error while removing directory", mlog.Err(err))
+		}
+	}()
 	if err != nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_read_file_from_backend", nil, "", http.StatusForbidden).Wrap(err)
 		return
@@ -139,10 +144,17 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	web.WriteFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, fileBytesReader, true, w, r)
 }
 
+// supportPacketFileName returns the ZIP file name in the format mm_support_packet_$CUSTOMER_NAME_YYYY-MM-DDTHH-MM.zip.
+// Note that this filename is also being checked at the webapp, please update the
+// regex within the commercial_support_modal.tsx file if the naming convention ever changes.
+func supportPacketFileName(now time.Time, customerName string) string {
+	return fmt.Sprintf("mm_support_packet_%s_%s.zip", utils.SanitizeFileName(customerName), now.Format("2006-01-02T15-04"))
+}
+
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	reqs := c.App.Config().ClientRequirements
 
-	s := make(map[string]string)
+	s := make(map[string]any)
 	s[model.STATUS] = model.StatusOk
 	s["AndroidLatestVersion"] = reqs.AndroidLatestVersion
 	s["AndroidMinVersion"] = reqs.AndroidMinVersion
@@ -194,9 +206,20 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 			s[model.STATUS] = model.StatusUnhealthy
 		}
 
-		w.Header().Set(model.STATUS, s[model.STATUS])
-		w.Header().Set(dbStatusKey, s[dbStatusKey])
-		w.Header().Set(filestoreStatusKey, s[filestoreStatusKey])
+		if res, ok := s[model.STATUS].(string); ok {
+			w.Header().Set(model.STATUS, res)
+		}
+		if res, ok := s[dbStatusKey].(string); ok {
+			w.Header().Set(dbStatusKey, res)
+		}
+		if res, ok := s[filestoreStatusKey].(string); ok {
+			w.Header().Set(filestoreStatusKey, res)
+		}
+
+		// Checking if mattermost is running as root, if the user is system admin
+		if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			s["root_status"] = os.Geteuid() == 0
+		}
 	}
 
 	if deviceID := r.FormValue("device_id"); deviceID != "" {
@@ -208,7 +231,20 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	if s[model.STATUS] != model.StatusOk && r.FormValue("use_rest_semantics") != "true" {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-	w.Write([]byte(model.MapToJSON(s)))
+
+	if _, err := w.Write(model.ToJSON(s)); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func testNotifications(c *Context, w http.ResponseWriter, r *http.Request) {
+	_, err := c.App.SendTestMessage(c.AppContext, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -363,21 +399,21 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logs, logerr := c.App.QueryLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage, logFilter)
-	if logerr != nil {
-		c.Err = logerr
+	logs, appErr := c.App.QueryLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage, logFilter)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	logsJSON := make(map[string][]interface{})
-	var result interface{}
+	logsJSON := make(map[string][]any)
+	var result any
 	for node, logLines := range logs {
 		for _, log := range logLines {
-			err2 := json.Unmarshal([]byte(log), &result)
-			if err2 == nil {
-				logsJSON[node] = append(logsJSON[node], result)
+			err = json.Unmarshal([]byte(log), &result)
+			if err != nil {
+				c.Logger.Warn("Error parsing log line in Server Logs", mlog.String("from_node", node), mlog.Err(err))
 			} else {
-				c.Logger.Warn("Error parsing log line in Server Logs")
+				logsJSON[node] = append(logsJSON[node], result)
 			}
 		}
 	}
@@ -385,7 +421,9 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("page", c.Params.Page)
 	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
 
-	w.Write(model.ToJSON(logsJSON))
+	if _, err := w.Write(model.ToJSON(logsJSON)); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -411,7 +449,39 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "page", c.Params.Page)
 	audit.AddEventParameter(auditRec, "logs_per_page", c.Params.LogsPerPage)
 
-	w.Write([]byte(model.ArrayToJSON(lines)))
+	if _, err := w.Write([]byte(model.ArrayToJSON(lines))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("downloadLogs", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("downloadLogs", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetLogs) {
+		c.SetPermissionError(model.PermissionGetLogs)
+		return
+	}
+
+	fileData, err := c.App.Srv().Platform().GetLogFile(c.AppContext)
+	if err != nil {
+		c.Err = model.NewAppError("downloadLogs", "api.system.logs.download_bytes_buffer.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	reader := bytes.NewReader(fileData.Body)
+	web.WriteFileResponse(config.LogFilename,
+		"text/plain",
+		int64(len(fileData.Body)),
+		time.Now(),
+		*c.App.Config().ServiceSettings.WebserverMode,
+		reader,
+		true,
+		w,
+		r)
 }
 
 func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -510,7 +580,9 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -525,7 +597,9 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -572,7 +646,9 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	m["location"] = ""
 
 	if !*c.App.Config().ServiceSettings.EnableLinkPreviews {
-		w.Write([]byte(model.MapToJSON(m)))
+		if _, err := w.Write([]byte(model.MapToJSON(m))); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
@@ -585,7 +661,9 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	var location string
 	if err := redirectLocationDataCache.Get(url, &location); err == nil {
 		m["location"] = location
-		w.Write([]byte(model.MapToJSON(m)))
+		if _, err := w.Write([]byte(model.MapToJSON(m))); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
@@ -597,13 +675,20 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	res, err := client.Head(url)
 	if err != nil {
 		// Cache failures to prevent retries.
-		redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
+		cacheErr := redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
+		if cacheErr != nil {
+			c.Logger.Warn("Failed to set cache for URL", mlog.String("url", url), mlog.Err(err))
+		}
 		// Always return a success status and a JSON string to limit information returned to client.
-		w.Write([]byte(model.MapToJSON(m)))
+		if _, err = w.Write([]byte(model.MapToJSON(m))); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 	defer func() {
-		io.Copy(io.Discard, res.Body)
+		if _, err = io.Copy(io.Discard, res.Body); err != nil {
+			c.Logger.Warn("Error while removing directory", mlog.Err(err))
+		}
 		res.Body.Close()
 	}()
 
@@ -612,16 +697,26 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	// If the location length is > 2100, we can probably ignore. Fixes https://mattermost.atlassian.net/browse/MM-54219
 	if len(location) > RedirectLocationMaximumLength {
 		// Treating as a "failure". Cache failures to prevent retries.
-		redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
+		cacheErr := redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
+		if cacheErr != nil {
+			c.Logger.Warn("Failed to set cache for URL", mlog.String("url", url), mlog.Err(err))
+		}
 		// Always return a success status and a JSON string to limit information returned to client.
-		w.Write([]byte(model.MapToJSON(m)))
+		if _, err = w.Write([]byte(model.MapToJSON(m))); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
-	redirectLocationDataCache.SetWithExpiry(url, location, RedirectLocationCacheExpiry)
+	cacheErr := redirectLocationDataCache.SetWithExpiry(url, location, RedirectLocationCacheExpiry)
+	if cacheErr != nil {
+		c.Logger.Warn("Failed to set cache for URL", mlog.String("url", url), mlog.Err(err))
+	}
 	m["location"] = location
 
-	w.Write([]byte(model.MapToJSON(m)))
+	if _, err := w.Write([]byte(model.MapToJSON(m))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -642,13 +737,27 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ack.NotificationType == model.PushTypeMessage {
-		c.App.CountNotificationAck(model.NotificationTypePush)
+		session := c.AppContext.Session()
+		ignoreNotificationACK := session.Props[model.SessionPropDeviceNotificationDisabled] == "true"
+		if ignoreNotificationACK && ack.ClientPlatform == "ios" {
+			// iOS doesn't send ack when the notificications are disabled
+			// so we restore the value the moment we receive an ack
+			if err := c.App.SetExtraSessionProps(session, map[string]string{
+				model.SessionPropDeviceNotificationDisabled: "false",
+			}); err != nil {
+				c.Logger.Warn("Failed to set extra session props", mlog.Err(err))
+			}
+			c.App.ClearSessionCacheForUser(session.UserId)
+		}
+		if !ignoreNotificationACK {
+			c.App.CountNotificationAck(model.NotificationTypePush, ack.ClientPlatform)
+		}
 	}
 
 	err := c.App.SendAckToPushProxy(&ack)
 	if ack.IsIdLoaded {
 		if err != nil {
-			c.App.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError)
+			c.App.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError, ack.ClientPlatform)
 			c.App.NotificationsLog().Error("Notification ack not sent to push proxy",
 				mlog.String("type", model.NotificationTypePush),
 				mlog.String("status", model.NotificationStatusError),
@@ -662,7 +771,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 				mlog.Err(err),
 			)
 		} else {
-			c.App.CountNotificationReason(model.NotificationStatusSuccess, model.NotificationTypePush, model.NotificationReason(""))
+			c.App.CountNotificationReason(model.NotificationStatusSuccess, model.NotificationTypePush, model.NotificationReason(""), ack.ClientPlatform)
 		}
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
@@ -694,7 +803,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.CountNotificationReason(model.NotificationStatusSuccess, model.NotificationTypePush, model.NotificationReason(""))
+	c.App.CountNotificationReason(model.NotificationStatusSuccess, model.NotificationTypePush, model.NotificationReason(""), ack.ClientPlatform)
 	ReturnStatusOK(w)
 }
 
@@ -812,7 +921,10 @@ func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.Srv().Go(func() {
-		c.App.Srv().UpgradeToE0()
+		err := c.App.Srv().UpgradeToE0()
+		if err != nil {
+			c.Logger.Error("Error while upgrading to E0", mlog.Err(err))
+		}
 	})
 
 	auditRec.Success()
@@ -842,7 +954,9 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 		s = map[string]any{"percentage": percentage, "error": nil}
 	}
 
-	w.Write([]byte(model.StringInterfaceToJSON(s)))
+	if _, err := w.Write([]byte(model.StringInterfaceToJSON(s))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func restart(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -859,7 +973,10 @@ func restart(c *Context, w http.ResponseWriter, r *http.Request) {
 	time.Sleep(1 * time.Second)
 
 	go func() {
-		c.App.Srv().Restart()
+		err := c.App.Srv().Restart()
+		if err != nil {
+			c.Logger.Error("Error while restarting server", mlog.Err(err))
+		}
 	}()
 }
 
@@ -977,8 +1094,10 @@ func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write(js)
 	auditRec.Success()
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 // returns true if the data has nil fields

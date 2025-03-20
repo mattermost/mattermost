@@ -246,14 +246,8 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         type="text"
         value={10}
       />
-      <BooleanSetting
+      <Memo(BooleanSetting)
         disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="(Development Mode) When true, executing SQL statements are written to the log."
@@ -269,12 +263,6 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={false}
       />
       <RequestButton
@@ -328,14 +316,8 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           }
         }
       />
-      <BooleanSetting
+      <Memo(BooleanSetting)
         disabled={false}
-        falseText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="False"
-            id="admin.false"
-          />
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Disables the use of the database to perform searches. Should only be used when other <link>search engines</link> are configured."
@@ -356,47 +338,35 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        trueText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="True"
-            id="admin.true"
-          />
-        }
         value={true}
       />
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-        >
-          <MemoizedFormattedMessage
+      <SettingSet
+        label={
+          <Memo(MemoizedFormattedMessage)
             defaultMessage="Schema Migrations:"
             id="admin.database.migrations_table.title"
           />
-        </label>
+        }
+      >
         <div
-          className="col-sm-8"
+          className="migrations-table-setting"
         >
-          <div
-            className="migrations-table-setting"
-          >
-            <Connect(MigrationsTable)
-              createHelpText={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="All applied migrations."
-                  id="admin.database.migrations_table.help_text"
-                />
-              }
-            />
-          </div>
+          <Connect(Component)
+            createHelpText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="All applied migrations."
+                id="admin.database.migrations_table.help_text"
+              />
+            }
+          />
         </div>
-      </div>
+      </SettingSet>
       <div
         className="form-group"
       >
         <label
           className="control-label col-sm-4"
+          htmlFor="activeSearchBackend"
         >
           <MemoizedFormattedMessage
             defaultMessage="Active Search Backend:"
@@ -409,6 +379,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           <input
             className="form-control"
             disabled={true}
+            id="activeSearchBackend"
             type="text"
             value=""
           />
@@ -427,40 +398,27 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass=""
-        defaultMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save"
-            id="save_button.save"
-          />
-        }
         disabled={true}
-        extraClasses=""
         onClick={[Function]}
         saving={false}
-        savingMessage="Saving Config..."
+        savingMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Saving Config..."
+            id="admin.saving"
+          />
+        }
       />
-      <div
-        className="error-message"
-        onMouseOut={[Function]}
-        onMouseOver={[Function]}
+      <WithTooltip
+        title=""
       >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
-      </div>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Tooltip
-          id="error-tooltip"
-        />
-      </Overlay>
+        <div
+          className="error-message"
+        >
+          <Memo(FormError)
+            error={null}
+          />
+        </div>
+      </WithTooltip>
     </div>
   </div>
 </form>

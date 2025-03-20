@@ -244,10 +244,6 @@
     "translation": "شناسه اصلی نامعتبر است."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "پیام نامعتبر است."
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "شناسه نامعتبر است."
   },
@@ -1696,74 +1692,6 @@
     "translation": "داده صادرات پیام انتخاب نشد."
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "دریافت اطلاعات پرونده برای یک پست انجام نشد."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "پرونده موقت صادرات باز نمی شود."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "دریافت ایمیل از پرونده موقت امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "نمی توان اطلاعات پرونده موقت صادرات را بدست آورد."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "اتصال به سرور smtp امکان پذیر نیست"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "نمی توان ایمیل را برای آدرس دهی تنظیم کرد."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "خواندن اطلاعات ایمیل امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "نوشتن پیام ایمیل امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "پیام ایمیل قابل تنظیم نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "تنظیم ایمیل از آدرس امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "تحویل ایمیل به Global Relay امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "تولید داده های فایل EML امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "ایجاد پرونده EML امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "پرونده zip بسته نمی شود."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "پیوست به صادرات رله جهانی امکان پذیر نیست."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "دریافت اطلاعات پرونده برای یک پست انجام نشد."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "دریافت اطلاعات پرونده برای یک پست انجام نشد."
-  },
-  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "قادر به مهاجرت نیست."
   },
@@ -1818,10 +1746,6 @@
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "دسترسی به همه کاربران با استفاده از AD/LDAP امکان پذیر نیست."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "خطای حذف عضویت تیم یا کانال"
   },
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
@@ -1900,10 +1824,6 @@
     "translation": "مجوز شما از ID Loaded Push Notifications پشتیبانی نمی کند."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "در دوره زمانی مشخص کاربران در کانال قرار نگرفتند."
-  },
-  {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "URL یا نام کاربری جستجوی الاستیک سرور تغییر کرده است. برای آزمایش اتصال ، لطفاً رمز ورود جستجوی الاستیک را دوباره وارد کنید."
   },
@@ -1920,20 +1840,12 @@
     "translation": "جستجوی الاستیک از قبل متوقف شده است."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "پردازنده انبوه جستجوی الاستیک راه اندازی نشد."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "تجزیه نسخه سرور جستجوی الاستیک انجام نشد."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "نسخه سرور جستجوی الاستیک دریافت نشد."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "پردازنده انبوه جستجوی الاستیک ایجاد نشد."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -1986,10 +1898,6 @@
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
     "translation": "شاخص های جستجوی الاستیک بازخوانی نشد"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "ایندکس Elasticsearch حذف نشد"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -3280,72 +3188,8 @@
     "translation": "صادرات انطباق برای کار '{{.JobName}}' در '{{.FilePath}}' انجام نشد"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "بارگیری الگوهای صادرات امکان پذیر نیست. لطفا دوباره تلاش کنید."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "عملکرد انطباق توسط مجوز فعلی غیرفعال شده است. لطفاً در مورد به روزرسانی مجوز شرکت خود با سرپرست سیستم خود تماس بگیرید."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "خواندن مجدد پرونده صادرات موقت رله جهانی امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "پرونده صادرات موقت باز نمی شود."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "پرونده بارگذاری شده از صادرات رله جهانی حذف شد زیرا برای ارسال بسیار بزرگ بود."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "ایجاد پرونده صادرات zip امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "امکان نوشتن فایل csv وجود ندارد."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "ایجاد پرونده هشدار امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "صادر کردن پست امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "ایجاد فایل zip امکان پذیر نیست"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "تبدیل فراداده به json امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "اضافه کردن پرونده فراداده به پرونده zip امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "افزودن سرصفحه به صادرات CSV امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "ایجاد پرونده صادرات CSV موقت امکان پذیر نیست."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "پیوست به صادرات CSV اضافه نمی شود."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "پیوست در پرونده zip کپی نمی شود."
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "قالب خروجی ناشناخته {{.ExportType}}"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -3364,20 +3208,8 @@
     "translation": "پیکربندی خوشه برای id={{ .id }} تغییر کرده است. خوشه ممکن است ناپایدار شود و نیاز به راه اندازی مجدد باشد. برای اطمینان از پیکربندی صحیح خوشه ، باید بلافاصله یک راه اندازی مجدد را شروع کنید."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "نقطه پایانی API خوشه یافت نشد."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " پرونده ای را ضمیمه کرد."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "امکان نوشتن فایل export وجود ندارد."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "صادرات به XML قابل تبدیل نیست."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
@@ -3748,10 +3580,6 @@
     "translation": "بررسی خالی بودن فروشگاه کاربر انجام نشد."
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": "هیچ ایمیلی با موفقیت ارسال نشد"
-  },
-  {
     "id": "app.team.get_by_invite_id.finding.app_error",
     "translation": "تیم موجود یافت نشد."
   },
@@ -3818,10 +3646,6 @@
   {
     "id": "app.status.get.app_error",
     "translation": "هنگام بازیابی وضعیت با خطا روبرو شد."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "هنگام ایجاد یک کانال به اشتراک گذاشته شده مستقیم با خطایی مواجه شد."
   },
   {
     "id": "app.session.update_device_id.app_error",
@@ -4376,18 +4200,6 @@
     "translation": "زمانی که شما دور بودید، {{.SenderName}} یک پیام مستقیم جدید برای شما ارسال کرد."
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "مجوزی وجود ندارد"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "این نوع مجوز از تولید توکن تمدید، پشتیبانی نمی کند"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "ایجاد توکن تمدید جدید ناموفق بود."
-  },
-  {
     "id": "app.job.update.app_error",
     "translation": "به روزرسانی کار امکان پذیر نیست."
   },
@@ -4748,10 +4560,6 @@
     "translation": "مجوز تجاری شما منقضی شده است و برخی از ویژگی ها ممکن است غیرفعال شوند. لطفا اشتراکتان را تمدید کنید."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "اکنون مجوز را تمدید کنید"
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "سوالات؟"
   },
@@ -4762,46 +4570,6 @@
   {
     "id": "api.templates.post_body.button",
     "translation": "مشاهده پیام"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "سررسید فاکتور Mattermost Cloud شماست"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "پرداخت برای اشتراک Mattermost Cloud شما باید انجام شود"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "برای بررسی فاکتور و افزودن روش پرداخت، اکنون پرداخت را انتخاب کنید."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "فاکتور Mattermost Cloud شما برای آخرین دوره صورتحساب پردازش شده است. با این حال، ما جزئیات پرداخت شما را در پرونده نداریم."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "الان پرداخت کن"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "پرداخت ناموفق"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "اقدام مورد نیاز: پرداخت برای Mattermost Cloud انجام نشد"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "برای اطمینان از اشتراک بدون وقفه در Mattermost Cloud، لطفاً با موسسه مالی خود تماس بگیرید تا مشکل اساسی را برطرف کند یا اطلاعات پرداخت خود را به روز کنید. پس از به‌روزرسانی اطلاعات پرداخت، Mattermost تلاش می‌کند تا هرگونه موجودی معوق را تسویه کند."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "آنها دلیل زیر را بیان کردند:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "موسسه مالی شما پرداختی از {{.CardBrand}} ****{{.LastFour}} مرتبط با فضای کاری Mattermost Cloud شما را رد کرد."
   },
   {
     "id": "api.templates.password_change_subject",
@@ -4840,20 +4608,12 @@
     "translation": "اشتراک Mattermost شما آماده تمدید است"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "برای تمدید به حساب مشتری خود وارد شوید"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}، اشتراک شما قرار است تا {{.Days}} روز دیگر منقضی شود. ما امیدواریم که همکاری تیمی منعطف و امنی را که Mattermost فعال می‌کند، تجربه کرده باشید. به زودی تمدید کنید تا مطمئن شوید که تیم شما همچنان از این مزایا بهره مند خواهد شد."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "مجوز شما برای تمدید آماده شده است"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "اکنون تمدید کنید"
   },
   {
     "id": "api.templates.invite_subject",
@@ -4970,10 +4730,6 @@
   {
     "id": "api.templates.deactivate_body.info",
     "translation": "شما حساب خود را در {{ .SiteURL }} غیرفعال کردید."
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© ۲۰۲۱ Mattermost, Inc. ۵۳۰ Lytton Avenue, طبقه دوم, Palo Alto, CA, ۹۴۳۰۱"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -5624,10 +5380,6 @@
     "translation": "وب هوک در بین تیم ها به روز نمی شود."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "رمزگشایی بارگیری چند بخشی از وب هوک امکان پذیر نیست."
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "trigger_words یا channel_id باید تنظیم شوند."
   },
@@ -6044,10 +5796,6 @@
     "translation": "مجوز برای ایمیل های تمدید ارسال نشد"
   },
   {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "لینک تمدید مجوز ایجاد نشد"
-  },
-  {
     "id": "api.scheme.patch_scheme.license.error",
     "translation": "مجوز شما از طرح های مجوز بروزرسانی پشتیبانی نمی کند"
   },
@@ -6436,10 +6184,6 @@
   {
     "id": "api.license.request_trial_license.app_error",
     "translation": "دریافت مجوز آزمایشی امکان پذیر نیست ، لطفاً دوباره امتحان کنید یا با support@mattermost.com تماس بگیرید."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "خطا در دریافت لینک تمدید مجوز"
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
@@ -8516,10 +8260,6 @@
     "translation": "دعوت از اتصال امن"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "دعوت رمزگشایی نشد. رمز عبور نادرست یا دعوت نامه خراب است: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[action]"
   },
@@ -8610,5 +8350,9 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "تا زمانی که بیصدایی کانال خاموش نشود ، اعلانی برای {{.Channel}} دریافت نخواهید کرد."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "شما نمی توانید یک تاییدیه را در یک کانال بایگانی شده حذف کنید."
   }
 ]

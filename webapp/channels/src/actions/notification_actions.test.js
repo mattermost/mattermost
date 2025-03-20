@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {MarkUnread} from 'mattermost-redux/constants/channels';
+
 import testConfigureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses} from 'utils/constants';
 import * as NotificationSounds from 'utils/notification_sounds';
 import * as utils from 'utils/notifications';
 
-import {sendDesktopNotification} from './notification_actions';
+import {sendDesktopNotification, isDesktopSoundEnabled, getDesktopNotificationSound} from './notification_actions';
 
 describe('notification_actions', () => {
     describe('sendDesktopNotification', () => {
@@ -20,7 +22,7 @@ describe('notification_actions', () => {
         let userSettings;
 
         beforeEach(() => {
-            spy = jest.spyOn(utils, 'showNotification');
+            spy = jest.spyOn(utils, 'showNotification').mockReturnValue(async () => ({status: 'success'}));
             NotificationSounds.ding = jest.fn();
 
             crt = {
@@ -111,6 +113,7 @@ describe('notification_actions', () => {
                             },
                             muted_channel_id: {
                                 id: 'muted_channel_id',
+                                display_name: 'Muted Channel',
                                 team_id: 'team_id',
                             },
                             another_channel_id: {
@@ -130,6 +133,13 @@ describe('notification_actions', () => {
                             gm_channel: {
                                 id: 'gm_channel',
                                 notify_props: channelSettings,
+                            },
+                            muted_channel_id: {
+                                id: 'muted_channel_id',
+                                team_id: 'team_id',
+                                notify_props: {
+                                    mark_unread: MarkUnread.MENTION,
+                                },
                             },
                         },
                         membersInChannel: {
@@ -195,7 +205,7 @@ describe('notification_actions', () => {
                 expect(spy).toHaveBeenCalledWith({
                     body: '@username: Where is Jessica Hyde?',
                     requireInteraction: false,
-                    silent: true,
+                    silent: false,
                     title: 'Utopia',
                     onClick: expect.any(Function),
                 });
@@ -321,6 +331,34 @@ describe('notification_actions', () => {
             });
         });
 
+        test('should notify for forced notification posts on muted channels', () => {
+            const store = testConfigureStore(baseState);
+            const newPost = {
+                ...post,
+                props: {
+                    ...post.props,
+                    force_notification: 'test',
+                },
+            };
+            newPost.channel_id = 'muted_channel_id';
+
+            const newMsgProps = {
+                post: JSON.stringify(newPost),
+                channel_display_name: 'Muted Channel',
+                team_id: 'team_id',
+            };
+            return store.dispatch(sendDesktopNotification(newPost, newMsgProps)).then((result) => {
+                expect(result).toEqual({data: {status: 'success'}});
+                expect(spy).toHaveBeenCalledWith({
+                    body: '@username: Where is Jessica Hyde?',
+                    requireInteraction: false,
+                    silent: false,
+                    title: 'Muted Channel',
+                    onClick: expect.any(Function),
+                });
+            });
+        });
+
         test.each([
             UserStatuses.DND,
             UserStatuses.OUT_OF_OFFICE,
@@ -415,7 +453,7 @@ describe('notification_actions', () => {
                     expect(spy).toHaveBeenCalledWith({
                         body: '@username: Where is Jessica Hyde?',
                         requireInteraction: false,
-                        silent: true,
+                        silent: false,
                         title: 'Reply in Utopia',
                         onClick: expect.any(Function),
                     });
@@ -507,5 +545,165 @@ describe('notification_actions', () => {
                 });
             });
         });
+    });
+});
+
+describe('isDesktopSoundEnabled', () => {
+    test('should return channel member sound if it exists', () => {
+        const channelMember1 = {
+            notify_props: {
+                desktop_sound: 'on',
+            },
+        };
+        const user1 = {
+            notify_props: {
+                desktop_sound: 'false',
+            },
+        };
+        expect(isDesktopSoundEnabled(channelMember1, user1)).toBe(true);
+
+        const channelMember2 = {
+            notify_props: {
+                desktop_sound: 'off',
+            },
+        };
+        const user2 = {
+            notify_props: {
+                desktop_sound: 'false',
+            },
+        };
+        expect(isDesktopSoundEnabled(channelMember2, user2)).toBe(false);
+
+        const channelMember3 = {
+            notify_props: {
+                desktop_sound: 'default',
+            },
+        };
+        const user3 = {
+            notify_props: {
+                desktop_sound: 'false',
+            },
+        };
+        expect(isDesktopSoundEnabled(channelMember3, user3)).toBe(false);
+
+        const channelMember4 = {
+            notify_props: {
+                desktop_sound: 'default',
+            },
+        };
+        const user4 = {
+            notify_props: {
+                desktop_sound: 'true',
+            },
+        };
+        expect(isDesktopSoundEnabled(channelMember4, user4)).toBe(true);
+
+        const channelMember5 = {
+            notify_props: {
+                desktop_sound: 'on',
+            },
+        };
+        const user5 = {
+            notify_props: {
+                desktop_sound: '',
+            },
+        };
+        expect(isDesktopSoundEnabled(channelMember5, user5)).toBe(true);
+    });
+
+    test('should return user sound if channel member sound is not defined', () => {
+        const channelMember1 = {
+            notify_props: {
+                desktop_sound: '',
+            },
+        };
+        const user1 = {
+            notify_props: {
+                desktop_sound: 'true',
+            },
+        };
+        expect(isDesktopSoundEnabled(channelMember1, user1)).toBe(true);
+
+        const channelMember2 = {
+            notify_props: {
+                desktop_sound: '',
+            },
+        };
+        const user2 = {
+            notify_props: {
+                desktop_sound: 'false',
+            },
+        };
+        expect(isDesktopSoundEnabled(channelMember2, user2)).toBe(false);
+
+        const channelMember3 = {
+            notify_props: {},
+        };
+        const user3 = {
+            notify_props: {
+                desktop_sound: 'false',
+            },
+        };
+        expect(isDesktopSoundEnabled(channelMember3, user3)).toBe(false);
+    });
+
+    test('should return default if both channel member and user are not defined', () => {
+        const channelMember = {};
+        const user = {};
+        expect(isDesktopSoundEnabled(channelMember, user)).toBe(true);
+    });
+});
+
+describe('getDesktopNotificationSound', () => {
+    test('should return channel member notification sound if it exists', () => {
+        const channelMember1 = {
+            notify_props: {
+                desktop_notification_sound: 'default',
+            },
+        };
+        const user1 = {
+            notify_props: {
+                desktop_notification_sound: 'Crackle',
+            },
+        };
+        expect(getDesktopNotificationSound(channelMember1, user1)).toBe('Crackle');
+
+        const channelMember2 = {
+            notify_props: {
+                desktop_notification_sound: 'default',
+            },
+        };
+        const user2 = {
+            notify_props: {
+                desktop_notification_sound: '',
+            },
+        };
+        expect(getDesktopNotificationSound(channelMember2, user2)).toBe('Bing');
+
+        const channelMember3 = {
+            notify_props: {
+                desktop_notification_sound: 'Crackle',
+            },
+        };
+        const user3 = {
+            notify_props: {
+                desktop_notification_sound: 'Bing',
+            },
+        };
+        expect(getDesktopNotificationSound(channelMember3, user3)).toBe('Crackle');
+    });
+
+    test('should return user notification sound if channel member sound is not defined', () => {
+        const channelMember1 = {};
+        const user1 = {
+            notify_props: {
+                desktop_notification_sound: 'Crackle',
+            },
+        };
+        expect(getDesktopNotificationSound(channelMember1, user1)).toBe('Crackle');
+
+        const channelMember2 = {};
+        const user2 = {};
+        expect(getDesktopNotificationSound(channelMember2, user2)).toBe('Bing');
     });
 });

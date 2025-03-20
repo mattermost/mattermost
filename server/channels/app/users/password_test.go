@@ -13,13 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func TestComparePassword(t *testing.T) {
-	hash := HashPassword("Test")
-
-	assert.NoError(t, ComparePassword(hash, "Test"), "Passwords don't match")
-	assert.Error(t, ComparePassword(hash, "Test2"), "Passwords should not have matched")
-}
-
 func TestIsPasswordValidWithSettings(t *testing.T) {
 	for name, tc := range map[string]struct {
 		Password      string
@@ -29,100 +22,100 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 		"Short": {
 			Password: strings.Repeat("x", 3),
 			Settings: &model.PasswordSettings{
-				MinimumLength: model.NewInt(3),
-				Lowercase:     model.NewBool(false),
-				Uppercase:     model.NewBool(false),
-				Number:        model.NewBool(false),
-				Symbol:        model.NewBool(false),
+				MinimumLength: model.NewPointer(3),
+				Lowercase:     model.NewPointer(false),
+				Uppercase:     model.NewPointer(false),
+				Number:        model.NewPointer(false),
+				Symbol:        model.NewPointer(false),
 			},
 		},
 		"Long": {
 			Password: strings.Repeat("x", model.PasswordMaximumLength),
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewBool(false),
-				Uppercase: model.NewBool(false),
-				Number:    model.NewBool(false),
-				Symbol:    model.NewBool(false),
+				Lowercase: model.NewPointer(false),
+				Uppercase: model.NewPointer(false),
+				Number:    model.NewPointer(false),
+				Symbol:    model.NewPointer(false),
 			},
 		},
 		"TooShort": {
 			Password: strings.Repeat("x", 2),
 			Settings: &model.PasswordSettings{
-				MinimumLength: model.NewInt(3),
-				Lowercase:     model.NewBool(false),
-				Uppercase:     model.NewBool(false),
-				Number:        model.NewBool(false),
-				Symbol:        model.NewBool(false),
+				MinimumLength: model.NewPointer(3),
+				Lowercase:     model.NewPointer(false),
+				Uppercase:     model.NewPointer(false),
+				Number:        model.NewPointer(false),
+				Symbol:        model.NewPointer(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_min_length.app_error",
 		},
 		"TooLong": {
 			Password: strings.Repeat("x", model.PasswordMaximumLength+1),
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewBool(false),
-				Uppercase: model.NewBool(false),
-				Number:    model.NewBool(false),
-				Symbol:    model.NewBool(false),
+				Lowercase: model.NewPointer(false),
+				Uppercase: model.NewPointer(false),
+				Number:    model.NewPointer(false),
+				Symbol:    model.NewPointer(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_max_length.app_error",
 		},
 		"MissingLower": {
 			Password: "AAAAAAAAAAASD123!@#",
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewBool(true),
-				Uppercase: model.NewBool(false),
-				Number:    model.NewBool(false),
-				Symbol:    model.NewBool(false),
+				Lowercase: model.NewPointer(true),
+				Uppercase: model.NewPointer(false),
+				Number:    model.NewPointer(false),
+				Symbol:    model.NewPointer(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_lowercase.app_error",
 		},
 		"MissingUpper": {
 			Password: "aaaaaaaaaaaaasd123!@#",
 			Settings: &model.PasswordSettings{
-				Uppercase: model.NewBool(true),
-				Lowercase: model.NewBool(false),
-				Number:    model.NewBool(false),
-				Symbol:    model.NewBool(false),
+				Uppercase: model.NewPointer(true),
+				Lowercase: model.NewPointer(false),
+				Number:    model.NewPointer(false),
+				Symbol:    model.NewPointer(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_uppercase.app_error",
 		},
 		"MissingNumber": {
 			Password: "asasdasdsadASD!@#",
 			Settings: &model.PasswordSettings{
-				Number:    model.NewBool(true),
-				Lowercase: model.NewBool(false),
-				Uppercase: model.NewBool(false),
-				Symbol:    model.NewBool(false),
+				Number:    model.NewPointer(true),
+				Lowercase: model.NewPointer(false),
+				Uppercase: model.NewPointer(false),
+				Symbol:    model.NewPointer(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_number.app_error",
 		},
 		"MissingSymbol": {
 			Password: "asdasdasdasdasdASD123",
 			Settings: &model.PasswordSettings{
-				Symbol:    model.NewBool(true),
-				Lowercase: model.NewBool(false),
-				Uppercase: model.NewBool(false),
-				Number:    model.NewBool(false),
+				Symbol:    model.NewPointer(true),
+				Lowercase: model.NewPointer(false),
+				Uppercase: model.NewPointer(false),
+				Number:    model.NewPointer(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_symbol.app_error",
 		},
 		"MissingMultiple": {
 			Password: "asdasdasdasdasdasd",
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewBool(true),
-				Uppercase: model.NewBool(true),
-				Number:    model.NewBool(true),
-				Symbol:    model.NewBool(true),
+				Lowercase: model.NewPointer(true),
+				Uppercase: model.NewPointer(true),
+				Number:    model.NewPointer(true),
+				Symbol:    model.NewPointer(true),
 			},
-			ExpectedError: "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+			ExpectedError: "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
 		},
 		"Everything": {
 			Password: "asdASD!@#123",
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewBool(true),
-				Uppercase: model.NewBool(true),
-				Number:    model.NewBool(true),
-				Symbol:    model.NewBool(true),
+				Lowercase: model.NewPointer(true),
+				Uppercase: model.NewPointer(true),
+				Number:    model.NewPointer(true),
+				Symbol:    model.NewPointer(true),
 			},
 		},
 	} {

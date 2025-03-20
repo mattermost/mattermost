@@ -3,10 +3,7 @@
 
 import React, {memo} from 'react';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import Constants from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 export type TableItem = {
     name: string;
@@ -34,23 +31,13 @@ const TableChart = ({
                             data.map((item) => (
                                 <tr key={'table-entry-' + item.name}>
                                     <td>
-                                        <OverlayTrigger
-                                            delayShow={Constants.OVERLAY_TIME_DELAY}
-                                            placement='top'
-                                            overlay={(
-                                                <Tooltip id={'tip-table-entry-' + item.name}>
-                                                    {item.tip}
-                                                </Tooltip>
-                                            )}
+                                        <WithTooltip
+                                            title={item.tip}
                                         >
-                                            <time>
-                                                {item.name}
-                                            </time>
-                                        </OverlayTrigger>
+                                            <span>{item.name}</span>
+                                        </WithTooltip>
                                     </td>
-                                    <td>
-                                        {item.value}
-                                    </td>
+                                    <td>{item.value}</td>
                                 </tr>
                             ))
                         }

@@ -1,7 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MessageDescriptor} from 'react-intl';
+import type {FormatXMLElementFn} from 'intl-messageformat';
+import type {
+    MessageDescriptor,
+    PrimitiveType,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    IntlShape,
+} from 'react-intl';
 
 import type {CloudState, Product} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
@@ -167,12 +173,14 @@ type AdminDefinitionConfigSchemaSettings = {
     header?: string | MessageDescriptor;
 }
 
-type AdminDefinitionConfigSchemaSection = {
-    title: string;
+export type AdminDefinitionConfigSchemaSection = {
+    key: string;
+    title?: string;
     subtitle?: string;
     settings: AdminDefinitionSetting[];
     header?: string | MessageDescriptor;
     footer?: string | MessageDescriptor;
+    component?: Component;
 }
 
 type RestrictedIndicatorType = {
@@ -185,7 +193,7 @@ export type AdminDefinitionSubSectionSchema = AdminDefinitionConfigSchemaCompone
 export type AdminDefinitionSubSection = {
     url: string;
     title?: string | MessageDescriptor;
-    searchableStrings?: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]>;
+    searchableStrings?: SearchableStrings;
     isHidden?: Check;
     isDiscovery?: boolean;
     isDisabled?: Check;
@@ -200,6 +208,11 @@ export type AdminDefinitionSection = {
     id?: string;
     subsections: {[key: string]: AdminDefinitionSubSection};
 }
+
+/** From {@link IntlShape.formatMessage}. Cannot discriminate overloaded method signature. */
+declare function formatMessageBasic(descriptor: MessageDescriptor, values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>): string;
+
+export type SearchableStrings = Array<string | MessageDescriptor | Parameters<typeof formatMessageBasic>>;
 
 export type AdminDefinition = {[key: string]: AdminDefinitionSection}
 

@@ -57,8 +57,18 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
   >
     <MultiSelect
       ariaLabelRenderer={[Function]}
-      buttonSubmitLoadingText="Adding..."
-      buttonSubmitText="Add"
+      buttonSubmitLoadingText={
+        Object {
+          "defaultMessage": "Adding...",
+          "id": "multiselect.adding",
+        }
+      }
+      buttonSubmitText={
+        Object {
+          "defaultMessage": "Add",
+          "id": "multiselect.add",
+        }
+      }
       focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
@@ -209,7 +219,12 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
         ]
       }
       perPage={50}
-      placeholderText="Search and add members"
+      placeholderText={
+        Object {
+          "defaultMessage": "Search and add members",
+          "id": "multiselect.placeholder",
+        }
+      }
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}
@@ -283,8 +298,18 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
   >
     <MultiSelect
       ariaLabelRenderer={[Function]}
-      buttonSubmitLoadingText="Adding..."
-      buttonSubmitText="Add"
+      buttonSubmitLoadingText={
+        Object {
+          "defaultMessage": "Adding...",
+          "id": "multiselect.adding",
+        }
+      }
+      buttonSubmitText={
+        Object {
+          "defaultMessage": "Add",
+          "id": "multiselect.add",
+        }
+      }
       focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
@@ -435,7 +460,12 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
         ]
       }
       perPage={50}
-      placeholderText="Search and add members"
+      placeholderText={
+        Object {
+          "defaultMessage": "Search and add members",
+          "id": "multiselect.placeholder",
+        }
+      }
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}

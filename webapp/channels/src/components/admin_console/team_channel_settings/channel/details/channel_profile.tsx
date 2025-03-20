@@ -8,7 +8,6 @@ import {FormattedMessage, defineMessage} from 'react-intl';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
@@ -32,14 +31,15 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
     if (channel.shared && channel.type) {
         sharedBlock = (
             <div className='channel-organizations'>
-                <FormattedMarkdownMessage
-                    id='admin.channel_settings.channel_detail.channelOrganizations'
-                    defaultMessage='**Organizations**'
-                />
+                <b>
+                    <FormattedMessage
+                        id='admin.channelSettings.channelDetail.channel_organizations'
+                        defaultMessage='Organizations'
+                    />
+                </b>
                 <br/>
                 <SharedChannelIndicator
                     className='shared-channel-icon'
-                    channelType={channel.type}
                 />
                 <FormattedMessage
                     id='admin.channel_settings.channel_detail.channelOrganizationsMessage'
@@ -58,18 +58,22 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
             <div className='group-teams-and-channels AdminChannelDetails'>
                 <div className='group-teams-and-channels--body channel-desc-col'>
                     <div className='channel-name'>
-                        <FormattedMarkdownMessage
-                            id='admin.channel_settings.channel_detail.channelName'
-                            defaultMessage='**Name**'
-                        />
+                        <b>
+                            <FormattedMessage
+                                id='admin.channelSettings.channelDetail.channelName'
+                                defaultMessage='Name'
+                            />
+                        </b>
                         <br/>
                         {channel.display_name}
                     </div>
                     <div className='channel-team'>
-                        <FormattedMarkdownMessage
-                            id='admin.channel_settings.channel_detail.channelTeam'
-                            defaultMessage='**Team**'
-                        />
+                        <b>
+                            <FormattedMessage
+                                id='admin.channelSettings.channelDetail.channelTeam'
+                                defaultMessage='Team'
+                            />
+                        </b>
                         <br/>
                         {team?.display_name}
                     </div>

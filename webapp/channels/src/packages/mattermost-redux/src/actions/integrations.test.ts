@@ -86,17 +86,31 @@ describe('Actions.Integrations', () => {
             } as IncomingWebhook,
         ));
 
+        /* Test with include_total_count being set to false */
         nock(Client4.getBaseRoute()).
             get('/hooks/incoming').
             query(true).
             reply(200, [created]);
 
-        await store.dispatch(Actions.getIncomingHooks(TestHelper.basicTeam!.id));
-        const state = store.getState();
+        const response = await store.dispatch(Actions.getIncomingHooks(TestHelper.basicTeam!.id));
+        expect(response.data).toBeTruthy();
+        expect(response.data[0].id === created.id).toBeTruthy();
 
+        const state = store.getState();
         const hooks = state.entities.integrations.incomingHooks;
         expect(hooks).toBeTruthy();
         expect(hooks[created.id]).toBeTruthy();
+
+        /* Test with include_total_count being set to true */
+        nock(Client4.getBaseRoute()).
+            get('/hooks/incoming').
+            query(true).
+            reply(200, {incoming_webhooks: [created], total_count: 1});
+
+        const responseWithCount = await store.dispatch(Actions.getIncomingHooks(TestHelper.basicTeam!.id, 0, 10, true));
+        expect(responseWithCount.data.incoming_webhooks).toBeTruthy();
+        expect(responseWithCount.data.incoming_webhooks[0].id === created.id).toBeTruthy();
+        expect(responseWithCount.data.total_count === 1).toBeTruthy();
     });
 
     it('removeIncomingHook', async () => {

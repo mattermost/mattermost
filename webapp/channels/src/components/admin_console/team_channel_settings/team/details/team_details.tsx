@@ -26,9 +26,9 @@ import TeamMembers from './team_members/index';
 import {TeamModes} from './team_modes';
 import {TeamProfile} from './team_profile';
 
+import SaveChangesPanel from '../../../save_changes_panel';
 import {NeedDomainsError, NeedGroupsError, UsersWillBeRemovedError} from '../../errors';
 import RemoveConfirmModal from '../../remove_confirm_modal';
-import SaveChangesPanel from '../../save_changes_panel';
 
 export type Props = {
     teamID: string;
@@ -539,7 +539,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             message={
                                 <FormattedMessage
                                     id='admin.team_settings.team_detail.archive_confirm.message'
-                                    defaultMessage='Saving will archive the team and make its contents inaccessible for all users. Are you sure you wish to save and archive this team?'
+                                    defaultMessage={'Archiving will remove the team from the user interface but it\'s contents remain in the database and may still be accessible with the API. Are you sure you wish to save and archive this team?'}
                                 />
                             }
                             confirmButtonText={

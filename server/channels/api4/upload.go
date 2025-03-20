@@ -17,9 +17,9 @@ import (
 )
 
 func (api *API) InitUpload() {
-	api.BaseRoutes.Uploads.Handle("", api.APISessionRequired(createUpload, handlerParamFileAPI)).Methods("POST")
-	api.BaseRoutes.Upload.Handle("", api.APISessionRequired(getUpload)).Methods("GET")
-	api.BaseRoutes.Upload.Handle("", api.APISessionRequired(uploadData, handlerParamFileAPI)).Methods("POST")
+	api.BaseRoutes.Uploads.Handle("", api.APISessionRequired(createUpload, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.Upload.Handle("", api.APISessionRequired(getUpload)).Methods(http.MethodGet)
+	api.BaseRoutes.Upload.Handle("", api.APISessionRequired(uploadData, handlerParamFileAPI)).Methods(http.MethodPost)
 }
 
 func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {

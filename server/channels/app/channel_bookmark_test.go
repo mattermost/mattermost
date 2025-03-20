@@ -26,10 +26,14 @@ func createBookmark(name string, bookmarkType model.ChannelBookmarkType, channel
 	bookmark := &model.ChannelBookmark{
 		ChannelId:   channelId,
 		DisplayName: name,
-		LinkUrl:     "https://mattermost.com",
 		Type:        bookmarkType,
 		Emoji:       ":smile:",
-		FileId:      fileId,
+	}
+	if bookmarkType == model.ChannelBookmarkLink {
+		bookmark.LinkUrl = "https://mattermost.com"
+	}
+	if bookmarkType == model.ChannelBookmarkFile {
+		bookmark.FileId = fileId
 	}
 
 	return bookmark
@@ -85,6 +89,7 @@ func TestUpdateBookmark(t *testing.T) {
 	var testUpdateAnotherFile = func(th *TestHelper, t *testing.T) {
 		file := &model.FileInfo{
 			Id:              model.NewId(),
+			ChannelId:       th.BasicChannel.Id,
 			CreatorId:       model.BookmarkFileOwner,
 			Path:            "somepath",
 			ThumbnailPath:   "thumbpath",
@@ -98,16 +103,21 @@ func TestUpdateBookmark(t *testing.T) {
 			HasPreviewImage: true,
 		}
 
-		th.App.Srv().Store().FileInfo().Save(th.Context, file)
-		defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+		_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+		assert.NoError(t, err)
+		defer func() {
+			err = th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+			assert.NoError(t, err)
+		}()
 
 		bookmark2 := createBookmark("File to be updated", model.ChannelBookmarkFile, th.BasicChannel.Id, file.Id)
-		bookmarkResp, err := th.App.CreateChannelBookmark(th.Context, bookmark2, "")
-		require.Nil(t, err)
+		bookmarkResp, appErr := th.App.CreateChannelBookmark(th.Context, bookmark2, "")
+		require.Nil(t, appErr)
 		require.NotNil(t, bookmarkResp)
 
 		file2 := &model.FileInfo{
 			Id:              model.NewId(),
+			ChannelId:       th.BasicChannel.Id,
 			CreatorId:       model.BookmarkFileOwner,
 			Path:            "somepath",
 			ThumbnailPath:   "thumbpath",
@@ -121,14 +131,119 @@ func TestUpdateBookmark(t *testing.T) {
 			HasPreviewImage: true,
 		}
 
-		th.App.Srv().Store().FileInfo().Save(th.Context, file2)
-		th.App.Srv().Store().FileInfo().AttachToPost(th.Context, file2.Id, model.NewId(), th.BasicChannel.Id, model.BookmarkFileOwner)
-		defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file2.Id)
+		_, err = th.App.Srv().Store().FileInfo().Save(th.Context, file2)
+		assert.NoError(t, err)
+		err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, file2.Id, model.NewId(), th.BasicChannel.Id, model.BookmarkFileOwner)
+		assert.NoError(t, err)
+		defer func() {
+			err = th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file2.Id)
+			require.NoError(t, err)
+		}()
 
 		bookmark2.FileId = file2.Id
-		bookmarkResp, err = th.App.CreateChannelBookmark(th.Context, bookmark2, "")
-		require.NotNil(t, err)
+		bookmarkResp, appErr = th.App.CreateChannelBookmark(th.Context, bookmark2, "")
+		require.NotNil(t, appErr)
 		require.Nil(t, bookmarkResp)
+	}
+
+	var testUpdateInvalidFiles = func(th *TestHelper, t *testing.T, creatingUserId string, updatingUserId string) {
+		file := &model.FileInfo{
+			Id:              model.NewId(),
+			ChannelId:       th.BasicChannel.Id,
+			CreatorId:       model.BookmarkFileOwner,
+			Path:            "somepath",
+			ThumbnailPath:   "thumbpath",
+			PreviewPath:     "prevPath",
+			Name:            "test file",
+			Extension:       "png",
+			MimeType:        "images/png",
+			Size:            873182,
+			Width:           3076,
+			Height:          2200,
+			HasPreviewImage: true,
+		}
+
+		_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+		assert.NoError(t, err)
+		defer func() {
+			err = th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+			assert.NoError(t, err)
+		}()
+
+		th.Context.Session().UserId = creatingUserId
+
+		bookmark := createBookmark("File to be updated", model.ChannelBookmarkFile, th.BasicChannel.Id, file.Id)
+		bookmarkToEdit, appErr := th.App.CreateChannelBookmark(th.Context, bookmark, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, bookmarkToEdit)
+
+		otherChannel := th.CreateChannel(th.Context, th.BasicTeam)
+
+		createAt := time.Now().Add(-1 * time.Minute)
+		deleteAt := createAt.Add(1 * time.Second)
+
+		deletedFile := &model.FileInfo{
+			Id:              model.NewId(),
+			ChannelId:       th.BasicChannel.Id,
+			CreatorId:       model.BookmarkFileOwner,
+			Path:            "somepath",
+			ThumbnailPath:   "thumbpath",
+			PreviewPath:     "prevPath",
+			Name:            "test file",
+			Extension:       "png",
+			MimeType:        "images/png",
+			Size:            873182,
+			Width:           3076,
+			Height:          2200,
+			HasPreviewImage: true,
+			CreateAt:        createAt.UnixMilli(),
+			UpdateAt:        createAt.UnixMilli(),
+			DeleteAt:        deleteAt.UnixMilli(),
+		}
+
+		_, err = th.App.Srv().Store().FileInfo().Save(th.Context, deletedFile)
+		assert.NoError(t, err)
+		defer func() {
+			err = th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, deletedFile.Id)
+			assert.NoError(t, err)
+		}()
+
+		th.Context.Session().UserId = updatingUserId
+
+		updateBookmarkPending := bookmarkToEdit.Clone()
+		updateBookmarkPending.FileId = deletedFile.Id
+		bookmarkEdited, appErr := th.App.UpdateChannelBookmark(th.Context, updateBookmarkPending, "")
+		assert.NotNil(t, appErr)
+		require.Nil(t, bookmarkEdited)
+
+		anotherChannelFile := &model.FileInfo{
+			Id:              model.NewId(),
+			ChannelId:       otherChannel.Id,
+			CreatorId:       model.BookmarkFileOwner,
+			Path:            "somepath",
+			ThumbnailPath:   "thumbpath",
+			PreviewPath:     "prevPath",
+			Name:            "test file",
+			Extension:       "png",
+			MimeType:        "images/png",
+			Size:            873182,
+			Width:           3076,
+			Height:          2200,
+			HasPreviewImage: true,
+		}
+
+		_, err = th.App.Srv().Store().FileInfo().Save(th.Context, anotherChannelFile)
+		assert.NoError(t, err)
+		defer func() {
+			err = th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, anotherChannelFile.Id)
+			require.NoError(t, err)
+		}()
+
+		updateBookmarkPending = bookmarkToEdit.Clone()
+		updateBookmarkPending.FileId = anotherChannelFile.Id
+		bookmarkEdited, appErr = th.App.UpdateChannelBookmark(th.Context, updateBookmarkPending, "")
+		assert.NotNil(t, appErr)
+		require.Nil(t, bookmarkEdited)
 	}
 
 	t.Run("same user update a channel bookmark", func(t *testing.T) {
@@ -153,6 +268,8 @@ func TestUpdateBookmark(t *testing.T) {
 		assert.Greater(t, response.Updated.UpdateAt, response.Updated.CreateAt)
 
 		testUpdateAnotherFile(th, t)
+
+		testUpdateInvalidFiles(th, t, th.BasicUser.Id, th.BasicUser.Id)
 	})
 
 	t.Run("another user update a channel bookmark", func(t *testing.T) {
@@ -168,6 +285,8 @@ func TestUpdateBookmark(t *testing.T) {
 		assert.Equal(t, "New name", response.Deleted.DisplayName)
 
 		testUpdateAnotherFile(th, t)
+
+		testUpdateInvalidFiles(th, t, th.BasicUser.Id, th.BasicUser.Id)
 	})
 
 	t.Run("update an already deleted channel bookmark", func(t *testing.T) {
@@ -247,10 +366,12 @@ func TestGetChannelBookmarks(t *testing.T) {
 		Emoji:       ":smile:",
 	}
 
-	th.App.CreateChannelBookmark(th.Context, bookmark1, "")
+	_, appErr := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
+	assert.Nil(t, appErr)
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
+		ChannelId:       th.BasicChannel.Id,
 		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
@@ -264,8 +385,12 @@ func TestGetChannelBookmarks(t *testing.T) {
 		HasPreviewImage: true,
 	}
 
-	th.App.Srv().Store().FileInfo().Save(th.Context, file)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+	_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+	assert.NoError(t, err)
+	defer func() {
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+		assert.NoError(t, err)
+	}()
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   th.BasicChannel.Id,
@@ -275,7 +400,8 @@ func TestGetChannelBookmarks(t *testing.T) {
 		Emoji:       ":smile:",
 	}
 
-	th.App.CreateChannelBookmark(th.Context, bookmark2, "")
+	_, appErr = th.App.CreateChannelBookmark(th.Context, bookmark2, "")
+	assert.Nil(t, appErr)
 
 	t.Run("get bookmarks of a channel", func(t *testing.T) {
 		bookmarks, err := th.App.GetChannelBookmarks(th.BasicChannel.Id, 0)
@@ -286,7 +412,8 @@ func TestGetChannelBookmarks(t *testing.T) {
 
 	t.Run("get bookmarks of a channel after one is deleted (aka only return the changed bookmarks)", func(t *testing.T) {
 		now := model.GetMillis()
-		th.App.DeleteChannelBookmark(bookmark1.Id, "")
+		_, appErr := th.App.DeleteChannelBookmark(bookmark1.Id, "")
+		assert.Nil(t, appErr)
 
 		bookmarks, err := th.App.GetChannelBookmarks(th.BasicChannel.Id, 0)
 		require.Nil(t, err)
@@ -326,6 +453,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
+		ChannelId:       th.BasicChannel.Id,
 		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
@@ -349,7 +477,10 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
 	require.NoError(t, err)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+	defer func() {
+		err = th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+		require.NoError(t, err)
+	}()
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   channelId,
@@ -433,7 +564,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(4))
 
 		// now reset order
-		th.App.UpdateChannelBookmarkSortOrder(bookmark0.Id, channelId, int64(0), "")
+		_, appErr = th.App.UpdateChannelBookmarkSortOrder(bookmark0.Id, channelId, int64(0), "")
+		assert.Nil(t, appErr)
 	})
 
 	t.Run("change order of bookmarks second to third", func(t *testing.T) {
@@ -486,13 +618,13 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	t.Run("change order of bookmarks error when new index is out of bounds", func(t *testing.T) {
 		_, appErr = th.App.UpdateChannelBookmarkSortOrder(bookmark3.Id, channelId, int64(-1), "")
-		assert.Error(t, appErr)
+		assert.NotNil(t, appErr)
 		_, appErr = th.App.UpdateChannelBookmarkSortOrder(bookmark3.Id, channelId, int64(5), "")
-		assert.Error(t, appErr)
+		assert.NotNil(t, appErr)
 	})
 
 	t.Run("change order of bookmarks error when bookmark not found", func(t *testing.T) {
 		_, appErr = th.App.UpdateChannelBookmarkSortOrder(model.NewId(), channelId, int64(0), "")
-		assert.Error(t, appErr)
+		assert.NotNil(t, appErr)
 	})
 }

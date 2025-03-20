@@ -14,7 +14,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -28,18 +27,21 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_dms_preferences_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_empty_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_orphan_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
@@ -53,11 +55,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_file"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/migrations"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/mobile_session_metadata"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/notify_admin"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/plugins"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/product_notices"
-	"github.com/mattermost/mattermost/server/v8/channels/jobs/refresh_post_stats"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/refresh_materialized_views"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/s3_path_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -66,17 +69,20 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/awsmeter"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine/indexer"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
-	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
+)
+
+const (
+	scheduledPostJobInterval      = 5 * time.Minute
+	debugScheduledPostJobInterval = 2 * time.Second
 )
 
 var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"
@@ -129,6 +135,7 @@ type Server struct {
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
 	teamService      *teams.TeamService
+	propertyService  *properties.PropertyService
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
@@ -144,8 +151,6 @@ type Server struct {
 	Cloud                   einterfaces.CloudInterface
 	IPFiltering             einterfaces.IPFilteringInterface
 	OutgoingOAuthConnection einterfaces.OutgoingOAuthConnectionInterface
-
-	tracer *tracing.Tracer
 
 	ch *Channels
 }
@@ -232,10 +237,21 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
+	s.propertyService, err = properties.New(properties.ServiceConfig{
+		PropertyGroupStore: s.Store().PropertyGroup(),
+		PropertyFieldStore: s.Store().PropertyField(),
+		PropertyValueStore: s.Store().PropertyValue(),
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create properties service")
+	}
+
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 4: Start platform
-	s.platform.Start(s.makeBroadcastHooks())
+	if err = s.platform.Start(s.makeBroadcastHooks()); err != nil {
+		return nil, errors.Wrap(err, "failed to start platform")
+	}
 
 	// NOTE: There should be no call to App.Srv().Channels() before step 5 is done
 	// otherwise it will throw a panic.
@@ -287,14 +303,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	if *s.platform.Config().ServiceSettings.EnableOpenTracing {
-		tracer, err2 := tracing.New()
-		if err2 != nil {
-			return nil, err2
-		}
-		s.tracer = tracer
-	}
-
 	s.pushNotificationClient = s.httpService.MakeClient(true)
 	s.outgoingWebhookClient = s.httpService.MakeClient(false)
 
@@ -304,11 +312,13 @@ func NewServer(options ...Option) (*Server, error) {
 	model.AppErrorInit(i18n.T)
 
 	if s.seenPendingPostIdsCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name: "seen_pending_post_ids",
 		Size: PendingPostIDsCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
 	if s.openGraphDataCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name: "opengraph_data",
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
@@ -322,7 +332,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	templatesDir, ok := templates.GetTemplateDirectory()
 	if !ok {
-		return nil, errors.New("Failed find server templates in \"templates\" directory or MM_SERVER_PATH")
+		return nil, errors.New("Failed find server templates in \"templates\" directory")
 	}
 	htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
 	if err2 != nil {
@@ -453,9 +463,9 @@ func NewServer(options ...Option) (*Server, error) {
 		return s, nil
 	}
 
-	s.platform.AddConfigListener(func(old, new *model.Config) {
+	s.platform.AddConfigListener(func(oldCfg, newCfg *model.Config) {
 		appInstance := New(ServerConnector(s.Channels()))
-		if *old.GuestAccountsSettings.Enable && !*new.GuestAccountsSettings.Enable {
+		if *oldCfg.GuestAccountsSettings.Enable && !*newCfg.GuestAccountsSettings.Enable {
 			c := request.EmptyContext(s.Log())
 			if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
@@ -486,30 +496,34 @@ func NewServer(options ...Option) (*Server, error) {
 			(oldCfg.ImageProxySettings.ImageProxyType != newCfg.ImageProxySettings.ImageProxyType) ||
 			(oldCfg.ImageProxySettings.RemoteImageProxyURL != newCfg.ImageProxySettings.RemoteImageProxyURL) ||
 			(oldCfg.ImageProxySettings.RemoteImageProxyOptions != newCfg.ImageProxySettings.RemoteImageProxyOptions) {
-			s.openGraphDataCache.Purge()
+			if err = s.openGraphDataCache.Purge(); err != nil {
+				mlog.Error("Failed to purge Open Graph data cache after config change", mlog.Err(err))
+			}
 		}
 	})
-
-	app.initElasticsearchChannelIndexCheck()
 
 	return s, nil
 }
 
 func (s *Server) runJobs() {
 	s.runLicenseExpirationCheckJob()
+
 	s.Go(func() {
 		appInstance := New(ServerConnector(s.Channels()))
 		runDNDStatusExpireJob(appInstance)
 		runPostReminderJob(appInstance)
+		runScheduledPostJob(appInstance)
 	})
 	s.Go(func() {
 		runSecurityJob(s)
 	})
 	s.Go(func() {
-		firstRun, err := s.getFirstServerRunTimestamp()
-		if err != nil {
+		firstRun, appErr := s.getFirstServerRunTimestamp()
+		if appErr != nil {
 			mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
-			s.ensureFirstServerRunTimestamp()
+			if err := s.ensureFirstServerRunTimestamp(); err != nil {
+				mlog.Error("Failed to set first server run timestamp to current time", mlog.Err(err))
+			}
 			firstRun = utils.MillisFromTime(time.Now())
 		}
 		s.telemetryService.RunTelemetryJob(firstRun)
@@ -528,6 +542,9 @@ func (s *Server) runJobs() {
 	})
 	s.Go(func() {
 		runConfigCleanupJob(s)
+	})
+	s.Go(func() {
+		runCloudUserCountReportJob(s)
 	})
 
 	if complianceI := s.Channels().Compliance; complianceI != nil {
@@ -561,12 +578,6 @@ func (s *Server) Channels() *Channels {
 	return s.ch
 }
 
-// Return Database type (postgres or mysql) and current version of the schema
-func (s *Server) DatabaseTypeAndSchemaVersion() (string, string) {
-	schemaVersion, _ := s.Store().GetDBSchemaVersion()
-	return *s.platform.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
-}
-
 func (s *Server) startInterClusterServices(license *model.License) error {
 	if license == nil {
 		mlog.Debug("No license provided; Remote Cluster services disabled")
@@ -582,7 +593,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	}
 
 	// Config check
-	if !*s.platform.Config().ExperimentalSettings.EnableRemoteClusterService && !*s.platform.Config().ExperimentalSettings.EnableSharedChannels {
+	if !*s.platform.Config().ConnectedWorkspacesSettings.EnableRemoteClusterService && !*s.platform.Config().ConnectedWorkspacesSettings.EnableSharedChannels {
 		mlog.Debug("Remote Cluster Service disabled via config")
 		return nil
 	}
@@ -611,7 +622,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	}
 
 	// Config check
-	if !*s.platform.Config().ExperimentalSettings.EnableSharedChannels {
+	if !*s.platform.Config().ConnectedWorkspacesSettings.EnableSharedChannels {
 		mlog.Debug("Shared Channels Service disabled via config")
 		return nil
 	}
@@ -665,12 +676,6 @@ func (s *Server) Shutdown() {
 	s.RemoveLicenseListener(s.loggerLicenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
 
-	if s.tracer != nil {
-		if err := s.tracer.Close(); err != nil {
-			s.Log().Warn("Unable to cleanly shutdown opentracing client", mlog.Err(err))
-		}
-	}
-
 	err := s.telemetryService.Shutdown()
 	if err != nil {
 		s.Log().Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
@@ -698,7 +703,9 @@ func (s *Server) Shutdown() {
 
 	s.platform.StopSearchEngine()
 
-	s.Audit.Shutdown()
+	if err = s.Audit.Shutdown(); err != nil {
+		s.Log().Warn("Failed to shut down audit", mlog.Err(err))
+	}
 
 	s.platform.StopFeatureFlagUpdateJob()
 
@@ -784,7 +791,9 @@ func (s *Server) UpgradeToE0() error {
 		return err
 	}
 	upgradedFromTE := &model.System{Name: model.SystemUpgradedFromTeId, Value: "true"}
-	s.Store().System().Save(upgradedFromTE)
+	if err := s.Store().System().Save(upgradedFromTE); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -874,7 +883,9 @@ func (s *Server) Start() error {
 
 	s.checkPushNotificationServerURL()
 
-	s.platform.ReloadConfig()
+	if err = s.platform.ReloadConfig(); err != nil {
+		mlog.Error("Failed to reload config on server start", mlog.Err(err))
+	}
 
 	mlog.Info("Starting Server...")
 
@@ -973,7 +984,11 @@ func (s *Server) Start() error {
 					Handler:  m.HTTPHandler(nil),
 					ErrorLog: s.Log().With(mlog.String("source", "le_forwarder_server")).StdLogger(mlog.LvlError),
 				}
-				go server.ListenAndServe()
+				go func() {
+					if err := server.ListenAndServe(); err != nil {
+						mlog.Error("Failed to serve redirect from port 80 to 443 with autocert ", mlog.Err(err))
+					}
+				}()
 			} else {
 				go func() {
 					redirectListener, err := net.Listen("tcp", httpListenAddress)
@@ -987,7 +1002,9 @@ func (s *Server) Start() error {
 						Handler:  http.HandlerFunc(handleHTTPRedirect),
 						ErrorLog: s.Log().With(mlog.String("source", "forwarder_server")).StdLogger(mlog.LvlError),
 					}
-					server.Serve(redirectListener)
+					if err := server.Serve(redirectListener); err != nil {
+						mlog.Error("Failed to serve redirect from port 80 to 443", mlog.Err(err))
+					}
 				}()
 			}
 		}
@@ -1226,11 +1243,20 @@ func doReportUsageToAWSMeteringService(s *Server) {
 
 	dimensions := []string{model.AwsMeteringDimensionUsageHrs}
 	reports := awsMeter.GetUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-model.AwsMeteringReportInterval*time.Hour).UTC())
-	awsMeter.ReportUserCategoryUsage(reports)
+	if err := awsMeter.ReportUserCategoryUsage(reports); err != nil {
+		mlog.Error("Failed to report usage to AWS Metering Service", mlog.Err(err))
+	}
 }
 
 func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
+}
+
+// Reports activated user count to the CWS every 24 hours
+func runCloudUserCountReportJob(s *Server) {
+	model.CreateRecurringTask("Report user count for cloud subscription", func() {
+		s.doReportUserCountForCloudSubscriptionJob()
+	}, time.Hour*24)
 }
 
 func doTokenCleanup(s *Server) {
@@ -1296,16 +1322,6 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 	daysToExpiration := license.DaysToExpiration()
 
-	ctaLink, tokenToBeUsedForRenew, appErr := s.GenerateLicenseRenewalLink()
-	if appErr != nil {
-		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, "", http.StatusInternalServerError).Wrap(appErr)
-	}
-
-	status, err := s.Cloud.GetLicenseSelfServeStatus("", tokenToBeUsedForRenew)
-	if err != nil {
-		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
 	// we want to at least have one email sent out to an admin
 	countNotOks := 0
 
@@ -1315,13 +1331,10 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 			name = user.Username
 		}
 		T := i18n.GetUserTranslations(user.Locale)
-		ctaTitle := T("api.templates.license_up_for_renewal_subtitle_two")
-		ctaText := T("api.templates.license_up_for_renewal_renew_now")
-		if !status.IsRenewable {
-			ctaTitle = ""
-			ctaText = T("api.templates.license_up_for_renewal_contact_sales")
-			ctaLink = "https://mattermost.com/contact-sales/"
-		}
+
+		ctaTitle := ""
+		ctaText := T("api.templates.license_up_for_renewal_contact_sales")
+		ctaLink := "https://mattermost.com/contact-sales/"
 
 		if err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.platform.Config().ServiceSettings.SiteURL, ctaTitle, ctaLink, ctaText, daysToExpiration); err != nil {
 			mlog.Error("Error sending license up for renewal email to", mlog.String("user_email", user.Email), mlog.Err(err))
@@ -1346,6 +1359,25 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 	return nil
 }
 
+func (s *Server) doReportUserCountForCloudSubscriptionJob() {
+	s.LoadLicense()
+
+	if !s.License().IsCloud() {
+		return
+	}
+
+	mlog.Debug("Reporting daily user count for cloud subscription.")
+
+	appInstance := New(ServerConnector(s.Channels()))
+
+	_, err := appInstance.SendSubscriptionHistoryEvent("")
+	if err != nil {
+		mlog.Error("an error occurred during daily user count reporting", mlog.Err(err))
+	}
+
+	mlog.Debug("Daily user count reported for cloud subscription.")
+}
+
 func (s *Server) doLicenseExpirationCheck() {
 	s.LoadLicense()
 
@@ -1361,6 +1393,10 @@ func (s *Server) doLicenseExpirationCheck() {
 
 	if license == nil {
 		mlog.Debug("License cannot be found.")
+		return
+	}
+
+	if license.IsCloud() {
 		return
 	}
 
@@ -1383,19 +1419,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	ctaLink, tokenToBeUsedForRenew, appErr := s.GenerateLicenseRenewalLink()
-	if appErr != nil {
-		mlog.Debug(model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, "", http.StatusInternalServerError).Wrap(appErr).Error())
-		return
-	}
-
-	status, err := s.Cloud.GetLicenseSelfServeStatus("", tokenToBeUsedForRenew)
-	if err != nil {
-		mlog.Debug(model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err).Error())
-		return
-	}
-
-	//send email to admin(s)
+	// send email to admin(s)
 	for _, user := range users {
 		user := user
 		if user.Email == "" {
@@ -1404,11 +1428,8 @@ func (s *Server) doLicenseExpirationCheck() {
 		}
 
 		T := i18n.GetUserTranslations(user.Locale)
-		ctaText := T("api.templates.remove_expired_license.body.renew_button")
-		if !status.IsRenewable {
-			ctaText = T("api.templates.license_up_for_renewal_contact_sales")
-			ctaLink = "https://mattermost.com/contact-sales/"
-		}
+		ctaText := T("api.templates.license_up_for_renewal_contact_sales")
+		ctaLink := "https://mattermost.com/contact-sales/"
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		s.Go(func() {
@@ -1419,7 +1440,9 @@ func (s *Server) doLicenseExpirationCheck() {
 	}
 
 	//remove the license
-	s.RemoveLicense()
+	if appErr := s.RemoveLicense(); appErr != nil {
+		mlog.Error("Error while removing the license.", mlog.Err(appErr))
+	}
 }
 
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
@@ -1442,10 +1465,6 @@ func (s *Server) ExportFileBackend() filestore.FileBackend {
 
 func (s *Server) TotalWebsocketConnections() int {
 	return s.Platform().TotalWebsocketConnections()
-}
-
-func (s *Server) ClusterHealthScore() int {
-	return s.platform.Cluster().HealthScore()
 }
 
 func (ch *Channels) ClientConfigHash() string {
@@ -1556,6 +1575,12 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
+		model.JobTypeMobileSessionMetadata,
+		mobile_session_metadata.MakeWorker(s.Jobs, s.Store(), func() einterfaces.MetricsInterface { return s.GetMetrics() }),
+		mobile_session_metadata.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
 		model.JobTypeResendInvitationEmail,
 		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store(), s.telemetryService),
 		nil,
@@ -1616,9 +1641,9 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
-		model.JobTypeRefreshPostStats,
-		refresh_post_stats.MakeWorker(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
-		refresh_post_stats.MakeScheduler(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
+		model.JobTypeRefreshMaterializedViews,
+		refresh_materialized_views.MakeWorker(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
+		refresh_materialized_views.MakeScheduler(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
 	)
 
 	s.Jobs.RegisterJobType(
@@ -1626,6 +1651,11 @@ func (s *Server) initJobs() {
 		export_users_to_csv.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 		nil,
 	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeDeleteDmsPreferencesMigration,
+		delete_dms_preferences_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil)
 
 	s.platform.Jobs = s.Jobs
 }
@@ -1672,15 +1702,7 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 	return s.platform.Metrics()
 }
 
-// SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
-// For testing only.
-func (s *Server) SetRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
-	s.serviceMux.Lock()
-	defer s.serviceMux.Unlock()
-	s.remoteClusterService = remoteClusterService
-}
-
-// SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
+// setSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
 // For testing only.
 func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
 	s.serviceMux.Lock()
@@ -1760,14 +1782,14 @@ func cancelTask(mut *sync.Mutex, taskPointer **model.ScheduledTask) {
 func runDNDStatusExpireJob(a *App) {
 	if a.IsLeader() {
 		withMut(&a.ch.dndTaskMut, func() {
-			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
 			withMut(&a.ch.dndTaskMut, func() {
-				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 			})
 		} else {
 			cancelTask(&a.ch.dndTaskMut, &a.ch.dndTask)
@@ -1794,6 +1816,37 @@ func runPostReminderJob(a *App) {
 		} else {
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
 		}
+	})
+}
+
+func runScheduledPostJob(a *App) {
+	if a.IsLeader() {
+		doRunScheduledPostJob(a)
+	}
+
+	a.ch.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if scheduled posts task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
+			doRunScheduledPostJob(a)
+		} else {
+			mlog.Info("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("isLeader", a.IsLeader()))
+			cancelTask(&a.ch.scheduledPostMut, &a.ch.scheduledPostTask)
+		}
+	})
+}
+
+func doRunScheduledPostJob(a *App) {
+	var jobInterval time.Duration
+	if *a.Config().ServiceSettings.EnableTesting {
+		jobInterval = debugScheduledPostJobInterval
+	} else {
+		jobInterval = scheduledPostJobInterval
+	}
+
+	rctx := request.EmptyContext(a.Log())
+	withMut(&a.ch.scheduledPostMut, func() {
+		fn := func() { a.ProcessScheduledPosts(rctx) }
+		a.ch.scheduledPostTask = model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
 	})
 }
 

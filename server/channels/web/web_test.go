@@ -23,7 +23,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/store/localcachelayer"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
@@ -32,7 +31,7 @@ var apiClient *model.Client4
 var URL string
 
 type TestHelper struct {
-	App     app.AppIface
+	App     *app.App
 	Context request.CTX
 	Server  *app.Server
 	Web     *Web
@@ -83,7 +82,12 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	*newConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	memoryStore.Set(newConfig)
 	options = append(options, app.ConfigStore(memoryStore))
-	options = append(options, app.StoreOverride(mainHelper.Store))
+	if includeCacheLayer {
+		// Adds the cache layer to the test store
+		options = append(options, app.StoreOverrideWithCache(mainHelper.Store))
+	} else {
+		options = append(options, app.StoreOverride(mainHelper.Store))
+	}
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&newConfig.LogSettings, nil, config.GetLogFileLocation)
@@ -97,15 +101,6 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
-	}
-	if includeCacheLayer {
-		// Adds the cache layer to the test store
-		var st localcachelayer.LocalCacheStore
-		st, err = localcachelayer.NewLocalCacheLayer(s.Store(), s.GetMetrics(), s.Platform().Cluster(), s.Platform().CacheProvider())
-		if err != nil {
-			panic(err)
-		}
-		s.SetStore(st)
 	}
 
 	a := app.New(app.ServerConnector(s.Channels()))
@@ -395,6 +390,14 @@ func TestStaticFilesCaching(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/", nil)
 	res := httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Equal(t, fakeRootHTML, res.Body.String())
+	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+
+	// Checking for HEAD method as well.
+	req, _ = http.NewRequest(http.MethodHead, "/", nil)
+	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	require.Equal(t, http.StatusOK, res.Code)
 	require.Equal(t, fakeRootHTML, res.Body.String())

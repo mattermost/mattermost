@@ -6,6 +6,7 @@
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
 import type {CloudState, Product} from '@mattermost/types/cloud';
@@ -34,8 +35,9 @@ import {searchableStrings as teamAnalyticsSearchableStrings} from 'components/an
 import ExternalLink from 'components/external_link';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks} from 'utils/constants';
+import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks, CacheTypes} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
+import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 
 import * as DefinitionConstants from './admin_definition_constants';
@@ -47,6 +49,7 @@ import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} f
 import CompanyInfoEdit from './billing/company_info_edit';
 import BleveSettings, {searchableStrings as bleveSearchableStrings} from './bleve_settings';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
+import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
@@ -86,9 +89,12 @@ import PermissionSystemSchemeSettings from './permission_schemes_settings/permis
 import PermissionTeamSchemeSettings from './permission_schemes_settings/permission_team_scheme_settings';
 import {searchableStrings as pluginManagementSearchableStrings} from './plugin_management/plugin_management';
 import PushNotificationsSettings, {searchableStrings as pushSearchableStrings} from './push_settings';
+import SecureConnections, {searchableStrings as secureConnectionsSearchableStrings} from './secure_connections';
+import SecureConnectionDetail from './secure_connections/secure_connection_detail';
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
+import SystemProperties, {searchableStrings as systemPropertiesSearchableStrings} from './system_properties';
 import SystemRoles from './system_roles';
 import SystemRole from './system_roles/system_role';
 import SystemUserDetail from './system_user_detail';
@@ -290,6 +296,24 @@ const getRestrictedIndicator = (displayBlocked = false, minimumPlanRequiredForFe
 const adminDefinitionMessages = defineMessages({
     data_retention_title: {id: 'admin.data_retention.title', defaultMessage: 'Data Retention Policy'},
     ip_filtering_title: {id: 'admin.sidebar.ip_filtering', defaultMessage: 'IP Filtering'},
+    cache_settings_title: {id: 'admin.cacheSettings.title', defaultMessage: 'Cache Settings'},
+
+    cache_type_title: {id: 'admin.cacheSettings.cacheTypeTitle', defaultMessage: 'Cache Type'},
+    cache_type_desc: {id: 'admin.cacheSettings.cacheTypeDesc', defaultMessage: 'The type of the cache backend. E.g.: "redis" or "lru"'},
+
+    redis_address_title: {id: 'admin.cacheSettings.redisAddress', defaultMessage: 'Redis Address'},
+    redis_address_desc: {id: 'admin.cacheSettings.redisAddressDesc', defaultMessage: 'The hostname:port of the Redis server. E.g.: "localhost:6379"'},
+    redis_address_placeholder: {id: 'admin.cacheSettings.redisAddressPlaceholder', defaultMessage: 'localhost:6379'},
+
+    redis_password_title: {id: 'admin.cacheSettings.redisPassword', defaultMessage: 'Redis Password'},
+    redis_password_desc: {id: 'admin.cacheSettings.redisPasswordDesc', defaultMessage: 'The password of the Redis server.'},
+
+    redis_db_title: {id: 'admin.cacheSettings.redisDB', defaultMessage: 'Redis DB'},
+    redis_db_desc: {id: 'admin.cacheSettings.redisDBDesc', defaultMessage: 'The database of the Redis server. E.g.: "0"'},
+    redis_db_placeholder: {id: 'admin.cacheSettings.redisDBPlaceholder', defaultMessage: '0'},
+
+    redis_clientcache_title: {id: 'admin.cacheSettings.redisClientCache', defaultMessage: 'Disable Client Cache'},
+    redis_clientcache_desc: {id: 'admin.cacheSettings.redisClientCacheDesc', defaultMessage: 'When true, client-side caching is disabled.'},
 });
 const AdminDefinition: AdminDefinitionType = {
     about: {
@@ -326,15 +350,7 @@ const AdminDefinition: AdminDefinitionType = {
             />
         ),
         sectionTitle: defineMessage({id: 'admin.sidebar.billing', defaultMessage: 'Billing & Account'}),
-        isHidden: it.any(
-            it.not(it.enterpriseReady),
-            it.not(it.userHasReadPermissionOnResource('billing')),
-            it.not(it.licensed),
-            it.all(
-                it.not(it.licensedForFeature('Cloud')),
-                it.configIsFalse('ServiceSettings', 'SelfHostedPurchase'),
-            ),
-        ),
+        isHidden: it.not(it.licensedForFeature('Cloud')),
         subsections: {
             subscription: {
                 url: 'billing/subscription',
@@ -357,6 +373,7 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'BillingHistory',
                     component: BillingHistory,
                 },
+                isHidden: it.not(it.licensedForFeature('Cloud')),
                 isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
             },
             company_info: {
@@ -464,7 +481,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             system_user_detail: {
-                url: 'user_management/user/:user_id',
+                url: `user_management/user/:user_id(${ID_PATH_PATTERN})`,
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 schema: {
                     id: 'SystemUserDetail',
@@ -472,7 +489,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             group_detail: {
-                url: 'user_management/groups/:group_id',
+                url: `user_management/groups/:group_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.GROUPS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.GROUPS)),
                 schema: {
@@ -517,7 +534,7 @@ const AdminDefinition: AdminDefinitionType = {
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.Enterprise),
             },
             team_detail: {
-                url: 'user_management/teams/:team_id',
+                url: `user_management/teams/:team_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.TEAMS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.TEAMS)),
                 schema: {
@@ -537,7 +554,7 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             channel_detail: {
-                url: 'user_management/channels/:channel_id',
+                url: `user_management/channels/:channel_id(${ID_PATH_PATTERN})`,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.CHANNELS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.CHANNELS)),
                 schema: {
@@ -557,6 +574,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             systemScheme: {
                 url: 'user_management/permissions/system_scheme',
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 schema: {
                     id: 'PermissionSystemScheme',
@@ -564,7 +582,8 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             teamSchemeDetail: {
-                url: 'user_management/permissions/team_override_scheme/:scheme_id',
+                url: `user_management/permissions/team_override_scheme/:scheme_id(${ID_PATH_PATTERN})`,
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 schema: {
                     id: 'PermissionSystemScheme',
@@ -573,6 +592,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             teamScheme: {
                 url: 'user_management/permissions/team_override_scheme',
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 schema: {
                     id: 'PermissionSystemScheme',
@@ -593,7 +613,11 @@ const AdminDefinition: AdminDefinitionType = {
                 },
             },
             system_role: {
-                url: 'user_management/system_roles/:role_id',
+                url: `user_management/system_roles/:role_id(${ID_PATH_PATTERN})`,
+                isHidden: it.any(
+                    it.not(it.licensedForFeature('LDAPGroups')),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
                     id: 'SystemRole',
@@ -602,7 +626,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             system_roles: {
                 url: 'user_management/system_roles',
-                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'System Roles'}),
+                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAPGroups')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -617,14 +641,14 @@ const AdminDefinition: AdminDefinitionType = {
             system_roles_feature_discovery: {
                 url: 'user_management/system_roles',
                 isDiscovery: true,
-                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'System Roles'}),
+                title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
                     it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'SystemRoles',
-                    name: defineMessage({id: 'admin.permissions.systemRoles', defaultMessage: 'System Roles'}),
+                    name: defineMessage({id: 'admin.permissions.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                     settings: [
                         {
                             type: 'custom',
@@ -746,7 +770,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.UseLetsEncrypt',
                             label: defineMessage({id: 'admin.service.useLetsEncrypt', defaultMessage: 'Use Let\'s Encrypt:'}),
                             help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription', defaultMessage: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.'}),
-                            disabled_help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription.disabled', defaultMessage: "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains. This setting cannot be enabled unless the [Forward port 80 to 443](#SystemSettings.Forward80To443) setting is set to true."}),
+                            disabled_help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription.disabled', defaultMessage: "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains. This setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true."}),
                             disabled_help_text_markdown: true,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
@@ -775,6 +799,13 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.WriteTimeout',
                             label: defineMessage({id: 'admin.service.writeTimeout', defaultMessage: 'Write Timeout:'}),
                             help_text: defineMessage({id: 'admin.service.writeTimeoutDescription', defaultMessage: 'If using HTTP (insecure), this is the maximum time allowed from the end of reading the request headers until the response is written. If using HTTPS, it is the total time from when the connection is accepted until the response is written.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ServiceSettings.MaximumPayloadSizeBytes',
+                            label: defineMessage({id: 'admin.service.maximumPayloadSize', defaultMessage: 'Maximum Payload Size (Bytes):'}),
+                            help_text: defineMessage({id: 'admin.service.maximumPayloadSizeDescription', defaultMessage: 'The maximum number of bytes allowed in the payload of incoming HTTP calls'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
                         {
@@ -1094,6 +1125,17 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                         },
                         {
+                            type: 'text',
+                            key: 'FileSettings.AmazonS3StorageClass',
+                            label: defineMessage({id: 'admin.image.amazonS3StorageClassTitle', defaultMessage: 'Amazon S3 Storage Class:'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3StorageClassDescription', defaultMessage: 'Storage class for your S3 Compatible Storage provider. Defaults to empty.'}),
+                            placeholder: defineMessage({id: 'admin.image.amazonS3StorageClassExample', defaultMessage: 'E.g.: "STANDARD" or "STANDARD_IA"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_S3)),
+                            ),
+                        },
+                        {
                             type: 'button',
                             action: testS3Connection,
                             key: 'TestS3Connection',
@@ -1275,6 +1317,17 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                                 it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.ExportAmazonS3StorageClass',
+                            label: defineMessage({id: 'admin.image.amazonS3StorageClassTitle', defaultMessage: 'Amazon S3 Storage Class:'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3StorageClassDescription', defaultMessage: 'Storage class for your S3 Compatible Storage provider. Defaults to empty.'}),
+                            placeholder: defineMessage({id: 'admin.image.amazonS3StorageClassExample', defaultMessage: 'E.g.: "STANDARD" or "STANDARD_IA"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_S3)),
                             ),
                         },
                         {
@@ -1496,6 +1549,101 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'ClusterSettings',
                     component: ClusterSettings,
+                },
+            },
+            cache_settings: {
+                url: 'environment/cache_settings',
+                title: adminDefinitionMessages.cache_settings_title,
+                isHidden: it.any(
+                    it.not(it.licensedForFeature('Cluster')),
+                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                ),
+                searchableStrings: [
+                    adminDefinitionMessages.cache_settings_title,
+                    adminDefinitionMessages.cache_type_title,
+                    adminDefinitionMessages.cache_type_desc,
+                    adminDefinitionMessages.redis_address_title,
+                    adminDefinitionMessages.redis_address_desc,
+                    adminDefinitionMessages.redis_password_title,
+                    adminDefinitionMessages.redis_password_desc,
+                    adminDefinitionMessages.redis_db_title,
+                    adminDefinitionMessages.redis_db_desc,
+                    adminDefinitionMessages.redis_clientcache_title,
+                    adminDefinitionMessages.redis_clientcache_desc,
+                ],
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                schema: {
+                    id: 'CacheSettings',
+                    name: adminDefinitionMessages.cache_settings_title,
+                    settings: [
+                        {
+                            type: 'banner',
+                            label: defineMessage({id: 'admin.rate.noteDescription', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'}),
+                            banner_type: 'info',
+                        },
+                        {
+                            type: 'dropdown',
+                            key: 'CacheSettings.CacheType',
+                            label: adminDefinitionMessages.cache_type_title,
+                            help_text: adminDefinitionMessages.cache_type_desc,
+                            help_text_markdown: true,
+                            options: [
+                                {
+                                    value: CacheTypes.LRU,
+                                    display_name: defineMessage({id: 'admin.cacheSettings.cacheType.lru', defaultMessage: 'LRU'}),
+                                },
+                                {
+                                    value: CacheTypes.REDIS,
+                                    display_name: defineMessage({id: 'admin.cacheSettings.cacheType.redis', defaultMessage: 'Redis'}),
+                                },
+                            ],
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                        },
+                        {
+                            type: 'text',
+                            key: 'CacheSettings.RedisAddress',
+                            label: adminDefinitionMessages.redis_address_title,
+                            help_text: adminDefinitionMessages.redis_address_desc,
+                            placeholder: adminDefinitionMessages.redis_address_placeholder,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'CacheSettings.RedisPassword',
+                            label: adminDefinitionMessages.redis_password_title,
+                            help_text: adminDefinitionMessages.redis_password_desc,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
+                            ),
+                        },
+                        {
+                            type: 'number',
+                            key: 'CacheSettings.RedisDB',
+                            label: adminDefinitionMessages.redis_db_title,
+                            help_text: adminDefinitionMessages.redis_db_desc,
+                            placeholder: adminDefinitionMessages.redis_db_placeholder,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
+                            ),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'CacheSettings.DisableClientCache',
+                            label: adminDefinitionMessages.redis_clientcache_title,
+                            help_text: adminDefinitionMessages.redis_clientcache_desc,
+                            help_text_markdown: false,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
+                            ),
+                        },
+                    ],
                 },
             },
             rate_limiting: {
@@ -1796,6 +1944,36 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.PERFORMANCE_MONITORING)),
                         },
                         {
+                            type: 'bool',
+                            key: 'MetricsSettings.EnableClientMetrics',
+                            label: defineMessage({id: 'admin.metrics.enableClientMetricsTitle', defaultMessage: 'Enable Client Performance Monitoring:'}),
+                            help_text: defineMessage({id: 'admin.metrics.enableClientMetricsDescription', defaultMessage: 'When true, Mattermost will enable performance monitoring collection for web and desktop app users. Please see <link>documentation</link> to learn more about configuring performance monitoring for Mattermost.'}),
+                            help_text_markdown: false,
+                            help_text_values: {
+                                link: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DocLinks.SETUP_PERFORMANCE_MONITORING}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.PERFORMANCE_MONITORING)),
+                                it.configIsFalse('MetricsSettings', 'Enable'),
+                            ),
+                        },
+                        {
+                            type: 'custom',
+                            key: 'MetricsSettings.ClientSideUserIds',
+                            component: ClientSideUserIdsSetting,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.PERFORMANCE_MONITORING)),
+                                it.configIsFalse('MetricsSettings', 'EnableClientMetrics'),
+                            ),
+                        },
+                        {
                             type: 'text',
                             key: 'MetricsSettings.ListenAddress',
                             label: defineMessage({id: 'admin.metrics.listenAddressTitle', defaultMessage: 'Listen Address:'}),
@@ -2002,7 +2180,27 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                             isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                         },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableDesktopLandingPage',
+                            label: defineMessage({id: 'admin.customization.enableDesktopLandingPageTitle', defaultMessage: 'Enable Desktop App Landing Page:'}),
+                            help_text: defineMessage({id: 'admin.customization.enableDesktopLandingPageDesc', defaultMessage: 'Whether or not to prompt a user to use the Desktop App when they first use Mattermost.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        },
                     ],
+                },
+            },
+            system_properties: {
+                url: 'site_config/system_properties',
+                title: defineMessage({id: 'admin.sidebar.system_properties', defaultMessage: 'System Properties'}),
+                searchableStrings: systemPropertiesSearchableStrings,
+                isHidden: it.not(it.all(
+                    it.licensedForSku(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
+                )),
+                schema: {
+                    id: 'SystemProperties',
+                    component: SystemProperties,
                 },
             },
             localization: {
@@ -2046,6 +2244,13 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             multiple: true,
                             no_result: defineMessage({id: 'admin.general.localization.availableLocalesNoResults', defaultMessage: 'No results found'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'LocalizationSettings.EnableExperimentalLocales',
+                            label: defineMessage({id: 'admin.general.localization.enableExperimentalLocalesTitle', defaultMessage: 'Enable Experimental Locales:'}),
+                            help_text: defineMessage({id: 'admin.general.localization.enableExperimentalLocalesDescription', defaultMessage: 'When true, it allows users to select experimental (e.g., in progress) languages.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
                         },
                     ],
@@ -2170,7 +2375,7 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'bool',
                             key: 'ServiceSettings.EnableCustomGroups',
-                            label: defineMessage({id: 'admin.team.customUserGroupsTitle', defaultMessage: 'Enable Custom User Groups (Beta): '}),
+                            label: defineMessage({id: 'admin.team.customUserGroupsTitle', defaultMessage: 'Enable Custom User Groups: '}),
                             help_text: defineMessage({id: 'admin.team.customUserGroupsDescription', defaultMessage: 'When true, users with appropriate permissions can create custom user groups and enables at-mentions for those groups.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                             isHidden: it.not(it.any(
@@ -2361,24 +2566,34 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.not(it.licensedForFeature('IDLoadedPushNotifications')),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
                         },
+                        {
+                            type: 'bool',
+                            key: 'MetricsSettings.EnableNotificationMetrics',
+                            label: defineMessage({id: 'admin.metrics.enableNotificationMetricsTitle', defaultMessage: 'Enable Notification Monitoring:'}),
+                            help_text: defineMessage({id: 'admin.metrics.enableNotificationMetricsDescription', defaultMessage: 'When true, Mattermost will enable notification data collection for web and Desktop App users.'}),
+                            isDisabled: it.any(
+                                it.configIsFalse('MetricsSettings', 'Enable'),
+                            ),
+                            isHidden: it.configIsFalse('FeatureFlags', 'NotificationMonitoring'),
+                        },
                     ],
                 },
             },
             announcement_banner: {
                 url: 'site_config/announcement_banner',
-                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'Announcement Banner'}),
+                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('Announcement')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.ANNOUNCEMENT_BANNER)),
                 ),
                 schema: {
                     id: 'AnnouncementSettings',
-                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'Announcement Banner'}),
+                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'System-wide Notifications'}),
                     settings: [
                         {
                             type: 'bool',
                             key: 'AnnouncementSettings.EnableBanner',
-                            label: defineMessage({id: 'admin.customization.announcement.enableBannerTitle', defaultMessage: 'Enable Announcement Banner:'}),
+                            label: defineMessage({id: 'admin.customization.announcement.enableBannerTitle', defaultMessage: 'Enable System-wide Notifications:'}),
                             help_text: defineMessage({id: 'admin.customization.announcement.enableBannerDesc', defaultMessage: 'Enable an announcement banner across all teams.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.ANNOUNCEMENT_BANNER)),
                         },
@@ -2427,14 +2642,14 @@ const AdminDefinition: AdminDefinitionType = {
             announcement_banner_feature_discovery: {
                 url: 'site_config/announcement_banner',
                 isDiscovery: true,
-                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'Announcement Banner'}),
+                title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
                 isHidden: it.any(
                     it.licensedForFeature('Announcement'),
                     it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'AnnouncementSettings',
-                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'Announcement Banner'}),
+                    name: defineMessage({id: 'admin.site.announcementBanner', defaultMessage: 'System-wide Notifications'}),
                     settings: [
                         {
                             type: 'custom',
@@ -2483,7 +2698,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'ServiceSettings.ThreadAutoFollow',
                             label: defineMessage({id: 'admin.experimental.threadAutoFollow.title', defaultMessage: 'Automatically Follow Threads'}),
-                            help_text: defineMessage({id: 'admin.experimental.threadAutoFollow.desc', defaultMessage: 'This setting must be enabled in order to enable Collapsed Reply Threads. When enabled, threads a user starts, participates in, or is mentioned in are automatically followed. A new `Threads` table is added in the database that tracks threads and thread participants, and a `ThreadMembership` table tracks followed threads for each user and the read or unread state of each followed thread. When false, all backend operations to support Collapsed Reply Threads are disabled.'}),
+                            help_text: defineMessage({id: 'admin.experimental.threadAutoFollow.desc', defaultMessage: 'This setting must be enabled in order to enable Threaded Discussions. When enabled, threads a user starts, participates in, or is mentioned in are automatically followed. A new `Threads` table is added in the database that tracks threads and thread participants, and a `ThreadMembership` table tracks followed threads for each user and the read or unread state of each followed thread. When false, all backend operations to support Threaded Discussions are disabled.'}),
                             help_text_markdown: true,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                             isHidden: it.licensedForFeature('Cloud'),
@@ -2491,8 +2706,8 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'dropdown',
                             key: 'ServiceSettings.CollapsedThreads',
-                            label: defineMessage({id: 'admin.experimental.collapsedThreads.title', defaultMessage: 'Collapsed Reply Threads'}),
-                            help_text: defineMessage({id: 'admin.experimental.collapsedThreads.desc', defaultMessage: 'When enabled (default off), users must enable collapsed reply threads in Settings. When disabled, users cannot access Collapsed Reply Threads. Please review our <linkKnownIssues>documentation for known issues</linkKnownIssues> and help provide feedback in our <linkCommunityChannel>Community Channel</linkCommunityChannel>.'}),
+                            label: defineMessage({id: 'admin.experimental.collapsedThreads.title', defaultMessage: 'Threaded Discussions'}),
+                            help_text: defineMessage({id: 'admin.experimental.collapsedThreads.desc', defaultMessage: 'When enabled (default off), users must enable Threaded Discussions in Settings. When disabled, users cannot access Threaded Discussions. Please review our <linkKnownIssues>documentation for known issues</linkKnownIssues> and help provide feedback in our <linkCommunityChannel>Community Channel</linkCommunityChannel>.'}),
                             help_text_values: {
                                 linkKnownIssues: (msg: string) => (
                                     <ExternalLink
@@ -2549,7 +2764,6 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.configIsFalse('FeatureFlags', 'PostPriority'),
                         },
                         {
                             type: 'bool',
@@ -2568,10 +2782,16 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.any(
-                                it.configIsFalse('FeatureFlags', 'PostPriority'),
-                                it.configIsFalse('ServiceSettings', 'PostPriority'),
-                            ),
+                            isHidden: it.configIsFalse('ServiceSettings', 'PostPriority'),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.ScheduledPosts',
+                            label: defineMessage({id: 'admin.posts.scheduledPosts.title', defaultMessage: 'Scheduled Posts'}),
+                            help_text: defineMessage({id: 'admin.posts.scheduledPosts.description', defaultMessage: 'When enabled, users can schedule and send messages in the future.'}),
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                            isHidden: it.not(it.licensed),
                         },
                         {
                             type: 'number',
@@ -2591,7 +2811,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                             isHidden: it.any(
-                                it.configIsFalse('FeatureFlags', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
                             ),
@@ -2614,7 +2833,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                             isHidden: it.any(
-                                it.configIsFalse('FeatureFlags', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
                             ),
@@ -2638,7 +2856,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                             isHidden: it.any(
-                                it.configIsFalse('FeatureFlags', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
                             ),
@@ -2662,7 +2879,6 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                             isHidden: it.any(
                                 it.configIsFalse('GuestAccountsSettings', 'Enable'),
-                                it.configIsFalse('FeatureFlags', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'PostPriority'),
                                 it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
                             ),
@@ -2998,6 +3214,32 @@ const AdminDefinition: AdminDefinitionType = {
                     component: IPFiltering,
                 },
             },
+            secure_connection_detail: {
+                url: `site_config/secure_connections/:connection_id(create|${ID_PATH_PATTERN})`,
+                isHidden: it.not(it.all(
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
+                    it.licensedForFeature('SharedChannels'),
+                )),
+                schema: {
+                    id: 'SecureConnectionDetail',
+                    component: SecureConnectionDetail,
+                },
+            },
+            secure_connections: {
+                url: 'site_config/secure_connections',
+                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces (Beta)'}),
+                searchableStrings: secureConnectionsSearchableStrings,
+                isHidden: it.not(it.all(
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
+                    it.licensedForFeature('SharedChannels'),
+                )),
+                schema: {
+                    id: 'SecureConnections',
+                    component: SecureConnections,
+                },
+            },
         },
     },
     authentication: {
@@ -3022,7 +3264,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'TeamSettings.EnableUserCreation',
                             label: defineMessage({id: 'admin.team.userCreationTitle', defaultMessage: 'Enable Account Creation: '}),
-                            help_text: defineMessage({id: 'admin.team.userCreationDescription', defaultMessage: 'When false, the ability to create accounts is disabled. The create account button displays error when pressed.'}),
+                            help_text: defineMessage({id: 'admin.team.userCreationDescription', defaultMessage: 'When false, the ability to create accounts is disabled, and selecting Create Account displays an error. Applies to Email, OpenID Connect, and OAuth 2.0 user account authentication.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
                         },
                         {
@@ -3053,7 +3295,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'TeamSettings.EnableOpenServer',
                             label: defineMessage({id: 'admin.team.openServerTitle', defaultMessage: 'Enable Open Server: '}),
-                            help_text: defineMessage({id: 'admin.team.openServerDescription', defaultMessage: 'When true, anyone can signup for a user account on this server without the need to be invited.'}),
+                            help_text: defineMessage({id: 'admin.team.openServerDescription', defaultMessage: 'When true, anyone can sign up for a user account on this server without the need to be invited. Applies to Email-based signups only.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
                         },
                         {
@@ -3139,7 +3381,6 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'banner',
                             label: defineMessage({id: 'admin.mfa.bannerDesc', defaultMessage: '<link>Multi-factor authentication</link> is available for accounts with AD/LDAP or email login. If other login methods are used, MFA should be configured with the authentication provider.'}),
-                            label_markdown: false,
                             label_values: {
                                 link: (msg: string) => (
                                     <ExternalLink
@@ -3196,6 +3437,7 @@ const AdminDefinition: AdminDefinitionType = {
                     name: defineMessage({id: 'admin.authentication.ldap', defaultMessage: 'AD/LDAP'}),
                     sections: [
                         {
+                            key: 'admin.authentication.ldap.connection',
                             title: 'Connection',
                             subtitle: 'Connection and security level to your AD/LDAP server.',
                             settings: [
@@ -3219,6 +3461,19 @@ const AdminDefinition: AdminDefinitionType = {
                                     label: defineMessage({id: 'admin.ldap.loginNameTitle', defaultMessage: 'Login Field Name:'}),
                                     placeholder: defineMessage({id: 'admin.ldap.loginNameEx', defaultMessage: 'E.g.: "AD/LDAP Username"'}),
                                     help_text: defineMessage({id: 'admin.ldap.loginNameDesc', defaultMessage: 'The placeholder text that appears in the login field on the login page. Defaults to "AD/LDAP Username".'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                                        it.all(
+                                            it.stateIsFalse('LdapSettings.Enable'),
+                                            it.stateIsFalse('LdapSettings.EnableSync'),
+                                        ),
+                                    ),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'LdapSettings.MaximumLoginAttempts',
+                                    label: defineMessage({id: 'admin.ldap.maximumLoginAttemptsTitle', defaultMessage: 'Maximum Login Attempts:'}),
+                                    help_text: defineMessage({id: 'admin.ldap.maximumLoginAttemptsDesc', defaultMessage: 'The maximum number of login attempts before the Mattermost account is locked. You can unlock the account in system console on the users page. Setting this value lower than your LDAP maximum login attempts ensures that the users won\'t be locked out of your LDAP server because of failed login attempts in Mattermost.'}),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                                         it.all(
@@ -3361,6 +3616,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.dn_and_filters',
                             title: 'Base DN & Filters',
                             settings: [
                                 {
@@ -3452,6 +3708,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.account_synchronization',
                             title: 'Account Synchronization',
                             settings: [
                                 {
@@ -3607,6 +3864,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.group_synchronization',
                             title: 'Group Synchronization',
                             settings: [
                                 {
@@ -3637,6 +3895,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.synchronization_performance',
                             title: 'Synchronization Performance',
                             settings: [
                                 {
@@ -3710,6 +3969,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
+                            key: 'admin.authentication.ldap.synchronization_history',
                             title: 'Synchronization History',
                             subtitle: 'See the table below for the status of each synchronization',
                             settings: [
@@ -4550,7 +4810,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     value: Constants.GOOGLE_SERVICE,
                                     display_name: defineMessage({id: 'admin.oauth.google', defaultMessage: 'Google Apps'}),
                                     isHidden: it.all(it.not(it.licensedForFeature('GoogleOAuth')), it.not(it.cloudLicensed)),
-                                    help_text: defineMessage({id: 'admin.google.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Google account.\n2. Go to <linkConsole>https://console.developers.google.com</linkConsole>, click <strong>Credentials</strong> in the left hand sidebar and enter "Mattermost - your-company-name" as the <strong>Project Name</strong>, then click <strong>Create</strong>.\n3. Click the <strong>OAuth consent screen</strong> header and enter "Mattermost" as the <strong>Product name shown to users</strong>, then click <strong>Save</strong>.\n4. Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.\n5. Under <strong>Restrictions</strong> and <strong>Authorized redirect URIs</strong> enter <strong>your-mattermost-url/signup/google/complete</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.\n6. Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> to the fields below, then click <strong>Save</strong>.\n7. Go to the <linkAPI>Google People API</linkAPI> and click <strong>Enable</strong>.'}),
+                                    help_text: defineMessage({id: 'admin.google.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Google account.\n2. Go to <linkConsole>https://console.developers.google.com</linkConsole>, click <strong>Credentials</strong> in the left hand sidebar and enter "Mattermost - your-company-name" as the <strong>Project Name</strong>, then click <strong>Create</strong>.\n3. Click the <strong>OAuth consent screen</strong> header and enter "Mattermost" as the <strong>Product name shown to users</strong>, then click <strong>Save</strong>.\n4. Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.\n5. Under <strong>Restrictions</strong> and <strong>Authorized redirect URIs</strong> enter <strong>"your-mattermost-url/signup/google/complete"</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.\n6. Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> to the fields below, then click <strong>Save</strong>.\n7. Go to the <linkAPI>Google People API</linkAPI> and click <strong>Enable</strong>.'}),
                                     help_text_markdown: false,
                                     help_text_values: {
                                         linkLogin: (msg: string) => (
@@ -4582,15 +4842,15 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                                 {
                                     value: Constants.OFFICE365_SERVICE,
-                                    display_name: defineMessage({id: 'admin.oauth.office365', defaultMessage: 'Office 365'}),
+                                    display_name: defineMessage({id: 'admin.oauth.office365', defaultMessage: 'Entra ID'}),
                                     isHidden: it.all(it.not(it.licensedForFeature('Office365OAuth')), it.not(it.cloudLicensed)),
-                                    help_text: defineMessage({id: 'admin.office365.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Microsoft or Office 365 account. Make sure it`s the account on the same <linkTenant>tenant</linkTenant> that you would like users to log in with.\n2. Go to <linkApps>https://apps.dev.microsoft.com</linkApps>, click <strong>Go to app list</strong> > <strong>Add an app</strong> and use "Mattermost - your-company-name" as the <strong>Application Name</strong>.\n3. Under <strong>Application Secrets</strong>, click <strong>Generate New Password</strong> and paste it to the <strong>Application Secret Password</strong> field below.\n4. Under <strong>Platforms</strong>, click <strong>Add Platform</strong>, choose <strong>Web</strong> and enter <strong>your-mattermost-url/signup/office365/complete</strong> (example: http://localhost:8065/signup/office365/complete) under <strong>Redirect URIs</strong>. Also uncheck <strong>Allow Implicit Flow</strong>.\n5. Finally, click <strong>Save</strong> and then paste the <strong>Application ID</strong> below.'}),
+                                    help_text: defineMessage({id: 'admin.office365.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Microsoft account. \n2. In Microsoft, go to <strong>Applications</strong> and <strong>App Registrations</strong> in the left pane.\n3. Select <strong>New registration</strong>, then enter "Mattermost - your-company-name" as the <strong>Application Name</strong>. \n4. Under <strong>Redirect URI</strong>, select <strong>Web</strong>, and enter "your-mattermost-url/signup/office365/complete" as the <strong>Redirect URI</strong>. Select <strong>Register</strong>.\n5. Copy the Microsoft <strong>Application (client) ID</strong> value, and paste it below as the <strong>Client ID</strong> value. \n6. Copy the Microsoft <strong>Directory (tenant) ID</strong> value, and paste it below as the <strong>Directory (tenant) ID</strong> value. \n7. In Microsoft, create a new client secret. Copy the resulting client secret value, and paste it below as the <strong>Client Secret</strong> value. Select <strong>Save</strong>.'}),
                                     help_text_markdown: false,
                                     help_text_values: {
                                         linkLogin: (msg: string) => (
                                             <ExternalLink
                                                 location='admin_console'
-                                                href='https://login.microsoftonline.com/'
+                                                href='https://entra.microsoft.com'
                                             >
                                                 {msg}
                                             </ExternalLink>
@@ -4606,7 +4866,7 @@ const AdminDefinition: AdminDefinitionType = {
                                         linkApps: (msg: string) => (
                                             <ExternalLink
                                                 location='admin_console'
-                                                href='https://apps.dev.microsoft.com'
+                                                href='https://entra.microsoft.com'
                                             >
                                                 {msg}
                                             </ExternalLink>
@@ -4888,7 +5148,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     value: Constants.GOOGLE_SERVICE,
                                     display_name: defineMessage({id: 'admin.openid.google', defaultMessage: 'Google Apps'}),
-                                    help_text: defineMessage({id: 'admin.google.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Google account.\n2. Go to <linkConsole>https://console.developers.google.com]</linkConsole>, click <strong>Credentials</strong> in the left hand side.\n 3. Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.\n 4. Enter "Mattermost - your-company-name" as the <strong>Name</strong>.\n 5. Under <strong>Authorized redirect URIs</strong> enter <strong>your-mattermost-url/signup/google/complete</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.\n 6. Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> to the fields below, then click <strong>Save</strong>.\n 7. Go to the <linkAPI>Google People API</linkAPI> and click <strong>Enable</strong>.'}),
+                                    help_text: defineMessage({id: 'admin.google.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Google account.\n2. Go to <linkConsole>https://console.developers.google.com]</linkConsole>, click <strong>Credentials</strong> in the left hand side.\n 3. Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.\n 4. Enter "Mattermost - your-company-name" as the <strong>Name</strong>.\n 5. Under <strong>Authorized redirect URIs</strong> enter <strong>"your-mattermost-url/signup/google/complete"</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.\n 6. Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> to the fields below, then click <strong>Save</strong>.\n 7. Go to the <linkAPI>Google People API</linkAPI> and click <strong>Enable</strong>.'}),
                                     help_text_markdown: false,
                                     help_text_values: {
                                         linkLogin: (msg: string) => (
@@ -4920,14 +5180,14 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                                 {
                                     value: Constants.OFFICE365_SERVICE,
-                                    display_name: defineMessage({id: 'admin.openid.office365', defaultMessage: 'Office 365'}),
-                                    help_text: defineMessage({id: 'admin.office365.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Microsoft or Office 365 account. Make sure it`s the account on the same <linkTenant>tenant</linkTenant> that you would like users to log in with.\n2. Go to <linkApps>https://apps.dev.microsoft.com</linkApps>, click <strong>Go to Azure Portal</strong> > click <strong>New Registration</strong>.\n3. Use "Mattermost - your-company-name" as the <strong>Application Name</strong>, click <strong>Registration</strong>, paste <strong>Client ID</strong> and <strong>Tenant ID</strong> below.\n4. Click <strong>Authentication</strong>, under <strong>Platforms</strong>, click <strong>Add Platform</strong>, choose <strong>Web</strong> and enter <strong>your-mattermost-url/signup/office365/complete</strong> (example: http://localhost:8065/signup/office365/complete) under <strong>Redirect URIs</strong>. Also uncheck <strong>Allow Implicit Flow</strong>.\n5. Click <strong>Certificates & secrets</strong>, Generate <strong>New client secret</strong> and paste secret value in <strong>Client Secret</strong> field below.'}),
+                                    display_name: defineMessage({id: 'admin.openid.office365', defaultMessage: 'Entra ID'}),
+                                    help_text: defineMessage({id: 'admin.office365.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Microsoft account. \n2. In Microsoft, go to <strong>Applications</strong> and <strong>App Registrations</strong> in the left pane.\n3. Select <strong>New registration</strong>, then enter "Mattermost - your-company-name" as the <strong>Application Name</strong>. \n4. Under <strong>Redirect URI</strong>, select <strong>Web</strong>, and enter "your-mattermost-url/signup/office365/complete" as the <strong>Redirect URI</strong>. Select <strong>Register</strong>.\n5. Copy the Microsoft <strong>Application (client) ID</strong> value, and paste it below as the <strong>Client ID</strong> value. \n6. Copy the Microsoft <strong>Directory (tenant) ID</strong> value, and paste it below as the <strong>Directory (tenant) ID</strong> value. \n7. In Microsoft, create a new client secret. Copy the resulting client secret value, and paste it below as the <strong>Client Secret</strong> value. Select <strong>Save</strong>.'}),
                                     help_text_markdown: false,
                                     help_text_values: {
                                         linkLogin: (msg: string) => (
                                             <ExternalLink
                                                 location='admin_console'
-                                                href='https://login.microsoftonline.com/'
+                                                href='https://entra.microsoft.com'
                                             >
                                                 {msg}
                                             </ExternalLink>
@@ -4943,7 +5203,7 @@ const AdminDefinition: AdminDefinitionType = {
                                         linkApps: (msg: string) => (
                                             <ExternalLink
                                                 location='admin_console'
-                                                href='https://apps.dev.microsoft.com'
+                                                href='https://entra.microsoft.com'
                                             >
                                                 {msg}
                                             </ExternalLink>
@@ -4954,7 +5214,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     value: Constants.OPENID_SERVICE,
                                     display_name: defineMessage({id: 'admin.oauth.openid', defaultMessage: 'OpenID Connect (Other)'}),
-                                    help_text: defineMessage({id: 'admin.openid.EnableMarkdownDesc', defaultMessage: 'Follow provider directions for creating an OpenID Application. Most OpenID Connect providers require authorization of all redirect URIs. In the appropriate field, enter your-mattermost-url/signup/openid/complete (example: http://domain.com/signup/openid/complete)'}),
+                                    help_text: defineMessage({id: 'admin.openid.EnableMarkdownDesc', defaultMessage: 'Follow provider directions for creating an OpenID Application. Most OpenID Connect providers require authorization of all redirect URIs. In the appropriate field, enter "your-mattermost-url/signup/openid/complete" (example: http://domain.com/signup/openid/complete)'}),
                                     help_text_markdown: false,
                                 },
                             ],
@@ -5043,7 +5303,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'Office365Settings.DiscoveryEndpoint',
                             label: defineMessage({id: 'admin.openid.discoveryEndpointTitle', defaultMessage: 'Discovery Endpoint:'}),
-                            help_text: defineMessage({id: 'admin.office365.discoveryEndpointDesc', defaultMessage: 'The URL of the discovery document for OpenID Connect with Office 365.'}),
+                            help_text: defineMessage({id: 'admin.office365.discoveryEndpointDesc', defaultMessage: 'The URL of the discovery document for OpenID Connect with Entra ID.'}),
                             help_text_markdown: false,
                             dynamic_value: (value, config, state) => {
                                 if (state['Office365Settings.DirectoryId']) {
@@ -5524,13 +5784,13 @@ const AdminDefinition: AdminDefinitionType = {
             },
             gif: {
                 url: 'integrations/gif',
-                title: defineMessage({id: 'admin.sidebar.gif', defaultMessage: 'GIF (Beta)'}),
+                title: defineMessage({id: 'admin.sidebar.gif', defaultMessage: 'GIF'}),
                 isHidden: it.all(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.GIF)),
                 ),
                 schema: {
                     id: 'GifSettings',
-                    name: defineMessage({id: 'admin.integrations.gif', defaultMessage: 'GIF (Beta)'}),
+                    name: defineMessage({id: 'admin.integrations.gif', defaultMessage: 'GIF'}),
                     settings: [
                         {
                             type: 'bool',
@@ -5586,6 +5846,25 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
+            embedding: {
+                url: 'integrations/embedding',
+                title: defineMessage({id: 'admin.sidebar.embedding', defaultMessage: 'Embedding'}),
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.CORS)),
+                schema: {
+                    id: 'EmbeddingSettings',
+                    name: defineMessage({id: 'admin.integrations.embedding', defaultMessage: 'Embedding'}),
+                    settings: [
+                        {
+                            type: 'text',
+                            key: 'ServiceSettings.FrameAncestors',
+                            label: defineMessage({id: 'admin.customization.frameAncestorTitle', defaultMessage: 'Frame Ancestors:'}),
+                            help_text: defineMessage({id: 'admin.customization.frameAncestorDesc', defaultMessage: 'Allows the Mattermost web client to be embedded in other websites. Enter a space-separated list of domains that are allowed to embed the Mattermost web client. Leave blank to disallow embedding.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.CORS)),
+                        },
+                    ],
+                },
+            },
+
         },
     },
     compliance: {
@@ -5599,7 +5878,7 @@ const AdminDefinition: AdminDefinitionType = {
         isHidden: it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE)),
         subsections: {
             custom_policy_form_edit: {
-                url: 'compliance/data_retention_settings/custom_policy/:policy_id',
+                url: `compliance/data_retention_settings/custom_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('DataRetention')),
                     it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
@@ -5730,9 +6009,14 @@ const AdminDefinition: AdminDefinitionType = {
                     settings: [
                         {
                             type: 'banner',
-                            label: defineMessage({id: 'admin.compliance.newComplianceExportBanner', defaultMessage: 'This feature is replaced by a new [Compliance Export]({siteURL}/admin_console/compliance/export) feature, and will be removed in a future release. We recommend migrating to the new system.'}),
-                            label_markdown: true,
-                            label_values: {siteURL: getSiteURL()},
+                            label: defineMessage({id: 'admin.compliance.newComplianceExportBanner', defaultMessage: 'This feature is replaced by a new <link>Compliance Export</link> feature, and will be removed in a future release. We recommend migrating to the new system.'}),
+                            label_values: {
+                                link: (msg: string) => (
+                                    <Link to='/admin_console/compliance/export'>
+                                        {msg}
+                                    </Link>
+                                ),
+                            },
                             banner_type: 'info',
                             isHidden: it.not(it.licensedForFeature('Compliance')),
                         },
@@ -6026,14 +6310,6 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
-                            key: 'ServiceSettings.EnablePreviewFeatures',
-                            label: defineMessage({id: 'admin.experimental.enablePreviewFeatures.title', defaultMessage: 'Enable Preview Features:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enablePreviewFeatures.desc', defaultMessage: 'When true, preview features can be enabled from **Settings > Advanced > Preview pre-release features**. When false, disables and hides preview features from **Settings > Advanced > Preview pre-release features**.'}),
-                            help_text_markdown: true,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
                             key: 'ThemeSettings.EnableThemeSelection',
                             label: defineMessage({id: 'admin.experimental.enableThemeSelection.title', defaultMessage: 'Enable Theme Selection:'}),
                             help_text: defineMessage({id: 'admin.experimental.enableThemeSelection.desc', defaultMessage: 'Enables the **Display > Theme** tab in Settings so users can select their theme.'}),
@@ -6130,6 +6406,15 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                         },
                         {
+                            type: 'number',
+                            key: 'ExperimentalSettings.UsersStatusAndProfileFetchingPollIntervalMilliseconds',
+                            label: defineMessage({id: 'admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.title', defaultMessage: 'User\'s Status and Profile Fetching Poll Interval:'}),
+                            help_text: defineMessage({id: 'admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.desc', defaultMessage: 'The number of milliseconds to wait between fetching user statuses and profiles periodically.'}),
+                            help_text_markdown: false,
+                            placeholder: defineMessage({id: 'admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.example', defaultMessage: 'E.g.: "5000"'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
                             type: 'text',
                             key: 'TeamSettings.ExperimentalPrimaryTeam',
                             label: defineMessage({id: 'admin.experimental.experimentalPrimaryTeam.title', defaultMessage: 'Primary Team:'}),
@@ -6184,19 +6469,6 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
-                            key: 'ExperimentalSettings.EnableSharedChannels',
-                            label: defineMessage({id: 'admin.experimental.enableSharedChannels.title', defaultMessage: 'Enable Shared Channels:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableSharedChannels.desc', defaultMessage: 'Toggles Shared Channels'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.any(
-                                it.licensedForFeature('SharedChannels'),
-                                it.licensedForSku(LicenseSkus.Enterprise),
-                                it.licensedForSku(LicenseSkus.Professional),
-                            )),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
                             key: 'ExperimentalSettings.DisableAppBar',
                             label: defineMessage({id: 'admin.experimental.disableAppBar.title', defaultMessage: 'Disable Apps Bar:'}),
                             help_text: defineMessage({id: 'admin.experimental.disableAppBar.desc', defaultMessage: 'When false, all integrations move from the channel header to the Apps Bar. Channel header plugin icons that haven\'t explicitly registered an Apps Bar icon will be moved to the Apps Bar which may result in rendering issues.'}),
@@ -6213,9 +6485,23 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
+                            key: 'ExperimentalSettings.DisableWakeUpReconnectHandler',
+                            label: defineMessage({id: 'admin.experimental.disableWakeUpReconnectHandler.title', defaultMessage: 'Disable Wake Up Reconnect Handler:'}),
+                            help_text: defineMessage({id: 'admin.experimental.disableWakeUpReconnectHandler.desc', defaultMessage: 'When true, Mattermost will not attempt to detect when the computer has woken up and refetch data. This might reduce the amount of regular network traffic the app is sending.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
+                            type: 'bool',
                             key: 'ExperimentalSettings.DelayChannelAutocomplete',
                             label: defineMessage({id: 'admin.experimental.delayChannelAutocomplete.title', defaultMessage: 'Delay Channel Autocomplete:'}),
                             help_text: defineMessage({id: 'admin.experimental.delayChannelAutocomplete.desc', defaultMessage: 'When true, the autocomplete for channel links (such as ~town-square) will only trigger after typing a tilde followed by a couple letters. When false, the autocomplete will appear as soon as the user types a tilde.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ExperimentalSettings.YoutubeReferrerPolicy',
+                            label: defineMessage({id: 'admin.experimental.youtubeReferrerPolicy.title', defaultMessage: 'YouTube Referrer Policy:'}),
+                            help_text: defineMessage({id: 'admin.experimental.youtubeReferrerPolicy.desc', defaultMessage: 'When true, the referrer policy for embedded YouTube videos will be set to "strict-origin-when-cross-origin" which resolves issues where YouTube video previews display as unavailable, while balancing the need to protect user privacy with some degree of referral data to support web functionalities, like analytics, logging, and third-party integrations. When false, the referrer policy will be set to "no-referrer" which enhances user privacy by not disclosing the source URL, but limits the ability to track user engagement and traffic sources in analytics tools.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                     ],
@@ -6248,6 +6534,113 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'BleveSettings',
                     component: BleveSettings,
+                },
+            },
+            audit_logging: {
+                url: 'experimental/audit_logging',
+                title: defineMessage({id: 'admin.sidebar.audit_logging_experimental', defaultMessage: 'Audit Logging'}),
+                isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)), it.configIsFalse('FeatureFlags', 'ExperimentalAuditSettingsSystemConsoleUI'), it.not(it.licensedForSku('enterprise'))),
+                schema: {
+                    id: 'ExperimentalAuditSettings',
+                    name: 'Audit Log Settings (Experimental)',
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'ExperimentalAuditSettings.FileEnabled',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_enabled.title', defaultMessage: 'File Enabled'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_enabled.help_text', defaultMessage: 'Choose whether audit logs are written locally to a file or not.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'text',
+                            key: 'ExperimentalAuditSettings.FileName',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_name.title', defaultMessage: 'File Name'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_name.help_text', defaultMessage: 'The name of the file to write to. NOTE: If ExperimentalAuditSettings.FileEnabled is set to TRUE, this field is required.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ExperimentalAuditSettings.FileMaxSizeMB',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.title', defaultMessage: 'Max File Size (MB)'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.help_text', defaultMessage: 'The maximum size of a single exported file, in MB.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ExperimentalAuditSettings.FileMaxAgeDays',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.title', defaultMessage: 'Max File Age (Days)'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.help_text', defaultMessage: 'The maximum age of an exported file, in days.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ExperimentalAuditSettings.FileMaxBackups',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.title', defaultMessage: 'Maximum File Backups'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.help_text', defaultMessage: 'The maximum number of backup files to retain'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ExperimentalAuditSettings.FileCompress',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_compress.title', defaultMessage: 'File Compression'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_compress.help_text', defaultMessage: 'Choose whether enable or disable file compression.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ExperimentalAuditSettings.FileMaxQueueSize',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_queue_size.title', defaultMessage: 'Maximum File Queue'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_queue_size.help_text', defaultMessage: 'The maximum number of files to be retained in the queue.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'longtext',
+                            key: 'ExperimentalAuditSettings.AdvancedLoggingJSON',
+                            label: defineMessage({id: 'admin.log.AdvancedLoggingJSONTitle', defaultMessage: 'Advanced Logging:'}),
+                            help_text: defineMessage({id: 'admin.log.AdvancedLoggingJSONDescription', defaultMessage: 'The JSON configuration for Advanced Audit Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses.'}),
+                            help_text_markdown: false,
+                            help_text_values: {
+                                link: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console.experimental_audit_settings'
+                                        href={DocLinks.ADVANCED_LOGGING}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                            placeholder: defineMessage({id: 'admin.log.AdvancedLoggingJSONPlaceholder', defaultMessage: 'Enter your JSON configuration'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            validate: (value) => {
+                                const valid = new ValidationResult(true, '');
+                                if (!value) {
+                                    return valid;
+                                }
+                                try {
+                                    JSON.parse(value);
+                                    return valid;
+                                } catch (error) {
+                                    return new ValidationResult(false, error.message);
+                                }
+                            },
+                            onConfigLoad: (configVal) => JSON.stringify(configVal, null, '  '),
+                            onConfigSave: (displayVal) => {
+                                // Handle case where field is empty
+                                if (!displayVal) {
+                                    return {undefined};
+                                }
+
+                                return JSON.parse(displayVal);
+                            },
+                        },
+                    ],
                 },
             },
         },

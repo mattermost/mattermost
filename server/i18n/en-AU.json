@@ -1,7 +1,7 @@
 [
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Couldn't find the user."
+    "translation": "Couldn't find the user {{.user}}"
   },
   {
     "id": "web.incoming_webhook.text.app_error",
@@ -13,7 +13,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Inappropriate channel permissions."
+    "translation": "User {{.user}} does not have appropriate permissions to channel {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -29,7 +29,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel."
+    "translation": "This webhook is not permitted to post to the requested channel {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
@@ -65,23 +65,23 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 16.2+"
+    "translation": "Version 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 115+"
+    "translation": "Version 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 118+"
+    "translation": "Version 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 118+"
+    "translation": "Version 130+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -137,11 +137,11 @@
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Unable to parse incoming data."
+    "translation": "Unable to parse incoming data for webhook {{.hook_id}}."
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Couldn't find the command."
+    "translation": "Couldn't find the command {{.command_id}}."
   },
   {
     "id": "system.message.name",
@@ -685,7 +685,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Invalid ID."
+    "translation": "Invalid ID: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
@@ -1125,31 +1125,31 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout must be at least 1 second."
+    "translation": "Search Request Timeout must be at least 1 second."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format 'hh:mm'."
+    "translation": "Search PostsAggregatorJobStartTime setting must be a time in the format 'hh:mm'."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size must be at least 1."
+    "translation": "Search Live Indexing Batch Size must be at least 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elasticsearch EnableIndexing setting must be set to true when Elasticsearch EnableSearching is set to true"
+    "translation": "{{.EnableIndexing}} setting must be set to true when {{.Searching}} is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch EnableIndexing setting must be set to true when Elasticsearch EnableAutocomplete is set to true"
+    "translation": "{{.EnableIndexing}} setting must be set to true when {{.Autocomplete}} is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elasticsearch ConnectionUrl setting must be provided when Elasticsearch indexing is enabled."
+    "translation": "Search ConnectionUrl setting must be provided when indexing is enabled."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1."
+    "translation": "Search AggregatePostsAfterDays setting must be a number greater than or equal to 1."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -1398,10 +1398,6 @@
   {
     "id": "app.status.get.app_error",
     "translation": "Encountered an error retrieving the status."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Encountered an error while creating a direct shared channel."
   },
   {
     "id": "app.session.update_device_id.app_error",
@@ -1796,10 +1792,6 @@
     "translation": "Invalid original ID."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Invalid message."
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Invalid ID."
   },
@@ -2034,18 +2026,6 @@
   {
     "id": "app.notification.body.dm.subTitle",
     "translation": "While you were away, {{.SenderName}} sent you a new Direct Message."
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "No licence present"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "This type of licence doesn't support renewal token generation"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Failed to generate a new renewal token."
   },
   {
     "id": "app.job.update.app_error",
@@ -3012,74 +2992,6 @@
     "translation": "Failed to select message export data."
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Failed to get file info for a post."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Unable to open the export temporary file."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Unable to get the an email from the temporary file."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Unable to get the information of the export temporary file."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Unable to connect to the smtp server"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Unable to set the email To address."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Unable to read the email information."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Unable to write the email message."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Unable to set the email message."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Unable to set the email From address."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Unable to deliver the email to Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Unable to generate eml file data."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Unable to create the eml file."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close the zip file."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Unable to add attachment to the Global Relay export."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Failed to get file info for a post."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Failed to get file info for a post."
-  },
-  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "unable to migrate."
   },
@@ -3134,10 +3046,6 @@
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "Unable to get all users using AD/LDAP."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
   },
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
@@ -3216,40 +3124,28 @@
     "translation": "Your licence does not support ID Loaded Push Notifications."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Failed to get users in channel during specified time period."
-  },
-  {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
+    "translation": "The Search Server URL or Username has changed. Please re-enter the password to test connection."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Your licence does not support Elasticsearch."
+    "translation": "Your Mattermost licence doesn't support indexed search."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch is disabled."
+    "translation": "{{.Backend}} is disabled."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch is already stopped."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor."
+    "translation": "{{.Backend}} is already stopped."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Failed to parse Elasticsearch server version."
+    "translation": "Failed to parse {{.Backend}} server version."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Failed to get Elasticsearch server version."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor."
+    "translation": "Failed to get {{.Backend}} server version."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -3273,7 +3169,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "{{.Backend}} searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
@@ -3285,7 +3181,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Elasticsearch files searching is disabled on this server"
+    "translation": "{{.Backend}} files searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
@@ -3297,15 +3193,11 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "{{.Backend}} searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Failed to refresh Elasticsearch indexes"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Failed to refresh search indexes"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -3317,7 +3209,7 @@
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch is not started"
+    "translation": "{{.Backend}} is not started"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -3325,11 +3217,11 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the start time"
+    "translation": "{{.Backend}} indexing worker failed to parse the start time"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the end time"
+    "translation": "{{.Backend}} indexing worker failed to parse the end time"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
@@ -3357,7 +3249,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch search is not enabled on this server"
+    "translation": "{{.Backend}} search is not enabled on this server"
   },
   {
     "id": "ent.elasticsearch.delete_user_posts.error",
@@ -3393,47 +3285,47 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Failed to get Elasticsearch indexes"
+    "translation": "Failed to get {{.Backend}} indexes"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Failed to delete {{.Backend}} index"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for users"
+    "translation": "Failed to create {{.Backend}} template for users"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for posts"
+    "translation": "Failed to create {{.Backend}} template for posts"
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for files"
+    "translation": "Failed to create {{.Backend}} template for files"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for channels"
+    "translation": "Failed to create {{.Backend}} template for channels"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Setting up Elasticsearch Client Failed"
+    "translation": "Setting up {{.Backend}} Client Failed"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+    "translation": "{{.Backend}} aggregator worker failed due to the indexing job failing"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to get indexes"
+    "translation": "{{.Backend}} aggregator worker failed to get indexes"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+    "translation": "{{.Backend}} aggregator worker failed to delete the indexes"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+    "translation": "{{.Backend}} aggregator worker failed to create the indexing job"
   },
   {
     "id": "ent.data_retention.policies.invalid_policy",
@@ -3452,72 +3344,16 @@
     "translation": "Compliance export failed for job '{{.JobName}}' at '{{.FilePath}}'"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Unable to load export templates. Please try again."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Compliance functionality disabled by current licence. Please contact your system administrator about upgrading your enterprise licence."
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Unable to write the global relay file."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Unable to re-read the Global Relay temporary export file."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Unable to open the temporary export file."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Unable to create the zip export file."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Unable to write the .csv file."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Unable to create the warning file."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Unable to export a post."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Unable to create the zip file"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Unable to convert metadata to json."
   },
   {
     "id": "ent.cluster.config_changed.info",
     "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Cluster API endpoint not found."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " attached a file."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Unable to write the export file."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Unable to convert export to XML."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
@@ -3886,10 +3722,6 @@
   {
     "id": "app.user.update.find.app_error",
     "translation": "Unable to find the existing account to update."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "No emails were successfully sent"
   },
   {
     "id": "app.user.send_auto_response.app_error",
@@ -4525,11 +4357,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "An error occurred while finding the channel."
+    "translation": "An error occurred while finding the channel {{.channel_id}}."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Unable to find the existing channel."
+    "translation": "Unable to find the existing channel {{.channel_id}}."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -4650,10 +4482,6 @@
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Unable to update webhook across teams."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Could not decode the multipart payload of incoming webhook."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -4868,10 +4696,6 @@
     "translation": "Your Enterprise Edition licence has expired and some features may be disabled. Please renew your licence now."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew Licence Now"
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "Questions?"
   },
@@ -4884,46 +4708,6 @@
     "translation": "Reply in Mattermost"
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Your Mattermost Cloud Invoice is due"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Payment is due for your Mattermost Cloud subscription"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "To review your invoice and add a payment method, select Pay now."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Your Mattermost Cloud invoice for the most recent billing period has been processed. However, you may need to re-enter your payment information."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Pay now"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "The payment wasn't successful"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Action required: Payment failed for Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "To ensure uninterrupted access to Mattermost {{.Plan}}, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "They provided the following reason:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Your financial institution declined a payment from your {{.CardBrand}} ****{{.LastFour}} associated with your Mattermost Cloud workspace."
-  },
-  {
     "id": "api.templates.password_change_subject",
     "translation": "[{{ .SiteName }}] Your password has been updated"
   },
@@ -4934,30 +4718,6 @@
   {
     "id": "api.templates.password_change_body.info",
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Unable to add metadata file to the zip file."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Unable to add header to the CSV export."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Unable to create temporary CSV export file."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Unable to add attachment to the CSV export."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Unknown output format {{.ExportType}}"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -5166,10 +4926,6 @@
   {
     "id": "api.templates.deactivate_body.info",
     "translation": "You deactivated your account on {{ .SiteURL }}."
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -5606,10 +5362,6 @@
   {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial licence, please try again or contact with support@mattermost.com."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Error getting the licence renewal link"
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -6740,10 +6492,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "Invitation from secure connection"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Could not decrypt invitation. Incorrect password or corrupt invitation: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",
@@ -8116,7 +7864,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Secure connection | Display name | Connection ID | Site URL | Invite Accepted | Online | Last Ping |"
+    "translation": "| Secure connection | Display name | Connection ID | Site URL | Default Team | Invite accepted | Online | Last ping | Deleted |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8459,10 +8207,6 @@
     "translation": "Your Mattermost subscription is up for renewal"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Log in to your Customer Account to renew"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, your subscription is set to expire in {{.Days}} days. We hope you’re experiencing the flexible, secure team collaboration that Mattermost enables. Renew soon to ensure your team can keep enjoying these benefits."
   },
@@ -8471,16 +8215,8 @@
     "translation": "Your licence is up for renewal"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Renew now"
-  },
-  {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Failed to send licence up for renewal emails"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Failed to generate the licence renewal link"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
@@ -8627,10 +8363,6 @@
     "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
   },
   {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Renewing this licence on the portal is not possible"
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML response is too long"
   },
@@ -8720,7 +8452,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Bulk Indexing Batch Size must be at least {{.BatchSize}}."
+    "translation": "Search Bulk Indexing Batch Size must be at least {{.BatchSize}}."
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
@@ -8777,14 +8509,6 @@
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Invalid request body."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "You are now upgraded!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Mattermost Upgrade Confirmation"
   },
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
@@ -8851,194 +8575,6 @@
     "translation": "An error occurred while clearing team member cache"
   },
   {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "To keep your {{.Plan}} plan active, please contact your financial department or institution as soon as possible. Then, update your payment details as needed."
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "Please contact your financial department or institution to resolve any issues. Then, update your payment details as needed."
-  },
-  {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "Subscription is not delinquent"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "Cloud subscription couldn't be retrieved"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "Cloud products couldn't be retrieved"
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Your Mattermost workspace has been downgraded"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "To unarchive your data and keep paid features, update your payment information."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "In addition, your data may have been archived due to Cloud Free limitations."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "If you use Cloud Professional or Enterprise features for important business operations, these will no longer be available and you'll experience degraded performance."
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Your Mattermost Cloud workspace has been downgraded"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "View Plans & Pricing"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Update payment"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "Your workspace will be downgraded in 15 days"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Update your payment information now, or downgrade to Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Your workspace will be downgraded to Cloud Free. Your {{.Plan}} features will be locked and some of your workspace data may be archived until your full outstanding balance is settled."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "This is a final reminder that payment for your Mattermost Cloud workspace hasn't been received since {{.DelinquencyDate}}."
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Your Mattermost {{.Plan}} will be downgraded in 15 days"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Downgrade to Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Update payment"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "Your payment wasn't completed"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Your most recent payment couldn't be processed."
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Update payment"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Your Mattermost workspace will be downgraded in 30 days"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Update your payment information now or downgrade to Cloud Free below."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "Your workspace will be downgraded automatically in 30 days if your payment is unable to be processed."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "Please update your payment information soon to process your outstanding invoices."
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "Action Required: Workspace will be downgraded in 30 days"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Downgrade to Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Update payment"
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "Your workspace will be downgraded soon"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "Update your credit card information now."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "A downgraded workspace might negatively affect critical workflows and other business critical activities carried out in your workspace."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Payment for outstanding invoices since {{.DelinquencyDate}} have not been able to be collected. Your workspace is at risk of being downgraded."
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "Notice: Your Mattermost {{.Plan}} will be downgraded soon"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Update payment"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "Your workspace will be downgraded soon"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "If no action is taken, your workspace will be downgraded and the following data may be archived:"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "You have time to keep your Mattermost {{.Plan}} active but you'll need to resolve issues with your payment method."
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Act to keep your Mattermost {{.Plan}} Features"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "View all limits documentation."
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Update payment"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "Message history"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Files"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Payment not received"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "The credit card on record wasn't able to be charged. This means your workspace is at risk of being downgraded to Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "Payment is overdue for your Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Update payment"
-  },
-  {
     "id": "api.command_marketplace.unsupported.app_error",
     "translation": "The marketplace command is not supported on your device."
   },
@@ -9053,10 +8589,6 @@
   {
     "id": "api.command_help.success",
     "translation": "Mattermost is an open source platform for secure communication, collaboration, and orchestration of work across tools and teams.\nMattermost contains two key tools:\n\n**Channels** - Stay connected with your team via 1:1 and group messaging.\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\n\n[View documentation and guides]({{.HelpLink}})"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Missing required fields to send delinquency email."
   },
   {
     "id": "app.notify_admin.send_notification_post.app_error",
@@ -9089,10 +8621,6 @@
   {
     "id": "app.user.get_badge_count.app_error",
     "translation": "The user's badge couldn't be retrieved."
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "Unable to get current plan name"
   },
   {
     "id": "model.group.name.reserved_name.app_error",
@@ -9145,10 +8673,6 @@
   {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Invalid props."
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Invalid message."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",
@@ -9219,18 +8743,6 @@
     "translation": "Invalid priority"
   },
   {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "View your invoice"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You'll be charged from {{.Date}}."
-  },
-  {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Error fetching roles during validation."
   },
@@ -9240,23 +8752,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Could not open the client key file for Elasticsearch"
+    "translation": "Could not open the client key file for {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Could not open the client certificate file for Elasticsearch"
+    "translation": "Could not open the client certificate file for {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Decoding of the client certificate for Elasticsearch failed"
+    "translation": "Decoding of the client certificate for {{.Backend}} failed"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Could not open the CA file for Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Decoding of the CA for Elasticsearch failed"
+    "translation": "Could not open the CA file for {{.Backend}}"
   },
   {
     "id": "app.channel.count_urgent_posts_since.app_error",
@@ -9277,34 +8785,6 @@
   {
     "id": "api.server.cws.health_check.app_error",
     "translation": "The CWS Server is unavailable."
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Could not retrieve the total number of outgoing webhooks"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Could not retrieve the total number of incoming webhooks"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Could not retrieve the total number of active users"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "True up review is not allowed for cloud instances"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "True up review requires a licence"
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Could not retrieve true up status records"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Could not create true up status record"
   },
   {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
@@ -9333,10 +8813,6 @@
   {
     "id": "api.system.logs.invalidFilter",
     "translation": "Invalid log filter"
-  },
-  {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "CWS Server failed to delete workspace."
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
@@ -9372,7 +8848,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
+    "translation": "{{.Backend}} version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
   },
   {
     "id": "model.config.is_valid.local_mode_socket.app_error",
@@ -9405,10 +8881,6 @@
   {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "Skipping installation of plugin {{.Id}} since existing version is equal or newer."
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Failed to submit true up review profile to CWS."
   },
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
@@ -9823,14 +9295,6 @@
     "translation": "Unable to get that many roles by name. Only {{.MaxNames}} roles can be requested at once."
   },
   {
-    "id": "api.templates.cloud_renewal.button",
-    "translation": "Renew now"
-  },
-  {
-    "id": "api.templates.cloud_renewal.subtitle",
-    "translation": "Please renew to avoid any disruption"
-  },
-  {
     "id": "ent.outgoing_oauth_connections.get_connection.app_error",
     "translation": "There was an error retrieving the outgoing OAuth connection."
   },
@@ -9903,26 +9367,6 @@
     "translation": "Unable to find the user."
   },
   {
-    "id": "api.templates.cloud_renewal_30.subject",
-    "translation": "Annual renewal payment is due in 30 days"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.title",
-    "translation": "Your annual renewal payment is due in 30 days"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.subject",
-    "translation": "Annual subscription renewal in 60 days"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.title",
-    "translation": "Annual subscription renewal in 60 days"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.title",
-    "translation": "You are about to lose access to your workspace in 7 days"
-  },
-  {
     "id": "api.user.get_profile_image_path.app_error",
     "translation": "An error occurred while checking if a user has a custom profile image."
   },
@@ -9943,10 +9387,6 @@
     "translation": "Could not confirm invitation: {{.Error}}"
   },
   {
-    "id": "api.templates.cloud_renewal_7.subject",
-    "translation": "Action Required: Annual subscription renewal in 7 days"
-  },
-  {
     "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
     "translation": "There was an error while listing outgoing OAuth connections."
   },
@@ -9960,7 +9400,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "You cannot acknowledgment in an archived channel."
+    "translation": "You cannot save an acknowledgment in an archived channel."
   },
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
@@ -10135,10 +9575,6 @@
     "translation": "Failed to delete an unknown index specified"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Your Elasticsearch channel index schema is out of date. It is recommended to regenerate your channel index.\nClick the `Rebuild Channels Index` button in [Elasticsearch section in System Console]({{.ElasticsearchSection}}) to fix the issue.\nSee Mattermost changelog for more information."
-  },
-  {
     "id": "model.channel_bookmark.is_valid.link_file.app_error",
     "translation": "Cannot set a link and a file in the same bookmark."
   },
@@ -10288,7 +9724,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Failed to delete an Elasticsearch index"
+    "translation": "Failed to delete a search index"
   },
   {
     "id": "model.channel_bookmark.is_valid.image_url.app_error",
@@ -10381,5 +9817,615 @@
   {
     "id": "api.channel.create_channel.missing_team_id.error",
     "translation": "Missing team_id in request body"
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Failed to get user count"
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Error reading the file status: '{{.FilePath}}'"
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Error seeking the file: '{{.FilePath}}'"
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "A team with this URL already exists."
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Invalid status set"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Unable to update job status. Invalid status set"
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Error determining number of System Admin accounts."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Cannot demote last System Admin."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Unable to determine if that username already exists"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "You do not have permission to manage this job type"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Failed to write logs to buffer"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "An internal error occurred while saving the password."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Your password must contain no more than 72 characters."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Could not retrieve the instance site URL"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Could not accept the remote cluster invitation"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Could not decode the base64 string"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Remote cluster has not been deleted"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Could not encrypt the remote cluster invite using the provided password"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Remote Cluster not found"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Could not decrypt the remote cluster invite using the provided password"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Unable to set custom status."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "An internal error occurred while saving the password."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Invalid search backend. Must be either elasticsearch or opensearch."
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Unable to process request. Request body too large."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Invalid max URL length for service settings. Must be a whole number greater than zero."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Invalid value for limit_visible_dms_gms."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Cache type must be either lru or redis."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress must be specified for redis cache type."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB must have a value greater or equal to zero."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Unable to get the webhook for teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Failed to upload file. Upload channel is not shared with remote."
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "There are no members for the direct channel"
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Unable to save thread membership for post."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Unable to update the extra session properties."
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Unable to get thread members for export."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Invalid post ID."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Invalid user ID."
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "User is not an OAuth or SAML user."
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Could not fetch shared channel remotes"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Could not determine if channel is shared with the remote"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Could not invite remote to channel"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Could not uninvite remote to channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Failed to get channel members for direct channel"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Uploaded plugin size exceeds limit. This limit can be changed in the System Console via File Storage > Maximum File Size"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Bad request."
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Could not create remote cluster invite"
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "Scheduled posts feature is disabled"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Scheduled posts feature requires a licence"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Unable to update the bot."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Failed to delete scheduled post from database."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "You do not have permission to delete this resource."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Scheduled post does not exist."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Unable to fetch existing scheduled post from database."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "An error occurred while fetching scheduled posts."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Unable to find owner of the bot"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Import data line has type 'bot' but the bot object is null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Bot owner is missing"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Cannot schedule post in an archived channel."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Error occurred saving the scheduled post."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Scheduled post does not exist."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Unable to fetch existing scheduled post from database."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Failed to save updated scheduled post in database."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "You do not have permission to update this resource."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Cannot schedule an empty post. Scheduled post must have at least a message or file attachments."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Scheduled post must have an ID."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Invalid processed at time."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Invalid scheduled at time."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Cannot generate invite code for a confirmed cluster"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Cannot delete post, ServiceSettings.EnableAPIPostDeletion is not enabled."
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Failed to find files for post."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Failed to permanently delete file for post."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Failed to permanently delete post."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Cannot create a direct channel with a remote user"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Cannot create a group channel with remote users"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Failed to copy licence file content to buffer"
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "You cannot modify user status. User is managed by LDAP"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Cannot create the post in a DM or GM with remote users"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Invalid remote ID."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Invalid site URL."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Invalid token."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "The post cannot be created"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Cannot get the system bot"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Cannot get the system bot direct message"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Cannot get the user"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "If you received this test notification, it worked!"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Unable to seek to the beginning of the GIF data."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Channel is archived"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Channel not found"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Invalid post content"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Not a member of the channel"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "No permission to post in channel"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Thread has been deleted"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Unable to send the message"
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Failed to send {{.Count}} scheduled post.",
+      "other": "Failed to send {{.Count}} scheduled posts."
+    }
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Unknown Error"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "User account is deleted"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "User does not exist"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} in channel {{.ChannelName}}. Reason: {{.ErrorReason}}",
+      "other": "- {{.Count}} in channel {{.ChannelName}}. Reason: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete scheduled posts for user."
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Private channel"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Unknown Channel"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Invalid storage class {{.Value}}."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Failed to cache post after deduplicating a client repeating the same request."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Unable to reset the read position to the start of the plugin bundle."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Failed to handle command webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Failed to decode the payload of media type {{.media_type}} for incoming webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Failed to handle the payload of media type {{.media_type}} for incoming webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Failed to parse media incoming webhook {{.hook_id}}."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Draft Message property is longer than the maximum permitted length."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Post Message property is longer than the maximum permitted length."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Command can't be executed in a deleted channel."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Unable to filter the configuration."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Unable to create a directory for custom emoji images"
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Cannot register Custom Profile Attributes property group"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Unable to get Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Unable to create Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Custom Profile Attributes field limit reached"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Unable to get custom profile attribute values"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Unable to delete Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Custom Profile Attribute field not found"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Unable to update Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Unable to search Custom Profile Attribute fields"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Failed to remove the requested files from database"
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Failed to restore post file attachments."
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "User roles are not consistent with guest status."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "You do not have the appropriate permissions."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Failed to get the old post version."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "The provided post history ID does not correspond to any history item for the specified post."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "The provided post history ID does not correspond to a post history item."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Unable to delete role."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Exporting channel information for {{.NumChannels}} channels."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Failed to calculate channel export data."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Failed to convert a value from the job's data field."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Calculating channel activity: {{.NumCompleted}}/{{.NumChannels}} channels completed."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Invalid property field: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Invalid property value: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Your licence does not support Custom Profile Attributes."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Unable to get a zip file reader."
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Unable to get the file infos by ids for post edit history."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Length of link metadata URL is {{ .Length }} characters long, which exceeds the maximum limit of {{ .MaxLength }} characters."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Failed to create the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Failed to delete the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Failed to update the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Failed to update the channel bookmark's sort order."
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Cannot retrieve bookmarks for an archived channel"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Failed to get count of all files."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Failed to get storage usage of all files."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Session not found."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Unable to count the number of fields for the custom profile attribute group"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Invalid client side user ID: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Number of elements in ClientSideUserIds {{.CurrentLength}} is higher than maximum limit of {{.MaxLength}}."
   }
 ]

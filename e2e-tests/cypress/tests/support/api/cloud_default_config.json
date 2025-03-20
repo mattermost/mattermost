@@ -34,7 +34,6 @@
         "EnableDeveloper": false,
         "DeveloperFlags": "",
         "EnableClientPerformanceDebugging": false,
-        "EnableOpenTracing": false,
         "EnableSecurityFixAlert": false,
         "EnableInsecureOutgoingConnections": false,
         "AllowedUntrustedInternalConnections": "localhost",
@@ -72,7 +71,6 @@
         "EnableUserStatuses": true,
         "ExperimentalEnableAuthenticationTransfer": true,
         "ClusterLogTimeoutMilliseconds": 2000,
-        "EnablePreviewFeatures": true,
         "EnableTutorial": true,
         "EnableOnboardingFlow": false,
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
@@ -105,11 +103,11 @@
         "CollapsedThreads": "disabled",
         "ManagedResourcePaths": "",
         "EnableCustomGroups": true,
-        "SelfHostedPurchase": true,
         "AllowSyncedDrafts": true,
         "UniqueEmojiReactionLimitPerPost": 50,
         "RefreshPostStatsRunTime": "00:00",
-        "MaximumPayloadSizeBytes": 100000
+        "MaximumPayloadSizeBytes": 100000,
+        "MaximumURLLength": 2048
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -297,8 +295,7 @@
         "LoginFieldName": "",
         "LoginButtonColor": "#0000",
         "LoginButtonBorderColor": "#2389D7",
-        "LoginButtonTextColor": "#2389D7",
-        "Trace": false
+        "LoginButtonTextColor": "#2389D7"
     },
     "ComplianceSettings": {
         "Enable": false,
@@ -348,7 +345,10 @@
         "LoginButtonTextColor": "#ffffff"
     },
     "NativeAppSettings": {
-        "AppCustomURLSchemes": ["mmauth://", "mmauthbeta://"],
+        "AppCustomURLSchemes": [
+            "mmauth://",
+            "mmauthbeta://"
+        ],
         "AppDownloadLink": "https://mattermost.com/pl/download-apps",
         "AndroidAppDownloadLink": "https://mattermost.com/pl/android-app/",
         "IosAppDownloadLink": "https://mattermost.com/pl/ios-app/"
@@ -393,7 +393,6 @@
             "CustomSMTPPort": "25"
         }
     },
-    "ProductSettings": {},
     "PluginSettings": {
         "Enable": true,
         "EnableUploads": true,

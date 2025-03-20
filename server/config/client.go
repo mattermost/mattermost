@@ -25,6 +25,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableJoinLeaveMessageByDefault"] = strconv.FormatBool(*c.TeamSettings.EnableJoinLeaveMessageByDefault)
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
+	props["EnableDesktopLandingPage"] = strconv.FormatBool(*c.ServiceSettings.EnableDesktopLandingPage)
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(*c.ServiceSettings.EnableOAuthServiceProvider)
 	props["GoogleDeveloperKey"] = *c.ServiceSettings.GoogleDeveloperKey
 	props["EnableIncomingWebhooks"] = strconv.FormatBool(*c.ServiceSettings.EnableIncomingWebhooks)
@@ -41,7 +42,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableClientPerformanceDebugging"] = strconv.FormatBool(*c.ServiceSettings.EnableClientPerformanceDebugging)
 	props["PostEditTimeLimit"] = strconv.Itoa(*c.ServiceSettings.PostEditTimeLimit)
 	props["MinimumHashtagLength"] = strconv.Itoa(*c.ServiceSettings.MinimumHashtagLength)
-	props["EnablePreviewFeatures"] = strconv.FormatBool(*c.ServiceSettings.EnablePreviewFeatures)
 	props["EnableTutorial"] = strconv.FormatBool(*c.ServiceSettings.EnableTutorial)
 	props["EnableOnboardingFlow"] = strconv.FormatBool(*c.ServiceSettings.EnableOnboardingFlow)
 	props["ExperimentalEnableDefaultChannelLeaveJoinMessages"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages)
@@ -75,6 +75,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnablePublicLink"] = strconv.FormatBool(*c.FileSettings.EnablePublicLink)
 
 	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
+	props["EnableExperimentalLocales"] = strconv.FormatBool(*c.LocalizationSettings.EnableExperimentalLocales)
+
 	props["SQLDriverName"] = *c.SqlSettings.DriverName
 
 	props["EnableEmojiPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableEmojiPicker)
@@ -96,6 +98,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["CWSMock"] = model.MockCWS
 
 	props["DisableRefetchingOnBrowserFocus"] = strconv.FormatBool(*c.ExperimentalSettings.DisableRefetchingOnBrowserFocus)
+	props["DisableWakeUpReconnectHandler"] = strconv.FormatBool(*c.ExperimentalSettings.DisableWakeUpReconnectHandler)
+	props["UsersStatusAndProfileFetchingPollIntervalMilliseconds"] = strconv.FormatInt(*c.ExperimentalSettings.UsersStatusAndProfileFetchingPollIntervalMilliseconds, 10)
 
 	// Set default values for all options that require a license.
 	props["ExperimentalEnableAuthenticationTransfer"] = "true"
@@ -141,6 +145,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["PersistentNotificationMaxRecipients"] = strconv.FormatInt(int64(*c.ServiceSettings.PersistentNotificationMaxRecipients), 10)
 	props["AllowSyncedDrafts"] = strconv.FormatBool(*c.ServiceSettings.AllowSyncedDrafts)
 	props["DelayChannelAutocomplete"] = strconv.FormatBool(*c.ExperimentalSettings.DelayChannelAutocomplete)
+	props["YoutubeReferrerPolicy"] = strconv.FormatBool(*c.ExperimentalSettings.YoutubeReferrerPolicy)
 	props["UniqueEmojiReactionLimitPerPost"] = strconv.FormatInt(int64(*c.ServiceSettings.UniqueEmojiReactionLimitPerPost), 10)
 
 	props["WranglerPermittedWranglerRoles"] = strings.Join(c.WranglerSettings.PermittedWranglerRoles, ",")
@@ -186,6 +191,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 		if *license.Features.Cluster {
 			props["EnableMetrics"] = strconv.FormatBool(*c.MetricsSettings.Enable)
+			props["EnableClientMetrics"] = strconv.FormatBool(*c.MetricsSettings.Enable && *c.MetricsSettings.EnableClientMetrics)
+			props["EnableNotificationMetrics"] = strconv.FormatBool(c.FeatureFlags.NotificationMonitoring && *c.MetricsSettings.EnableNotificationMetrics)
 		}
 
 		if *license.Features.Announcement {
@@ -211,16 +218,20 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 		}
 
 		if license.HasSharedChannels() {
-			props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ExperimentalSettings.EnableSharedChannels)
-			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(c.FeatureFlags.EnableRemoteClusterService && *c.ExperimentalSettings.EnableRemoteClusterService)
+			props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ConnectedWorkspacesSettings.EnableSharedChannels)
+			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(c.FeatureFlags.EnableRemoteClusterService && *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
 		}
 
 		if license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise {
 			props["EnableCustomGroups"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomGroups)
+			props["PostAcknowledgements"] = "true"
+			props["ScheduledPosts"] = strconv.FormatBool(*c.ServiceSettings.ScheduledPosts)
 		}
 
-		if license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise {
-			props["PostAcknowledgements"] = "true"
+		if license.SkuShortName == model.LicenseShortSkuEnterprise {
+			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
+			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
+			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
 		}
 	}
 
@@ -240,6 +251,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["ServiceEnvironment"] = model.GetServiceEnvironment()
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
+	props["EnableDesktopLandingPage"] = strconv.FormatBool(*c.ServiceSettings.EnableDesktopLandingPage)
 	props["EnableFile"] = strconv.FormatBool(*c.LogSettings.EnableFile)
 	props["FileLevel"] = *c.LogSettings.FileLevel
 
@@ -258,6 +270,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
 
 	props["EnableDiagnostics"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
+	props["EnableClientMetrics"] = strconv.FormatBool(*c.MetricsSettings.EnableClientMetrics)
 
 	props["EnableComplianceExport"] = strconv.FormatBool(*c.MessageExportSettings.EnableExport)
 
@@ -289,6 +302,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["AppDownloadLink"] = *c.NativeAppSettings.AppDownloadLink
 	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
 	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
+	props["MobileExternalBrowser"] = strconv.FormatBool(*c.NativeAppSettings.MobileExternalBrowser)
 
 	props["DiagnosticId"] = telemetryID
 	props["TelemetryId"] = telemetryID
@@ -297,6 +311,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["HasImageProxy"] = strconv.FormatBool(*c.ImageProxySettings.Enable)
 
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
+	props["AppsPluginEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable && c.PluginSettings.PluginStates[model.PluginIdApps] != nil && c.PluginSettings.PluginStates[model.PluginIdApps].Enable)
 
 	props["PasswordMinimumLength"] = strconv.Itoa(*c.PasswordSettings.MinimumLength)
 	props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
@@ -378,6 +393,12 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["EnableSignUpWithOpenId"] = strconv.FormatBool(*c.OpenIdSettings.Enable)
 			props["OpenIdButtonColor"] = *c.OpenIdSettings.ButtonColor
 			props["OpenIdButtonText"] = *c.OpenIdSettings.ButtonText
+		}
+
+		if license.SkuShortName == model.LicenseShortSkuEnterprise {
+			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
+			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
+			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
 		}
 	}
 

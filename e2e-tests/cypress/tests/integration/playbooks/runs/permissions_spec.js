@@ -9,8 +9,6 @@
 // Stage: @prod
 // Group: @playbooks
 
-/* eslint-disable no-only-tests/no-only-tests */
-
 import {getRandomId} from '../../../utils';
 
 describe('runs > permissions', {testIsolation: true}, () => {

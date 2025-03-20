@@ -5,6 +5,7 @@ import moment from 'moment';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {SupportPacketContent} from '@mattermost/types/admin';
 import type {UserProfile} from '@mattermost/types/users';
@@ -12,7 +13,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Client4} from 'mattermost-redux/client';
 
 import AlertBanner from 'components/alert_banner';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import ExternalLink from 'components/external_link';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import './commercial_support_modal.scss';
@@ -91,8 +92,8 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
 
     extractFilename = (input: string | null): string => {
         // construct the expected filename in case of an error in the header
-        const formattedDate = (moment(new Date())).format('YYYY-MM-DD-HH-mm');
-        const presumedFileName = `mattermost_support_packet_${formattedDate}.zip`;
+        const formattedDate = (moment(new Date())).format('YYYY-MM-DDTHH-mm');
+        const presumedFileName = `mm_support_packet_${formattedDate}.zip`;
 
         if (input === null) {
             return presumedFileName;
@@ -145,30 +146,43 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                 </Modal.Header>
                 <Modal.Body>
                     <div className='CommercialSupportModal'>
-                        <FormattedMarkdownMessage
-                            id='commercial_support.description'
-                            defaultMessage={'If you\'re experiencing issues, [submit a support ticket](!{supportLink}). To help with troubleshooting, it\'s recommended to download the Support Packet below that includes more details about your Mattermost environment.'}
+                        <FormattedMessage
+                            id='commercial_support_modal.description'
+                            defaultMessage={'If you\'re experiencing issues, <supportLink>submit a support ticket</supportLink>. To help with troubleshooting, it\'s recommended to download the Support Packet below that includes more details about your Mattermost environment.'}
                             values={{
-                                supportLink,
+                                supportLink: (chunks: string) => (
+                                    <ExternalLink
+                                        href={supportLink}
+                                        location='commercialSupportModal'
+                                    >
+                                        {chunks}
+                                    </ExternalLink>
+                                ),
                             }}
                         />
                         {showBannerWarning &&
                             <AlertBanner
                                 mode='info'
                                 message={
-                                    <FormattedMarkdownMessage
-                                        id='commercial_support.warning.banner'
-                                        defaultMessage='Before downloading the Support Packet, set **Output Logs to File** to **true** and set **File Log Level** to **DEBUG** [here](!/admin_console/environment/logging).'
+                                    <FormattedMessage
+                                        id='commercial_support_modal.warning.banner'
+                                        defaultMessage='Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <debugLink>here</debugLink>.'
+                                        values={{
+                                            strong: (chunks: string) => <strong>{chunks}</strong>,
+                                            debugLink: (chunks: string) => <Link to='/admin_console/environment/logging'>{chunks}</Link>,
+                                        }}
                                     />
                                 }
                                 onDismiss={this.hideBannerWarning}
                             />
                         }
                         <div className='CommercialSupportModal__packet_contents_download'>
-                            <FormattedMarkdownMessage
-                                id='commercial_support.download_contents'
-                                defaultMessage={'**Select your Support Packet contents to download**'}
-                            />
+                            <strong>
+                                <FormattedMessage
+                                    id='commercial_support_modal.download_contents'
+                                    defaultMessage={'Select your Support Packet contents to download'}
+                                />
+                            </strong>
                         </div>
                         {this.state.packetContents.map((item, index) => (
                             <div

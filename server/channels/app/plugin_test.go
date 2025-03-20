@@ -479,7 +479,7 @@ func TestPluginSync(t *testing.T) {
 		{
 			"local",
 			func(cfg *model.Config) {
-				cfg.FileSettings.DriverName = model.NewString(model.ImageDriverLocal)
+				cfg.FileSettings.DriverName = model.NewPointer(model.ImageDriverLocal)
 			},
 		},
 		{
@@ -496,14 +496,14 @@ func TestPluginSync(t *testing.T) {
 				}
 
 				s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
-				cfg.FileSettings.DriverName = model.NewString(model.ImageDriverS3)
-				cfg.FileSettings.AmazonS3AccessKeyId = model.NewString(model.MinioAccessKey)
-				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewString(model.MinioSecretKey)
-				cfg.FileSettings.AmazonS3Bucket = model.NewString(model.MinioBucket)
-				cfg.FileSettings.AmazonS3PathPrefix = model.NewString("")
-				cfg.FileSettings.AmazonS3Endpoint = model.NewString(s3Endpoint)
-				cfg.FileSettings.AmazonS3Region = model.NewString("")
-				cfg.FileSettings.AmazonS3SSL = model.NewBool(false)
+				cfg.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
+				cfg.FileSettings.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
+				cfg.FileSettings.AmazonS3Bucket = model.NewPointer(model.MinioBucket)
+				cfg.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+				cfg.FileSettings.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+				cfg.FileSettings.AmazonS3Region = model.NewPointer("")
+				cfg.FileSettings.AmazonS3SSL = model.NewPointer(false)
 			},
 		},
 	}
@@ -754,7 +754,7 @@ func TestPluginPanicLogs(t *testing.T) {
 			Message:   "message_",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
 		th.TestLogger.Flush()
@@ -1378,65 +1378,21 @@ func TestGetPluginStateOverride(t *testing.T) {
 		require.False(t, value)
 	})
 
-	t.Run("calls override", func(t *testing.T) {
-		t.Run("on-prem", func(t *testing.T) {
-			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.calls")
-			require.False(t, overrides)
-			require.False(t, value)
-		})
-
-		t.Run("Cloud, without enabled flag", func(t *testing.T) {
-			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
-			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.calls")
-			require.False(t, overrides)
-			require.False(t, value)
-		})
-
-		t.Run("Cloud, with enabled flag set to true", func(t *testing.T) {
-			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
-			os.Setenv("MM_FEATUREFLAGS_CALLSENABLED", "true")
-			defer os.Unsetenv("MM_FEATUREFLAGS_CALLSENABLED")
-
-			th2 := Setup(t)
-			defer th2.TearDown()
-
-			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
-			require.False(t, overrides)
-			require.False(t, value)
-		})
-
-		t.Run("Cloud, with enabled flag set to false", func(t *testing.T) {
-			os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-			defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
-			os.Setenv("MM_FEATUREFLAGS_CALLSENABLED", "false")
-			defer os.Unsetenv("MM_FEATUREFLAGS_CALLSENABLED")
-
-			th2 := Setup(t)
-			defer th2.TearDown()
-
-			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
-			require.True(t, overrides)
-			require.False(t, value)
-		})
-
-		t.Run("On-prem, with enabled flag set to false", func(t *testing.T) {
-			os.Setenv("MM_FEATUREFLAGS_CALLSENABLED", "false")
-			defer os.Unsetenv("MM_FEATUREFLAGS_CALLSENABLED")
-
-			th2 := Setup(t)
-			defer th2.TearDown()
-
-			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.calls")
-			require.True(t, overrides)
-			require.False(t, value)
-		})
-	})
-
 	t.Run("apps override", func(t *testing.T) {
 		t.Run("without enabled flag", func(t *testing.T) {
 			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.apps")
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("with enabled flag set to true", func(t *testing.T) {
+			os.Setenv("MM_FEATUREFLAGS_APPSENABLED", "true")
+			defer os.Unsetenv("MM_FEATUREFLAGS_APPSENABLED")
+
+			th2 := Setup(t)
+			defer th2.TearDown()
+
+			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
 			require.False(t, overrides)
 			require.False(t, value)
 		})

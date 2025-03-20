@@ -10,12 +10,11 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {getAuthorizedOAuthApps, deauthorizeOAuthApp} from 'mattermost-redux/actions/integrations';
 import {getMe, updateUserPassword} from 'mattermost-redux/actions/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getPasswordConfig} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {Preferences} from 'utils/constants';
-import {getPasswordConfig} from 'utils/utils';
 
 import SecurityTab from './user_settings_security';
 
@@ -55,7 +54,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         enableSaml,
         enableSignUpWithOffice365,
         experimentalEnableAuthenticationTransfer,
-        passwordConfig: getPasswordConfig(config),
+        passwordConfig: getPasswordConfig(state),
         militaryTime: getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
     };
 }

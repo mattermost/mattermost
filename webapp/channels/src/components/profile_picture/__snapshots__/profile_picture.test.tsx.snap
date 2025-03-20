@@ -2,7 +2,7 @@
 
 exports[`components/ProfilePicture should match snapshot, no user specified, default props 1`] = `
 <span
-  className="status-wrapper style--none "
+  className="status-wrapper style--none"
 >
   <span
     className="profile-icon "
@@ -20,7 +20,7 @@ exports[`components/ProfilePicture should match snapshot, no user specified, def
 
 exports[`components/ProfilePicture should match snapshot, no user specified, overridden props 1`] = `
 <span
-  className="status-wrapper style--none "
+  className="status-wrapper style--none"
 >
   <span
     className="profile-icon "
@@ -37,51 +37,35 @@ exports[`components/ProfilePicture should match snapshot, no user specified, ove
 `;
 
 exports[`components/ProfilePicture should match snapshot, profile and src, default props 1`] = `
-<OverlayTrigger
-  defaultOverlayShown={false}
-  overlay={
-    <Memo(ProfilePopover)
-      className="user-profile-popover"
-      hide={[Function]}
-      src="http://example.com/image.png"
-      userId="uid"
-    />
+<ProfilePopoverController
+  src="http://example.com/image.png"
+  triggerComponentAs="button"
+  triggerComponentClass="status-wrapper style--none"
+  triggerComponentStyle={
+    Object {
+      "borderRadius": "50%",
+      "height": "32px",
+      "width": "32px",
+    }
   }
-  placement="right"
-  rootClose={true}
-  trigger={
-    Array [
-      "click",
-    ]
-  }
+  userId="uid"
 >
   <span
-    className="status-wrapper  "
+    className="profile-icon "
   >
-    <RoundButton
-      className="style--none"
-      size="md"
-    >
-      <span
-        className="profile-icon "
-      >
-        <Memo(Avatar)
-          size="md"
-          tabIndex={-1}
-          url="http://example.com/emoji.png"
-        />
-      </span>
-    </RoundButton>
-    <Memo(StatusIcon)
-      status="away"
+    <Memo(Avatar)
+      url="http://example.com/emoji.png"
     />
   </span>
-</OverlayTrigger>
+  <Memo(StatusIcon)
+    status="away"
+  />
+</ProfilePopoverController>
 `;
 
 exports[`components/ProfilePicture should match snapshot, user specified 1`] = `
 <span
-  className="status-wrapper style--none "
+  className="status-wrapper style--none"
 >
   <span
     className="profile-icon "
@@ -99,7 +83,7 @@ exports[`components/ProfilePicture should match snapshot, user specified 1`] = `
 
 exports[`components/ProfilePicture should match snapshot, user specified, overridden props 1`] = `
 <span
-  className="status-wrapper style--none "
+  className="status-wrapper style--none"
 >
   <span
     className="profile-icon "

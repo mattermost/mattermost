@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessages} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -26,7 +27,7 @@ type WrappedChannel = {
     loading?: boolean;
 }
 
-export const ChannelMentionSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<WrappedChannel>>((props, ref) => {
+export const ChannelMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<WrappedChannel>>((props, ref) => {
     const {item} = props;
     const channelIsArchived = item.channel && item.channel.delete_at && item.channel.delete_at !== 0;
 
@@ -260,3 +261,10 @@ export default class ChannelMentionProvider extends Provider {
         this.lastPrefixWithNoResults = '';
     }
 }
+
+defineMessages({
+    myChannelsDivider: {
+        id: 'suggestion.mention.channels',
+        defaultMessage: 'My Channels',
+    },
+});

@@ -1,4 +1,6 @@
-@charset 'UTF-8';
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
 
 @use 'sass:color';
 
@@ -9,7 +11,7 @@
 .admin-console {
     overflow: auto;
     height: 100%;
-    color: v(center-channel-color);
+    color: functions.v(center-channel-color);
     grid-area: center;
 
     > div {
@@ -54,7 +56,7 @@
 
         .admin-console__container {
             background-color: var(--sys-center-channel-bg);
-            box-shadow: 0 2px 3px 0 alpha-color($black, 0.08);
+            box-shadow: 0 2px 3px 0 functions.alpha-color(variables.$black, 0.08);
         }
     }
 
@@ -62,21 +64,32 @@
         max-width: 920px;
     }
 
+    .admin-console__checkbox-list {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+
+        li > .alert {
+            margin-top: 4px;
+            margin-bottom: 10px;
+        }
+    }
+
     mark {
         border-radius: 5%;
-        background-color: $highlight-color;
+        background-color: variables.$highlight-color;
     }
 
     .btn {
         &.btn-default {
-            background: alpha-color($black, 0.7);
-            color: $white;
+            background: functions.alpha-color(variables.$black, 0.7);
+            color: variables.$white;
 
             &:hover,
             &:focus,
             &:active {
-                background: alpha-color($black, 0.8);
-                color: $white;
+                background: functions.alpha-color(variables.$black, 0.8);
+                color: variables.$white;
             }
         }
 
@@ -150,8 +163,8 @@
     }
 
     .form-control {
-        border: 1px solid $light-gray;
-        background-color: $white;
+        border: 1px solid variables.$light-gray;
+        background-color: variables.$white;
 
         &:focus:not(.Input) {
             border-color: #66afe9;
@@ -162,11 +175,11 @@
         }
 
         &.disabled {
-            background-color: $bg--gray;
+            background-color: variables.$bg--gray;
         }
 
         .placeholder-text {
-            color: $gray;
+            color: variables.$gray;
         }
 
         &.Input {
@@ -185,7 +198,7 @@
         width: 100%;
         height: calc(100vh - 280px);
         padding: 10px;
-        border: $border-gray;
+        border: variables.$border-gray;
         margin-top: 14px;
         background-color: white;
     }
@@ -226,24 +239,12 @@
         }
 
         .file__upload {
-            position: relative;
             display: inline-block;
+            width: fit-content;
             margin: 0 10px 10px 0;
 
             input {
-                position: absolute;
-                z-index: 5;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                padding-left: 100%;
-                cursor: pointer;
-                opacity: 0;
-
-                &[disabled] {
-                    cursor: not-allowed;
-                }
+                display: none;
             }
         }
 
@@ -261,9 +262,9 @@
             &.alert-transparent {
                 width: 100%;
                 padding: 12px 14px;
-                border: $border-gray;
+                border: variables.$border-gray;
                 margin: 0;
-                background: $white;
+                background: variables.$white;
             }
 
             hr {
@@ -283,9 +284,9 @@
 
     .banner {
         padding: 0.8em 1.5rem;
-        border: $border-gray;
+        border: variables.$border-gray;
         margin: 4px 0 2em;
-        background: $white;
+        background: variables.$white;
         font-size: 0.95em;
 
         &.banner--url {
@@ -293,7 +294,7 @@
         }
 
         code {
-            background: $bg--gray;
+            background: variables.$bg--gray;
         }
 
         p {
@@ -305,7 +306,7 @@
         .banner__url {
             padding: 0.7em 1em;
             border-radius: 2px;
-            background: alpha-color($black, 0.07);
+            background: functions.alpha-color(variables.$black, 0.07);
             word-break: break-all;
         }
 
@@ -356,7 +357,7 @@
         line-height: 1.5;
 
         a {
-            @include clearfix;
+            @include mixins.clearfix;
 
             display: block;
             text-decoration: none;
@@ -399,7 +400,7 @@
     .member-list-holder {
         overflow: visible;
         padding: 5px 0;
-        background: $white;
+        background: variables.$white;
 
         .more-modal__list {
             overflow: visible;
@@ -426,7 +427,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 12px 20px;
-        border-bottom: 1px solid alpha-color($black, 0.1);
+        border-bottom: 1px solid functions.alpha-color(variables.$black, 0.1);
         background: white;
         font-family: Metropolis, sans-serif;
         font-size: 22px;
@@ -484,20 +485,20 @@
         flex: 0 0 60px;
         align-items: center;
         padding: 0 10px;
-        border-top: 1px solid alpha-color($black, 0.1);
+        border-top: 1px solid functions.alpha-color(variables.$black, 0.1);
         background: white;
 
         .save-button {
             min-width: 100px;
             height: 34px;
             margin: 0 10px;
-            background: $light-gray;
-            color: alpha-color($black, 0.5);
+            background: variables.$light-gray;
+            color: functions.alpha-color(variables.$black, 0.5);
             opacity: 1;
 
             &.btn-primary {
-                background: $primary-color;
-                color: $white;
+                background: variables.$primary-color;
+                color: variables.$white;
             }
         }
 
@@ -513,8 +514,8 @@
             transition: all 0.15s ease;
 
             &:hover {
-                background-color: $primary-color;
-                color: $white;
+                background-color: variables.$primary-color;
+                color: variables.$white;
             }
         }
 
@@ -524,7 +525,7 @@
             .control-label {
                 padding: 5px 0 0 0;
 
-                @include text-clamp(2, 25);
+                @include mixins.text-clamp(2, 25);
             }
 
             div:nth-child(2) > .control-label {
@@ -565,7 +566,7 @@
 
     .trial-error {
         margin-top: 10px;
-        color: $dark-gray;
+        color: variables.$dark-gray;
         font-weight: 400;
     }
 
@@ -573,13 +574,14 @@
     .upgrade-legal-terms {
         margin-top: 10px;
         margin-bottom: 0;
-        color: $dark-gray;
+        color: variables.$dark-gray;
         font-size: 12px;
         font-weight: 400;
     }
 
     .logs-banner {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
     }
@@ -591,9 +593,9 @@
     min-height: 100px;
     max-height: 240px;
     padding: 5px;
-    border: $border-gray;
+    border: variables.$border-gray;
     margin: 20px 0 10px;
-    background-color: $white;
+    background-color: variables.$white;
 }
 
 .admin-console__disabled-text {
@@ -629,13 +631,13 @@
             border-radius: 20px;
             margin: 8px;
             background: rgba(255, 255, 255, 0.05);
-            color: $white;
+            color: variables.$white;
             font-size: 14px;
             outline: none;
 
             &:focus,
             &.active {
-                border: 2px solid $primary-color;
+                border: 2px solid variables.$primary-color;
                 margin: 7px;
             }
         }
@@ -644,7 +646,7 @@
             .input-clear-x {
                 position: absolute;
                 right: 16px;
-                color: $white;
+                color: variables.$white;
                 font-weight: bold;
             }
         }
@@ -663,12 +665,12 @@
 
     mark {
         border-radius: 5%;
-        background-color: $highlight-color;
+        background-color: variables.$highlight-color;
     }
 
     body.announcement-bar--fixed & {
-        top: $announcement-bar-height + $backstage-bar-height;
-        padding-bottom: $announcement-bar-height;
+        top: variables.$announcement-bar-height + variables.$backstage-bar-height;
+        padding-bottom: variables.$announcement-bar-height;
     }
 
     .dropdown-menu {
@@ -683,7 +685,7 @@
     }
 
     .nav-pills__container {
-        @include font-smoothing(initial);
+        @include mixins.font-smoothing(initial);
 
         position: relative;
         height: calc(100% - 68px);
@@ -705,8 +707,8 @@
 
         .category-title {
             padding: 10px 12px;
-            background: alpha-color($white, 0.15);
-            color: $white;
+            background: functions.alpha-color(variables.$white, 0.15);
+            color: variables.$white;
             line-height: 15.4px;
             text-transform: uppercase;
 
@@ -754,7 +756,7 @@
 
                 &:hover,
                 &:focus {
-                    color: alpha-color($white, 0.5);
+                    color: functions.alpha-color(variables.$white, 0.5);
                 }
             }
         }
@@ -785,7 +787,7 @@
         height: 100%;
 
         i {
-            color: alpha-color($white, 0.5);
+            color: functions.alpha-color(variables.$white, 0.5);
             font-size: 14px;
             line-height: 14px;
         }
@@ -805,7 +807,7 @@
     .sidebar-subsection-title {
         position: relative;
         display: block;
-        color: alpha-color($white, 0.5);
+        color: functions.alpha-color(variables.$white, 0.5);
         font-size: 13px;
 
         &:focus {
@@ -813,29 +815,29 @@
         }
 
         &:hover {
-            color: color.adjust($primary-color, $lightness: 10%);
+            color: color.adjust(variables.$primary-color, $lightness: 10%);
             text-decoration: none;
 
             i {
-                color: color.adjust($primary-color, $lightness: 10%);
+                color: color.adjust(variables.$primary-color, $lightness: 10%);
             }
         }
 
         &--active {
-            background: alpha-color($white, 0.1);
-            color: $white;
+            background: functions.alpha-color(variables.$white, 0.1);
+            color: variables.$white;
 
             i {
-                color: $white;
+                color: variables.$white;
             }
 
             &:hover,
             &:focus {
-                background: alpha-color($white, 0.1);
-                color: $white;
+                background: functions.alpha-color(variables.$white, 0.1);
+                color: variables.$white;
 
                 i {
-                    color: $white;
+                    color: variables.$white;
                 }
             }
 
@@ -868,7 +870,7 @@
         .fa {
             position: relative;
             right: -2px;
-            color: $white;
+            color: variables.$white;
             font-size: 13px;
         }
 
@@ -943,7 +945,7 @@
     }
 
     .manage-teams__teams {
-        border-top: $border-gray;
+        border-top: variables.$border-gray;
         margin: 1em 0 32px;
         margin-top: 1em;
 
@@ -964,6 +966,9 @@
         strong {
             margin-right: 10px;
         }
+        p strong {
+            margin-right: 5px;
+        }
     }
 
     .member-row-lone-padding {
@@ -974,7 +979,7 @@
         padding: 15px 0 4px;
 
         & + div {
-            border-top: $border-gray;
+            border-top: variables.$border-gray;
         }
     }
 
@@ -1007,7 +1012,7 @@
         display: flex;
         align-items: center;
         padding: 7px 10px;
-        border-bottom: $border-gray;
+        border-bottom: variables.$border-gray;
 
         .btn {
             font-size: 0.9em;
@@ -1041,7 +1046,7 @@
     .btn-default:focus {
         border: none;
         background-color: transparent;
-        color: $primary-color;
+        color: variables.$primary-color;
     }
 }
 
@@ -1073,6 +1078,12 @@
 
 .password__group-addon-space {
     margin-bottom: 20px;
+}
+
+.password-settings__preview-heading {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
 }
 
 #error-tooltip {

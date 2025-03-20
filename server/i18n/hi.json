@@ -172,10 +172,6 @@
     "translation": " एक फाइल संलग्न की।"
   },
   {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Export को XML में बदलने में असमर्थ।"
-  },
-  {
     "id": "ent.account_migration.get_saml_users_failed",
     "translation": "SAML उपयोगकर्ता प्राप्त करने में असमर्थ।"
   },
@@ -880,10 +876,6 @@
     "translation": "आपका एंटरप्राइज़ संस्करण लाइसेंस समाप्त हो गया है और कुछ सुविधाएं अक्षम हो सकती हैं। कृपया अपना लाइसेंस अभी रीन्यू करें।"
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "लाइसेंस अभी रीन्यू करें"
-  },
-  {
     "id": "api.templates.post_body.button",
     "translation": "मैसेज देखें"
   },
@@ -908,16 +900,8 @@
     "translation": "आपकी मैटरमोस्ट सदस्यता रीन्यूअल के लिए तैयार है"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "रीन्यू करने के लिए अपने ग्राहक खाते में लॉग इन करें"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, आपकी सदस्यता {{.Days}} दिनों में समाप्त होने वाली है। हम आशा करते हैं कि आप मैटरमोस्ट द्वारा सक्षम लचीले, सुरक्षित टीम सहयोग का अनुभव कर रहे हैं। यह सुनिश्चित करने के लिए जल्द ही रीन्यू करें कि आपकी टीम इन लाभों का आनंद लेती रहे।"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "अब रीन्यू करें"
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
@@ -1620,10 +1604,6 @@
     "translation": "अमान्य प्रकार।"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "अमान्य मैसेज।"
-  },
-  {
     "id": "model.post.is_valid.hashtags.app_error",
     "translation": "अमान्य हैशटैग।"
   },
@@ -2072,10 +2052,6 @@
     "translation": "सुरक्षित कनेक्शन से आमंत्रण"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "आमंत्रण को डिक्रिप्ट नहीं किया जा सका. गलत पासवर्ड या करप्ट आमंत्रण: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "सुरक्षित कनेक्शन नहीं ला सके: {{.Error}}"
   },
@@ -2290,10 +2266,6 @@
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "सभी टीमों में वेबहुक अपडेट करने में असमर्थ।"
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "आने वाले वेबहुक के मल्टीपार्ट पेलोड को डिकोड नहीं कर सका।"
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -3595,38 +3567,6 @@
     "translation": "अनुपालन कार्यक्षमता वर्तमान लाइसेंस द्वारा अक्षम की गई है। अपने एंटरप्राइज़ लाइसेंस को अपग्रेड करने के बारे में कृपया अपने सिस्टम व्यवस्थापक से संपर्क करें।"
   },
   {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "अस्थायी निर्यात फ़ाइल खोलने में असमर्थ."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "अपलोड की गई फ़ाइल को ग्लोबल रिले निर्यात से निकाल दिया गया था क्योंकि यह भेजने के लिए बहुत बड़ी थी।"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "चेतावनी फ़ाइल बनाने में असमर्थ।"
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "पोस्ट निर्यात करने में असमर्थ."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "ज़िप फ़ाइल बनाने में असमर्थ"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "CSV निर्यात में अटैचमेंट जोड़ने में असमर्थ."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "ज़िप फ़ाइल में अटैचमेंट की प्रतिलिपि बनाने में असमर्थ।"
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "अज्ञात आउटपुट स्वरूप {{.ExportType}}"
-  },
-  {
     "id": "ent.cluster.timeout.error",
     "translation": "क्लस्टर प्रतिक्रिया की प्रतीक्षा में समय समाप्त"
   },
@@ -4561,10 +4501,6 @@
     "translation": "यदि आप स्वचालित रूप से पुनर्निर्देशित नहीं होते हैं, तो कृपया क्लिक करें<a href='{{.Link}}'>link</a>"
   },
   {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "पोर्टल पर इस लाइसेंस का नवीनीकरण संभव नहीं है"
-  },
-  {
     "id": "api.license.add_license.no_file.app_error",
     "translation": "अनुरोध में 'लाइसेंस' के तहत कोई फ़ाइल नहीं।"
   },
@@ -4927,10 +4863,6 @@
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "नवीनीकरण ईमेल के लिए लाइसेंस भेजने में विफल"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "लाइसेंस नवीनीकरण लिंक उत्पन्न करने में विफल"
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
@@ -6509,70 +6441,6 @@
     "translation": "संदेश निर्यात डेटा का चयन करने में विफल।"
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "किसी पोस्ट के लिए फ़ाइल जानकारी प्राप्त करने में विफल।"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "निर्यात अस्थायी फ़ाइल को खोलने में असमर्थ।"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "अस्थायी फ़ाइल से ईमेल प्राप्त करने में असमर्थ।"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "निर्यात अस्थायी फ़ाइल की जानकारी प्राप्त करने में असमर्थ।"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "पते पर ईमेल सेट करने में असमर्थ।"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "ईमेल जानकारी पढ़ने में असमर्थ।"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "ईमेल संदेश लिखने में असमर्थ।"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "ईमेल संदेश सेट करने में असमर्थ."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "ईमेल पते से सेट करने में असमर्थ।"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "ग्लोबल रिले को ईमेल डिलीवर करने में असमर्थ।"
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "ईएमएल फ़ाइल डेटा जनरेट करने में असमर्थ।"
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "ईएमएल फ़ाइल बनाने में असमर्थ।"
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "ज़िप फ़ाइल बंद करने में असमर्थ."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "ग्लोबल रिले एक्सपोर्ट में अटैचमेंट जोड़ने में असमर्थ।"
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "किसी पोस्ट के लिए फ़ाइल जानकारी प्राप्त करने में विफल."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "किसी पोस्ट के लिए फ़ाइल जानकारी प्राप्त करने में विफल।"
-  },
-  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "माइग्रेट करने में असमर्थ।"
   },
@@ -6627,10 +6495,6 @@
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "AD/LDAP का उपयोग करने वाले सभी उपयोगकर्ताओं को प्राप्त करने में असमर्थ।"
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "टीम या चैनल सदस्यता हटाने में त्रुटि"
   },
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
@@ -6709,10 +6573,6 @@
     "translation": "आपका लाइसेंस आईडी लोडेड पुश नोटिफिकेशन का समर्थन नहीं करता है।"
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "निर्दिष्ट समयावधि के दौरान चैनल में उपयोगकर्ताओं को लाने में विफल।"
-  },
-  {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "Elasticsearch सर्वर URL या उपयोगकर्ता नाम बदल गया है। कृपया कनेक्शन का परीक्षण करने के लिए इलास्टिक्स खोज पासवर्ड फिर से दर्ज करें।"
   },
@@ -6729,20 +6589,12 @@
     "translation": "इलास्टिक्स खोज पहले ही रोक दी गई है।"
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch बल्क प्रोसेसर प्रारंभ करने में विफल।"
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Elasticsearch सर्वर संस्करण को पार्स करने में विफल।"
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Elasticsearch सर्वर संस्करण प्राप्त करने में विफल।"
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch बल्क प्रोसेसर बनाने में विफल।"
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -6783,10 +6635,6 @@
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
     "translation": "Elasticsearch अनुक्रमणिका ताज़ा करने में विफल"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "इलास्टिक्स खोज इंडेक्स को हटाने में विफल"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -6891,38 +6739,6 @@
   {
     "id": "ent.compliance.run_failed.error",
     "translation": "'{{.JobName}}' कार्य के लिए '{{.FilePath}}' पर अनुपालन निर्यात विफल रहा"
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "निर्यात टेम्प्लेट लोड करने में असमर्थ. कृपया पुन: प्रयास करें।"
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "ग्लोबल रिले अस्थायी निर्यात फ़ाइल को फिर से पढ़ने में असमर्थ।"
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "ज़िप निर्यात फ़ाइल बनाने में असमर्थ।"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "मेटाडेटा को जेसन में बदलने में असमर्थ।"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "ज़िप फ़ाइल में मेटाडेटा फ़ाइल जोड़ने में असमर्थ।"
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "सीएसवी निर्यात में हेडर जोड़ने में असमर्थ।"
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "अस्थायी CSV निर्यात फ़ाइल बनाने में असमर्थ।"
-  },
-  {
-    "id": "ent.cluster.404.app_error",
-    "translation": "क्लस्टर API समापन बिंदु नहीं मिला।"
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
@@ -7672,10 +7488,6 @@
     "translation": "स्थिति प्राप्त करने में त्रुटि आई।"
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "एक सीधा साझा चैनल बनाते समय एक त्रुटि का सामना करना पड़ा।"
-  },
-  {
     "id": "app.session.update_device_id.app_error",
     "translation": "डिवाइस आईडी अपडेट करने में असमर्थ।"
   },
@@ -8028,10 +7840,6 @@
     "translation": "इस समापन बिंदु का उपयोग करने के लिए E10 या E20 लाइसेंस की आवश्यकता है।"
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "लाइसेंस नवीनीकरण लिंक प्राप्त करने में त्रुटि"
-  },
-  {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "आप जिस कार्य प्रकार को डाउनलोड करने का प्रयास कर रहे हैं वह इस समय समर्थित नहीं है"
   },
@@ -8256,18 +8064,6 @@
     "translation": "हमें किसी भी समय ईमेल करें "
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "आपका सबसे महत्वपूर्ण क्लाउड चालान देय है"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "आपकी मैटरमोस्ट क्लाउड सदस्यता के लिए भुगतान देय है"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "पोस्ट करते समय इस एकीकरण के प्रोफ़ाइल चित्र के लिए .png या .jpg फ़ाइल का URL दर्ज करें। फ़ाइल कम से कम 128 पिक्सेल गुणा 128 पिक्सेल की होनी चाहिए. यदि खाली छोड़ दिया जाता है, तो वेबहुक निर्माता द्वारा निर्दिष्ट प्रोफ़ाइल चित्र का उपयोग किया जाता है।"
-  },
-  {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
     "translation": "अमान्य_अनुरोध: आपूर्ति की गई रीडायरेक्ट_यूरी प्राधिकरण कोड रीडायरेक्ट_यूरी से मेल नहीं खाती।"
   },
@@ -8298,10 +8094,6 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "व्यवस्थापक को पहले ही सूचित कर दिया गया है"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "चूक ईमेल भेजने के लिए आवश्यक फ़ील्ड गुम हैं।"
   },
   {
     "id": "api.admin.syncables_error",

@@ -1,4 +1,5 @@
-@charset 'UTF-8';
+@use "utils/functions";
+@use "utils/variables";
 
 .post-menu {
     position: absolute;
@@ -10,6 +11,12 @@
     padding: 4px;
     border: 1px solid transparent;
     border-radius: 4px;
+
+    // Counteract the margins added to ul in _typography.scss
+    margin-top: 0;
+    margin-bottom: 0;
+
+    list-style: none;
     white-space: normal;
 }
 
@@ -22,15 +29,15 @@
     border: none;
     border-radius: 4px;
     background: transparent;
-    color: rgba(v(center-channel-color-rgb), 0.4);
-    fill: rgba(v(center-channel-color-rgb), 0.4);
+    color: rgba(functions.v(center-channel-color-rgb), 0.4);
+    fill: rgba(functions.v(center-channel-color-rgb), 0.4);
 
     &:active,
     &--active,
     &--active:hover {
         background: rgba(var(--button-bg-rgb), 0.08);
-        color: v(button-bg);
-        fill: v(button-bg);
+        color: functions.v(button-bg);
+        fill: functions.v(button-bg);
     }
 
     span {
@@ -80,35 +87,35 @@
         &.a11y--active {
             .post-menu {
                 border-color: rgba(var(--center-channel-color-rgb), 0.2);
-                background-color: v(center-channel-bg);
-                box-shadow: $elevation-1;
+                background-color: functions.v(center-channel-bg);
+                box-shadow: variables.$elevation-1;
             }
 
             .search-item__jump {
-                color: rgba(v(center-channel-color-rgb), 0.75);
+                color: rgba(functions.v(center-channel-color-rgb), 0.75);
 
                 &:hover {
-                    color: v(link-color);
+                    color: functions.v(link-color);
                 }
             }
 
             .post-menu__item {
                 display: inline-flex;
-                color: rgba(v(center-channel-color-rgb), 0.64);
-                fill: rgba(v(center-channel-color-rgb), 0.64);
+                color: rgba(functions.v(center-channel-color-rgb), 0.64);
+                fill: rgba(functions.v(center-channel-color-rgb), 0.64);
 
                 &:hover {
-                    background: rgba(v(center-channel-color-rgb), 0.08);
-                    color: rgba(v(center-channel-color-rgb), 0.8);
-                    fill: rgba(v(center-channel-color-rgb), 0.8);
+                    background: rgba(functions.v(center-channel-color-rgb), 0.08);
+                    color: rgba(functions.v(center-channel-color-rgb), 0.8);
+                    fill: rgba(functions.v(center-channel-color-rgb), 0.8);
                 }
 
                 &:active,
                 &--active,
                 &--active:hover {
                     background: rgba(var(--button-bg-rgb), 0.08);
-                    color: v(button-bg);
-                    fill: v(button-bg);
+                    color: functions.v(button-bg);
+                    fill: functions.v(button-bg);
                 }
             }
         }

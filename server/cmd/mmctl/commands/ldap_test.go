@@ -18,7 +18,7 @@ import (
 func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 	s.Run("Sync without errors", func() {
 		printer.Clean()
-		outputMessage := map[string]interface{}{"status": "ok"}
+		outputMessage := map[string]any{"status": "ok"}
 
 		s.client.
 			EXPECT().
@@ -35,7 +35,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 	s.Run("Not able to Sync", func() {
 		printer.Clean()
-		outputMessage := map[string]interface{}{"status": "error"}
+		outputMessage := map[string]any{"status": "error"}
 
 		s.client.
 			EXPECT().
@@ -128,7 +128,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobsByType(context.TODO(), model.JobTypeLdapSync, 0, perPage).
+			GetJobs(context.TODO(), model.JobTypeLdapSync, "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -161,7 +161,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobsByType(context.TODO(), model.JobTypeLdapSync, 0, perPage).
+			GetJobs(context.TODO(), model.JobTypeLdapSync, "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 

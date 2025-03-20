@@ -11,7 +11,7 @@
 // Group: @channels @enterprise @elasticsearch @incoming_webhook @not_cloud
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {enableElasticSearch} from '../../autocomplete/helpers';
+import {enableElasticSearch} from '../elasticsearch_autocomplete/helpers';
 
 describe('Incoming webhook', () => {
     let testTeam;
@@ -67,7 +67,8 @@ describe('Incoming webhook', () => {
 
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload});
 
-        cy.get('#searchBox').
+        cy.uiGetSearchContainer().click();
+        cy.uiGetSearchBox().
             wait(TIMEOUTS.HALF_SEC).
             typeWithForce('findme').
             typeWithForce('{enter}');

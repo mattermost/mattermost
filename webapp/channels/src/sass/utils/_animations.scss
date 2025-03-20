@@ -1,4 +1,5 @@
-@charset 'UTF-8';
+@use "mixins";
+@use "variables";
 
 @keyframes spin {
     from {
@@ -12,7 +13,7 @@
 
 @keyframes highlight {
     from {
-        @include alpha-property(background, $yellow, 0.5);
+        @include mixins.alpha-property(background, variables.$yellow, 0.5);
     }
 
     to {

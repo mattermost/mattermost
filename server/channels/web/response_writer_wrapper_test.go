@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type TestHandler struct {
@@ -48,7 +49,9 @@ func TestStatusCodeShouldBe200IfNotHeaderWritten(t *testing.T) {
 	resp := newWrappedWriter(httptest.NewRecorder())
 	req := httptest.NewRequest("GET", "/api/v4/test", nil)
 	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte{})
+		n, err := w.Write([]byte{})
+		require.NoError(t, err, "Failed to write response")
+		require.Equal(t, 0, n, "Expected to write 0 bytes")
 	}}
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.StatusCode())
@@ -58,9 +61,11 @@ func TestForUnsupportedHijack(t *testing.T) {
 	resp := newWrappedWriter(httptest.NewRecorder())
 	req := httptest.NewRequest("GET", "/api/v4/test", nil)
 	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
-		_, _, err := w.(*responseWriterWrapper).Hijack()
+		conn, rw, err := w.(*responseWriterWrapper).Hijack()
 		assert.Error(t, err)
 		assert.Equal(t, "Hijacker interface not supported by the wrapped ResponseWriter", err.Error())
+		assert.Nil(t, conn, "Expected nil connection")
+		assert.Nil(t, rw, "Expected nil buffer")
 	}}
 	handler.ServeHTTP(resp, req)
 }
@@ -69,8 +74,10 @@ func TestForSupportedHijack(t *testing.T) {
 	resp := newWrappedWriter(newResponseWithHijack(httptest.NewRecorder()))
 	req := httptest.NewRequest("GET", "/api/v4/test", nil)
 	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
-		_, _, err := w.(*responseWriterWrapper).Hijack()
-		assert.NoError(t, err)
+		conn, rw, err := w.(*responseWriterWrapper).Hijack()
+		require.NoError(t, err, "Hijack should succeed with supporting ResponseWriter")
+		assert.Nil(t, conn, "Expected nil connection from test implementation")
+		assert.Nil(t, rw, "Expected nil buffer from test implementation")
 	}}
 	handler.ServeHTTP(resp, req)
 }
@@ -79,7 +86,9 @@ func TestForSupportedFlush(t *testing.T) {
 	resp := newWrappedWriter(httptest.NewRecorder())
 	req := httptest.NewRequest("GET", "/api/v4/test", nil)
 	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte{})
+		n, err := w.Write([]byte{})
+		require.NoError(t, err, "Failed to write response")
+		require.Equal(t, 0, n, "Expected to write 0 bytes")
 		w.(*responseWriterWrapper).Flush()
 	}}
 	handler.ServeHTTP(resp, req)

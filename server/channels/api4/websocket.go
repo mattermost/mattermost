@@ -22,7 +22,7 @@ const (
 
 func (api *API) InitWebSocket() {
 	// Optionally supports a trailing slash
-	api.BaseRoutes.APIRoot.Handle("/{websocket:websocket(?:\\/)?}", api.APIHandlerTrustRequester(connectWebSocket)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/{websocket:websocket(?:\\/)?}", api.APIHandlerTrustRequester(connectWebSocket)).Methods(http.MethodGet)
 }
 
 func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -44,12 +44,14 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	// We initialize webconn with all the necessary data.
 	// If the queues are empty, they are initialized in the constructor.
 	cfg := &platform.WebConnConfig{
-		WebSocket: ws,
-		Session:   *c.AppContext.Session(),
-		TFunc:     c.AppContext.T,
-		Locale:    "",
-		Active:    true,
-		PostedAck: r.URL.Query().Get(postedAckParam) == "true",
+		WebSocket:     ws,
+		Session:       *c.AppContext.Session(),
+		TFunc:         c.AppContext.T,
+		Locale:        "",
+		Active:        true,
+		PostedAck:     r.URL.Query().Get(postedAckParam) == "true",
+		RemoteAddress: c.AppContext.IPAddress(),
+		XForwardedFor: c.AppContext.XForwardedFor(),
 	}
 	// The WebSocket upgrade request coming from mobile is missing the
 	// user agent so we need to fallback on the session's metadata.
@@ -68,7 +70,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		cfg, err = c.App.Srv().Platform().PopulateWebConnConfig(c.AppContext.Session(), cfg, r.URL.Query().Get(sequenceNumberParam))
 		if err != nil {
-			c.Logger.Warn("Error while populating webconn config", mlog.String("id", r.URL.Query().Get(connectionIDParam)), mlog.Err(err))
+			c.Logger.Error("Error while populating webconn config", mlog.String("id", r.URL.Query().Get(connectionIDParam)), mlog.Err(err))
 			ws.Close()
 			return
 		}
@@ -76,7 +78,12 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	wc := c.App.Srv().Platform().NewWebConn(cfg, c.App, c.App.Srv().Channels())
 	if c.AppContext.Session().UserId != "" {
-		c.App.Srv().Platform().HubRegister(wc)
+		err = c.App.Srv().Platform().HubRegister(wc)
+		if err != nil {
+			c.Logger.Error("Error while registering to hub", mlog.String("id", r.URL.Query().Get(connectionIDParam)), mlog.Err(err))
+			ws.Close()
+			return
+		}
 	}
 
 	wc.Pump()

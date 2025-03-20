@@ -1,53 +1,62 @@
-@charset "utf-8";
+@use "utils/functions";
 
 .app__body {
-    .settings-modal {
+    .settings-modal {  
         h3 {
             font-size: 18px;
         }
 
         .modal-header {
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+            &__title {
+                color: var(--center-channel-color);
+                font-family: 'Metropolis', serif;
+                font-size: 22px;
+                font-weight: 600;
+                line-height: 28px;
+                word-break: break-word;
+            }
         }
 
         // Tabs
         .nav-pills {
-            > li {
+            &__tab {
+                display: flex;
+                width: 100%;
+                height: 32px;
+                align-items: center;
+                justify-content: start;
+                padding: 0 12px;
+                border-radius: 4px;
                 margin-bottom: 8px;
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+                font-weight: 600;
 
-                &.header {
-                    color: rgba(var(--center-channel-color-rgb), 0.75);
-                    font-weight: 600;
+                i {
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
                 }
 
-                button {
-                    height: 32px;
-                    padding: 0 12px;
+                &:hover {
                     border-radius: 4px;
-                    color: rgba(var(--center-channel-color-rgb), 0.75);
-                    font-weight: 600;
-
-                    i {
-                        color: rgba(var(--center-channel-color-rgb), 0.64);
-                    }
-
-                    &:hover {
-                        border-radius: 4px;
-                        background-color: rgba(var(--center-channel-color-rgb), 0.04);
-                        color: rgba(var(--center-channel-color-rgb), 0.8);
-                    }
+                    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+                    color: rgba(var(--center-channel-color-rgb), 0.8);
                 }
 
                 &.active {
-                    button {
-                        background: rgba(var(--button-bg-rgb), 0.08);
-                        color: v(button-bg);
+                    background: rgba(var(--button-bg-rgb), 0.08);
+                    color: functions.v(button-bg);
 
-                        i {
-                            color: v(button-bg);
-                        }
+                    i {
+                        color: functions.v(button-bg);
                     }
                 }
+            }
+
+            & .header {
+                margin-bottom: 8px;
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+                font-weight: 600;
             }
         }
 
@@ -59,10 +68,6 @@
                 padding: 16px;
                 border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
                 background: rgba(var(--center-channel-color-rgb), 0.04);
-            }
-
-            .nav {
-                width: 200px;
             }
 
             .settings-content {

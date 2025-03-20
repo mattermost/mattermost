@@ -31,6 +31,7 @@
         .Card__header {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             padding: 28px 32px 24px 32px;
             border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
 

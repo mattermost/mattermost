@@ -66,7 +66,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		cmd.Flags().String("autocompleteDesc", autocompleteDesc, "")
 		cmd.Flags().String("autocompleteHint", autocompleteHint, "")
 
-		// createCommandCmdF will call getTeamFromTeamArg,  getUserFromUserArg which then calls GetUserByEmail
+		// createCommandCmdF will call getTeamFromTeamArg,  getUserFromUserArg which then calls GetUserByUsername
 		s.client.
 			EXPECT().
 			GetTeam(context.TODO(), teamArg, "").
@@ -74,7 +74,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), creatorIDArg, "").
+			GetUserByUsername(context.TODO(), creatorIDArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 		s.client.
@@ -122,7 +122,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), creatorIDArg, "").
+			GetUserByUsername(context.TODO(), creatorIDArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 		s.client.
@@ -202,7 +202,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), creatorIDArg, "").
+			GetUserByUsername(context.TODO(), creatorIDArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -253,7 +253,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), creatorIDArg, "").
+			GetUserByUsername(context.TODO(), creatorIDArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -318,7 +318,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), creatorIDArg, "").
+			GetUserByUsername(context.TODO(), creatorIDArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 		mockError := errors.New("mock error, simulated error for CreateCommand")
@@ -340,7 +340,7 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 	s.Run("Delete without errors", func() {
 		printer.Clean()
 		arg := "cmd1"
-		outputMessage := map[string]interface{}{"status": "ok"}
+		outputMessage := map[string]any{"status": "ok"}
 
 		s.client.
 			EXPECT().
@@ -358,7 +358,7 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 	s.Run("Not able to delete", func() {
 		printer.Clean()
 		arg := "cmd1"
-		outputMessage := map[string]interface{}{"status": "error"}
+		outputMessage := map[string]any{"status": "error"}
 
 		s.client.
 			EXPECT().
@@ -540,7 +540,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			"--post=" + strconv.FormatBool(method2Bool(mockCommandModified.Method)),
 		}
 
-		// modifyCommandCmdF will call getCommandById, GetUserByEmail and UpdateCommand
+		// modifyCommandCmdF will call getCommandById, GetUserByUsername and UpdateCommand
 		s.client.
 			EXPECT().
 			GetCommandById(context.TODO(), arg).
@@ -548,7 +548,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockCommandModified.CreatorId, "").
+			GetUserByUsername(context.TODO(), mockCommandModified.CreatorId, "").
 			Return(&model.User{Id: mockCommandModified.CreatorId}, &model.Response{}, nil).
 			Times(1)
 		s.client.
@@ -619,11 +619,6 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			EXPECT().
 			GetCommandById(context.TODO(), arg).
 			Return(&mockCommand, &model.Response{}, nil).
-			Times(1)
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), bogusUsername, "").
-			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
@@ -784,8 +779,8 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 	}
 
 	mockError := errors.New("mock error")
-	outputMessageOK := map[string]interface{}{"status": "ok"}
-	outputMessageError := map[string]interface{}{"status": "error"}
+	outputMessageOK := map[string]any{"status": "ok"}
+	outputMessageError := map[string]any{"status": "error"}
 
 	s.Run("Move custom slash command to another team by id", func() {
 		printer.Clean()

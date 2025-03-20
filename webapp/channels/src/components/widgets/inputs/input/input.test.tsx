@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
+import {shallow} from 'enzyme';
 import React from 'react';
 
-import OverlayTrigger from 'components/overlay_trigger';
+import WithTooltip from 'components/with_tooltip';
 
 import Input from './input';
 
@@ -35,11 +35,11 @@ describe('components/widgets/inputs/Input', () => {
         expect(clear.length).toEqual(1);
         expect(wrapper.find('CloseCircleIcon').length).toEqual(1);
 
-        const tooltip = wrapper.find(OverlayTrigger);
+        const tooltip = wrapper.find(WithTooltip);
         expect(tooltip.length).toEqual(1);
 
-        const overlay = mount(tooltip.prop('overlay'));
-        expect(overlay.text()).toEqual(clearableTooltipText);
+        const titleProp = tooltip.prop('title');
+        expect(titleProp).toEqual(clearableTooltipText);
 
         clear.first().simulate('mousedown');
 

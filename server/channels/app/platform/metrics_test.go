@@ -57,8 +57,6 @@ func TestMetricsRouter(t *testing.T) {
 		"pprof trace":                 {path: "/debug/pprof/trace"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			name := name // TODO: Remove once go1.22 is used
-			tc := tc     // TODO: Remove once go1.22 is used
 			t.Parallel()
 
 			method := http.MethodGet

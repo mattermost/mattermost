@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {batchActions} from 'redux-batched-actions';
+
 import {LogLevel} from '@mattermost/types/client4';
 import type {ClientConfig} from '@mattermost/types/config';
 import type {SystemSetting} from '@mattermost/types/general';
 
-import {GeneralTypes} from 'mattermost-redux/action_types';
+import {AppsTypes, GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
@@ -26,7 +28,9 @@ export function getClientConfig(): ActionFuncAsync<ClientConfig> {
         Client4.setEnableLogging(data.EnableDeveloper === 'true');
         Client4.setDiagnosticId(data.DiagnosticId);
 
-        dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data});
+        const type = data.AppsPluginEnabled === 'true' ? AppsTypes.APPS_PLUGIN_ENABLED : AppsTypes.APPS_PLUGIN_DISABLED;
+        const actions = [{type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data}, {type}];
+        dispatch(batchActions(actions));
 
         return {data};
     };
@@ -36,6 +40,13 @@ export function getLicenseConfig() {
     return bindClientFunc({
         clientFunc: Client4.getClientLicenseOld,
         onSuccess: [GeneralTypes.CLIENT_LICENSE_RECEIVED],
+    });
+}
+
+export function getCustomProfileAttributeFields() {
+    return bindClientFunc({
+        clientFunc: Client4.getCustomProfileAttributeFields,
+        onSuccess: [GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED],
     });
 }
 
@@ -99,6 +110,7 @@ export function getFirstAdminSetupComplete(): ActionFuncAsync<SystemSetting> {
 export default {
     getClientConfig,
     getLicenseConfig,
+    getCustomProfileAttributeFields,
     logClientError,
     setServerVersion,
     setUrl,

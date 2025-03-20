@@ -27,13 +27,13 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     };
 
     const requiredProps = {
+        adminMode: false,
         user: user as UserProfile,
         updateSection: jest.fn(),
         activeSection: '',
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
         setRequireConfirm: jest.fn(),
-        setEnforceFocus: jest.fn(),
         enableLinkPreviews: true,
         enableThemeSelection: false,
         locales: getAllLanguages(),
@@ -72,6 +72,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             autoUpdateTimezone: jest.fn(),
             savePreferences: jest.fn(),
             updateMe: jest.fn(),
+            patchUser: jest.fn(),
         },
 
         configTeammateNameDisplay: '',

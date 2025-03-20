@@ -73,9 +73,10 @@ func TestSendInviteEmails(t *testing.T) {
 		*cfg.EmailSettings.SendEmailNotifications = false
 	})
 	t.Run("SendInviteEmails", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
+		err = th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
 		require.NoError(t, err)
 
 		verifyMailbox(t)
@@ -100,9 +101,10 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendGuestInviteEmails", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendGuestInviteEmails(
+		err = th.service.SendGuestInviteEmails(
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -163,10 +165,11 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendGuestInviteEmails should sanitize HTML input", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
 		message := `<a href="http://testserver">sanitized message</a>`
-		err := th.service.SendGuestInviteEmails(
+		err = th.service.SendGuestInviteEmails(
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -188,9 +191,10 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendInviteEmails should contain button URL with 'started by role' param for system user", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendInviteEmails(
+		err = th.service.SendInviteEmails(
 			th.BasicTeam,
 			"test-user",
 			th.BasicUser.Id,
@@ -208,9 +212,10 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendInviteEmails should contain button URL with 'started by role' param for system admin", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendInviteEmails(
+		err = th.service.SendInviteEmails(
 			th.BasicTeam,
 			"test-user",
 			th.BasicUser.Id,
@@ -228,9 +233,10 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendInviteEmails should contain button URL with 'started by role' param for first system admin", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendInviteEmails(
+		err = th.service.SendInviteEmails(
 			th.BasicTeam,
 			"test-user",
 			th.BasicUser.Id,
@@ -276,9 +282,11 @@ func TestSendCloudWelcomeEmail(t *testing.T) {
 			require.Contains(t, resultsEmail.Subject, "Congratulations!", "Wrong subject message %s", resultsEmail.Subject)
 			require.Contains(t, resultsEmail.Body.Text, "Your workspace is ready to go!", "Wrong body %s", resultsEmail.Body.Text)
 		}
-		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendCloudWelcomeEmail(emailTo, th.BasicUser.Locale, "inviteID", "SomeName", "example.com", "https://example.com")
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
+
+		err = th.service.SendCloudWelcomeEmail(emailTo, th.BasicUser.Locale, "inviteID", "SomeName", "example.com", "https://example.com")
 		require.NoError(t, err)
 
 		verifyMailbox(t)
@@ -293,7 +301,7 @@ func TestMailServiceConfig(t *testing.T) {
 		config: func() *model.Config {
 			return &model.Config{
 				ServiceSettings: model.ServiceSettings{
-					SiteURL: model.NewString(""),
+					SiteURL: model.NewPointer(""),
 				},
 				EmailSettings: model.EmailSettings{
 					EnableSignUpWithEmail:             new(bool),
@@ -304,7 +312,7 @@ func TestMailServiceConfig(t *testing.T) {
 					RequireEmailVerification:          new(bool),
 					FeedbackName:                      new(string),
 					FeedbackEmail:                     new(string),
-					ReplyToAddress:                    model.NewString(configuredReplyTo),
+					ReplyToAddress:                    model.NewPointer(configuredReplyTo),
 					FeedbackOrganization:              new(string),
 					EnableSMTPAuth:                    new(bool),
 					SMTPUsername:                      new(string),

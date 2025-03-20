@@ -2,11 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import ReplyIcon from 'components/widgets/icons/reply_icon';
+import WithTooltip from 'components/with_tooltip';
 
 import type {Locations} from 'utils/constants';
 
@@ -42,27 +41,18 @@ const CommentIcon = ({
         iconStyle = `${iconStyle} ${searchStyle}`;
     }
 
-    const tooltip = (
-        <Tooltip
-            id='comment-icon-tooltip'
-            className='hidden-xs'
-        >
-            <FormattedMessage
-                id='post_info.comment_icon.tooltip.reply'
-                defaultMessage='Reply'
-            />
-        </Tooltip>
-    );
+    const replyTitle = intl.formatMessage({
+        id: 'post_info.comment_icon.tooltip.reply',
+        defaultMessage: 'Reply',
+    });
 
     return (
-        <OverlayTrigger
-            delayShow={500}
-            placement='top'
-            overlay={tooltip}
+        <WithTooltip
+            title={replyTitle}
         >
             <button
                 id={`${location}_commentIcon_${postId}`}
-                aria-label={intl.formatMessage({id: 'post_info.comment_icon.tooltip.reply', defaultMessage: 'Reply'}).toLowerCase()}
+                aria-label={replyTitle.toLowerCase()}
                 className={`${iconStyle} ${extraClass}`}
                 onClick={handleCommentClick}
             >
@@ -71,7 +61,7 @@ const CommentIcon = ({
                     {commentCountSpan}
                 </span>
             </button>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

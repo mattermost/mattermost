@@ -8,13 +8,12 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {Posts, Preferences} from 'mattermost-redux/constants';
 import * as Selectors from 'mattermost-redux/selectors/entities/posts';
-import type {PostWithFormatData} from 'mattermost-redux/selectors/entities/posts';
 import {makeGetProfilesForReactions} from 'mattermost-redux/selectors/entities/users';
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
 import TestHelper from '../../../test/test_helper';
 
-const p = (override: Partial<PostWithFormatData>) => Object.assign(TestHelper.getPostMock(override), override);
+const p = (override: Partial<Post>) => TestHelper.getPostMock(override);
 
 describe('Selectors.Posts', () => {
     const user1 = TestHelper.fakeUserWithId();
@@ -22,12 +21,12 @@ describe('Selectors.Posts', () => {
     profiles[user1.id] = user1;
 
     const posts = {
-        a: p({id: 'a', channel_id: '1', create_at: 1, highlight: false, user_id: user1.id}),
-        b: p({id: 'b', channel_id: '1', create_at: 2, highlight: false, user_id: user1.id}),
-        c: p({id: 'c', root_id: 'a', channel_id: '1', create_at: 3, highlight: false, user_id: 'b'}),
-        d: p({id: 'd', root_id: 'b', channel_id: '1', create_at: 4, highlight: false, user_id: 'b'}),
-        e: p({id: 'e', root_id: 'a', channel_id: '1', create_at: 5, highlight: false, user_id: 'b'}),
-        f: p({id: 'f', channel_id: '2', create_at: 6, highlight: false, user_id: 'b'}),
+        a: p({id: 'a', channel_id: '1', create_at: 1, user_id: user1.id}),
+        b: p({id: 'b', channel_id: '1', create_at: 2, user_id: user1.id}),
+        c: p({id: 'c', root_id: 'a', channel_id: '1', create_at: 3, user_id: 'b'}),
+        d: p({id: 'd', root_id: 'b', channel_id: '1', create_at: 4, user_id: 'b'}),
+        e: p({id: 'e', root_id: 'a', channel_id: '1', create_at: 5, user_id: 'b'}),
+        f: p({id: 'f', channel_id: '2', create_at: 6, user_id: 'b'}),
     };
 
     const reaction1 = {user_id: user1.id, emoji_name: '+1'} as Reaction;
@@ -108,635 +107,6 @@ describe('Selectors.Posts', () => {
     it('should return profiles for reactions', () => {
         const getProfilesForReactions = makeGetProfilesForReactions();
         expect(getProfilesForReactions(testState, [reaction1])).toEqual([user1]);
-    });
-
-    it('get posts in channel', () => {
-        const post1 = {
-            ...posts.a,
-            isFirstReply: false,
-            isLastReply: false,
-            previousPostIsComment: false,
-            commentedOnPost: undefined,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: false,
-        };
-
-        const post2 = {
-            ...posts.b,
-            isFirstReply: false,
-            isLastReply: false,
-            previousPostIsComment: false,
-            commentedOnPost: undefined,
-            consecutivePostByUser: true,
-            replyCount: 1,
-            isCommentMention: false,
-        };
-
-        const post3 = {
-            ...posts.c,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: false,
-            commentedOnPost: posts.a,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: false,
-        };
-
-        const post4 = {
-            ...posts.d,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: posts.b,
-            consecutivePostByUser: true,
-            replyCount: 1,
-            isCommentMention: false,
-        };
-
-        const post5 = {
-            ...posts.e,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: posts.a,
-            consecutivePostByUser: true,
-            replyCount: 2,
-            isCommentMention: false,
-        };
-
-        const getPostsInChannel = Selectors.makeGetPostsInChannel();
-        expect(getPostsInChannel(testState, '1', 30)).toEqual([post5, post4, post3, post2, post1]);
-    });
-
-    it('get posts around post in channel', () => {
-        const post1: PostWithFormatData = {
-            ...posts.a,
-            isFirstReply: false,
-            isLastReply: false,
-            previousPostIsComment: false,
-            commentedOnPost: undefined,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: false,
-            highlight: false,
-        };
-
-        const post2: PostWithFormatData = {
-            ...posts.b,
-            isFirstReply: false,
-            isLastReply: false,
-            previousPostIsComment: false,
-            commentedOnPost: undefined,
-            consecutivePostByUser: true,
-            replyCount: 1,
-            isCommentMention: false,
-            highlight: false,
-        };
-
-        const post3: PostWithFormatData = {
-            ...posts.c,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: false,
-            commentedOnPost: posts.a,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: false,
-            highlight: true,
-        };
-
-        const post4: PostWithFormatData = {
-            ...posts.d,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: posts.b,
-            consecutivePostByUser: true,
-            replyCount: 1,
-            isCommentMention: false,
-            highlight: false,
-        };
-
-        const post5: PostWithFormatData = {
-            ...posts.e,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: posts.a,
-            consecutivePostByUser: true,
-            replyCount: 2,
-            isCommentMention: false,
-            highlight: false,
-        };
-
-        const getPostsAroundPost = Selectors.makeGetPostsAroundPost();
-        expect(getPostsAroundPost(testState, post3.id, '1')).toEqual([post5, post4, post3, post2, post1]);
-    });
-
-    it('get posts in channel with notify comments as any', () => {
-        const userAny = TestHelper.fakeUserWithId();
-        userAny.notify_props = {comments: 'any'} as UserProfile['notify_props'];
-        const profilesAny: Record<string, UserProfile> = {};
-        profilesAny[userAny.id] = userAny;
-
-        const postsAny = {
-            a: p({id: 'a', channel_id: '1', create_at: 1, highlight: false, user_id: userAny.id}),
-            b: p({id: 'b', channel_id: '1', create_at: 2, highlight: false, user_id: 'b'}),
-            c: p({id: 'c', root_id: 'a', channel_id: '1', create_at: 3, highlight: false, user_id: 'b'}),
-            d: p({id: 'd', root_id: 'b', channel_id: '1', create_at: 4, highlight: false, user_id: userAny.id}),
-            e: p({id: 'e', root_id: 'a', channel_id: '1', create_at: 5, highlight: false, user_id: 'b'}),
-            f: p({id: 'f', root_id: 'b', channel_id: '1', create_at: 6, highlight: false, user_id: 'b'}),
-            g: p({id: 'g', channel_id: '2', create_at: 7, highlight: false, user_id: 'b'}),
-        };
-
-        const testStateAny = deepFreezeAndThrowOnMutation({
-            entities: {
-                users: {
-                    currentUserId: userAny.id,
-                    profiles: profilesAny,
-                },
-                posts: {
-                    posts: postsAny,
-                    postsInChannel: {
-                        1: [
-                            {order: ['f', 'e', 'd', 'c', 'b', 'a'], recent: true},
-                        ],
-                        2: [
-                            {order: ['g'], recent: true},
-                        ],
-                    },
-                    postsInThread: {
-                        a: ['c', 'e'],
-                        b: ['d', 'f'],
-                    },
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-            },
-        });
-
-        const post1: PostWithFormatData = {
-            ...postsAny.a,
-            isFirstReply: false,
-            isLastReply: false,
-            previousPostIsComment: false,
-            commentedOnPost: undefined,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: false,
-            highlight: false,
-        };
-
-        const post2: PostWithFormatData = {
-            ...postsAny.b,
-            isFirstReply: false,
-            isLastReply: false,
-            previousPostIsComment: false,
-            commentedOnPost: undefined,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: true,
-            highlight: false,
-        };
-
-        const post3: PostWithFormatData = {
-            ...postsAny.c,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: false,
-            commentedOnPost: postsAny.a,
-            consecutivePostByUser: true,
-            replyCount: 2,
-            isCommentMention: true,
-            highlight: false,
-        };
-
-        const post4: PostWithFormatData = {
-            ...postsAny.d,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: postsAny.b,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: false,
-            highlight: false,
-        };
-
-        const post5: PostWithFormatData = {
-            ...postsAny.e,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: postsAny.a,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: true,
-            highlight: false,
-        };
-
-        const post6: PostWithFormatData = {
-            ...postsAny.f,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: postsAny.b,
-            consecutivePostByUser: true,
-            replyCount: 2,
-            isCommentMention: true,
-            highlight: false,
-        };
-
-        const getPostsInChannel = Selectors.makeGetPostsInChannel();
-        expect(getPostsInChannel(testStateAny, '1', 30)).toEqual([post6, post5, post4, post3, post2, post1]);
-    });
-
-    it('get posts in channel with notify comments as root', () => {
-        const userRoot = TestHelper.fakeUserWithId();
-        userRoot.notify_props = {comments: 'root'} as UserProfile['notify_props'];
-        const profilesRoot: Record<string, UserProfile> = {};
-        profilesRoot[userRoot.id] = userRoot;
-
-        const postsRoot = {
-            a: p({id: 'a', channel_id: '1', create_at: 1, highlight: false, user_id: userRoot.id}),
-            b: p({id: 'b', channel_id: '1', create_at: 2, highlight: false, user_id: 'b'}),
-            c: p({id: 'c', root_id: 'a', channel_id: '1', create_at: 3, highlight: false, user_id: 'b'}),
-            d: p({id: 'd', root_id: 'b', channel_id: '1', create_at: 4, highlight: false, user_id: userRoot.id}),
-            e: p({id: 'e', root_id: 'a', channel_id: '1', create_at: 5, highlight: false, user_id: 'b'}),
-            f: p({id: 'f', root_id: 'b', channel_id: '1', create_at: 6, highlight: false, user_id: 'b'}),
-            g: p({id: 'g', channel_id: '2', create_at: 7, highlight: false, user_id: 'b'}),
-        };
-
-        const testStateRoot = deepFreezeAndThrowOnMutation({
-            entities: {
-                users: {
-                    currentUserId: userRoot.id,
-                    profiles: profilesRoot,
-                },
-                posts: {
-                    posts: postsRoot,
-                    postsInChannel: {
-                        1: [
-                            {order: ['f', 'e', 'd', 'c', 'b', 'a'], recent: true},
-                        ],
-                        2: [
-                            {order: ['g'], recent: true},
-                        ],
-                    },
-                    postsInThread: {
-                        a: ['c', 'e'],
-                        b: ['d', 'f'],
-                    },
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-            },
-        });
-
-        const post1 = {
-            ...postsRoot.a,
-            isFirstReply: false,
-            isLastReply: false,
-            previousPostIsComment: false,
-            commentedOnPost: undefined,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: false,
-        };
-
-        const post2 = {
-            ...postsRoot.b,
-            isFirstReply: false,
-            isLastReply: false,
-            previousPostIsComment: false,
-            commentedOnPost: undefined,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: false,
-        };
-
-        const post3 = {
-            ...postsRoot.c,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: false,
-            commentedOnPost: postsRoot.a,
-            consecutivePostByUser: true,
-            replyCount: 2,
-            isCommentMention: true,
-        };
-
-        const post4 = {
-            ...postsRoot.d,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: postsRoot.b,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: false,
-        };
-
-        const post5 = {
-            ...postsRoot.e,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: postsRoot.a,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: true,
-        };
-
-        const post6 = {
-            ...postsRoot.f,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: postsRoot.b,
-            consecutivePostByUser: true,
-            replyCount: 2,
-            isCommentMention: false,
-        };
-
-        const getPostsInChannel = Selectors.makeGetPostsInChannel();
-        expect(getPostsInChannel(testStateRoot, '1', 30)).toEqual([post6, post5, post4, post3, post2, post1]);
-    });
-
-    it('get posts in channel with notify comments as never', () => {
-        const userNever = TestHelper.fakeUserWithId();
-        userNever.notify_props = {comments: 'never'} as UserProfile['notify_props'];
-        const profilesNever: Record<string, UserProfile> = {};
-        profilesNever[userNever.id] = userNever;
-
-        const postsNever = {
-            a: p({id: 'a', channel_id: '1', create_at: 1, highlight: false, user_id: userNever.id}),
-            b: p({id: 'b', channel_id: '1', create_at: 2, highlight: false, user_id: 'b'}),
-            c: p({id: 'c', root_id: 'a', channel_id: '1', create_at: 3, highlight: false, user_id: 'b'}),
-            d: p({id: 'd', root_id: 'b', channel_id: '1', create_at: 4, highlight: false, user_id: userNever.id}),
-            e: p({id: 'e', root_id: 'a', channel_id: '1', create_at: 5, highlight: false, user_id: 'b'}),
-            f: p({id: 'f', root_id: 'b', channel_id: '1', create_at: 6, highlight: false, user_id: 'b'}),
-            g: p({id: 'g', channel_id: '2', create_at: 7, highlight: false, user_id: 'b'}),
-        };
-
-        const testStateNever = deepFreezeAndThrowOnMutation({
-            entities: {
-                users: {
-                    currentUserId: userNever.id,
-                    profiles: profilesNever,
-                },
-                posts: {
-                    posts: postsNever,
-                    postsInChannel: {
-                        1: [
-                            {order: ['f', 'e', 'd', 'c', 'b', 'a'], recent: true},
-                        ],
-                        2: [
-                            {order: ['g'], recent: true},
-                        ],
-                    },
-                    postsInThread: {
-                        a: ['c', 'e'],
-                        b: ['d', 'f'],
-                    },
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-            },
-        });
-
-        const post1: PostWithFormatData = {
-            ...postsNever.a,
-            isFirstReply: false,
-            isLastReply: false,
-            previousPostIsComment: false,
-            commentedOnPost: undefined,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: false,
-            highlight: false,
-        };
-
-        const post2: PostWithFormatData = {
-            ...postsNever.b,
-            isFirstReply: false,
-            isLastReply: false,
-            previousPostIsComment: false,
-            commentedOnPost: undefined,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: false,
-            highlight: false,
-        };
-
-        const post3: PostWithFormatData = {
-            ...postsNever.c,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: false,
-            commentedOnPost: postsNever.a,
-            consecutivePostByUser: true,
-            replyCount: 2,
-            isCommentMention: false,
-            highlight: false,
-        };
-
-        const post4: PostWithFormatData = {
-            ...postsNever.d,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: postsNever.b,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: false,
-            highlight: false,
-        };
-
-        const post5: PostWithFormatData = {
-            ...postsNever.e,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: postsNever.a,
-            consecutivePostByUser: false,
-            replyCount: 2,
-            isCommentMention: false,
-            highlight: false,
-        };
-
-        const post6: PostWithFormatData = {
-            ...postsNever.f,
-            isFirstReply: true,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: postsNever.b,
-            consecutivePostByUser: true,
-            replyCount: 2,
-            isCommentMention: false,
-            highlight: false,
-        };
-
-        const getPostsInChannel = Selectors.makeGetPostsInChannel();
-        expect(getPostsInChannel(testStateNever, '1', 30)).toEqual([post6, post5, post4, post3, post2, post1]);
-    });
-
-    it('gets posts around post in channel not adding ephemeral post to replyCount', () => {
-        const userAny = TestHelper.fakeUserWithId();
-        userAny.notify_props = {comments: 'any'} as UserProfile['notify_props'];
-        const profilesAny: Record<string, UserProfile> = {};
-        profilesAny[userAny.id] = userAny;
-
-        const postsAny = {
-            a: {id: 'a', channel_id: '1', create_at: 1, highlight: false, user_id: userAny.id},
-            b: {id: 'b', root_id: 'a', channel_id: '1', create_at: 2, highlight: false, user_id: 'b'},
-            c: {id: 'c', root_id: 'a', channel_id: '1', create_at: 3, highlight: false, user_id: 'b', type: Posts.POST_TYPES.EPHEMERAL},
-            d: {id: 'd', channel_id: '2', create_at: 4, highlight: false, user_id: 'b'},
-        };
-
-        const testStateAny = deepFreezeAndThrowOnMutation({
-            entities: {
-                users: {
-                    currentUserId: userAny.id,
-                    profiles: profilesAny,
-                },
-                posts: {
-                    posts: postsAny,
-                    postsInChannel: {
-                        1: [
-                            {order: ['c', 'b', 'a'], recent: true},
-                        ],
-                        2: [
-                            {order: ['d'], recent: true},
-                        ],
-                    },
-                    postsInThread: {
-                        a: ['b', 'c'],
-                    },
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-            },
-        });
-
-        const post1 = {
-            ...postsAny.a,
-            isFirstReply: false,
-            isLastReply: false,
-            previousPostIsComment: false,
-            commentedOnPost: undefined,
-            consecutivePostByUser: false,
-            replyCount: 1,
-            isCommentMention: false,
-            highlight: true,
-        };
-
-        const post2 = {
-            ...postsAny.b,
-            isFirstReply: true,
-            isLastReply: false,
-            previousPostIsComment: false,
-            commentedOnPost: undefined,
-            consecutivePostByUser: false,
-            replyCount: 1,
-            isCommentMention: true,
-        };
-
-        const post3 = {
-            ...postsAny.c,
-            isFirstReply: false,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: undefined,
-            consecutivePostByUser: false,
-            replyCount: 1,
-            isCommentMention: true,
-        };
-
-        const getPostsAroundPost = Selectors.makeGetPostsAroundPost();
-        expect(getPostsAroundPost(testStateAny, post1.id, '1')).toEqual([post3, post2, post1]);
-    });
-
-    it('gets posts in channel not adding ephemeral post to replyCount', () => {
-        const userAny = TestHelper.fakeUserWithId();
-        userAny.notify_props = {comments: 'any'} as UserProfile['notify_props'];
-        const profilesAny: Record<string, UserProfile> = {};
-        profilesAny[userAny.id] = userAny;
-
-        const postsAny = {
-            a: {id: 'a', channel_id: '1', create_at: 1, highlight: false, user_id: userAny.id},
-            b: {id: 'b', root_id: 'a', channel_id: '1', create_at: 2, highlight: false, user_id: 'b', type: Posts.POST_TYPES.EPHEMERAL},
-            c: {id: 'c', root_id: 'a', channel_id: '1', create_at: 3, highlight: false, user_id: 'b', state: Posts.POST_DELETED},
-            d: {id: 'd', channel_id: '2', create_at: 4, highlight: false, user_id: 'b'},
-        };
-
-        const testStateAny = deepFreezeAndThrowOnMutation({
-            entities: {
-                users: {
-                    currentUserId: userAny.id,
-                    profiles: profilesAny,
-                },
-                posts: {
-                    posts: postsAny,
-                    postsInChannel: {
-                        1: [
-                            {order: ['c', 'b', 'a'], recent: true},
-                        ],
-                        2: [
-                            {order: ['d'], recent: true},
-                        ],
-                    },
-                    postsInThread: {
-                        a: ['b', 'c'],
-                    },
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-            },
-        });
-
-        const post1 = {
-            ...postsAny.a,
-            isFirstReply: false,
-            isLastReply: false,
-            previousPostIsComment: false,
-            commentedOnPost: undefined,
-            consecutivePostByUser: false,
-            replyCount: 0,
-            isCommentMention: false,
-        };
-
-        const post2 = {
-            ...postsAny.b,
-            isFirstReply: true,
-            isLastReply: false,
-            previousPostIsComment: false,
-            commentedOnPost: undefined,
-            consecutivePostByUser: false,
-            replyCount: 0,
-            isCommentMention: true,
-        };
-
-        const post3 = {
-            ...postsAny.c,
-            isFirstReply: false,
-            isLastReply: true,
-            previousPostIsComment: true,
-            commentedOnPost: undefined,
-            consecutivePostByUser: false,
-            replyCount: 0,
-            isCommentMention: true,
-        };
-
-        const getPostsInChannel = Selectors.makeGetPostsInChannel();
-        expect(getPostsInChannel(testStateAny, '1', 30)).toEqual([post3, post2, post1]);
     });
 
     it('get current history item', () => {
@@ -1034,293 +404,6 @@ describe('Selectors.Posts', () => {
             previous1 = now1;
             now1 = getPostIdsForThread1(state, '1001');
             expect(now1).toEqual(previous1);
-        });
-    });
-
-    describe('getPostIdsAroundPost', () => {
-        it('no posts around', () => {
-            const getPostIdsAroundPost = Selectors.makeGetPostIdsAroundPost();
-
-            const state = {
-                entities: {
-                    posts: {
-                        postsInChannel: {
-                            1234: [
-                                {order: ['a'], recent: true},
-                            ],
-                        },
-                    },
-                },
-            } as unknown as GlobalState;
-
-            expect(getPostIdsAroundPost(state, 'a', '1234')).toEqual(['a']);
-        });
-
-        it('posts around', () => {
-            const getPostIdsAroundPost = Selectors.makeGetPostIdsAroundPost();
-
-            const state = {
-                entities: {
-                    posts: {
-                        postsInChannel: {
-                            1234: [
-                                {order: ['a', 'b', 'c', 'd', 'e'], recent: true},
-                            ],
-                        },
-                    },
-                },
-            } as unknown as GlobalState;
-
-            expect(getPostIdsAroundPost(state, 'c', '1234')).toEqual(['a', 'b', 'c', 'd', 'e']);
-        });
-
-        it('posts before limit', () => {
-            const getPostIdsAroundPost = Selectors.makeGetPostIdsAroundPost();
-
-            const state = {
-                entities: {
-                    posts: {
-                        postsInChannel: {
-                            1234: [
-                                {order: ['a', 'b', 'c', 'd', 'e'], recent: true},
-                            ],
-                        },
-                    },
-                },
-            } as unknown as GlobalState;
-
-            expect(getPostIdsAroundPost(state, 'a', '1234', {postsBeforeCount: 2})).toEqual(['a', 'b', 'c']);
-        });
-
-        it('posts after limit', () => {
-            const getPostIdsAroundPost = Selectors.makeGetPostIdsAroundPost();
-
-            const state = {
-                entities: {
-                    posts: {
-                        postsInChannel: {
-                            1234: [
-                                {order: ['a', 'b', 'c', 'd', 'e'], recent: true},
-                            ],
-                        },
-                    },
-                },
-            } as unknown as GlobalState;
-
-            expect(getPostIdsAroundPost(state, 'e', '1234', {postsAfterCount: 3})).toEqual(['b', 'c', 'd', 'e']);
-        });
-
-        it('posts before/after limit', () => {
-            const getPostIdsAroundPost = Selectors.makeGetPostIdsAroundPost();
-
-            const state = {
-                entities: {
-                    posts: {
-                        postsInChannel: {
-                            1234: [
-                                {order: ['a', 'b', 'c', 'd', 'e', 'f'], recent: true},
-                            ],
-                        },
-                    },
-                },
-            } as unknown as GlobalState;
-
-            expect(getPostIdsAroundPost(state, 'c', '1234', {postsBeforeCount: 2, postsAfterCount: 1})).toEqual(['b', 'c', 'd', 'e']);
-        });
-
-        it('memoization', () => {
-            const getPostIdsAroundPost = Selectors.makeGetPostIdsAroundPost();
-
-            let state = {
-                entities: {
-                    posts: {
-                        postsInChannel: {
-                            1234: [
-                                {order: ['a', 'b', 'c', 'd', 'e'], recent: true},
-                            ],
-                        },
-                    },
-                },
-            } as unknown as GlobalState;
-
-            // No limit, no changes
-            let previous = getPostIdsAroundPost(state, 'c', '1234');
-            let now = getPostIdsAroundPost(state, 'c', '1234');
-            expect(now).toEqual(['a', 'b', 'c', 'd', 'e']);
-            expect(now).toBe(previous);
-
-            // Changes to posts in another channel
-            state = {
-                ...state,
-                entities: {
-                    ...state.entities,
-                    posts: {
-                        ...state.entities.posts,
-                        postsInChannel: {
-                            ...state.entities.posts.postsInChannel,
-                            abcd: [
-                                {order: ['g', 'h', 'i', 'j', 'k', 'l'], recent: true},
-                            ],
-                        },
-                    },
-                },
-            };
-
-            previous = now;
-            now = getPostIdsAroundPost(state, 'c', '1234');
-            expect(now).toEqual(['a', 'b', 'c', 'd', 'e']);
-            expect(now).toBe(previous);
-
-            // Changes to posts in this channel
-            state = {
-                ...state,
-                entities: {
-                    ...state.entities,
-                    posts: {
-                        ...state.entities.posts,
-                        postsInChannel: {
-                            ...state.entities.posts.postsInChannel,
-                            1234: [
-                                {order: ['a', 'b', 'c', 'd', 'e', 'f'], recent: true},
-                            ],
-                        },
-                    },
-                },
-            };
-
-            previous = now;
-            now = getPostIdsAroundPost(state, 'c', '1234');
-            expect(now).toEqual(['a', 'b', 'c', 'd', 'e', 'f']);
-            expect(now).not.toBe(previous);
-
-            previous = now;
-            now = getPostIdsAroundPost(state, 'c', '1234');
-            expect(now).toEqual(['a', 'b', 'c', 'd', 'e', 'f']);
-            expect(now).toBe(previous);
-
-            // Change of channel
-            previous = now;
-            now = getPostIdsAroundPost(state, 'i', 'abcd');
-            expect(now).toEqual(['g', 'h', 'i', 'j', 'k', 'l']);
-            expect(now).not.toBe(previous);
-
-            previous = now;
-            now = getPostIdsAroundPost(state, 'i', 'abcd');
-            expect(now).toEqual(['g', 'h', 'i', 'j', 'k', 'l']);
-            expect(now).toBe(previous);
-
-            // With limits
-            previous = now;
-            now = getPostIdsAroundPost(state, 'i', 'abcd', {postsBeforeCount: 2, postsAfterCount: 1});
-            expect(now).toEqual(['h', 'i', 'j', 'k']);
-            expect(now).not.toBe(previous);
-
-            previous = now;
-            now = getPostIdsAroundPost(state, 'i', 'abcd', {postsBeforeCount: 2, postsAfterCount: 1}); // Note that the options object is a new object each time
-            expect(now).toEqual(['h', 'i', 'j', 'k']);
-            expect(now).toBe(previous);
-
-            // Change of limits
-            previous = now;
-            now = getPostIdsAroundPost(state, 'i', 'abcd', {postsBeforeCount: 1, postsAfterCount: 2});
-            expect(now).toEqual(['g', 'h', 'i', 'j']);
-            expect(now).not.toBe(previous);
-
-            previous = now;
-            now = getPostIdsAroundPost(state, 'i', 'abcd', {postsBeforeCount: 1, postsAfterCount: 2});
-            expect(now).toEqual(['g', 'h', 'i', 'j']);
-            expect(now).toBe(previous);
-
-            // Change of post
-            previous = now;
-            now = getPostIdsAroundPost(state, 'j', 'abcd', {postsBeforeCount: 1, postsAfterCount: 2});
-            expect(now).toEqual(['h', 'i', 'j', 'k']);
-            expect(now).not.toBe(previous);
-
-            previous = now;
-            now = getPostIdsAroundPost(state, 'j', 'abcd', {postsBeforeCount: 1, postsAfterCount: 2});
-            expect(now).toEqual(['h', 'i', 'j', 'k']);
-            expect(now).toBe(previous);
-
-            // Change of posts past limit
-            state = {
-                ...state,
-                entities: {
-                    ...state.entities,
-                    posts: {
-                        ...state.entities.posts,
-                        postsInChannel: {
-                            ...state.entities.posts.postsInChannel,
-                            abcd: [
-                                {order: ['y', 'g', 'h', 'i', 'j', 'k', 'l', 'f', 'z'], recent: true},
-                            ],
-                        },
-                    },
-                },
-            };
-            previous = now;
-            now = getPostIdsAroundPost(state, 'j', 'abcd', {postsBeforeCount: 1, postsAfterCount: 2});
-            expect(now).toEqual(['h', 'i', 'j', 'k']);
-            expect(now).toBe(previous);
-
-            // Change of post order
-            state = {
-                ...state,
-                entities: {
-                    ...state.entities,
-                    posts: {
-                        ...state.entities.posts,
-                        postsInChannel: {
-                            ...state.entities.posts.postsInChannel,
-                            abcd: [
-                                {order: ['y', 'g', 'i', 'h', 'j', 'l', 'k', 'z'], recent: true},
-                            ],
-                        },
-                    },
-                },
-            };
-
-            previous = now;
-            now = getPostIdsAroundPost(state, 'j', 'abcd', {postsBeforeCount: 1, postsAfterCount: 2});
-            expect(now).toEqual(['i', 'h', 'j', 'l']);
-            expect(now).not.toBe(previous);
-
-            previous = now;
-            now = getPostIdsAroundPost(state, 'j', 'abcd', {postsBeforeCount: 1, postsAfterCount: 2});
-            expect(now).toEqual(['i', 'h', 'j', 'l']);
-            expect(now).toBe(previous);
-        });
-
-        it('memoization with multiple selectors', () => {
-            const getPostIdsAroundPost1 = Selectors.makeGetPostIdsAroundPost();
-            const getPostIdsAroundPost2 = Selectors.makeGetPostIdsAroundPost();
-
-            const state = {
-                entities: {
-                    posts: {
-                        postsInChannel: {
-                            1234: [
-                                {order: ['a', 'b', 'c', 'd', 'e', 'f'], recent: true},
-                            ],
-                            abcd: [
-                                {order: ['g', 'h', 'i'], recent: true},
-                            ],
-                        },
-                    },
-                },
-            } as unknown as GlobalState;
-
-            const previous1 = getPostIdsAroundPost1(state, 'c', '1234');
-            const previous2 = getPostIdsAroundPost2(state, 'h', 'abcd', {postsBeforeCount: 1, postsAfterCount: 0});
-
-            expect(previous1).not.toBe(previous2);
-
-            const now1 = getPostIdsAroundPost1(state, 'c', '1234');
-            const now2 = getPostIdsAroundPost2(state, 'i', 'abcd', {postsBeforeCount: 1, postsAfterCount: 0});
-
-            expect(now1).toBe(previous1);
-            expect(now2).not.toBe(previous2);
-            expect(now1).not.toBe(now2);
         });
     });
 
@@ -1823,6 +906,11 @@ describe('Selectors.Posts', () => {
             };
             const state = {
                 entities: {
+                    general: {
+                        config: {
+                            EnableJoinLeaveMessageByDefault: 'true',
+                        },
+                    },
                     posts: {
                         posts: testPosts,
                         postsInChannel: {
@@ -1852,6 +940,11 @@ describe('Selectors.Posts', () => {
             };
             const state = {
                 entities: {
+                    general: {
+                        config: {
+                            EnableJoinLeaveMessageByDefault: 'true',
+                        },
+                    },
                     posts: {
                         posts: testPosts,
                         postsInChannel: {
@@ -1880,6 +973,11 @@ describe('Selectors.Posts', () => {
                     channels: {
                         currentChannelId: 'abcd',
                     },
+                    general: {
+                        config: {
+                            EnableJoinLeaveMessageByDefault: 'true',
+                        },
+                    },
                     posts: {
                         posts: {},
                         postsInChannel: [],
@@ -1899,16 +997,21 @@ describe('Selectors.Posts', () => {
 
         it('return first post which dosent have POST_DELETED state', () => {
             const postsAny = {
-                a: {id: 'a', channel_id: 'a', create_at: 1, highlight: false, user_id: 'a'},
-                b: {id: 'b', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', state: Posts.POST_DELETED},
-                c: {id: 'c', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', type: 'system_join_channel'},
-                d: {id: 'd', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', type: Posts.POST_TYPES.EPHEMERAL},
-                e: {id: 'e', channel_id: 'abcd', create_at: 4, highlight: false, user_id: 'b'},
+                a: {id: 'a', channel_id: 'a', create_at: 1, user_id: 'a'},
+                b: {id: 'b', root_id: 'a', channel_id: 'abcd', create_at: 3, user_id: 'b', state: Posts.POST_DELETED},
+                c: {id: 'c', root_id: 'a', channel_id: 'abcd', create_at: 3, user_id: 'b', type: 'system_join_channel'},
+                d: {id: 'd', root_id: 'a', channel_id: 'abcd', create_at: 3, user_id: 'b', type: Posts.POST_TYPES.EPHEMERAL},
+                e: {id: 'e', channel_id: 'abcd', create_at: 4, user_id: 'b'},
             };
             const state = {
                 entities: {
                     channels: {
                         currentChannelId: 'abcd',
+                    },
+                    general: {
+                        config: {
+                            EnableJoinLeaveMessageByDefault: 'true',
+                        },
                     },
                     posts: {
                         posts: postsAny,
@@ -1976,7 +1079,7 @@ describe('Selectors.Posts', () => {
                             e: {
                                 ...modifiedState.entities.posts.posts.e,
                                 props: {
-                                    from_webhook: true,
+                                    from_webhook: 'true',
                                 },
                                 user_id: user1.id,
                             },
@@ -2147,6 +1250,11 @@ describe('getPostsInCurrentChannel', () => {
                 channels: {
                     currentChannelId: 'channel1',
                 },
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 posts: {
                     posts: {},
                     postsInChannel: {},
@@ -2176,6 +1284,11 @@ describe('getPostsInCurrentChannel', () => {
             entities: {
                 channels: {
                     currentChannelId: 'channel1',
+                },
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
                 },
                 posts: {
                     posts: {
@@ -2214,6 +1327,11 @@ describe('getPostsInCurrentChannel', () => {
                 channels: {
                     currentChannelId: 'channel1',
                 },
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
                 posts: {
                     posts: {
                         post1,
@@ -2240,206 +1358,6 @@ describe('getPostsInCurrentChannel', () => {
         const postIds = Selectors.getPostsInCurrentChannel(state);
 
         expect(postIds).toMatchObject([post1, post2]);
-    });
-});
-
-describe('getCurrentUsersLatestPost', () => {
-    const user1 = TestHelper.fakeUserWithId();
-    const profiles: Record<string, UserProfile> = {};
-    profiles[user1.id] = user1;
-    it('no posts', () => {
-        const noPosts = {};
-        const state = {
-            entities: {
-                users: {
-                    currentUserId: user1.id,
-                    profiles,
-                },
-                posts: {
-                    posts: noPosts,
-                    postsInChannel: [],
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-                channels: {
-                    currentChannelId: 'abcd',
-                },
-            },
-        } as unknown as GlobalState;
-        const actual = Selectors.getCurrentUsersLatestPost(state, '');
-
-        expect(actual).toEqual(null);
-    });
-
-    it('return first post which user can edit', () => {
-        const postsAny = {
-            a: {id: 'a', channel_id: 'a', create_at: 1, highlight: false, user_id: 'a'},
-            b: {id: 'b', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', state: Posts.POST_DELETED},
-            c: {id: 'c', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', type: 'system_join_channel'},
-            d: {id: 'd', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', type: Posts.POST_TYPES.EPHEMERAL},
-            e: {id: 'e', channel_id: 'abcd', create_at: 4, highlight: false, user_id: 'c'},
-            f: {id: 'f', channel_id: 'abcd', create_at: 4, highlight: false, user_id: user1.id},
-        };
-        const state = {
-            entities: {
-                users: {
-                    currentUserId: user1.id,
-                    profiles,
-                },
-                posts: {
-                    posts: postsAny,
-                    postsInChannel: {
-                        abcd: [
-                            {order: ['b', 'c', 'd', 'e', 'f'], recent: true},
-                        ],
-                    },
-                    postsInThread: {},
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-                channels: {
-                    currentChannelId: 'abcd',
-                },
-            },
-        } as unknown as GlobalState;
-        const actual = Selectors.getCurrentUsersLatestPost(state, '');
-
-        expect(actual).toMatchObject(postsAny.f);
-    });
-
-    it('return first post which user can edit ignore pending and failed', () => {
-        const postsAny = {
-            a: {id: 'a', channel_id: 'a', create_at: 1, highlight: false, user_id: 'a'},
-            b: {id: 'b', channel_id: 'abcd', create_at: 4, highlight: false, user_id: user1.id, pending_post_id: 'b'},
-            c: {id: 'c', channel_id: 'abcd', create_at: 4, highlight: false, user_id: user1.id, failed: true},
-            d: {id: 'd', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', type: Posts.POST_TYPES.EPHEMERAL},
-            e: {id: 'e', channel_id: 'abcd', create_at: 4, highlight: false, user_id: 'c'},
-            f: {id: 'f', channel_id: 'abcd', create_at: 4, highlight: false, user_id: user1.id},
-        };
-        const state = {
-            entities: {
-                users: {
-                    currentUserId: user1.id,
-                    profiles,
-                },
-                posts: {
-                    posts: postsAny,
-                    postsInChannel: {
-                        abcd: [
-                            {order: ['b', 'c', 'd', 'e', 'f'], recent: true},
-                        ],
-                    },
-                    postsInThread: {},
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-                channels: {
-                    currentChannelId: 'abcd',
-                },
-            },
-        } as unknown as GlobalState;
-        const actual = Selectors.getCurrentUsersLatestPost(state, '');
-
-        expect(actual).toMatchObject(postsAny.f);
-    });
-
-    it('return first post which has rootId match', () => {
-        const postsAny = {
-            a: {id: 'a', channel_id: 'a', create_at: 1, highlight: false, user_id: 'a'},
-            b: {id: 'b', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', state: Posts.POST_DELETED},
-            c: {id: 'c', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', type: 'system_join_channel'},
-            d: {id: 'd', root_id: 'a', channel_id: 'abcd', create_at: 3, highlight: false, user_id: 'b', type: Posts.POST_TYPES.EPHEMERAL},
-            e: {id: 'e', channel_id: 'abcd', create_at: 4, highlight: false, user_id: 'c'},
-            f: {id: 'f', root_id: 'e', channel_id: 'abcd', create_at: 4, highlight: false, user_id: user1.id},
-        };
-        const state = {
-            entities: {
-                users: {
-                    currentUserId: user1.id,
-                    profiles,
-                },
-                posts: {
-                    posts: postsAny,
-                    postsInChannel: {
-                        abcd: [
-                            {order: ['b', 'c', 'd', 'e', 'f'], recent: true},
-                        ],
-                    },
-                    postsInThread: {},
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-                channels: {
-                    currentChannelId: 'abcd',
-                },
-            },
-        } as unknown as GlobalState;
-        const actual = Selectors.getCurrentUsersLatestPost(state, 'e');
-
-        expect(actual).toMatchObject(postsAny.f);
-    });
-
-    it('should not return posts outside of the recent block', () => {
-        const postsAny = {
-            a: {id: 'a', channel_id: 'a', create_at: 1, user_id: 'a'},
-        };
-        const state = {
-            entities: {
-                users: {
-                    currentUserId: user1.id,
-                    profiles,
-                },
-                posts: {
-                    posts: postsAny,
-                    postsInChannel: {
-                        abcd: [
-                            {order: ['a'], recent: false},
-                        ],
-                    },
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-                channels: {
-                    currentChannelId: 'abcd',
-                },
-            },
-        } as unknown as GlobalState;
-        const actual = Selectors.getCurrentUsersLatestPost(state, 'e');
-
-        expect(actual).toEqual(null);
-    });
-
-    it('determine the sending posts', () => {
-        const state = {
-            entities: {
-                users: {
-                    currentUserId: user1.id,
-                    profiles,
-                },
-                posts: {
-                    posts: {},
-                    postsInChannel: {},
-                    pendingPostIds: ['1', '2', '3'],
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-                channels: {
-                    currentChannelId: 'abcd',
-                },
-            },
-        } as unknown as GlobalState;
-
-        expect(Selectors.isPostIdSending(state, '1')).toEqual(true);
-        expect(Selectors.isPostIdSending(state, '2')).toEqual(true);
-        expect(Selectors.isPostIdSending(state, '3')).toEqual(true);
-        expect(Selectors.isPostIdSending(state, '4')).toEqual(false);
-        expect(Selectors.isPostIdSending(state, '')).toEqual(false);
     });
 });
 

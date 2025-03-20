@@ -17,11 +17,11 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
-var latestVersionCache = cache.NewLRU(cache.LRUOptions{
+var latestVersionCache = cache.NewLRU(&cache.CacheOptions{
 	Size: 1,
 })
 
-func (s *Server) GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError) {
+func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
 	license := s.License()
@@ -33,11 +33,11 @@ func (s *Server) GetLogs(c request.CTX, page, perPage int) ([]string, *model.App
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		} else {
-			c.Logger().Error("Could not get cluster info")
+			rctx.Logger().Error("Could not get cluster info")
 		}
 	}
 
-	melines, err := s.GetLogsSkipSend(page, perPage, &model.LogFilter{})
+	melines, err := s.GetLogsSkipSend(rctx, page, perPage, &model.LogFilter{})
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (s *Server) GetLogs(c request.CTX, page, perPage int) ([]string, *model.App
 	lines = append(lines, melines...)
 
 	if s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
-		clines, err := s.platform.Cluster().GetLogs(page, perPage)
+		clines, err := s.platform.Cluster().GetLogs(rctx, page, perPage)
 		if err != nil {
 			return nil, err
 		}
@@ -56,7 +56,7 @@ func (s *Server) GetLogs(c request.CTX, page, perPage int) ([]string, *model.App
 	return lines, nil
 }
 
-func (s *Server) QueryLogs(c request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
 	logData := make(map[string][]string)
 
 	serverName := "default"
@@ -66,23 +66,27 @@ func (s *Server) QueryLogs(c request.CTX, page, perPage int, logFilter *model.Lo
 		if info := s.platform.Cluster().GetMyClusterInfo(); info != nil {
 			serverName = info.Hostname
 		} else {
-			c.Logger().Error("Could not get cluster info")
+			rctx.Logger().Error("Could not get cluster info")
 		}
 	}
 
+	var appErr *model.AppError
 	serverNames := logFilter.ServerNames
 	if len(serverNames) > 0 {
 		for _, nodeName := range serverNames {
 			if nodeName == "default" {
-				AddLocalLogs(logData, s, page, perPage, nodeName, logFilter)
+				appErr = addLocalLogs(rctx, logData, s, page, perPage, nodeName, logFilter)
 			}
 		}
 	} else {
-		AddLocalLogs(logData, s, page, perPage, serverName, logFilter)
+		appErr = addLocalLogs(rctx, logData, s, page, perPage, serverName, logFilter)
+	}
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	if s.platform.Cluster() != nil && *s.Config().ClusterSettings.Enable {
-		clusterLogs, err := s.platform.Cluster().QueryLogs(page, perPage)
+		clusterLogs, err := s.platform.Cluster().QueryLogs(rctx, page, perPage)
 		if err != nil {
 			return nil, err
 		}
@@ -101,8 +105,8 @@ func (s *Server) QueryLogs(c request.CTX, page, perPage int, logFilter *model.Lo
 	return logData, nil
 }
 
-func AddLocalLogs(logData map[string][]string, s *Server, page, perPage int, serverName string, logFilter *model.LogFilter) *model.AppError {
-	currentServerLogs, err := s.GetLogsSkipSend(page, perPage, logFilter)
+func addLocalLogs(rctx request.CTX, logData map[string][]string, s *Server, page, perPage int, serverName string, logFilter *model.LogFilter) *model.AppError {
+	currentServerLogs, err := s.GetLogsSkipSend(rctx, page, perPage, logFilter)
 	if err != nil {
 		return err
 	}
@@ -119,12 +123,12 @@ func (a *App) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.App
 	return a.Srv().GetLogs(rctx, page, perPage)
 }
 
-func (s *Server) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
-	return s.platform.GetLogsSkipSend(page, perPage, logFilter)
+func (s *Server) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
+	return s.platform.GetLogsSkipSend(rctx, page, perPage, logFilter)
 }
 
 func (a *App) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
-	return a.Srv().GetLogsSkipSend(page, perPage, logFilter)
+	return a.Srv().GetLogsSkipSend(rctx, page, perPage, logFilter)
 }
 
 func (a *App) GetClusterStatus(rctx request.CTX) []*model.ClusterInfo {
@@ -229,7 +233,7 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(validErr)
 	}
 
-	err = latestVersionCache.Set("latest_version_cache", releaseInfoResponse)
+	err = latestVersionCache.SetWithExpiry("latest_version_cache", releaseInfoResponse, 24*time.Hour)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -237,6 +241,6 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 	return releaseInfoResponse, nil
 }
 
-func (a *App) ClearLatestVersionCache(rctx request.CTX) {
-	latestVersionCache.Remove("latest_version_cache")
+func (a *App) clearLatestVersionCache() error {
+	return latestVersionCache.Remove("latest_version_cache")
 }

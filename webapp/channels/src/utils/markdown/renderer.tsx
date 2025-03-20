@@ -273,7 +273,7 @@ export default class Renderer extends marked.Renderer {
 
 // Marked helper functions that should probably just be exported
 
-function unescapeHtmlEntities(html: string) {
+export function unescapeHtmlEntities(html: string) {
     return html.replace(/&([#\w]+);/g, (_, m) => {
         const n = m.toLowerCase();
         if (n === 'colon') {

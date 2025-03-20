@@ -44,14 +44,6 @@ import DotMenu from './dot_menu';
 
 type Props = {
     post: Post;
-    isFlagged?: boolean;
-    handleCommentClick?: React.EventHandler<React.MouseEvent | React.KeyboardEvent>;
-    handleCardClick?: (post: Post) => void;
-    handleDropdownOpened: (open: boolean) => void;
-    handleAddReactionClick?: () => void;
-    isMenuOpen: boolean;
-    isReadOnly?: boolean;
-    enableEmojiPicker?: boolean;
     location?: ComponentProps<typeof DotMenu>['location'];
 };
 
@@ -67,7 +59,7 @@ function makeMapStateToProps() {
         const userId = getCurrentUserId(state);
         const channel = getChannel(state, post.channel_id);
         const currentTeam = getCurrentTeam(state);
-        const team = getTeam(state, channel.team_id);
+        const team = channel ? getTeam(state, channel.team_id) : undefined;
         const teamUrl = `${getSiteURL()}/${team?.name || currentTeam?.name}`;
         const isMilitaryTime = getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false);
 
@@ -123,7 +115,7 @@ function makeMapStateToProps() {
             isMobileView: getIsMobileView(state),
             timezone: getCurrentTimezone(state),
             isMilitaryTime,
-            canMove: canWrangler(state, channel.type, threadReplyCount),
+            canMove: channel ? canWrangler(state, channel.type, threadReplyCount) : false,
         };
     };
 }

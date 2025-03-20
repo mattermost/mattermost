@@ -11,16 +11,16 @@ import (
 )
 
 func (api *API) InitPluginLocal() {
-	api.BaseRoutes.Plugins.Handle("", api.APILocal(uploadPlugin, handlerParamFileAPI)).Methods("POST")
-	api.BaseRoutes.Plugins.Handle("", api.APILocal(getPlugins)).Methods("GET")
-	api.BaseRoutes.Plugins.Handle("/install_from_url", api.APILocal(installPluginFromURL)).Methods("POST")
-	api.BaseRoutes.Plugin.Handle("", api.APILocal(removePlugin)).Methods("DELETE")
-	api.BaseRoutes.Plugin.Handle("/enable", api.APILocal(enablePlugin)).Methods("POST")
-	api.BaseRoutes.Plugin.Handle("/disable", api.APILocal(disablePlugin)).Methods("POST")
-	api.BaseRoutes.Plugins.Handle("/marketplace", api.APILocal(installMarketplacePlugin)).Methods("POST")
-	api.BaseRoutes.Plugins.Handle("/marketplace", api.APILocal(getMarketplacePlugins)).Methods("GET")
-	api.BaseRoutes.Plugins.Handle("/reattach", api.APILocal(reattachPlugin)).Methods("POST")
-	api.BaseRoutes.Plugin.Handle("/detach", api.APILocal(detachPlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("", api.APILocal(uploadPlugin, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugins.Handle("", api.APILocal(getPlugins)).Methods(http.MethodGet)
+	api.BaseRoutes.Plugins.Handle("/install_from_url", api.APILocal(installPluginFromURL)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugin.Handle("", api.APILocal(removePlugin)).Methods(http.MethodDelete)
+	api.BaseRoutes.Plugin.Handle("/enable", api.APILocal(enablePlugin)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugin.Handle("/disable", api.APILocal(disablePlugin)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.APILocal(installMarketplacePlugin)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.APILocal(getMarketplacePlugins)).Methods(http.MethodGet)
+	api.BaseRoutes.Plugins.Handle("/reattach", api.APILocal(reattachPlugin)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugin.Handle("/detach", api.APILocal(detachPlugin)).Methods(http.MethodPost)
 }
 
 // reattachPlugin allows the server to bind to an existing plugin instance launched elsewhere.

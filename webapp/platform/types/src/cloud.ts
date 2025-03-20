@@ -2,14 +2,12 @@
 // See LICENSE.txt for license information.
 
 import type {AllowedIPRange} from './config';
-import type {ValueOf} from './utilities';
 
 export type CloudState = {
     subscription?: Subscription;
     products?: Record<string, Product>;
     customer?: CloudCustomer;
     invoices?: Record<string, Invoice>;
-    subscriptionStats?: LicenseSelfServeStatusReducer;
     limits: {
         limitsLoaded: boolean;
         limits: Limits;
@@ -21,9 +19,6 @@ export type CloudState = {
         invoices?: true;
         limits?: true;
         trueUpReview?: true;
-    };
-    selfHostedSignup: {
-        progress: ValueOf<typeof SelfHostedSignupProgress>;
     };
 }
 
@@ -74,27 +69,6 @@ export type AddOn = {
     price_per_seat: number;
 };
 
-export const TypePurchases = {
-    firstSelfHostLicensePurchase: 'first_purchase',
-    renewalSelfHost: 'renewal_self',
-    monthlySubscription: 'monthly_subscription',
-    annualSubscription: 'annual_subscription',
-} as const;
-
-export const SelfHostedSignupProgress = {
-    START: 'START',
-    CREATED_CUSTOMER: 'CREATED_CUSTOMER',
-    CREATED_INTENT: 'CREATED_INTENT',
-    CONFIRMED_INTENT: 'CONFIRMED_INTENT',
-    CREATED_SUBSCRIPTION: 'CREATED_SUBSCRIPTION',
-    PAID: 'PAID',
-    CREATED_LICENSE: 'CREATED_LICENSE',
-} as const;
-
-export type MetadataGatherWireTransferKeys = `${ValueOf<typeof TypePurchases>}_alt_payment_method`
-
-export type CustomerMetadataGatherWireTransfer = Partial<Record<MetadataGatherWireTransferKeys, string>>
-
 // Customer model represents a customer on the system.
 export type CloudCustomer = {
     id: string;
@@ -108,16 +82,6 @@ export type CloudCustomer = {
     billing_address: Address;
     company_address: Address;
     payment_method: PaymentMethod;
-} & CustomerMetadataGatherWireTransfer
-
-export type LicenseSelfServeStatus = {
-    is_expandable?: boolean;
-    is_renewable?: boolean;
-}
-
-type RequestState = 'IDLE' | 'LOADING' | 'ERROR' | 'OK'
-export interface LicenseSelfServeStatusReducer extends LicenseSelfServeStatus {
-    getRequestState: RequestState;
 }
 
 // CustomerPatch model represents a customer patch on the system.
@@ -127,7 +91,7 @@ export type CloudCustomerPatch = {
     num_employees?: number;
     contact_first_name?: string;
     contact_last_name?: string;
-} & CustomerMetadataGatherWireTransfer
+}
 
 // Address model represents a customer's address.
 export type Address = {
@@ -226,13 +190,6 @@ export type ValidBusinessEmail = {
     is_valid: boolean;
 }
 
-export interface CreateSubscriptionRequest {
-    product_id: string;
-    add_ons: string[];
-    seats: number;
-    internal_purchase_order?: string;
-}
-
 export interface NewsletterRequestBody {
     email: string;
     subscribed_content: string;
@@ -247,9 +204,4 @@ export const areShippingDetailsValid = (address: Address | null | undefined): bo
 export type Feedback = {
     reason: string;
     comments: string;
-}
-
-export type WorkspaceDeletionRequest = {
-    subscription_id: string;
-    delete_feedback: Feedback;
 }

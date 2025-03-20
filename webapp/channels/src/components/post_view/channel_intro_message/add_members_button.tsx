@@ -21,7 +21,6 @@ import ToggleModalButton from 'components/toggle_modal_button';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 import './add_members_button.scss';
 
@@ -68,16 +67,17 @@ const LessThanMaxFreeUsers = ({pluginButtons}: {pluginButtons: React.ReactNode})
             {pluginButtons}
             <div className='LessThanMaxFreeUsers'>
                 <ToggleModalButton
-                    ariaLabel={localizeMessage('intro_messages.inviteOthers', 'Invite others to the workspace')}
                     id='introTextInvite'
                     className='btn btn-sm btn-primary'
                     modalId={ModalIdentifiers.INVITATION}
                     dialogType={InvitationModal}
                     onClick={() => trackEvent('channel_intro_message', 'click_invite_button')}
+                    dialogProps={{focusOriginElement: 'browseOrAddChannelMenuButton'}}
                 >
                     <i
                         className='icon-email-plus-outline'
                         title={formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
+                        aria-hidden='true'
                     />
                     <FormattedMessage
                         id='intro_messages.inviteOthersToWorkspace.button'
@@ -117,6 +117,7 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
                         <i
                             className='icon-account-plus-outline'
                             title={formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
+                            aria-hidden='true'
                         />
                         {channel.group_constrained &&
                             <FormattedMessage

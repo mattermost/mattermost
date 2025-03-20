@@ -83,6 +83,7 @@ const (
 	LineTypeTeam          = "team"
 	LineTypeChannel       = "channel"
 	LineTypeUser          = "user"
+	LineTypeBot           = "bot"
 	LineTypePost          = "post"
 	LineTypeDirectChannel = "direct_channel"
 	LineTypeDirectPost    = "direct_post"
@@ -410,6 +411,8 @@ func (v *Validator) validateLine(info ImportFileInfo, line imports.LineImportDat
 		err = v.validateChannel(info, line)
 	case LineTypeUser:
 		err = v.validateUser(info, line)
+	case LineTypeBot:
+		err = v.validateBot(info, line)
 	case LineTypePost:
 		err = v.validatePost(info, line)
 	case LineTypeDirectChannel:
@@ -725,6 +728,36 @@ func (v *Validator) validateUser(info ImportFileInfo, line imports.LineImportDat
 	return nil
 }
 
+func (v *Validator) validateBot(info ImportFileInfo, line imports.LineImportData) (err error) {
+	ivErr := validateNotNil(info, "bot", line.Bot, func(data imports.BotImportData) *ImportValidationError {
+		appErr := imports.ValidateBotImportData(&data)
+		if appErr != nil {
+			return &ImportValidationError{
+				ImportFileInfo: info,
+				FieldName:      "bot",
+				Err:            appErr,
+			}
+		}
+
+		if data.Username != nil {
+			// e-mails are for bots are converted to the the username@localhost format
+			// see model.BotFromUser
+			botMail := model.NormalizeEmail(fmt.Sprintf("%s@localhost", *data.Username))
+			if ive := v.checkDuplicateUser(info, *data.Username, botMail); ive != nil {
+				return ive
+			}
+			v.users[*data.Username] = info
+		}
+
+		return nil
+	})
+	if ivErr != nil {
+		return v.onError(ivErr)
+	}
+
+	return nil
+}
+
 func (v *Validator) validatePost(info ImportFileInfo, line imports.LineImportData) (err error) {
 	ivErr := validateNotNil(info, "post", line.Post, func(data imports.PostImportData) *ImportValidationError {
 		appErr := imports.ValidatePostImportData(&data, v.maxPostSize)
@@ -782,7 +815,10 @@ func (v *Validator) validatePost(info ImportFileInfo, line imports.LineImportDat
 				continue
 			}
 
-			attachmentPath := path.Join("data", *attachment.Path)
+			attachmentPath := *attachment.Path
+			if _, ok := v.attachments[attachmentPath]; !ok {
+				attachmentPath = path.Join("data", *attachment.Path)
+			}
 
 			if _, ok := v.attachments[attachmentPath]; !ok {
 				helpful := ""
@@ -832,7 +868,17 @@ func (v *Validator) validateDirectChannel(info ImportFileInfo, line imports.Line
 			}
 		}
 
-		if data.Members != nil {
+		if data.Participants != nil {
+			for i, member := range data.Participants {
+				if _, ok := v.users[*member.Username]; !ok {
+					return &ImportValidationError{
+						ImportFileInfo: info,
+						FieldName:      fmt.Sprintf("direct_channel.members[%d]", i),
+						Err:            fmt.Errorf("reference to unknown user %q", *member.Username),
+					}
+				}
+			}
+		} else if data.Members != nil {
 			for i, member := range *data.Members {
 				if _, ok := v.users[member]; !ok {
 					return &ImportValidationError{
@@ -906,7 +952,10 @@ func (v *Validator) validateDirectPost(info ImportFileInfo, line imports.LineImp
 				continue
 			}
 
-			attachmentPath := path.Join("data", *attachment.Path)
+			attachmentPath := *attachment.Path
+			if _, ok := v.attachments[attachmentPath]; !ok {
+				attachmentPath = path.Join("data", *attachment.Path)
+			}
 
 			if _, ok := v.attachments[attachmentPath]; !ok {
 				helpful := ""

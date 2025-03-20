@@ -1,5 +1,81 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`components/AnnouncementBar should match snapshot, admin configured bar 1`] = `
+<div>
+  <AnnouncementBar
+    actions={
+      Object {
+        "decrementAnnouncementBarCount": [MockFunction],
+        "incrementAnnouncementBarCount": [MockFunction],
+        "sendVerificationEmail": [MockFunction],
+      }
+    }
+    allowBannerDismissal={true}
+    announcementBarCount={0}
+    bannerColor="green"
+    bannerText="Banner text"
+    bannerTextColor="black"
+    canViewAPIv3Banner={false}
+    canViewSystemErrors={false}
+    color=""
+    enableBanner={true}
+    enablePreviewMode={false}
+    enableSignUpWithGitLab={false}
+    isLoggedIn={true}
+    isTallBanner={false}
+    license={
+      Object {
+        "id": "",
+      }
+    }
+    message="text"
+    sendEmailNotifications={true}
+    showCTA={true}
+    showCloseButton={false}
+    showLinkAsButton={false}
+    siteURL=""
+    textColor=""
+    type="critical"
+  />
+  <AnnouncementBar
+    actions={
+      Object {
+        "decrementAnnouncementBarCount": [MockFunction],
+        "incrementAnnouncementBarCount": [MockFunction],
+        "sendVerificationEmail": [MockFunction],
+      }
+    }
+    allowBannerDismissal={true}
+    announcementBarCount={0}
+    bannerColor="green"
+    bannerText="Banner text"
+    bannerTextColor="black"
+    canViewAPIv3Banner={false}
+    canViewSystemErrors={false}
+    className="admin-announcement"
+    color=""
+    enableBanner={true}
+    enablePreviewMode={false}
+    enableSignUpWithGitLab={false}
+    isLoggedIn={true}
+    isTallBanner={false}
+    license={
+      Object {
+        "id": "",
+      }
+    }
+    message="text"
+    sendEmailNotifications={true}
+    showCTA={true}
+    showCloseButton={false}
+    showLinkAsButton={false}
+    siteURL=""
+    textColor=""
+    type="critical"
+  />
+</div>
+`;
+
 exports[`components/AnnouncementBar should match snapshot, bar not showing 1`] = `
 <_StyledDiv
   className="announcement-bar announcement-bar-critical"
@@ -10,31 +86,17 @@ exports[`components/AnnouncementBar should match snapshot, bar not showing 1`] =
     }
   }
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayHide={0}
-    delayShow={400}
-    overlay={<React.Fragment />}
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+  <div
+    className="announcement-bar__text"
   >
-    <div
-      className="announcement-bar__text"
+    <span
+      onMouseEnter={[Function]}
     >
-      <span
-        onMouseEnter={[Function]}
-      >
-        <FormattedMarkdownMessage
-          id="text"
-        />
-      </span>
-    </div>
-  </OverlayTrigger>
+      <FormattedMarkdownMessage
+        id="text"
+      />
+    </span>
+  </div>
 </_StyledDiv>
 `;
 
@@ -48,31 +110,17 @@ exports[`components/AnnouncementBar should match snapshot, bar showing 1`] = `
     }
   }
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayHide={0}
-    delayShow={400}
-    overlay={<React.Fragment />}
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+  <div
+    className="announcement-bar__text"
   >
-    <div
-      className="announcement-bar__text"
+    <span
+      onMouseEnter={[Function]}
     >
-      <span
-        onMouseEnter={[Function]}
-      >
-        <FormattedMarkdownMessage
-          id="text"
-        />
-      </span>
-    </div>
-  </OverlayTrigger>
+      <FormattedMarkdownMessage
+        id="text"
+      />
+    </span>
+  </div>
 </_StyledDiv>
 `;
 
@@ -86,31 +134,17 @@ exports[`components/AnnouncementBar should match snapshot, bar showing, no dismi
     }
   }
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayHide={0}
-    delayShow={400}
-    overlay={<React.Fragment />}
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+  <div
+    className="announcement-bar__text"
   >
-    <div
-      className="announcement-bar__text"
+    <span
+      onMouseEnter={[Function]}
     >
-      <span
-        onMouseEnter={[Function]}
-      >
-        <FormattedMarkdownMessage
-          id="text"
-        />
-      </span>
-    </div>
-  </OverlayTrigger>
+      <FormattedMarkdownMessage
+        id="text"
+      />
+    </span>
+  </div>
 </_StyledDiv>
 `;
 
@@ -124,31 +158,17 @@ exports[`components/AnnouncementBar should match snapshot, dismissal 1`] = `
     }
   }
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayHide={0}
-    delayShow={400}
-    overlay={<React.Fragment />}
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+  <div
+    className="announcement-bar__text"
   >
-    <div
-      className="announcement-bar__text"
+    <span
+      onMouseEnter={[Function]}
     >
-      <span
-        onMouseEnter={[Function]}
-      >
-        <FormattedMarkdownMessage
-          id="text"
-        />
-      </span>
-    </div>
-  </OverlayTrigger>
+      <FormattedMarkdownMessage
+        id="text"
+      />
+    </span>
+  </div>
 </_StyledDiv>
 `;
 
@@ -162,31 +182,17 @@ exports[`components/AnnouncementBar should match snapshot, dismissal 2`] = `
     }
   }
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayHide={0}
-    delayShow={400}
-    overlay={<React.Fragment />}
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+  <div
+    className="announcement-bar__text"
   >
-    <div
-      className="announcement-bar__text"
+    <span
+      onMouseEnter={[Function]}
     >
-      <span
-        onMouseEnter={[Function]}
-      >
-        <FormattedMarkdownMessage
-          id="text"
-        />
-      </span>
-    </div>
-  </OverlayTrigger>
+      <FormattedMarkdownMessage
+        id="text"
+      />
+    </span>
+  </div>
 </_StyledDiv>
 `;
 
@@ -200,31 +206,17 @@ exports[`components/AnnouncementBar should match snapshot, dismissal 3`] = `
     }
   }
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayHide={0}
-    delayShow={400}
-    overlay={<React.Fragment />}
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+  <div
+    className="announcement-bar__text"
   >
-    <div
-      className="announcement-bar__text"
+    <span
+      onMouseEnter={[Function]}
     >
-      <span
-        onMouseEnter={[Function]}
-      >
-        <FormattedMarkdownMessage
-          id="text"
-        />
-      </span>
-    </div>
-  </OverlayTrigger>
+      <FormattedMarkdownMessage
+        id="text"
+      />
+    </span>
+  </div>
 </_StyledDiv>
 `;
 
@@ -238,31 +230,17 @@ exports[`components/AnnouncementBar should match snapshot, props change 1`] = `
     }
   }
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayHide={0}
-    delayShow={400}
-    overlay={<React.Fragment />}
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+  <div
+    className="announcement-bar__text"
   >
-    <div
-      className="announcement-bar__text"
+    <span
+      onMouseEnter={[Function]}
     >
-      <span
-        onMouseEnter={[Function]}
-      >
-        <FormattedMarkdownMessage
-          id="text"
-        />
-      </span>
-    </div>
-  </OverlayTrigger>
+      <FormattedMarkdownMessage
+        id="text"
+      />
+    </span>
+  </div>
 </_StyledDiv>
 `;
 
@@ -276,31 +254,17 @@ exports[`components/AnnouncementBar should match snapshot, props change 2`] = `
     }
   }
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayHide={0}
-    delayShow={400}
-    overlay={<React.Fragment />}
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+  <div
+    className="announcement-bar__text"
   >
-    <div
-      className="announcement-bar__text"
+    <span
+      onMouseEnter={[Function]}
     >
-      <span
-        onMouseEnter={[Function]}
-      >
-        <FormattedMarkdownMessage
-          id="text"
-        />
-      </span>
-    </div>
-  </OverlayTrigger>
+      <FormattedMarkdownMessage
+        id="text"
+      />
+    </span>
+  </div>
 </_StyledDiv>
 `;
 
@@ -314,31 +278,17 @@ exports[`components/AnnouncementBar should match snapshot, props change 3`] = `
     }
   }
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayHide={0}
-    delayShow={400}
-    overlay={<React.Fragment />}
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+  <div
+    className="announcement-bar__text"
   >
-    <div
-      className="announcement-bar__text"
+    <span
+      onMouseEnter={[Function]}
     >
-      <span
-        onMouseEnter={[Function]}
-      >
-        <FormattedMarkdownMessage
-          id="text"
-        />
-      </span>
-    </div>
-  </OverlayTrigger>
+      <FormattedMarkdownMessage
+        id="text"
+      />
+    </span>
+  </div>
 </_StyledDiv>
 `;
 
@@ -352,30 +302,16 @@ exports[`components/AnnouncementBar should match snapshot, props change 4`] = `
     }
   }
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayHide={0}
-    delayShow={400}
-    overlay={<React.Fragment />}
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+  <div
+    className="announcement-bar__text"
   >
-    <div
-      className="announcement-bar__text"
+    <span
+      onMouseEnter={[Function]}
     >
-      <span
-        onMouseEnter={[Function]}
-      >
-        <FormattedMarkdownMessage
-          id="text"
-        />
-      </span>
-    </div>
-  </OverlayTrigger>
+      <FormattedMarkdownMessage
+        id="text"
+      />
+    </span>
+  </div>
 </_StyledDiv>
 `;

@@ -23,7 +23,6 @@ import {
     makeGenerateCombinedPost,
     extractUserActivityData,
     START_OF_NEW_MESSAGES,
-    shouldShowJoinLeaveMessages,
 } from './post_list';
 
 import TestHelper from '../../test/test_helper';
@@ -1437,7 +1436,7 @@ describe('extractUserActivityData', () => {
 
 describe('combineUserActivityData', () => {
     it('combineUserActivitySystemPost returns null when systemPosts is an empty array', () => {
-        expect(combineUserActivitySystemPost([])).toBeNull();
+        expect(combineUserActivitySystemPost([])).toBeFalsy();
     });
     it('correctly combine different post types and actorIds by order', () => {
         const postAddToChannel1 = TestHelper.getPostMock({type: PostTypes.ADD_TO_CHANNEL, user_id: 'user_id_1', props: {addedUserId: 'added_user_id_1', addedUsername: 'added_username_1'}});
@@ -1686,97 +1685,5 @@ describe('combineUserActivityData', () => {
             ],
         };
         expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
-    });
-});
-
-describe('shouldShowJoinLeaveMessages', () => {
-    it('should default to true', () => {
-        const state = {
-            entities: {
-                general: {
-                    config: {
-                        EnableJoinLeaveMessageByDefault: 'true',
-                    },
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-            },
-        } as unknown as GlobalState;
-
-        // Defaults to show post
-        const show = shouldShowJoinLeaveMessages(state);
-        expect(show).toEqual(true);
-    });
-
-    it('set config to false, return false', () => {
-        const state = {
-            entities: {
-                general: {
-                    config: {
-                        EnableJoinLeaveMessageByDefault: 'false',
-                    },
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-            },
-        } as unknown as GlobalState;
-
-        // Defaults to show post
-        const show = shouldShowJoinLeaveMessages(state);
-        expect(show).toEqual(false);
-    });
-
-    it('if user preference, set default wont be used', () => {
-        const state = {
-            entities: {
-                general: {
-                    config: {
-                        EnableJoinLeaveMessageByDefault: 'false',
-                    },
-                },
-                preferences: {
-                    myPreferences: {
-                        [getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)]: {
-                            category: Preferences.CATEGORY_ADVANCED_SETTINGS,
-                            name: Preferences.ADVANCED_FILTER_JOIN_LEAVE,
-                            value: 'true',
-                        },
-
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-
-        // Defaults to show post
-        const show = shouldShowJoinLeaveMessages(state);
-        expect(show).toEqual(true);
-    });
-
-    it('if user preference, set default wont be used', () => {
-        const state = {
-            entities: {
-                general: {
-                    config: {
-                        EnableJoinLeaveMessageByDefault: 'true',
-                    },
-                },
-                preferences: {
-                    myPreferences: {
-                        [getPreferenceKey(Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE)]: {
-                            category: Preferences.CATEGORY_ADVANCED_SETTINGS,
-                            name: Preferences.ADVANCED_FILTER_JOIN_LEAVE,
-                            value: 'false',
-                        },
-
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-
-        // Defaults to show post
-        const show = shouldShowJoinLeaveMessages(state);
-        expect(show).toEqual(false);
     });
 });

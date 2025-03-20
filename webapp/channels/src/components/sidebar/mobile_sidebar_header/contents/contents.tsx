@@ -8,10 +8,9 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusModal from 'components/custom_status/custom_status_modal';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {ModalData} from 'types/actions';
 
@@ -68,13 +67,11 @@ export default class Contents extends React.PureComponent<Props> {
 
         if (this.props.teamDescription) {
             teamNameWithToolTip = (
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='bottom'
-                    overlay={<Tooltip id='team-name__tooltip'>{this.props.teamDescription}</Tooltip>}
+                <WithTooltip
+                    title={this.props.teamDescription}
                 >
                     {teamNameWithToolTip}
-                </OverlayTrigger>
+                </WithTooltip>
             );
         }
 
@@ -101,7 +98,6 @@ export default class Contents extends React.PureComponent<Props> {
                             </div>
                             <CustomStatusEmoji
                                 showTooltip={true}
-                                tooltipDirection='bottom'
                                 emojiStyle={{
                                     verticalAlign: 'top',
                                     marginLeft: 2,

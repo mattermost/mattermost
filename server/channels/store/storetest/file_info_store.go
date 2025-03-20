@@ -20,7 +20,7 @@ import (
 
 func TestFileInfoStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Cleanup(func() {
-		s.GetMasterX().Exec("TRUNCATE FileInfo")
+		s.GetMaster().Exec("TRUNCATE FileInfo")
 	})
 	t.Run("FileInfoSaveGet", func(t *testing.T) { testFileInfoSaveGet(t, rctx, ss) })
 	t.Run("FileInfoSaveGetByPath", func(t *testing.T) { testFileInfoSaveGetByPath(t, rctx, ss) })
@@ -37,6 +37,10 @@ func TestFileInfoStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("CountAll", func(t *testing.T) { testFileInfoStoreCountAll(t, rctx, ss) })
 	t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, rctx, ss) })
 	t.Run("GetUptoNSizeFileTime", func(t *testing.T) { testGetUptoNSizeFileTime(t, rctx, ss, s) })
+	t.Run("FileInfoPermanentDeleteForPost", func(t *testing.T) { testPermanentDeleteForPost(t, rctx, ss) })
+	t.Run("FileInfoGetByIds", func(t *testing.T) { testGetByIds(t, rctx, ss) })
+	t.Run("FileInfoDeleteForPostByIds", func(t *testing.T) { testDeleteForPostByIds(t, rctx, ss) })
+	t.Run("FileInfoRestoreForPostByIds", func(t *testing.T) { testRestoreUndeleteForPostByIds(t, rctx, ss) })
 }
 
 func testFileInfoSaveGet(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -105,34 +109,34 @@ func testFileInfoSaveGetByPath(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testFileInfoGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
-	userId := model.NewId()
-	postId := model.NewId()
-	channelId := model.NewId()
+	userID := model.NewId()
+	postID := model.NewId()
+	channelID := model.NewId()
 
 	infos := []*model.FileInfo{
 		{
-			PostId:    postId,
-			ChannelId: channelId,
-			CreatorId: userId,
+			PostId:    postID,
+			ChannelId: channelID,
+			CreatorId: userID,
 			Path:      "file.txt",
 		},
 		{
-			PostId:    postId,
-			ChannelId: channelId,
-			CreatorId: userId,
+			PostId:    postID,
+			ChannelId: channelID,
+			CreatorId: userID,
 			Path:      "file.txt",
 		},
 		{
-			PostId:    postId,
-			ChannelId: channelId,
-			CreatorId: userId,
+			PostId:    postID,
+			ChannelId: channelID,
+			CreatorId: userID,
 			Path:      "file.txt",
 			DeleteAt:  123,
 		},
 		{
 			PostId:    model.NewId(),
-			ChannelId: channelId,
-			CreatorId: userId,
+			ChannelId: channelID,
+			CreatorId: userID,
 			Path:      "file.txt",
 		},
 	}
@@ -148,7 +152,7 @@ func testFileInfoGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	testCases := []struct {
 		Name           string
-		PostId         string
+		PostID         string
 		ReadFromMaster bool
 		IncludeDeleted bool
 		AllowFromCache bool
@@ -156,7 +160,7 @@ func testFileInfoGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	}{
 		{
 			Name:           "Fetch from master, without deleted and without cache",
-			PostId:         postId,
+			PostID:         postID,
 			ReadFromMaster: true,
 			IncludeDeleted: false,
 			AllowFromCache: false,
@@ -164,7 +168,7 @@ func testFileInfoGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:           "Fetch from master, with deleted and without cache",
-			PostId:         postId,
+			PostID:         postID,
 			ReadFromMaster: true,
 			IncludeDeleted: true,
 			AllowFromCache: false,
@@ -172,7 +176,7 @@ func testFileInfoGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:           "Fetch from master, with deleted and with cache",
-			PostId:         postId,
+			PostID:         postID,
 			ReadFromMaster: true,
 			IncludeDeleted: true,
 			AllowFromCache: true,
@@ -180,7 +184,7 @@ func testFileInfoGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:           "Fetch from replica, without deleted and without cache",
-			PostId:         postId,
+			PostID:         postID,
 			ReadFromMaster: false,
 			IncludeDeleted: false,
 			AllowFromCache: false,
@@ -188,7 +192,7 @@ func testFileInfoGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:           "Fetch from replica, with deleted and without cache",
-			PostId:         postId,
+			PostID:         postID,
 			ReadFromMaster: false,
 			IncludeDeleted: true,
 			AllowFromCache: false,
@@ -196,7 +200,7 @@ func testFileInfoGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:           "Fetch from replica, with deleted and without cache",
-			PostId:         postId,
+			PostID:         postID,
 			ReadFromMaster: false,
 			IncludeDeleted: true,
 			AllowFromCache: true,
@@ -204,7 +208,7 @@ func testFileInfoGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:           "Fetch from replica, without deleted and with cache",
-			PostId:         postId,
+			PostID:         postID,
 			ReadFromMaster: true,
 			IncludeDeleted: false,
 			AllowFromCache: true,
@@ -215,7 +219,7 @@ func testFileInfoGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			postInfos, err := ss.FileInfo().GetForPost(
-				tc.PostId,
+				tc.PostID,
 				tc.ReadFromMaster,
 				tc.IncludeDeleted,
 				tc.AllowFromCache,
@@ -227,34 +231,34 @@ func testFileInfoGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testFileInfoGetForUser(t *testing.T, rctx request.CTX, ss store.Store) {
-	userId := model.NewId()
-	userId2 := model.NewId()
-	postId := model.NewId()
-	channelId := model.NewId()
+	userID := model.NewId()
+	userID2 := model.NewId()
+	postID := model.NewId()
+	channelID := model.NewId()
 
 	infos := []*model.FileInfo{
 		{
-			PostId:    postId,
-			ChannelId: channelId,
-			CreatorId: userId,
+			PostId:    postID,
+			ChannelId: channelID,
+			CreatorId: userID,
 			Path:      "file.txt",
 		},
 		{
-			PostId:    postId,
-			ChannelId: channelId,
-			CreatorId: userId,
+			PostId:    postID,
+			ChannelId: channelID,
+			CreatorId: userID,
 			Path:      "file.txt",
 		},
 		{
-			PostId:    postId,
-			ChannelId: channelId,
-			CreatorId: userId,
+			PostId:    postID,
+			ChannelId: channelID,
+			CreatorId: userID,
 			Path:      "file.txt",
 		},
 		{
 			PostId:    model.NewId(),
-			ChannelId: channelId,
-			CreatorId: userId2,
+			ChannelId: channelID,
+			CreatorId: userID2,
 			Path:      "file.txt",
 		},
 	}
@@ -268,11 +272,11 @@ func testFileInfoGetForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		}(newInfo.Id)
 	}
 
-	userPosts, err := ss.FileInfo().GetForUser(userId)
+	userPosts, err := ss.FileInfo().GetForUser(userID)
 	require.NoError(t, err)
 	assert.Len(t, userPosts, 3)
 
-	userPosts, err = ss.FileInfo().GetForUser(userId2)
+	userPosts, err = ss.FileInfo().GetForUser(userID2)
 	require.NoError(t, err)
 	assert.Len(t, userPosts, 1)
 }
@@ -307,24 +311,24 @@ func testFileInfoGetWithOptions(t *testing.T, rctx request.CTX, ss store.Store) 
 		return fileInfo
 	}
 
-	userId1 := model.NewId()
-	userId2 := model.NewId()
+	userID1 := model.NewId()
+	userID2 := model.NewId()
 
-	channelId1 := model.NewId()
-	channelId2 := model.NewId()
-	channelId3 := model.NewId()
+	channelID1 := model.NewId()
+	channelID2 := model.NewId()
+	channelID3 := model.NewId()
 
-	post1_1 := makePost(channelId1, userId1) // post 1 by user 1
-	post1_2 := makePost(channelId3, userId1) // post 2 by user 1
-	post2_1 := makePost(channelId2, userId2)
-	post2_2 := makePost(channelId3, userId2)
+	post1_1 := makePost(channelID1, userID1) // post 1 by user 1
+	post1_2 := makePost(channelID3, userID1) // post 2 by user 1
+	post2_1 := makePost(channelID2, userID2)
+	post2_2 := makePost(channelID3, userID2)
 
 	epoch := time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC)
-	file1_1 := makeFile(post1_1, userId1, epoch.AddDate(0, 0, 1).Unix(), "a")       // file 1 by user 1
-	file1_2 := makeFile(post1_2, userId1, epoch.AddDate(0, 0, 2).Unix(), "b")       // file 2 by user 1
-	file1_3 := makeFile(&model.Post{}, userId1, epoch.AddDate(0, 0, 3).Unix(), "c") // file that is not attached to a post
-	file2_1 := makeFile(post2_1, userId2, epoch.AddDate(0, 0, 4).Unix(), "d")       // file 2 by user 1
-	file2_2 := makeFile(post2_2, userId2, epoch.AddDate(0, 0, 5).Unix(), "e")
+	file1_1 := makeFile(post1_1, userID1, epoch.AddDate(0, 0, 1).Unix(), "a")       // file 1 by user 1
+	file1_2 := makeFile(post1_2, userID1, epoch.AddDate(0, 0, 2).Unix(), "b")       // file 2 by user 1
+	file1_3 := makeFile(&model.Post{}, userID1, epoch.AddDate(0, 0, 3).Unix(), "c") // file that is not attached to a post
+	file2_1 := makeFile(post2_1, userID2, epoch.AddDate(0, 0, 4).Unix(), "d")       // file 2 by user 1
+	file2_2 := makeFile(post2_2, userID2, epoch.AddDate(0, 0, 5).Unix(), "e")
 
 	// delete a file
 	_, err := ss.FileInfo().DeleteForPost(rctx, file2_2.PostId)
@@ -356,7 +360,7 @@ func testFileInfoGetWithOptions(t *testing.T, rctx request.CTX, ss store.Store) 
 			PerPage: 10,
 			Opt: &model.GetFileInfosOptions{
 				IncludeDeleted: true,
-				ChannelIds:     []string{channelId3},
+				ChannelIds:     []string{channelID3},
 			},
 			ExpectedFileIds: []string{file1_2.Id, file2_2.Id},
 		},
@@ -366,8 +370,8 @@ func testFileInfoGetWithOptions(t *testing.T, rctx request.CTX, ss store.Store) 
 			PerPage: 10,
 			Opt: &model.GetFileInfosOptions{
 				IncludeDeleted: true,
-				UserIds:        []string{userId1},
-				ChannelIds:     []string{channelId3},
+				UserIds:        []string{userID1},
+				ChannelIds:     []string{channelID3},
 			},
 			ExpectedFileIds: []string{file1_2.Id},
 		},
@@ -386,7 +390,7 @@ func testFileInfoGetWithOptions(t *testing.T, rctx request.CTX, ss store.Store) 
 			Page:    0,
 			PerPage: 10,
 			Opt: &model.GetFileInfosOptions{
-				UserIds:        []string{userId1},
+				UserIds:        []string{userID1},
 				SortBy:         model.FileinfoSortByCreated,
 				SortDescending: true,
 			},
@@ -417,25 +421,25 @@ func testFileInfoGetWithOptions(t *testing.T, rctx request.CTX, ss store.Store) 
 	}
 }
 
-type byFileInfoId []*model.FileInfo
+type byFileInfoID []*model.FileInfo
 
-func (a byFileInfoId) Len() int           { return len(a) }
-func (a byFileInfoId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byFileInfoId) Less(i, j int) bool { return a[i].Id < a[j].Id }
+func (a byFileInfoID) Len() int           { return len(a) }
+func (a byFileInfoID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byFileInfoID) Less(i, j int) bool { return a[i].Id < a[j].Id }
 
 func testFileInfoAttachToPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should attach files", func(t *testing.T) {
-		userId := model.NewId()
-		postId := model.NewId()
-		channelId := model.NewId()
+		userID := model.NewId()
+		postID := model.NewId()
+		channelID := model.NewId()
 
 		info1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
-			CreatorId: userId,
+			CreatorId: userID,
 			Path:      "file.txt",
 		})
 		require.NoError(t, err)
 		info2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
-			CreatorId: userId,
+			CreatorId: userID,
 			Path:      "file2.txt",
 		})
 		require.NoError(t, err)
@@ -443,49 +447,49 @@ func testFileInfoAttachToPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, "", info1.PostId)
 		require.Equal(t, "", info2.PostId)
 
-		err = ss.FileInfo().AttachToPost(rctx, info1.Id, postId, channelId, userId)
+		err = ss.FileInfo().AttachToPost(rctx, info1.Id, postID, channelID, userID)
 		assert.NoError(t, err)
-		info1.PostId = postId
-		info1.ChannelId = channelId
+		info1.PostId = postID
+		info1.ChannelId = channelID
 
-		err = ss.FileInfo().AttachToPost(rctx, info2.Id, postId, channelId, userId)
+		err = ss.FileInfo().AttachToPost(rctx, info2.Id, postID, channelID, userID)
 		assert.NoError(t, err)
-		info2.PostId = postId
-		info2.ChannelId = channelId
+		info2.PostId = postID
+		info2.ChannelId = channelID
 
-		data, err := ss.FileInfo().GetForPost(postId, true, false, false)
+		data, err := ss.FileInfo().GetForPost(postID, true, false, false)
 		require.NoError(t, err)
 
 		expected := []*model.FileInfo{info1, info2}
-		sort.Sort(byFileInfoId(expected))
-		sort.Sort(byFileInfoId(data))
+		sort.Sort(byFileInfoID(expected))
+		sort.Sort(byFileInfoID(data))
 		assert.EqualValues(t, expected, data)
 	})
 
 	t.Run("should not attach files to multiple posts", func(t *testing.T) {
-		userId := model.NewId()
-		postId := model.NewId()
-		channelId := model.NewId()
+		userID := model.NewId()
+		postID := model.NewId()
+		channelID := model.NewId()
 
 		info, err := ss.FileInfo().Save(rctx, &model.FileInfo{
-			CreatorId: userId,
+			CreatorId: userID,
 			Path:      "file.txt",
 		})
 		require.NoError(t, err)
 
 		require.Equal(t, "", info.PostId)
 
-		err = ss.FileInfo().AttachToPost(rctx, info.Id, model.NewId(), channelId, userId)
+		err = ss.FileInfo().AttachToPost(rctx, info.Id, model.NewId(), channelID, userID)
 		require.NoError(t, err)
 
-		err = ss.FileInfo().AttachToPost(rctx, info.Id, postId, channelId, userId)
+		err = ss.FileInfo().AttachToPost(rctx, info.Id, postID, channelID, userID)
 		require.Error(t, err)
 	})
 
 	t.Run("should not attach files owned from a different user", func(t *testing.T) {
-		userId := model.NewId()
-		postId := model.NewId()
-		channelId := model.NewId()
+		userID := model.NewId()
+		postID := model.NewId()
+		channelID := model.NewId()
 
 		info, err := ss.FileInfo().Save(rctx, &model.FileInfo{
 			CreatorId: model.NewId(),
@@ -495,13 +499,13 @@ func testFileInfoAttachToPost(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		require.Equal(t, "", info.PostId)
 
-		err = ss.FileInfo().AttachToPost(rctx, info.Id, postId, channelId, userId)
+		err = ss.FileInfo().AttachToPost(rctx, info.Id, postID, channelID, userID)
 		assert.Error(t, err)
 	})
 
 	t.Run("should attach files uploaded by nouser", func(t *testing.T) {
-		postId := model.NewId()
-		channelId := model.NewId()
+		postID := model.NewId()
+		channelID := model.NewId()
 
 		info, err := ss.FileInfo().Save(rctx, &model.FileInfo{
 			CreatorId: "nouser",
@@ -510,46 +514,46 @@ func testFileInfoAttachToPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		assert.Equal(t, "", info.PostId)
 
-		err = ss.FileInfo().AttachToPost(rctx, info.Id, postId, channelId, model.NewId())
+		err = ss.FileInfo().AttachToPost(rctx, info.Id, postID, channelID, model.NewId())
 		require.NoError(t, err)
 
-		data, err := ss.FileInfo().GetForPost(postId, true, false, false)
+		data, err := ss.FileInfo().GetForPost(postID, true, false, false)
 		require.NoError(t, err)
-		info.PostId = postId
-		info.ChannelId = channelId
+		info.PostId = postID
+		info.ChannelId = channelID
 		assert.EqualValues(t, []*model.FileInfo{info}, data)
 	})
 }
 
 func testFileInfoDeleteForPost(t *testing.T, rctx request.CTX, ss store.Store) {
-	userId := model.NewId()
-	postId := model.NewId()
-	channelId := model.NewId()
+	userID := model.NewId()
+	postID := model.NewId()
+	channelID := model.NewId()
 
 	infos := []*model.FileInfo{
 		{
-			PostId:    postId,
-			ChannelId: channelId,
-			CreatorId: userId,
+			PostId:    postID,
+			ChannelId: channelID,
+			CreatorId: userID,
 			Path:      "file.txt",
 		},
 		{
-			PostId:    postId,
-			ChannelId: channelId,
-			CreatorId: userId,
+			PostId:    postID,
+			ChannelId: channelID,
+			CreatorId: userID,
 			Path:      "file.txt",
 		},
 		{
-			PostId:    postId,
-			ChannelId: channelId,
-			CreatorId: userId,
+			PostId:    postID,
+			ChannelId: channelID,
+			CreatorId: userID,
 			Path:      "file.txt",
 			DeleteAt:  123,
 		},
 		{
 			PostId:    model.NewId(),
-			ChannelId: channelId,
-			CreatorId: userId,
+			ChannelId: channelID,
+			CreatorId: userID,
 			Path:      "file.txt",
 		},
 	}
@@ -563,10 +567,10 @@ func testFileInfoDeleteForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		}(newInfo.Id)
 	}
 
-	_, err := ss.FileInfo().DeleteForPost(rctx, postId)
+	_, err := ss.FileInfo().DeleteForPost(rctx, postID)
 	require.NoError(t, err)
 
-	infos, err = ss.FileInfo().GetForPost(postId, true, false, false)
+	infos, err = ss.FileInfo().GetForPost(postID, true, false, false)
 	require.NoError(t, err)
 	assert.Empty(t, infos)
 }
@@ -585,12 +589,12 @@ func testFileInfoPermanentDelete(t *testing.T, rctx request.CTX, ss store.Store)
 }
 
 func testFileInfoPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
-	postId := model.NewId()
-	channelId := model.NewId()
+	postID := model.NewId()
+	channelID := model.NewId()
 
 	_, err := ss.FileInfo().Save(rctx, &model.FileInfo{
-		PostId:    postId,
-		ChannelId: channelId,
+		PostId:    postID,
+		ChannelId: channelID,
 		CreatorId: model.NewId(),
 		Path:      "file.txt",
 		CreateAt:  1000,
@@ -598,8 +602,8 @@ func testFileInfoPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.S
 	require.NoError(t, err)
 
 	_, err = ss.FileInfo().Save(rctx, &model.FileInfo{
-		PostId:    postId,
-		ChannelId: channelId,
+		PostId:    postID,
+		ChannelId: channelID,
 		CreatorId: model.NewId(),
 		Path:      "file.txt",
 		CreateAt:  1200,
@@ -607,8 +611,8 @@ func testFileInfoPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.S
 	require.NoError(t, err)
 
 	_, err = ss.FileInfo().Save(rctx, &model.FileInfo{
-		PostId:    postId,
-		ChannelId: channelId,
+		PostId:    postID,
+		ChannelId: channelID,
 		CreatorId: model.NewId(),
 		Path:      "file.txt",
 		CreateAt:  2000,
@@ -616,8 +620,8 @@ func testFileInfoPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.S
 	require.NoError(t, err)
 
 	bookmarkFile, err := ss.FileInfo().Save(rctx, &model.FileInfo{ // should not be deleted
-		PostId:    postId,
-		ChannelId: channelId,
+		PostId:    postID,
+		ChannelId: channelID,
 		CreatorId: model.BookmarkFileOwner,
 		Path:      "file.txt",
 		CreateAt:  1000,
@@ -625,32 +629,32 @@ func testFileInfoPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.S
 	defer ss.FileInfo().PermanentDelete(rctx, bookmarkFile.Id)
 	require.NoError(t, err)
 
-	postFiles, err := ss.FileInfo().GetForPost(postId, true, false, false)
+	postFiles, err := ss.FileInfo().GetForPost(postID, true, false, false)
 	require.NoError(t, err)
 	assert.Len(t, postFiles, 4)
 
 	_, err = ss.FileInfo().PermanentDeleteBatch(rctx, 1500, 1000)
 	require.NoError(t, err)
 
-	postFiles, err = ss.FileInfo().GetForPost(postId, true, false, false)
+	postFiles, err = ss.FileInfo().GetForPost(postID, true, false, false)
 	require.NoError(t, err)
 	assert.Len(t, postFiles, 2)
 }
 
 func testFileInfoPermanentDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) {
-	userId := model.NewId()
-	postId := model.NewId()
-	channelId := model.NewId()
+	userID := model.NewId()
+	postID := model.NewId()
+	channelID := model.NewId()
 
 	_, err := ss.FileInfo().Save(rctx, &model.FileInfo{
-		PostId:    postId,
-		ChannelId: channelId,
-		CreatorId: userId,
+		PostId:    postID,
+		ChannelId: channelID,
+		CreatorId: userID,
 		Path:      "file.txt",
 	})
 	require.NoError(t, err)
 
-	_, err = ss.FileInfo().PermanentDeleteByUser(rctx, userId)
+	_, err = ss.FileInfo().PermanentDeleteByUser(rctx, userID)
 	require.NoError(t, err)
 }
 
@@ -811,12 +815,15 @@ func testFileInfoStoreCountAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 
+	require.NoError(t, ss.FileInfo().RefreshFileStats())
 	count, err := ss.FileInfo().CountAll()
 	require.NoError(t, err)
 	require.Equal(t, int64(3), count)
 
 	_, err = ss.FileInfo().DeleteForPost(rctx, f1.PostId)
 	require.NoError(t, err)
+
+	require.NoError(t, ss.FileInfo().RefreshFileStats())
 	count, err = ss.FileInfo().CountAll()
 	require.NoError(t, err)
 	require.Equal(t, int64(2), count)
@@ -826,6 +833,7 @@ func testFileInfoGetStorageUsage(t *testing.T, rctx request.CTX, ss store.Store)
 	_, err := ss.FileInfo().PermanentDeleteBatch(rctx, model.GetMillis(), 100000)
 	require.NoError(t, err)
 
+	require.NoError(t, ss.FileInfo().RefreshFileStats())
 	usage, err := ss.FileInfo().GetStorageUsage(false, false)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), usage)
@@ -853,12 +861,14 @@ func testFileInfoGetStorageUsage(t *testing.T, rctx request.CTX, ss store.Store)
 	})
 	require.NoError(t, err)
 
+	require.NoError(t, ss.FileInfo().RefreshFileStats())
 	usage, err = ss.FileInfo().GetStorageUsage(false, false)
 	require.NoError(t, err)
 	require.Equal(t, int64(30), usage)
 
 	_, err = ss.FileInfo().DeleteForPost(rctx, f1.PostId)
 	require.NoError(t, err)
+	require.NoError(t, ss.FileInfo().RefreshFileStats())
 	usage, err = ss.FileInfo().GetStorageUsage(false, false)
 	require.NoError(t, err)
 	require.Equal(t, int64(20), usage)
@@ -940,4 +950,592 @@ func testGetUptoNSizeFileTime(t *testing.T, rctx request.CTX, ss store.Store, s 
 	createAt, err = ss.FileInfo().GetUptoNSizeFileTime(20)
 	require.NoError(t, err)
 	assert.Equal(t, f2.CreateAt, createAt)
+}
+
+func testPermanentDeleteForPost(t *testing.T, rctx request.CTX, ss store.Store) {
+	postId := model.NewId()
+
+	_, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+		PostId:    postId,
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file1.txt",
+		CreateAt:  utils.MillisFromTime(time.Now()),
+	})
+	require.NoError(t, err)
+
+	err = ss.FileInfo().PermanentDeleteForPost(rctx, postId)
+	require.NoError(t, err)
+
+	postInfos, err := ss.FileInfo().GetForPost(
+		postId,
+		true,
+		true,
+		false,
+	)
+	require.NoError(t, err)
+	assert.Len(t, postInfos, 0)
+}
+
+func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("Should get single file info", func(t *testing.T) {
+		info, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			CreatorId: model.NewId(),
+			Path:      "file.txt",
+		})
+		require.NoError(t, err)
+		require.NotEqual(t, len(info.Id), 0)
+
+		defer func() {
+			ss.FileInfo().PermanentDelete(rctx, info.Id)
+		}()
+
+		fileInfos, err := ss.FileInfo().GetByIds([]string{info.Id}, false, true)
+		require.NoError(t, err)
+		require.Len(t, fileInfos, 1)
+		require.Equal(t, info.Id, fileInfos[0].Id)
+	})
+
+	t.Run("Should get multiple file info", func(t *testing.T) {
+		info1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			CreatorId: model.NewId(),
+			Path:      "file.txt",
+		})
+		require.NoError(t, err)
+		require.NotEqual(t, len(info1.Id), 0)
+
+		// waiting 1 second to add deterministic difference between the two file info's CreateAt time
+		time.Sleep(1 * time.Second)
+
+		info2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			CreatorId: model.NewId(),
+			Path:      "file.txt",
+		})
+		require.NoError(t, err)
+		require.NotEqual(t, len(info2.Id), 0)
+
+		defer func() {
+			ss.FileInfo().PermanentDelete(rctx, info1.Id)
+			ss.FileInfo().PermanentDelete(rctx, info2.Id)
+		}()
+
+		fileInfos, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, false, true)
+		require.NoError(t, err)
+		require.Len(t, fileInfos, 2)
+		require.Equal(t, info1.Id, fileInfos[1].Id)
+		require.Equal(t, info2.Id, fileInfos[0].Id)
+	})
+
+	t.Run("Should get deleted file infos when specified", func(t *testing.T) {
+		postId := model.NewId()
+
+		info1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			CreatorId: model.NewId(),
+			Path:      "file.txt",
+			PostId:    postId,
+		})
+		require.NoError(t, err)
+		require.NotEqual(t, len(info1.Id), 0)
+
+		// waiting 1 second to add deterministic difference between the two file info's CreateAt time
+		time.Sleep(1 * time.Second)
+
+		info2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			CreatorId: model.NewId(),
+			Path:      "file.txt",
+			PostId:    postId,
+		})
+		require.NoError(t, err)
+		require.NotEqual(t, len(info2.Id), 0)
+
+		defer func() {
+			ss.FileInfo().PermanentDelete(rctx, info1.Id)
+			ss.FileInfo().PermanentDelete(rctx, info2.Id)
+		}()
+
+		// we'll delete the two file infos
+		_, err = ss.FileInfo().DeleteForPost(rctx, postId)
+		require.NoError(t, err)
+
+		fileInfosIncludingDeleted, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, true, true)
+		require.NoError(t, err)
+		require.Len(t, fileInfosIncludingDeleted, 2)
+		require.Equal(t, info2.Id, fileInfosIncludingDeleted[0].Id)
+		require.Greater(t, fileInfosIncludingDeleted[0].DeleteAt, int64(0))
+		require.Equal(t, info1.Id, fileInfosIncludingDeleted[1].Id)
+		require.Greater(t, fileInfosIncludingDeleted[1].DeleteAt, int64(0))
+
+		// verifying that the file infos are not returned when IncludeDeleted is false
+		fileInfosExcludingDeleted, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, false, true)
+		require.NoError(t, err)
+		require.Len(t, fileInfosExcludingDeleted, 0)
+	})
+}
+
+func testDeleteForPostByIds(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("base case", func(t *testing.T) {
+		now := model.GetMillis()
+		postId := model.NewId()
+
+		fileInfo1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo1.Id)
+
+		fileInfo2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file2.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
+
+		fileInfo3, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo3.Id)
+
+		err = ss.FileInfo().DeleteForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id})
+		require.NoError(t, err)
+
+		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			if fileInfo.Id == fileInfo1.Id || fileInfo.Id == fileInfo2.Id {
+				require.Greater(t, fileInfo.DeleteAt, int64(0))
+			} else {
+				require.Equal(t, int64(0), fileInfo.DeleteAt)
+			}
+		}
+	})
+
+	t.Run("with empty array", func(t *testing.T) {
+		now := model.GetMillis()
+		postId := model.NewId()
+
+		fileInfo1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo1.Id)
+
+		fileInfo2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file2.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
+
+		fileInfo3, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo3.Id)
+
+		err = ss.FileInfo().DeleteForPostByIds(rctx, postId, []string{})
+		require.NoError(t, err)
+
+		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			require.Equal(t, int64(0), fileInfo.DeleteAt)
+		}
+	})
+
+	t.Run("duplicate fileInfo Ids specified", func(t *testing.T) {
+		now := model.GetMillis()
+		postId := model.NewId()
+
+		fileInfo1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo1.Id)
+
+		fileInfo2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file2.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
+
+		fileInfo3, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo3.Id)
+
+		err = ss.FileInfo().DeleteForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id, fileInfo2.Id})
+		require.NoError(t, err)
+
+		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			if fileInfo.Id == fileInfo1.Id || fileInfo.Id == fileInfo2.Id {
+				require.Greater(t, fileInfo.DeleteAt, int64(0))
+			} else {
+				require.Equal(t, int64(0), fileInfo.DeleteAt)
+			}
+		}
+	})
+
+	t.Run("non existent fileInfo IDs specified", func(t *testing.T) {
+		now := model.GetMillis()
+		postId := model.NewId()
+
+		fileInfo1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo1.Id)
+
+		fileInfo2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file2.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
+
+		fileInfo3, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo3.Id)
+
+		err = ss.FileInfo().DeleteForPostByIds(rctx, postId, []string{model.NewId(), model.NewId()})
+		require.NoError(t, err)
+
+		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			require.Equal(t, int64(0), fileInfo.DeleteAt)
+		}
+	})
+
+	t.Run("non existent postID specified", func(t *testing.T) {
+		err := ss.FileInfo().DeleteForPostByIds(rctx, model.NewId(), []string{model.NewId()})
+		require.NoError(t, err)
+	})
+
+	t.Run("delete already deleted fileInfos", func(t *testing.T) {
+		now := model.GetMillis()
+		postId := model.NewId()
+
+		fileInfo1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo1.Id)
+
+		fileInfo2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file2.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
+
+		fileInfo3, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo3.Id)
+
+		err = ss.FileInfo().DeleteForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id})
+		require.NoError(t, err)
+
+		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			if fileInfo.Id == fileInfo1.Id || fileInfo.Id == fileInfo2.Id {
+				require.Greater(t, fileInfo.DeleteAt, int64(0))
+			} else {
+				require.Equal(t, int64(0), fileInfo.DeleteAt)
+			}
+		}
+
+		err = ss.FileInfo().DeleteForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id})
+		require.NoError(t, err)
+
+		fileInfos, err = ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			if fileInfo.Id == fileInfo1.Id || fileInfo.Id == fileInfo2.Id {
+				require.Greater(t, fileInfo.DeleteAt, int64(0))
+			} else {
+				require.Equal(t, int64(0), fileInfo.DeleteAt)
+			}
+		}
+	})
+}
+
+func testRestoreUndeleteForPostByIds(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("base case", func(t *testing.T) {
+		now := model.GetMillis()
+		postId := model.NewId()
+
+		fileInfo1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo1.Id)
+
+		fileInfo2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file2.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
+
+		fileInfo3, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo3.Id)
+
+		err = ss.FileInfo().DeleteForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id})
+		require.NoError(t, err)
+
+		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			if fileInfo.Id == fileInfo1.Id || fileInfo.Id == fileInfo2.Id {
+				require.Greater(t, fileInfo.DeleteAt, int64(0))
+			} else {
+				require.Equal(t, int64(0), fileInfo.DeleteAt)
+			}
+		}
+
+		// now we'll un-delete the files
+		err = ss.FileInfo().RestoreForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id})
+		require.NoError(t, err)
+
+		fileInfos, err = ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			require.Equal(t, fileInfo.DeleteAt, int64(0))
+		}
+	})
+
+	t.Run("with empty array it should not impact any post files", func(t *testing.T) {
+		now := model.GetMillis()
+		postId := model.NewId()
+
+		fileInfo1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo1.Id)
+
+		fileInfo2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file2.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
+
+		err = ss.FileInfo().RestoreForPostByIds(rctx, postId, []string{})
+		require.NoError(t, err)
+
+		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			require.Equal(t, int64(0), fileInfo.DeleteAt)
+		}
+	})
+
+	t.Run("duplicate fileInfo Ids specified", func(t *testing.T) {
+		now := model.GetMillis()
+		postId := model.NewId()
+
+		fileInfo1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo1.Id)
+
+		fileInfo2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file2.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
+
+		fileInfo3, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo3.Id)
+
+		// delete file infos
+		err = ss.FileInfo().DeleteForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id})
+		require.NoError(t, err)
+
+		// verify file infos are deleted
+		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			require.Greater(t, fileInfo.DeleteAt, int64(0))
+		}
+
+		// undelete them specifying duplicate file info ids
+		err = ss.FileInfo().RestoreForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id, fileInfo2.Id, fileInfo2.Id})
+		require.NoError(t, err)
+
+		// verify file infos are deleted
+		fileInfos, err = ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			if fileInfo.Id == fileInfo3.Id {
+				require.Greater(t, fileInfo.DeleteAt, int64(0))
+			} else {
+				require.Equal(t, int64(0), fileInfo.DeleteAt)
+			}
+		}
+	})
+
+	t.Run("non existent fileInfo IDs  and postId specified", func(t *testing.T) {
+		err := ss.FileInfo().RestoreForPostByIds(rctx, model.NewId(), []string{model.NewId(), model.NewId()})
+		require.NoError(t, err)
+	})
+
+	t.Run("undelete already undeleted fileInfos", func(t *testing.T) {
+		now := model.GetMillis()
+		postId := model.NewId()
+
+		fileInfo1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo1.Id)
+
+		fileInfo2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file2.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
+
+		fileInfo3, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo3.Id)
+
+		err = ss.FileInfo().RestoreForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id})
+		require.NoError(t, err)
+
+		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			require.Equal(t, int64(0), fileInfo.DeleteAt)
+		}
+	})
 }

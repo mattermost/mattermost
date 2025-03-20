@@ -11,7 +11,6 @@ import {
     getSubscriptionProduct as selectSubscriptionProduct,
     getCloudProducts as selectCloudProducts,
 } from 'mattermost-redux/selectors/entities/cloud';
-import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {trackEvent} from 'actions/telemetry_actions';
@@ -26,8 +25,6 @@ import {CloudProducts, LicenseSkus, MattermostFeatures, TELEMETRY_CATEGORIES, Re
 import {findOnlyYearlyProducts, findProductBySku} from 'utils/products';
 
 import Card, {BlankCard, ButtonCustomiserClasses} from './card';
-import ContactSalesCTA from './contact_sales_cta';
-import StartTrialCaution from './start_trial_caution';
 
 import './content.scss';
 
@@ -48,7 +45,6 @@ function Content(props: ContentProps) {
     const currentProduct = useSelector(selectSubscriptionProduct);
     const products = useSelector(selectCloudProducts);
 
-    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     const yearlyProducts = findOnlyYearlyProducts(products || {}); // pricing modal should now only show yearly products
 
     const currentSubscriptionIsMonthly = currentProduct?.recurring_interval === RecurringIntervals.MONTH;
@@ -109,7 +105,7 @@ function Content(props: ContentProps) {
                     openContactSales();
                 },
                 text: formatMessage({id: 'pricing_modal.btn.contactSales', defaultMessage: 'Contact Sales'}),
-                customClass: ButtonCustomiserClasses.active,
+                customClass: ButtonCustomiserClasses.special,
             };
         }
 
@@ -220,10 +216,9 @@ function Content(props: ContentProps) {
                                     renderLastDaysOnTrial={true}
                                 />) : undefined}
                         buttonDetails={enterpriseBtnDetails()}
-                        planTrialDisclaimer={(!isPostTrial && isAdmin && !cloudFreeDeprecated) ? <StartTrialCaution/> : undefined}
-                        contactSalesCTA={(isPostTrial || !isAdmin || cloudFreeDeprecated) ? undefined : <ContactSalesCTA/>}
+                        planTrialDisclaimer={undefined}
                         briefing={{
-                            title: cloudFreeDeprecated ? formatMessage({id: 'pricing_modal.briefing.title_large_scale', defaultMessage: 'Large scale collaboration'}) : formatMessage({id: 'pricing_modal.briefing.title', defaultMessage: 'Top features'}),
+                            title: formatMessage({id: 'pricing_modal.briefing.title_large_scale', defaultMessage: 'Large scale collaboration'}),
                             items: [
                                 formatMessage({id: 'pricing_modal.briefing.enterprise.groupSync', defaultMessage: 'AD/LDAP group sync'}),
                                 formatMessage({id: 'pricing_modal.briefing.enterprise.rolesAndPermissions', defaultMessage: 'Advanced roles and permissions'}),

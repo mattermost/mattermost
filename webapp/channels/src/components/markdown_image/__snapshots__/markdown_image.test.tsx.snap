@@ -17,7 +17,7 @@ exports[`components/MarkdownImage should match snapshot 1`] = `
 `;
 
 exports[`components/MarkdownImage should match snapshot for SizeAwareImage dimensions 1`] = `
-<SizeAwareImage
+<injectIntl(SizeAwareImage)
   alt="test image"
   className="markdown-inline-img markdown-inline-img--hover markdown-inline-img--no-border"
   dimensions={
@@ -62,7 +62,7 @@ exports[`components/MarkdownImage should provide image src as an alt text for Ma
     imageKey="https://example.com/image.png"
     postId="post_id"
   >
-    <SizeAwareImage
+    <injectIntl(SizeAwareImage)
       alt=""
       className="markdown-inline-img markdown-inline-img--hover cursor--pointer a11y--active"
       dimensions={Object {}}
@@ -90,14 +90,14 @@ exports[`components/MarkdownImage should render a link if the source is unsafe 1
   <img
     alt="test image"
     className="markdown-inline-img broken-image"
-    src={null}
+    src=""
   />
 </div>
 `;
 
 exports[`components/MarkdownImage should render an image with no preview if the source is safe and the image is a link 1`] = `
 <div>
-  <SizeAwareImage
+  <injectIntl(SizeAwareImage)
     alt="test image"
     className="markdown-inline-img markdown-inline-img--hover markdown-inline-img--no-border"
     dimensions={
@@ -122,7 +122,7 @@ exports[`components/MarkdownImage should render an image with no preview if the 
 
 exports[`components/MarkdownImage should render an image with preview modal if the source is safe 1`] = `
 <div>
-  <SizeAwareImage
+  <injectIntl(SizeAwareImage)
     alt="test image"
     className="markdown-inline-img markdown-inline-img--hover cursor--pointer a11y--active"
     dimensions={
@@ -152,7 +152,7 @@ exports[`components/MarkdownImage should render image with MarkdownImageExpand i
     imageKey="https://example.com/image.png"
     postId="post_id"
   >
-    <SizeAwareImage
+    <injectIntl(SizeAwareImage)
       alt="test image"
       className="markdown-inline-img markdown-inline-img--hover cursor--pointer a11y--active"
       dimensions={Object {}}

@@ -51,7 +51,7 @@ describe('components/emoji_picker/EmojiPicker', () => {
             <EmojiPicker {...baseProps}/>,
         );
 
-        expect(screen.queryByLabelText('emoji_picker.recent')).toBeNull();
+        expect(screen.queryByLabelText('Recent')).toBeNull();
     });
 
     test('Recent category should exist if there are recent emojis', () => {
@@ -64,7 +64,7 @@ describe('components/emoji_picker/EmojiPicker', () => {
             <EmojiPicker {...props}/>,
         );
 
-        expect(screen.queryByLabelText('emoji_picker.recent')).not.toBeNull();
+        expect(screen.queryByLabelText('Recent')).not.toBeNull();
     });
 
     test('First emoji should be selected on search', () => {

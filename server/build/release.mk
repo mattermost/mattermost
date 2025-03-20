@@ -145,8 +145,8 @@ fetch-prepackaged-plugins:
 	mkdir -p tmpprepackaged
 	@echo "Downloading prepackaged plugins ... "
 	@cd tmpprepackaged && for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-$(PLUGIN_ARCH).tar.gz; \
-		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-$(PLUGIN_ARCH).tar.gz.sig; \
+		curl -f -O -L https://plugins.releases.mattermost.com/release/$$plugin_package-$(PLUGIN_ARCH).tar.gz; \
+		curl -f -O -L https://plugins.releases.mattermost.com/release/$$plugin_package-$(PLUGIN_ARCH).tar.gz.sig; \
 	done
 	@echo "Done"
 
@@ -218,6 +218,6 @@ package-windows: package-prep
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/windows
 
-package: package-linux package-osx package-windows
+package: package-linux package-osx
 	rm -rf tmpprepackaged
 	rm -rf $(DIST_PATH)

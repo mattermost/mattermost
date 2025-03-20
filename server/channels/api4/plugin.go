@@ -20,26 +20,27 @@ import (
 )
 
 const (
-	MaximumPluginFileSize = 50 * 1024 * 1024
+	// MaxPluginMemory is the maximum number of bytes to hold in memory when reading a plugin bundle.
+	MaxPluginMemory = 50 * 1024 * 1024
 )
 
 func (api *API) InitPlugin() {
-	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(uploadPlugin, handlerParamFileAPI)).Methods("POST")
-	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(getPlugins)).Methods("GET")
-	api.BaseRoutes.Plugin.Handle("", api.APISessionRequired(removePlugin)).Methods("DELETE")
-	api.BaseRoutes.Plugins.Handle("/install_from_url", api.APISessionRequired(installPluginFromURL)).Methods("POST")
-	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequired(installMarketplacePlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(uploadPlugin, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(getPlugins)).Methods(http.MethodGet)
+	api.BaseRoutes.Plugin.Handle("", api.APISessionRequired(removePlugin)).Methods(http.MethodDelete)
+	api.BaseRoutes.Plugins.Handle("/install_from_url", api.APISessionRequired(installPluginFromURL)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequired(installMarketplacePlugin)).Methods(http.MethodPost)
 
-	api.BaseRoutes.Plugins.Handle("/statuses", api.APISessionRequired(getPluginStatuses)).Methods("GET")
-	api.BaseRoutes.Plugin.Handle("/enable", api.APISessionRequired(enablePlugin)).Methods("POST")
-	api.BaseRoutes.Plugin.Handle("/disable", api.APISessionRequired(disablePlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("/statuses", api.APISessionRequired(getPluginStatuses)).Methods(http.MethodGet)
+	api.BaseRoutes.Plugin.Handle("/enable", api.APISessionRequired(enablePlugin)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugin.Handle("/disable", api.APISessionRequired(disablePlugin)).Methods(http.MethodPost)
 
-	api.BaseRoutes.Plugins.Handle("/webapp", api.APIHandler(getWebappPlugins)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/webapp", api.APIHandler(getWebappPlugins)).Methods(http.MethodGet)
 
-	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequired(getMarketplacePlugins)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.APISessionRequired(getMarketplacePlugins)).Methods(http.MethodGet)
 
-	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APIHandler(setFirstAdminVisitMarketplaceStatus)).Methods("POST")
-	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APISessionRequired(getFirstAdminVisitMarketplaceStatus)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APIHandler(setFirstAdminVisitMarketplaceStatus)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APISessionRequired(getFirstAdminVisitMarketplaceStatus)).Methods(http.MethodGet)
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -57,7 +58,11 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseMultipartForm(MaximumPluginFileSize); err != nil {
+	if err := r.ParseMultipartForm(MaxPluginMemory); err != nil {
+		if err.Error() == "http: request body too large" {
+			c.Err = model.NewAppError("uploadPlugin", "api.plugin.upload.file_too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -271,7 +276,9 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -309,7 +316,9 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(json)
+	if _, err := w.Write(json); err != nil {
+		c.Logger.Warn("Error while writing json response", mlog.Err(err))
+	}
 }
 
 func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {

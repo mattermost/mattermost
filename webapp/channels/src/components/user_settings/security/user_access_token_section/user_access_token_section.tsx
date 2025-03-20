@@ -13,7 +13,6 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SaveButton from 'components/save_button';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
@@ -23,7 +22,6 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import {Constants, DeveloperLinks} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isMobile} from 'utils/user_agent';
-import * as Utils from 'utils/utils';
 
 const SECTION_TOKENS = 'tokens';
 const TOKEN_CREATING = 'creating';
@@ -52,7 +50,7 @@ type State = {
     showConfirmModal: boolean;
     newToken?: UserAccessToken | null;
     tokenCreationState?: string;
-    tokenError?: string;
+    tokenError?: React.ReactNode;
     serverError?: string|null;
     saving?: boolean;
     confirmTitle?: React.ReactNode;
@@ -127,7 +125,14 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
         const description = this.newtokendescriptionRef ? this.newtokendescriptionRef.current!.value : '';
 
         if (description === '') {
-            this.setState({tokenError: Utils.localizeMessage('user.settings.tokens.nameRequired', 'Please enter a description.')});
+            this.setState({
+                tokenError: (
+                    <FormattedMessage
+                        id='user.settings.tokens.nameRequired'
+                        defaultMessage='Please enter a description.'
+                    />
+                ),
+            });
             return;
         }
 
@@ -264,13 +269,22 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
             ),
             confirmMessage: () => (
                 <div className='alert alert-danger'>
-                    <FormattedMarkdownMessage
-                        id='user.settings.tokens.confirmDeleteMessage'
-                        defaultMessage='Any integrations using this token will no longer be able to access the Mattermost API. You cannot undo this action. \n \nAre you sure want to delete the **{description}** token?'
-                        values={{
-                            description: token.description,
-                        }}
-                    />
+                    <p>
+                        <FormattedMessage
+                            id='user.settings.tokens.confirmDelete.description'
+                            defaultMessage={'Any integrations using this token will no longer be able to access the Mattermost API. You cannot undo this action.'}
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='user.settings.tokens.confirmDelete.confirmation'
+                            defaultMessage={'Are you sure you want to delete the <b>{description}</b> token?'}
+                            values={{
+                                description: token.description,
+                                b: (chunks: string) => <b>{chunks}</b>,
+                            }}
+                        />
+                    </p>
                 </div>
             ),
             confirmButton: (
@@ -316,11 +330,21 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
         let tokenListClass = '';
 
         if (!this.props.active) {
-            const describe = Utils.localizeMessage('user.settings.tokens.clickToEdit', "Click 'Edit' to manage your personal access tokens");
+            const describe = (
+                <FormattedMessage
+                    id='user.settings.tokens.clickToEdit'
+                    defaultMessage="Click 'Edit' to manage your personal access tokens"
+                />
+            );
 
             return (
                 <SettingItemMin
-                    title={Utils.localizeMessage('user.settings.tokens.title', 'Personal Access Tokens')}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.tokens.title'
+                            defaultMessage='Personal Access Tokens'
+                        />
+                    }
                     describe={describe}
                     section={SECTION_TOKENS}
                     updateSection={this.props.updateSection}
@@ -494,7 +518,10 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
             newTokenSection = (
                 <div className='pl-3'>
                     <div className='row'>
-                        <label className='col-sm-auto control-label pr-3'>
+                        <label
+                            className='col-sm-auto control-label pr-3'
+                            htmlFor='newTokenDescription'
+                        >
                             <FormattedMessage
                                 id='user.settings.tokens.name'
                                 defaultMessage='Token Description: '
@@ -502,6 +529,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                         </label>
                         <div className='col-sm-5'>
                             <input
+                                id='newTokenDescription'
                                 autoFocus={true}
                                 ref={this.newtokendescriptionRef}
                                 className='form-control'
@@ -621,7 +649,12 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
         return (
             <div>
                 <SettingItemMax
-                    title={Utils.localizeMessage('user.settings.tokens.title', 'Personal Access Tokens')}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.tokens.title'
+                            defaultMessage='Personal Access Tokens'
+                        />
+                    }
                     inputs={inputs}
                     extraInfo={extraInfo}
                     infoPosition='top'

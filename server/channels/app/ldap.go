@@ -30,14 +30,16 @@ func (a *App) SyncLdap(c request.CTX, includeRemovedMembers bool) {
 				c.Logger().Error("Not executing ldap sync because ldap is not available")
 				return
 			}
-			ldapI.StartSynchronizeJob(c, false, includeRemovedMembers)
+			if _, appErr := ldapI.StartSynchronizeJob(c, false, includeRemovedMembers); appErr != nil {
+				c.Logger().Error("Failed to start LDAP sync job")
+			}
 		}
 	})
 }
 
 func (a *App) TestLdap(rctx request.CTX) *model.AppError {
 	license := a.Srv().License()
-	if ldapI := a.Ldap(); ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
+	if ldapI := a.LdapDiagnostic(); ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
 		if err := ldapI.RunTest(rctx); err != nil {
 			err.StatusCode = 500
 			return err
@@ -98,7 +100,7 @@ func (a *App) SwitchEmailToLdap(c request.CTX, email, password, code, ldapLoginI
 		return "", err
 	}
 
-	if err := a.CheckPasswordAndAllCriteria(c, user, password, code); err != nil {
+	if err := a.CheckPasswordAndAllCriteria(c, user.Id, password, code); err != nil {
 		return "", err
 	}
 
@@ -151,11 +153,8 @@ func (a *App) SwitchLdapToEmail(c request.CTX, ldapPassword, code, email, newPas
 		return "", model.NewAppError("SwitchLdapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := ldapInterface.CheckPasswordAuthData(c, *user.AuthData, ldapPassword); err != nil {
-		return "", err
-	}
-
-	if err := a.CheckUserMfa(c, user, code); err != nil {
+	user, err = a.checkLdapUserPasswordAndAllCriteria(c, user, ldapPassword, code)
+	if err != nil {
 		return "", err
 	}
 

@@ -4,15 +4,15 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
 <div
   aria-label="main menu"
   className="a11y__popup Menu"
-  role="menu"
 >
   <ul
     className="Menu__content dropdown-menu"
     onClick={[Function]}
+    role="menu"
     style={Object {}}
   >
     <Memo(MenuGroup)>
-      <Connect(SystemPermissionGate)
+      <Memo(SystemPermissionGate)
         permissions={
           Array [
             "sysconsole_write_billing",
@@ -22,10 +22,10 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         <MenuCloudTrial
           id="menuCloudTrial"
         />
-      </Connect(SystemPermissionGate)>
+      </Memo(SystemPermissionGate)>
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
-      <Connect(SystemPermissionGate)
+      <Memo(SystemPermissionGate)
         permissions={
           Array [
             "sysconsole_write_about_edition_and_license",
@@ -35,7 +35,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         <MenuStartTrial
           id="startTrial"
         />
-      </Connect(SystemPermissionGate)>
+      </Memo(SystemPermissionGate)>
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
       <MenuItemAction
@@ -67,6 +67,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
       <MenuItemToggleModalRedux
         dialogProps={
           Object {
+            "focusOriginElement": "userAccountMenuButton2",
             "isContentProductSettings": false,
           }
         }
@@ -91,6 +92,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
       <MenuItemToggleModalRedux
         dialogProps={
           Object {
+            "focusOriginElement": "userAccountMenuButton3",
             "isContentProductSettings": true,
           }
         }
@@ -114,7 +116,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
       />
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
-      <Connect(TeamPermissionGate)
+      <Memo(TeamPermissionGate)
         permissions={
           Array [
             "manage_team",
@@ -141,8 +143,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Add Groups to Team"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Memo(TeamPermissionGate)>
+      <Memo(TeamPermissionGate)
         permissions={
           Array [
             "add_user_to_team",
@@ -152,6 +154,11 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         teamId="someteamid"
       >
         <MenuItemToggleModalRedux
+          dialogProps={
+            Object {
+              "focusOriginElement": "sidebarDropdownMenuButton",
+            }
+          }
           dialogType={
             Object {
               "$$typeof": Symbol(react.memo),
@@ -172,10 +179,10 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Invite People"
         />
-      </Connect(TeamPermissionGate)>
+      </Memo(TeamPermissionGate)>
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
-      <Connect(TeamPermissionGate)
+      <Memo(TeamPermissionGate)
         permissions={
           Array [
             "manage_team",
@@ -202,8 +209,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Team Settings"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Memo(TeamPermissionGate)>
+      <Memo(TeamPermissionGate)
         permissions={
           Array [
             "manage_team",
@@ -235,8 +242,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Manage Groups"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Memo(TeamPermissionGate)>
+      <Memo(TeamPermissionGate)
         permissions={
           Array [
             "remove_user_from_team",
@@ -264,8 +271,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Manage Members"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Memo(TeamPermissionGate)>
+      <Memo(TeamPermissionGate)
         invert={true}
         permissions={
           Array [
@@ -294,10 +301,10 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="View Members"
         />
-      </Connect(TeamPermissionGate)>
+      </Memo(TeamPermissionGate)>
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
-      <Connect(SystemPermissionGate)
+      <Memo(SystemPermissionGate)
         permissions={
           Array [
             "create_team",
@@ -315,7 +322,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           text="Create a Team"
           to="/create_team"
         />
-      </Connect(SystemPermissionGate)>
+      </Memo(SystemPermissionGate)>
       <MenuItemLink
         icon={
           <i
@@ -345,6 +352,11 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
       <MenuItemAction
+        icon={
+          <i
+            className="fa fa-anchor"
+          />
+        }
         id="someplugin_pluginmenuitem"
         key="someplugin_pluginmenuitem"
         onClick={[Function]}
@@ -433,15 +445,15 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
 <div
   aria-label="team menu"
   className="a11y__popup Menu"
-  role="menu"
 >
   <ul
     className="Menu__content dropdown-menu"
     onClick={[Function]}
+    role="menu"
     style={Object {}}
   >
     <Memo(MenuGroup)>
-      <Connect(TeamPermissionGate)
+      <Memo(TeamPermissionGate)
         permissions={
           Array [
             "manage_team",
@@ -463,8 +475,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           show={true}
           text="Add Groups to Team"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Memo(TeamPermissionGate)>
+      <Memo(TeamPermissionGate)
         permissions={
           Array [
             "add_user_to_team",
@@ -474,6 +486,11 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
         teamId="someteamid"
       >
         <MenuItemToggleModalRedux
+          dialogProps={
+            Object {
+              "focusOriginElement": "sidebarDropdownMenuButton",
+            }
+          }
           dialogType={
             Object {
               "$$typeof": Symbol(react.memo),
@@ -490,8 +507,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           show={true}
           text="Invite People"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Memo(TeamPermissionGate)>
+      <Memo(TeamPermissionGate)
         permissions={
           Array [
             "manage_team",
@@ -513,8 +530,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           show={true}
           text="Team Settings"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Memo(TeamPermissionGate)>
+      <Memo(TeamPermissionGate)
         permissions={
           Array [
             "manage_team",
@@ -541,8 +558,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           show={true}
           text="Manage Groups"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Memo(TeamPermissionGate)>
+      <Memo(TeamPermissionGate)
         permissions={
           Array [
             "remove_user_from_team",
@@ -565,8 +582,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           show={true}
           text="Manage Members"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Memo(TeamPermissionGate)>
+      <Memo(TeamPermissionGate)
         invert={true}
         permissions={
           Array [
@@ -590,7 +607,7 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           show={true}
           text="View Members"
         />
-      </Connect(TeamPermissionGate)>
+      </Memo(TeamPermissionGate)>
       <MenuItemLink
         id="joinTeam"
         show={true}
@@ -614,7 +631,7 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
       />
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
-      <Connect(SystemPermissionGate)
+      <Memo(SystemPermissionGate)
         permissions={
           Array [
             "create_team",
@@ -630,7 +647,7 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           text="Create a Team"
           to="/create_team"
         />
-      </Connect(SystemPermissionGate)>
+      </Memo(SystemPermissionGate)>
       <Memo(MenuGroup)>
         <div
           className="MainMenu_dropdown-link"

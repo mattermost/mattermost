@@ -60,7 +60,7 @@ const SwitchToYearlyPlanConfirmModal: React.FC<Props> = (props: Props): JSX.Elem
         >
             <>
                 <div className='content-body'>
-                    <div className='alert-svg'>
+                    <div className='no-header__img'>
                         <Svg
                             width={300}
                             height={300}

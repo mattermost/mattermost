@@ -85,7 +85,7 @@ describe('Team Settings', () => {
             cy.get('.InviteAs').findByTestId('inviteMembersLink').click();
         }
 
-        cy.findByRole('textbox', {name: 'Add or Invite People'}).type(email, {force: true}).wait(TIMEOUTS.HALF_SEC).type('{enter}', {force: true});
+        cy.findByRole('combobox', {name: 'Add or Invite People'}).type(email, {force: true}).wait(TIMEOUTS.HALF_SEC).type('{enter}', {force: true});
         cy.findByTestId('inviteButton').click();
 
         // # Wait for a while to ensure that email notification is sent and logout from sysadmin account
@@ -123,7 +123,7 @@ describe('Team Settings', () => {
         // * Check that the display name of the team the user was invited to is being correctly displayed
         cy.uiGetLHSHeader().findByText(testTeam.display_name);
 
-        // * Check that the 'Beginning of Town Square' message is visible
-        cy.findByText('Beginning of Town Square').should('be.visible');
+        // * Check that the 'Town Square' channel title is visible
+        cy.get('h2.channel-intro__title').should('be.visible').should('have.text', 'Town Square');
     });
 });

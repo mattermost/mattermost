@@ -26,9 +26,9 @@ describe('Verify Accessibility Support in Different Images', () => {
 
     it('MM-T1508 Accessibility support in different images', () => {
         // * Verify image alt in profile image
-        cy.uiGetProfileHeader().
-            find('.Avatar').
-            should('have.attr', 'alt', 'user profile image');
+        cy.get('#userAccountMenuButton').within(() => {
+            cy.findByAltText('user profile image').should('be.visible');
+        });
 
         // # Upload an image in the post
         cy.get('#fileUploadInput').attachFile('small-image.png');
@@ -50,14 +50,17 @@ describe('Verify Accessibility Support in Different Images', () => {
         // # Open profile popover
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).within(() => {
-                cy.get('.user-popover').click();
+                cy.get('.status-wrapper').click();
             });
 
             // * Verify image alt in profile popover
-            cy.get('#user-profile-popover').within(() => {
+            cy.get('.user-profile-popover').within(() => {
                 cy.get('.Avatar').should('have.attr', 'alt', `${otherUser.username} profile image`);
             });
         });
+
+        // # Close the profile popover
+        cy.get('body').click();
 
         // # Open Settings > Display > Themes
         cy.uiOpenSettingsModal('Display').within(() => {

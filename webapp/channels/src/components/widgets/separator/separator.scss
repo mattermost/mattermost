@@ -1,6 +1,4 @@
-@charset 'UTF-8';
-
-@import 'utils/module';
+@use 'utils/functions';
 
 .Separator {
     position: relative;
@@ -58,8 +56,8 @@
         display: inline-block;
         padding: 0 1em;
         border-radius: 50px;
-        background: v(center-channel-bg);
-        color: v(center-channel-color);
+        background: functions.v(center-channel-bg);
+        color: functions.v(center-channel-color);
         font-size: 13px;
         font-weight: 700;
         line-height: 2em;

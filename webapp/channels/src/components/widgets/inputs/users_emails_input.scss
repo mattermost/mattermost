@@ -1,4 +1,4 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 .UsersEmailsInput {
 
@@ -61,6 +61,10 @@
             .users-emails-input__value-container {
                 .users-emails-input__input {
                     border-bottom: 0;
+
+                    &-container{
+                        color: inherit;
+                    }
 
                     .a11y--focused {
                         box-shadow: none;

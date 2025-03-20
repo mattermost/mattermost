@@ -18,7 +18,7 @@ import (
 func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	_, _, appErr = s.th.App.AddUserToTeam(s.th.Context, s.th.BasicTeam.Id, user.Id, "")
@@ -151,7 +151,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	_, _, appErr = s.th.App.AddUserToTeam(s.th.Context, s.th.BasicTeam.Id, user.Id, "")

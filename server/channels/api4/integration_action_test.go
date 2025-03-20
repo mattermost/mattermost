@@ -16,6 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 type testHandler struct {
@@ -39,7 +41,8 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assert.NotEmpty(th.t, poir.TriggerId)
 	assert.Equal(th.t, "button", poir.Type)
 	assert.Equal(th.t, "test-value", poir.Context["test-key"])
-	w.Write([]byte("{}"))
+	_, err = w.Write([]byte("{}"))
+	require.NoError(th.t, err)
 	w.WriteHeader(200)
 }
 
@@ -209,6 +212,53 @@ func TestOpenDialog(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("Should pass with too long display name of elements", func(t *testing.T) {
+		request.Dialog.Elements = []model.DialogElement{
+			{
+				DisplayName: "Very very long Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+		}
+
+		buffer := &mlog.Buffer{}
+		err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+		require.NoError(t, err)
+
+		_, err = client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Interactive dialog is invalid")
+	})
+
+	t.Run("Should pass with same elements", func(t *testing.T) {
+		request.Dialog.Elements = []model.DialogElement{
+			{
+				DisplayName: "Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+			{
+				DisplayName: "Element Name",
+				Name:        "element_name",
+				Type:        "text",
+				Placeholder: "Enter a value",
+			},
+		}
+		buffer := &mlog.Buffer{}
+		err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+		require.NoError(t, err)
+
+		_, err = client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Interactive dialog is invalid")
+	})
+
 	t.Run("Should pass with nil elements slice", func(t *testing.T) {
 		request.Dialog.Elements = nil
 		_, err := client.OpenInteractiveDialog(context.Background(), request)
@@ -223,7 +273,7 @@ func TestOpenDialog(t *testing.T) {
 
 	t.Run("Should fail if trigger timeout is extended", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
 		})
 
 		time.Sleep(2 * time.Second)
@@ -285,7 +335,7 @@ func TestSubmitDialog(t *testing.T) {
 	submit.ChannelId = model.NewId()
 	submitResp, resp, err = client.SubmitInteractiveDialog(context.Background(), submit)
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 	assert.Nil(t, submitResp)
 
 	submit.URL = ts.URL

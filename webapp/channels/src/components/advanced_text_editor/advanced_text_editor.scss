@@ -1,4 +1,20 @@
-@import 'utils/variables';
+@use 'utils/variables';
+
+.AdvancedTextEditor__skeleton {
+    display: flex;
+    height: 122px;
+    align-items: center;
+    justify-content: center;
+    padding-left: 10px;
+    border: 2px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    margin: 0 24px 24px;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+
+    .btn {
+        margin: 10px
+    }
+}
 
 .AdvancedTextEditor {
     &__ctr {
@@ -6,6 +22,7 @@
             padding: unset;
         }
     }
+    position: relative;
 
     display: flex;
     width: 100%;
@@ -27,7 +44,7 @@
     }
 
     .ThreadViewer & {
-        padding-top: 12px;
+        padding-top: 0px;
 
         .AutoHeight {
             position: absolute;
@@ -48,6 +65,12 @@
 
         &.textbox-preview-area {
             height: auto;
+            padding-right: 20px;
+            white-space: normal;
+
+            blockquote:before {
+                top: 9px;
+            }
         }
     }
 
@@ -72,6 +95,7 @@
         flex: 1;
         border: 2px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
+        background-color: var(--center-channel-bg);
 
         &:focus-visible,
         &:focus-within,
@@ -119,7 +143,7 @@
             visibility: hidden;
         }
 
-        & + input {
+        &+input {
             position: absolute;
             top: 0;
             right: 0;
@@ -138,16 +162,6 @@
         background: rgba(var(--button-bg-rgb), 0.08);
         color: rgb(var(--button-bg-rgb));
         fill: currentColor;
-    }
-
-    &__icon {
-        display: inline-flex;
-        width: 100%;
-        height: 100%;
-        align-items: center;
-        justify-content: center;
-        font-family: "compass-icons";
-        font-size: 18px;
     }
 
     &__cell {
@@ -169,8 +183,7 @@
         display: flex;
         flex-direction: column;
         padding: 0 24px;
-        font-size: 13px;
-        gap: 8px;
+        font-size: 12px;
 
         .help__text {
             text-align: right;
@@ -181,44 +194,39 @@
             }
         }
 
-        &--has-error {
-            padding: 6px 0 0;
+        .has-error,
+        .post-error {
+            margin: 4px 0 0 0;
             color: var(--error-text);
         }
-
-        .post-error {
-            position: absolute;
-            top: 4px;
-            display: inline-block;
-            margin-bottom: 0;
-            font-size: 0.85em;
-            font-weight: normal;
-        }
     }
+
 }
 
 @media screen and (max-width: 768px) {
-    .AdvancedTextEditor {
-        padding: 0;
+    #post-create {
+        .AdvancedTextEditor {
+            padding: 0;
 
-        &__body {
-            border-radius: 0;
-            border-right: none;
-            border-left: none;
-
-            &:focus-visible,
-            &:focus-within,
-            &:focus-visible:hover,
-            &:focus-within:hover,
-            &:hover {
+            &__body {
+                border-radius: 0;
                 border-right: none;
                 border-left: none;
-            }
-        }
 
-        .ThreadViewer & {
-            .msg-typing:empty {
-                display: none;
+                &:focus-visible,
+                &:focus-within,
+                &:focus-visible:hover,
+                &:focus-within:hover,
+                &:hover {
+                    border-right: none;
+                    border-left: none;
+                }
+            }
+
+            .ThreadViewer & {
+                .msg-typing:empty {
+                    display: none;
+                }
             }
         }
     }
@@ -235,8 +243,8 @@
     overflow: hidden;
     height: 20px;
     margin-bottom: 5px;
-    font-size: 11px;
-    opacity: 0.7;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
 }

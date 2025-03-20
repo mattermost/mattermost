@@ -1,0 +1,14 @@
+{
+    "OpenIdSettings": {
+        "Enable": true,
+        "Secret": "9Y7dykcoA9luTC77XtXxOu9UbNx3rhj6",
+        "Id": "mattermost-openid",
+        "Scope": "profile openid email",
+        "AuthEndpoint": "",
+        "TokenEndpoint": "",
+        "UserAPIEndpoint": "",
+        "DiscoveryEndpoint": "http://localhost:8484/realms/mattermost/.well-known/openid-configuration",
+        "ButtonText": "Login using OpenID",
+        "ButtonColor": "#ffaa4c"
+    }
+}

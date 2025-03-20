@@ -44,6 +44,18 @@ export type PluginSettingsSchema = {
     header: string;
     footer: string;
     settings: PluginSetting[];
+    sections?: PluginSettingSection[];
+};
+
+export type PluginSettingSection = {
+    key: string;
+    title?: string;
+    subtitle?: string;
+    settings: PluginSetting[];
+    header?: string;
+    footer?: string;
+    custom?: boolean;
+    fallback?: boolean;
 };
 
 export type PluginSetting = {

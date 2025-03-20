@@ -861,6 +861,36 @@ func (_m *UserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, 
 	return r0, r1
 }
 
+// GetMfaUsedTimestamps provides a mock function with given fields: userID
+func (_m *UserStore) GetMfaUsedTimestamps(userID string) ([]int, error) {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMfaUsedTimestamps")
+	}
+
+	var r0 []int
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]int, error)); ok {
+		return rf(userID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []int); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]int)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetNewUsersForTeam provides a mock function with given fields: teamID, offset, limit, viewRestrictions
 func (_m *UserStore) GetNewUsersForTeam(teamID string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	ret := _m.Called(teamID, offset, limit, viewRestrictions)
@@ -1101,9 +1131,9 @@ func (_m *UserStore) GetProfilesInChannelByStatus(options *model.UserGetOptions)
 	return r0, r1
 }
 
-// GetProfilesNotInChannel provides a mock function with given fields: teamID, channelId, groupConstrained, offset, limit, viewRestrictions
-func (_m *UserStore) GetProfilesNotInChannel(teamID string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
-	ret := _m.Called(teamID, channelId, groupConstrained, offset, limit, viewRestrictions)
+// GetProfilesNotInChannel provides a mock function with given fields: teamID, channelID, groupConstrained, offset, limit, viewRestrictions
+func (_m *UserStore) GetProfilesNotInChannel(teamID string, channelID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+	ret := _m.Called(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetProfilesNotInChannel")
@@ -1112,10 +1142,10 @@ func (_m *UserStore) GetProfilesNotInChannel(teamID string, channelId string, gr
 	var r0 []*model.User
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, string, bool, int, int, *model.ViewUsersRestrictions) ([]*model.User, error)); ok {
-		return rf(teamID, channelId, groupConstrained, offset, limit, viewRestrictions)
+		return rf(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
 	}
 	if rf, ok := ret.Get(0).(func(string, string, bool, int, int, *model.ViewUsersRestrictions) []*model.User); ok {
-		r0 = rf(teamID, channelId, groupConstrained, offset, limit, viewRestrictions)
+		r0 = rf(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -1123,7 +1153,7 @@ func (_m *UserStore) GetProfilesNotInChannel(teamID string, channelId string, gr
 	}
 
 	if rf, ok := ret.Get(1).(func(string, string, bool, int, int, *model.ViewUsersRestrictions) error); ok {
-		r1 = rf(teamID, channelId, groupConstrained, offset, limit, viewRestrictions)
+		r1 = rf(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1544,17 +1574,17 @@ func (_m *UserStore) IsEmpty(excludeBots bool) (bool, error) {
 	return r0, r1
 }
 
-// PermanentDelete provides a mock function with given fields: userID
-func (_m *UserStore) PermanentDelete(userID string) error {
-	ret := _m.Called(userID)
+// PermanentDelete provides a mock function with given fields: rctx, userID
+func (_m *UserStore) PermanentDelete(rctx request.CTX, userID string) error {
+	ret := _m.Called(rctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PermanentDelete")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+		r0 = rf(rctx, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1882,6 +1912,24 @@ func (_m *UserStore) SearchWithoutTeam(term string, options *model.UserSearchOpt
 	}
 
 	return r0, r1
+}
+
+// StoreMfaUsedTimestamps provides a mock function with given fields: userID, ts
+func (_m *UserStore) StoreMfaUsedTimestamps(userID string, ts []int) error {
+	ret := _m.Called(userID, ts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StoreMfaUsedTimestamps")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, []int) error); ok {
+		r0 = rf(userID, ts)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Update provides a mock function with given fields: rctx, user, allowRoleUpdate

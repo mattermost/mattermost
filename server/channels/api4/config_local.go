@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"reflect"
+	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -16,21 +17,35 @@ import (
 )
 
 func (api *API) InitConfigLocal() {
-	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localGetConfig)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localUpdateConfig)).Methods("PUT")
-	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APILocal(localPatchConfig)).Methods("PUT")
-	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APILocal(configReload)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APILocal(localMigrateConfig)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/config/client", api.APILocal(localGetClientConfig)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localGetConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config", api.APILocal(localUpdateConfig)).Methods(http.MethodPut)
+	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APILocal(localPatchConfig)).Methods(http.MethodPut)
+	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APILocal(configReload)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APILocal(localMigrateConfig)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/config/client", api.APILocal(localGetClientConfig)).Methods(http.MethodGet)
 }
 
 func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("localGetConfig", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	cfg := c.App.GetSanitizedConfig()
+	filterMasked, _ := strconv.ParseBool(r.URL.Query().Get("remove_masked"))
+	filterDefaults, _ := strconv.ParseBool(r.URL.Query().Get("remove_defaults"))
+
+	filterOpts := model.ConfigFilterOptions{
+		GetConfigOptions: model.GetConfigOptions{
+			RemoveDefaults: filterDefaults,
+			RemoveMasked:   filterMasked,
+		},
+	}
+
+	m, err := model.FilterConfig(c.App.Config(), filterOpts)
+	if err != nil {
+		c.Err = model.NewAppError("getConfig", "api.filter_config_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 	auditRec.Success()
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+	if err := json.NewEncoder(w).Encode(m); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -77,7 +92,7 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventPriorState(&diffs)
 
-	newCfg.Sanitize()
+	c.App.SanitizedConfig(newCfg)
 
 	auditRec.Success()
 	c.LogAudit("updateConfig")

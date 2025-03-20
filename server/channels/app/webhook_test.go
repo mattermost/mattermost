@@ -397,19 +397,19 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 
 	testConditions := []model.PostPriority{
 		{
-			Priority:                model.NewString("high"),
-			RequestedAck:            model.NewBool(true),
-			PersistentNotifications: model.NewBool(false),
+			Priority:                model.NewPointer("high"),
+			RequestedAck:            model.NewPointer(true),
+			PersistentNotifications: model.NewPointer(false),
 		},
 		{
-			Priority:                model.NewString(""),
-			RequestedAck:            model.NewBool(true),
-			PersistentNotifications: model.NewBool(false),
+			Priority:                model.NewPointer(""),
+			RequestedAck:            model.NewPointer(true),
+			PersistentNotifications: model.NewPointer(false),
 		},
 		{
-			Priority:                model.NewString("urgent"),
-			RequestedAck:            model.NewBool(false),
-			PersistentNotifications: model.NewBool(true),
+			Priority:                model.NewPointer("urgent"),
+			RequestedAck:            model.NewPointer(false),
+			PersistentNotifications: model.NewPointer(true),
 		},
 	}
 
@@ -430,6 +430,7 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 		assert.Equal(t, *conditions.PersistentNotifications, *post.GetPriority().PersistentNotifications)
 	}
 }
+
 func TestCreateWebhookPostLinks(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -538,7 +539,7 @@ func TestSplitWebhookPost(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			splits, err := SplitWebhookPost(tc.Post, maxPostSize)
+			splits, err := splitWebhookPost(tc.Post, maxPostSize)
 			if tc.Expected == nil {
 				require.NotNil(t, err)
 			} else {
@@ -617,7 +618,7 @@ func TestSplitWebhookPostAttachments(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			splits, err := SplitWebhookPost(tc.post, maxPostSize)
+			splits, err := splitWebhookPost(tc.post, maxPostSize)
 			if tc.expected == nil {
 				require.NotNil(t, err)
 			} else {
@@ -726,7 +727,6 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 	getTestCases := func() map[string]TestCaseOutgoing {
 		webHookResponse := "sample response text from test server"
 		testCasesOutgoing := map[string]TestCaseOutgoing{
-
 			"Should override username and Icon": {
 				EnablePostUsernameOverride: true,
 				EnablePostIconOverride:     true,
@@ -917,7 +917,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewString("127.0.0.1")
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("127.0.0.1")
 		*cfg.ServiceSettings.EnableOutgoingWebhooks = true
 	})
 
@@ -979,7 +979,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer close(releaseHandler)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
 		})
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
@@ -996,7 +996,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(2)
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(2))
 		})
 
 		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)

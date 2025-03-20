@@ -9,6 +9,7 @@ import (
 	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/pkg/errors"
 )
@@ -17,6 +18,7 @@ const (
 	broadcastAddMentions  = "add_mentions"
 	broadcastAddFollowers = "add_followers"
 	broadcastPostedAck    = "posted_ack"
+	broadcastPermalink    = "permalink"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -24,6 +26,7 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastAddMentions:  &addMentionsBroadcastHook{},
 		broadcastAddFollowers: &addFollowersBroadcastHook{},
 		broadcastPostedAck:    &postedAckBroadcastHook{},
+		broadcastPermalink:    &permalinkBroadcastHook{},
 	}
 }
 
@@ -83,7 +86,7 @@ func usePostedAckHook(message *model.WebSocketEvent, postedUserId string, channe
 
 func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	// Don't ACK unless we say to explicitly
-	if !webConn.PostedAck {
+	if !(webConn.PostedAck && webConn.Active.Load()) {
 		return nil
 	}
 
@@ -119,7 +122,7 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 
 	users, err := getTypedArg[model.StringArray](args, "users")
 	if err != nil {
-		return errors.Wrap(err, "Invalid users value passed to addFollowersBroadcastHook")
+		return errors.Wrap(err, "Invalid users value passed to postedAckBroadcastHook")
 	}
 
 	if len(users) > 0 && slices.Contains(users, webConn.UserId) {
@@ -130,16 +133,50 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	return nil
 }
 
+func usePermalinkHook(message *model.WebSocketEvent, previewChannel *model.Channel, postJSON string) {
+	message.GetBroadcast().AddHook(broadcastPermalink, map[string]any{
+		"preview_channel": previewChannel,
+		"post_json":       postJSON,
+	})
+}
+
+type permalinkBroadcastHook struct{}
+
+// Process adds the post medata from usePermalinkHook to the websocket event
+// if the user has access to the containing channel.
+func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	previewChannel, err := getTypedArg[*model.Channel](args, "preview_channel")
+	if err != nil {
+		return errors.Wrap(err, "Invalid preview_channel value passed to permalinkBroadcastHook")
+	}
+
+	rctx := request.EmptyContext(webConn.Platform.Log())
+	if !webConn.Suite.HasPermissionToReadChannel(rctx, webConn.UserId, previewChannel) {
+		// Do nothing.
+		// In this case, the sanitized post is already attached to the ws event.
+		return nil
+	}
+
+	// Else, we set the post with permalink preview.
+	postJSON, err := getTypedArg[string](args, "post_json")
+	if err != nil {
+		return errors.Wrap(err, "Invalid post_json value passed to permalinkBroadcastHook")
+	}
+	msg.Add("post", postJSON)
+
+	return nil
+}
+
 func incrementWebsocketCounter(wc *platform.WebConn) {
 	if wc.Platform.Metrics() == nil {
 		return
 	}
 
-	if !wc.Platform.Config().FeatureFlags.NotificationMonitoring {
+	if !(wc.Platform.Config().FeatureFlags.NotificationMonitoring && *wc.Platform.Config().MetricsSettings.EnableNotificationMetrics) {
 		return
 	}
 
-	wc.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket)
+	wc.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket, model.NotificationNoPlatform)
 }
 
 // getTypedArg returns a correctly typed hook argument with the given key, reinterpreting the type using JSON encoding

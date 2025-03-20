@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
@@ -19,9 +20,8 @@ import (
 
 func (s *MmctlE2ETestSuite) TestExportListCmdF() {
 	s.SetupTestHelper()
-	serverPath := os.Getenv("MM_SERVER_PATH")
 	importName := "import_test.zip"
-	importFilePath := filepath.Join(serverPath, "tests", importName)
+	importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)
 	exportPath, err := filepath.Abs(filepath.Join(*s.th.App.Config().FileSettings.Directory,
 		*s.th.App.Config().ExportSettings.Directory))
 	s.Require().Nil(err)
@@ -72,9 +72,8 @@ func (s *MmctlE2ETestSuite) TestExportListCmdF() {
 
 func (s *MmctlE2ETestSuite) TestExportDeleteCmdF() {
 	s.SetupTestHelper()
-	serverPath := os.Getenv("MM_SERVER_PATH")
 	importName := "import_test.zip"
-	importFilePath := filepath.Join(serverPath, "tests", importName)
+	importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)
 	exportPath, err := filepath.Abs(filepath.Join(*s.th.App.Config().FileSettings.Directory,
 		*s.th.App.Config().ExportSettings.Directory))
 	s.Require().Nil(err)
@@ -179,9 +178,8 @@ func (s *MmctlE2ETestSuite) TestExportCreateCmdF() {
 
 func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 	s.SetupTestHelper()
-	serverPath := os.Getenv("MM_SERVER_PATH")
 	importName := "import_test.zip"
-	importFilePath := filepath.Join(serverPath, "tests", importName)
+	importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)
 	exportPath, err := filepath.Abs(filepath.Join(*s.th.App.Config().FileSettings.Directory,
 		*s.th.App.Config().ExportSettings.Directory))
 	s.Require().Nil(err)

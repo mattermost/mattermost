@@ -1,147 +1,118 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ComponentProps} from 'react';
 import React from 'react';
+import {Provider} from 'react-redux';
 
-import {Preferences} from 'mattermost-redux/constants';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+import testConfigureStore from 'tests/test_store';
 
-import Pluggable from './pluggable';
+import type {GlobalState} from 'types/store';
 
-class ProfilePopoverPlugin extends React.PureComponent {
-    render() {
-        return <span id='pluginId'>{'ProfilePopoverPlugin'}</span>;
-    }
-}
+import Pluggable from '.';
+
+const ProfilePopoverPlugin: React.FunctionComponent = () => (<span data-testid='pluginId'>{'ProfilePopoverPlugin'}</span>);
 
 jest.mock('actions/views/profile_popover');
 
 describe('plugins/Pluggable', () => {
-    const baseProps = {
-        pluggableName: '',
-        components: {
-            Product: [],
-            CallButton: [],
-            PostDropdownMenu: [],
-            PostAction: [],
-            PostEditorAction: [],
-            CodeBlockAction: [],
-            NewMessagesSeparatorAction: [],
-            FilePreview: [],
-            MainMenu: [],
-            LinkTooltip: [],
-            RightHandSidebarComponent: [],
-            ChannelHeaderButton: [],
-            MobileChannelHeaderButton: [],
-            AppBar: [],
-            UserGuideDropdownItem: [],
-            FilesWillUploadHook: [],
-            NeedsTeamComponent: [],
-            CreateBoardFromTemplate: [],
-            DesktopNotificationHooks: [],
-        },
-        theme: Preferences.THEMES.denim,
+    const baseProps: ComponentProps<typeof Pluggable> = {
+        pluggableName: 'RightHandSidebarComponent',
     };
-
-    test('should match snapshot with no extended component', () => {
-        const wrapper = mountWithIntl(
-            <Pluggable
-                {...baseProps}
-            />,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
+    function getBaseState(): DeepPartial<GlobalState> {
+        return {
+            plugins: {
+                components: {
+                    RightHandSidebarComponent: [{
+                        component: ProfilePopoverPlugin,
+                        id: 'some id',
+                        pluginId: 'some plugin id',
+                    }],
+                },
+            },
+            entities: {
+                teams: {
+                    currentTeamId: '',
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+                general: {
+                    config: {},
+                },
+            },
+        };
+    }
 
     test('should match snapshot with extended component', () => {
-        const wrapper = mountWithIntl(
+        const state = getBaseState();
+        const {container} = renderWithContext(
             <Pluggable
                 {...baseProps}
-                pluggableName='PopoverSection1'
-                components={{...baseProps.components, PopoverSection1: [{id: '', pluginId: '', component: ProfilePopoverPlugin}]}}
+                pluggableName='RightHandSidebarComponent'
             />,
+            state,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('#pluginId').text()).toBe('ProfilePopoverPlugin');
-        expect(wrapper.find(ProfilePopoverPlugin).exists()).toBe(true);
+        expect(container).toMatchSnapshot();
+        expect(screen.getByTestId('pluginId')).toBeInTheDocument();
+        expect(screen.getByText('ProfilePopoverPlugin')).toBeInTheDocument();
     });
 
-    test('should match snapshot with extended component with pluggableName', () => {
-        const wrapper = mountWithIntl(
-            <Pluggable
-                {...baseProps}
-                pluggableName='PopoverSection1'
-                components={{...baseProps.components, PopoverSection1: [{id: '', pluginId: '', component: ProfilePopoverPlugin}]}}
-            />,
+    test('should return null if with pluggableName but no components', () => {
+        const state = getBaseState();
+        state.plugins!.components!.RightHandSidebarComponent = [];
+        const store = testConfigureStore(state);
+        const {container} = renderWithContext(
+            <Provider store={store}>
+                <Pluggable
+                    {...baseProps}
+                    pluggableName='RightHandSidebarComponent'
+                />
+            </Provider>,
+            state,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('#pluginId').text()).toBe('ProfilePopoverPlugin');
-        expect(wrapper.find(ProfilePopoverPlugin).exists()).toBe(true);
-    });
-
-    test('should return null if neither pluggableName nor children is is defined in props', () => {
-        const wrapper = mountWithIntl(
-            <Pluggable
-                {...baseProps}
-                components={{...baseProps.components, PopoverSection1: [{id: '', pluginId: '', component: ProfilePopoverPlugin}]}}
-            />,
-        );
-
-        expect(wrapper.find(ProfilePopoverPlugin).exists()).toBe(false);
-    });
-
-    test('should return null if with pluggableName but no children', () => {
-        const wrapper = mountWithIntl(
-            <Pluggable
-                {...baseProps}
-                pluggableName='PopoverSection1'
-            />,
-        );
-
-        expect(wrapper.children().length).toBe(0);
+        expect(container).toBeEmptyDOMElement();
     });
 
     test('should match snapshot with non-null pluggableId', () => {
-        const wrapper = mountWithIntl(
-            <Pluggable
-                {...baseProps}
-                pluggableName='PopoverSection1'
-                pluggableId={'pluggableId'}
-                components={{...baseProps.components, PopoverSection1: [{id: '', pluginId: '', component: ProfilePopoverPlugin}]}}
-            />,
+        const state = getBaseState();
+        const store = testConfigureStore(state);
+        const {container} = renderWithContext(
+            <Provider store={store}>
+                <Pluggable
+                    {...baseProps}
+                    pluggableName='RightHandSidebarComponent'
+                    pluggableId={'pluggableId'}
+                />
+            </Provider>,
+            state,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(ProfilePopoverPlugin).exists()).toBe(false);
-    });
-
-    test('should match snapshot with null pluggableId', () => {
-        const wrapper = mountWithIntl(
-            <Pluggable
-                {...baseProps}
-                pluggableName='PopoverSection1'
-                components={{...baseProps.components, PopoverSection1: [{id: '', pluginId: '', component: ProfilePopoverPlugin}]}}
-            />,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(ProfilePopoverPlugin).exists()).toBe(true);
+        expect(container).toMatchSnapshot();
+        expect(container).toBeEmptyDOMElement();
     });
 
     test('should match snapshot with valid pluggableId', () => {
-        const wrapper = mountWithIntl(
-            <Pluggable
-                {...baseProps}
-                pluggableName='PopoverSection1'
-                pluggableId={'pluggableId'}
-                components={{...baseProps.components, PopoverSection1: [{id: 'pluggableId', pluginId: '', component: ProfilePopoverPlugin}]}}
-            />,
+        const state = getBaseState();
+        state.plugins!.components!.RightHandSidebarComponent![0]!.id = 'pluggableId';
+        const store = testConfigureStore(state);
+        const {container} = renderWithContext(
+            <Provider store={store}>
+                <Pluggable
+                    {...baseProps}
+                    pluggableName='RightHandSidebarComponent'
+                    pluggableId={'pluggableId'}
+                />
+            </Provider>,
+            state,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(ProfilePopoverPlugin).exists()).toBe(true);
+        expect(container).toMatchSnapshot();
+        expect(screen.getByTestId('pluginId')).toBeInTheDocument();
     });
 });

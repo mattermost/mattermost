@@ -15,8 +15,8 @@ import (
 // Endpoints for cloud installations should not go in this file.
 func (api *API) InitHostedCustomer() {
 	// POST /api/v4/hosted_customer/available
-	api.BaseRoutes.HostedCustomer.Handle("/signup_available", api.APISessionRequired(handleSignupAvailable)).Methods("GET")
-	api.BaseRoutes.HostedCustomer.Handle("/subscribe-newsletter", api.APIHandler(handleSubscribeToNewsletter)).Methods("POST")
+	api.BaseRoutes.HostedCustomer.Handle("/signup_available", api.APISessionRequired(handleSignupAvailable)).Methods(http.MethodGet)
+	api.BaseRoutes.HostedCustomer.Handle("/subscribe-newsletter", api.APIHandler(handleSubscribeToNewsletter)).Methods(http.MethodPost)
 }
 
 func handleSignupAvailable(c *Context, w http.ResponseWriter, r *http.Request) {

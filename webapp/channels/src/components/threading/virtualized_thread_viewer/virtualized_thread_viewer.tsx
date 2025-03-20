@@ -10,6 +10,7 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Posts} from 'mattermost-redux/constants';
 import {getNewMessagesIndex, isDateLine, isStartOfNewMessages, isCreateComment} from 'mattermost-redux/utils/post_list';
 
 import NewRepliesBanner from 'components/new_replies_banner';
@@ -21,11 +22,13 @@ import DelayedAction from 'utils/delayed_action';
 import {getPreviousPostId, getLatestPostId} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {NewMessagesSeparatorActionComponent} from 'types/store/plugins';
 import type {FakePost} from 'types/store/rhs';
 
 import CreateComment from './create_comment';
 import Row from './thread_viewer_row';
+
+import './virtualized_thread_viewer.scss';
 
 type Props = {
     currentUserId: string;
@@ -39,12 +42,12 @@ type Props = {
     useRelativeTimestamp: boolean;
     isMobileView: boolean;
     isThreadView: boolean;
-    newMessagesSeparatorActions: PluginComponent[];
+    newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
     inputPlaceholder?: string;
+    measureRhsOpened: () => void;
 }
 
 type State = {
-    createCommentHeight: number;
     isScrolling: boolean;
     topRhsPostId?: string;
     userScrolledToBottom: boolean;
@@ -57,9 +60,11 @@ type State = {
 
 const virtListStyles = {
     position: 'absolute',
-    top: '0',
-    height: '100%',
-    willChange: 'auto',
+    willChange: 'transform',
+    overflowY: 'auto',
+    overflowAnchor: 'none',
+    bottom: '0px',
+    maxHeight: '100%',
 };
 
 const innerStyles = {
@@ -80,6 +85,11 @@ const THREADING_TIME: typeof BASE_THREADING_TIME = {
 };
 
 const OFFSET_TO_SHOW_TOAST = -50;
+
+// To handle issue caused by slight difference in scrollHeight and scrollOffset + clientHeight of virtaulized list
+// we add a buffer to the scrollOffset
+const SCROLL_OFFSET_BUFFER = 5;
+
 const OVERSCAN_COUNT_FORWARD = 80;
 const OVERSCAN_COUNT_BACKWARD = 80;
 
@@ -87,7 +97,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
     private mounted = false;
     private scrollStopAction: DelayedAction;
     private scrollShortCircuit = 0;
-    postCreateContainerRef: RefObject<HTMLDivElement>;
     listRef: RefObject<DynamicSizeList>;
     innerRef: RefObject<HTMLDivElement>;
     initRangeToRender: number[];
@@ -104,11 +113,9 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
         this.listRef = React.createRef();
         this.innerRef = React.createRef();
-        this.postCreateContainerRef = React.createRef();
         this.scrollStopAction = new DelayedAction(this.handleScrollStop);
 
         this.state = {
-            createCommentHeight: 0,
             isScrolling: false,
             userScrolledToBottom: false,
             topRhsPostId: undefined,
@@ -122,6 +129,8 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
     componentDidMount() {
         this.mounted = true;
+
+        this.props.measureRhsOpened();
     }
 
     componentWillUnmount() {
@@ -181,11 +190,10 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         if (scrollHeight <= 0) {
             return;
         }
-        const {createCommentHeight} = this.state;
 
         const updatedState: Partial<State> = {};
 
-        const userScrolledToBottom = scrollHeight - scrollOffset - createCommentHeight <= clientHeight;
+        const userScrolledToBottom = scrollHeight - scrollOffset - SCROLL_OFFSET_BUFFER <= clientHeight;
 
         if (!scrollUpdateWasRequested) {
             this.scrollShortCircuit = 0;
@@ -342,22 +350,11 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
         const isLastPost = itemId === this.props.lastPost.id;
         const isRootPost = itemId === this.props.selected.id;
+        const isDeletedPost = ('delete_at' in this.props.selected && this.props.selected.delete_at !== 0) ||
+            ('state' in this.props.selected && this.props.selected.state === Posts.POST_DELETED);
 
         if (!isDateLine(itemId) && !isStartOfNewMessages(itemId) && !isCreateComment(itemId) && !isRootPost) {
             a11yIndex++;
-        }
-
-        if (isCreateComment(itemId)) {
-            return (
-                <CreateComment
-                    placeholder={this.props.inputPlaceholder}
-                    isThreadView={this.props.isThreadView}
-                    latestPostId={this.props.lastPost.id}
-                    ref={this.postCreateContainerRef}
-                    teammate={this.props.directTeammate}
-                    threadId={this.props.selected.id}
-                />
-            );
         }
 
         return (
@@ -370,6 +367,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     currentUserId={this.props.currentUserId}
                     isRootPost={isRootPost}
                     isLastPost={isLastPost}
+                    isDeletedPost={isDeletedPost}
                     listId={itemId}
                     onCardClick={this.props.onCardClick}
                     previousPostId={getPreviousPostId(data, index)}
@@ -421,7 +419,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         const {topRhsPostId} = this.state;
 
         return (
-            <>
+            <div className='virtual-list__ctr'>
                 {this.props.isMobileView && topRhsPostId && !this.props.useRelativeTimestamp && (
                     <FloatingTimestamp
                         isRhsPost={true}
@@ -431,7 +429,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                 )}
                 <div
                     role='application'
-                    aria-label={Utils.localizeMessage('accessibility.sections.rhsContent', 'message details complimentary region')}
+                    aria-label={Utils.localizeMessage({id: 'accessibility.sections.rhsContent', defaultMessage: 'message details complimentary region'})}
                     className='post-right__content a11y__region'
                     style={{height: '100%'}}
                     data-a11y-sort-order='3'
@@ -458,6 +456,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                                     style={virtListStyles}
                                     width={width}
                                     className={'post-list__dynamic--RHS'}
+                                    correctScrollToBottom={true}
                                 >
                                     {this.renderRow}
                                 </DynamicSizeList>
@@ -466,7 +465,13 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                         )}
                     </AutoSizer>
                 </div>
-            </>
+                <CreateComment
+                    placeholder={this.props.inputPlaceholder}
+                    isThreadView={this.props.isThreadView}
+                    teammate={this.props.directTeammate}
+                    threadId={this.props.selected.id}
+                />
+            </div>
         );
     }
 }

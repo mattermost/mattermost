@@ -2300,10 +2300,6 @@
     "translation": "Należy uzupełnić trigger_words lub channel_id."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Nie można odszyfrować wieloczęściowego ładunku wchodzącego webhooka."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Nie można zaktualizować webhooków pomiędzy zespołami."
   },
@@ -3004,60 +3000,8 @@
     "translation": "Konsola systemowa jest ustawiona na tylko do odczytu, gdy włączona jest wysoka dostępność, chyba że ReadOnlyConfig jest wyłączone w pliku konfiguracyjnym."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Nieznany format wyjściowy {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Nie można skopiować załącznika do pliku zip."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Nie można dodać załącznika do eksportu CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Nie można utworzyć tymczasowego pliku eksportu CSV."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Nie można dodać nagłówka do eksportu CSV."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Nie można dodać pliku metadanych do pliku zip."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Nie można konwertować metadanych do json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Nie można wyeksportować wiadomości."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Nie można utworzyć pliku eksportu zip."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Przesłany plik został usunięty z eksportu globalnego przekaźnika, ponieważ był zbyt duży, aby go wysłać."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Nie można otworzyć pliku tymczasowego eksportu."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Nie można ponownie odczytać tymczasowego pliku eksportu globalnego przekaźnika."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funkcjonalność zgodności wymaga licencji typu enterprise. Skontaktuj się z administratorem systemu odnośnie uzyskania licencji typu enterprise."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Nie można wczytać szablonów eksportu. Proszę spróbuj ponownie."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3069,31 +3013,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Pracownik agregatora Elasticsearch nie utworzył zadania indeksowania"
+    "translation": "{{.Backend}} pracownik agregatora nie mógł utworzyć zadania indeksowania"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Pracownik agregatora Elasticsearch nie usunął indeksów"
+    "translation": "{{.Backend}} pracownik agregatora nie usunął indeksów"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Pracownik agregatora Elasticsearch nie uzyskał indeksów"
+    "translation": "{{.Backend}} pracownik agregatora nie mógł pobrać indeksów"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Uruchomienie agregatora Elasticsearch nie powiodło się z powodu niepowodzenia zadania indeksowania"
+    "translation": "{{.Backend}} worker agregatora nie powiódł się z powodu niepowodzenia zadania indeksowania"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Konfigurowanie Klienta Elasticsearch Nie Powiodło się"
+    "translation": "Konfiguracja klienta {{.Backend}} nie powiodła się"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Nie udało się utworzyć indeksu Elasticsearch"
+    "translation": "Nie udało się usunąć indeksu {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Nie udało się pobrać indeksu ElasticSearch"
+    "translation": "Nie udało się pobrać indeksów {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3101,7 +3045,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Wyszukiwanie Elasticsearch nie jest włączone na tym serwerze"
+    "translation": "{{.Backend}} wyszukiwanie nie jest włączone na tym serwerze"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3109,23 +3053,19 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Pracownik indeksujący Elasticsearch nie przeanalizował czasu zakończenia"
+    "translation": "{{.Backend}} worker indeksujący nie mógł przeanalizować czasu zakończenia"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Pracownik indeksujący Elasticsearch nie przeanalizował czasu rozpoczęcia"
+    "translation": "{{.Backend}} worker indeksujący nie mógł przeanalizować czasu rozpoczęcia"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch nie jest obecnie uruchomiony"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Nie można usunąć indeksu Elasticsearch"
+    "translation": "{{.Backend}} nie jest uruchamiony"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Na tym serwerze wyszukiwanie ElasticSearch jest wyłączone"
+    "translation": "{{.Backend}} wyszukiwanie jest wyłączone na tym serwerze"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3140,28 +3080,20 @@
     "translation": "Błąd w dekodowaniu wyników wyszukiwania"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Nie udało się utworzyć procesora zbiorczego Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Nie można uruchomić procesora masowego Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch jest aktualnie zatrzymane."
+    "translation": "{{.Backend}} jest aktualnie zatrzymany."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch jest wyłączony."
+    "translation": "{{.Backend}} jest wyłączone."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Twoja licencja nie wspiera Elasticsearch."
+    "translation": "Twoja licencja Mattermost nie obsługuje wyszukiwania indeksowanego."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "Adres URL lub nazwa serwera Elasticsearch została zmieniona. Ponownie wprowadź hasło Elasticsearch, aby przetestować połączenie."
+    "translation": "Adres URL serwera wyszukiwania lub nazwa użytkownika uległy zmianie. Wprowadź ponownie hasło, aby przetestować połączenie."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3246,58 +3178,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "błąd podczas pobierania grup dla użytkownika"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Nie można dodać załącznika do eksportu Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Nie można zamknąć pliku zip."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Nie można utworzyć pliku eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Nie można wygenerować danych pliku eml."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Nie można dostarczyć e-maila do Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Nie można ustawić adresu e-mail z adresu."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Nie można ustawić wiadomości email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Nie można napisać wiadomości E-Mail."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Nie można odczytać informacji e-mail."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Nie można ustawić adresu e-mail Aby zaadresować."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Nie można uzyskać informacji o pliku tymczasowym eksportu."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Nie można uzyskać wiadomości e-mail z pliku tymczasowego."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Nie można otworzyć pliku tymczasowego eksportu."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3721,27 +3601,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Ustawienie Elasticsearch AggregatePostsAfterDays musi być liczbą większą lub równą 1."
+    "translation": "Ustawienie Szukaj AggregatePostsAfterDays musi być liczbą większą lub równą 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elasticsearch ConnectionUrl musi zostać podany podczas gdy indeksowanie Elasticseach jest włączone."
+    "translation": "Ustawienie Search ConnectionUrl musi być podane, gdy indeksowanie jest włączone."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastic Search Ustawienie IndexingEnabled musi być ustawione na wartość true, gdy Elastich Search SearchEnabled ma wartość true"
+    "translation": "{{.EnableIndexing}} ustawienie musi mieć wartość włączone, gdy {{.Searching}} ma wartość włączone"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch musi wynosić co najmniej 1."
+    "translation": "Rozmiar partii indeksowania Search Live musi wynosić co najmniej 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Ustawienie Elasticsearch PostsAggregatorJobStartTime musi być czasem w formacie \"hh: mm\"."
+    "translation": "Ustawienie Search PostsAggregatorJobStartTime musi być czasem w formacie \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Czas oczekiwania na żądanie ElasticSearch musi wynosić co najmniej 1 sekundę."
+    "translation": "Limit czasu żądania wyszukiwania musi wynosić co najmniej 1 sekundę."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4117,7 +3997,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Nieprawidłowy identyfikator."
+    "translation": "Nieprawidłowy identyfikator: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4322,10 +4202,6 @@
   {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Nieprawidłowy identyfikator."
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Nieprawidłowa wiadomość."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -4625,11 +4501,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Nie można znaleźć polecenia."
+    "translation": "Nie można znaleźć polecenia {{.command_id}}."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Nie można przeanalizować danych przychodzących."
+    "translation": "Nie można przeanalizować danych przychodzących dla webhooka {{.hook_id}}."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4641,7 +4517,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Ten webhook nie może publikować na żądanym kanale."
+    "translation": "Ten webhook nie może wysyłać wiadomości na żądany kanał {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4657,7 +4533,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Niewłaściwe uprawnienia do kanału."
+    "translation": "Użytkownik {{.user}} nie ma odpowiednich uprawnień do kanału {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4669,7 +4545,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Nie odnaleziono użytkownika."
+    "translation": "Nie można znaleźć użytkownika {{.user}}"
   },
   {
     "id": "model.group.name.invalid_length.app_error",
@@ -4721,23 +4597,23 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Wersja 16.2+"
+    "translation": "Wersja 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Wersja 115+"
+    "translation": "Wersja 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 118+"
+    "translation": "Wersja 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 118+"
+    "translation": "Wersja 132+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4901,7 +4777,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Ustawienie Elasticsearch IndexingEnabled musi być włączone, gdy Elasticsearch AutocompleteEnabled jest włączone"
+    "translation": "{{.EnableIndexing}} ustawienie musi mieć wartość właczone, gdy {{.Autocomplete}} ma wartość włączone"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4948,20 +4824,16 @@
     "translation": "Przekroczono limit rozmiaru. Spróbuj zwiększyć maksymalny rozmiar strony. Więcej informacji znajdziesz na stronie https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "błąd podczas usuwania członkostwa zespołu lub kanału"
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Twoja licencja nie obsługuje powiadomień ID Loaded Push Notifications."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Failed to parse Elasticsearch server version."
+    "translation": "Nie udało się przeanalizować wersji serwera {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Failed to get Elasticsearch server version."
+    "translation": "Nie udało się uzyskać wersji serwera {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -4981,11 +4853,11 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Na tym serwerze wyszukiwanie ElasticSearch jest wyłączone"
+    "translation": "{{.Backend}} wyszukiwanie jest wyłączone na tym serwerze"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Nie udało się pobrać indeksu ElasticSearch"
+    "translation": "Nie udało się odświeżyć indeksów wyszukiwania"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -5009,23 +4881,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla użytkowników"
+    "translation": "Nie udało się utworzyć szablonu {{.Backend}} dla użytkowników"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla wiadomości"
+    "translation": "Nie udało się utworzyć szablonu {{.Backend}} dla postów"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla kanałów"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Nie można utworzyć pliku eml."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Nie można utworzyć pliku zip"
+    "translation": "Nie udało się utworzyć szablonu {{.Backend}} dla kanałów"
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -5389,11 +5253,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Napotkaliśmy błąd podczas wyszukiwania kanału."
+    "translation": "Napotkaliśmy błąd podczas wyszukiwania kanału {{.channel_id}}."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Nie można znaleźć istniejącego kanału."
+    "translation": "Nie można znaleźć istniejącego kanału {{.channel_id}}."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -5526,10 +5390,6 @@
   {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "Twoja licencja Enterprise Edition wygasła i niektóre funkcjonalności mogą być niedostępne. Proszę odnowić swoją licencję."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Odśwież licencję"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -6020,10 +5880,6 @@
     "translation": "Nie można usunąć schematu."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Nie udało się pobrać użytkowników na kanale w określonym przedziale czasowym."
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Nie można zapisać emoji."
   },
@@ -6300,16 +6156,8 @@
     "translation": "Osiągnięto limit czasu zadania synchronizacji AD/LDAP."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Nie znaleziono punktu końcowego interfejsu API klastra."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " załączył plik."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Nie można przekonwertować eksportu do formatu XML."
   },
   {
     "id": "app.job.update.app_error",
@@ -7049,7 +6897,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Bezpieczne połączenie | Wyświetlana nazwa | ID połączenia | Adres URL | Zaproszenie zaakceptowane | Online | Ostatni ping |"
+    "translation": "| Bezpieczne połączenie | Wyświetlana nazwa | Identyfikator połączenia | Adres URL witryny | Domyślny zespół | Akceptacja zaproszenia | Online | Ostatni ping | Usunięto |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -7106,10 +6954,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "Zaproszenie z bezpiecznego połączenia"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Nie można odszyfrować zaproszenia. Nieprawidłowe hasło lub uszkodzone zaproszenie: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",
@@ -7236,10 +7080,6 @@
     "translation": "Nie można uzyskać licencji próbnej, proszę spróbować ponownie lub skontaktować się z support@mattermost.com."
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Błąd pobierania linku do odnowienia licencji"
-  },
-  {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
     "translation": "Nie udało się zastosować nowej licencji próbnej. Zastosowano już wcześniej licencję próbną do tej instancji Mattermost... Jeśli chcesz przedłużyć okres próbny, prosimy o [kontakt z naszym zespołem sprzedaży](https://mattermost.com/contact-us/)."
   },
@@ -7324,10 +7164,6 @@
     "translation": "Nie udało się wysłać wiadomości e-mail z prośbą o przedłużenie licencji"
   },
   {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Nie udało się wygenerować linku odnowienia licencji"
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Jedno lub więcej z poniższych uprawnień, które próbujesz dodać lub usunąć jest niedozwolone"
   },
@@ -7404,10 +7240,6 @@
     "translation": "Uwierzytelnianie zakończone"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Zaloguj się do swojego konta klienta, aby odnowić"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, Twoja subskrypcja ma wygasnąć za {{.Days}} dni. Mamy nadzieję, że korzystasz z elastycznej i bezpiecznej współpracy zespołowej, którą umożliwia Mattermost. Odnów wkrótce, aby Twój zespół mógł nadal korzystać z tych korzyści."
   },
@@ -7448,10 +7280,6 @@
     "translation": "Twoja subskrypcja Mattermost wymaga przedłużenia"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Odnów teraz"
-  },
-  {
     "id": "api.templates.invite_body_footer.learn_more",
     "translation": "Dowiedz się więcej"
   },
@@ -7462,10 +7290,6 @@
   {
     "id": "api.templates.invite_body.subTitle",
     "translation": "Rozpocznij współpracę z zespołem w serwisie Mattermost"
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, drugie piętro, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -7598,10 +7422,6 @@
   {
     "id": "api.templates.verify_body.subTitle2",
     "translation": "Kliknij poniżej, aby zweryfikować swój adres e-mail."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Zalegasz z opłatą za subskrypcję Mattermost Cloud"
   },
   {
     "id": "app.create_basic_user.save_member.app_error",
@@ -7800,42 +7620,6 @@
     "translation": "Potrzebujesz pomocy lub masz pytania? Napisz do nas na adres "
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Faktura za usługę Mattermost Cloud jest wymagalna"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Aby przejrzeć fakturę i dodać metodę płatności, wybierz opcję Zapłać teraz."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Faktura Mattermost Cloud za ostatni okres rozliczeniowy została przetworzona. Nie mamy jednak w pliku Twoich danych dotyczących płatności."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Zapłać teraz"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Płatność nie powiodła się"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Wymagane działanie: Płatność nie powiodła się dla Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Aby zapewnić nieprzerwany dostęp do Mattermost {{.Plan}}, należy skontaktować się ze swoją instytucją finansową w celu rozwiązania problemu lub zaktualizować informacje dotyczące płatności. Po zaktualizowaniu informacji o płatności, Mattermost podejmie próbę uregulowania wszelkich zaległości."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Podano następujące uzasadnienie:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Twoja instytucja finansowa odrzuciła płatność z Twojej {{.CardBrand}} ****{{.LastFour}} powiązanej z obszarem roboczym Mattermost Cloud."
-  },
-  {
     "id": "store.sql_file_info.search.disabled",
     "translation": "Wyszukiwanie plików zostało wyłączone na tym serwerze. Skontaktuj się z Administratorem Systemu."
   },
@@ -7996,22 +7780,6 @@
     "translation": "Otrzymaliśmy nieprawidłowy podpis w odpowiedzi od Dostawcy Tożsamości. Prosimy o kontakt z Administratorem Systemu."
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Nie udało się uzyskać informacji o pliku dla postu."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Nie można się połączyć z serwerem smtp"
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Nie udało się uzyskać informacji o pliku dla postu."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Nie udało się uzyskać informacji o pliku dla postu."
-  },
-  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "nie można zmigrować."
   },
@@ -8041,7 +7809,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Na tym serwerze wyszukiwanie ElasticSearch jest wyłączone"
+    "translation": "{{.Backend}} wyszukiwanie plików jest wyłączone na tym serwerze"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -8069,7 +7837,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla plików"
+    "translation": "Nie udało się utworzyć szablonu {{.Backend}} dla plików"
   },
   {
     "id": "ent.data_retention.run_failed.error",
@@ -8084,24 +7852,12 @@
     "translation": "Napotkaliśmy błąd podczas wykonywania żądanej operacji."
   },
   {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Nie można zapisać globalnego pliku przekaźnika."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Nie można zapisać pliku csv."
-  },
-  {
     "id": "ent.cluster.timeout.error",
     "translation": "Przekroczenie czasu oczekiwania na odpowiedź klastra"
   },
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Wystąpił błąd podczas marshalowania żądania JSON"
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Nie można zapisać pliku eksportu."
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
@@ -8202,10 +7958,6 @@
   {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Nie powiodło się sprawdzenie, czy magazyn użytkowników jest pusty."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Nie udało się wysłać żadnego e-maila"
   },
   {
     "id": "app.user.send_auto_response.app_error",
@@ -8400,10 +8152,6 @@
     "translation": "System"
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Napotkano błąd podczas tworzenia bezpośredniego kanału udosepnianego."
-  },
-  {
     "id": "app.select_error",
     "translation": "błąd wyboru"
   },
@@ -8478,18 +8226,6 @@
   {
     "id": "app.notification.body.dm.subTitle",
     "translation": "Kiedy Cię nie było, {{.SenderName}} wysłał Ci nową Bezpośrednią Wiadomość."
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Brak licencji"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Ten typ licencji nie obsługuje generowania tokenów odnowieniowych"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Nie udało się wygenerować nowego tokena odnowienia."
   },
   {
     "id": "app.job.download_export_results_not_enabled",
@@ -8632,10 +8368,6 @@
     "translation": "Liczba identyfikatorów postów osiągnęła maksymalny rozmiar {{.MaxLength}}"
   },
   {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Odnowienie tej licencji na portalu nie jest możliwe"
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "Odpowiedź SAML jest zbyt długa"
   },
@@ -8705,7 +8437,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Rozmiar partii indeksowania zbiorczego Elasticsearch musi wynosić co najmniej {{.BatchSize}}."
+    "translation": "Rozmiar partii indeksowania zbiorczego wyszukiwania musi wynosić co najmniej {{.BatchSize}}."
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
@@ -8782,14 +8514,6 @@
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Nieprawidłowa treść żądania."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Zostałeś uaktualniony!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Potwierdzenie Aktualizacji Mattermost"
   },
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
@@ -8872,194 +8596,6 @@
     "translation": "Mattermost to platforma open source do bezpiecznej komunikacji, współpracy i orkiestracji pracy między narzędziami i zespołami.\nMattermost zawiera dwa kluczowe narzędzia:\n\n**Kanały** - Pozostań w kontakcie ze swoim zespołem poprzez wiadomości 1:1 i grupowe.\n**[Playbooki](/playbooki)** - Twórz i konfiguruj powtarzalne procesy, aby osiągnąć określone i przewidywalne wyniki.\n\n[Zobacz dokumentację i przewodniki]({{.HelpLink}})"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "Historia wiadomości"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Pliki"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Płatność nie została otrzymana"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "Skontaktuj się ze swoją instytucją finansową, aby rozwiązać wszelkie problemy. Następnie, w razie potrzeby, zaktualizuj swoje dane dotyczące płatności."
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Nie byliśmy w stanie obciążyć karty kredytowej, którą mamy w pliku. Oznacza to, że Twój obszar roboczy może zostać zdegradowany do wersji Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "Zaległa płatność za Twój Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Aktualizacja płatności"
-  },
-  {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Brak wymaganych pól do wysłania wiadomości e-mail o zaległościach."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Twój obszar roboczy zostanie zdegradowany do Cloud Free. Funkcje Twojego {{.Plan}} zostaną zablokowane, a niektóre dane z Twojego obszaru roboczego mogą zostać zarchiwizowane do czasu uregulowania całego zaległego salda."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Jest to ostateczne przypomnienie, że nie otrzymaliśmy płatności za obszar roboczy Mattermost Cloud od {{.DelinquencyDate}}."
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Twój Mattermost {{.Plan}} zostanie zdegradowany za 15 dni"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Obniż na Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Aktualizacja płatności"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "Twoja płatność nie została zrealizowana"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "Aby utrzymać aktywność swojego planu {{.Plan}}, skontaktuj się jak najszybciej ze swoją instytucją finansową. Następnie, w razie potrzeby, zaktualizuj swoje dane dotyczące płatności."
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Nie mogliśmy przetworzyć Twojej ostatniej płatności."
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Aktualizacja płatności"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Obszar roboczy Mattermost zostanie zdegradowany w ciągu 30 dni"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Zaktualizuj swoje informacje o płatnościach teraz lub przejdź do wersji Cloud Free poniżej."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "Jeśli nie będziemy w stanie przetworzyć Twojej płatności, automatycznie obniżymy rangę Twojej przestrzeni roboczej w ciągu 30 dni."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "Prosimy o rychłą aktualizację informacji o płatnościach w celu przetworzenia zaległych faktur."
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "Wymagane działanie: Obszar roboczy zostanie zdegradowany w ciągu 30 dni"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Obniż na Cloud Free"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Aktualizacja płatności"
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "Twój obszar roboczy zostanie wkrótce zdegradowany"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "Zaktualizuj teraz informacje o swojej karcie kredytowej."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Od {{.DelinquencyDate}} nie udało nam się zebrać płatności za zaległe faktury. Twój obszar roboczy jest zagrożony obniżeniem poziomu."
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "Uwaga: Twój Mattermost {{.Plan}} zostanie wkrótce zdegradowany"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Aktualizacja płatności"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "Twój obszar roboczy zostanie wkrótce zdegradowany"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "Jeśli nie zostaną podjęte żadne działania, Twój obszar roboczy zostanie zdegradowany, a następujące dane mogą zostać zarchiwizowane:"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "Masz czas na utrzymanie aktywności Mattermost {{.Plan}}, ale będziesz musiał rozwiązać problemy z metodą płatności."
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Działaj, aby zachować Funkcjonalności twojego Mattermost {{.Plan}}"
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Twój obszar roboczy został zdegradowany"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "Aby odarchiwizować swoje dane i zachować płatne funkcje, zaktualizuj informacje o płatności."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Ponadto Twoje dane mogły zostać zarchiwizowane z powodu ograniczeń Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "Jeśli korzystasz z funkcji Cloud Professional lub Enterprise do ważnych operacji biznesowych, nie będą one już dostępne i doświadczysz pogorszenia wydajności."
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Twój obszar roboczy Mattermost Cloud został zdegradowany"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "Wyświetl Plany i Ceny"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Aktualizacja płatności"
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "Obszar roboczy Mattermost zostanie zdegradowany w ciągu 15 dni"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Zaktualizuj teraz swoje informacje o płatnościach lub przejdź do wersji Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "Zobacz całą dokumentację dotyczącą limitów."
-  },
-  {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "Abonament nie jest zaległy"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "Nie można odzyskać subskrypcji chmurowej"
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "Nie można pobrać produktów chmurowych"
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Aktualizacja płatności"
-  },
-  {
     "id": "app.notify_admin.send_notification_post.app_error",
     "translation": "Nie można wysłać postu z powiadomieniem."
   },
@@ -9082,10 +8618,6 @@
   {
     "id": "app.cloud.trial_plan_bot_message",
     "translation": "{{.UsersNum}} członkowie obszaru roboczego {{.WorkspaceName}} zażądali rozpoczęcia wersji próbnej Enterprise w celu uzyskania dostępu do: "
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "Nie można uzyskać nazwy bieżącego planu"
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
@@ -9146,10 +8678,6 @@
   {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Nieprawidłowa wartość."
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Nieprawidłowa wiadomość."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",
@@ -9233,7 +8761,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Nie można potwierdzić w zarchiwizowanym kanale."
+    "translation": "Nie możesz zapisać potwierdzenia w zarchiwizowanym kanale."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -9252,76 +8780,28 @@
     "translation": "Błąd pobierania ról podczas sprawdzania poprawności."
   },
   {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "Zobacz swoją fakturę"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "Twoja przestrzeń robocza {{.WorkspaceName}} została zaktualizowana."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "Twoja {{.WorkspaceName}} została zaktualizowana. Opłaty będą naliczane od {{.Date}}"
-  },
-  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal niedostępny dla samodzielnej rejestracji."
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Nie można otworzyć pliku klucza klienta dla Elasticsearch"
+    "translation": "Nie można otworzyć pliku klucza klienta dla {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Nie można otworzyć pliku z certyfikatem klienta dla Elasticsearch"
+    "translation": "Nie można otworzyć pliku certyfikatu klienta dla {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Dekodowanie certyfikatu klienta dla Elasticsearch nie powiodło się"
+    "translation": "Dekodowanie certyfikatu klienta dla {{.Backend}} nie powiodło się"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Nie można otworzyć pliku CA dla Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Dekodowanie CA dla Elasticsearch nie powiodło się"
+    "translation": "Nie można otworzyć pliku CA dla {{.Backend}}"
   },
   {
     "id": "api.server.cws.health_check.app_error",
     "translation": "Serwer CWS nie jest dostępny."
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Nie można uzyskać całkowitej liczby wychodzących webhooków"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Nie można uzyskać całkowitej liczby przychodzących webhooków"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Nie można uzyskać całkowitej liczby aktywnych użytkowników"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "Przegląd True up nie jest dozwolony dla instancji w chmurze"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "Prawdziwy przegląd wymaga licencji"
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Nie można uzyskać prawdziwych zapisów statusu"
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Nie można utworzyć rekordu statusu true up"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Zdegradowane miejsce pracy może mieć negatywny wpływ na krytyczne przepływy pracy i inne krytyczne działania biznesowe wykonywane w miejscu pracy."
   },
   {
     "id": "app.group.username_conflict",
@@ -9344,10 +8824,6 @@
     "translation": "Nieprawidłowy filtr dziennika"
   },
   {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "CWS Server nie potrafił usunąć przestrzeni roboczej."
-  },
-  {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "Kontakt ze sprzedażą"
   },
@@ -9361,7 +8837,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Wersja Elasticsearch {{.Version}} jest wyższa niż maksymalnie obsługiwana wersja {{.MaxVersion}}"
+    "translation": "{{.Backend}} wersja {{.Version}} jest wyższa niż maksymalna obsługiwana wersja {{.MaxVersion}}"
   },
   {
     "id": "app.plugin.skip_installation.app_error",
@@ -9510,10 +8986,6 @@
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
     "translation": "Błąd brak podanej nazwy organizacji dla samodzielnego hostowania onboardingu."
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Nie udało się przesłać do CWS profilu true up review."
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
@@ -9741,7 +9213,7 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.audience.error",
-    "translation": "Niektóre adresy URL odbiorców są nieprawidłowe."
+    "translation": "Adres URL odbiorców jest nieprawidłowy: {{ .Url }}"
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
@@ -9829,7 +9301,7 @@
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
-    "translation": "Wątek z {{.NumMessages}} wiadomościami został przeniesiony do wiadomości bezpośrednich/grupowych\n"
+    "translation": "Wątek z wiadomościami {{.NumMessages}} został przeniesiony do wiadomości bezpośredniej/grupowej\n"
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.one_message",
@@ -9889,51 +9361,19 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": "Wystąpił błąd podczas zapisywania wychodzącego połączenia oauth."
+    "translation": "Wystąpił błąd podczas zapisywania wychodzącego połączenia oauth: {{ .Error }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": "Wystąpił błąd aktualizacji wychodzącego połączenia oauth."
+    "translation": "Wystąpił błąd aktualizacji wychodzącego połączenia oauth: {{ .Error }}"
   },
   {
     "id": "api.payload.parse.error",
     "translation": "Wystąpił błąd podczas przetwarzania ładowania."
   },
   {
-    "id": "api.templates.cloud_renewal.subtitle",
-    "translation": "Prosimy o odnowienie, aby uniknąć zakłóceń"
-  },
-  {
-    "id": "api.templates.cloud_renewal.button",
-    "translation": "Odnów teraz"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.subject",
-    "translation": "Roczny rachunek płatny do 30 dni"
-  },
-  {
-    "id": "api.templates.cloud_renewal_30.title",
-    "translation": "Termin płatności rocznego rachunku wynosi 30 dni"
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.title",
-    "translation": "Roczne odnowienie subskrypcji w ciągu 60 dni"
-  },
-  {
     "id": "api.team.user.missing_account",
     "translation": "Nie można znaleźć użytkownika."
-  },
-  {
-    "id": "api.templates.cloud_renewal_60.subject",
-    "translation": "Roczne odnowienie subskrypcji w ciągu 60 dni"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.subject",
-    "translation": "Wymagane działanie: Roczne odnowienie subskrypcji w ciągu 7 dni"
-  },
-  {
-    "id": "api.templates.cloud_renewal_7.title",
-    "translation": "Za 7 dni utracisz dostęp do swojej przestrzeni roboczej"
   },
   {
     "id": "app.channel.patch_channel_members_notify_props.app_error",
@@ -10300,16 +9740,12 @@
     "translation": "Nie można włączyć autouzupełniania kanałów, ponieważ schemat indeksu kanałów jest nieaktualny. Zaleca się regenerację indeksu kanałów. Zobacz dziennik zmian Mattermost, aby uzyskać więcej informacji"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Twój schemat indeksu kanałów Elasticsearch jest nieaktualny. Zaleca się regenerację indeksu kanałów.\nKliknij przycisk `Rebuild Channels Index` w [sekcji Elasticsearch w konsoli systemowej] ({{.ElasticsearchSection}}), aby naprawić błąd.\nZobacz dziennik zmian Mattermost, aby uzyskać więcej informacji."
-  },
-  {
     "id": "bleveengine.purge_list.not_implemented",
     "translation": "Funkcja listy czyszczenia nie jest dostępna dla Bleve."
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Nie udało się usunąć indeksu Elasticsearch"
+    "translation": "Nie udało się usunąć indeksu wyszukiwania"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
@@ -10386,5 +9822,645 @@
   {
     "id": "model.user.is_valid.pwd_max_length.app_error",
     "translation": "Twoje hasło nie może zawierać więcej niż 72 znaki."
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Błąd odczytu statusu pliku: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Błąd wyszukiwania pliku: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Nie udało się uzyskać liczby użytkowników"
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "Zespół o tym adresie URL już istnieje."
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Błąd przy określaniu liczby kont administratora systemu."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Nie możesz zdegradować ostatniego administratora systemu."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Nie można ustalić, czy ta nazwa użytkownika już istnieje"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Nieprawidłowy zestaw statusów"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "Nie masz uprawnień do zarządzania tym typem zadania"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Nie można zaktualizować statusu zadania. Ustawiono nieprawidłowy status"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Nie udało się zapisać logów do bufora"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Wystąpił wewnętrzny błąd podczas zapisywania hasła."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Wystąpił wewnętrzny błąd podczas zapisywania hasła."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Twoje hasło nie może zawierać więcej niż 72 znaki."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Nie można uzyskać adresu URL strony instancji"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Nie można zdekodować ciągu base64"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Zdalny klaster nie został usunięty"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Nie znaleziono zdalnego klastra"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Nie udało się odszyfrować zaproszenia do zdalnego klastra przy użyciu podanego hasła"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Nie można ustawić niestandardowego statusu."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Nie udało się zaakceptować zaproszenia do zdalnego klastra"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Nie udało się zaszyfrować zaproszenia do zdalnego klastra przy użyciu podanego hasła"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Nieprawidłowy backend wyszukiwania. Musi to być elasticsearch lub opensearch."
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Nie można przetworzyć żądania. Treść żądania jest zbyt duża."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Nieprawidłowa maksymalna długość URL dla ustawień usługi. Musi być liczbą całkowitą większą od zera."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Nieprawidłowa wartość dla limit_visible_dms_gms."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Typem pamięci podręcznej musi być lru lub redis."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress musi być określony dla typu pamięci podręcznej redis."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB musi mieć wartość większą lub równą zero."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Nie można uzyskać webhooka dla teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "Użytkownik nie jest użytkownikiem OAuth lub SAML."
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Nie udało się uzyskać członków kanału dla kanału bezpośredniego"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Nie ma członków dla kanału bezpośredniego"
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Nie można pobrać członków wątku do eksportu."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Nieprawidłowy identyfikator posta."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Nieprawidłowe ID użytkownika."
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Nie można pobrać pilotów kanału współdzielonego"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Nie można odblokować zdalnego do kanału"
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Nie można zapisać członkostwa w wątku dla postu."
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Nie można określić, czy kanał jest współdzielony ze zdalnym"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Nie można zaprosić zdalnego do kanału"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Rozmiar przesłanej wtyczki przekracza limit. Limit ten można zmienić w konsoli systemowej poprzez Magazyn plików > Maksymalny rozmiar pliku"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Nie udało się przesłać pliku. Kanał przesyłania nie jest współdzielony ze zdalnym."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Nie można zaktualizować dodatkowych właściwości sesji."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Nie można wygenerować kodu zaproszenia dla potwierdzonego klastra"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Nie można usunąć postu, ServiceSettings.EnableAPIPostDeletion nie jest włączone."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Nie możesz modyfikować statusu użytkownika. Użytkownik jest zarządzany przez LDAP"
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Nie znaleziono plików dla postu."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Nie udało się trwale usunąć pliku dla postu."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Nie udało się trwale usunąć postu."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Nie można utworzyć kanału bezpośredniego z użytkownikiem zdalnym"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Nie można utworzyć kanału grupowego z użytkownikami zdalnymi"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Nie udało się skopiować zawartości pliku licencji do bufora"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Nie można utworzyć zaproszenia do zdalnego klastra"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Nie można utworzyć postu w DM lub GM ze zdalnymi użytkownikami"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Nieprawidłowy zdalny identyfikator."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Niepoprawny token."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Nieprawidłowy adres URL strony."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Nieprawidłowe żądanie."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "funkcja zaplanowanych postów jest wyłączona"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Funkcja zaplanowanych postów wymaga licencji"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Nie można zaktualizować bota."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Nie udało się usunąć zaplanowanego postu z bazy danych."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Nie masz uprawnień do usunięcia tego zasobu."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Zaplanowany post nie istnieje."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Nie można pobrać istniejącego zaplanowanego postu z bazy danych."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Wystąpił błąd podczas pobierania zaplanowanych postów."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Nie można znaleźć właściciela bota"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Importowany wiersz danych ma typ \"bot\" ale obiekt bota ma wartość null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Brakuje właściciela bota"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Nie można zaplanować postu w zarchiwizowanym kanale."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Wystąpił błąd podczas zapisywania zaplanowanego wpisu."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Zaplanowany post nie istnieje."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Nie można pobrać istniejącego zaplanowanego postu z bazy danych."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Nie udało się zapisać zaktualizowanego zaplanowanego wpisu w bazie danych."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Nie masz uprawnień do aktualizacji tego zasobu."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Zaplanowany post musi mieć identyfikator."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Nie możesz zaplanować pustego postu. Zaplanowany post musi zawierać przynajmniej wiadomość lub załączniki w postaci plików."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Nieprawidłowo przetworzone w czasie."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Nieprawidłowy zaplanowany czas."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Post nie może zostać utworzony"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Nie można pobrać bota systemowego"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Nie można uzyskać bezpośredniej wiadomości od bota systemowego"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Jeśli otrzymałeś to powiadomienie testowe, to zadziałało!"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Nie można uzyskać użytkownika"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Nie można wyszukać początku danych GIF."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanał jest zarchiwizowany"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Nie znaleziono kanału"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Nieprawidłowa treść posta"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Nie jesteś członkiem kanału"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Brak uprawnień do publikowania w kanale"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Wątek został usunięty"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Nie można wysłać wiadomości"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Nieznany błąd"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Konto użytkownika zostało usunięte"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Użytkownik nie istnieje"
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Nie można usunąć zaplanowanych postów dla użytkownika."
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "few": "Nie udało się wysłać {{.Count}} zaplanowanych postów.",
+      "many": "Nie udało się wysłać {{.Count}} zaplanowanych postów.",
+      "one": "Nie udało się wysłać {{.Count}} zaplanowanego posta."
+    }
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Kanał prywatny"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Nieznany Kanał"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "few": "- {{.Count}} w kanałach {{.ChannelName}}. Powód: {{.ErrorReason}}",
+      "many": "- {{.Count}} w kanałach {{.ChannelName}}. Powód: {{.ErrorReason}}",
+      "one": "- {{.Count}} w kanale {{.ChannelName}}. Powód: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Nieprawidłowa klasa pamięci {{.Value}}."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Nie udało się zbuforować postu po deduplikacji klienta powtarzającego to samo żądanie."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Nie można zresetować pozycji odczytu do początku pakietu wtyczek."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Nie udało się obsłużyć polecenia webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Nie udało się zdekodować ładunku mediów typu {{.media_type}} dla przychodzącego webhooka {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Nie udało się obsłużyć ładunku mediów typu {{.media_type}} dla przychodzącego webhooka {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Nie udało się przeanalizować przychodzącego webhooka {{.hook_id}}."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Właściwość Wiadomości Roboczej jest dłuższa niż maksymalna dozwolona długość."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Właściwość wiadomości Post jest dłuższa niż dozwolona długość."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Nie można przefiltrować konfiguracji."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Nie można utworzyć katalogu dla niestandardowych obrazów emoji"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Role użytkowników nie są zgodne ze statusem gościa."
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Nie można utworzyć pola atrybutu profilu niestandardowego"
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Nie można zarejestrować grupy właściwości Atrybuty profilu niestandardowego"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Osiągnięto limit pola atrybutów profilu niestandardowego"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Nie można uzyskać pola atrybutu profilu niestandardowego"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Nie można uzyskać niestandardowych wartości atrybutów profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Nie można usunąć pola atrybutu profilu niestandardowego"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Nie można zaktualizować pola atrybutu profilu niestandardowego"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Nie znaleziono pola atrybutu profilu niestandardowego"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Nie można przeszukiwać pól atrybutów profilu niestandardowego"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Nie udało się usunąć żądanych plików z bazy danych"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Nie można uzyskać informacji o plikach według identyfikatorów dla historii edycji postów."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Nie udało się przywrócić załączników pliku poczty."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Nie udało się pobrać starej wersji posta."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Nie masz odpowiednich uprawnień."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Podany identyfikator historii postu nie odpowiada żadnemu elementowi historii dla określonego postu."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Podany identyfikator historii postów nie odpowiada elementowi historii postów."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Nie można usunąć roli."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Obliczanie aktywności kanałów: {{.NumCompleted}}/{{.NumChannels}} kanałów ukończonych."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Eksport informacji o kanałach dla {{.NumChannels}} kanałów."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Nie udało się obliczyć danych eksportu kanału."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Nie udało się przekonwertować wartości z pola danych zadania."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Długość adresu URL metadanych linku wynosi {{ .Length }} znaków, co przekracza maksymalny limit {{ .MaxLength }} znaków."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Nieprawidłowe pole właściwości: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Nieprawidłowa wartość właściwości: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Twoja licencja nie obsługuje niestandardowych atrybutów profilu."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Nie można pobrać czytnika plików zip."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nie udało się utworzyć zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Nie udało się zaktualizować kolejności sortowania zakładki kanału."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "próba załatania pola, które nie istnieje"
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Nie można pobrać zakładek dla zarchiwizowanego kanału"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Nie udało się uzyskać liczby wszystkich plików."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Nie udało się uzyskać użycia pamięci masowej dla wszystkich plików."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nie udało się usunąć zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nie udało się zaktualizować zakładki kanału."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Nie można uruchomić polecenia w usuniętym kanale."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Nie znaleziono sesji."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Nie można policzyć liczby pól dla grupy atrybutów profilu niestandardowego"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Nie można wstawić pól atrybutów profilu niestandardowego"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Nieprawidłowy identyfikator użytkownika po stronie klienta: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Liczba elementów w ClientSideUserIds {{.CurrentLength}} jest wyższa niż maksymalny limit {{.MaxLength}}."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Kolor banera kanału nie może być pusty, gdy baner kanału jest włączony"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Baner kanału można skonfigurować tylko na kanałach publicznych i prywatnych"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Tekst informacji o banerze kanału nie może być pusty, gdy baner kanału jest włączony"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Tekst informacji o banerze kanału jest za długi. Maksymalna dozwolona długość to {{.maxLength}} znaków."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Baner kanału można skonfigurować tylko na kanałach publicznych i prywatnych."
   }
 ]

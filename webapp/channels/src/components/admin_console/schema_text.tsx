@@ -11,7 +11,7 @@ import FormattedMarkdownMessage, {CustomRenderer} from 'components/formatted_mar
 type Props = {
     isMarkdown?: boolean;
     text: string | MessageDescriptor | JSX.Element;
-    textValues?: Record<string, React.ReactNode>;
+    textValues?: Record<string, string | (() => React.ReactNode)>;
 }
 
 const SchemaText = ({

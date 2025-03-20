@@ -107,7 +107,7 @@ func extractJobShowCmdF(c client.Client, command *cobra.Command, args []string) 
 }
 
 func extractJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
-	return jobListCmdF(c, command, model.JobTypeExtractContent)
+	return jobListCmdF(c, command, model.JobTypeExtractContent, "")
 }
 
 func printExtractContentJob(job *model.Job) {

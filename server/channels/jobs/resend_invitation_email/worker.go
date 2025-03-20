@@ -9,11 +9,11 @@ import (
 	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/configservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
@@ -171,7 +171,10 @@ func (rseworker *ResendInvitationEmailWorker) GetDurations(job *model.Job) (int6
 }
 
 func (rseworker *ResendInvitationEmailWorker) TearDown(logger mlog.LoggerIFace, job *model.Job) {
-	rseworker.store.System().PermanentDeleteByName(job.Id)
+	if _, err := rseworker.store.System().PermanentDeleteByName(job.Id); err != nil {
+		logger.Error("Worker: Failed to tear down data", mlog.Err(err))
+	}
+
 	rseworker.setJobSuccess(logger, job)
 }
 

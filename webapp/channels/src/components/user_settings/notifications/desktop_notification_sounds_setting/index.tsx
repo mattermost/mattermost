@@ -4,7 +4,7 @@
 import type {ChangeEvent, ReactNode} from 'react';
 import React, {memo, useEffect, useRef, Fragment, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import type {ValueType} from 'react-select';
+import type {OnChangeValue} from 'react-select';
 import ReactSelect from 'react-select';
 
 import type {UserNotifyProps} from '@mattermost/types/users';
@@ -15,11 +15,15 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {UserSettingsNotificationSections} from 'utils/constants';
 import {
-    callsNotificationSounds,
-    notificationSounds,
+    notificationSoundKeys,
     stopTryNotificationRing,
     tryNotificationSound,
     tryNotificationRing,
+    getValueOfNotificationSoundsSelect,
+    getValueOfIncomingCallSoundsSelect,
+    optionsOfMessageNotificationSoundsSelect,
+    optionsOfIncomingCallSoundsSelect,
+    callNotificationSoundKeys,
 } from 'utils/notification_sounds';
 
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
@@ -92,7 +96,7 @@ function DesktopNotificationSoundsSettings({
         }
     }, [setParentState]);
 
-    const handleChangeForMessageNotificationSoundSelect = useCallback((selectedOption: ValueType<SelectOption>) => {
+    const handleChangeForMessageNotificationSoundSelect = useCallback((selectedOption: OnChangeValue<SelectOption, boolean>) => {
         stopTryNotificationRing();
 
         if (selectedOption && 'value' in selectedOption) {
@@ -101,7 +105,7 @@ function DesktopNotificationSoundsSettings({
         }
     }, [setParentState]);
 
-    const handleChangeForIncomingCallSoundSelect = useCallback((selectedOption: ValueType<SelectOption>) => {
+    const handleChangeForIncomingCallSoundSelect = useCallback((selectedOption: OnChangeValue<SelectOption, boolean>) => {
         stopTryNotificationRing();
 
         if (selectedOption && 'value' in selectedOption) {
@@ -134,7 +138,6 @@ function DesktopNotificationSoundsSettings({
                         className='react-select inlineSelect'
                         classNamePrefix='react-select'
                         options={optionsOfMessageNotificationSoundsSelect}
-                        clearable={false}
                         isClearable={false}
                         isSearchable={false}
                         isDisabled={!isMessageNotificationSoundChecked}
@@ -143,7 +146,7 @@ function DesktopNotificationSoundsSettings({
                             defaultMessage: 'Select a sound',
                         })}
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
-                        value={getValueOfMessageNotificationSoundsSelect(desktopNotificationSound)}
+                        value={getValueOfNotificationSoundsSelect(desktopNotificationSound)}
                         onChange={handleChangeForMessageNotificationSoundSelect}
                     />
                 </div>
@@ -174,7 +177,6 @@ function DesktopNotificationSoundsSettings({
                             className='react-select inlineSelect'
                             classNamePrefix='react-select'
                             options={optionsOfIncomingCallSoundsSelect}
-                            clearable={false}
                             isClearable={false}
                             isSearchable={false}
                             isDisabled={!isIncomingCallSoundChecked}
@@ -257,146 +259,6 @@ function DesktopNotificationSoundsSettings({
 
 function NoIndicatorSeparatorComponent() {
     return null;
-}
-
-const notificationSoundKeys = Array.from(notificationSounds.keys());
-
-const optionsOfMessageNotificationSoundsSelect: SelectOption[] = notificationSoundKeys.map((soundName) => {
-    if (soundName === 'Bing') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundBing'
-                    defaultMessage='Bing'
-                />
-            ),
-        };
-    } else if (soundName === 'Crackle') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundCrackle'
-                    defaultMessage='Crackle'
-                />
-            ),
-        };
-    } else if (soundName === 'Down') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundDown'
-                    defaultMessage='Down'
-                />
-            ),
-        };
-    } else if (soundName === 'Hello') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundHello'
-                    defaultMessage='Hello'
-                />
-            ),
-        };
-    } else if (soundName === 'Ripple') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundRipple'
-                    defaultMessage='Ripple'
-                />
-            ),
-        };
-    } else if (soundName === 'Upstairs') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundUpstairs'
-                    defaultMessage='Upstairs'
-                />
-            ),
-        };
-    }
-    return {
-        value: '',
-        label: '',
-    };
-});
-
-function getValueOfMessageNotificationSoundsSelect(soundName?: string) {
-    const soundOption = optionsOfMessageNotificationSoundsSelect.find((option) => option.value === soundName);
-
-    if (!soundOption) {
-        return undefined;
-    }
-
-    return soundOption;
-}
-
-const callNotificationSoundKeys = Array.from(callsNotificationSounds.keys());
-
-const optionsOfIncomingCallSoundsSelect: SelectOption[] = callNotificationSoundKeys.map((soundName) => {
-    if (soundName === 'Dynamic') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundDynamic'
-                    defaultMessage='Dynamic'
-                />
-            ),
-        };
-    } else if (soundName === 'Calm') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundCalm'
-                    defaultMessage='Calm'
-                />
-            ),
-        };
-    } else if (soundName === 'Urgent') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundUrgent'
-                    defaultMessage='Urgent'
-                />
-            ),
-        };
-    } else if (soundName === 'Cheerful') {
-        return {
-            value: soundName,
-            label: (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopNotificationSound.soundCheerful'
-                    defaultMessage='Cheerful'
-                />
-            ),
-        };
-    }
-    return {
-        value: '',
-        label: '',
-    };
-});
-
-function getValueOfIncomingCallSoundsSelect(soundName?: string) {
-    const soundOption = optionsOfIncomingCallSoundsSelect.find((option) => option.value === soundName);
-
-    if (!soundOption) {
-        return undefined;
-    }
-
-    return soundOption;
 }
 
 function getCollapsedText(

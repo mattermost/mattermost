@@ -61,9 +61,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	gleeGroup, err := th.App.CreateGroup(&model.Group{
-		Name:        model.NewString(model.NewId()),
+		Name:        model.NewPointer(model.NewId()),
 		DisplayName: "Glee Club",
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	if err != nil {
@@ -71,9 +71,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	scienceGroup, err := th.App.CreateGroup(&model.Group{
-		Name:        model.NewString(model.NewId()),
+		Name:        model.NewPointer(model.NewId()),
 		DisplayName: "Science Club",
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	if err != nil {
@@ -403,9 +403,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		}
 
 		group1, err := th.App.CreateGroup(&model.Group{
-			Name:        model.NewString(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
 			DisplayName: "Group 1",
-			RemoteId:    model.NewString(model.NewId()),
+			RemoteId:    model.NewPointer(model.NewId()),
 			Source:      model.GroupSourceLdap,
 		})
 		if err != nil {
@@ -549,14 +549,14 @@ func TestDeleteGroupMemberships(t *testing.T) {
 
 	// make team group-constrained
 	team := th.BasicTeam
-	team.GroupConstrained = model.NewBool(true)
+	team.GroupConstrained = model.NewPointer(true)
 	team, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
 	require.True(t, *team.GroupConstrained)
 
 	// make channel group-constrained
 	channel := th.BasicChannel
-	channel.GroupConstrained = model.NewBool(true)
+	channel.GroupConstrained = model.NewPointer(true)
 	channel, err = th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)
 	require.True(t, *channel.GroupConstrained)
@@ -603,7 +603,7 @@ func TestSyncSyncableRoles(t *testing.T) {
 	team := th.CreateTeam()
 
 	channel := th.CreateChannel(th.Context, team)
-	channel.GroupConstrained = model.NewBool(true)
+	channel.GroupConstrained = model.NewPointer(true)
 	channel, err := th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)
 

@@ -56,9 +56,12 @@ export default class DataPrefetch extends React.PureComponent<Props> {
 
     async componentDidUpdate(prevProps: Props) {
         const {currentChannelId, prefetchQueueObj, sidebarLoaded} = this.props;
+        if (sidebarLoaded && !prevProps.sidebarLoaded) {
+            loadProfilesForSidebar();
+        }
+
         if (currentChannelId && sidebarLoaded && (!prevProps.currentChannelId || !prevProps.sidebarLoaded)) {
             queue.add(async () => this.prefetchPosts(currentChannelId));
-            await loadProfilesForSidebar();
             this.prefetchData();
         } else if (prevProps.prefetchQueueObj !== prefetchQueueObj) {
             clearTimeout(this.prefetchTimeout);
@@ -86,13 +89,13 @@ export default class DataPrefetch extends React.PureComponent<Props> {
     private prefetchData = () => {
         const {prefetchRequestStatus, prefetchQueueObj} = this.props;
         for (const priority in prefetchQueueObj) {
-            if (!prefetchQueueObj.hasOwnProperty(priority)) {
+            if (!Object.hasOwn(prefetchQueueObj, priority)) {
                 continue;
             }
 
             const priorityQueue = prefetchQueueObj[priority];
             for (const channelId of priorityQueue) {
-                if (!prefetchRequestStatus.hasOwnProperty(channelId)) {
+                if (!Object.hasOwn(prefetchRequestStatus, channelId)) {
                     queue.add(async () => this.prefetchPosts(channelId));
                 }
             }

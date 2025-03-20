@@ -14,11 +14,11 @@ import (
 
 func (api *API) InitChannelBookmarks() {
 	if api.srv.Config().FeatureFlags.ChannelBookmarks {
-		api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(createChannelBookmark)).Methods("POST")
-		api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(updateChannelBookmark)).Methods("PATCH")
-		api.BaseRoutes.ChannelBookmark.Handle("/sort_order", api.APISessionRequired(updateChannelBookmarkSortOrder)).Methods("POST")
-		api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(deleteChannelBookmark)).Methods("DELETE")
-		api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(listChannelBookmarksForChannel)).Methods("GET")
+		api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(createChannelBookmark)).Methods(http.MethodPost)
+		api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(updateChannelBookmark)).Methods(http.MethodPatch)
+		api.BaseRoutes.ChannelBookmark.Handle("/sort_order", api.APISessionRequired(updateChannelBookmarkSortOrder)).Methods(http.MethodPost)
+		api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(deleteChannelBookmark)).Methods(http.MethodDelete)
+		api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(listChannelBookmarksForChannel)).Methods(http.MethodGet)
 	}
 }
 
@@ -38,6 +38,11 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -149,6 +154,11 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	switch channel.Type {
 	case model.ChannelTypeOpen:
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionEditBookmarkPublicChannel) {
@@ -236,6 +246,11 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	switch channel.Type {
 	case model.ChannelTypeOpen:
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionOrderBookmarkPublicChannel) {
@@ -316,6 +331,11 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	switch channel.Type {
 	case model.ChannelTypeOpen:
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionDeleteBookmarkPublicChannel) {
@@ -391,7 +411,20 @@ func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannelContent) {
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
+		if channel.DeleteAt != 0 {
+			c.Err = model.NewAppError("listChannelBookmarksForChannel", "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}

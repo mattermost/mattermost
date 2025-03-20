@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -20,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -30,14 +32,30 @@ import (
 // The mandatory fields will be checked during the initialization of the service.
 type ServiceConfig struct {
 	// Mandatory fields
-	ConfigStore *config.Store
-	Store       store.Store
+	Store store.Store
 	// Optional fields
 	Cluster einterfaces.ClusterInterface
 }
 
 func (ps *PlatformService) Config() *model.Config {
 	return ps.configStore.Get()
+}
+
+// getSanitizedConfig gets the configuration without any secrets.
+func (ps *PlatformService) getSanitizedConfig(rctx request.CTX) *model.Config {
+	cfg := ps.Config().Clone()
+
+	manifests, err := ps.getPluginManifests()
+	if err != nil {
+		// getPluginManifests might error, e.g. when plugins are disabled.
+		// Sanitize all plugin settings in this case.
+		rctx.Logger().Warn("Failed to get plugin manifests for config sanitization. Will sanitize all plugin settings.", mlog.Err(err))
+		cfg.Sanitize(nil)
+	} else {
+		cfg.Sanitize(manifests)
+	}
+
+	return cfg
 }
 
 // Registers a function with a given listener to be called when the config is reloaded and may have changed. The function
@@ -73,7 +91,7 @@ func (ps *PlatformService) IsConfigReadOnly() bool {
 func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
 	if ps.pluginEnv != nil {
 		var hookErr error
-		ps.pluginEnv.RunMultiHook(func(hooks plugin.Hooks) bool {
+		ps.pluginEnv.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			var cfg *model.Config
 			cfg, hookErr = hooks.ConfigurationWillBeSaved(newCfg)
 			if hookErr == nil && cfg != nil {
@@ -114,11 +132,11 @@ func (ps *PlatformService) ReloadConfig() error {
 	return nil
 }
 
-func (ps *PlatformService) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]interface{} {
+func (ps *PlatformService) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]any {
 	return ps.configStore.GetEnvironmentOverridesWithFilter(filter)
 }
 
-func (ps *PlatformService) GetEnvironmentOverrides() map[string]interface{} {
+func (ps *PlatformService) GetEnvironmentOverrides() map[string]any {
 	return ps.configStore.GetEnvironmentOverrides()
 }
 
@@ -307,10 +325,7 @@ func (ps *PlatformService) EnsureAsymmetricSigningKey() error {
 
 // LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 func (ps *PlatformService) LimitedClientConfigWithComputed() map[string]string {
-	respCfg := map[string]string{}
-	for k, v := range ps.LimitedClientConfig() {
-		respCfg[k] = v
-	}
+	respCfg := maps.Clone(ps.LimitedClientConfig())
 
 	// These properties are not configurable, but nevertheless represent configuration expected
 	// by the client.
@@ -321,10 +336,7 @@ func (ps *PlatformService) LimitedClientConfigWithComputed() map[string]string {
 
 // ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 func (ps *PlatformService) ClientConfigWithComputed() map[string]string {
-	respCfg := map[string]string{}
-	for k, v := range ps.clientConfig.Load().(map[string]string) {
-		respCfg[k] = v
-	}
+	respCfg := maps.Clone(ps.ClientConfig())
 
 	// These properties are not configurable, but nevertheless represent configuration expected
 	// by the client.
@@ -340,7 +352,6 @@ func (ps *PlatformService) ClientConfigWithComputed() map[string]string {
 	} else {
 		respCfg["SchemaVersion"] = strconv.Itoa(ver)
 	}
-
 	return respCfg
 }
 
@@ -376,12 +387,7 @@ func (ps *PlatformService) IsFirstUserAccount() bool {
 }
 
 func (ps *PlatformService) MaxPostSize() int {
-	maxPostSize := ps.Store.Post().GetMaxPostSize()
-	if maxPostSize == 0 {
-		return model.PostMessageMaxRunesV1
-	}
-
-	return maxPostSize
+	return ps.Store.Post().GetMaxPostSize()
 }
 
 func (ps *PlatformService) isUpgradedFromTE() bool {

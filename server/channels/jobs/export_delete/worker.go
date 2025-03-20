@@ -5,14 +5,15 @@ package export_delete
 
 import (
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/wiggin77/merror"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/configservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
 )
 
 type AppIface interface {
@@ -41,6 +42,12 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		errors := merror.New()
 		for i := range exports {
 			filename := filepath.Base(exports[i])
+
+			// Ignore files that were not created by the bulk export command
+			if !strings.HasSuffix(filename, "_export.zip") {
+				continue
+			}
+
 			modTime, appErr := app.ExportFileModTime(filepath.Join(exportPath, filename))
 			if appErr != nil {
 				logger.Debug("Worker: Failed to get file modification time",

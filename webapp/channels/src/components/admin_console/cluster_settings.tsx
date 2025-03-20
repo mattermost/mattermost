@@ -13,10 +13,10 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import {DocLinks} from 'utils/constants';
 
-import type {BaseProps, BaseState} from './admin_settings';
-import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import ClusterTableContainer from './cluster_table_container';
+import type {BaseProps, BaseState} from './old_admin_settings';
+import OLDAdminSettings from './old_admin_settings';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
@@ -73,7 +73,7 @@ export const searchableStrings = [
     messages.gossipPortDesc,
 ];
 
-export default class ClusterSettings extends AdminSettings<Props, State> {
+export default class ClusterSettings extends OLDAdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.ClusterSettings.Enable = this.state.Enable;
         config.ClusterSettings.ClusterName = this.state.ClusterName;

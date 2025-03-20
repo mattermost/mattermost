@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 const (
@@ -51,7 +52,7 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 		return nil, err
 	}
 
-	rp, err := a.CreatePost(c, post, channel, true, setOnline)
+	rp, err := a.CreatePost(c, post, channel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: setOnline})
 	if err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
 			err.Id == "api.post.create_post.channel_root_id.app_error" {
@@ -79,6 +80,37 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 			)
 		}
 	}
+	if channel.SchemeId != nil && *channel.SchemeId != "" {
+		isReadOnly, ircErr := a.Srv().Store().Channel().IsChannelReadOnlyScheme(*channel.SchemeId)
+		if ircErr != nil {
+			mlog.Warn("Error trying to check if it was a post to a readonly channel", mlog.Err(ircErr))
+		}
+		if isReadOnly {
+			a.Srv().telemetryService.SendTelemetryForFeature(
+				telemetry.TrackReadOnlyFeature,
+				"read_only_channel_posted",
+				map[string]any{
+					telemetry.TrackPropertyUser:    post.UserId,
+					telemetry.TrackPropertyChannel: post.ChannelId,
+				},
+			)
+		}
+	}
+
+	if channel.IsShared() {
+		// if not marked as shared we don't try to reach the store, but needs double checking as it might not be truly shared
+		isShared, shErr := a.Srv().Store().SharedChannel().HasChannel(channel.Id)
+		if shErr == nil && isShared {
+			a.Srv().telemetryService.SendTelemetryForFeature(
+				telemetry.TrackSharedChannelsFeature,
+				"shared_channel_posted",
+				map[string]any{
+					telemetry.TrackPropertyUser:    post.UserId,
+					telemetry.TrackPropertyChannel: channel.Id,
+				},
+			)
+		}
+	}
 
 	return rp, nil
 }
@@ -86,16 +118,17 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool, setOnline bool) (*model.Post, *model.AppError) {
 	channel, err := a.Srv().Store().Channel().Get(post.ChannelId, true)
 	if err != nil {
+		errCtx := map[string]any{"channel_id": post.ChannelId}
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("CreatePostMissingChannel", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
+			return nil, model.NewAppError("CreatePostMissingChannel", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("CreatePostMissingChannel", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("CreatePostMissingChannel", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
-	return a.CreatePost(c, post, channel, triggerWebhooks, setOnline)
+	return a.CreatePost(c, post, channel, model.CreatePostFlags{TriggerWebhooks: triggerWebhooks, SetOnline: setOnline})
 }
 
 // deduplicateCreatePost attempts to make posting idempotent within a caching window.
@@ -113,12 +146,14 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 	var postID string
 	nErr := a.Srv().seenPendingPostIdsCache.Get(post.PendingPostId, &postID)
 	if nErr == cache.ErrKeyNotFound {
-		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, PendingPostIDsCacheTTL)
+		if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, PendingPostIDsCacheTTL); appErr != nil {
+			return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		}
 		return nil, nil
 	}
 
 	if nErr != nil {
-		return nil, model.NewAppError("errorGetPostId", "api.post.error_get_post_id.pending", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("errorGetPostId", "api.post.error_get_post_id.pending", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	// If another thread saved the cache record, but hasn't yet updated it with the actual post
@@ -130,7 +165,7 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 
 	// If the other thread finished creating the post, return the created post back to the
 	// client, making the API call feel idempotent.
-	actualPost, err := a.GetSinglePost(postID, false)
+	actualPost, err := a.GetSinglePost(rctx, postID, false)
 	if err != nil {
 		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -140,7 +175,11 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 	return actualPost, nil
 }
 
-func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError) {
+func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, err *model.AppError) {
+	if !a.Config().FeatureFlags.EnableSharedChannelsDMs && channel.IsShared() && (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
+		return nil, model.NewAppError("CreatePost", "app.post.create_post.shared_dm_or_gm.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	foundPost, err := a.deduplicateCreatePost(c, post)
 	if err != nil {
 		return nil, err
@@ -157,11 +196,15 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		}
 
 		if err != nil {
-			a.Srv().seenPendingPostIdsCache.Remove(post.PendingPostId)
+			if appErr := a.Srv().seenPendingPostIdsCache.Remove(post.PendingPostId); appErr != nil {
+				err = model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+			}
 			return
 		}
 
-		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PendingPostIDsCacheTTL)
+		if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PendingPostIDsCacheTTL); appErr != nil {
+			err = model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		}
 	}()
 
 	// Validate recipients counts in case it's not DM
@@ -204,6 +247,10 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if user.IsBot {
 		post.AddProp(model.PostPropsFromBot, "true")
+	}
+
+	if flags.ForceNotification {
+		post.AddProp(model.PostPropsForceNotification, model.NewId())
 	}
 
 	if c.Session().IsOAuth {
@@ -268,7 +315,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 	var rejectionError *model.AppError
 	pluginContext := pluginContext(c)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post.ForPlugin())
 		if rejectionReason != "" {
 			id := "Post rejected by plugin. " + rejectionReason
@@ -321,7 +368,9 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	// Update the mapping from pending post id to the actual post id, for any clients that
 	// might be duplicating requests.
-	a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PendingPostIDsCacheTTL)
+	if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PendingPostIDsCacheTTL); appErr != nil {
+		return nil, model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
 
 	if a.Metrics() != nil {
 		a.Metrics().IncrementPostCreate()
@@ -341,7 +390,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// and to remove the non-GOB-encodable Metadata from it.
 	pluginPost := rpost.ForPlugin()
 	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.MessageHasBeenPosted(pluginContext, pluginPost)
 			return true
 		}, plugin.MessageHasBeenPostedID)
@@ -357,7 +406,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if rpost.RootId != "" {
 		if appErr := a.ResolvePersistentNotification(c, parentPostList.Posts[post.RootId], rpost.UserId); appErr != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("Error resolving persistent notification",
 				mlog.String("sender_id", rpost.UserId),
 				mlog.String("post_id", post.RootId),
@@ -380,7 +429,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		}
 	}
 
-	if err := a.handlePostEvents(c, rpost, user, channel, triggerWebhooks, parentPostList, setOnline); err != nil {
+	if err := a.handlePostEvents(c, rpost, user, channel, flags.TriggerWebhooks, parentPostList, flags.SetOnline); err != nil {
 		c.Logger().Warn("Failed to handle post events", mlog.Err(err))
 	}
 
@@ -409,16 +458,7 @@ func (a *App) addPostPreviewProp(rctx request.CTX, post *model.Post) (*model.Pos
 }
 
 func (a *App) attachFilesToPost(rctx request.CTX, post *model.Post) *model.AppError {
-	var attachedIds []string
-	for _, fileID := range post.FileIds {
-		err := a.Srv().Store().FileInfo().AttachToPost(rctx, fileID, post.Id, post.ChannelId, post.UserId)
-		if err != nil {
-			rctx.Logger().Warn("Failed to attach file to post", mlog.String("file_id", fileID), mlog.String("post_id", post.Id), mlog.Err(err))
-			continue
-		}
-
-		attachedIds = append(attachedIds, fileID)
-	}
+	attachedIds := a.attachFileIDsToPost(rctx, post.Id, post.ChannelId, post.UserId, post.FileIds)
 
 	if len(post.FileIds) != len(attachedIds) {
 		// We couldn't attach all files to the post, so ensure that post.FileIds reflects what was actually attached
@@ -430,6 +470,20 @@ func (a *App) attachFilesToPost(rctx request.CTX, post *model.Post) *model.AppEr
 	}
 
 	return nil
+}
+
+func (a *App) attachFileIDsToPost(rctx request.CTX, postID, channelID, userID string, fileIDs []string) []string {
+	var attachedIds []string
+	for _, fileID := range fileIDs {
+		err := a.Srv().Store().FileInfo().AttachToPost(rctx, fileID, postID, channelID, userID)
+		if err != nil {
+			rctx.Logger().Warn("Failed to attach file to post", mlog.String("file_id", fileID), mlog.String("post_id", postID), mlog.Err(err))
+			continue
+		}
+
+		attachedIds = append(attachedIds, fileID)
+	}
+	return attachedIds
 }
 
 // FillInPostProps should be invoked before saving posts to fill in properties such as
@@ -488,7 +542,7 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	if channel.TeamId != "" {
 		t, err := a.Srv().Store().Team().Get(channel.TeamId)
 		if err != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("Missing team",
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
@@ -525,7 +579,7 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	if triggerWebhooks {
 		a.Srv().Go(func() {
 			if err := a.handleWebhookEvents(c, post, team, channel, user); err != nil {
-				c.Logger().Error("Failed to handle webhook event", mlog.Err(err))
+				c.Logger().Error("Failed to handle webhook event", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		})
 	}
@@ -625,7 +679,11 @@ func (a *App) DeleteEphemeralPost(rctx request.CTX, userID, postID string) {
 	a.Publish(message)
 }
 
-func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	if updatePostOptions == nil {
+		updatePostOptions = model.DefaultUpdatePostOptions()
+	}
+
 	receivedUpdatedPost.SanitizeProps()
 
 	postLists, nErr := a.Srv().Store().Post().Get(context.Background(), receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
@@ -643,25 +701,25 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	}
 	oldPost := postLists.Posts[receivedUpdatedPost.Id]
 
-	var err *model.AppError
+	var appErr *model.AppError
 	if oldPost == nil {
-		err = model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
-		return nil, err
+		appErr = model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
+		return nil, appErr
 	}
 
 	if oldPost.DeleteAt != 0 {
-		err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]any{"PostId": receivedUpdatedPost.Id}, "", http.StatusBadRequest)
-		return nil, err
+		appErr = model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]any{"PostId": receivedUpdatedPost.Id}, "", http.StatusBadRequest)
+		return nil, appErr
 	}
 
 	if oldPost.IsSystemMessage() {
-		err = model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
-		return nil, err
+		appErr = model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
+		return nil, appErr
 	}
 
-	channel, err := a.GetChannel(c, oldPost.ChannelId)
-	if err != nil {
-		return nil, err
+	channel, appErr := a.GetChannel(c, oldPost.ChannelId)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	if channel.DeleteAt != 0 {
@@ -676,11 +734,17 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 		newPost.Hashtags, _ = model.ParseHashtags(receivedUpdatedPost.Message)
 	}
 
-	if !safeUpdate {
+	if !updatePostOptions.SafeUpdate {
 		newPost.IsPinned = receivedUpdatedPost.IsPinned
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
-		newPost.FileIds = receivedUpdatedPost.FileIds
 		newPost.SetProps(receivedUpdatedPost.GetProps())
+
+		var fileIds []string
+		fileIds, appErr = a.processPostFileChanges(c, receivedUpdatedPost, oldPost, updatePostOptions)
+		if appErr != nil {
+			return nil, appErr
+		}
+		newPost.FileIds = fileIds
 	}
 
 	// Avoid deep-equal checks if EditAt was already modified through message change
@@ -688,17 +752,17 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 		newPost.EditAt = model.GetMillis()
 	}
 
-	if err = a.FillInPostProps(c, newPost, nil); err != nil {
-		return nil, err
+	if appErr = a.FillInPostProps(c, newPost, nil); appErr != nil {
+		return nil, appErr
 	}
 
 	if receivedUpdatedPost.IsRemote() {
-		oldPost.RemoteId = model.NewString(*receivedUpdatedPost.RemoteId)
+		oldPost.RemoteId = model.NewPointer(*receivedUpdatedPost.RemoteId)
 	}
 
 	var rejectionReason string
 	pluginContext := pluginContext(c)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
 		return newPost != nil
 	}, plugin.MessageWillBeUpdatedID)
@@ -711,7 +775,6 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 
 	rpost, nErr := a.Srv().Store().Post().Update(c, newPost, oldPost)
 	if nErr != nil {
-		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr):
 			return nil, appErr
@@ -723,7 +786,7 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	pluginOldPost := oldPost.ForPlugin()
 	pluginNewPost := newPost.ForPlugin()
 	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.MessageHasBeenUpdated(pluginContext, pluginNewPost, pluginOldPost)
 			return true
 		}, plugin.MessageHasBeenUpdatedID)
@@ -743,26 +806,17 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
 
-	published, err := a.publishWebsocketEventForPermalinkPost(c, rpost, message)
-	if err != nil {
-		return nil, err
-	}
-	if !published {
-		removePermalinkMetadataFromPost(rpost)
-		postJSON, jsonErr := rpost.ToJSON()
-		if jsonErr != nil {
-			return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-		}
-		message.Add("post", postJSON)
-		a.Publish(message)
+	appErr = a.publishWebsocketEventForPost(c, rpost, message)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
 
 	userID := c.Session().UserId
-	sanitizedPost, err := a.SanitizePostMetadataForUser(c, rpost, userID)
-	if err != nil {
-		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(err))
+	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, rpost, userID)
+	if appErr != nil {
+		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
 
 		// If we failed to sanitize the post, we still want to remove the metadata.
 		sanitizedPost = rpost.Clone()
@@ -774,113 +828,127 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	return rpost, nil
 }
 
-func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.Post, message *model.WebSocketEvent) (published bool, err *model.AppError) {
-	var previewedPostID string
-	if val, ok := post.GetProp(model.PostPropsPreviewedPost).(string); ok {
-		previewedPostID = val
-	} else {
-		return false, nil
+func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform)
+		a.NotificationsLog().Error("Error in marshalling post to JSON",
+			mlog.String("type", model.NotificationTypeWebsocket),
+			mlog.String("post_id", post.Id),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonMarshalError),
+		)
+		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+	message.Add("post", postJSON)
+
+	appErr := a.setupBroadcastHookForPermalink(rctx, post, message, postJSON)
+	if appErr != nil {
+		return appErr
 	}
 
-	if !model.IsValidId(previewedPostID) {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError)
+	a.Publish(message)
+	return nil
+}
+
+func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post, message *model.WebSocketEvent, postJSON string) *model.AppError {
+	// We check for the post first, and then the prop to prevent
+	// any embedded data to remain in case a post does not contain the prop
+	// but contains the embedded data.
+	permalinkPreviewedPost := post.GetPreviewPost()
+	if permalinkPreviewedPost == nil {
+		return nil
+	}
+
+	previewProp := post.GetPreviewedPostProp()
+	if previewProp == "" {
+		return nil
+	}
+
+	// To remain secure by default, we wipe out the metadata unconditionally.
+	removePermalinkMetadataFromPost(post)
+	postWithoutPermalinkPreviewJSON, err := post.ToJSON()
+	if err != nil {
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform)
+		a.NotificationsLog().Error("Error in marshalling post to JSON",
+			mlog.String("type", model.NotificationTypeWebsocket),
+			mlog.String("post_id", post.Id),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonMarshalError),
+		)
+		return model.NewAppError("publishWebsocketEventForPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	message.Add("post", postWithoutPermalinkPreviewJSON)
+
+	if !model.IsValidId(previewProp) {
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Invalid post prop id for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
 			mlog.String("status", model.NotificationStatusError),
 			mlog.String("reason", model.NotificationReasonParseError),
-			mlog.String("prop_value", previewedPostID),
+			mlog.String("prop_value", previewProp),
 		)
-		c.Logger().Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewedPostID))
-		return false, nil
+		rctx.Logger().Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewProp))
+		// In this case, it will broadcast the message with metadata wiped out
+		return nil
 	}
 
-	previewedPost, err := a.GetSinglePost(previewedPostID, false)
-	if err != nil {
-		if err.StatusCode == http.StatusNotFound {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+	previewedPost, appErr := a.GetSinglePost(rctx, previewProp, false)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("permalink post not found",
 				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
 				mlog.String("reason", model.NotificationReasonFetchError),
-				mlog.String("referenced_post_id", previewedPostID),
-				mlog.Err(err),
+				mlog.String("referenced_post_id", previewProp),
+				mlog.Err(appErr),
 			)
-			c.Logger().Warn("permalinked post not found", mlog.String("referenced_post_id", previewedPostID))
-			return false, nil
+			rctx.Logger().Warn("permalinked post not found", mlog.String("referenced_post_id", previewProp))
+			// In this case, it will broadcast the message with metadata wiped out
+			return nil
 		}
-		return false, err
+		return appErr
 	}
 
-	userIDs, nErr := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(post.ChannelId)
-	if nErr != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
-		a.NotificationsLog().Error("Cannot get channel members",
-			mlog.String("type", model.NotificationTypeWebsocket),
-			mlog.String("post_id", post.Id),
-			mlog.String("status", model.NotificationStatusError),
-			mlog.String("reason", model.NotificationReasonFetchError),
-			mlog.String("referenced_post_id", previewedPostID),
-			mlog.Err(nErr),
-		)
-		return false, model.NewAppError("publishWebsocketEventForPermalinkPost", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	permalinkPreviewedChannel, err := a.GetChannel(c, previewedPost.ChannelId)
-	if err != nil {
-		if err.StatusCode == http.StatusNotFound {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+	permalinkPreviewedChannel, appErr := a.GetChannel(rctx, previewedPost.ChannelId)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("Cannot get channel",
 				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
 				mlog.String("reason", model.NotificationReasonFetchError),
-				mlog.String("referenced_post_id", previewedPostID),
+				mlog.String("referenced_post_id", previewedPost.Id),
 			)
-			c.Logger().Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
-			return false, nil
+			rctx.Logger().Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
+			// In this case, it will broadcast the message with metadata wiped out
+			return nil
 		}
-		return false, err
+		return appErr
 	}
 
-	originalEmbeds := post.Metadata.Embeds
-	originalProps := post.GetProps()
-	permalinkPreviewedPost := post.GetPreviewPost()
-	for _, userID := range userIDs {
-		if permalinkPreviewedPost != nil {
-			post.Metadata.Embeds = originalEmbeds
-			post.SetProps(originalProps)
-		}
-
-		postForUser := a.sanitizePostMetadataForUserAndChannel(c, post, permalinkPreviewedPost, permalinkPreviewedChannel, userID)
-
-		// Using DeepCopy here to avoid a race condition
-		// between publishing the event and setting the "post" data value below.
-		messageCopy := message.DeepCopy()
-		broadcastCopy := messageCopy.GetBroadcast()
-		broadcastCopy.UserId = userID
-		messageCopy.SetBroadcast(broadcastCopy)
-
-		postJSON, jsonErr := postForUser.ToJSON()
-		if jsonErr != nil {
-			c.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
-		}
-		messageCopy.Add("post", postJSON)
-		a.Publish(messageCopy)
+	// In case the user does have permission to read, we set the metadata back.
+	// Note that this is the return value to the post creator, and has nothing to do
+	// with the content of the websocket broadcast to that user or any other.
+	if a.HasPermissionToReadChannel(rctx, post.UserId, permalinkPreviewedChannel) {
+		post.AddProp(model.PostPropsPreviewedPost, previewProp)
+		post.Metadata.Embeds = append(post.Metadata.Embeds, &model.PostEmbed{Type: model.PostEmbedPermalink, Data: permalinkPreviewedPost})
 	}
 
-	// Restore the metadata that may have been removed in the sanitization
-	if permalinkPreviewedPost != nil {
-		post.Metadata.Embeds = originalEmbeds
-		post.SetProps(originalProps)
-	}
-
-	return true, nil
+	usePermalinkHook(message, permalinkPreviewedChannel, postJSON)
+	return nil
 }
 
-func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
-	post, err := a.GetSinglePost(postID, false)
+func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch, patchPostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	if patchPostOptions == nil {
+		patchPostOptions = model.DefaultUpdatePostOptions()
+	}
+
+	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -901,7 +969,8 @@ func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*
 
 	post.Patch(patch)
 
-	updatedPost, err := a.UpdatePost(c, post, false)
+	patchPostOptions.SafeUpdate = false
+	updatedPost, err := a.UpdatePost(c, post, patchPostOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -971,8 +1040,8 @@ func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList
 	return postList, nil
 }
 
-func (a *App) GetSinglePost(postID string, includeDeleted bool) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store().Post().GetSingle(postID, includeDeleted)
+func (a *App) GetSinglePost(rctx request.CTX, postID string, includeDeleted bool) (*model.Post, *model.AppError) {
+	post, err := a.Srv().Store().Post().GetSingle(rctx, postID, includeDeleted)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1361,23 +1430,22 @@ func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userI
 	return postList, nil
 }
 
-func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store().Post().GetSingle(postID, false)
+func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Post, *model.AppError) {
+	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), postID, false)
 	if err != nil {
 		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	channel, appErr := a.GetChannel(c, post.ChannelId)
+	channel, appErr := a.GetChannel(rctx, post.ChannelId)
 	if appErr != nil {
 		return nil, appErr
 	}
 
 	if channel.DeleteAt != 0 {
-		appErr := model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
-		return nil, appErr
+		return nil, model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
 	}
 
-	err = a.Srv().Store().Post().Delete(c, postID, model.GetMillis(), deleteByID)
+	err = a.Srv().Store().Post().Delete(rctx, postID, model.GetMillis(), deleteByID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1388,60 +1456,18 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		}
 	}
 
-	if post.RootId == "" {
-		if appErr := a.DeletePersistentNotification(c, post); appErr != nil {
-			return nil, appErr
-		}
-	}
-
-	postJSON, err := json.Marshal(post)
-	if err != nil {
-		return nil, model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
-	userMessage.Add("post", string(postJSON))
-	userMessage.GetBroadcast().ContainsSanitizedData = true
-	a.Publish(userMessage)
-
-	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
-	adminMessage.Add("post", string(postJSON))
-	adminMessage.Add("delete_by", deleteByID)
-	adminMessage.GetBroadcast().ContainsSensitiveData = true
-	a.Publish(adminMessage)
-
 	if len(post.FileIds) > 0 {
 		a.Srv().Go(func() {
-			a.deletePostFiles(c, post.Id)
+			a.deletePostFiles(rctx, post.Id)
 		})
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 	}
-	a.Srv().Go(func() {
-		a.deleteFlaggedPosts(c, post.Id)
-	})
 
-	pluginPost := post.ForPlugin()
-	pluginContext := pluginContext(c)
-	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-			hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
-			return true
-		}, plugin.MessageHasBeenDeletedID)
-	})
-
-	a.Srv().Go(func() {
-		if err = a.RemoveNotifications(c, post, channel); err != nil {
-			c.Logger().Error("DeletePost failed to delete notification", mlog.Err(err))
-		}
-	})
-
-	// delete drafts associated with the post when deleting the post
-	a.Srv().Go(func() {
-		a.deleteDraftsAssociatedWithPost(c, channel, post)
-	})
-
-	a.invalidateCacheForChannelPosts(post.ChannelId)
+	appErr = a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
+	if appErr != nil {
+		return nil, appErr
+	}
 
 	return post, nil
 }
@@ -1467,9 +1493,11 @@ func (a *App) deletePostFiles(c request.CTX, postID string) {
 }
 
 func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
-	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
+	cleanChannelName := strings.TrimLeft(channelName, "~")
+
+	if strings.HasPrefix(cleanChannelName, "@") && strings.Contains(cleanChannelName, ",") {
 		var userIDs []string
-		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil)
+		users, err := a.GetUsersByUsernames(strings.Split(cleanChannelName[1:], ","), false, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -1484,8 +1512,8 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelNam
 		return channel, nil
 	}
 
-	if strings.HasPrefix(channelName, "@") && !strings.Contains(channelName, ",") {
-		user, err := a.GetUserByUsername(channelName[1:])
+	if strings.HasPrefix(cleanChannelName, "@") && !strings.Contains(cleanChannelName, ",") {
+		user, err := a.GetUserByUsername(cleanChannelName[1:])
 		if err != nil {
 			return nil, err
 		}
@@ -1496,7 +1524,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelNam
 		return channel, nil
 	}
 
-	channel, err := a.GetChannelByName(c, channelName, teamID, includeDeleted)
+	channel, err := a.GetChannelByName(c, cleanChannelName, teamID, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -1537,7 +1565,9 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 
 	posts.SortByCreateAt()
 
-	a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
+	if appErr := a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
+	}
 
 	return posts, nil
 }
@@ -1556,7 +1586,7 @@ func (a *App) convertChannelNamesToChannelIds(c request.CTX, channels []string, 
 
 func (a *App) convertUserNameToUserIds(c request.CTX, usernames []string) []string {
 	for idx, username := range usernames {
-		user, err := a.GetUserByUsername(username)
+		user, err := a.GetUserByUsername(strings.TrimLeft(username, "@"))
 		if err != nil {
 			c.Logger().Warn("error getting user by username", mlog.String("user_name", username), mlog.Err(err))
 			continue
@@ -1587,7 +1617,7 @@ func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
 
 	lastAccessiblePostTime, err := strconv.ParseInt(system.Value, 10, 64)
 	if err != nil {
-		return 0, model.NewAppError("GetLastAccessiblePostTime", "common.parse_error_int64", map[string]interface{}{"Value": system.Value}, "", http.StatusInternalServerError).Wrap(err)
+		return 0, model.NewAppError("GetLastAccessiblePostTime", "common.parse_error_int64", map[string]any{"Value": system.Value}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return lastAccessiblePostTime, nil
@@ -1730,7 +1760,7 @@ func (a *App) SearchPostsForUser(c request.CTX, terms string, userID string, tea
 func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	pchan := make(chan store.StoreResult[*model.Post], 1)
 	go func() {
-		post, err := a.Srv().Store().Post().GetSingle(postID, includeDeleted)
+		post, err := a.Srv().Store().Post().GetSingle(rctx, postID, includeDeleted)
 		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
@@ -2077,7 +2107,7 @@ func (a *App) GetThreadMembershipsForUser(userID, teamID string) ([]*model.Threa
 }
 
 func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError) {
-	post, err := a.GetSinglePost(postID, includeDeleted)
+	post, err := a.GetSinglePost(c, postID, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -2087,7 +2117,7 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 		return nil, err
 	}
 
-	if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannelContent) {
+	if !a.SessionHasPermissionToReadChannel(c, *session, channel) {
 		if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
 			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
 				return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
@@ -2134,7 +2164,28 @@ func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppErr
 		}
 	}
 
+	if appErr := a.populateEditHistoryFileMetadata(posts); appErr != nil {
+		return nil, appErr
+	}
+
 	return posts, nil
+}
+
+func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *model.AppError {
+	for _, post := range editHistoryPosts {
+		fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, true, true)
+		if err != nil {
+			return model.NewAppError("app.populateEditHistoryFileMetadata", "app.file_info.get_by_ids.app_error", map[string]any{"post_id": post.Id}, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		if post.Metadata == nil {
+			post.Metadata = &model.PostMetadata{}
+		}
+
+		post.Metadata.Files = fileInfos
+	}
+
+	return nil
 }
 
 func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTime int64) *model.AppError {
@@ -2171,7 +2222,7 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 		CreateAt:  model.GetMillis(),
 		UserId:    userID,
 		RootId:    postID,
-		ChannelId: metadata.ChannelId,
+		ChannelId: metadata.ChannelID,
 		// It's okay to keep this non-translated. This is just a fallback.
 		// The webapp will parse the timestamp and show that in user's local timezone.
 		Message: fmt.Sprintf("You will be reminded about %s by @%s at %s", permalink, metadata.Username, parsedTime),
@@ -2260,7 +2311,7 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 				},
 			}
 
-			if _, err := a.CreatePost(request.EmptyContext(a.Log()), dm, ch, false, true); err != nil {
+			if _, err := a.CreatePost(request.EmptyContext(a.Log()), dm, ch, model.CreatePostFlags{SetOnline: true}); err != nil {
 				rctx.Logger().Error("Failed to post reminder message", mlog.Err(err))
 			}
 		}
@@ -2269,7 +2320,7 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 
 func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model.AppError) {
 	userID := c.Session().UserId
-	post, appErr := a.GetSinglePost(postID, false)
+	post, appErr := a.GetSinglePost(c, postID, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2369,7 +2420,7 @@ func (a *App) applyPostsWillBeConsumedHook(posts map[string]*model.Post) {
 	for _, post := range posts {
 		postsSlice = append(postsSlice, post.ForPlugin())
 	}
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		postReplacements := hooks.MessagesWillBeConsumed(postsSlice)
 		for _, postReplacement := range postReplacements {
 			posts[postReplacement.Id] = postReplacement
@@ -2384,7 +2435,7 @@ func (a *App) applyPostWillBeConsumedHook(post **model.Post) {
 	}
 
 	ps := []*model.Post{*post}
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		rp := hooks.MessagesWillBeConsumed(ps)
 		if len(rp) > 0 {
 			(*post) = rp[0]
@@ -2500,14 +2551,14 @@ func (a *App) CopyWranglerPostlist(c request.CTX, wpl *model.WranglerPostList, t
 		newPost.ChannelId = targetChannel.Id
 
 		if i == 0 {
-			newPost, appErr = a.CreatePost(c, newPost, targetChannel, false, false)
+			newPost, appErr = a.CreatePost(c, newPost, targetChannel, model.CreatePostFlags{})
 			if appErr != nil {
 				return nil, appErr
 			}
 			newRootPost = newPost.Clone()
 		} else {
 			newPost.RootId = newRootPost.Id
-			newPost, appErr = a.CreatePost(c, newPost, targetChannel, false, false)
+			newPost, appErr = a.CreatePost(c, newPost, targetChannel, model.CreatePostFlags{})
 			if appErr != nil {
 				return nil, appErr
 			}
@@ -2589,7 +2640,7 @@ func (a *App) MoveThread(c request.CTX, postID string, sourceChannelID, channelI
 		ChannelId: channelID,
 		Message:   T("app.post.move_thread.from_another_channel"),
 		Props:     ephemeralPostProps,
-	}, targetChannel, false, false)
+	}, targetChannel, model.CreatePostFlags{})
 	if appErr != nil {
 		return appErr
 	}
@@ -2636,11 +2687,125 @@ func (a *App) MoveThread(c request.CTX, postID string, sourceChannelID, channelI
 		ChannelId: originalChannel.Id,
 		Message:   msg,
 		Props:     ephemeralPostProps,
-	}, originalChannel, false, false)
+	}, originalChannel, model.CreatePostFlags{})
 	if appErr != nil {
 		return appErr
 	}
 
 	c.Logger().Info(msg)
 	return nil
+}
+
+func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *model.AppError {
+	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), postID, true)
+	if err != nil {
+		return model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if len(post.FileIds) > 0 {
+		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id)
+		if appErr != nil {
+			return appErr
+		}
+	}
+
+	err = a.Srv().Store().Post().PermanentDelete(rctx, post.Id)
+	if err != nil {
+		return model.NewAppError("PermanentDeletePost", "app.post.permanent_delete_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	appErr := a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
+}
+
+func (a *App) CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteByID string) *model.AppError {
+	channel, appErr := a.GetChannel(c, post.ChannelId)
+	if appErr != nil {
+		return appErr
+	}
+
+	if post.RootId == "" {
+		if appErr := a.DeletePersistentNotification(c, post); appErr != nil {
+			return appErr
+		}
+	}
+
+	postJSON, err := json.Marshal(post)
+	if err != nil {
+		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
+	userMessage.Add("post", string(postJSON))
+	userMessage.GetBroadcast().ContainsSanitizedData = true
+	a.Publish(userMessage)
+
+	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
+	adminMessage.Add("post", string(postJSON))
+	adminMessage.Add("delete_by", deleteByID)
+	adminMessage.GetBroadcast().ContainsSensitiveData = true
+	a.Publish(adminMessage)
+
+	a.Srv().Go(func() {
+		a.deleteFlaggedPosts(c, post.Id)
+	})
+
+	pluginPost := post.ForPlugin()
+	pluginContext := pluginContext(c)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
+			return true
+		}, plugin.MessageHasBeenDeletedID)
+	})
+
+	a.Srv().Go(func() {
+		if err = a.RemoveNotifications(c, post, channel); err != nil {
+			c.Logger().Error("DeletePost failed to delete notification", mlog.Err(err))
+		}
+	})
+
+	// delete drafts associated with the post when deleting the post
+	a.Srv().Go(func() {
+		a.deleteDraftsAssociatedWithPost(c, channel, post)
+	})
+
+	a.invalidateCacheForChannelPosts(post.ChannelId)
+
+	return nil
+}
+
+func (a *App) SendTestMessage(c request.CTX, userID string) (*model.Post, *model.AppError) {
+	bot, err := a.GetSystemBot(c)
+	if err != nil {
+		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_bot", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	channel, err := a.GetOrCreateDirectChannel(c, userID, bot.UserId)
+	if err != nil {
+		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_channel", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_user", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	T := i18n.GetUserTranslations(user.Locale)
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   T("app.notifications.send_test_message.message_body"),
+		Type:      model.PostTypeDefault,
+		UserId:    bot.UserId,
+	}
+
+	post, err = a.CreatePost(c, post, channel, model.CreatePostFlags{ForceNotification: true})
+	if err != nil {
+		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.create_post", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return post, nil
 }

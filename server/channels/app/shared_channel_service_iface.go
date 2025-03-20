@@ -15,6 +15,7 @@ type SharedChannelServiceIFace interface {
 	Start() error
 	NotifyChannelChanged(channelId string)
 	NotifyUserProfileChanged(userID string)
+	NotifyUserStatusChanged(status *model.Status)
 	SendChannelInvite(channel *model.Channel, userId string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error
 	Active() bool
 	InviteRemoteToChannel(channelID, remoteID, userID string, shareIfNotShared bool) error

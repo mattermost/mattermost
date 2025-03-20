@@ -42,16 +42,17 @@ import {
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUserByUsername} from 'mattermost-redux/selectors/entities/users';
 import {makeAddLastViewAtToProfiles} from 'mattermost-redux/selectors/entities/utils';
-import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {loadCustomStatusEmojisForPostList} from 'actions/emoji_actions';
 import {closeRightHandSide} from 'actions/views/rhs';
+import {markThreadAsRead} from 'actions/views/threads';
 import {getLastViewedChannelName} from 'selectors/local_storage';
 import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
 import {getLastPostsApiTimeForChannel} from 'selectors/views/channel';
+import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 import {getSocketStatus} from 'selectors/views/websocket';
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -59,19 +60,19 @@ import {getHistory} from 'utils/browser_history';
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
 export function goToLastViewedChannel(): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
-        const currentChannel = getCurrentChannel(state) || {};
+        const currentChannel = getCurrentChannel(state);
         const channelsInTeam = getChannelsNameMapInCurrentTeam(state);
         const directChannel = getAllDirectChannelsNameMapInCurrentTeam(state);
         const channels = Object.assign({}, channelsInTeam, directChannel);
 
         let channelToSwitchTo = getChannelByName(channels, getLastViewedChannelName(state));
 
-        if (currentChannel.id === channelToSwitchTo!.id) {
+        if (currentChannel?.id === channelToSwitchTo!.id) {
             channelToSwitchTo = getChannelByName(channels, getRedirectChannelNameForTeam(state, getCurrentTeamId(state)));
         }
 
@@ -83,7 +84,10 @@ export function switchToChannelById(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const channel = getChannel(state, channelId);
-        return dispatch(switchToChannel(channel));
+        if (channel) {
+            return dispatch(switchToChannel(channel));
+        }
+        return {data: true};
     };
 }
 
@@ -119,6 +123,9 @@ export function switchToChannel(channel: Channel & {userId?: string}): ActionFun
             getHistory().push(`${teamUrl}/messages/@${channel.name}`);
         } else if (channel.type === Constants.GM_CHANNEL) {
             const gmChannel = getChannel(state, channel.id);
+            if (!gmChannel?.name) {
+                return {error: true};
+            }
             getHistory().push(`${teamUrl}/channels/${gmChannel.name}`);
         } else if (channel.type === Constants.THREADS) {
             getHistory().push(`${teamUrl}/${channel.name}`);
@@ -172,8 +179,8 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
         if (!prevChannel || !getMyChannelMemberships(state)[prevChannel.id]) {
             LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state);
         }
-        const selectedPost = getSelectedPost(state as GlobalState);
-        const selectedPostId = getSelectedPostId(state as GlobalState);
+        const selectedPost = getSelectedPost(state);
+        const selectedPostId = getSelectedPostId(state);
         if (selectedPostId && selectedPost.exists === false) {
             dispatch(closeRightHandSide());
         }
@@ -416,9 +423,9 @@ export function syncPostsInChannel(channelId: string, since: number, prefetch = 
     return async (dispatch, getState) => {
         const time = Date.now();
         const state = getState();
-        const socketStatus = getSocketStatus(state as GlobalState);
+        const socketStatus = getSocketStatus(state);
         let sinceTimeToGetPosts = since;
-        const lastPostsApiCallForChannel = getLastPostsApiTimeForChannel(state as GlobalState, channelId);
+        const lastPostsApiCallForChannel = getLastPostsApiTimeForChannel(state, channelId);
         const actions = [];
 
         if (lastPostsApiCallForChannel && lastPostsApiCallForChannel < socketStatus.lastDisconnectAt) {
@@ -487,13 +494,24 @@ export function scrollPostListToBottom() {
     };
 }
 
-export function markChannelAsReadOnFocus(channelId: string): ThunkActionFunc<void> {
+export function markAsReadOnFocus(): ThunkActionFunc<void> {
     return (dispatch, getState) => {
-        if (isManuallyUnread(getState(), channelId)) {
-            return;
+        const state = getState();
+        const currentChannelId = getCurrentChannelId(state);
+        const selectedThreadId = getSelectedThreadIdInCurrentTeam(state);
+        const selectedPostId = getSelectedPostId(state);
+
+        if (!isManuallyUnread(getState(), currentChannelId)) {
+            dispatch(markChannelAsRead(currentChannelId));
         }
 
-        dispatch(markChannelAsRead(channelId));
+        if (selectedThreadId) {
+            dispatch(markThreadAsRead(selectedThreadId));
+        }
+
+        if (currentChannelId && selectedPostId) {
+            dispatch(markThreadAsRead(selectedPostId));
+        }
     };
 }
 
@@ -504,7 +522,7 @@ export function updateToastStatus(status: boolean) {
     };
 }
 
-export function deleteChannel(channelId: string): ActionFuncAsync<boolean, GlobalState> {
+export function deleteChannel(channelId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const res = await dispatch(deleteChannelRedux(channelId));
         if (res.error) {

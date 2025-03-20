@@ -10,6 +10,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import {basicUnreadMeta} from 'mattermost-redux/selectors/entities/channels';
 import type {BasicUnreadStatus} from 'mattermost-redux/selectors/entities/channels';
+import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import faviconDefault16x16 from 'images/favicon/favicon-default-16x16.png';
 import faviconDefault24x24 from 'images/favicon/favicon-default-24x24.png';
@@ -45,6 +46,7 @@ type Props = {
     currentTeammate: Channel | null;
     inGlobalThreads: boolean;
     inDrafts: boolean;
+    inScheduledPosts: boolean;
 };
 
 export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
@@ -89,6 +91,7 @@ export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
             unreadStatus,
             inGlobalThreads,
             inDrafts,
+            inScheduledPosts,
         } = this.props;
         const {formatMessage} = this.props.intl;
 
@@ -125,6 +128,15 @@ export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
                 displayName: currentTeam.display_name,
                 siteName: currentSiteName,
             });
+        } else if (currentTeam && inScheduledPosts) {
+            document.title = formatMessage({
+                id: 'scheduledPosts.title',
+                defaultMessage: '{prefix}Scheduled - {displayName} {siteName}',
+            }, {
+                prefix: `${mentionTitle}${unreadTitle}`,
+                displayName: currentTeam.display_name,
+                siteName: currentSiteName,
+            });
         } else {
             document.title = formatMessage({id: 'sidebar.team_select', defaultMessage: '{siteName} - Join a team'}, {siteName: currentSiteName || 'Mattermost'});
         }
@@ -146,7 +158,7 @@ export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
         const link64x64 = document.querySelector<HTMLLinkElement>('link[rel="icon"][sizes="64x64"]');
         const link96x96 = document.querySelector<HTMLLinkElement>('link[rel="icon"][sizes="96x96"]');
 
-        const getFavicon = (url: string): string => (typeof url === 'string' ? url : '');
+        const getFavicon = (url: string): string => ensureString(url);
 
         switch (badgeStatus) {
         case BadgeStatus.Mention: {

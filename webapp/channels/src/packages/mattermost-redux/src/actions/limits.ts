@@ -21,8 +21,6 @@ export function getServerLimits(): ActionFuncAsync<ServerLimits> {
                 data: {
                     activeUserCount: 0,
                     maxUsersLimit: 0,
-                    postCount: 0,
-                    maxPostLimit: 0,
                 },
             };
         }
@@ -39,8 +37,6 @@ export function getServerLimits(): ActionFuncAsync<ServerLimits> {
         const data: ServerLimits = {
             activeUserCount: response?.data?.activeUserCount ?? 0,
             maxUsersLimit: response?.data?.maxUsersLimit ?? 0,
-            postCount: response?.data?.postCount ?? 0,
-            maxPostLimit: response?.data?.maxPostLimit ?? 0,
         };
 
         dispatch({type: LimitsTypes.RECIEVED_APP_LIMITS, data});

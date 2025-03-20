@@ -24,7 +24,7 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
         }
       }
     >
-      <ExternalLink
+      <ForwardRef
         href="author_link"
         key="attachment__author-name"
         location="message_attachment"
@@ -41,17 +41,17 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
         >
           author_name
         </span>
-      </ExternalLink>
+      </ForwardRef>
       <h1
         className="attachment__title"
       >
-        <ExternalLink
+        <ForwardRef
           className="attachment__title-link"
           href="title_link"
           location="message_attachment"
         >
           title
-        </ExternalLink>
+        </ForwardRef>
       </h1>
       <div>
         <div
@@ -170,7 +170,7 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
         }
       }
     >
-      <ExternalLink
+      <ForwardRef
         href="author_link"
         key="attachment__author-name"
         location="message_attachment"
@@ -187,17 +187,17 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
         >
           author_name
         </span>
-      </ExternalLink>
+      </ForwardRef>
       <h1
         className="attachment__title"
       >
-        <ExternalLink
+        <ForwardRef
           className="attachment__title-link"
           href="title_link"
           location="message_attachment"
         >
           title
-        </ExternalLink>
+        </ForwardRef>
       </h1>
       <div>
         <div
@@ -312,7 +312,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
         }
       }
     >
-      <ExternalLink
+      <ForwardRef
         href="author_link"
         key="attachment__author-name"
         location="message_attachment"
@@ -329,17 +329,17 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
         >
           author_name
         </span>
-      </ExternalLink>
+      </ForwardRef>
       <h1
         className="attachment__title"
       >
-        <ExternalLink
+        <ForwardRef
           className="attachment__title-link"
           href="title_link"
           location="message_attachment"
         >
           title
-        </ExternalLink>
+        </ForwardRef>
       </h1>
       <div>
         <div
@@ -424,6 +424,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           message="Do you like https://mattermost.com?"
           options={
             Object {
+              "atMentions": false,
               "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
@@ -469,6 +470,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           message="Do you like :pizza:?"
           options={
             Object {
+              "atMentions": false,
               "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
@@ -514,6 +516,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           message="Don't you like emojis?"
           options={
             Object {
+              "atMentions": false,
               "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
@@ -559,6 +562,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the f
           message="footer"
           options={
             Object {
+              "atMentions": false,
               "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
@@ -620,6 +624,7 @@ exports[`components/post_view/MessageAttachment should match value on getFieldsT
             message="title_1"
             options={
               Object {
+                "atMentions": false,
                 "markdown": false,
                 "mentionHighlight": false,
               }
@@ -654,6 +659,7 @@ exports[`components/post_view/MessageAttachment should match value on getFieldsT
             message="title_2"
             options={
               Object {
+                "atMentions": false,
                 "markdown": false,
                 "mentionHighlight": false,
               }

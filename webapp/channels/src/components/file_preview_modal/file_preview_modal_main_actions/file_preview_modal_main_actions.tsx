@@ -12,10 +12,9 @@ import {getFilePublicLink as selectFilePublicLink} from 'mattermost-redux/select
 
 import CopyButton from 'components/copy_button';
 import ExternalLink from 'components/external_link';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {FileTypes} from 'utils/constants';
+import {FileTypes} from 'utils/constants';
 import {copyToClipboard, getFileType} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -25,8 +24,9 @@ import type {LinkInfo} from '../types';
 
 import './file_preview_modal_main_actions.scss';
 
+const COPIED_TOOLTIP_DURATION = 2000;
+
 interface Props {
-    usedInside?: 'Header' | 'Footer';
     showOnlyClose?: boolean;
     showClose?: boolean;
     showPublicLink?: boolean;
@@ -43,7 +43,6 @@ interface Props {
 const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
     const intl = useIntl();
 
-    const tooltipPlacement = props.usedInside === 'Header' ? 'bottom' : 'top';
     const selectedFilePublicLink = useSelector((state: GlobalState) => selectFilePublicLink(state)?.link);
     const dispatch = useDispatch();
     const [publicLinkCopied, setPublicLinkCopied] = useState(false);
@@ -53,6 +52,15 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
             dispatch(getFilePublicLink(props.fileInfo.id));
         }
     }, [props.fileInfo, props.enablePublicLink]);
+
+    useEffect(() => {
+        if (publicLinkCopied) {
+            setTimeout(() => {
+                setPublicLinkCopied(false);
+            }, COPIED_TOOLTIP_DURATION);
+        }
+    }, [publicLinkCopied]);
+
     const copyPublicLink = () => {
         copyToClipboard(selectedFilePublicLink ?? '');
         setPublicLinkCopied(true);
@@ -63,15 +71,9 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
         defaultMessage: 'Close',
     });
     const closeButton = (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            title={closeMessage}
             key='publicLink'
-            placement={tooltipPlacement}
-            overlay={
-                <Tooltip id='close-icon-tooltip'>
-                    {closeMessage}
-                </Tooltip>
-            }
         >
             <button
                 className='file-preview-modal-main-actions__action-item'
@@ -80,7 +82,7 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
             >
                 <i className='icon icon-close'/>
             </button>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 
     let publicTooltipMessage;
@@ -96,17 +98,9 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
         });
     }
     const publicLink = (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
             key='filePreviewPublicLink'
-            placement={tooltipPlacement}
-            shouldUpdatePosition={true}
-            onExit={() => setPublicLinkCopied(false)}
-            overlay={
-                <Tooltip id='link-variant-icon-tooltip'>
-                    {publicTooltipMessage}
-                </Tooltip>
-            }
+            title={publicTooltipMessage}
         >
             <a
                 href='#'
@@ -116,7 +110,7 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
             >
                 <i className='icon icon-link-variant'/>
             </a>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 
     const downloadMessage = intl.formatMessage({
@@ -124,15 +118,9 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
         defaultMessage: 'Download',
     });
     const download = (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
             key='download'
-            placement={tooltipPlacement}
-            overlay={
-                <Tooltip id='download-icon-tooltip'>
-                    {downloadMessage}
-                </Tooltip>
-            }
+            title={downloadMessage}
         >
             <ExternalLink
                 href={props.fileURL}
@@ -143,18 +131,13 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
             >
                 <i className='icon icon-download-outline'/>
             </ExternalLink>
-        </OverlayTrigger>
+        </WithTooltip>
     );
-    const getBeforeCopyText = () => {
-        const fileType = getFileType(props.fileInfo.extension);
-        return fileType === FileTypes.TEXT ? 'Copy text' : undefined;
-    };
 
     const copy = (
         <CopyButton
             className='file-preview-modal-main-actions__action-item'
-            beforeCopyText={getBeforeCopyText()}
-            placement={tooltipPlacement}
+            isForText={getFileType(props.fileInfo.extension) === FileTypes.TEXT}
             content={props.content}
         />
     );
@@ -170,7 +153,6 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
 
 FilePreviewModalMainActions.defaultProps = {
     showOnlyClose: false,
-    usedInside: 'Header',
     showClose: true,
     showPublicLink: true,
 };

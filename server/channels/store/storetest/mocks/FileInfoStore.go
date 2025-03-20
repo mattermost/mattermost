@@ -94,6 +94,24 @@ func (_m *FileInfoStore) DeleteForPost(c request.CTX, postID string) (string, er
 	return r0, r1
 }
 
+// DeleteForPostByIds provides a mock function with given fields: rctx, postId, fileIDs
+func (_m *FileInfoStore) DeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
+	ret := _m.Called(rctx, postId, fileIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteForPostByIds")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) error); ok {
+		r0 = rf(rctx, postId, fileIDs)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: id
 func (_m *FileInfoStore) Get(id string) (*model.FileInfo, error) {
 	ret := _m.Called(id)
@@ -124,9 +142,9 @@ func (_m *FileInfoStore) Get(id string) (*model.FileInfo, error) {
 	return r0, r1
 }
 
-// GetByIds provides a mock function with given fields: ids
-func (_m *FileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
-	ret := _m.Called(ids)
+// GetByIds provides a mock function with given fields: ids, includeDeleted, allowFromCache
+func (_m *FileInfoStore) GetByIds(ids []string, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, error) {
+	ret := _m.Called(ids, includeDeleted, allowFromCache)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByIds")
@@ -134,19 +152,19 @@ func (_m *FileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
 
 	var r0 []*model.FileInfo
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]string) ([]*model.FileInfo, error)); ok {
-		return rf(ids)
+	if rf, ok := ret.Get(0).(func([]string, bool, bool) ([]*model.FileInfo, error)); ok {
+		return rf(ids, includeDeleted, allowFromCache)
 	}
-	if rf, ok := ret.Get(0).(func([]string) []*model.FileInfo); ok {
-		r0 = rf(ids)
+	if rf, ok := ret.Get(0).(func([]string, bool, bool) []*model.FileInfo); ok {
+		r0 = rf(ids, includeDeleted, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.FileInfo)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]string) error); ok {
-		r1 = rf(ids)
+	if rf, ok := ret.Get(1).(func([]string, bool, bool) error); ok {
+		r1 = rf(ids, includeDeleted, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -467,6 +485,60 @@ func (_m *FileInfoStore) PermanentDeleteByUser(ctx request.CTX, userID string) (
 	}
 
 	return r0, r1
+}
+
+// PermanentDeleteForPost provides a mock function with given fields: rctx, postID
+func (_m *FileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string) error {
+	ret := _m.Called(rctx, postID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteForPost")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+		r0 = rf(rctx, postID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RefreshFileStats provides a mock function with given fields:
+func (_m *FileInfoStore) RefreshFileStats() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for RefreshFileStats")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RestoreForPostByIds provides a mock function with given fields: rctx, postId, fileIDs
+func (_m *FileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
+	ret := _m.Called(rctx, postId, fileIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RestoreForPostByIds")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) error); ok {
+		r0 = rf(rctx, postId, fileIDs)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Save provides a mock function with given fields: ctx, info

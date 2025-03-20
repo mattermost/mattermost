@@ -15,8 +15,8 @@ import (
 )
 
 func (api *API) InitLicenseLocal() {
-	api.BaseRoutes.APIRoot.Handle("/license", api.APILocal(localAddLicense, handlerParamFileAPI)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/license", api.APILocal(localRemoveLicense)).Methods("DELETE")
+	api.BaseRoutes.APIRoot.Handle("/license", api.APILocal(localAddLicense, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/license", api.APILocal(localRemoveLicense)).Methods(http.MethodDelete)
 }
 
 func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -54,7 +54,10 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, file)
+	if _, err := io.Copy(buf, file); err != nil {
+		c.Err = model.NewAppError("addLicense", "api.license.add_license.copy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 
 	license, appErr := c.App.Srv().SaveLicense(buf.Bytes())
 	if appErr != nil {

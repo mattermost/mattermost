@@ -292,7 +292,7 @@ func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig) error {
 const SendGridXSMTPAPIHeader = "X-SMTPAPI"
 
 func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) error {
-	mlog.Debug("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
+	mlog.Info("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
 
 	htmlMessage := mail.htmlBody
 

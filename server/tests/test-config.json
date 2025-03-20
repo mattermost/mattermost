@@ -54,7 +54,6 @@
         "EnableUserStatuses": true,
         "ExperimentalEnableAuthenticationTransfer": true,
         "ClusterLogTimeoutMilliseconds": 2000,
-        "EnablePreviewFeatures": true,
         "EnableTutorial": true,
         "EnableOnboardingFlow": true,
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
@@ -137,7 +136,8 @@
         "AmazonS3SSL": true,
         "AmazonS3SignV2": false,
         "AmazonS3SSE": false,
-        "AmazonS3Trace": false
+        "AmazonS3Trace": false,
+        "AmazonS3StorageClass": ""
     },
     "EmailSettings": {
         "EnableSignUpWithEmail": true,
@@ -323,6 +323,7 @@
     },
     "ElasticsearchSettings": {
         "ConnectionUrl": "http://localhost:9200",
+        "Backend": "elasticsearch",
         "Username": "elastic",
         "Password": "changeme",
         "EnableIndexing": false,

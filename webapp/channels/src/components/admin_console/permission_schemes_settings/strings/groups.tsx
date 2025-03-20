@@ -35,6 +35,16 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
             defaultMessage: 'Write, edit and delete posts.',
         },
     }),
+    create_post: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.create_post.name',
+            defaultMessage: 'Create Posts',
+        },
+        description: {
+            id: 'admin.permissions.permission.create_post.description',
+            defaultMessage: 'Allow users to create posts.',
+        },
+    }),
     private_channel: defineMessages({
         name: {
             id: 'admin.permissions.group.private_channel.name',
@@ -198,11 +208,21 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
     convert_public_channel_to_private: defineMessages({
         name: {
             id: 'admin.permissions.group.convert_public_channel_to_private.name',
-            defaultMessage: 'Convert Channels',
+            defaultMessage: 'Convert to private',
         },
         description: {
             id: 'admin.permissions.group.convert_public_channel_to_private.description',
             defaultMessage: 'Convert public channels to private',
+        },
+    }),
+    convert_private_channel_to_public: defineMessages({
+        name: {
+            id: 'admin.permissions.group.convert_private_channel_to_public.name',
+            defaultMessage: 'Convert to public',
+        },
+        description: {
+            id: 'admin.permissions.group.convert_private_channel_to_public.description',
+            defaultMessage: 'Convert private channels to public',
         },
     }),
     manage_shared_channels: defineMessages({

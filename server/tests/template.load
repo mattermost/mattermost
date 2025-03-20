@@ -3,35 +3,38 @@ LOAD DATABASE
      INTO      pgsql://{{ .pg_user }}:{{ .pg_password }}@postgres:5432/{{ .target_schema }}
 
 WITH data only,
-     workers = 8, concurrency = 1,
-     multiple readers per thread, rows per range = 50000,
-     create no tables, create no indexes,
-     preserve index names
+    workers = 8, concurrency = 1,
+    multiple readers per thread, rows per range = 10000,
+    prefetch rows = 10000, batch rows = 2500,
+    create no tables, create no indexes,
+    preserve index names
 
 SET PostgreSQL PARAMETERS
-     maintenance_work_mem to '128MB',
-     work_mem to '12MB'
+    maintenance_work_mem to '128MB',
+    work_mem to '12MB'
 
 SET MySQL PARAMETERS
-      net_read_timeout  = '120',
-      net_write_timeout = '120'
+    net_read_timeout  = '120',
+    net_write_timeout = '120'
 
-CAST column Channels.Type to "channel_type" drop typemod,
-     column Teams.Type to "team_type" drop typemod,
-     column UploadSessions.Type to "upload_session_type" drop typemod,
-     column Drafts.Priority to text,
-     type int when (= precision 11) to integer drop typemod,
-     type bigint when (= precision 20) to bigint drop typemod,
-     type text to varchar drop typemod,
-     type tinyint when (<= precision 4) to boolean using tinyint-to-boolean,
-     type json to jsonb drop typemod
+ CAST column Channels.Type to "channel_type" drop typemod,
+    column Teams.Type to "team_type" drop typemod,
+    column UploadSessions.Type to "upload_session_type" drop typemod,
+    column ChannelBookmarks.Type to "channel_bookmark_type" drop typemod,
+    column Drafts.Priority to text,
+    type int when (= precision 11) to integer drop typemod,
+    type bigint when (= precision 20) to bigint drop typemod,
+    type text to varchar drop typemod using remove-null-characters,
+    type tinyint when (<= precision 4) to boolean using tinyint-to-boolean,
+    type json to jsonb drop typemod using remove-null-characters
 
 EXCLUDING TABLE NAMES MATCHING ~<IR_>, ~<focalboard>
 
 BEFORE LOAD DO
-     $$ ALTER SCHEMA public RENAME TO {{ .source_schema }}; $$,
-     $$ DROP INDEX IF EXISTS idx_posts_message_txt; $$,
-     $$ DROP INDEX IF EXISTS idx_fileinfo_content_txt; $$
+    $$ ALTER SCHEMA public RENAME TO {{ .source_schema }}; $$,
+    $$ TRUNCATE TABLE {{ .source_schema }}.systems; $$,
+    $$ DROP INDEX IF EXISTS {{ .source_schema }}.idx_posts_message_txt; $$,
+    $$ DROP INDEX IF EXISTS {{ .source_schema }}.idx_fileinfo_content_txt; $$
 
 AFTER LOAD DO
      $$ UPDATE {{ .source_schema }}.db_migrations set name='add_createat_to_teamembers' where version=92; $$,

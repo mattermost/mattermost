@@ -4,9 +4,9 @@
 import React from 'react';
 
 type Props = {
-    email: string;
-    haveOverrideProp: boolean;
-    isBot: boolean;
+    email?: string;
+    haveOverrideProp?: boolean;
+    isBot?: boolean;
 }
 const ProfilePopoverEmail = ({
     email,
@@ -16,14 +16,19 @@ const ProfilePopoverEmail = ({
     if (!email || isBot || haveOverrideProp) {
         return null;
     }
+
     return (
         <div
-            data-toggle='tooltip'
             title={email}
+            className='user-profile-popover__email'
+
         >
+            <i
+                className='icon icon-email-outline'
+                aria-hidden='true'
+            />
             <a
                 href={'mailto:' + email}
-                className='text-nowrap text-lowercase user-popover__email pb-1'
             >
                 {email}
             </a>

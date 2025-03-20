@@ -340,6 +340,50 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 	require.Contains(t, body, "14:30", fmt.Sprintf("Expected email text '14:30'. Got %s", body))
 }
 
+func TestGetNotificationEmailBodyWithUserPreference(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	recipient := &model.User{
+		Timezone: timezones.DefaultUserTimezone(),
+	}
+	recipient.Timezone["automaticTimezone"] = "America/New_York"
+
+	post := &model.Post{
+		CreateAt: 1524681000000,
+		Message:  "This is the message",
+	}
+
+	channel := &model.Channel{
+		DisplayName: "ChannelName",
+		Type:        model.ChannelTypeDirect,
+	}
+
+	channelName := "ChannelName"
+	senderName := "sender"
+	teamName := "testteam"
+	teamURL := "http://localhost:8065/testteam"
+	emailNotificationContentsType := model.EmailNotificationContentsFull
+	translateFunc := i18n.GetUserTranslations("en")
+
+	storeMock := th.App.Srv().Store().(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
+	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
+
+	// Test 12-hour format
+	is24HourFormat := false
+
+	expectedTimeFormat := "2:30 PM"
+	if is24HourFormat {
+		expectedTimeFormat = "14:30"
+	}
+
+	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, is24HourFormat, translateFunc, "user-avatar.png")
+	require.NoError(t, err)
+	require.Contains(t, body, expectedTimeFormat, fmt.Sprintf("Expected email text '%s'. Got %s", expectedTimeFormat, body))
+}
+
 func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()

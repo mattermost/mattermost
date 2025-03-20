@@ -33,10 +33,15 @@ exports[`components/drafts/draft_actions should match snapshot 1`] = `
   }
 >
   <Memo(DraftActions)
+    canEdit={true}
+    canSend={true}
+    channelId=""
     displayName=""
     draftId=""
+    itemId=""
     onDelete={[MockFunction]}
     onEdit={[MockFunction]}
+    onSchedule={[MockFunction]}
     onSend={[MockFunction]}
   />
 </ContextProvider>
