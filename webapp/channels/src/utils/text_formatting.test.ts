@@ -302,6 +302,24 @@ describe('convertMentionNicknameOrFullName', () => {
         const result = convertMentionNicknameOrFullName(text, usersByUsername, teammateNameDisplay );
         expect(result).toBe(`@${user1.nickname} @${user2.nickname} Hi, how are you?`)
     })
+    test('should display duplicate mentions correctly', () => {
+        const teammateNameDisplay = Preferences.DISPLAY_PREFER_NICKNAME;
+        const text = `@${user1.username} @${user2.username} Hi, how are you?, @${user2.username}!`
+        const result = convertMentionNicknameOrFullName(text, usersByUsername, teammateNameDisplay );
+        expect(result).toBe(`@${user1.nickname} @${user2.nickname} Hi, how are you?, @${user2.nickname}!`)
+    })
+    test('should display correctly when name is partially matching', () => {
+        const teammateNameDisplay = Preferences.DISPLAY_PREFER_NICKNAME;
+        const userA = TestHelper.getUserMock(
+            {id: 'abc1', username: 'username1', first_name: 'Json', last_name: 'Doe', nickname: 'user1'},
+        )
+        const userB = TestHelper.getUserMock(
+            {id: 'abc2', username: 'username2', first_name: 'Jhon', last_name: 'Smith', nickname: 'user10'},
+        )
+        const text = `@${userA.nickname} @${userB.nickname}, tell @${userA.nickname} something`
+        const result = convertMentionNicknameOrFullName(text, {[userA.username]: userA, [userB.username]: userB}, teammateNameDisplay );
+        expect(result).toBe(`@${userA.nickname} @${userB.nickname}, tell @${userA.nickname} something`)
+    })
     test('should not display fullname if user is not found', () => {
         const teammateNameDisplay = Preferences.DISPLAY_PREFER_FULL_NAME;
         const text = `@hoge @${user2.username} Hi, how are you?`
