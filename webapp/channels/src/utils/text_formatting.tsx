@@ -18,6 +18,7 @@ import * as Markdown from './markdown';
 
 import { displayUsername } from 'mattermost-redux/utils/user_utils';
 import { UserProfile } from '@mattermost/types/users';
+import { getMentionDetails } from './post_utils';
 
 const punctuationRegex = /[^\p{L}\d]/u;
 const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi;
@@ -565,7 +566,7 @@ export function convertMentionNicknameOrFullName(text: string, usersByUsername: 
     let output = text;
     const tokens = new Tokens();
     const displayUserNameHandler = (username: string) => {
-        const mentionedUser = usersByUsername[username];
+        const mentionedUser = getMentionDetails(usersByUsername, username);
         return mentionedUser ? `@${displayUsername(mentionedUser, teammateNameDisplay)}` : `@${username}`;
     }
     output = autolinkAtMentions(output, tokens, displayUserNameHandler);
