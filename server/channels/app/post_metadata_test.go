@@ -29,6 +29,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
@@ -2673,7 +2675,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	}
 
 	t.Run("image", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeImageReader(), "image/png")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, imageURL, makeImageReader(), "image/png")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2685,7 +2687,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("image with no content-type given", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeImageReader(), "")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, imageURL, makeImageReader(), "")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2697,7 +2699,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("malformed image", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeOpenGraphReader(), "image/png")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, imageURL, makeOpenGraphReader(), "image/png")
 		assert.Error(t, err)
 
 		assert.Nil(t, og)
@@ -2705,7 +2707,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("opengraph", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(ogURL, makeOpenGraphReader(), "text/html; charset=utf-8")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, ogURL, makeOpenGraphReader(), "text/html; charset=utf-8")
 		assert.NoError(t, err)
 
 		assert.NotNil(t, og)
@@ -2716,7 +2718,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("malformed opengraph", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(ogURL, makeImageReader(), "text/html; charset=utf-8")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, ogURL, makeImageReader(), "text/html; charset=utf-8")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2724,7 +2726,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("neither", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata("http://example.com/test.wad", strings.NewReader("garbage"), "application/x-doom")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/test.wad", strings.NewReader("garbage"), "application/x-doom")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2732,7 +2734,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("svg", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata("http://example.com/image.svg", nil, "image/svg+xml")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/image.svg", nil, "image/svg+xml")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2820,6 +2822,14 @@ func TestParseImages(t *testing.T) {
 				Format: "jpeg",
 			},
 		},
+		"jpg-9": {
+			FileName: "orientation_test_9.jpeg",
+			Expected: &model.PostImage{
+				Width:  4000,
+				Height: 2667,
+				Format: "jpeg",
+			},
+		},
 		"animated gif": {
 			FileName: "testgif.gif",
 			Expected: &model.PostImage{
@@ -2842,7 +2852,7 @@ func TestParseImages(t *testing.T) {
 			file, err := testutils.ReadTestFile(testCase.FileName)
 			require.NoError(t, err)
 
-			result, err := parseImages(bytes.NewReader(file))
+			result, err := parseImages(request.EmptyContext(mlog.CreateConsoleTestLogger(t)), "", bytes.NewReader(file))
 			if testCase.ExpectError {
 				assert.Error(t, err)
 			} else {
