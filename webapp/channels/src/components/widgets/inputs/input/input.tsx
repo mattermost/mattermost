@@ -139,7 +139,8 @@ const Input = React.forwardRef((
     };
 
     const showLegend = Boolean(focused || value);
-    const error = customInputLabel?.type === 'error';
+    const error = customInputLabel?.type === ItemStatus.ERROR;
+    const warning = customInputLabel?.type === ItemStatus.WARNING;
     const limitExceeded = limit && value && !Array.isArray(value) ? value.toString().length - limit : 0;
 
     const clearButton = value && clearable ? (
@@ -169,7 +170,7 @@ const Input = React.forwardRef((
                     value={value}
                     placeholder={placeholderValue}
                     aria-label={ariaLabel}
-                    aria-describedby={customInputLabel?.type === ItemStatus.ERROR ? errorId : undefined}
+                    aria-describedby={error ? errorId : undefined}
                     aria-invalid={error || hasError || limitExceeded > 0}
                     rows={3}
                     name={name}
@@ -189,7 +190,7 @@ const Input = React.forwardRef((
                 value={value}
                 placeholder={placeholderValue}
                 aria-label={ariaLabel}
-                aria-describedby={customInputLabel?.type === ItemStatus.ERROR ? errorId : undefined}
+                aria-describedby={error ? errorId : undefined}
                 aria-invalid={error || hasError || limitExceeded > 0}
                 name={name}
                 disabled={disabled}
@@ -233,7 +234,7 @@ const Input = React.forwardRef((
                 <div
                     id={errorId}
                     className={`Input___customMessage Input___${customInputLabel.type}`}
-                    role={customInputLabel.type === ItemStatus.ERROR ? 'alert' : undefined}
+                    role={error || warning ? 'alert' : undefined}
                 >
                     {customInputLabel.type && (
                         <i
