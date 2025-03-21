@@ -254,6 +254,14 @@ func (s *Session) IsSSOLogin() bool {
 	return s.IsOAuthUser() || s.IsSaml()
 }
 
+func (s *Session) IsGuest() bool {
+	val, ok := s.Props[SessionPropIsGuest]
+	if !ok {
+		return false
+	}
+	return val == "true"
+}
+
 func (s *Session) GetUserRoles() []string {
 	return strings.Fields(s.Roles)
 }
