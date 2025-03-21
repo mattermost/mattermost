@@ -1574,6 +1574,12 @@ components:
               type: string
             ReportAProblemLink:
               type: string
+            ReportAProblemType:
+              type: string
+            ReportAProblemMail:
+              type: string
+            AllowDownloadLogs:
+              type: boolean
             SupportEmail:
               type: string
         GitLabSettings:
@@ -2047,6 +2053,12 @@ components:
             HelpLink:
               type: boolean
             ReportAProblemLink:
+              type: boolean
+            ReportAProblemType:
+              type: boolean
+            ReportAProblemMail:
+              type: boolean
+            AllowDownloadLogs:
               type: boolean
             SupportEmail:
               type: boolean
