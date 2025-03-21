@@ -479,6 +479,50 @@ func TestPatchChannel(t *testing.T) {
 		})
 	})
 
+	t.Run("Test GroupConstrained flag set to true and non group members are removed", func(t *testing.T) {
+		client.Logout(context.Background())
+		th.LoginBasic()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
+
+		// Create a test group
+		group := th.CreateGroup()
+
+		// Create a channel and set it as group-constrained
+		channel := th.CreatePrivateChannel()
+		// Add user to the channel
+		th.AddUserToChannel(th.BasicUser2, channel)
+
+		// Create a group user
+		groupUser := th.CreateUser()
+		th.LinkUserToTeam(groupUser, th.BasicTeam)
+
+		// Create a group member
+		_, appErr := th.App.UpsertGroupMember(group.Id, groupUser.Id)
+		require.Nil(t, appErr)
+
+		// Associate the group with the channel
+		autoAdd := true
+		schemeAdmin := true
+		_, r, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), group.Id, channel.Id, model.GroupSyncableTypeChannel, &model.GroupSyncablePatch{AutoAdd: &autoAdd, SchemeAdmin: &schemeAdmin})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, r)
+
+		patch := &model.ChannelPatch{}
+		patch.GroupConstrained = model.NewPointer(true)
+		_, r, err = th.SystemAdminClient.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+		time.Sleep(4 * time.Second) // A hack to let "go c.App.DeleteGroupConstrainedChannelMemberships" finish before moving on.
+
+		// Check that the user is no longer a member of the channel
+		_, r, err = th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, r)
+	})
+
 	t.Run("Test updating the header of someone else's GM channel", func(t *testing.T) {
 		// Test updating the header of someone else's GM channel.
 		user := th.CreateUser()
