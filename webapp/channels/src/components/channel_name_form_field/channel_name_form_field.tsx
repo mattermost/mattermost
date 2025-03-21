@@ -29,6 +29,7 @@ export type Props = {
     onErrorStateChange?: (isError: boolean, errorMessage?: string) => void;
     team?: Team;
     urlError?: string;
+    readOnly?: boolean;
 }
 
 import './channel_name_form_field.scss';
@@ -155,6 +156,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 customMessage={inputCustomMessage}
                 onChange={handleOnDisplayNameChange}
                 onBlur={handleOnDisplayNameBlur}
+                disabled={props.readOnly}
             />
             <URLInput
                 className='new-channel-modal__url'

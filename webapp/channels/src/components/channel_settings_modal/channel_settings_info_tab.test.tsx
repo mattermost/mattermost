@@ -15,8 +15,17 @@ jest.mock('mattermost-redux/actions/channels', () => ({
     patchChannel: jest.fn().mockReturnValue({type: 'MOCK_ACTION', data: {}}),
 }));
 
+let mockChannelPropertiesPermission = true;
+
 jest.mock('mattermost-redux/selectors/entities/roles', () => ({
     haveITeamPermission: jest.fn().mockReturnValue(true),
+    haveIChannelPermission: jest.fn().mockImplementation((state, teamId, channelId, permission: string) => {
+        if (permission === 'manage_private_channel_properties' || permission === 'manage_public_channel_properties') {
+            return mockChannelPropertiesPermission;
+        }
+        return true;
+    }),
+    getRoles: jest.fn().mockReturnValue({}),
 }));
 
 jest.mock('selectors/views/textbox', () => ({
@@ -28,6 +37,19 @@ jest.mock('actions/views/textbox', () => ({
     setShowPreviewOnChannelSettingsHeaderModal: jest.fn(),
     setShowPreviewOnChannelSettingsPurposeModal: jest.fn(),
 }));
+
+// Mock the ShowFormat component to make it easier to test
+jest.mock('components/advanced_text_editor/show_formatting/show_formatting', () => (
+    jest.fn().mockImplementation((props) => (
+        <button
+            data-testid='mock-show-format'
+            onClick={props.onClick}
+            className={props.active ? 'active' : ''}
+        >
+            {'Toggle Preview'}
+        </button>
+    ))
+));
 
 // Create a mock channel for testing
 const mockChannel = TestHelper.getChannelMock({
@@ -48,6 +70,7 @@ const baseProps = {
 describe('ChannelSettingsInfoTab', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockChannelPropertiesPermission = true;
     });
 
     it('should render with the correct initial values', () => {
@@ -220,5 +243,32 @@ describe('ChannelSettingsInfoTab', () => {
         const errorMessage = screen.getByText(/There are errors in the form above/);
         const errorPanel = errorMessage.closest('.SaveChangesPanel');
         expect(errorPanel).toHaveClass('error');
+    });
+
+    it('should render ChannelNameFormField and AdvancedTextbox as readOnly when user does not have permission', () => {
+        mockChannelPropertiesPermission = false;
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        // Check that the name input is disabled
+        const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
+        expect(nameInput).toBeDisabled();
+
+        // When in readOnly mode, the preview toggle button should not be present
+        expect(screen.queryByTestId('mock-show-format')).not.toBeInTheDocument();
+    });
+
+    it('should render ChannelNameFormField and AdvancedTextbox as not readOnly when user has permission', () => {
+        mockChannelPropertiesPermission = true;
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        // Check that the name input is not disabled
+        const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
+        expect(nameInput).not.toBeDisabled();
+
+        // When not in readOnly mode, at least one preview toggle button should be present
+        const previewButtons = screen.queryAllByTestId('mock-show-format');
+        expect(previewButtons.length).toBeGreaterThan(0);
     });
 });

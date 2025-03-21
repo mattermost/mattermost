@@ -9,6 +9,10 @@ import {renderWithContext} from 'tests/react_testing_utils';
 
 import ChannelSettingsModal from './channel_settings_modal';
 
+// Variables to control permission check results in tests
+let mockPrivateChannelPermission = true;
+let mockPublicChannelPermission = true;
+
 // Mock the redux selectors
 jest.mock('mattermost-redux/selectors/entities/channels', () => ({
     getChannel: jest.fn().mockImplementation((state, channelId) => {
@@ -20,7 +24,7 @@ jest.mock('mattermost-redux/selectors/entities/channels', () => ({
             name: channelId === 'default_channel' ? 'town-square' : 'test-channel',
             purpose: 'Testing purpose',
             header: 'Channel header',
-            type: 'O',
+            type: mockChannelType, // Use a variable to control the channel type
             create_at: 0,
             update_at: 0,
             delete_at: 0,
@@ -34,6 +38,31 @@ jest.mock('mattermost-redux/selectors/entities/channels', () => ({
         };
     }),
 }));
+
+// Mock the roles selector which is used for permission checks
+jest.mock('mattermost-redux/selectors/entities/roles', () => ({
+    haveIChannelPermission: jest.fn().mockImplementation((state, teamId, channelId, permission) => {
+        // Return different values based on the permission being checked
+        if (permission === 'delete_private_channel') {
+            return mockPrivateChannelPermission;
+        }
+        if (permission === 'delete_public_channel') {
+            return mockPublicChannelPermission;
+        }
+        return true;
+    }),
+}));
+
+// Mock constants
+jest.mock('utils/constants', () => {
+    const original = jest.requireActual('utils/constants');
+    return {
+        ...original,
+        DEFAULT_CHANNEL: 'town-square',
+        PRIVATE_CHANNEL: 'P',
+        OPEN_CHANNEL: 'O',
+    };
+});
 
 // Mock the child components to simplify testing
 jest.mock('./channel_settings_info_tab', () => {
@@ -60,6 +89,9 @@ type TabType = {
     uiName: string;
     display?: boolean;
 };
+
+// Variable to control the channel type in tests
+let mockChannelType = 'O';
 
 // Mock the settings sidebar
 jest.mock('components/settings_sidebar', () => {
@@ -105,6 +137,9 @@ const baseProps = {
 describe('ChannelSettingsModal', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockChannelType = 'O'; // Default to public channel
+        mockPrivateChannelPermission = true;
+        mockPublicChannelPermission = true;
     });
 
     it('should render the modal with correct header text', async () => {
@@ -154,6 +189,66 @@ describe('ChannelSettingsModal', () => {
 
         // The info tab should be visible
         expect(screen.getByTestId('info-tab')).toBeInTheDocument();
+
+        // The archive tab should not be in the document
+        expect(screen.queryByRole('tab', {name: 'archive'})).not.toBeInTheDocument();
+    });
+
+    it('should show archive tab for public channel when user has permission', async () => {
+        mockChannelType = 'O';
+        mockPublicChannelPermission = true;
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+        // Wait for the sidebar to load
+        await waitFor(() => {
+            expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+        });
+
+        // The archive tab should be visible
+        expect(screen.getByRole('tab', {name: 'archive'})).toBeInTheDocument();
+    });
+
+    it('should not show archive tab for public channel when user does not have permission', async () => {
+        mockChannelType = 'O';
+        mockPublicChannelPermission = false;
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+        // Wait for the sidebar to load
+        await waitFor(() => {
+            expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+        });
+
+        // The archive tab should not be in the document
+        expect(screen.queryByRole('tab', {name: 'archive'})).not.toBeInTheDocument();
+    });
+
+    it('should show archive tab for private channel when user has permission', async () => {
+        mockChannelType = 'P';
+        mockPrivateChannelPermission = true;
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+        // Wait for the sidebar to load
+        await waitFor(() => {
+            expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+        });
+
+        // The archive tab should be visible
+        expect(screen.getByRole('tab', {name: 'archive'})).toBeInTheDocument();
+    });
+
+    it('should not show archive tab for private channel when user does not have permission', async () => {
+        mockChannelType = 'P';
+        mockPrivateChannelPermission = false;
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+        // Wait for the sidebar to load
+        await waitFor(() => {
+            expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+        });
 
         // The archive tab should not be in the document
         expect(screen.queryByRole('tab', {name: 'archive'})).not.toBeInTheDocument();

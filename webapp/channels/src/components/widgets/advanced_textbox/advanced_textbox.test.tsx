@@ -211,4 +211,30 @@ describe('AdvancedTextbox', () => {
         // Error should be cleared
         expect(screen.queryByText(/must be at least 5 characters/)).not.toBeInTheDocument();
     });
+
+    test('does not render preview toggle button when readOnly is true', () => {
+        render(<AdvancedTextbox {...{...defaultProps, readOnly: true}}/>);
+
+        // Preview toggle button should not be in the document
+        expect(screen.queryByTestId('mock-show-format')).not.toBeInTheDocument();
+    });
+
+    test('forces preview mode when readOnly is true regardless of preview prop', () => {
+        // Get reference to the mocked Textbox component
+        const TextboxMock = require('components/textbox').default;
+
+        // Clear previous calls to the mock
+        TextboxMock.mockClear();
+
+        // Render with readOnly true and preview false
+        render(<AdvancedTextbox {...{...defaultProps, readOnly: true, preview: false}}/>);
+
+        // Verify Textbox was called with preview=true
+        expect(TextboxMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                preview: true,
+            }),
+            expect.anything(),
+        );
+    });
 });

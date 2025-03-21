@@ -30,6 +30,7 @@ type AdvancedTextboxProps = {
     errorMessage?: string | JSX.Element;
     onValidate?: (value: string) => { isValid: boolean; errorMessage?: string };
     showCharacterCount?: boolean;
+    readOnly?: boolean;
 };
 
 const AdvancedTextbox = ({
@@ -51,6 +52,7 @@ const AdvancedTextbox = ({
     errorMessage,
     onValidate,
     showCharacterCount = false,
+    readOnly = false,
 }: AdvancedTextboxProps) => {
     const [internalError, setInternalError] = useState<string | JSX.Element | undefined>(errorMessage);
     const [characterCount, setCharacterCount] = useState(value.length);
@@ -107,6 +109,11 @@ const AdvancedTextbox = ({
         onChange(e);
     };
 
+    let localPreview = preview;
+    if (readOnly) {
+        localPreview = true;
+    }
+
     return (
         <div className='AdvancedTextbox'>
             <Textbox
@@ -120,14 +127,16 @@ const AdvancedTextbox = ({
                 channelId={channelId}
                 id={id}
                 characterLimit={characterLimit}
-                preview={preview}
+                preview={localPreview}
                 useChannelMentions={useChannelMentions}
                 hasError={hasError}
             />
-            <ShowFormat
-                onClick={togglePreview}
-                active={preview}
-            />
+            {!readOnly && (
+                <ShowFormat
+                    onClick={togglePreview}
+                    active={preview}
+                />)
+            }
 
             {/* Character count display */}
             {(showCharacterCount && (internalError || errorType)) && (

@@ -10,7 +10,7 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {patchChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {haveIChannelPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {
     setShowPreviewOnChannelSettingsHeaderModal,
@@ -59,8 +59,13 @@ function ChannelSettingsInfoTab({
         haveITeamPermission(state, channel?.team_id ?? '', Permissions.CREATE_PUBLIC_CHANNEL),
     );
 
+    const channelPropertiesPermission = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
+    const canManageChannelProperties = useSelector((state: GlobalState) =>
+        haveIChannelPermission(state, channel.team_id, channel.id, channelPropertiesPermission),
+    );
+
     // Constants
-    const headerMaxLength = 1024;
+    const HEADER_MAX_LENGTH = 1024;
 
     // Internal state variables
     const [internalUrlError, setUrlError] = useState('');
@@ -173,19 +178,19 @@ function ChannelSettingsInfoTab({
         setChannelHeader(newValue);
 
         // Check for character limit
-        if (newValue.length > headerMaxLength) {
+        if (newValue.length > HEADER_MAX_LENGTH) {
             setFormError(formatMessage({
                 id: 'edit_channel_header_modal.error',
                 defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
             }, {
-                maxLength: headerMaxLength,
+                maxLength: HEADER_MAX_LENGTH,
             }));
         } else if (formError && !channelNameError) {
             // Only clear form error if there's no channel name error
             // This prevents clearing channel name errors when editing the header
             setFormError('');
         }
-    }, [headerMaxLength, formError, channelNameError, setFormError, formatMessage]);
+    }, [HEADER_MAX_LENGTH, formError, channelNameError, setFormError, formatMessage]);
 
     const handlePurposeChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
         const newValue = e.target.value;
@@ -311,6 +316,7 @@ function ChannelSettingsInfoTab({
                 onErrorStateChange={handleChannelNameError}
                 urlError={internalUrlError}
                 currentUrl={channelUrl}
+                readOnly={!canManageChannelProperties}
             />
 
             {/* Channel Type Section*/}
@@ -359,6 +365,7 @@ function ChannelSettingsInfoTab({
                 }) : undefined
                 }
                 showCharacterCount={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH}
+                readOnly={!canManageChannelProperties}
             />
 
             {/* Channel Header Section*/}
@@ -371,7 +378,7 @@ function ChannelSettingsInfoTab({
                     id: 'channel_settings_modal.header.placeholder',
                     defaultMessage: 'Enter a header description or important links',
                 })}
-                characterLimit={headerMaxLength}
+                characterLimit={HEADER_MAX_LENGTH}
                 preview={shouldShowPreviewHeader}
                 togglePreview={toggleHeaderPreview}
                 textboxRef={headerTextboxRef}
@@ -381,15 +388,16 @@ function ChannelSettingsInfoTab({
                     id: 'channel_settings.purpose.header',
                     defaultMessage: 'This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).',
                 })}
-                hasError={channelHeader.length > headerMaxLength}
-                errorMessage={channelHeader.length > headerMaxLength ? formatMessage({
+                hasError={channelHeader.length > HEADER_MAX_LENGTH}
+                errorMessage={channelHeader.length > HEADER_MAX_LENGTH ? formatMessage({
                     id: 'edit_channel_header_modal.error',
                     defaultMessage: 'The channel header exceeds the maximum character limit of {maxLength} characters.',
                 }, {
-                    maxLength: headerMaxLength,
+                    maxLength: HEADER_MAX_LENGTH,
                 }) : undefined
                 }
-                showCharacterCount={channelHeader.length > headerMaxLength}
+                showCharacterCount={channelHeader.length > HEADER_MAX_LENGTH}
+                readOnly={!canManageChannelProperties}
             />
 
             {/* SaveChangesPanel for unsaved changes */}

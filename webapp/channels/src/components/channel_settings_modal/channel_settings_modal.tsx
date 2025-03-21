@@ -11,7 +11,9 @@ import {useSelector} from 'react-redux';
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 
+import Permissions from 'mattermost-redux/constants/permissions';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {focusElement} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
@@ -46,6 +48,14 @@ const SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT = 3000;
 function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
+
+    const canArchivePrivateChannels = useSelector((state: GlobalState) =>
+        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DELETE_PRIVATE_CHANNEL),
+    );
+
+    const canArchivePublicChannels = useSelector((state: GlobalState) =>
+        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DELETE_PUBLIC_CHANNEL),
+    );
 
     const [show, setShow] = useState(isOpen);
 
@@ -165,7 +175,9 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             icon: 'icon icon-archive-outline',
             iconTitle: formatMessage({id: 'generic_icons.archive', defaultMessage: 'Archive Icon'}),
             newGroup: true,
-            display: channel.name !== Constants.DEFAULT_CHANNEL, // archive is not available for the default channel
+            display: channel.name !== Constants.DEFAULT_CHANNEL && // archive is not available for the default channel
+                ((channel.type === Constants.PRIVATE_CHANNEL && canArchivePrivateChannels) ||
+                (channel.type === Constants.OPEN_CHANNEL && canArchivePublicChannels)),
         },
     ];
 
