@@ -270,8 +270,34 @@ describe('handleGroupAddedMemberEvent', () => {
 
         testStore.dispatch(handleGroupAddedMemberEvent(msg));
         expect(store.dispatch).toHaveBeenCalledWith({
-            type: 'ADD_MY_GROUP',
-            id: 'group-1',
+            meta: {batch: true},
+            payload: [
+                {
+                    type: 'ADD_MY_GROUP',
+                    id: 'group-1',
+                },
+                {
+                    data: {
+                        create_at: 1691178673417,
+                        delete_at: 0,
+                        group_id: 'group-1',
+                        user_id: 'currentUserId',
+                    },
+                    id: 'group-1',
+                    type: 'RECEIVED_MEMBER_TO_ADD_TO_GROUP',
+                },
+                {
+                    data: [{
+                        create_at: 1691178673417,
+                        delete_at: 0,
+                        group_id: 'group-1',
+                        user_id: 'currentUserId',
+                    }],
+                    id: 'group-1',
+                    type: 'RECEIVED_PROFILES_FOR_GROUP',
+                },
+            ],
+            type: 'BATCHING_REDUCER.BATCH',
         });
     });
 
