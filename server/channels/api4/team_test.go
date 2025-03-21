@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -650,6 +651,54 @@ func TestPatchTeam(t *testing.T) {
 		}
 		_, _, err3 = th.Client.PatchTeam(context.Background(), rteam2.Id, patch2)
 		require.Error(t, err3)
+	})
+
+	t.Run("GroupConstrained flag set to true and non group members are removed", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
+		th.LoginTeamAdmin()
+		team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen, AllowOpenInvite: false}
+		team2, _, _ = th.Client.CreateTeam(context.Background(), team2)
+
+		_, resp, err := th.SystemAdminClient.AddTeamMember(context.Background(), team2.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		// Create a test group
+		group := th.CreateGroup()
+
+		// Create a group user
+		groupUser := th.CreateUser()
+		th.LinkUserToTeam(groupUser, th.BasicTeam)
+
+		// Create a group member
+		_, appErr := th.App.UpsertGroupMember(group.Id, groupUser.Id)
+		require.Nil(t, appErr)
+
+		// Associate the group with the channel
+		autoAdd := true
+		schemeAdmin := true
+		_, r, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), group.Id, team2.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{AutoAdd: &autoAdd, SchemeAdmin: &schemeAdmin})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, r)
+
+		patch := &model.TeamPatch{}
+		patch.GroupConstrained = model.NewPointer(true)
+		_, r, err = th.SystemAdminClient.PatchTeam(context.Background(), team2.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+		time.Sleep(4 * time.Second) // A hack to let "go c.App.DeleteGroupConstrainedChannelMemberships" finish before moving on.
+
+		t.Log("User ID: ", th.BasicUser2.Id)
+
+		var tm *model.TeamMember
+		tm, r, err = th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+		require.Equal(t, tm.UserId, th.BasicUser2.Id)
+		require.NotEqual(t, tm.DeleteAt, int64(0))
 	})
 }
 
