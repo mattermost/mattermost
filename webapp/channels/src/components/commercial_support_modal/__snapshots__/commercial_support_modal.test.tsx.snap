@@ -60,22 +60,6 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
           }
         }
       />
-      <AlertBanner
-        message={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <debugLink>here</debugLink>."
-            id="commercial_support_modal.warning.banner"
-            values={
-              Object {
-                "debugLink": [Function],
-                "strong": [Function],
-              }
-            }
-          />
-        }
-        mode="info"
-        onDismiss={[Function]}
-      />
       <div
         className="CommercialSupportModal__packet_contents_download"
       >
@@ -85,6 +69,26 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
             id="commercial_support_modal.download_contents"
           />
         </strong>
+      </div>
+      <div
+        className="CommercialSupportModal__option"
+        key="basic.server.logs"
+      >
+        <input
+          checked={true}
+          className="CommercialSupportModal__options__checkbox"
+          disabled={true}
+          id="basic.server.logs"
+          name="basic.server.logs"
+          onChange={[Function]}
+          type="checkbox"
+        />
+        <MemoizedFormattedMessage
+          defaultMessage="Server Logs"
+          id="mettormost.plugin.metrics.support.packet"
+        >
+          <Component />
+        </MemoizedFormattedMessage>
       </div>
       <div
         className="CommercialSupportModal__download"
