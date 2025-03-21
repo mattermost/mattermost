@@ -7662,11 +7662,11 @@ func (s *RetryLayerPostStore) GetOldestEntityCreationTime() (int64, error) {
 
 }
 
-func (s *RetryLayerPostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.PostForExport, error) {
+func (s *RetryLayerPostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamID string) ([]*model.PostForExport, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetParentsForExportAfter(limit, afterID, includeArchivedChannels)
+		result, err := s.PostStore.GetParentsForExportAfter(limit, afterID, includeArchivedChannels, teamID)
 		if err == nil {
 			return result, nil
 		}
@@ -12305,6 +12305,27 @@ func (s *RetryLayerTeamStore) GetCommonTeamIDsForTwoUsers(userID string, otherUs
 	tries := 0
 	for {
 		result, err := s.TeamStore.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerTeamStore) GetForExport(teamID string) (*model.TeamForExport, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetForExport(teamID)
 		if err == nil {
 			return result, nil
 		}
