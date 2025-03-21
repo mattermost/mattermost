@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func TestCreateCommand(t *testing.T) {
@@ -1157,4 +1158,105 @@ func TestExecuteCommandReadOnly(t *testing.T) {
 	_, resp, err = client.ExecuteCommandWithTeam(context.Background(), th.BasicChannel2.Id, th.BasicChannel2.TeamId, "/postcommand")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
+}
+
+func TestBotCannotManageSlashCommands(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	_ = request.EmptyContext(nil) // Use the import
+
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+
+	// Create a user with roles
+	user := &model.User{
+		Email:    model.NewId() + "success+test@example.com",
+		Username: "un_" + model.NewId(),
+		Nickname: "nn_" + model.NewId(),
+		Password: "Password1",
+		Roles:    model.SystemUserRoleId + " " + model.TeamUserRoleId + " " + model.TeamAdminRoleId,
+	}
+
+	ruser, err := th.App.CreateUser(th.Context, user)
+	require.Nil(t, err)
+
+	// Add user to the team
+	_, appErr := th.App.AddTeamMember(th.Context, th.BasicTeam.Id, ruser.Id)
+	require.Nil(t, appErr)
+
+	// Grant the user the manage slash commands permission
+	_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, model.TeamAdminRoleId)
+	require.Nil(t, appErr)
+
+	// Create a bot from this user
+	bot, appErr := th.App.ConvertUserToBot(th.Context, ruser)
+	require.Nil(t, appErr)
+
+	// Set up bot client
+	token := &model.UserAccessToken{
+		UserId:      bot.UserId,
+		Description: "Bot token for testing",
+	}
+	userAccessToken, tokenErr := th.App.CreateUserAccessToken(th.Context, token)
+	require.Nil(t, tokenErr)
+
+	botClient := th.CreateClient()
+	botClient.AuthToken = userAccessToken.Token
+	botClient.AuthType = model.HeaderBearer
+
+	// Create a slash command - this should fail because bots can't manage slash commands
+	testCmd := &model.Command{
+		CreatorId:   bot.UserId,
+		TeamId:      th.BasicTeam.Id,
+		URL:         "http://example.com",
+		Method:      model.CommandMethodPost,
+		DisplayName: "test",
+		Description: "test command",
+		Trigger:     "test",
+	}
+
+	_, resp, _ := botClient.CreateCommand(context.Background(), testCmd)
+	CheckForbiddenStatus(t, resp)
+
+	// Create a valid command with the admin client
+	adminCmd := &model.Command{
+		CreatorId:   th.SystemAdminUser.Id,
+		TeamId:      th.BasicTeam.Id,
+		URL:         "http://example.com",
+		Method:      model.CommandMethodPost,
+		DisplayName: "admin-test",
+		Description: "admin test command",
+		Trigger:     "admin-test",
+	}
+
+	createdCmd, _, cmdErr := th.SystemAdminClient.CreateCommand(context.Background(), adminCmd)
+	require.NoError(t, cmdErr)
+	require.NotNil(t, createdCmd)
+	require.NotEmpty(t, createdCmd.Id)
+
+	// Also try update, delete, regen token with the bot - all should fail with forbidden status
+	moveResp, _ := botClient.MoveCommand(context.Background(), th.BasicTeam.Id, createdCmd.Id)
+	CheckForbiddenStatus(t, moveResp)
+
+	updateCmd := &model.Command{
+		Id:          createdCmd.Id,
+		CreatorId:   bot.UserId,
+		TeamId:      th.BasicTeam.Id,
+		URL:         "http://example-changed.com",
+		Method:      model.CommandMethodPost,
+		DisplayName: "changed-test",
+		Description: "changed test command",
+		Trigger:     "changed-test",
+	}
+	_, updateResp, _ := botClient.UpdateCommand(context.Background(), updateCmd)
+	CheckForbiddenStatus(t, updateResp)
+
+	deleteResp, _ := botClient.DeleteCommand(context.Background(), createdCmd.Id)
+	CheckForbiddenStatus(t, deleteResp)
+
+	_, regenResp, _ := botClient.RegenCommandToken(context.Background(), createdCmd.Id)
+	CheckForbiddenStatus(t, regenResp)
 }
