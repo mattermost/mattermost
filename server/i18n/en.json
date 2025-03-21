@@ -8129,10 +8129,6 @@
     "translation": "Empty LDAP attribute value"
   },
   {
-    "id": "ent.ldap.update_cpa.json_marshal_error",
-    "translation": "Error marshaling LDAP attribute to JSON"
-  },
-  {
     "id": "ent.ldap.update_cpa.patch_error",
     "translation": "Error patching CPA value"
   },
