@@ -608,17 +608,10 @@ export function getUsernameMentions(text: string): string[] {
 }
 
 export function convertMentionNicknameOrFullName(text: string, usersByUsername: Record<string, UserProfile>, teammateNameDisplay: string): string {
-    return getUsernameMentions(text).reduce((msg, mention) => {
-        const username = mention.substring(1);
-        const mentionedUser = usersByUsername[username];
-
-        if (!mentionedUser) {
-            return msg;
-        }
-
-        const userDisplayName = displayUsername(mentionedUser, teammateNameDisplay);
-        return msg.replace(`@${username}`, `@${userDisplayName}`);
-    }, text);
+    let output = text;
+    const tokens = new Tokens();
+    output = convertMentionsToTokens(output, tokens, usersByUsername, teammateNameDisplay);
+    return replaceTokens(output, tokens) || text;
 }
 
 export function autolinkChannelMentions(
