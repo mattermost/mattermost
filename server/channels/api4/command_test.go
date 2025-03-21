@@ -1221,16 +1221,42 @@ func TestBotCannotManageSlashCommands(t *testing.T) {
 	_, resp, _ := botClient.CreateCommand(context.Background(), testCmd)
 	CheckForbiddenStatus(t, resp)
 
-	// Also try update, delete, regen token - all should fail
-	moveResp, _ := botClient.MoveCommand(context.Background(), th.BasicTeam.Id, "fakeid")
+	// Create a valid command with the admin client
+	adminCmd := &model.Command{
+		CreatorId:   th.SystemAdminUser.Id,
+		TeamId:      th.BasicTeam.Id,
+		URL:         "http://example.com",
+		Method:      model.CommandMethodPost,
+		DisplayName: "admin-test",
+		Description: "admin test command",
+		Trigger:     "admin-test",
+	}
+
+	createdCmd, _, cmdErr := th.SystemAdminClient.CreateCommand(context.Background(), adminCmd)
+	require.NoError(t, cmdErr)
+	require.NotNil(t, createdCmd)
+	require.NotEmpty(t, createdCmd.Id)
+
+	// Also try update, delete, regen token with the bot - all should fail with forbidden status
+	moveResp, _ := botClient.MoveCommand(context.Background(), th.BasicTeam.Id, createdCmd.Id)
 	CheckForbiddenStatus(t, moveResp)
 
-	_, updateResp, _ := botClient.UpdateCommand(context.Background(), testCmd)
+	updateCmd := &model.Command{
+		Id:          createdCmd.Id,
+		CreatorId:   bot.UserId,
+		TeamId:      th.BasicTeam.Id,
+		URL:         "http://example-changed.com",
+		Method:      model.CommandMethodPost,
+		DisplayName: "changed-test",
+		Description: "changed test command",
+		Trigger:     "changed-test",
+	}
+	_, updateResp, _ := botClient.UpdateCommand(context.Background(), updateCmd)
 	CheckForbiddenStatus(t, updateResp)
 
-	deleteResp, _ := botClient.DeleteCommand(context.Background(), "fakeid")
+	deleteResp, _ := botClient.DeleteCommand(context.Background(), createdCmd.Id)
 	CheckForbiddenStatus(t, deleteResp)
 
-	_, regenResp, _ := botClient.RegenCommandToken(context.Background(), "fakeid")
+	_, regenResp, _ := botClient.RegenCommandToken(context.Background(), createdCmd.Id)
 	CheckForbiddenStatus(t, regenResp)
 }
