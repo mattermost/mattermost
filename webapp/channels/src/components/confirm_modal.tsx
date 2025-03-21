@@ -186,7 +186,7 @@ export default class ConfirmModal extends React.Component<Props, State> {
 
         return (
             <GenericModal
-                id={classNames('confirmModal', this.props.id)}
+                id={this.props.id || 'confirmModal'}
                 className={`ConfirmModal a11y__modal ${this.props.modalClass}`}
                 show={this.props.show}
                 onHide={this.handleCancel}
