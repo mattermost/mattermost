@@ -2393,6 +2393,45 @@ func TestAddTeamMember(t *testing.T) {
 	})
 }
 
+func TestAddTeamMemberGuestPermissions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	t.Run("should be able to add guest user to team when you have permission to", func(t *testing.T) {
+		th.AddPermissionToRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+
+		guestUser := th.CreateGuestUser(t)
+
+		member, _, err := th.Client.AddTeamMember(context.Background(), th.BasicTeam.Id, guestUser.Id)
+		assert.NoError(t, err)
+		assert.NotNil(t, member)
+	})
+
+	t.Run("should not be able to add guest user to team when you don't have permissino to", func(t *testing.T) {
+		th.RemovePermissionFromRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+
+		guestUser := th.CreateGuestUser(t)
+
+		_, resp, err := th.Client.AddTeamMember(context.Background(), th.BasicTeam.Id, guestUser.Id)
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+}
+
 func TestAddTeamMemberMyself(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2552,8 +2591,7 @@ func TestAddTeamMembers(t *testing.T) {
 		otherUser.Id,
 	}
 
-	guestUser := th.CreateUser()
-	th.App.UpdateUserRoles(th.Context, guestUser.Id, model.SystemGuestRoleId, false)
+	guestUser := th.CreateGuestUser(t)
 	guestList := []string{
 		guestUser.Id,
 	}
@@ -2697,6 +2735,45 @@ func TestAddTeamMembers(t *testing.T) {
 
 	_, _, err = client.AddTeamMembers(context.Background(), team.Id, userList)
 	require.NoError(t, err)
+}
+
+func TestAddTeamMembersGuestPermissions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	t.Run("should be able to add guest user to team when you have permission to", func(t *testing.T) {
+		th.AddPermissionToRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+
+		guestUser := th.CreateGuestUser(t)
+
+		members, _, err := th.Client.AddTeamMembers(context.Background(), th.BasicTeam.Id, []string{guestUser.Id})
+		assert.NoError(t, err)
+		assert.Len(t, members, 1)
+	})
+
+	t.Run("should not be able to add guest user to team when you don't have permissino to", func(t *testing.T) {
+		th.RemovePermissionFromRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+
+		guestUser := th.CreateGuestUser(t)
+
+		_, resp, err := th.Client.AddTeamMembers(context.Background(), th.BasicTeam.Id, []string{guestUser.Id})
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
 }
 
 func TestRemoveTeamMember(t *testing.T) {
