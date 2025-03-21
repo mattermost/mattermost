@@ -3094,15 +3094,88 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	// For backward compatibility purposes
+	if c.Params.Page != -1 {
+		cursor := &model.ChannelMemberCursor{
+			Page:    c.Params.Page,
+			PerPage: c.Params.PerPage,
+		}
+		members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, cursor)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if err := json.NewEncoder(w).Encode(members); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(members); err != nil {
+	// The new model streams data all in one shot.
+	pageSize := 100
+	fromChannelID := ""
+
+	// We have to write `[` and `]` separately because we want to stream the response.
+	// The internal API is paginated, but the client always needs to get the full data.
+	// Therefore, to avoid forcing the client to go through all the pages,
+	// we stream the full data from server side itself.
+	//
+	// Note that this means if an error occurs in mid-stream, the response won't be
+	// fully JSON.
+	if _, err := w.Write([]byte(`[`)); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+
+	enc := json.NewEncoder(w)
+
+	for {
+		cursor := &model.ChannelMemberCursor{
+			Page:          -1,
+			PerPage:       pageSize,
+			FromChannelID: fromChannelID,
+		}
+
+		members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, cursor)
+		if err != nil {
+			// If the page size was a perfect multiple of the total number of results,
+			// then the last query will always return zero results.
+			if fromChannelID != "" && err.Id == app.MissingChannelMemberError {
+				break
+			}
+			c.Err = err
+			return
+		}
+
+		// intermediary comma between sets
+		if fromChannelID != "" {
+			if _, err := w.Write([]byte(`,`)); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
+		}
+
+		for i, member := range members {
+			if err := enc.Encode(member); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
+			if i < len(members)-1 {
+				if _, err := w.Write([]byte(`,`)); err != nil {
+					c.Logger.Warn("Error while writing response", mlog.Err(err))
+				}
+			}
+		}
+
+		if len(members) < pageSize {
+			break
+		}
+
+		fromChannelID = members[len(members)-1].ChannelId
+	}
+
+	if _, err := w.Write([]byte(`]`)); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+
 }
 
 func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {

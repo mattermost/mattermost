@@ -1719,6 +1719,22 @@ func (s *TimerLayerChannelStore) GetMembersForUser(teamID string, userID string)
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetMembersForUserWithCursorPagination(userId string, page int, fromChanneID string) (model.ChannelMembersWithTeamData, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetMembersForUserWithCursorPagination(userId, page, fromChanneID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMembersForUserWithCursorPagination", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetMembersForUserWithPagination(userID string, page int, perPage int) (model.ChannelMembersWithTeamData, error) {
 	start := time.Now()
 

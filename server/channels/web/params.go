@@ -184,7 +184,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.FieldId = props["field_id"]
 	params.Scope = query.Get("scope")
 
-	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
+	if val, err := strconv.Atoi(query.Get("page")); err != nil {
 		params.Page = PageDefault
 	} else {
 		params.Page = val
