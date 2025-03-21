@@ -432,7 +432,6 @@ function apiCreateUser({
         cy.apiSaveOnboardingTaskListPreference(createdUser.id, 'onboarding_task_list_open', 'false');
         cy.apiSaveOnboardingTaskListPreference(createdUser.id, 'onboarding_task_list_show', 'false');
 
-
         if (bypassTutorial) {
             cy.apiDisableTutorials(createdUser.id);
         }
