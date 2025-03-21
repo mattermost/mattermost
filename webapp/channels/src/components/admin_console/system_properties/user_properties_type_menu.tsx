@@ -60,7 +60,7 @@ const SelectType = (props: Props) => {
                         <FormattedMessage {...currentTypeDescriptor.label}/>
                     </>
                 ),
-                dataTestId: 'searchTeamsSelectorMenuButton',
+                dataTestId: 'fieldTypeSelectorMenuButton',
                 disabled: props.field.delete_at !== 0,
             }}
             menu={{
