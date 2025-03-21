@@ -10442,5 +10442,25 @@
   {
     "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
     "translation": "Počet prvků v ClientSideUserIds {{.CurrentLength}} je vyšší než maximální limit {{.MaxLength}}."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Banner kanálu lze nastavit pouze u Veřejných a Soukromých kanálů."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Barva banneru kanálu nemůže být prázdná, když je banner kanálu povolen"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Banner kanálu lze nastavit pouze u veřejných a soukromých kanálů"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Text informací o banneru kanálu nemůže být prázdný, když je banner kanálu povolen"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Text informací o banneru kanálu je příliš dlouhý. Maximální povolená délka je {{.maxLength}} znaků."
   }
 ]
