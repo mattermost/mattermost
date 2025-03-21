@@ -8,29 +8,22 @@ import {FormattedMessage} from 'react-intl';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {MobileChannelHeaderDropdown} from 'components/channel_header_dropdown';
-
-import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
-
 import ChannelInfoButton from './channel_info_button';
 import CollapseLhsButton from './collapse_lhs_button';
 import CollapseRhsButton from './collapse_rhs_button';
 import ShowSearchButton from './show_search_button';
 import UnmuteChannelButton from './unmute_channel_button';
 
+import ChannelHeaderMenu from '../channel_header_menu/channel_header_menu';
+import MobileChannelHeaderPlugins from '../channel_header_menu/menu_items/mobile_channel_header_plugins';
+
 type Props = {
     channel?: Channel;
-
-    /**
-     * Relative url for the team, used to redirect if a link in the channel header is clicked
-     */
-    currentRelativeTeamUrl?: string;
 
     inGlobalThreads?: boolean;
     inDrafts?: boolean;
     isMobileView: boolean;
     isMuted?: boolean;
-    isReadOnly?: boolean;
     isRHSOpen?: boolean;
     user: UserProfile;
     actions: {
@@ -85,7 +78,10 @@ export default class ChannelHeaderMobile extends React.PureComponent<Props> {
         } else if (channel) {
             heading = (
                 <>
-                    <MobileChannelHeaderDropdown/>
+                    <ChannelHeaderMenu
+                        isMobile={true}
+                    />
+
                     {isMuted && (
                         <UnmuteChannelButton
                             user={user}
@@ -114,13 +110,13 @@ export default class ChannelHeaderMobile extends React.PureComponent<Props> {
                                 channel={channel}
                             />
                         )}
-                        <ShowSearchButton/>
                         {channel && (
-                            <MobileChannelHeaderPlug
+                            <MobileChannelHeaderPlugins
                                 channel={channel}
                                 isDropdown={false}
                             />
                         )}
+                        <ShowSearchButton/>
                         <CollapseRhsButton/>
                     </div>
                 </div>

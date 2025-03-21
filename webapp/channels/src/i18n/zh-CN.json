@@ -5162,7 +5162,6 @@
   "sidebar.types.channels": "频道",
   "sidebar.types.direct_messages": "私信",
   "sidebar.types.favorites": "收藏",
-  "sidebar.types.unreads": "未读",
   "sidebar.unreads": "更多未读",
   "sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel": "浏览频道",
   "sidebarLeft.browserOrCreateChannelMenu.createCategoryMenuItem.primaryLabel": "创建一个新分类",
