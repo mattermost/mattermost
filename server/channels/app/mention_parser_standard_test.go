@@ -105,7 +105,7 @@ func TestIsKeywordMultibyte(t *testing.T) {
 			post := &model.Post{
 				Message: tc.Message,
 				Props: model.StringInterface{
-					"attachments": tc.Attachments,
+					model.PostPropsAttachments: tc.Attachments,
 				},
 			}
 
