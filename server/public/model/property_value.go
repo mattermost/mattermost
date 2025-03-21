@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 type PropertyValue struct {
@@ -63,12 +65,36 @@ func (pv *PropertyValue) IsValid() error {
 	return nil
 }
 
+type PropertyValueSearchCursor struct {
+	PropertyValueID string
+	CreateAt        int64
+}
+
+func (p PropertyValueSearchCursor) IsEmpty() bool {
+	return p.PropertyValueID == "" && p.CreateAt == 0
+}
+
+func (p PropertyValueSearchCursor) IsValid() error {
+	if p.IsEmpty() {
+		return nil
+	}
+
+	if p.CreateAt <= 0 {
+		return errors.New("create at cannot be negative or zero")
+	}
+
+	if !IsValidId(p.PropertyValueID) {
+		return errors.New("property field id is invalid")
+	}
+	return nil
+}
+
 type PropertyValueSearchOpts struct {
 	GroupID        string
 	TargetType     string
 	TargetID       string
 	FieldID        string
 	IncludeDeleted bool
-	Page           int
+	Cursor         PropertyValueSearchCursor
 	PerPage        int
 }
