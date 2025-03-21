@@ -463,9 +463,9 @@ func NewServer(options ...Option) (*Server, error) {
 		return s, nil
 	}
 
-	s.platform.AddConfigListener(func(old, new *model.Config) {
+	s.platform.AddConfigListener(func(oldCfg, newCfg *model.Config) {
 		appInstance := New(ServerConnector(s.Channels()))
-		if *old.GuestAccountsSettings.Enable && !*new.GuestAccountsSettings.Enable {
+		if *oldCfg.GuestAccountsSettings.Enable && !*newCfg.GuestAccountsSettings.Enable {
 			c := request.EmptyContext(s.Log())
 			if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
@@ -1782,14 +1782,14 @@ func cancelTask(mut *sync.Mutex, taskPointer **model.ScheduledTask) {
 func runDNDStatusExpireJob(a *App) {
 	if a.IsLeader() {
 		withMut(&a.ch.dndTaskMut, func() {
-			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
 			withMut(&a.ch.dndTaskMut, func() {
-				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 			})
 		} else {
 			cancelTask(&a.ch.dndTaskMut, &a.ch.dndTask)

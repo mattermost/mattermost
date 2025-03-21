@@ -270,16 +270,27 @@ func (a *App) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableTyp
 
 // SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 // syncable.
-func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
-	appErr := a.SyncSyncableRoles(rctx, syncableID, syncableType)
+func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, groupID string) {
+	group, appErr := a.GetGroup(groupID, nil, nil)
+	if appErr != nil {
+		rctx.Logger().Warn("Error getting group", mlog.Err(appErr))
+		return
+	}
+
+	appErr = a.SyncSyncableRoles(rctx, syncableID, syncableType)
 	if appErr != nil {
 		rctx.Logger().Warn("Error syncing syncable roles", mlog.Err(appErr))
 	}
 
-	lastJob, _ := a.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
 	var since int64
-	if lastJob != nil {
-		since = lastJob.StartAt
+	includeRemovedMembers := true
+	if group.Source == model.GroupSourceLdap {
+		lastJob, _ := a.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
+		if lastJob != nil {
+			since = lastJob.StartAt
+		}
+
+		includeRemovedMembers = false
 	}
 
 	params := model.CreateDefaultMembershipParams{Since: since, ReAddRemovedMembers: includeRemovedMembers}

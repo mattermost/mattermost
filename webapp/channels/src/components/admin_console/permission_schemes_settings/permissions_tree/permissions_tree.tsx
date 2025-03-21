@@ -240,7 +240,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         if (scope === 'team_scope' && this.groups[0].id !== 'teams_team_scope') {
             this.groups[0].id = 'teams_team_scope';
         }
-        if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && !postsGroup.permissions.includes(Permissions.USE_GROUP_MENTIONS)) {
+        if (license?.IsLicensed === 'true' && (license?.LDAPGroups === 'true' || config.EnableCustomGroups === 'true') && !postsGroup.permissions.includes(Permissions.USE_GROUP_MENTIONS)) {
             postsGroup.permissions.push(Permissions.USE_GROUP_MENTIONS);
         }
         postsGroup.permissions.push({

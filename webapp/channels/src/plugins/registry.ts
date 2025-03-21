@@ -1251,4 +1251,10 @@ export default class PluginRegistry {
             data,
         });
     });
+
+    // Register a component to be displayed in the System Console Groups table.
+    // Accepts a React component. Returns a unique identifier.
+    registerSystemConsoleGroupTable = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('SystemConsoleGroupTable', this.id, component);
+    });
 }

@@ -175,7 +175,7 @@ func TestSendNotifications(t *testing.T) {
 				UserId:    user.Id,
 				ChannelId: th.BasicChannel.Id,
 				Message:   "a message",
-				Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
+				Props:     model.StringInterface{model.PostPropsFromWebhook: "true", model.PostPropsOverrideUsername: "a bot"},
 			}
 
 			rootPost, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
@@ -1428,7 +1428,7 @@ func TestGetExplicitMentions(t *testing.T) {
 			post := &model.Post{
 				Message: tc.Message,
 				Props: model.StringInterface{
-					"attachments": tc.Attachments,
+					model.PostPropsAttachments: tc.Attachments,
 				},
 			}
 
@@ -2208,7 +2208,7 @@ func TestGetMentionsEnabledFields(t *testing.T) {
 	post := &model.Post{
 		Message: "This is the message",
 		Props: model.StringInterface{
-			"attachments": attachments,
+			model.PostPropsAttachments: attachments,
 		},
 	}
 	expectedFields := []string{
@@ -2316,22 +2316,22 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 
 	overriddenPost := &model.Post{
 		Props: model.StringInterface{
-			"override_username": "Overridden",
-			"from_webhook":      "true",
+			model.PostPropsOverrideUsername: "Overridden",
+			model.PostPropsFromWebhook:      "true",
 		},
 	}
 
 	overriddenPost2 := &model.Post{
 		Props: model.StringInterface{
-			"override_username": nil,
-			"from_webhook":      "true",
+			model.PostPropsOverrideUsername: nil,
+			model.PostPropsFromWebhook:      "true",
 		},
 	}
 
 	overriddenPost3 := &model.Post{
 		Props: model.StringInterface{
-			"override_username": 10,
-			"from_webhook":      "true",
+			model.PostPropsOverrideUsername: 10,
+			model.PostPropsFromWebhook:      "true",
 		},
 	}
 
@@ -2364,7 +2364,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		"overridden username": {
 			post:           overriddenPost,
 			allowOverrides: true,
-			expected:       overriddenPost.GetProp("override_username").(string),
+			expected:       overriddenPost.GetProp(model.PostPropsOverrideUsername).(string),
 		},
 		"overridden username, direct channel": {
 			channel:        &model.Channel{Type: model.ChannelTypeDirect},
@@ -2887,7 +2887,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			UserId:    user.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "a message",
-			Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
+			Props:     model.StringInterface{model.PostPropsFromWebhook: "true", model.PostPropsOverrideUsername: "a bot"},
 		}
 
 		rootPost, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
@@ -2913,6 +2913,48 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		membership, err := th.App.GetThreadMembershipForUser(user.Id, rootPost.Id)
 		assert.Error(t, err)
 		assert.Nil(t, membership)
+	})
+
+	t.Run("should not auto follow when the original poster is no longer a channel member", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		u1 := th.BasicUser
+		u2 := th.BasicUser2
+		c1 := th.BasicChannel
+		th.AddUserToChannel(u2, c1)
+
+		// Enable CRT
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ThreadAutoFollow = true
+			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		})
+
+		rootPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "root post by user1",
+			UserId:    u1.Id,
+		}
+		rpost, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Remove user1 from the channel
+		appErr = th.App.RemoveUserFromChannel(th.Context, u1.Id, u1.Id, c1)
+		require.Nil(t, appErr)
+
+		replyPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "reply post by user2",
+			UserId:    u2.Id,
+			RootId:    rpost.Id,
+		}
+		_, appErr = th.App.CreatePost(th.Context, replyPost, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Ensure user1 is not auto-following the thread
+		threadMembership, appErr := th.App.GetThreadMembershipForUser(u1.Id, rpost.Id)
+		require.NotNil(t, appErr)
+		require.Nil(t, threadMembership)
 	})
 }
 

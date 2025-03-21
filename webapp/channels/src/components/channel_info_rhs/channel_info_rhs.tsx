@@ -105,7 +105,7 @@ const ChannelInfoRhs = ({
             return actions.openModal({
                 modalId: ModalIdentifiers.CREATE_DM_CHANNEL,
                 dialogType: MoreDirectChannels,
-                dialogProps: {isExistingChannel: true},
+                dialogProps: {isExistingChannel: true, focusOriginElement: 'channelInfoRHSAddPeopleButton'},
             });
         }
 
@@ -131,7 +131,7 @@ const ChannelInfoRhs = ({
     const openNotificationSettings = () => actions.openModal({
         modalId: ModalIdentifiers.CHANNEL_NOTIFICATIONS,
         dialogType: ChannelNotificationsModal,
-        dialogProps: {channel, currentUser},
+        dialogProps: {channel, currentUser, focusOriginElement: 'channelInfoRHSNotificationSettings'},
     });
 
     const gmUsers = channelMembers.filter((user) => {

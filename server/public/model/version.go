@@ -13,6 +13,7 @@ import (
 // It should be maintained in chronological order with most current
 // release at the front of the list.
 var versions = []string{
+	"10.7.0",
 	"10.6.0",
 	"10.5.0",
 	"10.4.0",
@@ -147,8 +148,8 @@ func init() {
 	seen := make(map[string]string)
 
 	for _, version := range versions {
-		maj, min, _ := SplitVersion(version)
-		verStr := fmt.Sprintf("%v.%v.0", maj, min)
+		major, minor, _ := SplitVersion(version)
+		verStr := fmt.Sprintf("%v.%v.0", major, minor)
 
 		if seen[verStr] == "" {
 			versionsWithoutHotFixes = append(versionsWithoutHotFixes, verStr)

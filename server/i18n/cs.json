@@ -517,7 +517,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Nevalidní Id."
+    "translation": "Neplatné Id: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
@@ -5293,11 +5293,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verze 130+"
+    "translation": "Verze 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verze 130+"
+    "translation": "Verze 132+"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
@@ -10316,18 +10316,6 @@
     "translation": "Nepodařilo se aktualizovat pole vlastního atributu profilu"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "Nelze vytvořit hodnotu vlastnosti"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "Nepodařilo se načíst hodnoty vlastností"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "Nelze aktualizovat hodnotu vlastnosti"
-  },
-  {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Nepodařilo se vyhledat pole vlastních atributů profilu"
   },
@@ -10402,5 +10390,77 @@
   {
     "id": "api.command.execute_command.deleted.error",
     "translation": "Nelze spustit příkaz v odstraněném kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nepodařilo se vytvořit záložku kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nepodařilo se smazat záložku kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nepodařilo se aktualizovat záložku kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Nepodařilo se aktualizovat pořadí záložek kanálu."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "pokoušíte se upravit pole, které neexistuje"
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Nelze načíst záložky pro archivovaný kanál"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Nepodařilo se získat počet všech souborů."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Nepodařilo se získat využití úložiště pro všechny soubory."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Relace nebyla nalezena."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Nelze spočítat počet polí pro skupinu vlastního atributu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Nelze provést vložení nebo aktualizaci polí vlastního atributu profilu"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Neplatné ID uživatele na straně klienta: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Počet prvků v ClientSideUserIds {{.CurrentLength}} je vyšší než maximální limit {{.MaxLength}}."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Banner kanálu lze nastavit pouze u Veřejných a Soukromých kanálů."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Barva banneru kanálu nemůže být prázdná, když je banner kanálu povolen"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Banner kanálu lze nastavit pouze u veřejných a soukromých kanálů"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Text informací o banneru kanálu nemůže být prázdný, když je banner kanálu povolen"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Text informací o banneru kanálu je příliš dlouhý. Maximální povolená délka je {{.maxLength}} znaků."
   }
 ]
