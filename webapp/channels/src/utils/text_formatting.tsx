@@ -557,6 +557,46 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
     return output;
 }
 
+export function convertMentionsToTokens(text: string, tokens: Tokens, usersByUsername: Record<string, UserProfile>, teammateNameDisplay: string): string {
+    function replaceAtMentionWithToken(fullMatch: string, username: string) {
+        let originalText = fullMatch;
+
+        // Deliberately remove all leading underscores since regex matches leading underscore by treating it as non word boundary
+        while (originalText[0] === '_') {
+            originalText = originalText.substring(1);
+        }
+
+        const index = tokens.size;
+        const alias = `$MM_ATMENTION${index}$`;
+
+        const mentionedUser = usersByUsername[username];
+
+        tokens.set(alias, {
+            value: mentionedUser ? `@${displayUsername(mentionedUser, teammateNameDisplay)}` : `@${username}`,
+            originalText,
+        });
+
+        return alias;
+    }
+
+    let output = text;
+
+    // handle @channel, @all, @here mentions first (supports trailing punctuation)
+    output = output.replace(
+        Constants.SPECIAL_MENTIONS_REGEX,
+        replaceAtMentionWithToken,
+    );
+
+    // handle all other mentions (supports trailing punctuation)
+    let match = output.match(AT_MENTION_PATTERN);
+    while (match && match.length > 0) {
+        output = output.replace(AT_MENTION_PATTERN, replaceAtMentionWithToken);
+        match = output.match(AT_MENTION_PATTERN);
+    }
+
+    return output;
+}
+
 export function allAtMentions(text: string): string[] {
     return text.match(Constants.SPECIAL_MENTIONS_REGEX && AT_MENTION_PATTERN) || [];
 }
