@@ -196,7 +196,7 @@ func (f *Flow) handle(
 }
 
 func (f *Flow) processButtonPostActions(post *model.Post) {
-	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 	if !ok || len(attachments) == 0 {
 		return
 	}

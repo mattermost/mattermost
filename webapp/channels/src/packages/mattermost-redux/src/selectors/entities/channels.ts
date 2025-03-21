@@ -42,7 +42,7 @@ import {
     haveICurrentChannelPermission,
     haveITeamPermission,
 } from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentTeamId, getMyTeams, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {
     getCurrentUserId,
     getStatusForUserId,
@@ -612,8 +612,6 @@ export const getUnreadStatus: (state: GlobalState) => BasicUnreadStatus = create
     getUsers,
     getCurrentUserId,
     getCurrentTeamId,
-    getMyTeams,
-    getTeamMemberships,
     isCollapsedThreadsEnabled,
     getThreadCounts,
     getThreadCountsIncludingDirect,
@@ -624,28 +622,17 @@ export const getUnreadStatus: (state: GlobalState) => BasicUnreadStatus = create
         users,
         currentUserId,
         currentTeamId,
-        myTeams,
-        myTeamMemberships,
         collapsedThreads,
         threadCounts,
         threadCountsIncludingDirect,
     ) => {
         const {
-            messages: currentTeamUnreadMessages,
-            mentions: currentTeamUnreadMentions,
+            messages: unreadMessages,
+            mentions: unreadMentions,
         } = Object.entries(myMembers).reduce((counts, [channelId, membership]) => {
             const channel = channels[channelId];
 
             if (!channel || !membership) {
-                return counts;
-            }
-
-            if (
-                // other-team non-DM/non-GM channels
-                channel.team_id !== currentTeamId &&
-                channel.type !== General.DM_CHANNEL &&
-                channel.type !== General.GM_CHANNEL
-            ) {
                 return counts;
             }
 
@@ -670,26 +657,8 @@ export const getUnreadStatus: (state: GlobalState) => BasicUnreadStatus = create
             mentions: 0,
         });
 
-        // Includes mention count and message count from teams other than the current team
-        // This count does not include GM's and DM's
-        const {
-            messages: otherTeamsUnreadMessages,
-            mentions: otherTeamsUnreadMentions,
-        } = myTeams.reduce((acc, team) => {
-            if (currentTeamId !== team.id) {
-                const member = myTeamMemberships[team.id];
-                acc.messages += collapsedThreads ? member.msg_count_root : member.msg_count;
-                acc.mentions += collapsedThreads ? member.mention_count_root : member.mention_count;
-            }
-
-            return acc;
-        }, {
-            messages: 0,
-            mentions: 0,
-        });
-
-        const totalUnreadMessages = currentTeamUnreadMessages + otherTeamsUnreadMessages;
-        let totalUnreadMentions = currentTeamUnreadMentions + otherTeamsUnreadMentions;
+        const totalUnreadMessages = unreadMessages;
+        let totalUnreadMentions = unreadMentions;
         let anyUnreadThreads = false;
 
         // when collapsed threads are enabled, we start with root-post counts from channels, then
@@ -1264,6 +1233,11 @@ export const getMyFirstChannelForTeams: (state: GlobalState) => RelationOneToOne
         return result;
     },
 );
+
+export const getRedirectChannelNameForCurrentTeam = (state: GlobalState): string => {
+    const currentTeamId = getCurrentTeamId(state);
+    return getRedirectChannelNameForTeam(state, currentTeamId);
+};
 
 export const getRedirectChannelNameForTeam = (state: GlobalState, teamId: string): string => {
     const defaultChannelForTeam = getDefaultChannelForTeams(state)[teamId];

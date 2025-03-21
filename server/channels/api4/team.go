@@ -421,10 +421,6 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), patchedTeam)
 
-	if !*c.App.Config().PrivacySettings.ShowEmailAddress && !c.IsSystemAdmin() {
-		patchedTeam.Email = ""
-	}
-
 	auditRec.Success()
 	auditRec.AddEventResultState(patchedTeam)
 	auditRec.AddEventObjectType("team")
@@ -491,12 +487,6 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.SanitizeTeams(*c.AppContext.Session(), teams)
-
-	if !*c.App.Config().PrivacySettings.ShowEmailAddress && !c.IsSystemAdmin() {
-		for _, team := range teams {
-			team.Email = ""
-		}
-	}
 
 	js, err := json.Marshal(teams)
 	if err != nil {
@@ -705,7 +695,6 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err *model.AppError
 	var member model.TeamMember
 	if jsonErr := json.NewDecoder(r.Body).Decode(&member); jsonErr != nil {
 		c.Err = model.NewAppError("addTeamMember", "api.team.add_team_member.invalid_body.app_error", nil, "Error in model.TeamMemberFromJSON()", http.StatusBadRequest).Wrap(jsonErr)
@@ -727,7 +716,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if member.UserId == c.AppContext.Session().UserId {
 		var team *model.Team
-		team, err = c.App.GetTeam(member.TeamId)
+		team, err := c.App.GetTeam(member.TeamId)
 		if err != nil {
 			c.Err = err
 			return
@@ -745,6 +734,19 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), member.TeamId, model.PermissionAddUserToTeam) {
 			c.SetPermissionError(model.PermissionAddUserToTeam)
 			return
+		}
+
+		canInviteGuests := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteGuest)
+		if !canInviteGuests {
+			user, err := c.App.GetUser(member.UserId)
+			if err != nil {
+				c.Err = model.NewAppError("addTeamMembers", "api.team.user.missing_account", nil, "", http.StatusNotFound).Wrap(err)
+				return
+			}
+			if user.IsGuest() {
+				c.SetPermissionError(model.PermissionInviteGuest)
+				return
+			}
 		}
 	}
 

@@ -105,6 +105,7 @@ describe('components/Root', () => {
                 handleLoginLogoutSignal,
                 redirectToOnboardingOrDefaultTeam,
             }, store.dispatch),
+            getCustomProfileAttributeFields: jest.fn(),
         },
         permalinkRedirectTeamName: 'myTeam',
         ...{
