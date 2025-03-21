@@ -519,7 +519,7 @@ export function autoPlanMentions(text: string, tokens: Tokens): string {
     return output;
 }
 
-export function autolinkAtMentions(text: string, tokens: Tokens): string {
+export function autolinkAtMentions(text: string, tokens: Tokens, tokenValueHandler = (username: string) => `<span data-mention="${username}">@${username}</span>`): string {
     function replaceAtMentionWithToken(fullMatch: string, username: string) {
         let originalText = fullMatch;
 
@@ -532,7 +532,7 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
         const alias = `$MM_ATMENTION${index}$`;
 
         tokens.set(alias, {
-            value: `<span data-mention="${username}">@${username}</span>`,
+            value: tokenValueHandler(username),
             originalText,
         });
 
@@ -604,7 +604,11 @@ export function allAtMentions(text: string): string[] {
 export function convertMentionNicknameOrFullName(text: string, usersByUsername: Record<string, UserProfile>, teammateNameDisplay: string): string {
     let output = text;
     const tokens = new Tokens();
-    output = convertMentionsToTokens(output, tokens, usersByUsername, teammateNameDisplay);
+    const displayUserNameHandler = (username: string) => {
+        const mentionedUser = usersByUsername[username];
+        return mentionedUser ? `@${displayUsername(mentionedUser, teammateNameDisplay)}` : `@${username}`;
+    }
+    output = autolinkAtMentions(output, tokens, displayUserNameHandler);
     return replaceTokens(output, tokens) || text;
 }
 
