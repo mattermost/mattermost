@@ -227,6 +227,15 @@ function profiles(state: UsersState['profiles'] = {}, action: MMReduxAction) {
 
         return receiveUserProfile(state, user);
     }
+    case UserTypes.RECEIVED_CPA_VALUES: {
+        const {userID, customAttributeValues} = action.data;
+        const existingProfile = state[userID];
+        if (!existingProfile) {
+            return state;
+        }
+        const profileAttributes = {...existingProfile.custom_profile_attributes, ...customAttributeValues};
+        return receiveUserProfile(state, {...existingProfile, custom_profile_attributes: profileAttributes});
+    }
     case UserTypes.RECEIVED_PROFILES_LIST: {
         const users: UserProfile[] = action.data;
 
