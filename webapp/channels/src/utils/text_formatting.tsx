@@ -601,12 +601,6 @@ export function allAtMentions(text: string): string[] {
     return text.match(Constants.SPECIAL_MENTIONS_REGEX && AT_MENTION_PATTERN) || [];
 }
 
-export function getUsernameMentions(text: string): string[] {
-    const excludedMentions = new Set(text.match(Constants.SPECIAL_MENTIONS_REGEX) || []);
-    const mentions = text.match(AT_MENTION_PATTERN) || [];
-    return mentions.filter((mention) => !excludedMentions.has(mention));
-}
-
 export function convertMentionNicknameOrFullName(text: string, usersByUsername: Record<string, UserProfile>, teammateNameDisplay: string): string {
     let output = text;
     const tokens = new Tokens();

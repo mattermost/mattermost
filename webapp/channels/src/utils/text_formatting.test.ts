@@ -24,13 +24,11 @@ import {
     doFormatText,
     replaceTokens,
     isChannelNamesMap,
-    getUsernameMentions,
     convertMentionNicknameOrFullName
 } from 'utils/text_formatting';
 import type {ChannelNamesMap} from 'utils/text_formatting';
 import { Preferences } from 'mattermost-redux/constants';
 import {TestHelper} from 'utils/test_helper';
-import { displayUsername } from 'mattermost-redux/utils/user_utils';
 
 const emptyEmojiMap = new EmojiMap(new Map());
 
@@ -244,32 +242,6 @@ describe('highlightSearchTerms', () => {
         const output = highlightSearchTerms(text, tokens, searchPatterns);
         expect(output).toBe('$MM_SEARCHTERM1$');
         expect(tokens.get('$MM_SEARCHTERM1$')!.value).toBe('<span class="search-highlight">$MM_HASHTAG0$</span>');
-    });
-});
-
-describe("getUsernameMentions", () => {
-    it("should return mentions when there are valid usernames", () => {
-        const text = "Hello @alice and @bob!";
-        expect(getUsernameMentions(text)).toEqual(["@alice", "@bob"]);
-    });
-
-    it("should exclude special mentions", () => {
-        const text = "Hey @all, meet @alice!";
-        expect(getUsernameMentions(text)).toEqual(["@alice"]);
-    });
-
-    it("should return an empty array if there are no mentions", () => {
-        const text = "Hello world!";
-        expect(getUsernameMentions(text)).toEqual([]);
-    });
-
-    it("should handle mixed mentions correctly", () => {
-        const text = "@john @all @jane @here @bob";
-        expect(getUsernameMentions(text)).toEqual(["@john", "@jane", "@bob"]);
-    });
-
-    it("should return an empty array for an empty string", () => {
-        expect(getUsernameMentions("")).toEqual([]);
     });
 });
 
