@@ -1,10 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {convertMentionNicknameOrFullName} from './text_formatting';
-import {getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-
 import icon50 from 'images/icon50x50.png';
 import iconWS from 'images/icon_WS.png';
 import * as UserAgent from 'utils/user_agent';
@@ -48,7 +44,7 @@ export function showNotification(
         silent: false,
     },
 ): ThunkActionFunc<Promise<NotificationResult & {callback: () => void}>> {
-    return async (_, getState) => {
+    return async () => {
         let icon = icon50;
         if (UserAgent.isEdge()) {
             icon = iconWS;
@@ -80,14 +76,9 @@ export function showNotification(
             }
         }
 
-        const state = getState();
-        const usersByUsername = getUsersByUsername(state);
-        const teammateNameDisplay = getTeammateNameDisplaySetting(state);
-        const convertedMentionBody = convertMentionNicknameOrFullName(body, usersByUsername, teammateNameDisplay)
-
         const notification = new Notification(title, {
-            body: convertedMentionBody,
-            tag: convertedMentionBody,
+            body,
+            tag: body,
             icon,
             requireInteraction,
             silent,
