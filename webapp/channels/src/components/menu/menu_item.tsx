@@ -241,6 +241,11 @@ export const MenuItemStyled = styled(MuiMenuItem, {
                     'background-color': isRegular ? 'rgba(var(--button-bg-rgb), 0.08)' : 'background-color: rgba(var(--error-text-color-rgb), 0.16)',
                 },
 
+                // Hide focus on parent MenuItem when a keyboard opens its submenu
+                '&[aria-expanded="true"].Mui-focusVisible': {
+                    boxShadow: 'none',
+                },
+
                 '&:hover': {
                     backgroundColor: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.08)' : 'var(--error-text)',
                     color: isDestructive && 'var(--button-color)',
