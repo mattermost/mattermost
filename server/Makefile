@@ -227,7 +227,6 @@ else
   	cat tests/custom-schema-cpa.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
 	cat tests/${LDAP_DATA}-data.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
   endif
-  endif
   ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
 	./scripts/replica-mysql-config.sh
   endif
