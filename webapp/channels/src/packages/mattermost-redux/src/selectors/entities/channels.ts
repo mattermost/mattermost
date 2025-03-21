@@ -1234,6 +1234,11 @@ export const getMyFirstChannelForTeams: (state: GlobalState) => RelationOneToOne
     },
 );
 
+export const getRedirectChannelNameForCurrentTeam = (state: GlobalState): string => {
+    const currentTeamId = getCurrentTeamId(state);
+    return getRedirectChannelNameForTeam(state, currentTeamId);
+};
+
 export const getRedirectChannelNameForTeam = (state: GlobalState, teamId: string): string => {
     const defaultChannelForTeam = getDefaultChannelForTeams(state)[teamId];
     const canIJoinPublicChannelsInTeam = haveITeamPermission(state,

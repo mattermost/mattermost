@@ -345,6 +345,30 @@ func TestDownloadJob(t *testing.T) {
 	_, resp, err = th.SystemAdminClient.DownloadJob(context.Background(), job.Id)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
+
+	// Test the case where export_dir is not valid
+	jobName = model.NewId()
+	job = &model.Job{
+		Id:   jobName,
+		Type: model.JobTypeMessageExport,
+		Data: map[string]string{
+			"export_type":     "csv",
+			"is_downloadable": "true",
+			"export_dir":      "/bad/absolute/path",
+		},
+		Status: model.JobStatusSuccess,
+	}
+	_, err = th.App.Srv().Store().Job().Save(job)
+	require.NoError(t, err)
+	defer func() {
+		_, delErr := th.App.Srv().Store().Job().Delete(job.Id)
+		require.NoError(t, delErr, "Failed to delete job %s", job.Id)
+	}()
+
+	_, resp, err = th.SystemAdminClient.DownloadJob(context.Background(), job.Id)
+	require.Error(t, err)
+	require.EqualError(t, err, "Unable to download this job")
+	CheckNotFoundStatus(t, resp)
 }
 
 func TestCancelJob(t *testing.T) {

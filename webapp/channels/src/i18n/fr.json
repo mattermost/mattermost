@@ -4236,7 +4236,6 @@
   "sidebar.types.channels": "CANAUX",
   "sidebar.types.direct_messages": "MESSAGES PERSONNELS",
   "sidebar.types.favorites": "FAVORIS",
-  "sidebar.types.unreads": "NON LUS",
   "sidebar.unreads": "Messages non lus",
   "sidebar_left.addChannelsCta": "Ajouter des canaux",
   "sidebar_left.add_channel_dropdown.browseChannels": "Parcourir les canaux",

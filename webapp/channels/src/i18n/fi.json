@@ -1442,7 +1442,6 @@
   "sidebar.createDirectMessage": "Luo uusi suoraviesti",
   "sidebar.types.channels": "KANAVAT",
   "sidebar.types.direct_messages": "SUORAVIESTIT",
-  "sidebar.types.unreads": "LUKEMATTOMAT",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Luo uusi kanava",
   "sidebar_left.channel_navigator.jumpTo": "Etsi kanava",
   "sidebar_left.sidebar_channel_menu.addMembers": "Lisää jäseniä",

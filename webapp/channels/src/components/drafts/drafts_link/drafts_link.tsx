@@ -17,7 +17,6 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getDrafts} from 'actions/views/drafts';
 import {makeGetDraftsCount} from 'selectors/drafts';
 
-import DraftsTourTip from 'components/drafts/drafts_link/drafts_tour_tip/drafts_tour_tip';
 import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
 import WithTooltip from 'components/with_tooltip';
 
@@ -161,7 +160,6 @@ function DraftsLink() {
                         </div>
                     </WithTooltip>
                 </NavLink>
-                <DraftsTourTip/>
             </li>
         </ul>
     );

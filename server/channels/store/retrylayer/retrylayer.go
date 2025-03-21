@@ -4209,6 +4209,27 @@ func (s *RetryLayerDraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigra
 
 }
 
+func (s *RetryLayerDraftStore) PermanentDeleteByUser(userId string) error {
+
+	tries := 0
+	for {
+		err := s.DraftStore.PermanentDeleteByUser(userId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 
 	tries := 0
@@ -6363,7 +6384,7 @@ func (s *RetryLayerJobStore) UpdateStatus(id string, status string) (*model.Job,
 
 }
 
-func (s *RetryLayerJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error) {
+func (s *RetryLayerJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error) {
 
 	tries := 0
 	for {
@@ -8046,11 +8067,11 @@ func (s *RetryLayerPostStore) Overwrite(rctx request.CTX, post *model.Post) (*mo
 
 }
 
-func (s *RetryLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error) {
+func (s *RetryLayerPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.PostStore.OverwriteMultiple(posts)
+		result, resultVar1, err := s.PostStore.OverwriteMultiple(rctx, posts)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -8214,11 +8235,11 @@ func (s *RetryLayerPostStore) Save(rctx request.CTX, post *model.Post) (*model.P
 
 }
 
-func (s *RetryLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
+func (s *RetryLayerPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.PostStore.SaveMultiple(posts)
+		result, resultVar1, err := s.PostStore.SaveMultiple(rctx, posts)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -9012,11 +9033,11 @@ func (s *RetryLayerPropertyFieldStore) Delete(id string) error {
 
 }
 
-func (s *RetryLayerPropertyFieldStore) Get(id string) (*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) Get(groupID string, id string) (*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.Get(id)
+		result, err := s.PropertyFieldStore.Get(groupID, id)
 		if err == nil {
 			return result, nil
 		}
@@ -9033,11 +9054,11 @@ func (s *RetryLayerPropertyFieldStore) Get(id string) (*model.PropertyField, err
 
 }
 
-func (s *RetryLayerPropertyFieldStore) GetMany(ids []string) ([]*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.GetMany(ids)
+		result, err := s.PropertyFieldStore.GetMany(groupID, ids)
 		if err == nil {
 			return result, nil
 		}
@@ -9201,11 +9222,11 @@ func (s *RetryLayerPropertyValueStore) DeleteForField(id string) error {
 
 }
 
-func (s *RetryLayerPropertyValueStore) Get(id string) (*model.PropertyValue, error) {
+func (s *RetryLayerPropertyValueStore) Get(groupID string, id string) (*model.PropertyValue, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyValueStore.Get(id)
+		result, err := s.PropertyValueStore.Get(groupID, id)
 		if err == nil {
 			return result, nil
 		}
@@ -9222,11 +9243,11 @@ func (s *RetryLayerPropertyValueStore) Get(id string) (*model.PropertyValue, err
 
 }
 
-func (s *RetryLayerPropertyValueStore) GetMany(ids []string) ([]*model.PropertyValue, error) {
+func (s *RetryLayerPropertyValueStore) GetMany(groupID string, ids []string) ([]*model.PropertyValue, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyValueStore.GetMany(ids)
+		result, err := s.PropertyValueStore.GetMany(groupID, ids)
 		if err == nil {
 			return result, nil
 		}

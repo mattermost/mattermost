@@ -5,19 +5,19 @@
   },
   {
     "id": "api.command_remove.permission.app_error",
-    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+    "translation": "Du har ikke de nødvendige tillatelsene til å fjerne medlemmet."
   },
   {
     "id": "api.command_msg.permission.app_error",
-    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+    "translation": "Du har ikke de nødvendige tillatelsene til å sende direktemeldinger til denne brukeren."
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
-    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+    "translation": "Du har ikke de nødvendige tillatelsene til å gi kanalen nytt navn."
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
-    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+    "translation": "Du har ikke de nødvendige tillatelsene til å redigere kanalformålet."
   },
   {
     "id": "api.command_channel_purpose.desc",
@@ -25,7 +25,7 @@
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+    "translation": "Du har ikke de nødvendige tillatelsene til å redigere kanaloverskriften."
   },
   {
     "id": "api.command_channel_header.desc",
@@ -262,5 +262,29 @@
   {
     "id": "api.command_away.success",
     "translation": "Du er nå borte"
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Denne tråden ble flyttet fra en annen kanal"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook-hendelsen ble ikke håndtert. Enten mangler den, eller så er den ikke gyldig."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Intern feil oppsto under cloud api-forespørsel."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Lisensen din støtter ikke skyforespørsler."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Har allerede varslet admin"
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Kan ikke fjerne brukeren fra standardkanalen {{.Channel}}."
   }
 ]

@@ -3,7 +3,7 @@
 
 import {combineReducers} from 'redux';
 
-import type {GroupChannel, GroupSyncablesState, GroupTeam, Group} from '@mattermost/types/groups';
+import type {GroupChannel, GroupSyncablesState, GroupTeam, Group, GroupMember} from '@mattermost/types/groups';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {GroupTypes} from 'mattermost-redux/action_types';
@@ -242,6 +242,46 @@ function groups(state: Record<string, Group> = {}, action: MMReduxAction) {
         }
 
         return nextState;
+    }
+    case GroupTypes.RECEIVED_MEMBER_TO_REMOVE_FROM_GROUP: {
+        const dataInfo: GroupMember = action.data;
+
+        const group = state[dataInfo.group_id];
+
+        if (Array.isArray(group?.member_ids)) {
+            const newMemberIds = new Set(group.member_ids);
+            newMemberIds.delete(dataInfo.user_id);
+            const newGroup = {...group,
+                member_ids: [...newMemberIds],
+                member_count: newMemberIds.size,
+            };
+            return {
+                ...state,
+                [group.id]: newGroup,
+            };
+        }
+
+        return state;
+    }
+    case GroupTypes.RECEIVED_MEMBER_TO_ADD_TO_GROUP: {
+        const {group_id: groupId, user_id: userId}: GroupMember = action.data;
+
+        const group = state[groupId];
+
+        if (Array.isArray(group?.member_ids)) {
+            const newMemberIds = new Set(group.member_ids);
+            newMemberIds.add(userId);
+            const newGroup = {...group,
+                member_ids: [...newMemberIds],
+                member_count: newMemberIds.size,
+            };
+            return {
+                ...state,
+                [group.id]: newGroup,
+            };
+        }
+
+        return state;
     }
     default:
         return state;

@@ -71,7 +71,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         cy.visit(`/${testTeam.name}/channels/off-topic`);
 
         // # Open Channel Members Dialog
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
         cy.findByText('Manage Members').click().wait(TIMEOUTS.FIVE_SEC);
 
         // * Verify the accessibility support in Manage Members Dialog
@@ -118,7 +118,7 @@ function verifyMainMenuModal(menuItem: string, modalName?: string) {
 }
 
 function verifyChannelMenuModal(menuItem: string, modalName?: string) {
-    cy.get('#channelHeaderDropdownIcon').click();
+    cy.get('#channelHeaderTitle').click();
     verifyModal(menuItem, modalName);
 }
 

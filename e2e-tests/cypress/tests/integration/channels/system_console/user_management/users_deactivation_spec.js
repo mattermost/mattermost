@@ -72,7 +72,7 @@ describe('System Console > User Management > Deactivation', () => {
             cy.sendDirectMessageToUser(other, MESSAGES.SMALL);
 
             // # Close DM
-            cy.get('#channelHeaderDropdownIcon').click();
+            cy.get('#channelHeaderTitle').click();
             cy.findByText('Close Direct Message').click();
 
             // # Deactivate the user
@@ -95,7 +95,7 @@ describe('System Console > User Management > Deactivation', () => {
             cy.findByRole('dialog', {name: 'Direct Messages'}).should('be.visible').wait(TIMEOUTS.ONE_SEC);
 
             // # Start typing part of a username that matches previously created users
-            cy.findByRole('textbox', {name: 'Search for people'}).
+            cy.findByRole('combobox', {name: 'Search for people'}).
                 typeWithForce(other.username).
                 wait(TIMEOUTS.ONE_SEC);
 
@@ -127,7 +127,7 @@ describe('System Console > User Management > Deactivation', () => {
                 cy.uiAddDirectMessage().click().wait(TIMEOUTS.HALF_SEC);
 
                 // # Type the user name of user1 on Channel switcher input
-                cy.findByRole('textbox', {name: 'Search for people'}).
+                cy.findByRole('combobox', {name: 'Search for people'}).
                     typeWithForce(user1.username).
                     wait(TIMEOUTS.ONE_SEC);
 

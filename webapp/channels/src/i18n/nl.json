@@ -5162,7 +5162,6 @@
   "sidebar.types.channels": "KANALEN",
   "sidebar.types.direct_messages": "DIRECTE BERICHTEN",
   "sidebar.types.favorites": "FAVORIETEN",
-  "sidebar.types.unreads": "ONGELEZEN BERICHTEN",
   "sidebar.unreads": "Meer ongelezen berichten",
   "sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel": "Kanalen doorbladeren",
   "sidebarLeft.browserOrCreateChannelMenu.createCategoryMenuItem.primaryLabel": "Nieuwe categorie aanmaken",

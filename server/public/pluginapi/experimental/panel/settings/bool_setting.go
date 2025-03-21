@@ -75,6 +75,7 @@ func (s *boolSetting) GetSlackAttachments(userID, settingHandler string, disable
 		currentValueMessage = fmt.Sprintf("Current value: %s", currentTextValue)
 
 		actionTrue := model.PostAction{
+			Type: model.PostActionTypeButton,
 			Name: "Yes",
 			Integration: &model.PostActionIntegration{
 				URL: settingHandler,
@@ -86,6 +87,7 @@ func (s *boolSetting) GetSlackAttachments(userID, settingHandler string, disable
 		}
 
 		actionFalse := model.PostAction{
+			Type: model.PostActionTypeButton,
 			Name: "No",
 			Integration: &model.PostActionIntegration{
 				URL: settingHandler,

@@ -38,6 +38,7 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetSessionsExpired", func(t *testing.T) { testGetSessionsExpired(t, rctx, ss) })
 	t.Run("UpdateExpiredNotify", func(t *testing.T) { testUpdateExpiredNotify(t, rctx, ss) })
 	t.Run("GetLRUSessions", func(t *testing.T) { testGetLRUSessions(t, rctx, ss) })
+	t.Run("GetSessionsWithActiveDeviceIds", func(t *testing.T) { testGetSessionsWithActiveDeviceIds(t, rctx, ss) })
 	t.Run("GetMobileSessionMetadata", func(t *testing.T) { testGetMobileSessionMetadata(t, rctx, ss) })
 }
 
@@ -395,6 +396,71 @@ func testGetSessionsExpired(t *testing.T, rctx request.CTX, ss store.Store) {
 	for _, sess := range sessions {
 		require.Contains(t, expected, sess.Id)
 	}
+}
+
+func testGetSessionsWithActiveDeviceIds(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+
+	// Create session 1 with a device ID
+	s1 := &model.Session{}
+	s1.UserId = userId
+	s1.ExpiresAt = model.GetMillis() + 100000
+	s1.DeviceId = model.NewId()
+	s1, err := ss.Session().Save(rctx, s1)
+	require.NoError(t, err)
+
+	// Create session 2 with a device ID and a prop for last_removed_device_id that doesn't match the device ID
+	s2 := &model.Session{}
+	s2.UserId = userId
+	s2.ExpiresAt = model.GetMillis() + 100000
+	s2.DeviceId = model.NewId()
+	s2.AddProp(model.SessionPropLastRemovedDeviceId, model.NewId())
+	s2, err = ss.Session().Save(rctx, s2)
+	require.NoError(t, err)
+
+	// Create session 3 with a device ID and a prop for last_removed_device_id that matches the device ID - this should be filtered out
+	s3 := &model.Session{}
+	s3.UserId = userId
+	s3.ExpiresAt = model.GetMillis() + 100000
+	s3.DeviceId = model.NewId()
+	s3.AddProp(model.SessionPropLastRemovedDeviceId, s3.DeviceId)
+	s3, err = ss.Session().Save(rctx, s3)
+	require.NoError(t, err)
+
+	// Create session 4 with no device ID - this should be filtered out
+	s4 := &model.Session{}
+	s4.UserId = userId
+	s4.ExpiresAt = model.GetMillis() + 100000
+	s4, err = ss.Session().Save(rctx, s4)
+	require.NoError(t, err)
+
+	// Create session 5 with a device ID but expired - this should be filtered out
+	s5 := &model.Session{}
+	s5.UserId = userId
+	s5.ExpiresAt = model.GetMillis() - 100000
+	s5.DeviceId = model.NewId()
+	s5, err = ss.Session().Save(rctx, s5)
+	require.NoError(t, err)
+
+	// Get sessions with active device IDs
+	sessions, err := ss.Session().GetSessionsWithActiveDeviceIds(userId)
+	require.NoError(t, err)
+
+	// We should have 2 sessions (s1 and s2)
+	require.Len(t, sessions, 2)
+
+	// Verify s1 and s2 are in the result
+	sessionIds := make(map[string]bool)
+	for _, session := range sessions {
+		sessionIds[session.Id] = true
+	}
+	require.True(t, sessionIds[s1.Id])
+	require.True(t, sessionIds[s2.Id])
+
+	// Verify s3, s4, and s5 are not in the result
+	require.False(t, sessionIds[s3.Id])
+	require.False(t, sessionIds[s4.Id])
+	require.False(t, sessionIds[s5.Id])
 }
 
 func testUpdateExpiredNotify(t *testing.T, rctx request.CTX, ss store.Store) {

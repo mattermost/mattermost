@@ -4110,7 +4110,6 @@
   "sidebar.types.channels": "КАНАЛИ",
   "sidebar.types.direct_messages": "ДИРЕКТНО СЪОБЩЕНИЕ",
   "sidebar.types.favorites": "ЛЮБИМИ",
-  "sidebar.types.unreads": "НЕПРОЧЕТЕНИ",
   "sidebar.unreads": "Още непрочетени",
   "sidebar_left.add_channel_dropdown.browseChannels": "Преглеждайте канали",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Създайте нов канал",

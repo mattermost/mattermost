@@ -478,22 +478,24 @@ func (_m *JobStore) UpdateStatus(id string, status string) (*model.Job, error) {
 }
 
 // UpdateStatusOptimistically provides a mock function with given fields: id, currentStatus, newStatus
-func (_m *JobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error) {
+func (_m *JobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error) {
 	ret := _m.Called(id, currentStatus, newStatus)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateStatusOptimistically")
 	}
 
-	var r0 bool
+	var r0 *model.Job
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, string) (bool, error)); ok {
+	if rf, ok := ret.Get(0).(func(string, string, string) (*model.Job, error)); ok {
 		return rf(id, currentStatus, newStatus)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, string) bool); ok {
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.Job); ok {
 		r0 = rf(id, currentStatus, newStatus)
 	} else {
-		r0 = ret.Get(0).(bool)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Job)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {

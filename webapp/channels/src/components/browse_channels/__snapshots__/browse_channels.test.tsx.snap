@@ -2,7 +2,6 @@
 
 exports[`components/BrowseChannels should match snapshot and state 1`] = `
 <GenericModal
-  aria-labelledby="browseChannelsModalLabel"
   aria-modal={true}
   autoCloseOnCancelButton={true}
   autoCloseOnConfirmButton={false}
@@ -40,8 +39,11 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
       id="more_channels.title"
     />
   }
+  modalLocation="center"
   onExited={[Function]}
   show={true}
+  showCloseButton={true}
+  showHeader={true}
 >
   <injectIntl(SearchableChannelList)
     canShowArchivedChannels={true}

@@ -71,7 +71,6 @@ const Preferences = {
     CATEGORY_ONBOARDING: 'category_onboarding',
 
     CATEGORY_DRAFTS: 'drafts',
-    DRAFTS_TOUR_TIP_SHOWED: 'drafts_tour_tip_showed',
 
     CATEGORY_REPORTING: 'reporting',
 

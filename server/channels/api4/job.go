@@ -122,7 +122,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !filepath.IsLocal(cleanedExportDir) {
 		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
 			"job.Data did not include export_dir, export_dir was malformed, or jobId.zip wasn't found",
-			http.StatusNotFound).Wrap(err)
+			http.StatusNotFound)
 		return
 	}
 

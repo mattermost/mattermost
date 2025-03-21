@@ -399,7 +399,6 @@
   "shortcuts.browser.font_increase": "Μεγέθυνση:\tCtrl|+",
   "sidebar.types.channels": "ΚΑΝΑΛΙΑ",
   "sidebar.types.direct_messages": "ΑΜΕΣΑ ΜΗΝΥΜΑΤΑ",
-  "sidebar.types.unreads": "ΑΔΙΑΒΑΣΤΑ",
   "sidebar.unreads": "Περισσότερα μη αναγνωσμένα",
   "sidebar_left.channel_navigator.jumpTo": "Αναζήτηση καναλιού",
   "sidebar_left.sidebar_channel_menu.addMembers": "Προσθήκη μελών",

@@ -3268,7 +3268,6 @@
   "sidebar.types.channels": "CANALE",
   "sidebar.types.direct_messages": "MESAJE DIRECTE",
   "sidebar.types.favorites": "FAVORITE",
-  "sidebar.types.unreads": "NECITITE",
   "sidebar.unreads": "Mai multe necitite",
   "sidebar_left.add_channel_dropdown.browseChannels": "Căutați canale",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Creați un canal nou",

@@ -1530,7 +1530,6 @@
   "sidebar.types.channels": "KANALI",
   "sidebar.types.direct_messages": "IZRAVNE PORUKE",
   "sidebar.types.favorites": "FAVORITI",
-  "sidebar.types.unreads": "NEPROČITANI",
   "sidebar.unreads": "Još nepročitanih",
   "sidebar_left.addChannelsCta": "Dodaj kanale",
   "sidebar_left.add_channel_dropdown.browseChannels": "Pregledaj kanale",

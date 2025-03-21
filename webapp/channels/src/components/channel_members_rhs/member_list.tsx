@@ -103,7 +103,7 @@ const MemberList = ({
                         <Member
                             channel={channel}
                             index={index}
-                            totalUsers={members.length}
+                            totalUsers={members.filter((l) => l.type === ListItemType.Member).length}
                             member={member}
                             editing={editing}
                             actions={{openDirectMessage}}

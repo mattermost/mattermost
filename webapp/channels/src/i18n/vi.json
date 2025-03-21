@@ -4167,7 +4167,6 @@
   "sidebar.types.channels": "KÊNH",
   "sidebar.types.direct_messages": "TIN NHẮN TRỰC TIẾP",
   "sidebar.types.favorites": "YÊU THÍCH",
-  "sidebar.types.unreads": "UNREADS",
   "sidebar.unreads": "Thêm mục chưa đọc",
   "sidebar_left.add_channel_dropdown.browseChannels": "Duyệt qua kênh",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Tạo kênh mới",

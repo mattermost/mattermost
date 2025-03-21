@@ -86,24 +86,6 @@
 
         .modal-header {
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-
-            .adminModeBadge {
-                display: flex;
-                width: 86px;
-                min-width: 86px;
-                height: 22px;
-                align-items: center;
-                padding: 2px var(--spacing-xxxs, 6px);
-                border-radius: 4px;
-                margin-top: 10px;
-                margin-bottom: auto;
-                margin-left: 24px;
-                background: var(--error-text);
-                color: white;
-                font-size: 12px;
-                font-weight: 600;
-                gap: 6px;
-            }
         }
 
         li {
@@ -371,6 +353,11 @@
                             white-space: nowrap;
                         }
 
+                        .premadeThemeButton{
+                            border: none;
+                            background: none;
+                        }
+
                         label {
                             width: 100%;
                         }
@@ -407,12 +394,21 @@
                     }
 
                     .theme-elements__header {
-                        padding: 1px 0 10px;
                         border-bottom: 1px solid;
                         margin: 10px 20px 0 0;
                         cursor: pointer;
                         font-size: functions.em(13.5px);
                         font-weight: 600;
+
+                        button {
+                            display: flex;
+                            width: 100%;
+                            align-items: center;
+                            justify-content: space-between;
+                            padding: 10px 1px;
+                            border: none;
+                            background: none;
+                        }
 
                         .fa-minus {
                             display: none;

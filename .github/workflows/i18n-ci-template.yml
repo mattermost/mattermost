@@ -15,7 +15,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@dcc7a0cba800f454d79fff4b993e8c3555bcc0a8 # v45.0.7
+        uses: tj-actions/changed-files@531f5f7d163941f0c1c04e0ff4d8bb243ac4366f # v45.0.7
         with:
           files: |
             server/i18n/*.json

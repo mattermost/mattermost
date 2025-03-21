@@ -3988,7 +3988,6 @@
   "sidebar.types.channels": "CANAIS",
   "sidebar.types.direct_messages": "MENSAGENS DIRETAS",
   "sidebar.types.favorites": "FAVORITOS",
-  "sidebar.types.unreads": "NÃO LIDOS",
   "sidebar.unreads": "Mais não lidos",
   "sidebar_left.addChannelsCta": "Adicionar canais",
   "sidebar_left.add_channel_cta_dropdown.dropdownAriaLabel": "Adicionar lista suspensa de canais",

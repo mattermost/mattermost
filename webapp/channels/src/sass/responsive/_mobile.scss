@@ -35,100 +35,6 @@
                 flex: 1;
             }
 
-            .Menu {
-                position: fixed;
-                top: 48px;
-                left: 0;
-                display: block;
-                overflow: hidden;
-                width: 100%;
-                height: 100%;
-                padding: 2.5em 0 0;
-                padding-bottom: 50px;
-                background: functions.alpha-color(variables.$black, 0.9);
-                transition: all 0.35s ease;
-
-                body.announcement-bar--fixed & {
-                    top: calc(48px + #{variables.$announcement-bar-height});
-                    height: calc(100% - 48px - #{variables.$announcement-bar-height});
-                }
-            }
-
-            .Menu__content {
-                position: absolute;
-                top: 0;
-                overflow: auto;
-                width: 100%;
-                max-width: 100%;
-                height: 100%;
-                max-height: 100%;
-                padding: 2rem 2rem 5rem;
-                background: transparent;
-            }
-
-            .Menu__close {
-                position: fixed;
-                top: 70px;
-                right: 20px;
-                display: block;
-                width: 30px;
-                height: 30px;
-                padding-top: 13px;
-                border: 1px solid variables.$white;
-                border-radius: 50%;
-                margin-left: -15px;
-                color: variables.$white;
-                font-family: 'Open Sans', sans-serif;
-                font-size: 23px;
-                font-weight: 200;
-                line-height: 0;
-                opacity: 1;
-                text-align: center;
-                text-shadow: none;
-            }
-
-            .dropdown-menu {
-                .dropdown__divider {
-                    & + .dropdown__divider {
-                        display: none;
-                    }
-                }
-
-                >li {
-                    >a,
-                    >button,
-                    >.styleSelectableItemDiv {
-                        display: flex;
-                        width: 100%;
-                        height: auto;
-                        justify-content: center;
-                        padding: 0.4rem 2rem;
-                        margin: 0 auto;
-                        color: variables.$white;
-                        font-weight: 600;
-                        line-height: 32px;
-                        text-align: center;
-
-                        &:hover {
-                            background: transparent;
-                        }
-
-                        .SubMenu__icon-right {
-                            color: rgba(255, 255, 255, 0.75);
-                        }
-                    }
-
-                    .navbar-right__icon {
-                        margin: 10px;
-                    }
-
-                    hr {
-                        border-bottom: 1px solid functions.alpha-color(variables.$white, 0.3);
-                        margin: 8px auto;
-                    }
-                }
-            }
-
             .status {
                 top: 2px;
                 width: 16px;
@@ -558,24 +464,6 @@
         .Menu__content {
             &.dropdown-menu {
                 max-width: 100%;
-            }
-
-            &.mobile-channel-header-dropdown-enter {
-                transform: translateY(100%);
-            }
-
-            &.mobile-channel-header-dropdown-enter-active {
-                transform: translateY(0%);
-                transition: transform 0.35s ease-in;
-            }
-
-            &.mobile-channel-header-dropdown-enter-done {
-                transform: translateY(0%);
-            }
-
-            &.mobile-channel-header-dropdown-exit {
-                transform: translateY(100%);
-                transition: transform 0.35s ease-in;
             }
         }
     }
@@ -2172,24 +2060,6 @@
 
     .signup-team-all {
         max-height: calc(75vh - (111px + 187px));
-    }
-}
-
-@media screen and (max-width: 380px) and (max-height: 580px) {
-    #navbar_wrapper {
-        .navbar-default {
-            .dropdown-menu {
-                padding-top: 1em;
-
-                >li {
-                    >a {
-                        border: none;
-                        font-size: 13px;
-                        line-height: 27px;
-                    }
-                }
-            }
-        }
     }
 }
 
