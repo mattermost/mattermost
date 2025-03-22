@@ -33,7 +33,7 @@ import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-export type Props = {
+type Props = {
     groupID: string;
     group: Group;
     groupTeams: GroupTeam[];
@@ -78,7 +78,7 @@ export type Props = {
     };
 } & WrappedComponentProps;
 
-export type State = {
+type State = {
     loadingTeamsAndChannels: boolean;
     addTeamOpen: boolean;
     addChannelOpen: boolean;
