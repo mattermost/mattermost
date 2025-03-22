@@ -15,6 +15,8 @@ export type Tab = {
     iconTitle: string;
     name: string;
     uiName: string;
+    newGroup?: boolean;
+    display?: boolean; // Controls whether the tab is displayed, defaults to true
 }
 
 export type Props = {
@@ -31,7 +33,11 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
 
     constructor(props: Props) {
         super(props);
-        this.totalTabs = [...this.props.tabs, ...this.props.pluginTabs || []];
+
+        // Filter out tabs where display is explicitly set to false
+        const filteredTabs = this.props.tabs.filter((tab) => tab.display !== false);
+        const filteredPluginTabs = this.props.pluginTabs?.filter((tab) => tab.display !== false) || [];
+        this.totalTabs = [...filteredTabs, ...filteredPluginTabs];
         this.buttonRefs = this.totalTabs.map(() => React.createRef());
     }
 
@@ -84,52 +90,60 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         }
 
         return (
-            <button
-                key={key}
-                ref={this.buttonRefs[index]}
-                id={`${tab.name}Button`}
-                className={classNames('cursor--pointer style--none nav-pills__tab', {active: isActive})}
-                onClick={this.handleClick.bind(null, tab)}
-                onKeyUp={this.handleKeyUp.bind(null, index)}
-                aria-label={tab.uiName.toLowerCase()}
-                role='tab'
-                aria-selected={isActive}
-                tabIndex={!isActive && !this.props.isMobileView ? -1 : 0}
-                aria-controls={`${tab.name}Settings`}
-            >
-                {icon}
-                {tab.uiName}
-            </button>
+            <React.Fragment key={key}>
+                {tab.newGroup && <hr/>}
+                <button
+                    ref={this.buttonRefs[index]}
+                    id={`${tab.name}Button`}
+                    className={classNames('cursor--pointer style--none nav-pills__tab', {active: isActive})}
+                    onClick={this.handleClick.bind(null, tab)}
+                    onKeyUp={this.handleKeyUp.bind(null, index)}
+                    aria-label={tab.uiName.toLowerCase()}
+                    role='tab'
+                    aria-selected={isActive}
+                    tabIndex={!isActive && !this.props.isMobileView ? -1 : 0}
+                    aria-controls={`${tab.name}Settings`}
+                >
+                    {icon}
+                    {tab.uiName}
+                </button>
+            </React.Fragment>
         );
     }
 
     public render() {
-        const tabList = this.props.tabs.map((tab, index) => this.renderTab(tab, index));
+        // Filter tabs where display is explicitly set to false
+        const visibleTabs = this.props.tabs.filter((tab) => tab.display !== false);
+        const tabList = visibleTabs.map((tab, index) => this.renderTab(tab, index));
+
         let pluginTabList: React.ReactNode;
         if (this.props.pluginTabs?.length) {
-            pluginTabList = (
-                <>
-                    <hr/>
-                    <div
-                        role='group'
-                        aria-labelledby='userSettingsModal.pluginPreferences.header'
-                    >
+            const visiblePluginTabs = this.props.pluginTabs.filter((tab) => tab.display !== false);
+            if (visiblePluginTabs.length) {
+                pluginTabList = (
+                    <>
+                        <hr/>
                         <div
-                            key={'plugin preferences heading'}
-                            role='heading'
-                            className={'header'}
-                            aria-level={3}
-                            id='userSettingsModal_pluginPreferences_header'
+                            role='group'
+                            aria-labelledby='userSettingsModal.pluginPreferences.header'
                         >
-                            <FormattedMessage
-                                id={'userSettingsModal.pluginPreferences.header'}
-                                defaultMessage={'PLUGIN PREFERENCES'}
-                            />
+                            <div
+                                key={'plugin preferences heading'}
+                                role='heading'
+                                className={'header'}
+                                aria-level={3}
+                                id='userSettingsModal_pluginPreferences_header'
+                            >
+                                <FormattedMessage
+                                    id={'userSettingsModal.pluginPreferences.header'}
+                                    defaultMessage={'PLUGIN PREFERENCES'}
+                                />
+                            </div>
+                            {visiblePluginTabs.map((tab, index) => this.renderTab(tab, visibleTabs.length + index))}
                         </div>
-                        {this.props.pluginTabs.map((tab, index) => this.renderTab(tab, index + this.props.tabs.length))}
-                    </div>
-                </>
-            );
+                    </>
+                );
+            }
         }
 
         return (

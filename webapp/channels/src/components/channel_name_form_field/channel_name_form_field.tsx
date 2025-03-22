@@ -24,10 +24,12 @@ export type Props = {
     placeholder: string;
     onDisplayNameChange: (name: string) => void;
     onURLChange: (url: string) => void;
+    currentUrl?: string;
     autoFocus?: boolean;
-    onErrorStateChange?: (isError: boolean) => void;
+    onErrorStateChange?: (isError: boolean, errorMessage?: string) => void;
     team?: Team;
     urlError?: string;
+    readOnly?: boolean;
 }
 
 import './channel_name_form_field.scss';
@@ -58,7 +60,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
     const [displayNameError, setDisplayNameError] = useState<string>('');
     const displayName = useRef<string>('');
     const urlModified = useRef<boolean>(false);
-    const [url, setURL] = useState<string>('');
+    const [url, setURL] = useState<string>(props.currentUrl || '');
     const [urlError, setURLError] = useState<string>('');
     const [inputCustomMessage, setInputCustomMessage] = useState<CustomMessageInputType | null>(null);
 
@@ -110,11 +112,31 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         props.onURLChange(cleanURL);
     }, [props.onURLChange]);
 
+    // Add a URL blur handler to validate the URL when the user moves away from the field
+    const handleOnURLBlur = useCallback(() => {
+        // Only validate if the URL has been modified
+        if (urlModified.current) {
+            const urlErrors = validateChannelUrl(url, intl) as string[];
+            setURLError(urlErrors.length ? urlErrors[urlErrors.length - 1] : '');
+        }
+    }, [url, intl]);
+
     useEffect(() => {
         if (props.onErrorStateChange) {
-            props.onErrorStateChange(Boolean(displayNameError) || Boolean(urlError));
+            // Only report URL errors if the URL has been explicitly modified and validated
+            // This prevents showing errors during typing
+            const shouldReportUrlError = urlModified.current && urlError;
+            const errorMessage = displayNameError || (shouldReportUrlError ? urlError : '');
+            props.onErrorStateChange(Boolean(displayNameError) || Boolean(shouldReportUrlError), errorMessage);
         }
     }, [displayNameError, urlError]);
+
+    // Effect to set URL from props if it's modified (used in modals for reset button event which sets the value outside the onChange event)
+    useEffect(() => {
+        if (props.currentUrl) {
+            setURL(props.currentUrl);
+        }
+    }, [props.currentUrl]);
 
     return (
         <>
@@ -129,10 +151,12 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 label={formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}
                 placeholder={props.placeholder}
                 limit={Constants.MAX_CHANNELNAME_LENGTH}
+                minLength={Constants.MIN_CHANNELNAME_LENGTH}
                 value={props.value}
                 customMessage={inputCustomMessage}
                 onChange={handleOnDisplayNameChange}
                 onBlur={handleOnDisplayNameBlur}
+                disabled={props.readOnly}
             />
             <URLInput
                 className='new-channel-modal__url'
@@ -143,6 +167,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 shortenLength={Constants.DEFAULT_CHANNELURL_SHORTEN_LENGTH}
                 error={urlError || props.urlError}
                 onChange={handleOnURLChange}
+                onBlur={handleOnURLBlur}
             />
         </>
     );

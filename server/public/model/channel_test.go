@@ -18,21 +18,60 @@ func TestChannelCopy(t *testing.T) {
 }
 
 func TestChannelPatch(t *testing.T) {
-	p := &ChannelPatch{Name: new(string), DisplayName: new(string), Header: new(string), Purpose: new(string), GroupConstrained: new(bool)}
-	*p.Name = NewId()
-	*p.DisplayName = NewId()
-	*p.Header = NewId()
-	*p.Purpose = NewId()
-	*p.GroupConstrained = true
+	t.Run("basic fields", func(t *testing.T) {
+		p := &ChannelPatch{Name: new(string), DisplayName: new(string), Header: new(string), Purpose: new(string), GroupConstrained: new(bool)}
+		*p.Name = NewId()
+		*p.DisplayName = NewId()
+		*p.Header = NewId()
+		*p.Purpose = NewId()
+		*p.GroupConstrained = true
 
-	o := Channel{Id: NewId(), Name: NewId()}
-	o.Patch(p)
+		o := Channel{Id: NewId(), Name: NewId()}
+		o.Patch(p)
 
-	require.Equal(t, *p.Name, o.Name)
-	require.Equal(t, *p.DisplayName, o.DisplayName)
-	require.Equal(t, *p.Header, o.Header)
-	require.Equal(t, *p.Purpose, o.Purpose)
-	require.Equal(t, *p.GroupConstrained, *o.GroupConstrained)
+		require.Equal(t, *p.Name, o.Name)
+		require.Equal(t, *p.DisplayName, o.DisplayName)
+		require.Equal(t, *p.Header, o.Header)
+		require.Equal(t, *p.Purpose, o.Purpose)
+		require.Equal(t, *p.GroupConstrained, *o.GroupConstrained)
+	})
+
+	t.Run("change channel type", func(t *testing.T) {
+		// Test changing from public to private
+		o := Channel{Id: NewId(), Name: NewId(), Type: ChannelTypeOpen}
+		p := &ChannelPatch{Type: ChannelTypePrivate}
+		o.Patch(p)
+		require.Equal(t, ChannelTypePrivate, o.Type)
+
+		// Test changing from private to public
+		o = Channel{Id: NewId(), Name: NewId(), Type: ChannelTypePrivate}
+		p = &ChannelPatch{Type: ChannelTypeOpen}
+		o.Patch(p)
+		require.Equal(t, ChannelTypeOpen, o.Type)
+	})
+
+	t.Run("empty type doesn't change existing type", func(t *testing.T) {
+		o := Channel{Id: NewId(), Name: NewId(), Type: ChannelTypeOpen}
+		p := &ChannelPatch{Name: new(string)}
+		*p.Name = NewId()
+		o.Patch(p)
+		require.Equal(t, ChannelTypeOpen, o.Type)
+	})
+
+	t.Run("update type with other fields", func(t *testing.T) {
+		o := Channel{Id: NewId(), Name: NewId(), Type: ChannelTypeOpen}
+		p := &ChannelPatch{
+			Name:        new(string),
+			DisplayName: new(string),
+			Type:        ChannelTypePrivate,
+		}
+		*p.Name = NewId()
+		*p.DisplayName = NewId()
+		o.Patch(p)
+		require.Equal(t, ChannelTypePrivate, o.Type)
+		require.Equal(t, *p.Name, o.Name)
+		require.Equal(t, *p.DisplayName, o.DisplayName)
+	})
 }
 
 func TestChannelIsValid(t *testing.T) {
