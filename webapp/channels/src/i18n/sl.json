@@ -845,7 +845,6 @@
   "installed_oauth_apps.search": "Aplikacije OAuth 2.0",
   "integrations.add": "Dodaj",
   "integrations.successful": "Nastavitev je uspešna",
-  "intro_messages.inviteOthers": "dodaj jih v ta zasebni kanal",
   "invitation_modal.members.search-and-add.placeholder-email-disabled": "Dodaj člane",
   "list_modal.paginatorCount": "English Report a problem with this string  {startCount, number} - {endCount, number} od {total, number}",
   "login.createTeam": "Ustvari novo ekipo",

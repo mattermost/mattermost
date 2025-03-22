@@ -26,7 +26,10 @@
     "paths": {
         "mattermost-redux/*": ["packages/mattermost-redux/src/*"],
         "@mui/styled-engine": ["./node_modules/@mui/styled-engine-sc"],
-    }
+    },
+    "plugins": [{
+        "name": "typescript-eslint-language-service"
+    }]
   },
   "include": [
     "./src/**/*",

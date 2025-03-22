@@ -55,7 +55,7 @@ func (a *App) UpdateChannelBookmark(c request.CTX, updateBookmark *model.Channel
 		isAnotherFile := updateBookmark.FileInfo != nil && updateBookmark.FileId != "" && updateBookmark.FileId != updateBookmark.FileInfo.Id
 
 		if isAnotherFile {
-			if fileAlreadyAttachedErr := a.Srv().Store().ChannelBookmark().ErrorIfBookmarkFileInfoAlreadyAttached(updateBookmark.FileId); fileAlreadyAttachedErr != nil {
+			if fileAlreadyAttachedErr := a.Srv().Store().ChannelBookmark().ErrorIfBookmarkFileInfoAlreadyAttached(updateBookmark.FileId, updateBookmark.ChannelId); fileAlreadyAttachedErr != nil {
 				return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.update.app_error", nil, "", http.StatusInternalServerError).Wrap(fileAlreadyAttachedErr)
 			}
 		}

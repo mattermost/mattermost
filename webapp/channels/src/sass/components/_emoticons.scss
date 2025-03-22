@@ -86,11 +86,11 @@
 }
 
 .emoji-picker {
-    position: absolute;
-    z-index: 1100;
-    display: flex;
+    // position: relative;
+    // z-index: 1100;
+    // display: flex;
     width: 350px;
-    flex-direction: column;
+    // flex-direction: column;
     border: 1px solid;
     border-radius: var(--radius-s);
     margin-right: 3px;
@@ -116,10 +116,6 @@
 
     .app__content & {
         margin-right: 0;
-    }
-
-    &.bottom {
-        margin-top: 10px;
     }
 
     .nav-tabs {
@@ -538,7 +534,9 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
     height: 36px;
     align-items: center;
     justify-content: center;
+    border: none;
     border-radius: 3px;
+    background-color: transparent;
     cursor: pointer;
     vertical-align: middle;
 
