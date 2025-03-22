@@ -12,16 +12,24 @@ import ChannelSettingsInfoTab from './channel_settings_info_tab';
 
 // Mock the redux actions and selectors
 jest.mock('mattermost-redux/actions/channels', () => ({
-    patchChannel: jest.fn().mockReturnValue({type: 'MOCK_ACTION', data: {}}),
+    patchChannel: jest.fn(),
 }));
 
 let mockChannelPropertiesPermission = true;
+let mockConvertToPublicPermission = true;
+let mockConvertToPrivatePermission = true;
 
 jest.mock('mattermost-redux/selectors/entities/roles', () => ({
     haveITeamPermission: jest.fn().mockReturnValue(true),
     haveIChannelPermission: jest.fn().mockImplementation((state, teamId, channelId, permission: string) => {
         if (permission === 'manage_private_channel_properties' || permission === 'manage_public_channel_properties') {
             return mockChannelPropertiesPermission;
+        }
+        if (permission === 'convert_public_channel_to_private') {
+            return mockConvertToPrivatePermission;
+        }
+        if (permission === 'convert_private_channel_to_public') {
+            return mockConvertToPublicPermission;
         }
         return true;
     }),
@@ -38,6 +46,15 @@ jest.mock('actions/views/textbox', () => ({
     setShowPreviewOnChannelSettingsPurposeModal: jest.fn(),
 }));
 
+// Mock the isChannelAdmin function
+jest.mock('mattermost-redux/utils/user_utils', () => {
+    const original = jest.requireActual('mattermost-redux/utils/user_utils');
+    return {
+        ...original,
+        isChannelAdmin: jest.fn().mockReturnValue(false),
+    };
+});
+
 // Mock the ShowFormat component to make it easier to test
 jest.mock('components/advanced_text_editor/show_formatting/show_formatting', () => (
     jest.fn().mockImplementation((props) => (
@@ -50,6 +67,29 @@ jest.mock('components/advanced_text_editor/show_formatting/show_formatting', () 
         </button>
     ))
 ));
+
+// Create a mock channel member
+const mockChannelMember = TestHelper.getChannelMembershipMock({
+    roles: 'channel_user system_admin',
+});
+
+// Mock the current user
+const mockUser = TestHelper.getUserMock({
+    id: 'user_id',
+    roles: 'system_admin',
+});
+
+jest.mock('mattermost-redux/selectors/entities/channels', () => ({
+    ...jest.requireActual('mattermost-redux/selectors/entities/channels') as typeof import('mattermost-redux/selectors/entities/channels'),
+    getChannelMember: jest.fn(() => mockChannelMember),
+}));
+
+jest.mock('mattermost-redux/selectors/entities/common', () => {
+    return {
+        ...jest.requireActual('mattermost-redux/selectors/entities/common') as typeof import('mattermost-redux/selectors/entities/users'),
+        getCurrentUser: () => mockUser,
+    };
+});
 
 // Create a mock channel for testing
 const mockChannel = TestHelper.getChannelMock({
@@ -71,6 +111,8 @@ describe('ChannelSettingsInfoTab', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockChannelPropertiesPermission = true;
+        mockConvertToPublicPermission = true;
+        mockConvertToPrivatePermission = true;
     });
 
     it('should render with the correct initial values', () => {
@@ -270,5 +312,91 @@ describe('ChannelSettingsInfoTab', () => {
         // When not in readOnly mode, at least one preview toggle button should be present
         const previewButtons = screen.queryAllByTestId('mock-show-format');
         expect(previewButtons.length).toBeGreaterThan(0);
+    });
+
+    it('should allow channel type change when user is channel admin regardless of permissions', async () => {
+        // Set permissions to false
+        mockConvertToPublicPermission = false;
+        mockConvertToPrivatePermission = false;
+
+        // But set isChannelAdmin to true
+        const userUtils = require('mattermost-redux/utils/user_utils');
+        userUtils.isChannelAdmin.mockReturnValue(true);
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        // Change to a private channel should be allowed
+        const privateButton = screen.getByRole('button', {name: /Private Channel/});
+        expect(privateButton).not.toBeDisabled();
+        await userEvent.click(privateButton);
+
+        // Verify the private channel button is now selected
+        expect(privateButton).toHaveClass('selected');
+    });
+
+    it('should detect channel admin from member roles', async () => {
+        // Set permissions to false
+        mockConvertToPublicPermission = false;
+        mockConvertToPrivatePermission = false;
+
+        // Create a channel member with channel_admin role
+        const adminChannelMember = TestHelper.getChannelMembershipMock({
+            roles: 'channel_user channel_admin',
+        });
+
+        // Set up the mock selector to return the admin channel member
+        const channelsSelectors = require('mattermost-redux/selectors/entities/channels');
+        channelsSelectors.getChannelMember.mockReturnValue(adminChannelMember);
+
+        // Reset the mock to use the actual implementation
+        const userUtils = require('mattermost-redux/utils/user_utils');
+        userUtils.isChannelAdmin.mockImplementation(
+            jest.requireActual('mattermost-redux/utils/user_utils').isChannelAdmin,
+        );
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        // Change to a private channel should be allowed because the user is a channel admin
+        const privateButton = screen.getByRole('button', {name: /Private Channel/});
+        expect(privateButton).not.toBeDisabled();
+        await userEvent.click(privateButton);
+
+        // Verify the private channel button is now selected
+        expect(privateButton).toHaveClass('selected');
+    });
+
+    it('should not allow channel type change when user is not channel admin and lacks permissions', async () => {
+        // Set permissions to false
+        mockConvertToPublicPermission = false;
+        mockConvertToPrivatePermission = false;
+
+        // Set isChannelAdmin to false
+        const userUtils = require('mattermost-redux/utils/user_utils');
+        userUtils.isChannelAdmin.mockReturnValue(false);
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        // Private channel button should be disabled
+        const privateButton = screen.getByRole('button', {name: /Private Channel/});
+        expect(privateButton).toHaveClass('disabled');
+    });
+
+    it('should allow channel type change when user has specific permission even if not channel admin', async () => {
+        // Set convert permission to true
+        mockConvertToPrivatePermission = true;
+
+        // Set isChannelAdmin to false
+        const userUtils = require('mattermost-redux/utils/user_utils');
+        userUtils.isChannelAdmin.mockReturnValue(false);
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        // Private channel button should not be disabled
+        const privateButton = screen.getByRole('button', {name: /Private Channel/});
+        expect(privateButton).not.toBeDisabled();
+
+        // Should be able to change to private
+        await userEvent.click(privateButton);
+        expect(privateButton).toHaveClass('selected');
     });
 });

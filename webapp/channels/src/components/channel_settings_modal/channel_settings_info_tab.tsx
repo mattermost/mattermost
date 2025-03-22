@@ -10,7 +10,10 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {patchChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {haveIChannelPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getChannelMember} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {isChannelAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {
     setShowPreviewOnChannelSettingsHeaderModal,
@@ -51,14 +54,21 @@ function ChannelSettingsInfoTab({
     const dispatch = useDispatch();
     const shouldShowPreviewPurpose = useSelector(showPreviewOnChannelSettingsPurposeModal);
     const shouldShowPreviewHeader = useSelector(showPreviewOnChannelSettingsHeaderModal);
+    const user = useSelector(getCurrentUser);
 
+    // Permissions for transforming channel type
     const canConvertToPrivate = useSelector((state: GlobalState) =>
-        haveITeamPermission(state, channel?.team_id ?? '', Permissions.CREATE_PRIVATE_CHANNEL),
+        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC),
     );
     const canConvertToPublic = useSelector((state: GlobalState) =>
-        haveITeamPermission(state, channel?.team_id ?? '', Permissions.CREATE_PUBLIC_CHANNEL),
+        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE),
     );
 
+    // verify if current user is the channel admin (if is, should have permission to manage channel properties and type)
+    const channelMember = useSelector((state: GlobalState) => getChannelMember(state, channel.id, user.id));
+    const isCurrentUserAChannelAdmin = isChannelAdmin(channelMember!.roles);
+
+    // Permissions for managing channel (name, header, purpose)
     const channelPropertiesPermission = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
     const canManageChannelProperties = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, channelPropertiesPermission),
@@ -161,10 +171,10 @@ function ChannelSettingsInfoTab({
 
     const handleChannelTypeChange = (type: ChannelType) => {
         // If canCreatePublic is false, do not allow. Similarly if canCreatePrivate is false, do not allow
-        if (type === Constants.OPEN_CHANNEL && !canConvertToPublic) {
+        if (!isCurrentUserAChannelAdmin && (type === Constants.OPEN_CHANNEL && !canConvertToPublic)) {
             return;
         }
-        if (type === Constants.PRIVATE_CHANNEL && !canConvertToPrivate) {
+        if (!isCurrentUserAChannelAdmin && (type === Constants.PRIVATE_CHANNEL && !canConvertToPrivate)) {
             return;
         }
         setChannelType(type);
@@ -326,12 +336,12 @@ function ChannelSettingsInfoTab({
                 publicButtonProps={{
                     title: formatMessage({id: 'channel_modal.type.public.title', defaultMessage: 'Public Channel'}),
                     description: formatMessage({id: 'channel_modal.type.public.description', defaultMessage: 'Anyone can join'}),
-                    disabled: !canConvertToPublic,
+                    disabled: !isCurrentUserAChannelAdmin && !canConvertToPublic,
                 }}
                 privateButtonProps={{
                     title: formatMessage({id: 'channel_modal.type.private.title', defaultMessage: 'Private Channel'}),
                     description: formatMessage({id: 'channel_modal.type.private.description', defaultMessage: 'Only invited members'}),
-                    disabled: !canConvertToPrivate,
+                    disabled: !isCurrentUserAChannelAdmin && !canConvertToPrivate,
                 }}
                 onChange={handleChannelTypeChange}
             />
