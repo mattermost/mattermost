@@ -64,6 +64,7 @@
         "EnableEmojiPicker": true,
         "PostEditTimeLimit": -1,
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
+        "EnableCrossTeamSearch": true,
         "EnablePostSearch": true,
         "EnableFileSearch": true,
         "MinimumHashtagLength": 3,
