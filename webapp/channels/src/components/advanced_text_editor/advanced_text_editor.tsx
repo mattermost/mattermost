@@ -671,7 +671,7 @@ const AdvancedTextEditor = ({
 
     const ariaLabelMessageInput = formatMessage({
         id: 'accessibility.sections.centerFooter',
-        defaultMessage: 'message input complimentary region',
+        defaultMessage: 'message input complementary region',
     });
 
     const ariaLabel = loginSuccessfulLabel ? `${loginSuccessfulLabel} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
