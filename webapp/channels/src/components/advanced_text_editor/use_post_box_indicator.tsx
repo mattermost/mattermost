@@ -62,18 +62,21 @@ function useTimePostBoxIndicator(channelId: string) {
     // current user timezone
     const userCurrentTimezone = useSelector((state: GlobalState) => getCurrentTimezone(state));
 
+    const isBot = Boolean(isDM && teammate?.is_bot);
+
     // UseEffect to update the timestamp and the visibility for the time indicator
     useEffect(() => {
-        if (isDM && teammate?.is_bot) {
+        if (isBot) {
             // returning an empty cleanup function as we need to return a genuine cleanup
             // function at if teammate is not a bot and useEffect functions need to
             // have consistent return types. So, we have to return a () => void function everywhere.
+            setShowIt(false);
             return () => {};
         }
 
         function updateTime() {
             const timezone =
-                teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone || 'UTC';
+                (teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone) || 'UTC';
 
             const teammateUserDate = DateTime.local().setZone(timezone);
 
@@ -92,13 +95,12 @@ function useTimePostBoxIndicator(channelId: string) {
         const interval = setInterval(updateTime, MINUTE);
 
         return () => clearInterval(interval);
-    }, [teammate, teammateTimezone.useAutomaticTimezone, teammateTimezone.automaticTimezone, teammateTimezone.manualTimezone, isDM]);
+    }, [teammateTimezone.useAutomaticTimezone, teammateTimezone.automaticTimezone, teammateTimezone.manualTimezone, isBot]);
 
     const isScheduledPostEnabledValue = useSelector(isScheduledPostsEnabled);
 
     const currentUserId = useSelector(getCurrentUserId);
     const isSelfDM = isDM && teammateId === currentUserId;
-    const isBot = Boolean(isDM && teammate?.is_bot);
 
     const showRemoteUserHour = isDM && showIt && timestamp !== 0 && !isBot;
 
