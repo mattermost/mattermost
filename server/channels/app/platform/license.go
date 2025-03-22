@@ -185,7 +185,9 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 
 	nErr := ps.Store.License().Save(record)
 	if nErr != nil {
-		ps.RemoveLicense()
+		if err := ps.RemoveLicense(); err != nil {
+			ps.logger.Error("Failed to remove license after saving it to the license store failed", mlog.Err(err))
+		}
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr):
@@ -199,7 +201,9 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 	sysVar.Name = model.SystemActiveLicenseId
 	sysVar.Value = license.Id
 	if err := ps.Store.System().SaveOrUpdate(sysVar); err != nil {
-		ps.RemoveLicense()
+		if err := ps.RemoveLicense(); err != nil {
+			ps.logger.Error("Failed to remove license after saving it to the system store failed", mlog.Err(err))
+		}
 		return nil, model.NewAppError("addLicense", "api.license.add_license.save_active.app_error", nil, "", http.StatusInternalServerError)
 	}
 	// only on prem licenses set this in the first place
@@ -210,8 +214,12 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 		}
 	}
 
-	ps.ReloadConfig()
-	ps.InvalidateAllCaches()
+	if err := ps.ReloadConfig(); err != nil {
+		ps.logger.Warn("Failed to reload config after a new license was loaded", mlog.Err(err))
+	}
+	if err := ps.InvalidateAllCaches(); err != nil {
+		ps.logger.Warn("Failed to invalidate caches after a new license was loaded", mlog.Err(err))
+	}
 
 	return &license, nil
 }
@@ -295,8 +303,13 @@ func (ps *PlatformService) RemoveLicense() *model.AppError {
 	}
 
 	ps.SetLicense(nil)
-	ps.ReloadConfig()
-	ps.InvalidateAllCaches()
+
+	if err := ps.ReloadConfig(); err != nil {
+		ps.logger.Warn("Failed to reload config after a license got removed", mlog.Err(err))
+	}
+	if err := ps.InvalidateAllCaches(); err != nil {
+		ps.logger.Warn("Failed to invalidate caches after a license got removed", mlog.Err(err))
+	}
 
 	return nil
 }
@@ -352,8 +365,12 @@ func (ps *PlatformService) RequestTrialLicense(trialRequest *model.TrialLicenseR
 		return err
 	}
 
-	ps.ReloadConfig()
-	ps.InvalidateAllCaches()
+	if err := ps.ReloadConfig(); err != nil {
+		ps.logger.Warn("Failed to reload config after a trial license got added", mlog.Err(err))
+	}
+	if err := ps.InvalidateAllCaches(); err != nil {
+		ps.logger.Warn("Failed to invalidate caches after a trial license got added", mlog.Err(err))
+	}
 
 	return nil
 }
