@@ -11,9 +11,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
-
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -2560,6 +2558,103 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 		expected = multierror.Append(expected, fmt.Errorf("unable to move channel %q: some-error", "some-name"))
 
 		s.Require().EqualError(err, expected.Error())
+	})
+
+	s.Run("Move channel and auto-add users to the destination team", func() {
+		printer.Clean()
+
+		dstTeamName := "destination-team-name"
+		dstTeamID := "destination-team-id"
+		mockTeam1 := model.Team{
+			Name: dstTeamName,
+			Id:   dstTeamID,
+		}
+
+		srcTeamName := "source-team-name"
+		srcTeamID := "source-team-id"
+		mockTeam2 := model.Team{
+			Name: srcTeamName,
+			Id:   srcTeamID,
+		}
+
+		channelName := "channel-name"
+		channelID := "channel-id"
+		mockChannel := model.Channel{
+			Name:   channelName,
+			TeamId: mockTeam2.Id,
+			Id:     channelID,
+		}
+
+		usersInChannel := []*model.User{
+			{Id: "user1", Username: "user1"},
+			{Id: "user2", Username: "user2"},
+		}
+		usersInTeam := []*model.User{
+			{Id: "user1", Username: "user1"},
+		}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("auto-add-users", true, "")
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), dstTeamName, "").
+			Return(nil, &model.Response{}, errors.New("")).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(context.TODO(), dstTeamName, "").
+			Return(&mockTeam1, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), srcTeamName, "").
+			Return(nil, &model.Response{}, errors.New("")).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(context.TODO(), srcTeamName, "").
+			Return(&mockTeam2, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.TODO(), channelName, mockTeam2.Id, "").
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInChannel(context.TODO(), channelID, 0, 10000, "").
+			Return(usersInChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInTeam(context.TODO(), dstTeamID, 0, 10000, "").
+			Return(usersInTeam, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			AddTeamMember(context.TODO(), dstTeamID, "user2").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			MoveChannel(context.TODO(), mockChannel.Id, mockTeam1.Id, false).
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamName, srcTeamName + ":" + channelName})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Equal(&mockChannel, printer.GetLines()[0])
+		s.Len(printer.GetErrorLines(), 0)
 	})
 }
 
