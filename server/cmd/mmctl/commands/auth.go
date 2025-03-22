@@ -7,6 +7,8 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -19,6 +21,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
@@ -36,7 +39,7 @@ var LoginCmd = &cobra.Command{
   auth login https://mattermost.example.com --name local-server --username sysadmin --password-file mysupersecret.txt --mfa-token 123456
   auth login https://mattermost.example.com --name local-server --access-token myaccesstoken`,
 	Args: cobra.ExactArgs(1),
-	RunE: loginCmdF,
+	RunE: withClient(loginCmdF),
 }
 
 var CurrentCmd = &cobra.Command{
@@ -123,7 +126,7 @@ func init() {
 	RootCmd.AddCommand(AuthCmd)
 }
 
-func loginCmdF(cmd *cobra.Command, args []string) error {
+func loginCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	name, err := cmd.Flags().GetString("name")
 	if err != nil {
 		return err
@@ -164,7 +167,20 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 	allowInsecureSHA1 := viper.GetBool("insecure-sha1-intermediate")
 	allowInsecureTLS := viper.GetBool("insecure-tls-version")
 
-	url := strings.TrimRight(args[0], "/")
+	instanceURL := strings.TrimRight(args[0], "/")
+	_, urlErr := url.ParseRequestURI(instanceURL)
+	if urlErr != nil {
+		return fmt.Errorf("could not parse the instance url: %w", urlErr)
+	}
+
+	res, err := http.Get(instanceURL)
+	if err != nil {
+		return fmt.Errorf("could not get instance status: %w", err)
+	}
+	if res.StatusCode != 200 {
+		return fmt.Errorf("instance status code is not 200: %d", res.StatusCode)
+	}
+
 	method := MethodPassword
 
 	ctx := context.TODO()
@@ -206,10 +222,10 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		var c *model.Client4
 		var err error
 		if mfaToken != "" {
-			c, _, err = InitClientWithMFA(ctx, username, password, mfaToken, url, allowInsecureSHA1, allowInsecureTLS)
+			c, _, err = InitClientWithMFA(ctx, username, password, mfaToken, instanceURL, allowInsecureSHA1, allowInsecureTLS)
 			method = MethodMFA
 		} else {
-			c, _, err = InitClientWithUsernameAndPassword(ctx, username, password, url, allowInsecureSHA1, allowInsecureTLS)
+			c, _, err = InitClientWithUsernameAndPassword(ctx, username, password, instanceURL, allowInsecureSHA1, allowInsecureTLS)
 		}
 		if err != nil {
 			return fmt.Errorf("could not initiate client: %w", err)
@@ -219,7 +235,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		username = "Personal Access Token"
 		method = MethodToken
 		credentials := Credentials{
-			InstanceURL: url,
+			InstanceURL: instanceURL,
 			AuthToken:   accessToken,
 		}
 		if _, _, err := InitClientWithCredentials(ctx, &credentials, allowInsecureSHA1, allowInsecureTLS); err != nil {
@@ -229,7 +245,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 
 	credentials := Credentials{
 		Name:        name,
-		InstanceURL: url,
+		InstanceURL: instanceURL,
 		Username:    username,
 		AuthToken:   accessToken,
 		AuthMethod:  method,
@@ -246,7 +262,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	printer.Print(fmt.Sprintf("\n  credentials for %q: \"%s@%s\" stored\n", name, username, url))
+	printer.Print(fmt.Sprintf("\n  credentials for %q: \"%s@%s\" stored\n", name, username, instanceURL))
 	return nil
 }
 
