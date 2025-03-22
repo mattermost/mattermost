@@ -5,6 +5,7 @@ import {combineReducers} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import type {CurrentSearch} from '@mattermost/types/search';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {PostTypes, PreferenceTypes, SearchTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -46,6 +47,23 @@ function fileResults(state: string[] = [], action: MMReduxAction) {
         return action.data.order;
     }
     case SearchTypes.REMOVE_SEARCH_FILES:
+    case UserTypes.LOGOUT_SUCCESS:
+        return [];
+
+    default:
+        return state;
+    }
+}
+
+function omniSearchResults(state: string[] = [], action: MMReduxAction) {
+    switch (action.type) {
+    case SearchTypes.RECEIVED_OMNISEARCH_RESULTS: {
+        if (action.isGettingMore) {
+            return [...new Set(state.concat(action.data))];
+        }
+        return action.data;
+    }
+    case SearchTypes.REMOVE_SEARCH_OMNISEARCH:
     case UserTypes.LOGOUT_SUCCESS:
         return [];
 
@@ -203,11 +221,11 @@ function pinned(state: Record<string, string[]> = {}, action: MMReduxAction) {
     }
 }
 
-function current(state: any = {}, action: MMReduxAction) {
+function current(state: Record<string, CurrentSearch> = {}, action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_TERM: {
         const nextState = {...state};
-        const {params, isEnd, isFilesEnd} = action.data;
+        const {params, isEnd, isFilesEnd, isOmniSearchAtEnd} = action.data;
         const teamId = action.data.teamId || 'ALL_TEAMS';
         return {
             ...nextState,
@@ -215,6 +233,7 @@ function current(state: any = {}, action: MMReduxAction) {
                 params,
                 isEnd: typeof isEnd === 'undefined' && state[teamId] ? state[teamId].isEnd : isEnd,
                 isFilesEnd: typeof isFilesEnd === 'undefined' && state[teamId] ? state[teamId].isFilesEnd : isFilesEnd,
+                isOmniSearchAtEnd: typeof isOmniSearchAtEnd === 'undefined' && state[teamId] ? state[teamId].isOmniSearchAtEnd : isOmniSearchAtEnd,
             },
         };
     }
@@ -281,6 +300,9 @@ export default combineReducers({
 
     // An ordered array with files ids from the search results
     fileResults,
+
+    // An array of omnisearch results
+    omniSearchResults,
 
     // Object where every key is a post id mapping to an array of matched words in that post
     matches,
