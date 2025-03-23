@@ -245,7 +245,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                 <>
                     <WithTooltip
                         title={formatMessage({
-                            id: 'formatting_bar.hidden_controls.tooltip',
+                            id: 'shortcuts.msgs.formatting_bar.more_formatting_options',
                             defaultMessage: 'More formatting options'
                         })}
                         disabled={showHiddenControls}
