@@ -154,7 +154,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                             >
                                 <a
                                     href='#'
-                                    className='action-icon dots-icon'
+                                    className='action-icon dots-icon btn btn-icon btn-sm'
                                 >
                                     <i className='icon icon-dots-vertical'/>
                                 </a>
@@ -181,7 +181,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                         title={defineMessage({id: 'file_search_result_item.download', defaultMessage: 'Download'})}
                     >
                         <a
-                            className='action-icon download-icon'
+                            className='action-icon download-icon btn btn-icon btn-sm'
                             href={getFileDownloadUrl(fileInfo.id)}
                             onClick={this.stopPropagation}
                         >

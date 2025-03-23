@@ -352,7 +352,6 @@
     &:hover,
     &:focus-within,
     &.keep-open {
-        overflow: visible;
         box-shadow: 0 2px 3px 0 rgba(variables.$black, 0.1), 0 2px 3px 0 rgba(variables.$black, 0.1);
 
         .file-dropdown-icon {
@@ -463,20 +462,6 @@
 
 .file-dropdown-icon {
     display: none;
-    width: 32px;
-    min-width: 32px;
-    height: 32px;
-    align-items: center;
-    justify-content: center;
-    border: 0;
-    border-radius: 4px;
-    margin-left: 8px;
-    background-color: var(--center-channel-bg);
-    color: rgba(var(--center-channel-color-rgb), 0.64);
-    cursor: pointer;
-    fill: rgba(var(--center-channel-color-rgb), 0.64);
-    text-decoration: none;
-    transition: opacity 0.15s ease;
 
     svg {
         display: flex;
@@ -484,8 +469,6 @@
 
     &:hover {
         display: flex;
-        background-color: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.8);
     }
 
     &:focus {
@@ -497,11 +480,13 @@
     position: relative;
     display: flex;
     overflow: hidden;
+    padding-right: 12px;
     height: 100%;
     flex: 1;
     align-items: center;
     font-size: 12px;
     text-align: left;
+    min-width: 0;
 
     .post-image__archived-name {
         align-items: center;
@@ -531,6 +516,7 @@
         display: flex;
         flex: 1;
         padding: 0;
+        min-width: 0;
 
         .post--compact & {
             padding-left: 8px;
@@ -540,6 +526,7 @@
             width: 100%;
             height: 100%;
             line-height: normal;
+            min-width: 0;
 
             .post-image__name {
                 display: block;
@@ -592,40 +579,18 @@
     .post-image__download {
         top: 0;
         right: 0;
+        margin-left: 2px;
         display: flex;
         height: 100%;
         align-items: center;
         justify-content: center;
-        padding: 0 1.6rem;
         line-height: 0;
         opacity: 1;
         text-align: center;
         transition: opacity 0.15s ease;
 
-        a {
+        .btn-icon {
             display: flex;
-            width: 3.2rem;
-            height: 3.2rem;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            color: rgba(functions.v(center-channel-color-rgb), 0.75);
-            font-size: 1.6rem;
-            text-decoration: none;
-
-            &:focus {
-                color: rgba(functions.v(center-channel-color-rgb), 0.75);
-            }
-
-            &:hover {
-                background: rgba(functions.v(center-channel-color-rgb), 0.08);
-                color: rgba(functions.v(center-channel-color-rgb), 0.75);
-            }
-
-            &:active {
-                background: rgba(var(--button-bg-rgb), 0.08);
-                color: functions.v(button-bg);
-            }
         }
 
         span {
@@ -647,10 +612,6 @@
                 opacity: 1;
             }
         }
-    }
-
-    div.MenuWrapper + .post-image__download {
-        padding-left: 8px;
     }
 
     .post-image__progressBar {

@@ -233,7 +233,7 @@ export default function FileAttachment(props: Props) {
                         id={`file_action_button_${props.fileInfo.id}`}
                         aria-label={formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'}).toLowerCase()}
                         className={classNames(
-                            'file-dropdown-icon', 'dots-icon',
+                            'file-dropdown-icon', 'dots-icon', 'btn', 'btn-icon', 'btn-sm',
                             {'a11y--active': keepOpen},
                         )}
                         aria-expanded={keepOpen}
