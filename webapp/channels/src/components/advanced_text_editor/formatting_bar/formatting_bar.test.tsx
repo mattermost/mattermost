@@ -90,7 +90,7 @@ describe('FormattingBar', () => {
         );
 
         const hiddenControlsButton = screen.getByLabelText('show hidden formatting options');
-        
+
         // Click to show hidden controls
         userEvent.click(hiddenControlsButton);
 

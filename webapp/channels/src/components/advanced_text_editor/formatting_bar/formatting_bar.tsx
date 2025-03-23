@@ -10,11 +10,12 @@ import styled from 'styled-components';
 
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 
+import WithTooltip from 'components/with_tooltip';
+
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
 import {useFormattingBarControls} from './hooks';
-import WithTooltip from 'components/with_tooltip';
 
 export const Separator = styled.div`
     display: block;
@@ -246,7 +247,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                     <WithTooltip
                         title={formatMessage({
                             id: 'shortcuts.msgs.formatting_bar.more_formatting_options',
-                            defaultMessage: 'More formatting options'
+                            defaultMessage: 'More formatting options',
                         })}
                         disabled={showHiddenControls}
                     >
