@@ -479,14 +479,18 @@
 .post-image__details {
     position: relative;
     display: flex;
-    overflow: hidden;
-    padding-right: 12px;
-    height: 100%;
     flex: 1;
+    flex-direction: row;
     align-items: center;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    padding-right: 12px;
+    overflow: hidden;
+    background: transparent;
+    color: functions.v(center-channel-color);
     font-size: 12px;
     text-align: left;
-    min-width: 0;
 
     .post-image__archived-name {
         align-items: center;
@@ -515,8 +519,9 @@
     .post-image__detail_wrapper {
         display: flex;
         flex: 1;
-        padding: 0;
+        flex-direction: row;
         min-width: 0;
+        padding: 0;
 
         .post--compact & {
             padding-left: 8px;
@@ -525,8 +530,8 @@
         .post-image__detail {
             width: 100%;
             height: 100%;
-            line-height: normal;
             min-width: 0;
+            line-height: normal;
 
             .post-image__name {
                 display: block;
@@ -577,17 +582,34 @@
     }
 
     .post-image__download {
+        position: absolute;
         top: 0;
         right: 0;
-        margin-left: 2px;
         display: flex;
-        height: 100%;
         align-items: center;
         justify-content: center;
+        height: 100%;
+        margin-left: 2px;
+        background: transparent;
         line-height: 0;
         opacity: 1;
         text-align: center;
-        transition: opacity 0.15s ease;
+        transition: opacity 0.15s ease, background-color 0.15s ease;
+
+        svg {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.35);
+            border-radius: 50%;
+            opacity: 0.7;
+            stroke: rgba(var(--center-channel-color-rgb), 0.4);
+            transition: opacity 0.15s ease;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
 
         .btn-icon {
             display: flex;
@@ -595,22 +617,6 @@
 
         span {
             display: inline-block;
-        }
-
-        svg {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 1px solid;
-            border-color: rgba(var(--center-channel-color-rgb), 0.35);
-            border-radius: 50%;
-            opacity: 0.7;
-            stroke: rgba(var(--center-channel-color-rgb), 0.4);
-            transition: all 0.1s linear;
-
-            &:hover {
-                opacity: 1;
-            }
         }
     }
 
