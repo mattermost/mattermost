@@ -5089,6 +5089,7 @@
   "shortcuts.msgs.comp.username": "Username:\t@|[a-z]|Tab",
   "shortcuts.msgs.edit": "Edit last message in channel:\tUp",
   "shortcuts.msgs.formatting_bar.post_priority": "Message priority",
+  "shortcuts.msgs.formatting_bar.more_formatting_options": "More formatting options",
   "shortcuts.msgs.header": "Messages",
   "shortcuts.msgs.input.header": "Works inside an empty input field",
   "shortcuts.msgs.markdown.bold": "Bold:\tCtrl|B",

@@ -14,6 +14,7 @@ import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
 import {useFormattingBarControls} from './hooks';
+import WithTooltip from 'components/with_tooltip';
 
 export const Separator = styled.div`
     display: block;
@@ -242,20 +243,28 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
 
             {hasHiddenControls && (
                 <>
-                    <IconContainer
-                        id={'HiddenControlsButton' + location}
-                        ref={setReference}
-                        className={classNames({active: showHiddenControls})}
-                        aria-label={HiddenControlsButtonAriaLabel}
-                        type='button'
-                        {...getClickReferenceProps()}
-                        {...getDismissReferenceProps()}
+                    <WithTooltip
+                        title={formatMessage({
+                            id: 'formatting_bar.hidden_controls.tooltip',
+                            defaultMessage: 'More formatting options'
+                        })}
+                        disabled={showHiddenControls}
                     >
-                        <DotsHorizontalIcon
-                            color={'currentColor'}
-                            size={18}
-                        />
-                    </IconContainer>
+                        <IconContainer
+                            id={'HiddenControlsButton' + location}
+                            ref={setReference}
+                            className={classNames({active: showHiddenControls})}
+                            aria-label={HiddenControlsButtonAriaLabel}
+                            type='button'
+                            {...getClickReferenceProps()}
+                            {...getDismissReferenceProps()}
+                        >
+                            <DotsHorizontalIcon
+                                color={'currentColor'}
+                                size={18}
+                            />
+                        </IconContainer>
+                    </WithTooltip>
                 </>
             )}
 
