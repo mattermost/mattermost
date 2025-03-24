@@ -1,11 +1,11 @@
 .field-type-selector-menu-button {
-    font-weight: normal;
-    height: 40px;
     width: 100%;
-    border-radius: 0;
-    border-color: transparent;
-    box-shadow: none;
+    height: 40px;
+    font-weight: normal;
     justify-content: start;
+    border-color: transparent;
+    border-radius: 0;
+    box-shadow: none;
     &:hover,
     &:focus {
         border-color: transparent;
