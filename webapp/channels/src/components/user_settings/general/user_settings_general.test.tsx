@@ -282,8 +282,8 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             type: 'select',
             attrs: {
                 options: [
-                    {ID: 'opt1', Name: 'Option 1', Color: ''},
-                    {ID: 'opt2', Name: 'Option 2', Color: ''},
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
                 ],
             },
         };
@@ -292,7 +292,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
-            customProfileAttributeFields: {field1: selectAttribute},
+            customProfileAttributeFields: [selectAttribute],
             user: testUser,
             activeSection: 'customAttribute_field1',
         };
@@ -307,8 +307,8 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             type: 'multiselect',
             attrs: {
                 options: [
-                    {ID: 'opt1', Name: 'Option 1', Color: ''},
-                    {ID: 'opt2', Name: 'Option 2', Color: ''},
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
                 ],
             },
         };
@@ -317,7 +317,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
-            customProfileAttributeFields: {field1: multiselectAttribute},
+            customProfileAttributeFields: [multiselectAttribute],
             user: testUser,
             activeSection: 'customAttribute_field1',
         };
@@ -355,7 +355,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             ...requiredProps,
             enableCustomProfileAttributes: true,
             actions: {...requiredProps.actions, saveCustomProfileAttribute},
-            customProfileAttributeFields: {field1: customProfileAttribute},
+            customProfileAttributeFields: [customProfileAttribute],
             user: {...user},
             activeSection: 'customAttribute_field1',
         };
@@ -376,8 +376,8 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             type: 'select',
             attrs: {
                 options: [
-                    {ID: 'opt1', Name: 'Option 1', Color: ''},
-                    {ID: 'opt2', Name: 'Option 2', Color: ''},
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
                 ],
             },
         };
@@ -385,7 +385,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
-            customProfileAttributeFields: {field1: selectAttribute},
+            customProfileAttributeFields: [selectAttribute],
             user: {...user},
             activeSection: 'customAttribute_field1',
             actions: {
@@ -413,8 +413,8 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             type: 'multiselect',
             attrs: {
                 options: [
-                    {ID: 'opt1', Name: 'Option 1', Color: ''},
-                    {ID: 'opt2', Name: 'Option 2', Color: ''},
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
                 ],
             },
         };
@@ -422,7 +422,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
-            customProfileAttributeFields: {field1: multiselectAttribute},
+            customProfileAttributeFields: [multiselectAttribute],
             user: {...user},
             activeSection: 'customAttribute_field1',
             actions: {
@@ -453,8 +453,8 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             type: 'select',
             attrs: {
                 options: [
-                    {ID: 'opt1', Name: 'Option 1', Color: ''},
-                    {ID: 'opt2', Name: 'Option 2', Color: ''},
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
                 ],
             },
         };
@@ -463,7 +463,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
-            customProfileAttributeFields: {field1: selectAttribute},
+            customProfileAttributeFields: [selectAttribute],
             user: testUser,
             activeSection: 'customAttribute_field1',
             actions: {

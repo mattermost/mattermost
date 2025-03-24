@@ -1415,14 +1415,14 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
                     if (Array.isArray(attributeValue)) {
                         return attributeValue.map((value) => {
-                            const option = attribOptions.find((o) => o.ID === value);
-                            return {label: option?.Name, value: option?.ID};
+                            const option = attribOptions.find((o) => o.id === value);
+                            return {label: option?.name, value: option?.id};
                         });
                     }
 
                     // Handle single select
-                    const option = attribOptions.find((o) => o.ID === attributeValue);
-                    return {label: option?.Name, value: option?.ID};
+                    const option = attribOptions.find((o) => o.id === attributeValue);
+                    return {label: option?.name, value: option?.id};
                 }
 
                 return attributeValue as string;
