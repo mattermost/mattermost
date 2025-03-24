@@ -8329,18 +8329,6 @@
     "translation": "SAML 2.0 is not configured or supported on this server."
   },
   {
-    "id": "ent.saml.update_cpa.attribute_error",
-    "translation": "Error retrieving SAML attribute"
-  },
-  {
-    "id": "ent.saml.update_cpa.json_marshal_error",
-    "translation": "Error marshaling SAML attribute to JSON"
-  },
-  {
-    "id": "ent.saml.update_cpa.patch_error",
-    "translation": "Error patching CPA value"
-  },
-  {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Unable to complete SAML login with an empty email address."
   },
