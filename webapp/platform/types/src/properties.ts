@@ -26,9 +26,9 @@ export type PropertyValue<T> = {
 }
 
 export type PropertyFieldOption = {
-    ID: string;
-    Name: string;
-    Color: string;
+    id: string;
+    name: string;
+    color: string;
 }
 
 export type UserPropertyFieldType = 'text' | 'select' | 'multiselect';

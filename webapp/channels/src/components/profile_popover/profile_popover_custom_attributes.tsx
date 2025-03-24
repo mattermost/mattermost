@@ -43,12 +43,7 @@ const ProfilePopoverCustomAttributes = ({
             }
 
             // Check if the attribute has a value
-            /* eslint-disable multiline-ternary */
-            const hasValue = userProfile.custom_profile_attributes[attribute.id] &&
-                (Array.isArray(userProfile.custom_profile_attributes[attribute.id]) ?
-                    userProfile.custom_profile_attributes[attribute.id].length > 0 :
-                    userProfile.custom_profile_attributes[attribute.id].length > 0);
-            /* eslint-enable multiline-ternary */
+            const hasValue = userProfile.custom_profile_attributes[attribute.id]?.length > 0;
 
             if (!hasValue && visibility === 'when-set') {
                 return null;
