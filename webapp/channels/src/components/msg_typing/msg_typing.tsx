@@ -11,7 +11,7 @@ import {useWebSocket} from 'utils/use_websocket';
 
 type Props = {
     channelId: string;
-    postId: string;
+    rootId: string;
     typingUsers: string[];
     userStartedTyping: (userId: string, channelId: string, rootId: string, now: number) => void;
     userStoppedTyping: (userId: string, channelId: string, rootId: string, now: number) => void;
@@ -26,7 +26,7 @@ export default function MsgTyping(props: Props) {
                 const rootId = msg.data.parent_id;
                 const userId = msg.data.user_id;
 
-                if (props.channelId === channelId && props.postId === rootId) {
+                if (props.channelId === channelId && props.rootId === rootId) {
                     userStartedTyping(userId, channelId, rootId, Date.now());
                 }
             } else if (msg.event === SocketEvents.POSTED) {
@@ -36,11 +36,11 @@ export default function MsgTyping(props: Props) {
                 const rootId = post.root_id;
                 const userId = post.user_id;
 
-                if (props.channelId === channelId && props.postId === rootId) {
+                if (props.channelId === channelId && props.rootId === rootId) {
                     userStoppedTyping(userId, channelId, rootId, Date.now());
                 }
             }
-        }, [props.channelId, props.postId, userStartedTyping, userStoppedTyping]),
+        }, [props.channelId, props.rootId, userStartedTyping, userStoppedTyping]),
     });
 
     const getTypingText = () => {

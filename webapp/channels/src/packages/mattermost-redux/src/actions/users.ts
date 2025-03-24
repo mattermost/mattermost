@@ -1070,6 +1070,24 @@ export function updateUserPassword(userId: string, currentPassword: string, newP
     };
 }
 
+export function resetFailedAttempts(userId: string): ActionFuncAsync<true> {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.resetFailedAttempts(userId);
+        } catch (error) {
+            dispatch(logError(error));
+            return {error};
+        }
+
+        const profile = getState().entities.users.profiles[userId];
+        if (profile) {
+            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, failed_attempts: 0}});
+        }
+
+        return {data: true};
+    };
+}
+
 export function updateUserActive(userId: string, active: boolean): ActionFuncAsync<true> {
     return async (dispatch, getState) => {
         try {
