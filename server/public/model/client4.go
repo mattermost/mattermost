@@ -8834,6 +8834,10 @@ func (c *Client4) ListExports(ctx context.Context) ([]string, *Response, error) 
 	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
+func (c *Client4) ListComplianceExports(ctx context.Context, page, perPage int) ([]*Job, *Response, error) {
+	return c.GetJobsByType(ctx, JobTypeMessageExport, page, perPage)
+}
+
 func (c *Client4) DeleteExport(ctx context.Context, name string) (*Response, error) {
 	r, err := c.DoAPIDelete(ctx, c.exportRoute(name))
 	if err != nil {
