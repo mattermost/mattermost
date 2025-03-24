@@ -7,8 +7,7 @@ import React, {PureComponent} from 'react';
 import {defineMessage, defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import ReactSelect from 'react-select';
-import './user_settings_general.scss';
-import type {OnChangeValue, ActionMeta} from 'react-select';
+import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
 
 import type {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
@@ -110,6 +109,29 @@ const holders = defineMessages({
 export type SelectOption = {
     value: string;
     label: string;
+};
+
+const selectStyles: StylesConfig<SelectOption, true> = {
+    valueContainer: (baseStyles) => ({
+        ...baseStyles,
+        height: 'auto',
+        minHeight: '38px',
+        flexWrap: 'wrap',
+        whiteSpace: 'normal',
+    }),
+    multiValue: (baseStyles) => ({
+        ...baseStyles,
+        margin: '2px',
+    }),
+    control: (baseStyles) => ({
+        ...baseStyles,
+        height: 'auto',
+        minHeight: '38px',
+    }),
+    multiValueLabel: (baseStyles) => ({
+        ...baseStyles,
+        padding: '2px 6px',
+    }),
 };
 
 export type Props = {
@@ -423,8 +445,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         const {formatMessage} = this.props.intl;
 
         const attributeID = settings[0];
-        const attributeField = this.props.customProfileAttributeFields[attributeID];
-        if (attributeField == null) {
+        const attributeField = this.props.customProfileAttributeFields.find((field) => field.id === attributeID);
+        if (attributeField === undefined) {
             return;
         }
         let attributeValue: string | string[] = this.state.customAttributeValues?.[attributeID];
@@ -1419,12 +1441,11 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 if (attribute.type === 'select' || attribute.type === 'multiselect') {
                     const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
                     const opts = attribOptions.map((o) => {
-                        return {label: o.Name, value: o.ID} as SelectOption;
+                        return {label: o.name, value: o.id} as SelectOption;
                     });
-                    const isMulti = attribute.type === 'multiselect';
                     inputs.push(
                         <ReactSelect
-                            isMulti={isMulti}
+                            isMulti={attribute.type === 'multiselect' ? true : undefined}
                             key={sectionName}
                             id={'customProfileAttribute_' + attribute.id}
                             inputId={'customProfileAttribute_' + attribute.id + '_input'}
@@ -1439,6 +1460,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 defaultMessage: 'Select',
                             })}
                             components={{IndicatorSeparator: null}}
+                            styles={selectStyles}
                             value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as SelectOption}
                             onChange={(v, a) => this.updateSelectAttribute(v, a, attribute.id)}
                         />,
