@@ -142,7 +142,7 @@ const DotMenu = ({
                     )}
                 />
                 <Menu.Item
-                    id={`${menuId}_visibility-always`}
+                    id={`${menuId}_visibility-hidden`}
                     role='menuitemradio'
                     forceCloseOnSelect={true}
                     aria-checked={field.attrs.visibility === 'hidden'}
