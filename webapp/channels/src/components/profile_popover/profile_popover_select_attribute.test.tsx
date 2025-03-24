@@ -14,9 +14,9 @@ import {TestHelper} from '../../utils/test_helper';
 
 describe('components/ProfilePopoverSelectAttribute', () => {
     const options: PropertyFieldOption[] = [
-        {ID: 'option1', Name: 'Option 1', Color: '#FF0000'},
-        {ID: 'option2', Name: 'Option 2', Color: '#00FF00'},
-        {ID: 'option3', Name: 'Option 3', Color: '#0000FF'},
+        {id: 'option1', name: 'Option 1', color: '#FF0000'},
+        {id: 'option2', name: 'Option 2', color: '#00FF00'},
+        {id: 'option3', name: 'Option 3', color: '#0000FF'},
     ];
 
     const attribute: UserPropertyField = {
