@@ -58,10 +58,10 @@ function ChannelSettingsInfoTab({
 
     // Permissions for transforming channel type
     const canConvertToPrivate = useSelector((state: GlobalState) =>
-        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC),
+        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE),
     );
     const canConvertToPublic = useSelector((state: GlobalState) =>
-        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE),
+        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC),
     );
 
     // verify if current user is the channel admin (if is, should have permission to manage channel properties and type)
@@ -171,10 +171,10 @@ function ChannelSettingsInfoTab({
 
     const handleChannelTypeChange = (type: ChannelType) => {
         // If canCreatePublic is false, do not allow. Similarly if canCreatePrivate is false, do not allow
-        if (!isCurrentUserAChannelAdmin && (type === Constants.OPEN_CHANNEL && !canConvertToPublic)) {
+        if (!isCurrentUserAChannelAdmin && (type === Constants.PRIVATE_CHANNEL && !canConvertToPublic)) {
             return;
         }
-        if (!isCurrentUserAChannelAdmin && (type === Constants.PRIVATE_CHANNEL && !canConvertToPrivate)) {
+        if (!isCurrentUserAChannelAdmin && (type === Constants.OPEN_CHANNEL && !canConvertToPrivate)) {
             return;
         }
         setChannelType(type);
