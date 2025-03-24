@@ -62,6 +62,7 @@ func (s *optionSetting) GetSlackAttachments(userID, settingHandler string, disab
 		currentValueMessage = fmt.Sprintf("Current value: %s", currentTextValue)
 
 		actionOptions := model.PostAction{
+			Type: model.PostActionTypeSelect,
 			Name: "Select an option:",
 			Integration: &model.PostActionIntegration{
 				URL: settingHandler + "?" + s.id + "=true",
@@ -69,7 +70,6 @@ func (s *optionSetting) GetSlackAttachments(userID, settingHandler string, disab
 					ContextIDKey: s.id,
 				},
 			},
-			Type:    "select",
 			Options: stringsToOptions(s.options),
 		}
 
