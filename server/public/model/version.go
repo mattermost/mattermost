@@ -13,6 +13,7 @@ import (
 // It should be maintained in chronological order with most current
 // release at the front of the list.
 var versions = []string{
+	"9.11.12",
 	"9.11.11",
 	"9.11.10",
 	"9.11.9",
