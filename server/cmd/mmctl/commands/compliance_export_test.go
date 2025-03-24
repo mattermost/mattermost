@@ -53,7 +53,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 		cmd.Flags().Bool("all", true, "")
 		s.client.
 			EXPECT().
-			ListComplianceExports(context.TODO(), 0, 0).
+			ListComplianceExports(context.TODO(), 0, 1000).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
