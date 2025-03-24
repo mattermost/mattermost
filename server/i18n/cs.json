@@ -10481,7 +10481,7 @@
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
-    "translation": "Nepodařilo se získat uživatele."
+    "translation": "Získání uživatele se nezdařilo."
   },
   {
     "id": "license_error.feature_unavailable",
