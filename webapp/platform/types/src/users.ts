@@ -61,7 +61,6 @@ export type UserProfile = {
     remote_id?: string;
     status?: string;
     failed_attempts?: number;
-    custom_profile_attributes?: Record<string, string>;
 };
 
 export type UserProfileWithLastViewAt = UserProfile & {
