@@ -141,7 +141,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
 
     const renderConfigurationTab = () => {
         return (
-            <ChannelSettingsConfigurationTab/>
+            <ChannelSettingsConfigurationTab channel={channel}/>
         );
     };
 

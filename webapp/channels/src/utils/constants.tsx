@@ -30,6 +30,7 @@ import monokaiIcon from 'images/themes/code_themes/monokai.png';
 import solarizedDarkIcon from 'images/themes/code_themes/solarized-dark.png';
 import solarizedLightIcon from 'images/themes/code_themes/solarized-light.png';
 import logoWebhook from 'images/webhook_icon.jpg';
+import {showPreviewOnChannelSettingsChannelBannerTextModal} from "selectors/views/textbox";
 
 export const SettingsTypes = {
     TYPE_TEXT: 'text' as const,
@@ -267,6 +268,7 @@ export const ActionTypes = keyMirror({
     SET_SHOW_PREVIEW_ON_EDIT_CHANNEL_HEADER_MODAL: null,
     SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL: null,
     SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL: null,
+    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_CHANNEL_BANNER_TEXT_MODAL: null,
 
     TOGGLE_RHS_MENU: null,
     OPEN_RHS_MENU: null,

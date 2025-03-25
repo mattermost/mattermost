@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {combineReducers} from 'redux';
+import {ActionTypes} from 'utils/constants';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-
-import {ActionTypes} from 'utils/constants';
 
 import type {MMAction} from 'types/store';
 
@@ -69,10 +68,23 @@ function shouldShowPreviewOnChannelSettingsPurposeModal(state = false, action: M
     }
 }
 
+function shouldShowPreviewOnChannelSettingsChannelBannerTextModal(state = false, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_CHANNEL_BANNER_TEXT_MODAL:
+        return action.showPreview;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return false;
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     shouldShowPreviewOnCreateComment,
     shouldShowPreviewOnCreatePost,
     shouldShowPreviewOnEditChannelHeaderModal,
     shouldShowPreviewOnChannelSettingsHeaderModal,
     shouldShowPreviewOnChannelSettingsPurposeModal,
+    shouldShowPreviewOnChannelSettingsChannelBannerTextModal,
 });

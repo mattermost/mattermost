@@ -2,6 +2,10 @@
 // See LICENSE.txt for license information.
 
 .ChannelSettingsModal__configurationTab {
+    display: flex;
+    gap: 16px;
+    flex-direction: column;
+
     .channel_banner_header {
         display: flex;
 
@@ -24,6 +28,41 @@
                     font-size: 12px;
                 }
             }
+        }
+    }
+
+    .AdvancedTextbox {
+        #PreviewInputTextButton {
+            position: absolute;
+            z-index: 10;
+            top: 5px;
+            right: 5px;
+        }
+
+        #channel_banner_banner_text_textbox {
+            min-height: 100px;
+            max-height: 200px;
+        }
+
+        .textbox-preview-area {
+            height: 200px !important;
+            overflow-y: auto;
+        }
+    }
+
+    .setting_section {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        span.setting_title {
+            color: rgb(var(--center-channel-color-rgb));
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .AdvancedTextbox {
+            margin-top: 0 !important;
         }
     }
 }
