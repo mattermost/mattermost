@@ -84,7 +84,7 @@ export default function ChannelBanner({channelId}: Props) {
             title={content}
             className='channelBannerTooltip'
             delayClose={true}
-            placement='bottom'
+            forcedPlacement='bottom'
         >
             <div
                 className='channel_banner'

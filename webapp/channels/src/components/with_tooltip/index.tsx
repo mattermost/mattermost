@@ -84,7 +84,7 @@ interface Props {
     onOpen?: () => void;
     children: ReactElement;
 
-    placement?: Placement;
+    forcedPlacement?: Placement;
 }
 
 export default function WithTooltip({
@@ -99,7 +99,7 @@ export default function WithTooltip({
     className,
     onOpen,
     disabled,
-    placement,
+    forcedPlacement,
 }: Props) {
     const [open, setOpen] = useState(false);
 
@@ -115,8 +115,8 @@ export default function WithTooltip({
 
     const placements = useMemo<{initial: Placement; fallback: Placement[]}>(() => {
         // if an explicit placement is provided, use it exclusively
-        if (placement) {
-            return {initial: placement, fallback: [placement]};
+        if (forcedPlacement) {
+            return {initial: forcedPlacement, fallback: [forcedPlacement]};
         }
 
         let initial: Placement;
