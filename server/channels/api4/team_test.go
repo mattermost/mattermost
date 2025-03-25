@@ -689,9 +689,28 @@ func TestPatchTeam(t *testing.T) {
 		_, r, err = th.SystemAdminClient.PatchTeam(context.Background(), team2.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, r)
-		time.Sleep(4 * time.Second) // A hack to let "go c.App.DeleteGroupConstrainedChannelMemberships" finish before moving on.
 
-		t.Log("User ID: ", th.BasicUser2.Id)
+		// Wait for the user to be removed from the team by polling until they're gone
+		// or until we hit the timeout
+		timeout := time.After(5 * time.Second)
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		userRemoved := false
+		for !userRemoved {
+			select {
+			case <-timeout:
+				require.Fail(t, "Timed out waiting for user to be removed from team")
+				return
+			case <-ticker.C:
+				// Check if the user is still a member
+				teamMember, resp, err := th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, th.BasicUser2.Id, "")
+				if err == nil && resp.StatusCode == http.StatusOK && teamMember.DeleteAt != 0 {
+					// User has been removed, we can continue the test
+					userRemoved = true
+				}
+			}
+		}
 
 		var tm *model.TeamMember
 		tm, r, err = th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, th.BasicUser2.Id, "")

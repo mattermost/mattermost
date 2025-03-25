@@ -269,7 +269,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If the channel was not previously group constrained but is now, delete members that aren't part of the channel's groups
+	// If the team is now group constrained but wasn't previously, delete members that aren't part of the team's groups
 	if patchedTeam.GroupConstrained != nil && *patchedTeam.GroupConstrained && (oldTeam.GroupConstrained == nil || !*oldTeam.GroupConstrained) {
 		c.App.Srv().Go(func() {
 			if err := c.App.DeleteGroupConstrainedTeamMemberships(c.AppContext, &c.Params.TeamId); err != nil {
