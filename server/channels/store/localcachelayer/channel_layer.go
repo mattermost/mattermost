@@ -75,6 +75,14 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelByName(msg *model
 	}
 }
 
+func (s *LocalCacheChannelStore) handleClusterInvalidateChannelsByUserByTeam(msg *model.ClusterMessage) {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
+		s.rootStore.channelsByUserByTeamCache.Purge()
+	} else {
+		s.rootStore.channelsByUserByTeamCache.Remove(string(msg.Data))
+	}
+}
+
 func (s LocalCacheChannelStore) ClearMembersForUserCache() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMembersForUserCache)
 }
@@ -87,6 +95,7 @@ func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMembersForUserCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMembersNotifyPropsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelByNameCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelsByUserByTeamCache)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMemberCountsCache.Name())
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelPinnedPostCountsCache.Name())
@@ -95,6 +104,7 @@ func (s LocalCacheChannelStore) ClearCaches() {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMembersForUserCache.Name())
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMembersNotifyPropsCache.Name())
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelByNameCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelsByUserByTeamCache.Name())
 	}
 }
 
@@ -153,6 +163,13 @@ func (s LocalCacheChannelStore) InvalidateChannelByName(teamId, name string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByNameCache, teamId+name, props)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelByNameCache.Name())
+	}
+}
+
+func (s LocalCacheChannelStore) InvalidateChannelsForUser(userId string) {
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelsByUserByTeamCache, userId, nil)
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelsByUserByTeamCache.Name())
 	}
 }
 
@@ -463,6 +480,10 @@ func (s LocalCacheChannelStore) SaveMember(rctx request.CTX, member *model.Chann
 	} else {
 		s.InvalidateMemberCount(member.ChannelId)
 	}
+
+	// Invalidate channels for user cache
+	s.InvalidateChannelsForUser(member.UserId)
+
 	return member, nil
 }
 
@@ -471,6 +492,8 @@ func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMemb
 	if err != nil {
 		return nil, err
 	}
+
+	userIds := make(map[string]bool)
 	for _, member := range members {
 		// For redis, directly increment member count.
 		// It should be possible to group the members from the slice
@@ -481,7 +504,16 @@ func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMemb
 		} else {
 			s.InvalidateMemberCount(member.ChannelId)
 		}
+
+		// Track unique user IDs
+		userIds[member.UserId] = true
 	}
+
+	// Invalidate channels for each affected user
+	for userId := range userIds {
+		s.InvalidateChannelsForUser(userId)
+	}
+
 	return members, nil
 }
 
@@ -526,6 +558,7 @@ func (s LocalCacheChannelStore) UpdateMember(rctx request.CTX, member *model.Cha
 		return nil, err
 	}
 	s.InvalidateMemberCount(member.ChannelId)
+	s.InvalidateChannelsForUser(member.UserId)
 	return member, nil
 }
 
@@ -534,9 +567,19 @@ func (s LocalCacheChannelStore) UpdateMultipleMembers(members []*model.ChannelMe
 	if err != nil {
 		return nil, err
 	}
+
+	userIds := make(map[string]bool)
 	for _, member := range members {
 		s.InvalidateMemberCount(member.ChannelId)
+		// Track unique user IDs
+		userIds[member.UserId] = true
 	}
+
+	// Invalidate channels for each affected user
+	for userId := range userIds {
+		s.InvalidateChannelsForUser(userId)
+	}
+
 	return members, nil
 }
 
@@ -552,6 +595,8 @@ func (s LocalCacheChannelStore) RemoveMember(rctx request.CTX, channelId, userId
 	} else {
 		s.InvalidateMemberCount(channelId)
 	}
+
+	s.InvalidateChannelsForUser(userId)
 	return nil
 }
 
@@ -566,5 +611,30 @@ func (s LocalCacheChannelStore) RemoveMembers(rctx request.CTX, channelId string
 	} else {
 		s.InvalidateMemberCount(channelId)
 	}
+
+	// Invalidate channels for each affected user
+	for _, userId := range userIds {
+		s.InvalidateChannelsForUser(userId)
+	}
+
 	return nil
+}
+
+// Purge everything for all users if a channel is deleted
+func (s LocalCacheChannelStore) Delete(channelId string, time int64) error {
+	defer s.rootStore.channelsByUserByTeamCache.Purge()
+	return s.ChannelStore.Delete(channelId, time)
+}
+
+// Purge everything for all users if a new channel is created
+func (s LocalCacheChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64) (_ *model.Channel, err error) {
+	defer s.rootStore.channelsByUserByTeamCache.Purge()
+	return s.ChannelStore.Save(rctx, channel, maxChannelsPerTeam)
+}
+
+// SaveDirectChannel is always called from CreateDirectChannel, we don't need to add a wrapper for that one
+func (s LocalCacheChannelStore) CreateDirectChannel(rctx request.CTX, user *model.User, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+	defer s.InvalidateChannelsForUser(user.Id)
+	defer s.InvalidateChannelsForUser(otherUser.Id)
+	return s.ChannelStore.CreateDirectChannel(rctx, user, otherUser, channelOptions...)
 }
