@@ -418,8 +418,8 @@ describe('components/ProfilePopover', () => {
                 type: 'select',
                 attrs: {
                     options: [
-                        {ID: 'opt1', Name: 'Engineering', Color: ''},
-                        {ID: 'opt2', Name: 'Sales', Color: ''},
+                        {id: 'opt1', name: 'Engineering', color: ''},
+                        {id: 'opt2', name: 'Sales', color: ''},
                     ],
                 },
             },
@@ -448,8 +448,8 @@ describe('components/ProfilePopover', () => {
                 type: 'multiselect',
                 attrs: {
                     options: [
-                        {ID: 'opt1', Name: 'JavaScript', Color: ''},
-                        {ID: 'opt2', Name: 'Python', Color: ''},
+                        {id: 'opt1', name: 'JavaScript', color: ''},
+                        {id: 'opt2', name: 'Python', color: ''},
                     ],
                 },
             },
