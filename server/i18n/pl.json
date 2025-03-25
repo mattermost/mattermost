@@ -10462,5 +10462,41 @@
   {
     "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
     "translation": "Baner kanału można skonfigurować tylko na kanałach publicznych i prywatnych."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Twoje konto zostało zablokowane z powodu zbyt wielu nieudanych prób wprowadzenia hasła. Skontaktuj się z administratorem systemu."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Usługą autoryzacji użytkownika musi być LDAP lub Email."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Nie masz uprawnień do aktualizacji tego zasobu."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Nie można usunąć wersji roboczych dla użytkownika."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "Wymagana licencja LDAP."
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Nie udało się zresetować prób logowania."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Nie udało się uzyskać użytkownika."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Nieprawidłowa maksymalna liczba prób logowania dla ustawień ldap. Musi być liczbą dodatnią."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Funkcja nie jest dostępna dla bieżącej licencji"
   }
 ]
