@@ -19,6 +19,7 @@ import {
     setShowPreviewOnChannelSettingsChannelBannerTextModal,
     setShowPreviewOnChannelSettingsPurposeModal
 } from "actions/views/textbox";
+import ColorInput from "components/color_input";
 
 const CHANNEL_BANNER_CHARACTER_LIMIT = 1024;
 
@@ -28,6 +29,7 @@ type Props = {
 
 function ChannelSettingsConfigurationTab({channel}: Props) {
     const [channelBannerEnabled, setChannelBannerEnabled] = React.useState(false);
+    const [channelBannerColor, setChannelBannerColor] = React.useState('#165291');
 
     const intl = useIntl();
     const dispatch = useDispatch();
@@ -86,6 +88,7 @@ function ChannelSettingsConfigurationTab({channel}: Props) {
                 </div>
             </div>
 
+            {/*Banner text section*/}
             <div className='setting_section'>
                 <span
                     className='setting_title'
@@ -108,6 +111,22 @@ function ChannelSettingsConfigurationTab({channel}: Props) {
                     onKeypress={() => {}}
                     hasError={false}
                     showCharacterCount={false}
+                />
+            </div>
+
+            {/*Banner background color section*/}
+            <div className='setting_section'>
+                <span
+                    className='setting_title'
+                    aria-label={bannerColorSettingTitle}
+                >
+                    {bannerColorSettingTitle}
+                </span>
+
+                <ColorInput
+                    id='channel_banner_banner_background_color_picker'
+                    onChange={setChannelBannerColor}
+                    value={channelBannerColor}
                 />
             </div>
         </div>
