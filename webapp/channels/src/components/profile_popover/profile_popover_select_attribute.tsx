@@ -26,13 +26,13 @@ const ProfilePopoverSelectAttribute = ({attribute, userProfile}: Props) => {
     if (Array.isArray(attributeValue)) {
         // Handle multiselect
         displayValue = attributeValue.map((value) => {
-            const option = options.find((o) => o.ID === value);
-            return option?.Name;
+            const option = options.find((o) => o.id === value);
+            return option?.name;
         }).filter(Boolean).join(', ');
     } else {
         // Handle single select
-        const option = options.find((o) => o.ID === attributeValue);
-        displayValue = option?.Name || '';
+        const option = options.find((o) => o.id === attributeValue);
+        displayValue = option?.name || '';
     }
 
     if (!displayValue) {
