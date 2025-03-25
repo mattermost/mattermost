@@ -157,6 +157,88 @@ func (s *MmctlUnitTestSuite) TestComplianceExportShowCmdF() {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestComplianceExportCancelCmdF() {
+	s.Run("cancel job successfully", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Id:       model.NewId(),
+			CreateAt: model.GetMillis(),
+			Type:     model.JobTypeMessageExport,
+			Status:   model.JobStatusPending,
+		}
+
+		s.client.
+			EXPECT().
+			GetJob(context.TODO(), mockJob.Id).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			CancelJob(context.TODO(), mockJob.Id).
+			Return(&model.Response{}, nil).
+			Times(1)
+
+		cmd := makeCmd()
+		err := complianceExportCancelCmdF(s.client, cmd, []string{mockJob.Id})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("cancel job with get error", func() {
+		printer.Clean()
+		mockError := &model.AppError{
+			Message: "failed to get job",
+		}
+
+		s.client.
+			EXPECT().
+			GetJob(context.TODO(), "invalid-job-id").
+			Return(nil, &model.Response{}, mockError).
+			Times(1)
+
+		cmd := makeCmd()
+		err := complianceExportCancelCmdF(s.client, cmd, []string{"invalid-job-id"})
+		s.Require().NotNil(err)
+		s.EqualError(err, "failed to get compliance export job: failed to get job")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("cancel job with cancel error", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Id:       model.NewId(),
+			CreateAt: model.GetMillis(),
+			Type:     model.JobTypeMessageExport,
+		}
+
+		s.client.
+			EXPECT().
+			GetJob(context.TODO(), mockJob.Id).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		mockError := &model.AppError{
+			Message: "failed to cancel job",
+		}
+
+		s.client.
+			EXPECT().
+			CancelJob(context.TODO(), mockJob.Id).
+			Return(&model.Response{}, mockError).
+			Times(1)
+
+		cmd := makeCmd()
+		err := complianceExportCancelCmdF(s.client, cmd, []string{mockJob.Id})
+		s.Require().NotNil(err)
+		s.EqualError(err, "failed to cancel compliance export job: failed to cancel job")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+}
+
 func makeCmd() *cobra.Command {
 	cmd := &cobra.Command{}
 	cmd.Flags().Int("page", 0, "")
