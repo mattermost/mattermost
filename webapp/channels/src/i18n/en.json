@@ -4673,6 +4673,7 @@
   "post_body.check_for_out_of_channel_mentions.message.one": "did not get notified by this mention because they are not in the channel. Would you like to ",
   "post_body.check_for_out_of_channel_mentions.others": "{numOthers} others",
   "post_body.commentedOn": "Commented on {name}'s message: ",
+  "post_body.commentedOn.loadingMessage": "Loading...",
   "post_body.deleted": "(message deleted)",
   "post_body.plusMore": " plus {count, number} other {count, plural, one {file} other {files}}",
   "post_delete.notPosted": "Comment could not be posted",
