@@ -127,3 +127,74 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 		s.Require().Equal(job.Id, printer.GetLines()[1].(*model.Job).Id)
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestComplianceExportShowCmdE2E() {
+	s.SetupMessageExportTestHelper()
+
+	now := model.GetMillis()
+
+	// Create a job
+	job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		Id:             st.NewTestID(),
+		CreateAt:       now - 1000,
+		Status:         model.JobStatusSuccess,
+		Type:           model.JobTypeMessageExport,
+		StartAt:        now - 1000,
+		LastActivityAt: now - 1000,
+	})
+	s.Require().NoError(err)
+	defer func() {
+		// Ensure job is deleted from the database
+		var result string
+		result, err = s.th.App.Srv().Store().Job().Delete(job.Id)
+		s.Require().NoError(err, "Failed to delete job (result: %v)", result)
+	}()
+
+	s.Run("no permissions", func() {
+		printer.Clean()
+
+		cmd := makeCmd()
+		err := complianceExportShowCmdF(s.th.Client, cmd, []string{job.Id})
+		s.Require().EqualError(err, "failed to get compliance export job: You do not have the appropriate permissions.")
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("Show non-existent job", func(c client.Client) {
+		printer.Clean()
+
+		cmd := makeCmd()
+		err := complianceExportShowCmdF(c, cmd, []string{"non-existent-job-id"})
+		s.Require().EqualError(err, "failed to get compliance export job: Sorry, we could not find the page., There doesn't appear to be an api call for the url='/api/v4/jobs/non-existent-job-id'.  Typo? are you missing a team_id or user_id as part of the url?")
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("Show existing job", func(c client.Client) {
+		now := model.GetMillis()
+		// Create a job
+		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+			Id:             st.NewTestID(),
+			CreateAt:       now - 1000,
+			Status:         model.JobStatusSuccess,
+			Type:           model.JobTypeMessageExport,
+			StartAt:        now - 1000,
+			LastActivityAt: now - 1000,
+		})
+		s.Require().NoError(err)
+		defer func() {
+			// Ensure job is deleted from the database
+			var result string
+			result, err = s.th.App.Srv().Store().Job().Delete(job.Id)
+			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
+		}()
+
+		printer.Clean()
+		cmd := makeCmd()
+		err = complianceExportShowCmdF(c, cmd, []string{job.Id})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Empty(printer.GetErrorLines())
+		s.Require().Equal(job.Id, printer.GetLines()[0].(*model.Job).Id)
+	})
+}

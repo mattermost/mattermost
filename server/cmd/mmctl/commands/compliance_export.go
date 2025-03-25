@@ -4,6 +4,9 @@
 package commands
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/spf13/cobra"
 )
@@ -21,6 +24,14 @@ var ComplianceExportListCmd = &cobra.Command{
 	RunE:    withClient(complianceExportListCmdF),
 }
 
+var ComplianceExportShowCmd = &cobra.Command{
+	Use:     "show [complianceExportJobID]",
+	Example: "  compliance_export show o98rj3ur83dp5dppfyk5yk6osy",
+	Short:   "Show compliance export job",
+	Args:    cobra.ExactArgs(1),
+	RunE:    withClient(complianceExportShowCmdF),
+}
+
 func init() {
 	ComplianceExportListCmd.Flags().Int("page", 0, "Page number to fetch for the list of compliance export jobs")
 	ComplianceExportListCmd.Flags().Int("per-page", DefaultPageSize, "Number of compliance export jobs to be fetched")
@@ -28,10 +39,22 @@ func init() {
 
 	ComplianceExportCmd.AddCommand(
 		ComplianceExportListCmd,
+		ComplianceExportShowCmd,
 	)
 	RootCmd.AddCommand(ComplianceExportCmd)
 }
 
 func complianceExportListCmdF(c client.Client, command *cobra.Command, args []string) error {
 	return jobListCmdF(c, command, "message_export", "")
+}
+
+func complianceExportShowCmdF(c client.Client, command *cobra.Command, args []string) error {
+	job, _, err := c.GetJob(context.TODO(), args[0])
+	if err != nil {
+		return fmt.Errorf("failed to get compliance export job: %w", err)
+	}
+
+	printJob(job)
+
+	return nil
 }

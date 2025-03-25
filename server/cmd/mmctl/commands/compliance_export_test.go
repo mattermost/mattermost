@@ -113,6 +113,50 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestComplianceExportShowCmdF() {
+	s.Run("show job successfully", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Id:       model.NewId(),
+			CreateAt: model.GetMillis(),
+			Type:     model.JobTypeMessageExport,
+		}
+
+		s.client.
+			EXPECT().
+			GetJob(context.TODO(), mockJob.Id).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := makeCmd()
+		err := complianceExportShowCmdF(s.client, cmd, []string{mockJob.Id})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("show job with error", func() {
+		printer.Clean()
+		mockError := &model.AppError{
+			Message: "failed to get job",
+		}
+
+		s.client.
+			EXPECT().
+			GetJob(context.TODO(), "invalid-job-id").
+			Return(nil, &model.Response{}, mockError).
+			Times(1)
+
+		cmd := makeCmd()
+		err := complianceExportShowCmdF(s.client, cmd, []string{"invalid-job-id"})
+		s.Require().NotNil(err)
+		s.EqualError(err, "failed to get compliance export job: failed to get job")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+}
+
 func makeCmd() *cobra.Command {
 	cmd := &cobra.Command{}
 	cmd.Flags().Int("page", 0, "")
