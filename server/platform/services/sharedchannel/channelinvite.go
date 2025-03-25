@@ -45,7 +45,7 @@ func WithDirectParticipant(participant *model.User) InviteOption {
 	return func(msg *channelInviteMsg) {
 		msg.DirectParticipantIDs = append(msg.DirectParticipantIDs, participant.Id)
 		// if the participant is local, send it as part of the invite payload
-		if participant.RemoteId == nil || *participant.RemoteId == "" {
+		if !participant.IsRemote() {
 			msg.DirectParticipants = append(msg.DirectParticipants, sanitizeUserForSync(participant))
 		}
 	}
