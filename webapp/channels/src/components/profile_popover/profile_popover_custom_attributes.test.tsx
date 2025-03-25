@@ -67,8 +67,8 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         delete_at: 0,
         attrs: {
             options: [
-                {ID: 'option1', Name: 'Option 1', Color: '#FF0000'},
-                {ID: 'option2', Name: 'Option 2', Color: '#00FF00'},
+                {id: 'option1', name: 'Option 1', color: '#FF0000'},
+                {id: 'option2', name: 'Option 2', color: '#00FF00'},
             ],
         },
     };
