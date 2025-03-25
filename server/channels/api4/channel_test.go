@@ -515,9 +515,30 @@ func TestPatchChannel(t *testing.T) {
 		_, r, err = th.SystemAdminClient.PatchChannel(context.Background(), channel.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, r)
-		time.Sleep(4 * time.Second) // A hack to let "go c.App.DeleteGroupConstrainedChannelMemberships" finish before moving on.
 
-		// Check that the user is no longer a member of the channel
+		// Wait for the user to be removed from the channel by polling until they're gone
+		// or until we hit the timeout
+		timeout := time.After(5 * time.Second)
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		userRemoved := false
+		for !userRemoved {
+			select {
+			case <-timeout:
+				require.Fail(t, "Timed out waiting for user to be removed from channel")
+				return
+			case <-ticker.C:
+				// Check if the user is still a member
+				_, resp, err := th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
+				if err != nil && resp.StatusCode == http.StatusNotFound {
+					// User has been removed, we can continue the test
+					userRemoved = true
+				}
+			}
+		}
+
+		// Verify the user is no longer a member of the channel
 		_, r, err = th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, r)
