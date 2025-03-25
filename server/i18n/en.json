@@ -8129,8 +8129,8 @@
     "translation": "Empty LDAP attribute value"
   },
   {
-    "id": "ent.ldap.update_cpa.patch_error",
-    "translation": "Error patching CPA value"
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "Error(s) patching CPA value"
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
