@@ -8329,6 +8329,14 @@
     "translation": "SAML 2.0 is not configured or supported on this server."
   },
   {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "SAML assertion attribute statement is invalid"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "Error(s) updating CPA values"
+  },
+  {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Unable to complete SAML login with an empty email address."
   },
