@@ -155,3 +155,7 @@ export function makeGetDraft() {
         },
     );
 }
+
+export function getDraftRemotes(state: GlobalState) {
+    return state.views.drafts.remotes;
+}

@@ -8,16 +8,8 @@ import NoResultsIndicator from 'components/no_results_indicator';
 
 import NoScheduledPostsIllustration from './empty_scheduled_post_list_illustration';
 
-interface Props {
-    scheduledPostsCount: number;
-}
-
-export default function EmptyScheduledPostList(props: Props) {
+export default function EmptyScheduledPostList() {
     const {formatMessage} = useIntl();
-
-    if (props.scheduledPostsCount > 0) {
-        return null;
-    }
 
     return (
         <NoResultsIndicator
