@@ -3551,7 +3551,7 @@
   "joinChannel.joiningButton": "Connexion en cours...",
   "join_team_group_constrained_denied": "Vous devez être un membre d'un groupe lié pour rejoindre cette équipe.",
   "katex.error": "Impossible de compiler votre code LaTeX. Veuillez vérifier la syntaxe et réessayez.",
-  "last_users_message.added_to_channel.type": "a été **ajouté au canal** par {actor}.",
+  "last_users_message.added_to_channel.type": "ont été **ajoutés au canal** par {actor}.",
   "last_users_message.added_to_team.type": "a été **ajouté à l'équipe** par {actor}.",
   "last_users_message.first": "{firstUser} et ",
   "last_users_message.joined_channel.type": "a **rejoint le canal**.",
