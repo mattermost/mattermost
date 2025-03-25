@@ -25,11 +25,8 @@ body:
   attributes:
     label: Operating System
     description: |
-      What operating system does this issue occur on? Please include the distribution name (if necessary) and architecture.
-      Examples:
-      - Windows 10 x64
-      - macOS Ventura 13.2 Apple Silicon
-      - Ubuntu Linux 22.04 LTS x64
+      What operating system does this issue occur on?
+      Example: Windows 10
   validations:
     required: true
 - type: textarea
