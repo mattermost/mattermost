@@ -231,7 +231,7 @@ describe('ChannelSettingsInfoTab', () => {
 
     // Instead of clicking a non-existent element to trigger a channel name error,
     // simulate an invalid input by clearing the channel name (which is required).
-    it.only('should show error when channel name field has an error', async () => {
+    it('should show error when channel name field has an error', async () => {
         renderWithContext(
             <ChannelSettingsInfoTab
                 {...baseProps}
