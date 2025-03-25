@@ -286,5 +286,21 @@
   {
     "id": "api.channel.remove.default.app_error",
     "translation": "Kan ikke fjerne brukeren fra standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Kan ikke fjerne kanalmedlemmet."
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "Vi kunne ikke fjerne de deaktiverte brukerne fra kanalen."
+  },
+  {
+    "id": "app.channel.restore.app_error",
+    "translation": "Kan ikke gjenopprette kanalen."
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s oppdaterte kanalens formål til: %s"
   }
 ]
