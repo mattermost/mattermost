@@ -530,8 +530,8 @@ func TestPatchChannel(t *testing.T) {
 				return
 			case <-ticker.C:
 				// Check if the user is still a member
-				_, resp, err := th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
-				if err != nil && resp.StatusCode == http.StatusNotFound {
+				_, r, err = th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
+				if err != nil && r.StatusCode == http.StatusNotFound {
 					// User has been removed, we can continue the test
 					userRemoved = true
 				}

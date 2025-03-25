@@ -476,10 +476,10 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         }
 
         const unlink = origGroups.
-        filter((g) => {
-            return !groups.some((group) => group.id === g.id);
-        }).
-        map((g) => actions.unlinkGroupSyncable(g.id, channelID, SyncableType.Channel));
+            filter((g) => {
+                return !groups.some((group) => group.id === g.id);
+            }).
+            map((g) => actions.unlinkGroupSyncable(g.id, channelID, SyncableType.Channel));
 
         // Finally execute unlink operations
         if (unlink.length > 0) {
