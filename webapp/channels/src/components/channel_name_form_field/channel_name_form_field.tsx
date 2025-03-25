@@ -56,7 +56,8 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
     const intl = useIntl();
     const {formatMessage} = intl;
 
-    const displayNameModified = useRef<boolean>(false);
+    // Track if the field has been interacted with
+    const [hasInteracted, setHasInteracted] = useState(false);
     const [displayNameError, setDisplayNameError] = useState<string>('');
     const displayName = useRef<string>('');
     const urlModified = useRef<boolean>(false);
@@ -71,10 +72,27 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         e.preventDefault();
         const {target: {value: updatedDisplayName}} = e;
 
-        const displayNameErrors = validateDisplayName(intl, updatedDisplayName);
+        // Mark as interacted when user types
+        if (!hasInteracted && updatedDisplayName.trim() !== '') {
+            setHasInteracted(true);
+        }
 
-        // set error if any, else clear it
-        setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
+        // Only validate if the user has interacted with the field
+        if (hasInteracted) {
+            const displayNameErrors = validateDisplayName(intl, updatedDisplayName);
+
+            if (displayNameErrors.length) {
+                setDisplayNameError(displayNameErrors[displayNameErrors.length - 1]);
+                setInputCustomMessage({
+                    type: 'error',
+                    value: displayNameErrors[displayNameErrors.length - 1],
+                });
+            } else {
+                setDisplayNameError('');
+                setInputCustomMessage(null);
+            }
+        }
+
         displayName.current = updatedDisplayName;
         props.onDisplayNameChange(updatedDisplayName);
 
@@ -85,19 +103,32 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
             setURLError('');
             props.onURLChange(cleanURL);
         }
-    }, [props.onDisplayNameChange, props.onURLChange]);
+    }, [props.onDisplayNameChange, props.onURLChange, hasInteracted, intl]);
 
     const handleOnDisplayNameBlur = useCallback(() => {
+        // Always mark as interacted on blur
+        setHasInteracted(true);
+
+        // Validate on blur - always show errors on blur regardless of interaction state
+        const displayNameErrors = validateDisplayName(intl, displayName.current);
+        setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
+
+        if (displayNameErrors.length) {
+            setInputCustomMessage({
+                type: 'error',
+                value: displayNameErrors[displayNameErrors.length - 1],
+            });
+        } else {
+            setInputCustomMessage(null);
+        }
+
+        // Handle URL generation if needed
         if (displayName.current && !url) {
             const url = generateSlug();
             setURL(url);
             props.onURLChange(url);
         }
-        if (!displayNameModified.current) {
-            displayNameModified.current = true;
-            setInputCustomMessage(null);
-        }
-    }, [props.onURLChange, displayName.current, url, displayNameModified]);
+    }, [props.onURLChange, displayName.current, url, intl]);
 
     const handleOnURLChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         e.preventDefault();
@@ -151,7 +182,9 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 label={formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}
                 placeholder={props.placeholder}
                 limit={Constants.MAX_CHANNELNAME_LENGTH}
-                minLength={Constants.MIN_CHANNELNAME_LENGTH}
+
+                // Only pass minLength after the user has interacted with the field
+                minLength={hasInteracted ? Constants.MIN_CHANNELNAME_LENGTH : undefined}
                 value={props.value}
                 customMessage={inputCustomMessage}
                 onChange={handleOnDisplayNameChange}
