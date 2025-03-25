@@ -1,7 +1,7 @@
 name: Bug report
 description: Create a report about an issue you found
 title: "[Bug]: "
-labels: "Type/Bug"
+labels: "Bug Report/Open"
 body:
 - type: checkboxes
   attributes:
@@ -57,8 +57,6 @@ body:
     label: Log Output
     description: Please include output from the log files.
     render: shell
-  validations:
-    required: true
 - type: textarea
   attributes:
     label: Additional Information
