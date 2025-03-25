@@ -163,5 +163,4 @@ type Client interface {
 	DeletePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
 	PermanentDeletePost(ctx context.Context, postID string) (*model.Response, error)
 	DeletePost(ctx context.Context, postId string) (*model.Response, error)
-	ListComplianceExports(ctx context.Context, page, perPage int) ([]*model.Job, *model.Response, error)
 }

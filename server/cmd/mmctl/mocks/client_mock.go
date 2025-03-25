@@ -1564,22 +1564,6 @@ func (mr *MockClientMockRecorder) ListCommands(arg0, arg1, arg2 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCommands", reflect.TypeOf((*MockClient)(nil).ListCommands), arg0, arg1, arg2)
 }
 
-// ListComplianceExports mocks base method.
-func (m *MockClient) ListComplianceExports(arg0 context.Context, arg1, arg2 int) ([]*model.Job, *model.Response, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListComplianceExports", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]*model.Job)
-	ret1, _ := ret[1].(*model.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// ListComplianceExports indicates an expected call of ListComplianceExports.
-func (mr *MockClientMockRecorder) ListComplianceExports(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListComplianceExports", reflect.TypeOf((*MockClient)(nil).ListComplianceExports), arg0, arg1, arg2)
-}
-
 // ListExports mocks base method.
 func (m *MockClient) ListExports(arg0 context.Context) ([]string, *model.Response, error) {
 	m.ctrl.T.Helper()

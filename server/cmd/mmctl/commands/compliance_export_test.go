@@ -17,27 +17,26 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 		var mockJobs []*model.Job
 
 		// Test with default pagination
-		cmd := &cobra.Command{}
 		s.client.
 			EXPECT().
-			ListComplianceExports(context.TODO(), 0, DefaultPageSize).
+			GetJobs(context.TODO(), "message_export", "", 0, DefaultPageSize).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
+		cmd := makeCmd()
 		err := complianceExportListCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
-		s.Equal("No compliance export jobs found", printer.GetLines()[0])
+		s.Equal("No jobs found", printer.GetLines()[0])
 
 		// Test with 10 per page
 		printer.Clean()
-		cmd = &cobra.Command{}
-		cmd.Flags().Int("page", 0, "")
-		cmd.Flags().Int("per-page", 10, "")
+		cmd = makeCmd()
+		_ = cmd.Flags().Set("per-page", "10")
 		s.client.
 			EXPECT().
-			ListComplianceExports(context.TODO(), 0, 10).
+			GetJobs(context.TODO(), "message_export", "", 0, 10).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -45,15 +44,15 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
-		s.Equal("No compliance export jobs found", printer.GetLines()[0])
+		s.Equal("No jobs found", printer.GetLines()[0])
 
 		// Test with all items
 		printer.Clean()
-		cmd = &cobra.Command{}
-		cmd.Flags().Bool("all", true, "")
+		cmd = makeCmd()
+		_ = cmd.Flags().Set("all", "true")
 		s.client.
 			EXPECT().
-			ListComplianceExports(context.TODO(), 0, DefaultPageSize).
+			GetJobs(context.TODO(), "message_export", "", 0, DefaultPageSize).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -61,7 +60,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
-		s.Equal("No compliance export jobs found", printer.GetLines()[0])
+		s.Equal("No jobs found", printer.GetLines()[0])
 	})
 
 	s.Run("list with paging", func() {
@@ -76,25 +75,30 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 
 		// Test paging with 2 jobs per page
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("all", true, "")
-		cmd.Flags().Int("per-page", 2, "")
+		cmd := makeCmd()
+		_ = cmd.Flags().Set("all", "true")
+		_ = cmd.Flags().Set("per-page", "2")
 
-		// Expect 3 API calls (2 jobs each for first 2 pages, 1 job for last page)
+		// Expect 4 API calls (2 jobs each for first 2 pages, 1 job for last page, then a call with 0 jobs)
 		s.client.
 			EXPECT().
-			ListComplianceExports(context.TODO(), 0, 2).
+			GetJobs(context.TODO(), "message_export", "", 0, 2).
 			Return(mockJobs[0:2], &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			ListComplianceExports(context.TODO(), 1, 2).
+			GetJobs(context.TODO(), "message_export", "", 1, 2).
 			Return(mockJobs[2:4], &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			ListComplianceExports(context.TODO(), 2, 2).
+			GetJobs(context.TODO(), "message_export", "", 2, 2).
 			Return(mockJobs[4:5], &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetJobs(context.TODO(), "message_export", "", 3, 2).
+			Return(mockJobs[5:], &model.Response{}, nil).
 			Times(1)
 
 		err := complianceExportListCmdF(s.client, cmd, nil)
@@ -107,4 +111,12 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 			s.Equal(mockJobs[i].Id, printer.GetLines()[i].(*model.Job).Id)
 		}
 	})
+}
+
+func makeCmd() *cobra.Command {
+	cmd := &cobra.Command{}
+	cmd.Flags().Int("page", 0, "")
+	cmd.Flags().Int("per-page", DefaultPageSize, "")
+	cmd.Flags().Bool("all", false, "")
+	return cmd
 }

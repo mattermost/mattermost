@@ -4,11 +4,7 @@
 package commands
 
 import (
-	"context"
-	"fmt"
-
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 	"github.com/spf13/cobra"
 )
 
@@ -37,49 +33,5 @@ func init() {
 }
 
 func complianceExportListCmdF(c client.Client, command *cobra.Command, args []string) error {
-	page, _ := command.Flags().GetInt("page")
-	perPage, _ := command.Flags().GetInt("per-page")
-	if perPage == 0 {
-		perPage = DefaultPageSize
-	}
-	all, _ := command.Flags().GetBool("all")
-
-	if all {
-		page = 0
-		totalJobs := 0
-		for {
-			jobs, resp, err := c.ListComplianceExports(context.TODO(), page, perPage)
-			if err != nil {
-				return fmt.Errorf("failed to get compliance export jobs: %w", err)
-			}
-			for _, job := range jobs {
-				printJob(job)
-				totalJobs++
-			}
-			if resp == nil || len(jobs) < perPage {
-				break
-			}
-			page++
-		}
-		if totalJobs == 0 {
-			printer.Print("No compliance export jobs found")
-		}
-		return nil
-	}
-
-	jobs, _, err := c.ListComplianceExports(context.TODO(), page, perPage)
-	if err != nil {
-		return fmt.Errorf("failed to get compliance export jobs: %w", err)
-	}
-
-	if len(jobs) == 0 {
-		printer.Print("No compliance export jobs found")
-		return nil
-	}
-
-	for _, job := range jobs {
-		printJob(job)
-	}
-
-	return nil
+	return jobListCmdF(c, command, "message_export", "")
 }

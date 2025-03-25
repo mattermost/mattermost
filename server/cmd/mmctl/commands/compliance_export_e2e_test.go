@@ -10,7 +10,6 @@ import (
 	st "github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
@@ -19,8 +18,9 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		err := complianceExportListCmdF(s.th.Client, &cobra.Command{}, nil)
-		s.Require().EqualError(err, "failed to get compliance export jobs: You do not have the appropriate permissions.")
+		cmd := makeCmd()
+		err := complianceExportListCmdF(s.th.Client, cmd, nil)
+		s.Require().EqualError(err, "failed to get jobs: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -38,31 +38,32 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
 		}
 
+		cmd := makeCmd()
 		// Test default pagination
 		printer.Clean()
-		err = complianceExportListCmdF(c, &cobra.Command{}, nil)
+		err = complianceExportListCmdF(c, cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal("No compliance export jobs found", printer.GetLines()[0])
+		s.Require().Equal("No jobs found", printer.GetLines()[0])
 
 		// Test with 1 per page
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.Flags().Int("page", 0, "")
-		cmd.Flags().Int("per-page", 1, "")
+		cmd = makeCmd()
+		_ = cmd.Flags().Set("page", "0")
+		_ = cmd.Flags().Set("per-page", "1")
 		err = complianceExportListCmdF(c, cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal("No compliance export jobs found", printer.GetLines()[0])
+		s.Require().Equal("No jobs found", printer.GetLines()[0])
 
 		// Test with all items
 		printer.Clean()
-		cmd = &cobra.Command{}
-		cmd.Flags().Bool("all", true, "")
+		cmd = makeCmd()
+		_ = cmd.Flags().Set("all", "true")
 		err = complianceExportListCmdF(c, cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal("No compliance export jobs found", printer.GetLines()[0])
+		s.Require().Equal("No jobs found", printer.GetLines()[0])
 	})
 
 	s.RunForSystemAdminAndLocal("List compliance export jobs", func(c client.Client) {
@@ -98,7 +99,8 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 
 		// Test default pagination
 		printer.Clean()
-		err = complianceExportListCmdF(c, &cobra.Command{}, nil)
+		cmd := makeCmd()
+		err = complianceExportListCmdF(c, cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(job2.Id, printer.GetLines()[0].(*model.Job).Id)
@@ -106,9 +108,9 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 
 		// Test with 1 per page
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.Flags().Int("page", 0, "")
-		cmd.Flags().Int("per-page", 1, "")
+		cmd = makeCmd()
+		_ = cmd.Flags().Set("page", "0")
+		_ = cmd.Flags().Set("per-page", "1")
 		err = complianceExportListCmdF(c, cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
@@ -116,8 +118,8 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 
 		// Test with all items
 		printer.Clean()
-		cmd = &cobra.Command{}
-		cmd.Flags().Bool("all", true, "")
+		cmd = makeCmd()
+		_ = cmd.Flags().Set("all", "true")
 		err = complianceExportListCmdF(c, cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 2)
