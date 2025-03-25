@@ -654,9 +654,11 @@ func TestPatchTeam(t *testing.T) {
 	})
 
 	t.Run("GroupConstrained flag set to true and non group members are removed", func(t *testing.T) {
+		var appErr *model.AppError
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 		defer func() {
-			th.App.Srv().RemoveLicense()
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
 		}()
 		th.LoginTeamAdmin()
 		team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen, AllowOpenInvite: false}
@@ -674,7 +676,7 @@ func TestPatchTeam(t *testing.T) {
 		th.LinkUserToTeam(groupUser, th.BasicTeam)
 
 		// Create a group member
-		_, appErr := th.App.UpsertGroupMember(group.Id, groupUser.Id)
+		_, appErr = th.App.UpsertGroupMember(group.Id, groupUser.Id)
 		require.Nil(t, appErr)
 
 		// Associate the group with the channel
@@ -705,7 +707,7 @@ func TestPatchTeam(t *testing.T) {
 				return
 			case <-ticker.C:
 				// Check if the user is still a member
-				tm, r, err := th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, th.BasicUser2.Id, "")
+				tm, r, err = th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, th.BasicUser2.Id, "")
 				if err == nil && r.StatusCode == http.StatusOK && tm.DeleteAt != 0 {
 					// User has been removed, we can continue the test
 					userRemoved = true
