@@ -88,7 +88,7 @@ BUILD_WEBAPP_DIR ?= ../webapp
 
 # We need current user's UID for `run-haserver` so docker compose does not run server
 # as root and mess up file permissions for devs. When running like this HOME will be blank
-# and docker will add '/', so we need to set the go-build cache location or we'll get
+# and docker will add '/', so we need to set the go-build cache looption1ion or we'll get
 # permission errors on build as it tries to create a cache in filesystem root.
 export CURRENT_UID = $(shell id -u):$(shell id -g)
 ifeq ($(HOME),/)
@@ -225,7 +225,7 @@ else
 	docker compose rm start_dependencies
 	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies
   ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
-  	cat tests/custom-schema-cpa.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
+	cat tests/custom-schema-cpa.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
 	cat tests/${LDAP_DATA}-data.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
   endif
   ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
