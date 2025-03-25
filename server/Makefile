@@ -88,7 +88,7 @@ BUILD_WEBAPP_DIR ?= ../webapp
 
 # We need current user's UID for `run-haserver` so docker compose does not run server
 # as root and mess up file permissions for devs. When running like this HOME will be blank
-# and docker will add '/', so we need to set the go-build cache looption1ion or we'll get
+# and docker will add '/', so we need to set the go-build cache location or we'll get
 # permission errors on build as it tries to create a cache in filesystem root.
 export CURRENT_UID = $(shell id -u):$(shell id -g)
 ifeq ($(HOME),/)
