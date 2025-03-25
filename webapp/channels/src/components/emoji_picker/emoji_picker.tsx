@@ -409,7 +409,7 @@ const EmojiPicker = ({
                     onSkinSelected={setUserSkinTone}
                 />
             </div>
-            {!filter.length && (
+            {filter.length === 0 && (
                 <EmojiPickerCategories
                     isFiltering={filter.length > 0}
                     active={activeCategory}
