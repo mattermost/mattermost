@@ -20,7 +20,7 @@ var ComplianceExportCmd = &cobra.Command{
 var ComplianceExportListCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
-	Short:   "List compliance export jobs",
+	Short:   "List compliance export jobs, sorted by creation date descending (newest first)",
 	Args:    cobra.NoArgs,
 	RunE:    withClient(complianceExportListCmdF),
 }

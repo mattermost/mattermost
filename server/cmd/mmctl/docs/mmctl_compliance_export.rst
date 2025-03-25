@@ -37,5 +37,5 @@ SEE ALSO
 ~~~~~~~~
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl compliance_export list <mmctl_compliance_export_list.rst>`_ 	 - List compliance export jobs
+* `mmctl compliance_export list <mmctl_compliance_export_list.rst>`_ 	 - List compliance export jobs, sorted by creation date descending (newest first)
 

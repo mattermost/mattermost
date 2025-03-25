@@ -3,13 +3,13 @@
 mmctl compliance_export list
 ----------------------------
 
-List compliance export jobs
+List compliance export jobs, sorted by creation date descending (newest first)
 
 Synopsis
 ~~~~~~~~
 
 
-List compliance export jobs
+List compliance export jobs, sorted by creation date descending (newest first)
 
 ::
 
