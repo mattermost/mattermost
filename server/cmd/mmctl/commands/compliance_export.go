@@ -46,7 +46,25 @@ func complianceExportListCmdF(c client.Client, command *cobra.Command, args []st
 
 	if all {
 		page = 0
-		perPage = 1000
+		totalJobs := 0
+		for {
+			jobs, resp, err := c.ListComplianceExports(context.TODO(), page, perPage)
+			if err != nil {
+				return fmt.Errorf("failed to get compliance export jobs: %w", err)
+			}
+			for _, job := range jobs {
+				printJob(job)
+				totalJobs++
+			}
+			if resp == nil || len(jobs) < perPage {
+				break
+			}
+			page++
+		}
+		if totalJobs == 0 {
+			printer.Print("No compliance export jobs found")
+		}
+		return nil
 	}
 
 	jobs, _, err := c.ListComplianceExports(context.TODO(), page, perPage)
