@@ -10462,5 +10462,41 @@
   {
     "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
     "translation": "Банер каналу можна налаштувати лише на публічних та приватних каналах."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Ви не маєте дозволу на оновлення цього ресурсу."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Неможливо видалити чернетки для користувача."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "Потрібна ліцензія LDAP."
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Не вдалося скинути спроби входу."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Не вдалося отримати користувача."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Недійсна максимальна кількість спроб входу для налаштувань ldap. Число має бути додатним."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Ваш обліковий запис заблоковано через забагато невдалих спроб введення пароля. Будь ласка, зверніться до свого системного адміністратора."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Служба автентифікації користувача має бути LDAP або електронною поштою."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Функція недоступна для поточної ліцензії"
   }
 ]
