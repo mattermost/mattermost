@@ -46,6 +46,9 @@ const (
 
 	ChannelCacheDuration = 15 * time.Minute
 
+	ChannelsByUserByTeamCacheSize = model.ChannelCacheSize
+	ChannelsByUserByTeamCacheSec  = 15 * 60
+
 	ChannelMembersCountsCacheSize = model.ChannelCacheSize
 	ChannelMembersCountsCacheSec  = 30 * 60
 
@@ -105,6 +108,7 @@ type LocalCacheStore struct {
 	channelMembersForUserCache     cache.Cache
 	channelMembersNotifyPropsCache cache.Cache
 	channelByNameCache             cache.Cache
+	channelsByUserByTeamCache      cache.Cache
 
 	webhook      LocalCacheWebhookStore
 	webhookCache cache.Cache
@@ -278,6 +282,14 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		Name:                   "ChannelByName",
 		DefaultExpiry:          ChannelCacheDuration,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForChannelByName,
+	}); err != nil {
+		return
+	}
+	if localCacheStore.channelsByUserByTeamCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   ChannelsByUserByTeamCacheSize,
+		Name:                   "ChannelsByUserByTeam",
+		DefaultExpiry:          ChannelsByUserByTeamCacheSec * time.Second,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForChannelsByUserByTeam,
 	}); err != nil {
 		return
 	}

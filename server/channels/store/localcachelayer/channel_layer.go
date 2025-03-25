@@ -399,6 +399,30 @@ func (s LocalCacheChannelStore) GetByName(teamId string, name string, allowFromC
 	return s.getByName(teamId, name, allowFromCache, false)
 }
 
+// GetChannels is focused on caching the initial load queries, which do not
+// include deleted channels and do not include a specific LastUpdateAt
+func (s LocalCacheChannelStore) GetChannels(teamId string, userId string, opts *model.ChannelSearchOpts) (model.ChannelList, error) {
+	// Skip cache for more complex queries
+	if opts.IncludeDeleted || opts.LastUpdateAt != 0 {
+		return s.ChannelStore.GetChannels(teamId, userId, opts)
+	}
+
+	cacheKey := userId + ":" + teamId
+
+	var cachedChannels model.ChannelList
+	if err := s.rootStore.doStandardReadCache(s.rootStore.channelsByUserByTeamCache, cacheKey, &cachedChannels); err == nil {
+		return cachedChannels, nil
+	}
+
+	channels, err := s.ChannelStore.GetChannels(teamId, userId, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	s.rootStore.doStandardAddToCache(s.rootStore.channelsByUserByTeamCache, cacheKey, channels)
+	return channels, nil
+}
+
 func (s LocalCacheChannelStore) getByName(teamId string, name string, allowFromCache, includeArchivedChannels bool) (*model.Channel, error) {
 	var channel *model.Channel
 

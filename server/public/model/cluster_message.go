@@ -13,6 +13,7 @@ const (
 	ClusterEventInvalidateCacheForReactions                 ClusterEvent = "inv_reactions"
 	ClusterEventInvalidateCacheForChannelMembersNotifyProps ClusterEvent = "inv_channel_members_notify_props"
 	ClusterEventInvalidateCacheForChannelByName             ClusterEvent = "inv_channel_name"
+	ClusterEventInvalidateCacheForChannelsByUserByTeam      ClusterEvent = "inv_channels_team_user"
 	ClusterEventInvalidateCacheForChannel                   ClusterEvent = "inv_channel"
 	ClusterEventInvalidateCacheForChannelGuestCount         ClusterEvent = "inv_channel_guest_count"
 	ClusterEventInvalidateCacheForUser                      ClusterEvent = "inv_user"
