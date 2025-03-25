@@ -1,22 +1,33 @@
-.. _mmctl_compliance_export:
+.. _mmctl_compliance_export_cancel:
 
-mmctl compliance_export
------------------------
+mmctl compliance_export cancel
+------------------------------
 
-Management of compliance exports
+Cancel compliance export job
 
 Synopsis
 ~~~~~~~~
 
 
-Management of compliance exports
+Cancel compliance export job
+
+::
+
+  mmctl compliance_export cancel [complianceExportJobID] [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    compliance_export cancel o98rj3ur83dp5dppfyk5yk6osy
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for compliance_export
+  -h, --help   help for cancel
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,8 +47,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl compliance_export cancel <mmctl_compliance_export_cancel.rst>`_ 	 - Cancel compliance export job
-* `mmctl compliance_export list <mmctl_compliance_export_list.rst>`_ 	 - List compliance export jobs, sorted by creation date descending (newest first)
-* `mmctl compliance_export show <mmctl_compliance_export_show.rst>`_ 	 - Show compliance export job
+* `mmctl compliance_export <mmctl_compliance_export.rst>`_ 	 - Management of compliance exports
 
