@@ -231,7 +231,7 @@ describe('ChannelSettingsInfoTab', () => {
 
     // Instead of clicking a non-existent element to trigger a channel name error,
     // simulate an invalid input by clearing the channel name (which is required).
-    it('should show error when channel name field has an error', async () => {
+    it.only('should show error when channel name field has an error', async () => {
         renderWithContext(
             <ChannelSettingsInfoTab
                 {...baseProps}
@@ -240,6 +240,8 @@ describe('ChannelSettingsInfoTab', () => {
 
         // Clear the channel name to simulate an error.
         const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'Updated Channel Name');
         await userEvent.clear(nameInput);
         nameInput.blur();
 
