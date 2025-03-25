@@ -14,6 +14,10 @@ body:
         required: true
       - label: "This issue is not a feature request. You can request features and make product suggestions here: https://mattermost.uservoice.com/forums/306457-general/."
         required: true
+      - label: This issue reproduces on one of the [currently supported server versions](https://docs.mattermost.com/about/mattermost-server-releases.html#latest-releases).
+        required: true
+      - label: I have read the [contribution guidelines](https://github.com/mattermost/mattermost/blob/master/CONTRIBUTING.md).
+        required: true
 - type: input
   attributes:
     label: Mattermost Server Version 
