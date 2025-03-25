@@ -409,14 +409,16 @@ const EmojiPicker = ({
                     onSkinSelected={setUserSkinTone}
                 />
             </div>
-            <EmojiPickerCategories
-                isFiltering={filter.length > 0}
-                active={activeCategory}
-                categories={categories}
-                onClick={handleCategoryClick}
-                onKeyDown={handleKeyboardEmojiNavigation}
-                focusOnSearchInput={focusOnSearchInput}
-            />
+            {!filter.length && (
+                <EmojiPickerCategories
+                    isFiltering={filter.length > 0}
+                    active={activeCategory}
+                    categories={categories}
+                    onClick={handleCategoryClick}
+                    onKeyDown={handleKeyboardEmojiNavigation}
+                    focusOnSearchInput={focusOnSearchInput}
+                />
+            )}
             {areSearchResultsEmpty ? (
                 <NoResultsIndicator
                     variant={NoResultsVariant.Search}
