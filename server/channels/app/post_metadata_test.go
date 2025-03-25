@@ -225,7 +225,7 @@ func TestPreparePostForClient(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   ":" + emoji.Name + ": :taco:",
 			Props: map[string]any{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: ":" + emoji.Name + ":",
 					},
@@ -269,7 +269,7 @@ func TestPreparePostForClient(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   ":" + emoji3.Name + ": :taco:",
 			Props: map[string]any{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: ":" + emoji4.Name + ":",
 					},
@@ -533,7 +533,7 @@ func TestPreparePostForClient(t *testing.T) {
 						ChannelId: th.BasicChannel.Id,
 						Message:   `Bla bla bla: ` + fmt.Sprintf(tc.link, noAccessServer.URL),
 					}
-					prepost.AddProp(UnsafeLinksPostProp, "true")
+					prepost.AddProp(model.PostPropsUnsafeLinks, "true")
 
 					post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 					require.Nil(t, err)
@@ -571,7 +571,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Props: map[string]any{
-				"attachments": []any{
+				model.PostPropsAttachments: []any{
 					map[string]any{
 						"text": "![icon](" + server.URL + "/test-image1.png)",
 					},
@@ -1041,7 +1041,7 @@ func TestGetEmbedForPost(t *testing.T) {
 		t.Run("should return a message attachment when the post has one", func(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(th.Context, &model.Post{
 				Props: model.StringInterface{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "test",
 						},
@@ -1119,7 +1119,7 @@ func TestGetEmbedForPost(t *testing.T) {
 		t.Run("should return an embedded message attachment", func(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(th.Context, &model.Post{
 				Props: model.StringInterface{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "test",
 						},
@@ -1534,7 +1534,7 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 			Post: &model.Post{
 				Message: "this is a post",
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text:    ":emoji1:",
 							Pretext: ":emoji2:",
@@ -1562,7 +1562,7 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 			Post: &model.Post{
 				Message: "this is :emoji1",
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text:    ":emoji2:",
 							Pretext: ":emoji2:",
@@ -1618,7 +1618,7 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 		post := &model.Post{
 			Message: ":" + emojis[1].Name + ":",
 			Props: map[string]any{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Pretext: ":" + emojis[2].Name + ":",
 						Text:    ":" + emojis[3].Name + ":",
@@ -1644,7 +1644,7 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 		post := &model.Post{
 			Message: ":secret: :" + emojis[0].Name + ":",
 			Props: map[string]any{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: ":imaginary:",
 					},
@@ -1840,7 +1840,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "empty attachments",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{},
+					model.PostPropsAttachments: []*model.SlackAttachment{},
 				},
 			},
 			Expected: []string{},
@@ -1849,7 +1849,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "attachment with no fields that can contain images",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Title: "This is the title",
 						},
@@ -1862,7 +1862,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in text",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "![logo](https://example.com/logo) and ![icon](https://example.com/icon)",
 						},
@@ -1875,7 +1875,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in pretext",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Pretext: "![logo](https://example.com/logo1) and ![icon](https://example.com/icon1)",
 						},
@@ -1888,7 +1888,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in fields",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Fields: []*model.SlackAttachmentField{
 								{
@@ -1905,7 +1905,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "image in author_icon",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							AuthorIcon: "https://example.com/icon2",
 						},
@@ -1918,7 +1918,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "image in image_url",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							ImageURL: "https://example.com/image",
 						},
@@ -1931,7 +1931,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "image in thumb_url",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							ThumbURL: "https://example.com/image",
 						},
@@ -1944,7 +1944,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "image in footer_icon",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							FooterIcon: "https://example.com/image",
 						},
@@ -1957,7 +1957,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in multiple fields",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Fields: []*model.SlackAttachmentField{
 								{
@@ -1977,7 +1977,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "non-string field",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Fields: []*model.SlackAttachmentField{
 								{
@@ -1994,7 +1994,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in multiple locations",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text:    "![text](https://example.com/text)",
 							Pretext: "![pretext](https://example.com/pretext)",
@@ -2016,7 +2016,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "multiple attachments",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "![logo](https://example.com/logo)",
 						},

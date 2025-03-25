@@ -38,8 +38,6 @@ type linkMetadataCache struct {
 
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
-const UnsafeLinksPostProp = "unsafe_links"
-
 func (s *Server) initPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
 	s.platform.AddConfigListener(func(before, after *model.Config) {
@@ -183,7 +181,7 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 	// Embeds and image dimensions
 	firstLink, images := a.getFirstLinkAndImages(c, post.Message)
 
-	if unsafeLinksProp := post.GetProp(UnsafeLinksPostProp); unsafeLinksProp != nil {
+	if unsafeLinksProp := post.GetProp(model.PostPropsUnsafeLinks); unsafeLinksProp != nil {
 		if prop, ok := unsafeLinksProp.(string); ok && prop == "true" {
 			images = []string{}
 			if !looksLikeAPermalink(firstLink, *a.Config().ServiceSettings.SiteURL) {
@@ -302,7 +300,7 @@ func (a *App) getEmojisAndReactionsForPost(c request.CTX, post *model.Post) ([]*
 }
 
 func (a *App) getEmbedForPost(c request.CTX, post *model.Post, firstLink string, isNewPost bool) (*model.PostEmbed, error) {
-	if _, ok := post.GetProps()["attachments"]; ok {
+	if _, ok := post.GetProps()[model.PostPropsAttachments]; ok {
 		return &model.PostEmbed{
 			Type: model.PostEmbedMessageAttachment,
 		}, nil
