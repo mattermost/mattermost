@@ -696,6 +696,7 @@ func TestPatchTeam(t *testing.T) {
 		ticker := time.NewTicker(100 * time.Millisecond)
 		defer ticker.Stop()
 
+		var tm *model.TeamMember
 		userRemoved := false
 		for !userRemoved {
 			select {
@@ -704,15 +705,14 @@ func TestPatchTeam(t *testing.T) {
 				return
 			case <-ticker.C:
 				// Check if the user is still a member
-				teamMember, resp, err := th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, th.BasicUser2.Id, "")
-				if err == nil && resp.StatusCode == http.StatusOK && teamMember.DeleteAt != 0 {
+				tm, r, err := th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, th.BasicUser2.Id, "")
+				if err == nil && r.StatusCode == http.StatusOK && tm.DeleteAt != 0 {
 					// User has been removed, we can continue the test
 					userRemoved = true
 				}
 			}
 		}
 
-		var tm *model.TeamMember
 		tm, r, err = th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, th.BasicUser2.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, r)
