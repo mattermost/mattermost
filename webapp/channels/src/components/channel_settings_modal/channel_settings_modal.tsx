@@ -167,7 +167,6 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             uiName: formatMessage({id: 'channel_settings.tab.configuration', defaultMessage: 'Configuration'}),
             icon: 'icon icon-cog-outline',
             iconTitle: formatMessage({id: 'generic_icons.settings', defaultMessage: 'Settings Icon'}),
-            display: false, // this tab is not implemented yet so hiding it
         },
         {
             name: ChannelSettingsTabs.ARCHIVE,

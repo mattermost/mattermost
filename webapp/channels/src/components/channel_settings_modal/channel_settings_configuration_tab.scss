@@ -1,0 +1,29 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ChannelSettingsModal__configurationTab {
+    .channel_banner_header {
+        display: flex;
+
+        .channel_banner_header__text {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 8px;
+
+            span {
+                font-weight: 700;
+
+                &.heading {
+                    color: rgb(var(--center-channel-color-rgb));
+                    font-size: 16px;
+                }
+
+                &.subheading {
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                    font-size: 12px;
+                }
+            }
+        }
+    }
+}
