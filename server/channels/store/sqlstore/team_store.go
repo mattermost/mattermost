@@ -730,16 +730,16 @@ func (s SqlTeamStore) AnalyticsTeamCount(opts *model.TeamSearch) (int64, error) 
 }
 
 func (s SqlTeamStore) getTeamMembersWithSchemeSelectQuery() sq.SelectBuilder {
-	// Start with the base team members query 
+	// Start with the base team members query
 	query := s.teamMembersQuery.
 		// Add the scheme role columns for team scheme
 		Column("TeamScheme.DefaultTeamGuestRole TeamSchemeDefaultGuestRole").
-		Column("TeamScheme.DefaultTeamUserRole TeamSchemeDefaultUserRole"). 
+		Column("TeamScheme.DefaultTeamUserRole TeamSchemeDefaultUserRole").
 		Column("TeamScheme.DefaultTeamAdminRole TeamSchemeDefaultAdminRole").
 		// Add the necessary joins
 		LeftJoin("Teams ON TeamMembers.TeamId = Teams.Id").
 		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id")
-	
+
 	return query
 }
 
