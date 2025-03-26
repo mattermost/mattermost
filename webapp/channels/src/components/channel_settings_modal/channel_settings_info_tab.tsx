@@ -42,7 +42,7 @@ type ChannelSettingsInfoTabProps = {
     IsTabSwitchActionWithUnsaved?: boolean;
 };
 
-const SAVE_CHANGES_PANEL_ERROR_TIMEOUT = 3000;
+export const SAVE_CHANGES_PANEL_ERROR_TIMEOUT = 3000;
 
 function ChannelSettingsInfoTab({
     channel,

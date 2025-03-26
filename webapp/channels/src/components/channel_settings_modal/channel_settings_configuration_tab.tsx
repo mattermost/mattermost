@@ -1,62 +1,178 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+
 import {useIntl} from 'react-intl';
 
 import './channel_settings_configuration_tab.scss';
-import {useDispatch, useSelector} from 'react-redux';
+
+import {useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
 
-import {
-    setShowPreviewOnChannelSettingsChannelBannerTextModal,
-} from 'actions/views/textbox';
-import {
-    showPreviewOnChannelSettingsChannelBannerTextModal,
-} from 'selectors/views/textbox';
+import {patchChannel} from 'mattermost-redux/actions/channels';
 
+import {SAVE_CHANGES_PANEL_ERROR_TIMEOUT} from 'components/channel_settings_modal/channel_settings_info_tab';
 import ColorInput from 'components/color_input';
+import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
 import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
+import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
+import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 
 const CHANNEL_BANNER_CHARACTER_LIMIT = 1024;
 
+// TODO: delete these when using actual channel banner values
+const initialChannelBannerEnabled = true;
+const initialBannerText = '**Controlled Unclassified:** Impact Level 5. ';
+const initialBannerBackgroundColor = '#517391';
+
 type Props = {
     channel: Channel;
+    setAreThereUnsavedChanges?: (unsaved: boolean) => void;
+    IsTabSwitchActionWithUnsaved?: boolean;
 }
 
-function ChannelSettingsConfigurationTab({channel}: Props) {
-    const [channelBannerEnabled, setChannelBannerEnabled] = React.useState(false);
-    const [channelBannerColor, setChannelBannerColor] = React.useState('#165291');
-
-    const intl = useIntl();
+function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, IsTabSwitchActionWithUnsaved}: Props) {
+    const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
-    const lol = `## Blockquotes
-> > > ...or with spaces between arrows.`;
+    // TODO: populate initial state witha ctual channel info
+    const [channelBannerEnabled, setChannelBannerEnabled] = useState(initialChannelBannerEnabled);
+    const [channelBannerColor, setChannelBannerColor] = useState(initialBannerBackgroundColor);
+    const [channelBannerText, setChannelBannerText] = useState(initialBannerText);
 
-    // const shouldShowBannerTextPreview = useSelector(showPreviewOnChannelSettingsChannelBannerTextModal);
+    const [formError, setFormError] = useState('');
 
-    // const toggleBannerTextPreview = useCallback(() => {
-    //     dispatch(setShowPreviewOnChannelSettingsChannelBannerTextModal(!shouldShowBannerTextPreview));
-    // }, [dispatch, shouldShowBannerTextPreview]);
+    const [showBannerTextPreview, setShowBannerTextPreview] = useState(false);
 
-    const [showBannerTextPreview, setShowBannerTextPreview] = React.useState(false);
+    // SaveChangesPanel state
+    const [requireConfirm, setRequireConfirm] = useState(false);
+    const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
+    const [switchingTabsWithUnsaved, setSwitchingTabsWithUnsaved] = useState(IsTabSwitchActionWithUnsaved);
+    const [characterLimitExceeded, setCharacterLimitExceeded] = useState(false);
+
+    const handleChannelBannerTextChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
+        console.log({val: e.target.value});
+
+        setChannelBannerText(e.target.value);
+        setCharacterLimitExceeded(e.target.value.length > CHANNEL_BANNER_CHARACTER_LIMIT);
+    }, []);
 
     const toggleBannerTextPreview = useCallback(() => setShowBannerTextPreview((show) => !show), []);
 
-    const heading = intl.formatMessage({id: 'channel_banner.label.name', defaultMessage: 'Channel Banner'});
-    const subHeading = intl.formatMessage({id: 'channel_banner.label.subtext', defaultMessage: 'When enabled, a customized banner will display at the top of the channel.'});
+    const hasUnsavedChanges = useCallback(() => {
+        return channelBannerText !== initialBannerText || channelBannerColor !== initialBannerBackgroundColor || channelBannerEnabled !== initialChannelBannerEnabled;
+    }, [channelBannerColor, channelBannerEnabled, channelBannerText]);
 
-    const bannerTextSettingTitle = intl.formatMessage({id: 'channel_banner.banner_text.label', defaultMessage: 'Banner text'});
-    const bannerColorSettingTitle = intl.formatMessage({id: 'channel_banner.banner_color.label', defaultMessage: 'Banner color'});
+    useEffect(() => {
+        const unsavedChanges = hasUnsavedChanges();
+        setRequireConfirm(unsavedChanges);
+        setAreThereUnsavedChanges?.(unsavedChanges);
+        setSwitchingTabsWithUnsaved(IsTabSwitchActionWithUnsaved);
+
+        if (IsTabSwitchActionWithUnsaved) {
+            setTimeout(() => {
+                setSwitchingTabsWithUnsaved(false);
+            }, SAVE_CHANGES_PANEL_ERROR_TIMEOUT);
+        }
+    }, [IsTabSwitchActionWithUnsaved, hasUnsavedChanges, setAreThereUnsavedChanges]);
+
+    const heading = formatMessage({id: 'channel_banner.label.name', defaultMessage: 'Channel Banner'});
+    const subHeading = formatMessage({id: 'channel_banner.label.subtext', defaultMessage: 'When enabled, a customized banner will display at the top of the channel.'});
+
+    const bannerTextSettingTitle = formatMessage({id: 'channel_banner.banner_text.label', defaultMessage: 'Banner text'});
+    const bannerColorSettingTitle = formatMessage({id: 'channel_banner.banner_color.label', defaultMessage: 'Banner color'});
 
     // TODO: Replace with actual placeholder
-    const bannerTextPlaceholder = intl.formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Banner text placeholder'});
+    const bannerTextPlaceholder = formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Banner text placeholder'});
 
     const bannerTextboxRef = useRef<TextboxClass>(null);
+
+    const handleServerError = (err: ServerError) => {
+        const errorMsg = err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'});
+        setFormError(errorMsg);
+    };
+
+    const handleSave = useCallback(async (): Promise<boolean> => {
+        if (!channel) {
+            return false;
+        }
+
+        console.log({channelBannerText});
+
+        if (channelBannerEnabled && !channelBannerText.trim()) {
+            setFormError(formatMessage({
+                id: 'channel_settings.error_banner_text_required',
+                defaultMessage: 'Banner text is required',
+            }));
+            return false;
+        }
+
+        if (channelBannerEnabled && !channelBannerColor.trim()) {
+            setFormError(formatMessage({
+                id: 'channel_settings.error_banner_color_required',
+                defaultMessage: 'Banner color is required',
+            }));
+            return false;
+        }
+
+        // Build updated channel object
+        const updated: Channel = {
+            ...channel,
+        };
+
+        updated.banner_info = {
+            text: channelBannerText,
+            background_color: channelBannerColor,
+            enabled: channelBannerEnabled,
+        };
+
+        console.log({updated});
+
+        const {error} = await dispatch(patchChannel(channel.id, updated));
+        if (error) {
+            handleServerError(error as ServerError);
+            return false;
+        }
+
+        return true;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [channelBannerEnabled, channelBannerText, channelBannerColor]);
+
+    const handleSaveChanges = useCallback(async () => {
+        const success = await handleSave();
+        if (!success) {
+            setSaveChangesPanelState('error');
+            return;
+        }
+        setSaveChangesPanelState('saved');
+    }, [handleSave]);
+
+    const handleCancel = useCallback(() => {
+        setRequireConfirm(false);
+        setSaveChangesPanelState(undefined);
+        setShowBannerTextPreview(false);
+
+        setChannelBannerText(initialBannerText);
+        setChannelBannerEnabled(initialChannelBannerEnabled);
+        setChannelBannerColor(initialBannerBackgroundColor);
+
+        setFormError('');
+    }, []);
+
+    const handleClose = useCallback(() => {
+        setSaveChangesPanelState(undefined);
+        setRequireConfirm(false);
+    }, []);
+
+    const hasErrors = Boolean(formError) ||
+        characterLimitExceeded ||
+        Boolean(formError) ||
+        Boolean(switchingTabsWithUnsaved);
 
     return (
         <div className='ChannelSettingsModal__configurationTab'>
@@ -105,9 +221,9 @@ function ChannelSettingsConfigurationTab({channel}: Props) {
                         <div className='setting_body'>
                             <AdvancedTextbox
                                 id='channel_banner_banner_text_textbox'
-                                value={lol}
+                                value={channelBannerText}
                                 channelId={channel.id}
-                                onChange={() => {}}
+                                onChange={handleChannelBannerTextChange}
                                 createMessage={bannerTextPlaceholder}
                                 characterLimit={CHANNEL_BANNER_CHARACTER_LIMIT}
                                 preview={showBannerTextPreview}
@@ -140,6 +256,24 @@ function ChannelSettingsConfigurationTab({channel}: Props) {
                     </div>
                 </div>
             }
+
+            {requireConfirm && (
+                <SaveChangesPanel
+                    handleSubmit={handleSaveChanges}
+                    handleCancel={handleCancel}
+                    handleClose={handleClose}
+                    tabChangeError={hasErrors}
+                    state={hasErrors ? 'error' : saveChangesPanelState}
+                    customErrorMessage={formatMessage({
+                        id: 'channel_settings.save_changes_panel.standard_error',
+                        defaultMessage: 'There are errors in the form above',
+                    })}
+                    cancelButtonText={formatMessage({
+                        id: 'channel_settings.save_changes_panel.reset',
+                        defaultMessage: 'Reset',
+                    })}
+                />
+            )}
         </div>
     );
 }

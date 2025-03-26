@@ -3386,6 +3386,8 @@
   "channel_settings.archive.warning": "Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels.",
   "channel_settings.configuration.placeholder": "Channel Permissions or Additional Configuration (WIP)",
   "channel_settings.error_display_name_required": "Channel name is required",
+  "channel_settings.error_banner_text_required": "Banner text is required",
+  "channel_settings.error_banner_color_required": "Banner color is required",
   "channel_settings.error_purpose_length": "The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.",
   "channel_settings.label.name": "Channel Name",
   "channel_banner.label.name": "Channel Banner",
