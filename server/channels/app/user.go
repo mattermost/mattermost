@@ -1832,6 +1832,10 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 		return model.NewAppError("PermanentDeleteUser", "app.scheduled_post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	if err := a.Srv().Store().Draft().PermanentDeleteByUser(user.Id); err != nil {
+		return model.NewAppError("PermanentDeleteUser", "app.drafts.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	if err := a.Srv().Store().Bot().PermanentDelete(user.Id); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -2923,12 +2927,11 @@ func (a *App) UserIsFirstAdmin(rctx request.CTX, user *model.User) bool {
 	return true
 }
 
-func (a *App) getAllSystemAdmins() ([]*model.User, *model.AppError) {
-	userOptions := &model.UserGetOptions{
-		Page:     0,
-		PerPage:  500,
-		Role:     model.SystemAdminRoleId,
-		Inactive: false,
+func (a *App) ResetPasswordFailedAttempts(c request.CTX, user *model.User) *model.AppError {
+	err := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0)
+	if err != nil {
+		return model.NewAppError("ResetPasswordFailedAttempts", "app.user.reset_password_failed_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return a.GetUsersFromProfiles(userOptions)
+
+	return nil
 }

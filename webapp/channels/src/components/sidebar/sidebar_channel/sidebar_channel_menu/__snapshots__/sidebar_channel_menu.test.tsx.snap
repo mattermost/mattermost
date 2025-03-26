@@ -495,8 +495,8 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     id="mute-channel_id"
     labels={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mute Conversation"
-        id="sidebar_left.sidebar_channel_menu.muteConversation"
+        defaultMessage="Mute"
+        id="sidebar_left.sidebar_channel_menu.mute"
       />
     }
     leadingElement={

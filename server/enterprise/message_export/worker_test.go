@@ -188,6 +188,66 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 	assert.Equal(t, expectedDir, job.Data[shared.JobDataExportDir])
 }
 
+func TestInitJobDataPreviousJobWithJobDataPre105(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	mockStore := &storetest.Store{}
+	defer mockStore.AssertExpectations(t)
+
+	previousJob := &model.Job{
+		Id:             st.NewTestID(),
+		CreateAt:       model.GetMillis(),
+		Status:         model.JobStatusSuccess,
+		Type:           model.JobTypeMessageExport,
+		StartAt:        model.GetMillis() - 1000,
+		LastActivityAt: model.GetMillis() - 1000,
+		Data:           map[string]string{"batch_start_timestamp": "123"},
+	}
+
+	job := &model.Job{
+		Id:       st.NewTestID(),
+		CreateAt: model.GetMillis(),
+		Status:   model.JobStatusPending,
+		Type:     model.JobTypeMessageExport,
+		Data:     map[string]string{shared.JobDataExportDir: "this-is-the-export-dir"},
+	}
+
+	// mock job store returns a previously successful job that has the config that we're looking for, so we use it
+	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(previousJob, nil)
+
+	worker := &MessageExportWorker{
+		jobServer: &jobs.JobServer{
+			Store: mockStore,
+			ConfigService: &testutils.StaticConfigService{
+				Cfg: &model.Config{
+					// mock config
+					MessageExportSettings: model.MessageExportSettings{
+						EnableExport:            model.NewPointer(true),
+						ExportFormat:            model.NewPointer(model.ComplianceExportTypeActiance),
+						DailyRunTime:            model.NewPointer("01:00"),
+						ExportFromTimestamp:     model.NewPointer(int64(0)),
+						BatchSize:               model.NewPointer(10000),
+						ChannelBatchSize:        model.NewPointer(100),
+						ChannelHistoryBatchSize: model.NewPointer(100),
+					},
+				},
+			},
+		},
+		logger: logger,
+	}
+
+	now := time.Now()
+	worker.initJobData(logger, job, now)
+
+	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[shared.JobDataExportType])
+	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[shared.JobDataBatchSize])
+
+	// Assert the new job picks up the <10.5 job start time:
+	assert.Equal(t, previousJob.Data[shared.JobDataBatchStartTime], job.Data[shared.JobDataBatchStartTime])
+
+	expectedDir := "this-is-the-export-dir"
+	assert.Equal(t, expectedDir, job.Data[shared.JobDataExportDir])
+}
+
 func TestDoJobNoPostsToExport(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
 
@@ -203,9 +263,13 @@ func TestDoJobNoPostsToExport(t *testing.T) {
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
 	}
+	retJob := *job
+	retJob.Status = model.JobStatusInProgress
 
 	// claim job succeeds
-	mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.
+		On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).
+		Return(&retJob, nil)
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// no previous job, data will be loaded from config
@@ -225,7 +289,7 @@ func TestDoJobNoPostsToExport(t *testing.T) {
 	)
 
 	// job completed successfully
-	mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(true, nil)
 	mockStore.JobStore.On("UpdateStatus", job.Id, model.JobStatusSuccess).Return(job, nil)
 	mockMetrics.On("DecrementJobActive", model.JobTypeMessageExport)
 
@@ -282,9 +346,13 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
 	}
+	retJob := *job
+	retJob.Status = model.JobStatusInProgress
 
 	// claim job succeeds
-	mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.
+		On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).
+		Return(&retJob, nil)
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// no previous job, data will be loaded from config
@@ -335,7 +403,7 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 	)
 
 	// job completed successfully
-	mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(true, nil)
 	mockStore.JobStore.On("UpdateStatus", job.Id, model.JobStatusSuccess).Return(job, nil)
 	mockMetrics.On("DecrementJobActive", model.JobTypeMessageExport)
 
@@ -443,8 +511,13 @@ func TestDoJobCancel(t *testing.T) {
 	worker, ok := impl.MakeWorker().(*MessageExportWorker)
 	require.True(t, ok)
 
+	retJob := *job
+	retJob.Status = model.JobStatusInProgress
+
 	// Claim job succeeds
-	mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.
+		On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).
+		Return(&retJob, nil)
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// No previous job, data will be loaded from config
