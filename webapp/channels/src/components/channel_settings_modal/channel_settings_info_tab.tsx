@@ -106,11 +106,11 @@ function ChannelSettingsInfoTab({
     const handleChannelNameError = useCallback((isError: boolean, errorMessage?: string) => {
         setChannelNameError(errorMessage || '');
 
-        // If there's an error, update the server error to show in the SaveChangesPanel
+        // If there's an error, update the error to show in the SaveChangesPanel
         if (isError && errorMessage) {
             setFormError(errorMessage);
         } else if (formError === channelNameError) {
-            // Only clear server error if it's the same as the channel name error
+            // Only clear error if it's the same as the channel name error
             setFormError('');
         }
     }, [channelNameError, formError, setFormError]);
@@ -157,9 +157,13 @@ function ChannelSettingsInfoTab({
     }, [displayName, channelUrl, channelPurpose, channelHeader, channelType, internalUrlError]);
 
     const handleURLChange = useCallback((newURL: string) => {
+        if (internalUrlError) {
+            setFormError('');
+            setSaveChangesPanelState(undefined);
+            setUrlError('');
+        }
         setChannelURL(newURL);
-        setUrlError('');
-    }, []);
+    }, [internalUrlError]);
 
     const togglePurposePreview = useCallback(() => {
         dispatch(setShowPreviewOnChannelSettingsPurposeModal(!shouldShowPreviewPurpose));
@@ -258,7 +262,9 @@ function ChannelSettingsInfoTab({
     }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType]);
 
     const handleServerError = (err: ServerError) => {
-        setFormError(err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'}));
+        const errorMsg = err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'});
+        setFormError(errorMsg);
+        setUrlError(errorMsg);
     };
 
     // Handle save changes panel actions

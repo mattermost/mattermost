@@ -241,6 +241,8 @@ describe('ChannelSettingsInfoTab', () => {
         // Clear the channel name to simulate an error.
         const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
         await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'Updated Channel Name');
+        await userEvent.clear(nameInput);
         nameInput.blur();
 
         // SaveChangesPanel should show error state.

@@ -140,8 +140,11 @@ describe('Channel Settings Modal', () => {
         cy.get('#channelHeaderDropdownButton').click();
         cy.findByText('Channel Settings').click();
 
-        // # Try to set empty channel name
+        // # Set empty channel name
         cy.get('#input_channel-settings-name').clear();
+
+        // # Try Save changes
+        cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
 
         // * Verify error is shown
         cy.get('.Input_fieldset').should('have.class', 'Input_fieldset___error');
