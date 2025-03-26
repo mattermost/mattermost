@@ -794,6 +794,65 @@ func TestPatchChannel(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		require.Nil(t, patchedChannel)
 	})
+
+	t.Run("Test channel type conversion", func(t *testing.T) {
+		client.Logout(context.Background())
+		th.LoginBasic()
+
+		// Create test channels
+		publicChannel := th.CreatePublicChannel()
+		privateChannel := th.CreatePrivateChannel()
+		defaultChannel, _ := th.App.GetChannelByName(th.Context, model.DefaultChannelName, th.BasicTeam.Id, false)
+
+		// Test converting public to private with proper permissions
+		th.AddPermissionToRole(model.PermissionConvertPublicChannelToPrivate.Id, model.TeamUserRoleId)
+		patch := &model.ChannelPatch{
+			Type: model.ChannelTypePrivate,
+		}
+		updatedChannel, resp, err := client.PatchChannel(context.Background(), publicChannel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, model.ChannelTypePrivate, updatedChannel.Type)
+
+		// Test converting private to public with proper permissions
+		th.AddPermissionToRole(model.PermissionConvertPrivateChannelToPublic.Id, model.TeamUserRoleId)
+		patch = &model.ChannelPatch{
+			Type: model.ChannelTypeOpen,
+		}
+		updatedChannel, resp, err = client.PatchChannel(context.Background(), updatedChannel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, model.ChannelTypeOpen, updatedChannel.Type)
+
+		// Test converting without proper permissions
+		th.RemovePermissionFromRole(model.PermissionConvertPublicChannelToPrivate.Id, model.TeamUserRoleId)
+		patch = &model.ChannelPatch{
+			Type: model.ChannelTypePrivate,
+		}
+		_, resp, err = client.PatchChannel(context.Background(), publicChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		th.RemovePermissionFromRole(model.PermissionConvertPrivateChannelToPublic.Id, model.TeamUserRoleId)
+		patch = &model.ChannelPatch{
+			Type: model.ChannelTypeOpen,
+		}
+		_, resp, err = client.PatchChannel(context.Background(), privateChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Test converting default channel to private (should fail)
+		th.AddPermissionToRole(model.PermissionConvertPublicChannelToPrivate.Id, model.TeamUserRoleId)
+		patch = &model.ChannelPatch{
+			Type: model.ChannelTypePrivate,
+		}
+		_, resp, err = client.PatchChannel(context.Background(), defaultChannel.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		// Test that the error message contains the expected text for default channel conversion
+		require.Contains(t, err.Error(), "The default channel cannot be made private.")
+	})
 }
 
 func TestChannelUnicodeNames(t *testing.T) {

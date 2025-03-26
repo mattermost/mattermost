@@ -152,18 +152,27 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
     const handleOnURLBlur = useCallback(() => {
         // Only validate if the URL has been modified
         if (urlModified.current) {
-            const urlErrors = validateChannelUrl(url, intl) as string[];
-            setURLError(urlErrors.length ? urlErrors[urlErrors.length - 1] : '');
+            const urlErrors = validateChannelUrl(url, intl);
+            let lastError = '';
+            if (urlErrors.length && typeof urlErrors[urlErrors.length - 1] === 'string') {
+                // Safe to assert as string because we're always providing intl to validateChannelUrl and have extra type safe check
+                lastError = urlErrors[urlErrors.length - 1] as string;
+            }
+            setURLError(lastError);
         }
     }, [url, intl]);
 
     useEffect(() => {
+        // Only report URL errors if the URL has been explicitly modified and validated
+        // This prevents showing errors during typing
         if (props.onErrorStateChange) {
-            // Only report URL errors if the URL has been explicitly modified and validated
-            // This prevents showing errors during typing
-            const shouldReportUrlError = urlModified.current && urlError;
-            const errorMessage = displayNameError || (shouldReportUrlError ? urlError : '');
-            props.onErrorStateChange(Boolean(displayNameError) || Boolean(shouldReportUrlError), errorMessage);
+            if (displayNameError) {
+                props.onErrorStateChange(true, displayNameError);
+            } else if (urlModified.current && urlError) {
+                props.onErrorStateChange(true, urlError);
+            } else {
+                props.onErrorStateChange(false, '');
+            }
         }
     }, [displayNameError, urlError]);
 

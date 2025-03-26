@@ -26,14 +26,6 @@ jest.mock('utils/browser_history', () => ({
     getHistory: jest.fn(),
 }));
 
-jest.mock('utils/constants', () => {
-    const original = jest.requireActual('utils/constants');
-    return {
-        ...original,
-        CHANNEL_ID_LENGTH: 8,
-    };
-});
-
 jest.mock('mattermost-redux/selectors/entities/general', () => ({
     ...jest.requireActual('mattermost-redux/selectors/entities/general') as typeof import('mattermost-redux/selectors/entities/general'),
     getConfig: () => mockConfig,
@@ -48,7 +40,7 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
 
 // Create a mock channel for testing
 const mockChannel = TestHelper.getChannelMock({
-    id: 'channel1',
+    id: 'using-26-letter-channel-id', // so channel id validation length works
     team_id: 'team1',
     display_name: 'Test Channel',
     name: 'test-channel',

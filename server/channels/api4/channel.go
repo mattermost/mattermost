@@ -385,6 +385,25 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Validate channel type change if attempted
+	if patch.Type != "" && patch.Type != oldChannel.Type {
+		if patch.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionConvertPrivateChannelToPublic) {
+			c.SetPermissionError(model.PermissionConvertPrivateChannelToPublic)
+			return
+		}
+
+		if patch.Type == model.ChannelTypePrivate && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionConvertPublicChannelToPrivate) {
+			c.SetPermissionError(model.PermissionConvertPublicChannelToPrivate)
+			return
+		}
+
+		// Check for default channel and prevent to be converted private
+		if oldChannel.Name == model.DefaultChannelName && patch.Type == model.ChannelTypePrivate {
+			c.Err = model.NewAppError("patchChannel", "api.channel.update_channel_privacy.default_channel_error", nil, "", http.StatusBadRequest)
+			return
+		}
+	}
+
 	rchannel, appErr := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
