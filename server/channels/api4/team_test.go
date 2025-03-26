@@ -657,7 +657,7 @@ func TestPatchTeam(t *testing.T) {
 		var appErr *model.AppError
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 		defer func() {
-			appErr := th.App.Srv().RemoveLicense()
+			appErr = th.App.Srv().RemoveLicense()
 			require.Nil(t, appErr)
 		}()
 		th.LoginTeamAdmin()
