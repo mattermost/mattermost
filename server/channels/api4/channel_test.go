@@ -518,7 +518,7 @@ func TestPatchChannel(t *testing.T) {
 
 		// Wait for the user to be removed from the channel by polling until they're gone
 		// or until we hit the timeout
-		timeout := time.After(5 * time.Second)
+		timeout := time.After(3 * time.Second)
 		ticker := time.NewTicker(100 * time.Millisecond)
 		defer ticker.Stop()
 
@@ -542,6 +542,103 @@ func TestPatchChannel(t *testing.T) {
 		_, r, err = th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, r)
+	})
+
+	t.Run("Test GroupConstrained flag changed from true to false and non group members are not removed", func(t *testing.T) {
+		client.Logout(context.Background())
+		th.LoginBasic()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
+
+		// Create a test group
+		group := th.CreateGroup()
+
+		// Create a channel and set it as group-constrained
+		channel := th.CreatePrivateChannel()
+
+		// Create a group user
+		groupUser := th.CreateUser()
+		th.LinkUserToTeam(groupUser, th.BasicTeam)
+
+		// Create a group member
+		_, appErr := th.App.UpsertGroupMember(group.Id, groupUser.Id)
+		require.Nil(t, appErr)
+
+		// Associate the group with the channel
+		autoAdd := true
+		schemeAdmin := true
+		_, r, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), group.Id, channel.Id, model.GroupSyncableTypeChannel, &model.GroupSyncablePatch{AutoAdd: &autoAdd, SchemeAdmin: &schemeAdmin})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, r)
+
+		// Wait for the user to be added to the channel by polling until you see them
+		// or until we hit the timeout
+		timeout := time.After(3 * time.Second)
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		var cm *model.ChannelMember
+		userFound := false
+		for !userFound {
+			select {
+			case <-timeout:
+				require.Fail(t, "Timed out waiting for user to be added to the channel")
+				return
+			case <-ticker.C:
+				// Check if the user is now a member
+				cm, _, err = th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, groupUser.Id, "")
+				if err == nil && cm.UserId == groupUser.Id {
+					// User has been added, we can continue the test
+					userFound = true
+				}
+			}
+		}
+
+		patch := &model.ChannelPatch{}
+		patch.GroupConstrained = model.NewPointer(true)
+		_, r, err = th.SystemAdminClient.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+
+		// Change the GroupConstrained flag to false
+		patch.GroupConstrained = model.NewPointer(false)
+		_, r, err = th.SystemAdminClient.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+
+		// Unlink the group
+		r, err = th.SystemAdminClient.UnlinkGroupSyncable(context.Background(), group.Id, channel.Id, model.GroupSyncableTypeChannel)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+
+		// Wait for a reasonable amount of time to ensure the user is not removed because the channel is no longer group constrained
+		timeout = time.After(2 * time.Second)
+		ticker = time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		userStillPresent := true
+		for userStillPresent {
+			select {
+			case <-timeout:
+				// If we reach the timeout, the user is still present, which is what we want
+				// Verify the user is still a member of the channel
+				cm, r, err = th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, groupUser.Id, "")
+				require.NoError(t, err)
+				CheckOKStatus(t, r)
+				require.Equal(t, groupUser.Id, cm.UserId)
+				return
+			case <-ticker.C:
+				// Check if the user is still a member
+				_, r, err = th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, groupUser.Id, "")
+				if err != nil && r.StatusCode == http.StatusNotFound {
+					// User has been removed, which is not what we want
+					require.Fail(t, "User was incorrectly removed from the channel")
+					userStillPresent = false
+				}
+			}
+		}
 	})
 
 	t.Run("Test updating the header of someone else's GM channel", func(t *testing.T) {
