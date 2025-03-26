@@ -309,7 +309,7 @@ func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 	deleteEnabled := config.ServiceSettings.EnableAPITeamDeletion
 	if deleteEnabled == nil || !*deleteEnabled {
-		return errors.New("ServiceSettings.EnableAPITeamDeletion must be set to true to use this command. See " + CONFIG_DOCUMENTATION_URL + " for more information")
+		return errors.New("ServiceSettings.EnableAPITeamDeletion must be set to true to use this command. See " + ConfigDocumentationUrl + " for more information")
 	}
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {

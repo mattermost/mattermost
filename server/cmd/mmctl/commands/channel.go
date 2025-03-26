@@ -619,7 +619,7 @@ func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	}
 	deleteEnabled := config.ServiceSettings.EnableAPIChannelDeletion
 	if deleteEnabled == nil || !*deleteEnabled {
-		return errors.New("ServiceSettings.EnableAPIChannelDeletion must be set to true to use this command. See " + CONFIG_DOCUMENTATION_URL + " for more information")
+		return errors.New("ServiceSettings.EnableAPIChannelDeletion must be set to true to use this command. See " + ConfigDocumentationUrl + " for more information")
 	}
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
