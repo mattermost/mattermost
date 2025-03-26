@@ -303,7 +303,7 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	config, err := utils.GetConfig(c, cmd.Context())
+	config, err := utils.GetConfig(cmd.Context(), c)
 	if err != nil {
 		return err
 	}
