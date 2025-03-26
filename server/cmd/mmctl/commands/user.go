@@ -16,8 +16,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost/server/v8/cmd/mattermost/commands"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands/utils"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/hashicorp/go-multierror"
@@ -730,12 +730,11 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 }
 
 func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	app, err := commands.InitDBCommandContextCobra(cmd)
+	config, err := utils.GetConfig(c, cmd.Context())
 	if err != nil {
-		printer.PrintT("App initialization failed: %s", err.Error())
 		return err
 	}
-	deleteEnabled := app.Config().ServiceSettings.EnableAPIUserDeletion
+	deleteEnabled := config.ServiceSettings.EnableAPIUserDeletion
 	if deleteEnabled == nil || !*deleteEnabled {
 		return errors.New("ServiceSettings.EnableAPIUserDeletion must be set to true to use this command. See " + CONFIG_DOCUMENTATION_URL + " for more information")
 	}
