@@ -33,15 +33,15 @@
         .counter {
             position: relative;
             bottom: 1px;
+            display: inline-flex;
+            height: 16px;
+            align-items: center;
             padding: 0 6.5px;
             border-radius: 8px;
             margin-left: 4px;
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
             font-size: 11px;
             font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            height: 16px;
         }
     }
 }
