@@ -613,7 +613,7 @@ func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, error
 }
 
 func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	config, err := utils.GetConfig(c, cmd.Context())
+	config, err := utils.GetConfig(cmd.Context(), c)
 	if err != nil {
 		return err
 	}
