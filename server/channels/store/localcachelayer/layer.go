@@ -47,7 +47,7 @@ const (
 	ChannelCacheDuration = 15 * time.Minute
 
 	ChannelsByUserByTeamCacheSize = model.ChannelCacheSize
-	ChannelsByUserByTeamCacheSec  = 15 * 60
+	ChannelsByUserByTeamCacheSec  = 180 * 60
 
 	ChannelMembersCountsCacheSize = model.ChannelCacheSize
 	ChannelMembersCountsCacheSec  = 30 * 60
