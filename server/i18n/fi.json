@@ -2273,11 +2273,11 @@
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
-    "translation": "Ei voitu noutaa käyttäjää {{.Service}} käyttäjäobjektista"
+    "translation": "Käyttäjää ei voitu saada {{.Service}}:n käyttäjäobjektista."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
-    "translation": "Sinulla ei ole tarvittavia oikeuksia"
+    "translation": "Sinulla ei ole asianmukaisia oikeuksia."
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2293,11 +2293,11 @@
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
-    "translation": "Salasanaa ei voida palauttaa SSO tileille"
+    "translation": "SSO-tilien salasanaa ei voi nollata."
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
-    "translation": "Ei voitus lähettää salasanan palautussähköpostia"
+    "translation": "Salasanan nollaamissähköpostin lähettäminen epäonnistui."
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
@@ -2313,7 +2313,7 @@
   },
   {
     "id": "api.user.reset_password.sso.app_error",
-    "translation": "Salasanaa ei voida palauttaa SSO tileille"
+    "translation": "SSO-tilien salasanaa ei voi nollata."
   },
   {
     "id": "api.user.reset_password.method",
@@ -2337,15 +2337,15 @@
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
-    "translation": "Salasanan muutos epäonnistui koska kontekstin user_id ei ole sama kuin annettu käyttäjän id"
+    "translation": "Salasanan päivittäminen epäonnistui, koska kontekstin user_id ei vastannut annettua käyttäjätunnusta."
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "AD/LDAP ei ole saatavilla tällä palvelimella"
+    "translation": "AD/LDAP ei saatavilla tällä palvelimella."
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
-    "translation": "Ei voitu lukea auth dataa {{.Service}} käyttäjäobjektista"
+    "translation": "Todennustietoja ei voitu jäsentää {{.Service}}:n käyttäjäobjektista."
   },
   {
     "id": "api.templates.reset_body.button",
@@ -3830,15 +3830,15 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "{{.Service}} SSO OAuth 2.0:n kautta ei tarjolla tällä palvelimella"
+    "translation": "{{.Service}} SSO OAuth 2.0:n kautta ei ole saatavilla tällä palvelimella."
   },
   {
     "id": "api.user.login.use_auth_service.app_error",
-    "translation": "Kirjaudu käyttäen palvelua {{.AuthService}}"
+    "translation": "Kirjaudu sisään käyttämällä {{.AuthService}}:a."
   },
   {
     "id": "api.user.login.not_verified.app_error",
-    "translation": "Kirjautuminen epäonnistui koska sähköpostiosoitetta ei ole vahvistettu"
+    "translation": "Sisäänkirjautuminen epäonnistui, koska s-postiosoitetta ei ole vahvistettu."
   },
   {
     "id": "api.user.login.invalid_credentials_username",
@@ -3862,11 +3862,11 @@
   },
   {
     "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Yritys käyttää kokeellista ClientSideCertEnable-toimintoa ilman käypää enterprise-lisenssiä"
+    "translation": "Yritettiin käyttää kokeellista ClientSideCertEnable-ominaisuutta ilman voimassa olevaa yrityslisenssiä."
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Yritettiin kirjautua käyttäen kokeellista ClientSideCert-toimintoa ilman käypää sertifikaattia"
+    "translation": "Yritettiin kirjautua sisään kokeellisella ClientSideCert-ominaisuuden avulla antamatta kelvollista varmennetta."
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -3874,11 +3874,11 @@
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "Tämä käyttäjätili ei käytä AD/LDAP:a"
+    "translation": "Tämä käyttäjätili ei käytä AD/LDAP:a."
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "AD/LDAP ei ole saatavilla tällä palvelimella"
+    "translation": "AD/LDAP ei saatavilla tällä palvelimella."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -3890,15 +3890,15 @@
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "AD/LDAP ei ole saatavilla tällä palvelimella"
+    "translation": "AD/LDAP ei saatavilla tällä palvelimella."
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
-    "translation": "Liittymislinkki ei ole kelvollinen"
+    "translation": "Rekisteröitymislinkki ei näytä olevan kelvollinen."
   },
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
-    "translation": "Liittymislinkki on vanhentunut"
+    "translation": "Rekisteröitymislinkki on umpeutunut."
   },
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
@@ -3922,19 +3922,19 @@
   },
   {
     "id": "api.user.create_profile_image.initial.app_error",
-    "translation": "Ei voitu lisätä käyttäjän nimikirjainta oletusprofiilikuvaan"
+    "translation": "Käyttäjän alkukirjainta ei voitu lisätä oletusprofiilikuvaan."
   },
   {
     "id": "api.user.create_profile_image.encode.app_error",
-    "translation": "Ei voitu enkoodata oletusprofiilikuvaa"
+    "translation": "Ei voitu enkoodata oletusprofiilikuvaa."
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
-    "translation": "Ei voitu luoda oletusprofiilikuvan fonttia"
+    "translation": "Profiilikuvan oletuskirjasinta ei voitu luoda."
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
-    "translation": "Käyttäjää ei voitu luoda palvelun {{.Service}} käyttäjäobjektista"
+    "translation": "Käyttäjää ei voitu luoda {{.Service}}:n käyttäjäobjektista."
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -3946,15 +3946,15 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.parse.app_error",
-    "translation": "Ei voitu lukea auth dataa {{.Service}} käyttäjäobjektista"
+    "translation": "Todennustietoja ei voitu jäsentää {{.Service}}:n käyttäjäobjektista."
   },
   {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Tyhjä email"
+    "translation": "Tyhjä s-posti."
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
-    "translation": "Kirjautuminen epäonnistui virheellisen salasanan vuoksi"
+    "translation": "Sisäänkirjautuminen epäonnistui epäkelvollisen salasanan vuoksi."
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
@@ -3966,23 +3966,23 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "OAuth-palveluntarjoajaa ei tueta"
+    "translation": "{{.Service}} SSO OAuth 2.0:n kautta ei ole saatavilla tällä palvelimella."
   },
   {
     "id": "api.user.authorize_oauth_user.token_failed.app_error",
-    "translation": "Token-pyyntö epäonnistui"
+    "translation": "Polettipyyntö epäonnistui."
   },
   {
     "id": "api.user.authorize_oauth_user.service.app_error",
-    "translation": "Token-pyyntö palveluun {{.Service}} epäonnistui"
+    "translation": "Polettipyyntö {{.Service}}:iin epäonnistui."
   },
   {
     "id": "api.user.authorize_oauth_user.response.app_error",
-    "translation": "Vastaanotettiin virheellinen vastaus OAuth palveluntarjoajalta"
+    "translation": "Vastaanotettiin epäkelvollinen vastaus OAuth-palveluntarjoajalta."
   },
   {
     "id": "api.user.authorize_oauth_user.missing.app_error",
-    "translation": "Puuttuva access token"
+    "translation": "Puuttuva pääsypoletti."
   },
   {
     "id": "api.user.authorize_oauth_user.invalid_state.app_error",
@@ -3990,11 +3990,11 @@
   },
   {
     "id": "api.user.authorize_oauth_user.bad_token.app_error",
-    "translation": "Virheellinen token-tyyppi"
+    "translation": "Virheellinen poletin tyyppi."
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
-    "translation": "Virheellinen vastaus token-pyyntöön"
+    "translation": "Virheellinen vastaus poletin pyynnöstä."
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
