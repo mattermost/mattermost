@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mattermost/server/v8/cmd/mattermost/commands"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands/utils"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -613,12 +613,11 @@ func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, error
 }
 
 func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	app, err := commands.InitDBCommandContextCobra(cmd)
+	config, err := utils.GetConfig(c, cmd.Context())
 	if err != nil {
-		printer.PrintT("App initialization failed: %s", err.Error())
 		return err
 	}
-	deleteEnabled := app.Config().ServiceSettings.EnableAPIChannelDeletion
+	deleteEnabled := config.ServiceSettings.EnableAPIChannelDeletion
 	if deleteEnabled == nil || !*deleteEnabled {
 		return errors.New("ServiceSettings.EnableAPIChannelDeletion must be set to true to use this command. See " + CONFIG_DOCUMENTATION_URL + " for more information")
 	}
