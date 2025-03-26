@@ -5,21 +5,21 @@ import React, {useCallback, useRef} from 'react';
 import {useIntl} from 'react-intl';
 
 import './channel_settings_configuration_tab.scss';
+import {useDispatch, useSelector} from 'react-redux';
+
 import type {Channel} from '@mattermost/types/channels';
 
+import {
+    setShowPreviewOnChannelSettingsChannelBannerTextModal,
+} from 'actions/views/textbox';
+import {
+    showPreviewOnChannelSettingsChannelBannerTextModal,
+} from 'selectors/views/textbox';
+
+import ColorInput from 'components/color_input';
 import type TextboxClass from 'components/textbox/textbox';
 import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
-import {useDispatch, useSelector} from "react-redux";
-import {
-    showPreviewOnChannelSettingsChannelBannerTextModal,
-    showPreviewOnChannelSettingsPurposeModal
-} from "selectors/views/textbox";
-import {
-    setShowPreviewOnChannelSettingsChannelBannerTextModal,
-    setShowPreviewOnChannelSettingsPurposeModal
-} from "actions/views/textbox";
-import ColorInput from "components/color_input";
 
 const CHANNEL_BANNER_CHARACTER_LIMIT = 1024;
 
@@ -34,13 +34,18 @@ function ChannelSettingsConfigurationTab({channel}: Props) {
     const intl = useIntl();
     const dispatch = useDispatch();
 
-    const shouldShowBannerTextPreview = useSelector(showPreviewOnChannelSettingsChannelBannerTextModal);
+    const lol = `## Blockquotes
+> > > ...or with spaces between arrows.`;
 
+    // const shouldShowBannerTextPreview = useSelector(showPreviewOnChannelSettingsChannelBannerTextModal);
 
+    // const toggleBannerTextPreview = useCallback(() => {
+    //     dispatch(setShowPreviewOnChannelSettingsChannelBannerTextModal(!shouldShowBannerTextPreview));
+    // }, [dispatch, shouldShowBannerTextPreview]);
 
-    const toggleBannerTextPreview = useCallback(() => {
-        dispatch(setShowPreviewOnChannelSettingsChannelBannerTextModal(!shouldShowBannerTextPreview));
-    }, [dispatch, shouldShowBannerTextPreview]);
+    const [showBannerTextPreview, setShowBannerTextPreview] = React.useState(false);
+
+    const toggleBannerTextPreview = useCallback(() => setShowBannerTextPreview((show) => !show), []);
 
     const heading = intl.formatMessage({id: 'channel_banner.label.name', defaultMessage: 'Channel Banner'});
     const subHeading = intl.formatMessage({id: 'channel_banner.label.subtext', defaultMessage: 'When enabled, a customized banner will display at the top of the channel.'});
@@ -50,9 +55,6 @@ function ChannelSettingsConfigurationTab({channel}: Props) {
 
     // TODO: Replace with actual placeholder
     const bannerTextPlaceholder = intl.formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Banner text placeholder'});
-
-    const lol = `## Blockquotes
-> > > ...or with spaces between arrows.`;
 
     const bannerTextboxRef = useRef<TextboxClass>(null);
 
@@ -88,51 +90,56 @@ function ChannelSettingsConfigurationTab({channel}: Props) {
                 </div>
             </div>
 
-            {/*Banner text section*/}
-            <div className='setting_section'>
-                <span
-                    className='setting_title'
-                    aria-label={bannerTextSettingTitle}
-                >
-                    {bannerTextSettingTitle}
-                </span>
+            {
+                channelBannerEnabled &&
+                <div className='channel_banner_section_body'>
+                    {/*Banner text section*/}
+                    <div className='setting_section'>
+                        <span
+                            className='setting_title'
+                            aria-label={bannerTextSettingTitle}
+                        >
+                            {bannerTextSettingTitle}
+                        </span>
 
-                <div className='setting_body'>
-                    <AdvancedTextbox
-                        id='channel_banner_banner_text_textbox'
-                        value={lol}
-                        channelId={channel.id}
-                        onChange={() => {}}
-                        createMessage={bannerTextPlaceholder}
-                        characterLimit={CHANNEL_BANNER_CHARACTER_LIMIT}
-                        preview={shouldShowBannerTextPreview}
-                        togglePreview={toggleBannerTextPreview}
-                        textboxRef={bannerTextboxRef}
-                        useChannelMentions={false}
-                        onKeypress={() => {}}
-                        hasError={false}
-                        showCharacterCount={false}
-                    />
+                        <div className='setting_body'>
+                            <AdvancedTextbox
+                                id='channel_banner_banner_text_textbox'
+                                value={lol}
+                                channelId={channel.id}
+                                onChange={() => {}}
+                                createMessage={bannerTextPlaceholder}
+                                characterLimit={CHANNEL_BANNER_CHARACTER_LIMIT}
+                                preview={showBannerTextPreview}
+                                togglePreview={toggleBannerTextPreview}
+                                textboxRef={bannerTextboxRef}
+                                useChannelMentions={false}
+                                onKeypress={() => {}}
+                                hasError={false}
+                                showCharacterCount={false}
+                            />
+                        </div>
+                    </div>
+
+                    {/*Banner background color section*/}
+                    <div className='setting_section'>
+                        <span
+                            className='setting_title'
+                            aria-label={bannerColorSettingTitle}
+                        >
+                            {bannerColorSettingTitle}
+                        </span>
+
+                        <div className='setting_body'>
+                            <ColorInput
+                                id='channel_banner_banner_background_color_picker'
+                                onChange={setChannelBannerColor}
+                                value={channelBannerColor}
+                            />
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            {/*Banner background color section*/}
-            <div className='setting_section'>
-                <span
-                    className='setting_title'
-                    aria-label={bannerColorSettingTitle}
-                >
-                    {bannerColorSettingTitle}
-                </span>
-
-                <div className='setting_body'>
-                    <ColorInput
-                        id='channel_banner_banner_background_color_picker'
-                        onChange={setChannelBannerColor}
-                        value={channelBannerColor}
-                    />
-                </div>
-            </div>
+            }
         </div>
     );
 }
