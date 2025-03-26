@@ -222,6 +222,11 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                             </div>
                         ))}
                         <div className='CommercialSupportModal__download'>
+                            {this.state.error && (
+                                <div className='CommercialSupportModal__error'>
+                                    <span className='error-text'>{this.state.error}</span>
+                                </div>
+                            )}
                             <a
                                 className='btn btn-primary DownloadSupportPacket'
                                 onClick={this.downloadSupportPacket}
@@ -233,11 +238,6 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                     defaultMessage='Download Support Packet'
                                 />
                             </a>
-                            {this.state.error && (
-                                <div className='CommercialSupportModal__error'>
-                                    <span className='error-text'>{this.state.error}</span>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </Modal.Body>
