@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState, useEffect, useRef} from 'react';
+import React, {useCallback, useState, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -26,7 +26,6 @@ import {
 
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import type {TextboxElement} from 'components/textbox';
-import type TextboxClass from 'components/textbox/textbox';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
@@ -83,10 +82,6 @@ function ChannelSettingsInfoTab({
     const [characterLimitExceeded, setCharacterLimitExceeded] = useState(false);
 
     const [switchingTabsWithUnsaved, setSwitchingTabsWithUnsaved] = useState(IsTabSwitchActionWithUnsaved);
-
-    // Refs
-    const headerTextboxRef = useRef<TextboxClass>(null);
-    const purposeTextboxRef = useRef<TextboxClass>(null);
 
     // The fields we allow editing
     const [displayName, setDisplayName] = useState(channel?.display_name ?? '');
@@ -365,7 +360,6 @@ function ChannelSettingsInfoTab({
                 characterLimit={Constants.MAX_CHANNELPURPOSE_LENGTH}
                 preview={shouldShowPreviewPurpose}
                 togglePreview={togglePurposePreview}
-                textboxRef={purposeTextboxRef}
                 useChannelMentions={false}
                 onKeypress={() => {}}
                 descriptionMessage={formatMessage({
@@ -397,7 +391,6 @@ function ChannelSettingsInfoTab({
                 characterLimit={HEADER_MAX_LENGTH}
                 preview={shouldShowPreviewHeader}
                 togglePreview={toggleHeaderPreview}
-                textboxRef={headerTextboxRef}
                 useChannelMentions={false}
                 onKeypress={() => {}}
                 descriptionMessage={formatMessage({

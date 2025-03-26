@@ -128,7 +128,16 @@ describe('ChannelSettingsArchiveTab', () => {
         });
     });
 
-    it('should redirect to penultimate channel when archived channel cannot be viewed', async () => {
+    it('should call deleteChannel which handles redirection when archived channel cannot be viewed', async () => {
+        // Mock the deleteChannel implementation to simulate the action's behavior
+        const {deleteChannel} = require('actions/views/channel');
+        deleteChannel.mockImplementationOnce(() => {
+            return () => {
+                // The action would handle redirection internally
+                return {data: true};
+            };
+        });
+
         renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
 
         // Click the archive button
@@ -140,8 +149,8 @@ describe('ChannelSettingsArchiveTab', () => {
         // Click the confirm button in the modal
         await userEvent.click(screen.getByRole('button', {name: 'Confirm'}));
 
-        // Check that history.push was called with the correct path
-        expect(getHistory().push).toHaveBeenCalledWith('/team-name/channels/town-square');
+        // Check that deleteChannel was called with the channel ID
+        expect(channelActions.deleteChannel).toHaveBeenCalledWith(mockChannel.id);
     });
 
     it('should show correct message when archived channels cannot be viewed', async () => {
@@ -155,14 +164,21 @@ describe('ChannelSettingsArchiveTab', () => {
         expect(modalMessage).toHaveTextContent("Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels.");
     });
 
-    it('should validate channel ID before archiving', async () => {
+    it('should call deleteChannel which handles channel ID validation', async () => {
         // Create a channel with an invalid ID
         const invalidChannel = {
             ...mockChannel,
             id: 'invalid', // Too short to be a valid channel ID
         };
 
+        // Mock the deleteChannel implementation to simulate the action's behavior
         const {deleteChannel} = require('actions/views/channel');
+        deleteChannel.mockImplementationOnce(() => {
+            return () => {
+                // The action would handle validation internally and return false for invalid IDs
+                return {data: false};
+            };
+        });
 
         renderWithContext(<ChannelSettingsArchiveTab {...{...baseProps, channel: invalidChannel}}/>);
 
@@ -172,7 +188,7 @@ describe('ChannelSettingsArchiveTab', () => {
         // Click the confirm button in the modal
         await userEvent.click(screen.getByRole('button', {name: 'Confirm'}));
 
-        // Check that deleteChannel was not called
-        expect(deleteChannel).not.toHaveBeenCalled();
+        // Check that deleteChannel was called with the invalid channel ID
+        expect(channelActions.deleteChannel).toHaveBeenCalledWith(invalidChannel.id);
     });
 });

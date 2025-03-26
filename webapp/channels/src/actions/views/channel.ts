@@ -32,6 +32,7 @@ import {
     isManuallyUnread,
     getCurrentChannelId,
 } from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getMostRecentPostIdInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {
     getCurrentRelativeTeamUrl,
@@ -49,7 +50,7 @@ import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {loadCustomStatusEmojisForPostList} from 'actions/emoji_actions';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {markThreadAsRead} from 'actions/views/threads';
-import {getLastViewedChannelName} from 'selectors/local_storage';
+import {getLastViewedChannelName, getPenultimateViewedChannelName} from 'selectors/local_storage';
 import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
 import {getLastPostsApiTimeForChannel} from 'selectors/views/channel';
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
@@ -59,6 +60,7 @@ import LocalStorageStore from 'stores/local_storage_store';
 import {getHistory} from 'utils/browser_history';
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
+import {stopTryNotificationRing} from 'utils/notification_sounds';
 
 import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
@@ -524,17 +526,41 @@ export function updateToastStatus(status: boolean) {
 
 export function deleteChannel(channelId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
+        // Get state before deletion
+        const state = getState();
+        const channel = getChannel(state, channelId);
+
+        // Validate channel ID
+        if (!channel || channel.id.length !== Constants.CHANNEL_ID_LENGTH) {
+            return {data: false};
+        }
+
+        const canViewArchivedChannels = getConfig(state).ExperimentalViewArchivedChannels === 'true';
+        const currentTeamDetails = getCurrentTeam(state);
+        const penultimateViewedChannelName = getPenultimateViewedChannelName(state) ||
+            getRedirectChannelNameForTeam(state, getCurrentTeamId(state));
+
+        // Handle redirection before deletion if needed
+        if (!canViewArchivedChannels && penultimateViewedChannelName && currentTeamDetails) {
+            getHistory().push('/' + currentTeamDetails.name + '/channels/' + penultimateViewedChannelName);
+        }
+
+        // Call the delete channel action
         const res = await dispatch(deleteChannelRedux(channelId));
         if (res.error) {
             return {data: false};
         }
-        const state = getState();
 
-        const selectedPost = getSelectedPost(state);
-        const selectedPostId = getSelectedPostId(state);
+        // Handle RHS state
+        const updatedState = getState();
+        const selectedPost = getSelectedPost(updatedState);
+        const selectedPostId = getSelectedPostId(updatedState);
         if (selectedPostId && !selectedPost.exists) {
             dispatch(closeRightHandSide());
         }
+
+        // Stop notification sounds
+        stopTryNotificationRing();
 
         return {data: true};
     };
