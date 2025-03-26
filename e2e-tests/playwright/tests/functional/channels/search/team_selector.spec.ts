@@ -5,8 +5,6 @@ import {createRandomTeam} from '@e2e-support/server';
 import {expect, test} from '@e2e-support/test_fixture';
 
 test('team selector must show all my teams', async ({pw}) => {
-    pw.skipIfFeatureFlagNotSet('ExperimentalCrossTeamSearch', true);
-
     const {adminClient, user, team} = await pw.initSetup();
 
     // # create 2 more teams and add the user to them
