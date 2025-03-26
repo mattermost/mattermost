@@ -13,20 +13,3 @@ export const useUser = makeUseEntity<UserProfile>({
     fetch: (userId) => getMissingProfilesByIds([userId]),
     selector: (state, userId) => getUser(state, userId),
 });
-
-// export function useUser(userId?: string): UserProfile | undefined {
-//     const dispatch = useDispatch();
-
-//     const user = useSelector((state: GlobalState) => {
-//         return userId ? getUser(state, userId) : undefined;
-//     });
-
-//     useEffect(() => {
-//         if (!user && userId) {
-//             console.log('fetching user', userId);
-//             dispatch(getMissingProfilesByIds([userId]));
-//         }
-//     }, [dispatch, user, userId]);
-
-//     return user;
-// }

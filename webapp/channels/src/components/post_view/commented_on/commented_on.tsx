@@ -28,7 +28,7 @@ function CommentedOn({onCommentClick, rootId}: Props) {
         message = (
             <FormattedMessage
                 id='post_body.commentedOn.loadingMessage'
-                defaultMessage='Loading...'
+                defaultMessage='Loading…'
             />
         );
     } else if (rootPost.message) {

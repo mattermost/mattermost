@@ -62,7 +62,7 @@ describe('components/post_view/CommentedOn', () => {
             <CommentedOn rootId={post1.id}/>,
         );
 
-        expect(screen.getByText(textInChildren("Commented on Someone's message: Loading..."))).toBeInTheDocument();
+        expect(screen.getByText(textInChildren("Commented on Someone's message: Loading…"))).toBeInTheDocument();
     });
 
     test("should render the root post's file attachments when it has no message", () => {
