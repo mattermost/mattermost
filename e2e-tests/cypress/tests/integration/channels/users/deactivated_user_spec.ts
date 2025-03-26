@@ -74,8 +74,8 @@ describe('Deactivated user', () => {
                 cy.visit('/');
 
                 // * Verify the auth cookie has been set with the PAT
-                cy.getCookie('MMAUTHTOKEN')
-                    .should('have.property', 'value', personalAccessToken);
+                cy.getCookie('MMAUTHTOKEN').
+                    should('have.property', 'value', personalAccessToken);
 
                 // * Verify we're still logged in using the PAT
                 cy.get('#sidebarItem_town-square').should('be.visible');
