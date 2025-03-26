@@ -513,6 +513,7 @@ func (s *LocalCacheStore) doStandardReadCache(c cache.Cache, key string, value a
 	}
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheMissCounter(c.Name())
+		s.logger.Warn("Cache miss", mlog.Err(err), mlog.String("cache_name", c.Name()), mlog.String("cache_key", key))
 	}
 	return err
 }
