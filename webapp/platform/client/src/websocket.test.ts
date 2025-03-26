@@ -109,9 +109,11 @@ describe('websocketclient', () => {
         const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
                 mockWebSocket.url = url;
-                if (mockWebSocket.onopen) {
-                    mockWebSocket.open();
-                }
+                setTimeout(() => {
+                    if (mockWebSocket.onopen) {
+                        mockWebSocket.open();
+                    }
+                }, 1);
                 return mockWebSocket;
             },
             minWebSocketRetryTime: 50,
@@ -120,7 +122,6 @@ describe('websocketclient', () => {
 
         const initializeSpy = jest.spyOn(client, 'initialize');
         client.initialize('mock.url');
-        mockWebSocket.open();
         mockWebSocket.close();
 
         jest.advanceTimersByTime(10);
@@ -145,9 +146,11 @@ describe('websocketclient', () => {
         const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
                 mockWebSocket.url = url;
-                if (mockWebSocket.onopen) {
-                    mockWebSocket.open();
-                }
+                setTimeout(() => {
+                    if (mockWebSocket.onopen) {
+                        mockWebSocket.open();
+                    }
+                }, 1);
                 return mockWebSocket;
             },
             minWebSocketRetryTime: 50,
@@ -156,7 +159,6 @@ describe('websocketclient', () => {
 
         const initializeSpy = jest.spyOn(client, 'initialize');
         client.initialize('mock.url');
-        mockWebSocket.open();
         mockWebSocket.close();
 
         jest.advanceTimersByTime(10);
@@ -183,9 +185,11 @@ describe('websocketclient', () => {
         const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
                 mockWebSocket.url = url;
-                if (mockWebSocket.onopen) {
-                    mockWebSocket.open();
-                }
+                setTimeout(() => {
+                    if (mockWebSocket.onopen) {
+                        mockWebSocket.open();
+                    }
+                }, 1);
                 return mockWebSocket;
             },
             minWebSocketRetryTime: 50,
@@ -194,7 +198,6 @@ describe('websocketclient', () => {
 
         const initializeSpy = jest.spyOn(client, 'initialize');
         client.initialize('mock.url');
-        mockWebSocket.open();
         mockWebSocket.close();
 
         jest.advanceTimersByTime(10);
@@ -217,9 +220,11 @@ describe('websocketclient', () => {
         const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
                 mockWebSocket.url = url;
-                if (mockWebSocket.onopen) {
-                    mockWebSocket.open();
-                }
+                setTimeout(() => {
+                    if (mockWebSocket.onopen) {
+                        mockWebSocket.open();
+                    }
+                }, 1);
                 return mockWebSocket;
             },
             minWebSocketRetryTime: 1,
@@ -252,7 +257,6 @@ describe('websocketclient', () => {
         const closeSpy = jest.spyOn(mockWebSocket, 'close');
 
         client.initialize('mock.url');
-        mockWebSocket.open();
 
         jest.advanceTimersByTime(30);
 
@@ -273,9 +277,11 @@ describe('websocketclient', () => {
         const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
                 mockWebSocket.url = url;
-                if (mockWebSocket.onopen) {
-                    mockWebSocket.open();
-                }
+                setTimeout(() => {
+                    if (mockWebSocket.onopen) {
+                        mockWebSocket.open();
+                    }
+                }, 1);
                 return mockWebSocket;
             },
             minWebSocketRetryTime: 1,
@@ -321,7 +327,6 @@ describe('websocketclient', () => {
         });
 
         client.initialize('mock.url');
-        mockWebSocket.open();
 
         jest.advanceTimersByTime(30);
 
@@ -342,9 +347,11 @@ describe('websocketclient', () => {
         const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
                 mockWebSocket.url = url;
-                if (mockWebSocket.onopen) {
-                    mockWebSocket.open();
-                }
+                setTimeout(() => {
+                    if (mockWebSocket.onopen) {
+                        mockWebSocket.open();
+                    }
+                }, 1);
                 return mockWebSocket;
             },
             minWebSocketRetryTime: 1,
@@ -382,7 +389,6 @@ describe('websocketclient', () => {
         const closeSpy = jest.spyOn(mockWebSocket, 'close');
 
         client.initialize('mock.url');
-        mockWebSocket.open();
 
         // Let first ping happen
         jest.advanceTimersByTime(25);
