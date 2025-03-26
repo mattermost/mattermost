@@ -97,21 +97,23 @@ function ChannelSettingsConfigurationTab({channel}: Props) {
                     {bannerTextSettingTitle}
                 </span>
 
-                <AdvancedTextbox
-                    id='channel_banner_banner_text_textbox'
-                    value={lol}
-                    channelId={channel.id}
-                    onChange={() => {}}
-                    createMessage={bannerTextPlaceholder}
-                    characterLimit={CHANNEL_BANNER_CHARACTER_LIMIT}
-                    preview={shouldShowBannerTextPreview}
-                    togglePreview={toggleBannerTextPreview}
-                    textboxRef={bannerTextboxRef}
-                    useChannelMentions={false}
-                    onKeypress={() => {}}
-                    hasError={false}
-                    showCharacterCount={false}
-                />
+                <div className='setting_body'>
+                    <AdvancedTextbox
+                        id='channel_banner_banner_text_textbox'
+                        value={lol}
+                        channelId={channel.id}
+                        onChange={() => {}}
+                        createMessage={bannerTextPlaceholder}
+                        characterLimit={CHANNEL_BANNER_CHARACTER_LIMIT}
+                        preview={shouldShowBannerTextPreview}
+                        togglePreview={toggleBannerTextPreview}
+                        textboxRef={bannerTextboxRef}
+                        useChannelMentions={false}
+                        onKeypress={() => {}}
+                        hasError={false}
+                        showCharacterCount={false}
+                    />
+                </div>
             </div>
 
             {/*Banner background color section*/}
@@ -123,11 +125,13 @@ function ChannelSettingsConfigurationTab({channel}: Props) {
                     {bannerColorSettingTitle}
                 </span>
 
-                <ColorInput
-                    id='channel_banner_banner_background_color_picker'
-                    onChange={setChannelBannerColor}
-                    value={channelBannerColor}
-                />
+                <div className='setting_body'>
+                    <ColorInput
+                        id='channel_banner_banner_background_color_picker'
+                        onChange={setChannelBannerColor}
+                        value={channelBannerColor}
+                    />
+                </div>
             </div>
         </div>
     );

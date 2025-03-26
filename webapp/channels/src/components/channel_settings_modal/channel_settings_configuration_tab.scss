@@ -52,13 +52,22 @@
 
     .setting_section {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         gap: 12px;
+
+        .color-input.input-group {
+            width: 160px;
+        }
 
         span.setting_title {
             color: rgb(var(--center-channel-color-rgb));
             font-size: 12px;
             font-weight: 600;
+            flex: 1;
+        }
+
+        .setting_body {
+            flex: 4;
         }
 
         .AdvancedTextbox {
