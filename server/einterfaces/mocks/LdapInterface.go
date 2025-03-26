@@ -15,26 +15,6 @@ type LdapInterface struct {
 	mock.Mock
 }
 
-// CheckPassword provides a mock function with given fields: c, authData, password
-func (_m *LdapInterface) CheckPassword(c request.CTX, authData string, password string) *model.AppError {
-	ret := _m.Called(c, authData, password)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CheckPassword")
-	}
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.AppError); ok {
-		r0 = rf(c, authData, password)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
-
 // CheckProviderAttributes provides a mock function with given fields: c, LS, ouser, patch
 func (_m *LdapInterface) CheckProviderAttributes(c request.CTX, LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string {
 	ret := _m.Called(c, LS, ouser, patch)
