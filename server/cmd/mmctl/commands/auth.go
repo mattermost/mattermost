@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"net/http"
 	"net/url"
 	"os"
 	"sort"
@@ -21,7 +20,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
@@ -39,7 +37,7 @@ var LoginCmd = &cobra.Command{
   auth login https://mattermost.example.com --name local-server --username sysadmin --password-file mysupersecret.txt --mfa-token 123456
   auth login https://mattermost.example.com --name local-server --access-token myaccesstoken`,
 	Args: cobra.ExactArgs(1),
-	RunE: withClient(loginCmdF),
+	RunE: loginCmdF,
 }
 
 var CurrentCmd = &cobra.Command{
@@ -126,7 +124,7 @@ func init() {
 	RootCmd.AddCommand(AuthCmd)
 }
 
-func loginCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+func loginCmdF(cmd *cobra.Command, args []string) error {
 	name, err := cmd.Flags().GetString("name")
 	if err != nil {
 		return err
@@ -173,12 +171,13 @@ func loginCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not parse the instance url: %w", urlErr)
 	}
 
-	res, err := http.Get(instanceURL)
+	c := model.NewAPIv4Client(instanceURL)
+	_, res, err := c.GetPingWithOptions(context.Background(), model.SystemPingOptions{})
 	if err != nil {
-		return fmt.Errorf("could not get instance status: %w", err)
+		return err
 	}
 	if res.StatusCode != 200 {
-		return fmt.Errorf("instance status code is not 200: %d", res.StatusCode)
+		return fmt.Errorf("server status is not healthy. status_code: %d", res.StatusCode)
 	}
 
 	method := MethodPassword
