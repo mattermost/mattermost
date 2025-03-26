@@ -634,7 +634,7 @@ func IsValidEmail(input string) bool {
 
 		// Log a warning for admins in case pre-existing users with emails like <billy@example.com>, which used
 		// to be valid before https://github.com/mattermost/mattermost/pull/29661, know how to deal with this
-		// error We don't need to check for the case addr.Name != "", since that has always been rejected
+		// error. We don't need to check for the case addr.Name != "", since that has always been rejected
 		if addr.Name == "" {
 			mlog.Warn("email %q seems to be enclosed in angle brackets, which is not valid; if this relates to an existing user, use 'mmctl user email' command to modify their email")
 		}
