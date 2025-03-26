@@ -86,24 +86,6 @@
 
         .modal-header {
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-
-            .adminModeBadge {
-                display: flex;
-                width: 86px;
-                min-width: 86px;
-                height: 22px;
-                align-items: center;
-                padding: 2px var(--spacing-xxxs, 6px);
-                border-radius: 4px;
-                margin-top: 10px;
-                margin-bottom: auto;
-                margin-left: 24px;
-                background: var(--error-text);
-                color: white;
-                font-size: 12px;
-                font-weight: 600;
-                gap: 6px;
-            }
         }
 
         li {

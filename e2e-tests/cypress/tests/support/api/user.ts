@@ -432,9 +432,6 @@ function apiCreateUser({
         cy.apiSaveOnboardingTaskListPreference(createdUser.id, 'onboarding_task_list_open', 'false');
         cy.apiSaveOnboardingTaskListPreference(createdUser.id, 'onboarding_task_list_show', 'false');
 
-        // hide drafts tour tip so it doesn't block the execution of subsequent tests
-        cy.apiSaveDraftsTourTipPreference(createdUser.id, true);
-
         if (bypassTutorial) {
             cy.apiDisableTutorials(createdUser.id);
         }
