@@ -369,8 +369,8 @@ describe('websocketclient', () => {
             }
             numPings++;
 
-            // don't respond to first ping
-            if (numPings === 1) {
+            // don't respond to second ping
+            if (numPings === 2) {
                 return;
             }
 
@@ -391,9 +391,18 @@ describe('websocketclient', () => {
         client.initialize('mock.url');
 
         // Let first ping happen
-        jest.advanceTimersByTime(25);
+        jest.advanceTimersByTime(10);
         expect(numPings).toBe(1);
-        expect(numPongs).toBe(0);
+        expect(numPongs).toBe(1);
+
+        // Let second ping happen
+        jest.advanceTimersByTime(10);
+        expect(numPings).toBe(2);
+        expect(numPongs).toBe(1);
+
+        // Ensure we've still only connected once, and haven't disconnected, yet
+        expect(openSpy).toHaveBeenCalledTimes(1);
+        expect(closeSpy).toHaveBeenCalledTimes(0);
 
         // Close and reopen connection before ping timeout
         mockWebSocket.close();
@@ -402,7 +411,7 @@ describe('websocketclient', () => {
         jest.advanceTimersByTime(100);
         client.close();
 
-        expect(numPings).toBe(7);
+        expect(numPings).toBe(9);
         expect(numPongs).toBe(numPings - 1); // Ensure we only skipped the first response
         expect(openSpy).toHaveBeenCalledTimes(2); // Initial open and one reconnect
         expect(closeSpy).toHaveBeenCalledTimes(2); // Manual close and final close
