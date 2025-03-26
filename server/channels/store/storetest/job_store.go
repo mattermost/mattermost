@@ -600,9 +600,9 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, rctx request.CT
 
 	time.Sleep(2 * time.Millisecond)
 
-	updated, err := ss.Job().UpdateStatusOptimistically(job.Id, model.JobStatusInProgress, model.JobStatusSuccess)
+	updatedJob, err := ss.Job().UpdateStatusOptimistically(job.Id, model.JobStatusInProgress, model.JobStatusSuccess)
 	require.NoError(t, err)
-	require.False(t, updated)
+	require.Nil(t, updatedJob)
 
 	received, err = ss.Job().Get(rctx, job.Id)
 	require.NoError(t, err)
@@ -612,30 +612,26 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, rctx request.CT
 
 	time.Sleep(2 * time.Millisecond)
 
-	updated, err = ss.Job().UpdateStatusOptimistically(job.Id, model.JobStatusPending, model.JobStatusInProgress)
+	updatedJob, err = ss.Job().UpdateStatusOptimistically(job.Id, model.JobStatusPending, model.JobStatusInProgress)
 	require.NoError(t, err)
-	require.True(t, updated, "should have succeeded")
+	require.NotNil(t, updatedJob, "should have succeeded")
 
 	var startAtSet int64
-	received, err = ss.Job().Get(rctx, job.Id)
-	require.NoError(t, err)
-	require.Equal(t, model.JobStatusInProgress, received.Status)
-	require.NotEqual(t, 0, received.StartAt)
-	require.Greater(t, received.LastActivityAt, lastUpdateAt)
-	lastUpdateAt = received.LastActivityAt
-	startAtSet = received.StartAt
+	require.Equal(t, model.JobStatusInProgress, updatedJob.Status)
+	require.NotEqual(t, 0, updatedJob.StartAt)
+	require.Greater(t, updatedJob.LastActivityAt, lastUpdateAt)
+	lastUpdateAt = updatedJob.LastActivityAt
+	startAtSet = updatedJob.StartAt
 
 	time.Sleep(2 * time.Millisecond)
 
-	updated, err = ss.Job().UpdateStatusOptimistically(job.Id, model.JobStatusInProgress, model.JobStatusSuccess)
+	updatedJob, err = ss.Job().UpdateStatusOptimistically(job.Id, model.JobStatusInProgress, model.JobStatusSuccess)
 	require.NoError(t, err)
-	require.True(t, updated, "should have succeeded")
+	require.NotNil(t, updatedJob, "should have succeeded")
 
-	received, err = ss.Job().Get(rctx, job.Id)
-	require.NoError(t, err)
-	require.Equal(t, model.JobStatusSuccess, received.Status)
-	require.Equal(t, startAtSet, received.StartAt)
-	require.Greater(t, received.LastActivityAt, lastUpdateAt)
+	require.Equal(t, model.JobStatusSuccess, updatedJob.Status)
+	require.Equal(t, startAtSet, updatedJob.StartAt)
+	require.Greater(t, updatedJob.LastActivityAt, lastUpdateAt)
 }
 
 func testJobDelete(t *testing.T, rctx request.CTX, ss store.Store) {
