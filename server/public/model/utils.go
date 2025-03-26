@@ -26,6 +26,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -630,6 +631,13 @@ func IsValidEmail(input string) bool {
 		// mail.ParseAddress accepts input of the form "Billy Bob <billy@example.com>" or "<billy@example.com>",
 		// which we don't allow. We compare the user input with the parsed addr.Address to ensure we only
 		// accept plain addresses like "billy@example.com"
+
+		// Log a warning for admins in case pre-existing users with emails like <billy@example.com>, which used
+		// to exist before https://github.com/mattermost/mattermost/pull/29661, know how to deal with this error
+		// We don't need to check for the case addr.Name != "", since that has always been rejected
+		if addr.Name == "" {
+			mlog.Warn("email %q seems to be enclosed in angle brackets, which is not valid; if this relates to an existing user, use 'mmctl user email' command to modify their email")
+		}
 		return false
 	}
 
