@@ -8928,6 +8928,31 @@ func (c *Client4) GetUserThreads(ctx context.Context, userId, teamId string, opt
 	return &threads, BuildResponse(r), nil
 }
 
+func (c *Client4) DownloadComplianceExport(ctx context.Context, jobId string, wr io.Writer) (string, error) {
+	r, err := c.DoAPIGet(ctx, c.jobsRoute()+fmt.Sprintf("/%s/download", jobId), "")
+	if err != nil {
+		return "", err
+	}
+	defer closeBody(r)
+
+	// Try to get the filename from the Content-Disposition header
+	var filename string
+	if cd := r.Header.Get("Content-Disposition"); cd != "" {
+		var params map[string]string
+		if _, params, err = mime.ParseMediaType(cd); err == nil {
+			if params["filename"] != "" {
+				filename = params["filename"]
+			}
+		}
+	}
+
+	_, err = io.Copy(wr, r.Body)
+	if err != nil {
+		return filename, NewAppError("DownloadComplianceExport", "model.client.copy.app_error", nil, "", r.StatusCode).Wrap(err)
+	}
+	return filename, nil
+}
+
 func (c *Client4) GetUserThread(ctx context.Context, userId, teamId, threadId string, extended bool) (*ThreadResponse, *Response, error) {
 	url := c.userThreadRoute(userId, teamId, threadId)
 	if extended {
