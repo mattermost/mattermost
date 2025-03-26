@@ -53,7 +53,7 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "У запиті відсутній файл у розділі \"сертифікат\"."
+    "translation": "У запиті не знайдено жодного файлу під назвою 'certificate'."
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
@@ -4601,19 +4601,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Версія 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Версія 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версія 130+"
+    "translation": "Версія 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версія 130+"
+    "translation": "Версія 132+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10414,5 +10414,89 @@
   {
     "id": "app.post.restore_post_version.not_allowed.app_error",
     "translation": "Ви не маєте відповідних дозволів."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Не вдалося отримати використання сховища для всіх файлів."
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Не вдається отримати інформацію про файли за ідентифікаторами для історії редагувань."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Не вдалося відновити вкладені файли."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Не вдалося отримати стару версію допису."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Наданий ідентифікатор історії повідомлень не відповідає елементу історії повідомлень."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Не вдалося обчислити дані експорту каналу."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Не вдалося перетворити значення з поля даних завдання."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Колір банера каналу не може бути порожнім, якщо банер каналу увімкнено"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Банер каналу можна налаштувати лише на публічних та приватних каналах"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Інформаційний текст банера каналу не може бути порожнім, якщо банер каналу увімкнено"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Текст інформації про банер каналу занадто довгий. Максимально допустима довжина - {{.maxLength}} символів."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Банер каналу можна налаштувати лише на публічних та приватних каналах."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Ви не маєте дозволу на оновлення цього ресурсу."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Неможливо видалити чернетки для користувача."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "Потрібна ліцензія LDAP."
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Не вдалося скинути спроби входу."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Не вдалося отримати користувача."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Недійсна максимальна кількість спроб входу для налаштувань ldap. Число має бути додатним."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Ваш обліковий запис заблоковано через забагато невдалих спроб введення пароля. Будь ласка, зверніться до свого системного адміністратора."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Служба автентифікації користувача має бути LDAP або електронною поштою."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Функція недоступна для поточної ліцензії"
   }
 ]

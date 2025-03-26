@@ -15,7 +15,7 @@ import {
     maxUserIdsPerStatusesRequest,
 } from 'mattermost-redux/actions/users';
 import {getCurrentUser, getCurrentUserId, getIsUserStatusesConfigEnabled, getUsers} from 'mattermost-redux/selectors/entities/common';
-import {getUsersStatusAndProfileFetchingPollInterval} from 'mattermost-redux/selectors/entities/general';
+import {getLicense, getUsersStatusAndProfileFetchingPollInterval} from 'mattermost-redux/selectors/entities/general';
 import {getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {BackgroundDataLoader} from 'mattermost-redux/utils/data_loader';
@@ -172,14 +172,14 @@ export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[
         });
 
         if (mentionedUsernamesAndGroupsInPosts.size > 0) {
-            dispatch(getUsersFromMentionedUsernamesAndGroups(Array.from(mentionedUsernamesAndGroupsInPosts)));
+            dispatch(getUsersFromMentionedUsernamesAndGroups(Array.from(mentionedUsernamesAndGroupsInPosts), getLicense(state).IsLicensed === 'true'));
         }
 
         return {data: true};
     };
 }
 
-export function getUsersFromMentionedUsernamesAndGroups(usernamesAndGroups: string[]): ActionFuncAsync<string[]> {
+export function getUsersFromMentionedUsernamesAndGroups(usernamesAndGroups: string[], isLicensed: boolean): ActionFuncAsync<string[]> {
     return async (dispatch) => {
         // We run the at-mentioned be it user or group through the user profile search
         const {data: userProfiles} = await dispatch(getProfilesByUsernames(usernamesAndGroups));
@@ -198,15 +198,17 @@ export function getUsersFromMentionedUsernamesAndGroups(usernamesAndGroups: stri
         // Removing usernames from the list will leave only the group names
         const mentionedGroups = usernamesAndGroups.filter((name) => !mentionedUsernames.includes(name));
 
-        for (const group of mentionedGroups) {
-            const groupSearchParam: GroupSearchParams = {
-                q: group,
-                filter_allow_reference: true,
-                page: 0,
-                per_page: 60,
-            };
+        if (isLicensed) {
+            for (const group of mentionedGroups) {
+                const groupSearchParam: GroupSearchParams = {
+                    q: group,
+                    filter_allow_reference: true,
+                    page: 0,
+                    per_page: 60,
+                };
 
-            dispatch(searchGroups(groupSearchParam));
+                dispatch(searchGroups(groupSearchParam));
+            }
         }
 
         return {data: mentionedGroups};

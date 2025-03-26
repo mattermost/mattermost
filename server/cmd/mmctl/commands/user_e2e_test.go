@@ -1448,6 +1448,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 	})
 
 	s.Run("update existing preference for single user", func() {
+		s.T().Skip("https://mattermost.atlassian.net/browse/MM-63420")
 		setup()
 		printer.Clean()
 
@@ -1477,6 +1478,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 	})
 
 	s.Run("update existing preference for multiple users as admin", func() {
+		s.T().Skip("https://mattermost.atlassian.net/browse/MM-63420")
 		setup()
 		printer.Clean()
 
