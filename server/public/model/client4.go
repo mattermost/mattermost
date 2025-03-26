@@ -1512,6 +1512,7 @@ func (c *Client4) GetUsersByIdsWithOptions(ctx context.Context, userIds []string
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
+
 	var list []*User
 	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
 		return nil, nil, NewAppError("GetUsersByIdsWithOptions", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -3207,7 +3208,7 @@ func (c *Client4) PatchChannel(ctx context.Context, channelId string, patch *Cha
 	var ch *Channel
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
-		return nil, BuildResponse(r), NewAppError("PatchChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, BuildResponse(r), NewAppError("PatchChannel", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ch, BuildResponse(r), nil
 }
