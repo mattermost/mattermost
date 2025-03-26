@@ -107,11 +107,13 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
             // Prompt system admins and team admins before joining the private channel
             const user = getCurrentUser(state);
             let prompt = false;
-            if (postInfo.channel_type === Constants.PRIVATE_CHANNEL && isSystemAdmin(user.roles)) {
-                prompt = true;
-            } else {
-                const teamMember = getMyTeamMember(state, currentTeam.id);
-                prompt = Boolean(teamMember && teamMember.scheme_admin);
+            if (postInfo.channel_type === Constants.PRIVATE_CHANNEL) {
+                if (isSystemAdmin(user.roles)) {
+                    prompt = true;
+                } else {
+                    const teamMember = getMyTeamMember(state, currentTeam.id);
+                    prompt = Boolean(teamMember && teamMember.scheme_admin);
+                }
             }
             if (prompt) {
                 privateChannelJoinPromptVisible = true;

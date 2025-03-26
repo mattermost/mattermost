@@ -202,12 +202,6 @@ async function savePreferences(client: Client, userId: UserProfile['id']) {
 
         const preferences: PreferenceType[] = [
             {user_id: userId, category: 'tutorial_step', name: userId, value: '999'},
-            {
-                user_id: userId,
-                category: 'drafts',
-                name: 'drafts_tour_tip_showed',
-                value: JSON.stringify({drafts_tour_tip_showed: true}),
-            },
             {user_id: userId, category: 'crt_thread_pane_step', name: userId, value: '999'},
         ];
 

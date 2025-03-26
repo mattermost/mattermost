@@ -32,6 +32,11 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
         <ToggleModalButton
           ariaLabel="Invite Members"
           className="intro-links color--link cursor--pointer"
+          dialogProps={
+            Object {
+              "focusOriginElement": "inviteMembersButton",
+            }
+          }
           dialogType={
             Object {
               "$$typeof": Symbol(react.memo),

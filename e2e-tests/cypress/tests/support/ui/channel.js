@@ -43,8 +43,9 @@ Cypress.Commands.add('uiCreateChannel', ({
 
 Cypress.Commands.add('uiAddUsersToCurrentChannel', (usernameList) => {
     if (usernameList.length) {
-        cy.get('#channelHeaderDropdownIcon').click();
-        cy.get('#channelAddMembers').click();
+        cy.get('#channelHeaderTitle').click();
+        cy.get('#channelMembers').click();
+        cy.uiGetButton('Add').click();
         cy.get('#addUsersToChannelModal').should('be.visible');
         usernameList.forEach((username) => {
             cy.get('#selectItems input').typeWithForce(`@${username}{enter}`);
@@ -56,8 +57,9 @@ Cypress.Commands.add('uiAddUsersToCurrentChannel', (usernameList) => {
 
 Cypress.Commands.add('uiInviteUsersToCurrentChannel', (usernameList) => {
     if (usernameList.length) {
-        cy.get('#channelHeaderDropdownIcon').click();
-        cy.get('#channelInviteMembers').click();
+        cy.get('#channelHeaderTitle').click();
+        cy.get('#channelMembers').click();
+        cy.uiGetButton('Add').click();
         cy.get('#addUsersToChannelModal').should('be.visible');
         usernameList.forEach((username) => {
             cy.get('#selectItems input').typeWithForce(`@${username}{enter}`);
@@ -68,19 +70,19 @@ Cypress.Commands.add('uiInviteUsersToCurrentChannel', (usernameList) => {
 });
 
 Cypress.Commands.add('uiArchiveChannel', () => {
-    cy.get('#channelHeaderDropdownIcon').click();
+    cy.get('#channelHeaderTitle').click();
     cy.get('#channelArchiveChannel').click();
     return cy.get('#deleteChannelModalDeleteButton').click();
 });
 
 Cypress.Commands.add('uiUnarchiveChannel', () => {
-    cy.get('#channelHeaderDropdownIcon').should('be.visible').click();
+    cy.get('#channelHeaderTitle').should('be.visible').click();
     cy.get('#channelUnarchiveChannel').should('be.visible').click();
     return cy.get('#unarchiveChannelModalDeleteButton').should('be.visible').click();
 });
 
 Cypress.Commands.add('uiLeaveChannel', (isPrivate = false) => {
-    cy.get('#channelHeaderDropdownIcon').click();
+    cy.get('#channelHeaderTitle').click();
 
     if (isPrivate) {
         cy.get('#channelLeaveChannel').click();

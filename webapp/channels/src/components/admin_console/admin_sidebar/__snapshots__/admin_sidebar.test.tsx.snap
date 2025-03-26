@@ -1121,6 +1121,17 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="integrations.embedding"
+              key="integrations.embedding"
+              name="integrations/embedding"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Embedding"
+                  id="admin.sidebar.embedding"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="experimental"
@@ -1812,6 +1823,17 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="CORS"
                   id="admin.sidebar.cors"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="integrations.embedding"
+              key="integrations.embedding"
+              name="integrations/embedding"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Embedding"
+                  id="admin.sidebar.embedding"
                 />
               }
             />
@@ -2564,6 +2586,17 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="integrations.embedding"
+              key="integrations.embedding"
+              name="integrations/embedding"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Embedding"
+                  id="admin.sidebar.embedding"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="experimental"
@@ -3255,6 +3288,17 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="CORS"
                   id="admin.sidebar.cors"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="integrations.embedding"
+              key="integrations.embedding"
+              name="integrations/embedding"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Embedding"
+                  id="admin.sidebar.embedding"
                 />
               }
             />
@@ -4059,6 +4103,17 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="CORS"
                   id="admin.sidebar.cors"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="integrations.embedding"
+              key="integrations.embedding"
+              name="integrations/embedding"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Embedding"
+                  id="admin.sidebar.embedding"
                 />
               }
             />
@@ -4984,6 +5039,17 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="CORS"
                   id="admin.sidebar.cors"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="integrations.embedding"
+              key="integrations.embedding"
+              name="integrations/embedding"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Embedding"
+                  id="admin.sidebar.embedding"
                 />
               }
             />

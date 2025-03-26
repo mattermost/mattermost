@@ -10,7 +10,7 @@ describe('components/MsgTyping', () => {
     const baseProps = {
         typingUsers: [],
         channelId: 'test',
-        postId: '',
+        rootId: '',
         userStartedTyping: jest.fn(),
         userStoppedTyping: jest.fn(),
     };

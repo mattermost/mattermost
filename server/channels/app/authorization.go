@@ -82,6 +82,19 @@ func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session
 		return false
 	}
 
+	channel, appErr := a.GetChannel(c, channelID)
+	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
+		return false
+	}
+
+	if session.IsUnrestricted() || a.RolesGrantPermission(session.GetUserRoles(), model.PermissionManageSystem.Id) {
+		return true
+	}
+
+	if a.isChannelArchivedAndHidden(channel) {
+		return false
+	}
+
 	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(c, session.UserId, true, true)
 	var channelRoles []string
 	if err == nil {
@@ -91,15 +104,6 @@ func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session
 				return true
 			}
 		}
-	}
-
-	channel, appErr := a.GetChannel(c, channelID)
-	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
-		return false
-	}
-
-	if session.IsUnrestricted() {
-		return true
 	}
 
 	if appErr == nil && channel.TeamId != "" {
@@ -115,22 +119,32 @@ func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Sessio
 		return true
 	}
 
+	if session.IsUnrestricted() || a.RolesGrantPermission(session.GetUserRoles(), model.PermissionManageSystem.Id) {
+		return true
+	}
+
 	for _, channelID := range channelIDs {
 		if channelID == "" {
 			return false
 		}
-	}
 
-	// if System Roles (ie. Admin, TeamAdmin) allow permissions
-	// if so, no reason to check team
-	if a.SessionHasPermissionTo(session, permission) {
 		// make sure all channels exist, otherwise return false.
 		for _, channelID := range channelIDs {
-			_, appErr := a.GetChannel(c, channelID)
-			if appErr != nil && appErr.StatusCode == http.StatusNotFound {
+			channel, appErr := a.GetChannel(c, channelID)
+			if appErr != nil {
+				return false
+			}
+
+			// if any channel is archived and the user doesn't have permission to view archived channels, return false
+			if a.isChannelArchivedAndHidden(channel) {
 				return false
 			}
 		}
+	}
+
+	// if System Roles (i.e. Admin, TeamAdmin) allow permissions
+	// if so, no reason to check team
+	if a.SessionHasPermissionTo(session, permission) {
 		return true
 	}
 
@@ -148,6 +162,7 @@ func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Sessio
 		}
 		return false
 	}
+
 	return true
 }
 
@@ -202,7 +217,7 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 	if userID == "" {
 		return false
 	}
-	if session.IsUnrestricted() {
+	if session.IsUnrestricted() || a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
 		return true
 	}
 
@@ -210,11 +225,20 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 		return true
 	}
 
-	if a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) {
-		return true
+	if !a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) {
+		return false
 	}
 
-	return false
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return false
+	}
+
+	if user.IsSystemAdmin() {
+		return false
+	}
+
+	return true
 }
 
 func (a *App) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Session, userID string) bool {
@@ -380,7 +404,7 @@ func (a *App) SessionHasPermissionToReadChannel(c request.CTX, session model.Ses
 }
 
 func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
-	if !*a.Config().TeamSettings.ExperimentalViewArchivedChannels && channel.DeleteAt != 0 {
+	if a.isChannelArchivedAndHidden(channel) {
 		return false
 	}
 	if a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) {
@@ -395,7 +419,7 @@ func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *
 }
 
 func (a *App) HasPermissionToChannelMemberCount(c request.CTX, userID string, channel *model.Channel) bool {
-	if !*a.Config().TeamSettings.ExperimentalViewArchivedChannels && channel.DeleteAt != 0 {
+	if a.isChannelArchivedAndHidden(channel) {
 		return false
 	}
 	if a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) {
@@ -407,4 +431,8 @@ func (a *App) HasPermissionToChannelMemberCount(c request.CTX, userID string, ch
 	}
 
 	return false
+}
+
+func (a *App) isChannelArchivedAndHidden(channel *model.Channel) bool {
+	return !*a.Config().TeamSettings.ExperimentalViewArchivedChannels && channel.DeleteAt != 0
 }

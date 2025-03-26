@@ -486,7 +486,7 @@ func (u *User) PreSave() *AppError {
 		u.Props = make(map[string]string)
 	}
 
-	if u.NotifyProps == nil || len(u.NotifyProps) == 0 {
+	if len(u.NotifyProps) == 0 {
 		u.SetDefaultNotifications()
 	}
 
@@ -536,7 +536,7 @@ func (u *User) PreUpdate() {
 		u.AuthData = nil
 	}
 
-	if u.NotifyProps == nil || len(u.NotifyProps) == 0 {
+	if len(u.NotifyProps) == 0 {
 		u.SetDefaultNotifications()
 	} else if _, ok := u.NotifyProps[MentionKeysNotifyProp]; ok {
 		// Remove any blank mention keys
@@ -709,10 +709,10 @@ func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.EmailVerified = false
 	u.AllowMarketing = false
 	u.LastPasswordUpdate = 0
-	u.FailedAttempts = 0
 
 	if !asAdmin {
 		u.NotifyProps = StringMap{}
+		u.FailedAttempts = 0
 	}
 }
 

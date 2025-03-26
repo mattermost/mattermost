@@ -761,6 +761,7 @@ class GroupDetails extends React.PureComponent<Props, State> {
                                 total={memberCount}
                                 groupID={this.props.groupID}
                                 getMembers={this.props.actions.getMembers}
+                                source={group.source}
                             />
                         </AdminPanel>
                     </div>

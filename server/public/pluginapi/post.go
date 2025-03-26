@@ -297,7 +297,7 @@ func (p *PostService) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 		return false, nil
 	}
 
-	if !messageProcessOptions.AllowWebhook && post.GetProp("from_webhook") == "true" {
+	if !messageProcessOptions.AllowWebhook && post.GetProp(model.PostPropsFromWebhook) == "true" {
 		return false, nil
 	}
 

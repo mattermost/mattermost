@@ -43,8 +43,6 @@ export function openInvitationsModal(timeout = 1): ActionFunc {
             dispatch(openModal({
                 modalId: ModalIdentifiers.INVITATION,
                 dialogType: InvitationModal,
-                dialogProps: {
-                },
             }));
         }, timeout);
         return {data: true};

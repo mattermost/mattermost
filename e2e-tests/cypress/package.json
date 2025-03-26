@@ -37,6 +37,7 @@
     "cypress-file-upload": "5.0.8",
     "cypress-multi-reporters": "1.6.4",
     "cypress-plugin-tab": "1.0.5",
+    "cypress-real-events": "1.14.0",
     "cypress-wait-until": "3.0.1",
     "dayjs": "1.11.10",
     "deepmerge": "4.3.1",

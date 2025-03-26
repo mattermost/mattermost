@@ -517,7 +517,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Nevalidní Id."
+    "translation": "Neplatné Id: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
@@ -5293,11 +5293,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verze 130+"
+    "translation": "Verze 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verze 130+"
+    "translation": "Verze 132+"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
@@ -10422,5 +10422,81 @@
   {
     "id": "app.file_info.get_storage_usage.app_error",
     "translation": "Nepodařilo se získat využití úložiště pro všechny soubory."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Relace nebyla nalezena."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Nelze spočítat počet polí pro skupinu vlastního atributu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Nelze provést vložení nebo aktualizaci polí vlastního atributu profilu"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Neplatné ID uživatele na straně klienta: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Počet prvků v ClientSideUserIds {{.CurrentLength}} je vyšší než maximální limit {{.MaxLength}}."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Banner kanálu lze nastavit pouze u Veřejných a Soukromých kanálů."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Barva banneru kanálu nemůže být prázdná, když je banner kanálu povolen"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Banner kanálu lze nastavit pouze u veřejných a soukromých kanálů"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Text informací o banneru kanálu nemůže být prázdný, když je banner kanálu povolen"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Text informací o banneru kanálu je příliš dlouhý. Maximální povolená délka je {{.maxLength}} znaků."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Váš účet je uzamčen z důvodu příliš mnoha neúspěšných pokusů o přihlášení. Kontaktujte svého správce systému."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Služba ověření uživatele musí být LDAP nebo e-mail."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Nemáte oprávnění aktualizovat tento zdroj."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "Je vyžadována licence LDAP."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Získání uživatele se nezdařilo."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Funkce není pro aktuální licenci dostupná"
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Neplatný maximální počet pokusů o přihlášení pro nastavení ldap. Musí být kladné číslo."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Koncepty pro uživatele nelze smazat."
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Nepodařilo se zresetovat pokusy o přihlášení uživatele."
   }
 ]

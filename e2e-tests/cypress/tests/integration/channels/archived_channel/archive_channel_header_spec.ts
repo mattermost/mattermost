@@ -48,55 +48,41 @@ describe('Archive channel header spec', () => {
         // * The dropdown menu of the channel header should be visible;
         cy.get('#channelLeaveChannel').should('be.visible');
 
-        // * Rename menu option should be visible;
-        cy.get('#channelRename').should('be.visible');
-
-        // * Edit header menu option should be visible;
-        cy.get('#channelEditHeader').should('be.visible');
-
-        // * Edit purpose menu option should be visible;
-        cy.get('#channelEditPurpose').should('be.visible');
-
-        // * Convert channel to private menu option should be visible;
-        cy.get('#channelConvertToPrivate').should('be.visible');
+        // * Channel Settings submenu should be visible;
+        cy.get('#channelSettings').should('be.visible');
 
         // * Archive channel menu option should be visible;
         cy.get('#channelArchiveChannel').should('be.visible');
 
-        // * Add members menu option should be visible;
-        cy.get('#channelInviteMembers').should('be.visible');
+        // * Members menu option should be visible;
+        cy.get('#channelMembers').should('be.visible');
 
         // * Notification preferences option should be visible;
         cy.get('#channelNotificationPreferences').should('be.visible');
 
-        // # Close the channel dropdown menu
-        cy.get('#channelHeaderTitle').click();
+        // # Close the channel dropdown menu using keyboard escape
+        cy.get('body').type('{esc}{esc}');
 
         // # Archive the channel
         cy.uiArchiveChannel();
 
-        // * Rename menu option should not be visible;
-        cy.get('#channelRename').should('not.exist');
-
-        // * Edit header menu option should not be visible;
-        cy.get('#channelEditHeader').should('not.exist');
-
-        // * Edit purpose menu option should not be visible;
-        cy.get('#channelEditPurpose').should('not.exist');
-
-        // * Convert channel to private menu option should not be visible;
-        cy.get('#channelConvertToPrivate').should('not.exist');
+        // # click on channel drop-down menu
+        cy.get('#channelHeaderTitle').click();
 
         // * Archive channel menu option should not be visible;
         cy.get('#channelArchiveChannel').should('not.exist');
 
-        // * Add members menu option should not be visible;
-        cy.get('#channelInviteMembers').should('not.exist');
+        // * Channel Settings submenu should be visible;
+        cy.get('#channelSettings').should('not.exist');
+
+        // * Members menu option should be visible;
+        // as it now displays in RHS
+        cy.get('#channelMembers').should('be.visible');
 
         // * Notification preferences option should not be visible;
         cy.get('#channelNotificationPreferences').should('not.exist');
 
-        // # Close the channel dropdown menu
-        cy.get('#channelHeaderTitle').click();
+        // # Close the channel dropdown menu using keyboard escape
+        cy.get('body').type('{esc}{esc}');
     });
 });

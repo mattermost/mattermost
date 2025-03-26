@@ -382,7 +382,7 @@ var PermissionRunView *Permission
 var PermissionSysconsoleReadProductsBoards *Permission
 var PermissionSysconsoleWriteProductsBoards *Permission
 
-// General permission that encompasses all system admin functions
+// PermissionManageSystem is a general permission that encompasses all system admin functions
 // in the future this could be broken up to allow access to some
 // admin functions but not others
 var PermissionManageSystem *Permission
