@@ -35,100 +35,6 @@
                 flex: 1;
             }
 
-            .Menu {
-                position: fixed;
-                top: 48px;
-                left: 0;
-                display: block;
-                overflow: hidden;
-                width: 100%;
-                height: 100%;
-                padding: 2.5em 0 0;
-                padding-bottom: 50px;
-                background: functions.alpha-color(variables.$black, 0.9);
-                transition: all 0.35s ease;
-
-                body.announcement-bar--fixed & {
-                    top: calc(48px + #{variables.$announcement-bar-height});
-                    height: calc(100% - 48px - #{variables.$announcement-bar-height});
-                }
-            }
-
-            .Menu__content {
-                position: absolute;
-                top: 0;
-                overflow: auto;
-                width: 100%;
-                max-width: 100%;
-                height: 100%;
-                max-height: 100%;
-                padding: 2rem 2rem 5rem;
-                background: transparent;
-            }
-
-            .Menu__close {
-                position: fixed;
-                top: 70px;
-                right: 20px;
-                display: block;
-                width: 30px;
-                height: 30px;
-                padding-top: 13px;
-                border: 1px solid variables.$white;
-                border-radius: 50%;
-                margin-left: -15px;
-                color: variables.$white;
-                font-family: 'Open Sans', sans-serif;
-                font-size: 23px;
-                font-weight: 200;
-                line-height: 0;
-                opacity: 1;
-                text-align: center;
-                text-shadow: none;
-            }
-
-            .dropdown-menu {
-                .dropdown__divider {
-                    & + .dropdown__divider {
-                        display: none;
-                    }
-                }
-
-                >li {
-                    >a,
-                    >button,
-                    >.styleSelectableItemDiv {
-                        display: flex;
-                        width: 100%;
-                        height: auto;
-                        justify-content: center;
-                        padding: 0.4rem 2rem;
-                        margin: 0 auto;
-                        color: variables.$white;
-                        font-weight: 600;
-                        line-height: 32px;
-                        text-align: center;
-
-                        &:hover {
-                            background: transparent;
-                        }
-
-                        .SubMenu__icon-right {
-                            color: rgba(255, 255, 255, 0.75);
-                        }
-                    }
-
-                    .navbar-right__icon {
-                        margin: 10px;
-                    }
-
-                    hr {
-                        border-bottom: 1px solid functions.alpha-color(variables.$white, 0.3);
-                        margin: 8px auto;
-                    }
-                }
-            }
-
             .status {
                 top: 2px;
                 width: 16px;
@@ -167,7 +73,7 @@
                 }
 
                 .nav-pills {
-                    >li {
+                    > &__tab {
                         &:hover {
                             a {
                                 background: transparent !important;
@@ -276,7 +182,9 @@
                         width: 100%;
                         margin: 0;
 
-                        >li {
+                        &-pills__tab {
+                            height: 48px;
+
                             >a {
                                 font-size: 1.1em;
                                 line-height: 2.7;
@@ -284,10 +192,6 @@
                                 .icon {
                                     margin: 0 7px;
                                 }
-                            }
-
-                            > button {
-                                height: 48px;
                             }
                         }
                     }
@@ -319,14 +223,12 @@
             }
 
             .nav-pills {
-                >li {
+                &__tab {
                     &.active {
-                        button {
-                            background: transparent;
+                        background: transparent;
 
-                            &::before {
-                                display: none;
-                            }
+                        &::before {
+                            display: none;
                         }
                     }
                 }
@@ -372,7 +274,6 @@
 
         .post,
         .SidebarMenu,
-        .AddChannelDropdown,
         .GlobalThreads {
             .Menu {
                 position: fixed;
@@ -472,7 +373,6 @@
     }
 
     .emoji-picker {
-        z-index: 1070;
         // !important is used to overide inline styles
         // used on larger screens
         top: 0 !important;
@@ -485,10 +385,6 @@
 
         >ul {
             margin-top: 66px;
-        }
-
-        &.bottom {
-            margin-top: 0;
         }
 
         .search-grid-container {
@@ -568,24 +464,6 @@
         .Menu__content {
             &.dropdown-menu {
                 max-width: 100%;
-            }
-
-            &.mobile-channel-header-dropdown-enter {
-                transform: translateY(100%);
-            }
-
-            &.mobile-channel-header-dropdown-enter-active {
-                transform: translateY(0%);
-                transition: transform 0.35s ease-in;
-            }
-
-            &.mobile-channel-header-dropdown-enter-done {
-                transform: translateY(0%);
-            }
-
-            &.mobile-channel-header-dropdown-exit {
-                transform: translateY(100%);
-                transition: transform 0.35s ease-in;
             }
         }
     }
@@ -866,11 +744,9 @@
             }
         }
 
-        .post-add-reaction {
-            .Reaction {
-                opacity: 1;
-                visibility: visible;
-            }
+        .Reaction__add {
+            opacity: 1;
+            visibility: visible;
         }
 
         .browser--ie & {
@@ -1559,8 +1435,7 @@
             }
         }
 
-        .SidebarMenu,
-        .AddChannelDropdown {
+        .SidebarMenu {
             display: block !important;
 
             .Menu {
@@ -2088,19 +1963,6 @@
             transform: translate3d(0, 0, 0);
         }
     }
-
-    // overides edit modal body element's css position
-    // to allow emoji picker to fill the screen on mobile screens < 480
-    .edit-modal-body--add-reaction {
-        position: static;
-
-        .emoji-picker {
-            top: -1px !important;
-            left: -1px !important;
-            width: calc(100% + 2px);
-            height: calc(100% + 2px);
-        }
-    }
 }
 
 @media screen and (max-height: 640px) {
@@ -2198,24 +2060,6 @@
 
     .signup-team-all {
         max-height: calc(75vh - (111px + 187px));
-    }
-}
-
-@media screen and (max-width: 380px) and (max-height: 580px) {
-    #navbar_wrapper {
-        .navbar-default {
-            .dropdown-menu {
-                padding-top: 1em;
-
-                >li {
-                    >a {
-                        border: none;
-                        font-size: 13px;
-                        line-height: 27px;
-                    }
-                }
-            }
-        }
     }
 }
 

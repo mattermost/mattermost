@@ -53,7 +53,7 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "У запиті відсутній файл у розділі \"сертифікат\"."
+    "translation": "У запиті не знайдено жодного файлу під назвою 'certificate'."
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
@@ -3000,60 +3000,8 @@
     "translation": "Системна консоль стає доступною лише для читання, коли увімкнено Високу доступність, якщо ReadOnlyConfig не вимкнено у конфігураційному файлі."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Невідомий формат виводу {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Не вдалося скопіювати вкладення в zip-файл."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Не вдалося додати вкладення до CSV-експорту."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Не вдалося створити тимчасовий файл експорту CSV."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Не вдалося додати заголовок до експорту CSV."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Не вдалося додати файл метаданих до zip-файлу."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Не вдається конвертувати метадані в json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Не вдалось експортувати допис."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Не вдалося створити файл експорту у форматі zip."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Завантажений файл було вилучено з експорту Global Relay, оскільки він був занадто великим для надсилання."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Не вдалось відкрити тимчасовий файл експорту."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Не вдалося перечитати тимчасовий файл експорту Global Relay."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Функції відповідності відключено поточною ліцензією. Щоб оновити корпоративну ліцензію, зверніться до системного адміністратора."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Не вдалося завантажити шаблони експорту. Спробуйте ще раз."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3116,10 +3064,6 @@
     "translation": "{{.Backend}} не запущено"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Не вдалося видалити індекс Elasticsearch"
-  },
-  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "Пошук {{.Backend}} вимкнено на цьому сервері"
   },
@@ -3145,11 +3089,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Ваша ліцензія не підтримує Elasticsearch."
+    "translation": "Ваша ліцензія Mattermost не підтримує індексований пошук."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "URL-адреса сервера Elasticsearch або ім'я користувача змінилися. Будь ласка, введіть пароль Elasticsearch ще раз, щоб перевірити з'єднання."
+    "translation": "Змінено URL-адресу сервера пошуку або ім'я користувача. Будь ласка, введіть пароль ще раз, щоб перевірити з'єднання."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3234,58 +3178,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "помилка при отриманні груп для користувача"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Не вдалося додати вкладення до експорту Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Не вдалось закрити zip-файл."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Не вдалося створити файл eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Не вдається згенерувати дані eml-файлу."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Не вдалося доставити електронний лист до Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Не вдалося встановити адресу відправника електронної пошти."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Не вдалося встановити повідомлення електронної пошти."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Не вдалося написати повідомлення електронної пошти."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Не вдалося прочитати інформацію електронної пошти."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Не вдалося встановити адресу отримувача електронної пошти."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Не вдалося отримати інформацію про тимчасовий файл експорту."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Не вдається отримати електронний лист з тимчасового файлу."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Не вдалось відкрити тимчасовий файл для експорту."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3717,7 +3609,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Налаштування пошуку EnableIndexing повинно бути увімкнено, якщо Elasticsearch EnableSearching увімкнено"
+    "translation": "Параметр {{.EnableIndexing}} має бути увімкнений, якщо {{.Searching}} увімкнено"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4105,7 +3997,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Недійсний ідентифікатор."
+    "translation": "Невірний ідентифікатор: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4709,19 +4601,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Версія 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Версія 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версія 130+"
+    "translation": "Версія 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версія 130+"
+    "translation": "Версія 132+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4885,7 +4777,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Налаштування пошуку EnableIndexing повинен бути увімкнений, якщо Elasticsearch EnableAutocomplete увімкнений"
+    "translation": "Параметр {{.EnableIndexing}} має бути увімкнений, якщо {{.Autocomplete}} увімкнено"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4965,7 +4857,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Не вдалося оновити індекси Elasticsearch"
+    "translation": "Не вдалося оновити пошукові індекси"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -4998,14 +4890,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Не вдалося створити шаблон {{.Backend}} для каналів"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Не вдалося створити файл попередження."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Не вдалось створити zip-файл"
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -5980,10 +5864,6 @@
     "translation": "Неможливо перемістити канали приватних або групових повідомлень"
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Не вдалося отримати користувачів у каналі за вказаний період часу."
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Неможливо зберегти емодзі."
   },
@@ -6262,10 +6142,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " додав(ла) файл."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Не вдалось конвертувати експорт у XML."
   },
   {
     "id": "app.job.update.app_error",
@@ -8404,10 +8280,6 @@
     "translation": "Не вдалося оновити участь у обговореннях для згаданого користувача"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Схема індекса Elasticsearch для вашого каналу застаріла. Рекомендується перегенерувати індекс каналів.\nНатисніть кнопку `Перегенерувати індекс каналів` у [розділі Elasticsearch у системній консолі]({{.ElasticsearchSection}}), щоб виправити цю проблему. \nДивіться журнал змін Mattermost для отримання додаткової інформації."
-  },
-  {
     "id": "api.user.create_user.user_limits.exceeded",
     "translation": "Неможливо створити користувача. Сервер перевищує ліміт безпечних користувачів. Зверніться до свого адміністратора з повідомленням: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
@@ -9220,10 +9092,6 @@
     "translation": "Не вдалося перевірити межі зображення. Роздільна здатність занадто висока."
   },
   {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Не вдалось записати файл експорту."
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "Сталася помилка під час серіалізації JSON-запиту"
   },
@@ -9468,16 +9336,8 @@
     "translation": "Не вдалося проіндексувати пакет файлів."
   },
   {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Не вдалося записати csv-файл."
-  },
-  {
     "id": "bleveengine.stop_file_index.error",
     "translation": "Не вдалося закрити індекс файлу."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "Не вдалося закрити zip-файл"
   },
   {
     "id": "common.parse_error_int64",
@@ -9600,10 +9460,6 @@
     "translation": "{{.OtherItems}} і {{.LastItem}}"
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Не вдається підключитися до smtp-сервера"
-  },
-  {
     "id": "ent.outgoing_oauth_connections.license_disable.app_error",
     "translation": "Ваша ліцензія не підтримує вихідні з'єднання oauth."
   },
@@ -9712,20 +9568,12 @@
     "translation": "Користувачів LDAP не знайдено, перевірте фільтр користувачів і сертифікати."
   },
   {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Не вдалося отримати інформацію про файл для поста."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Не вдалося отримати інформацію про файл для поста."
-  },
-  {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
     "translation": "Для наданої аудиторії вже існує вихідне oauth-з'єднання: {{ .Audience }}"
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Не вдалося видалити індекс Elasticsearch"
+    "translation": "Не вдалося видалити пошуковий індекс"
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
@@ -9762,10 +9610,6 @@
   {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "не можуть мігрувати."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Не вдалося отримати інформацію про файл для поста."
   },
   {
     "id": "ent.outgoing_oauth_connections.authenticate.app_error",
@@ -9818,10 +9662,6 @@
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
     "translation": "Усі параметри IncludeDeletedChannels повинні мати однакове значення."
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "Не вдається спробувати запустити файл експорту."
   },
   {
     "id": "model.scheme.is_valid.app_error",
@@ -10288,10 +10128,6 @@
     "translation": "Неправильний Ідентифікатор користувача."
   },
   {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Не вдалося записати файл глобальної ретрансляції."
-  },
-  {
     "id": "model.session.is_valid.create_at.app_error",
     "translation": "Невірне поле CreateAt для сесії."
   },
@@ -10446,5 +10282,221 @@
   {
     "id": "api.filter_config_error",
     "translation": "Не вдалося відфільтрувати конфігурацію."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Не вдається видалити поле користувацького атрибуту профілю"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Не вдається отримати значення користувацьких атрибутів профілю"
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Не вдалося видалити роль."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Експорт інформації про канали для {{.NumChannels}} каналів."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Довжина URL-адреси метаданих посилання становить {{ .Length }} символів, що перевищує максимальне обмеження у {{ .MaxLength }} символів."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Неправильне поле властивості: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Неправильне значення властивості: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Ваша ліцензія не підтримує користувацькі атрибути профілю."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Неможливо отримати програму для читання zip-файлів."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Підрахунок активності каналів: {{.NumCompleted}}/{{.NumChannels}} каналів завершено."
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Не вдалось зареєструвати групу властивостей \"Атрибути користувацького профілю\""
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Неможливо створити поле \"Атрибут користувацького профілю\""
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Неможливо отримати поле \"Атрибут профілю користувача\""
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Досягнуто ліміт поля \"Атрибути профілю користувача\""
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Неможливо виконати команду у видаленому каналі."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Користувацьке поле атрибуту профілю не знайдено"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Не вдається оновити поле атрибуту користувацького профілю"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Не вдалося порахувати всі файли."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не вдалося видалити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не вдалося створити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не вдалося оновити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Не вдалося оновити порядок сортування закладок каналів."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Сеанс не знайдено."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "спроба змінити поле, яке не існує"
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Неможливо отримати закладки для заархівованого каналу"
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Не вдалося підрахувати кількість полів для групи атрибутів користувацького профілю"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Не вдалося додати поля користувацьких атрибутів профілю"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Невірний ідентифікатор користувача на стороні клієнта: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Кількість елементів у ClientSideUserIds {{.CurrentLength}} перевищує максимальне значення {{.MaxLength}}."
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Не вдалося видалити запитувані файли з бази даних"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Не вдалося виконати пошук полів атрибутів користувацького профілю"
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Наданий ідентифікатор історії допису не відповідає жодному елементу історії для вказаного допису."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Ви не маєте відповідних дозволів."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Не вдалося отримати використання сховища для всіх файлів."
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Не вдається отримати інформацію про файли за ідентифікаторами для історії редагувань."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Не вдалося відновити вкладені файли."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Не вдалося отримати стару версію допису."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Наданий ідентифікатор історії повідомлень не відповідає елементу історії повідомлень."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Не вдалося обчислити дані експорту каналу."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Не вдалося перетворити значення з поля даних завдання."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Колір банера каналу не може бути порожнім, якщо банер каналу увімкнено"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Банер каналу можна налаштувати лише на публічних та приватних каналах"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Інформаційний текст банера каналу не може бути порожнім, якщо банер каналу увімкнено"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Текст інформації про банер каналу занадто довгий. Максимально допустима довжина - {{.maxLength}} символів."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Банер каналу можна налаштувати лише на публічних та приватних каналах."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Ви не маєте дозволу на оновлення цього ресурсу."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Неможливо видалити чернетки для користувача."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "Потрібна ліцензія LDAP."
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Не вдалося скинути спроби входу."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Не вдалося отримати користувача."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Недійсна максимальна кількість спроб входу для налаштувань ldap. Число має бути додатним."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Ваш обліковий запис заблоковано через забагато невдалих спроб введення пароля. Будь ласка, зверніться до свого системного адміністратора."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Служба автентифікації користувача має бути LDAP або електронною поштою."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Функція недоступна для поточної ліцензії"
   }
 ]

@@ -4,7 +4,7 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import ReactSelect from 'react-select';
-import type {ValueType} from 'react-select';
+import type {OnChangeValue} from 'react-select';
 
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
@@ -20,7 +20,7 @@ type Props = BaseSettingItemProps & {
     handleCheckboxChange: (e: boolean) => void;
     selectFieldData: FieldsetReactSelect;
     selectFieldValue?: Option;
-    handleSelectChange: (selected: ValueType<Option>) => void;
+    handleSelectChange: (selected: OnChangeValue<Option, boolean>) => void;
     isSelectDisabled?: boolean;
     selectPlaceholder?: string;
 }
@@ -66,7 +66,6 @@ export default function CheckboxWithSelectSettingItem({
                     className='react-select singleSelect react-select-top'
                     classNamePrefix='react-select'
                     options={selectFieldData.options}
-                    clearable={selectFieldData.clearable}
                     isClearable={selectFieldData.clearable}
                     isDisabled={isSelectDisabled}
                     isSearchable={false}
