@@ -23,7 +23,8 @@ import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbo
 import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 
-const CHANNEL_BANNER_CHARACTER_LIMIT = 1024;
+const CHANNEL_BANNER_MAX_CHARACTER_LIMIT = 1024;
+const CHANNEL_BANNER_MIN_CHARACTER_LIMIT = 0;
 
 type Props = {
     channel: Channel;
@@ -35,7 +36,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
-    // TODO: populate initial state witha ctual channel info
+    // TODO: populate initial state with actual channel info
     const initialBannerInfo = channel.banner_info;
 
     // TODO: maybe use a single object to store entire channel banner instead of individual states for each field
@@ -64,13 +65,13 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
 
     const handleChannelBannerTextChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
         setChannelBannerText(e.target.value);
-        if (e.target.value.trim().length > CHANNEL_BANNER_CHARACTER_LIMIT) {
+        if (e.target.value.trim().length > CHANNEL_BANNER_MAX_CHARACTER_LIMIT) {
             setFormError(formatMessage({
                 id: 'channel_settings.save_changes_panel.standard_error',
                 defaultMessage: 'There are errors in the form above',
             }));
             setCharacterLimitExceeded(true);
-        } else if (e.target.value.trim().length === 0) {
+        } else if (e.target.value.trim().length <= CHANNEL_BANNER_MIN_CHARACTER_LIMIT) {
             setFormError(formatMessage({
                 id: 'channel_settings.save_changes_panel.banner_text.required_error',
                 defaultMessage: 'TODO channel banner text is required',
@@ -241,7 +242,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
                                 onChange={handleChannelBannerTextChange}
                                 createMessage={bannerTextPlaceholder}
                                 minCharacterLimit={1}
-                                characterLimit={CHANNEL_BANNER_CHARACTER_LIMIT}
+                                characterLimit={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
                                 preview={showBannerTextPreview}
                                 togglePreview={toggleBannerTextPreview}
                                 textboxRef={bannerTextboxRef}
