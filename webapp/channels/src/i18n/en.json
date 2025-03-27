@@ -1491,7 +1491,7 @@
   "admin.logs.Info": "Info",
   "admin.logs.logFormatJson": "JSON",
   "admin.logs.logFormatPlain": "Plain text",
-  "admin.logs.logFormatTitle": "Log Format:",
+  "admin.logs.logFormatTitle": "Log display format:",
   "admin.logs.next": "Next",
   "admin.logs.options": "Options",
   "admin.logs.prev": "Previous",
