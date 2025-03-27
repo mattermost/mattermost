@@ -8,13 +8,13 @@ import {General} from 'mattermost-redux/constants';
 import {getChannel, getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-export const selectShowChannelBanner = (state: GlobalState, channelId: string) => {
+export const selectShowChannelBanner = (state: GlobalState, channelId: string): boolean => {
     const license = getLicense(state);
 
     // TODO: update this to check for premium SKU once its added
     const isPremiumLicense = license?.SkuShortName === General.SKUEnterprise;
     const channelBannerInfo = getChannelBanner(state, channelId);
     const channel = getChannel(state, channelId);
-    const isValidChannelType = channel && (channel.type === General.OPEN_CHANNEL || channel.type === General.PRIVATE_CHANNEL);
+    const isValidChannelType = Boolean(channel && (channel.type === General.OPEN_CHANNEL || channel.type === General.PRIVATE_CHANNEL));
     return isPremiumLicense && isValidChannelType && channelBannerEnabled(channelBannerInfo);
 };
