@@ -36,8 +36,8 @@
 
     &__character-count {
         margin-top: 4px;
-        font-size: 12px;
         margin-left: auto;
+        font-size: 12px;
 
         &.exceeds-limit {
             color: var(--error-text);

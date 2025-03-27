@@ -26,6 +26,7 @@ import ChannelSettingsConfigurationTab from './channel_settings_configuration_ta
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
 
 import './channel_settings_modal.scss';
+import {getLicense} from "mattermost-redux/selectors/entities/general";
 
 // Lazy-loaded components
 const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
@@ -158,6 +159,10 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         );
     };
 
+    // TODO: use the selector created in https://github.com/mattermost/mattermost/pull/30514 to determine
+    // whether to display the tab or not.
+    const shouldShowConfigurationTab = true;
+
     // Define tabs for the settings sidebar
     const tabs = [
         {
@@ -171,7 +176,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             uiName: formatMessage({id: 'channel_settings.tab.configuration', defaultMessage: 'Configuration'}),
             icon: 'icon icon-cog-outline',
             iconTitle: formatMessage({id: 'generic_icons.settings', defaultMessage: 'Settings Icon'}),
-            display: true, // TODO add license check here
+            display: shouldShowConfigurationTab,
         },
         {
             name: ChannelSettingsTabs.ARCHIVE,

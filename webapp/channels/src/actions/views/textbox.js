@@ -37,10 +37,3 @@ export function setShowPreviewOnChannelSettingsPurposeModal(showPreview) {
         showPreview,
     };
 }
-
-export function setShowPreviewOnChannelSettingsChannelBannerTextModal(showPreview) {
-    return {
-        type: ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_CHANNEL_BANNER_TEXT_MODAL,
-        showPreview,
-    };
-}

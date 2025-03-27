@@ -126,8 +126,6 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
         }
     }, [IsTabSwitchActionWithUnsaved, hasUnsavedChanges, setAreThereUnsavedChanges]);
 
-
-
     const bannerTextboxRef = useRef<TextboxClass>(null);
 
     const handleServerError = (err: ServerError) => {

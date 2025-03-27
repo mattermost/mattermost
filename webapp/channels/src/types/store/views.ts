@@ -13,7 +13,6 @@ import type {LhsViewState} from './lhs';
 import type {RhsViewState} from './rhs';
 
 import type {DraggingState} from '.';
-import {showPreviewOnChannelSettingsChannelBannerTextModal} from "selectors/views/textbox";
 
 export type ModalFilters = {
     roles?: string[];
@@ -219,6 +218,5 @@ export type ViewsState = {
         shouldShowPreviewOnEditPostModal: boolean;
         shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
         shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
-        shouldShowPreviewOnChannelSettingsChannelBannerTextModal: boolean;
     };
 };

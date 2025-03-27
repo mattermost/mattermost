@@ -22,7 +22,3 @@ export function showPreviewOnChannelSettingsHeaderModal(state: GlobalState) {
 export function showPreviewOnChannelSettingsPurposeModal(state: GlobalState) {
     return state.views.textbox.shouldShowPreviewOnChannelSettingsPurposeModal;
 }
-
-export function showPreviewOnChannelSettingsChannelBannerTextModal(state: GlobalState) {
-    return state.views.textbox.shouldShowPreviewOnChannelSettingsChannelBannerTextModal;
-}

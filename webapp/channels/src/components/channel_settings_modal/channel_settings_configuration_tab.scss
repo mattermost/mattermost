@@ -5,16 +5,16 @@
 
 .ChannelSettingsModal__configurationTab {
     display: flex;
-    gap: 16px;
     flex-direction: column;
+    gap: 16px;
 
     .channel_banner_header {
         display: flex;
 
         .channel_banner_header__text {
             display: flex;
-            flex-direction: column;
             flex: 1;
+            flex-direction: column;
             gap: 8px;
 
             span {
@@ -37,10 +37,10 @@
         @include fade-in;
 
         display: flex;
+        width: 100%;
+        height: 550px;
         flex-direction: column;
         gap: 16px;
-        height: 550px;
-        width: 100%;
     }
 
     .AdvancedTextbox {
@@ -74,10 +74,10 @@
         }
 
         span.setting_title {
+            flex: 1;
             color: rgb(var(--center-channel-color-rgb));
             font-size: 12px;
             font-weight: 600;
-            flex: 1;
         }
 
         .setting_body {
