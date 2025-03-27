@@ -1572,7 +1572,7 @@
   "admin.openIdConvert.message": "Możesz teraz przekonwertować swoją konfigurację OAuth2.0 na OpenID Connect.",
   "admin.openIdConvert.text": "Konwertuj do OpenID Connect",
   "admin.openid.EnableMarkdownDesc": "Postępuj zgodnie ze wskazówkami dostawcy dotyczącymi tworzenia aplikacji OpenID. Większość dostawców OpenID Connect wymaga autoryzacji wszystkich URI przekierowania. W odpowiednim polu wpisz \"your-mattermost-url/signup/openid/complete\" (przykład: http://domain.com/signup/openid/complete)",
-  "admin.openid.buttonColorDesc": "Określ kolor przycisku logowania OpenID dla celów białej etykiety. Użyj kodu heksadecymalnego z symbolem # przed kodem.",
+  "admin.openid.buttonColorDesc": "Określ kolor przycisku logowania OpenID na potrzeby białych etykiet. Użyj kodu szesnastkowego ze znakiem # przed kodem.",
   "admin.openid.buttonColorTitle": "Kolor przycisków:",
   "admin.openid.buttonTextDesc": "Tekst, który będzie wyświetlany na przycisku logowania.",
   "admin.openid.buttonTextEx": "Własny tekst przycisku",
