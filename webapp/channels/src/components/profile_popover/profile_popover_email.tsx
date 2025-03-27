@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 type Props = {
     email?: string;
@@ -17,21 +18,30 @@ const ProfilePopoverEmail = ({
         return null;
     }
 
-    return (
-        <div
-            title={email}
-            className='user-profile-popover__email'
+    // Generate a unique ID for accessibility
+    const titleId = `user-popover__custom_attributes-title-${Math.random().toString(36).substring(2, 26)}`;
 
-        >
-            <i
-                className='icon icon-email-outline'
-                aria-hidden='true'
-            />
-            <a
-                href={'mailto:' + email}
+    return (
+        <div className='user-popover__custom_attributes'>
+            <strong
+                id={titleId}
+                className='user-popover__subtitle'
             >
-                {email}
-            </a>
+                <FormattedMessage
+                    id='general_tab.emailAddress'
+                    defaultMessage='Email Address'
+                />
+            </strong>
+            <p
+                aria-labelledby={titleId}
+                className='user-popover__subtitle-text'
+            >
+                <a
+                    href={`mailto:${email}`}
+                >
+                    {email}
+                </a>
+            </p>
         </div>
     );
 };

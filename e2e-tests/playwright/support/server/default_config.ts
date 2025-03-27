@@ -750,7 +750,7 @@ const defaultServerConfig: AdminConfig = {
         NotificationMonitoring: true,
         ExperimentalAuditSettingsSystemConsoleUI: false,
         ExperimentalCrossTeamSearch: false,
-        CustomProfileAttributes: false,
+        CustomProfileAttributes: true,
     },
     ImportSettings: {
         Directory: './import',
