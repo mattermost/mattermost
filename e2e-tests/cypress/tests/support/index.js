@@ -266,5 +266,4 @@ function resetUserPreference(userId) {
     cy.apiSaveSkipStepsPreference(userId, 'true');
     cy.apiSaveStartTrialModal(userId, 'true');
     cy.apiSaveUnreadScrollPositionPreference(userId, 'start_from_left_off');
-    cy.apiSaveDraftsTourTipPreference(userId, 'true');
 }

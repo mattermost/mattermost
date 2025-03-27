@@ -18,10 +18,33 @@ import (
 
 type SqlComplianceStore struct {
 	*SqlStore
+
+	tableSelectQuery sq.SelectBuilder
 }
 
 func newSqlComplianceStore(sqlStore *SqlStore) store.ComplianceStore {
-	return &SqlComplianceStore{sqlStore}
+	s := SqlComplianceStore{
+		SqlStore: sqlStore,
+	}
+
+	s.tableSelectQuery = s.
+		getQueryBuilder().
+		Select(
+			"Id",
+			"CreateAt",
+			"UserId",
+			"Status",
+			"Count",
+			s.toReserveCase("desc"),
+			"Type",
+			"StartAt",
+			"EndAt",
+			"Keywords",
+			"Emails",
+		).
+		From("Compliances")
+
+	return &s
 }
 
 func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, error) {
@@ -83,17 +106,24 @@ func (s SqlComplianceStore) Update(compliance *model.Compliance) (*model.Complia
 }
 
 func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, error) {
-	query := "SELECT * FROM Compliances ORDER BY CreateAt DESC LIMIT ? OFFSET ?"
-	compliances := model.Compliances{}
-	if err := s.GetReplica().Select(&compliances, query, limit, offset); err != nil {
+	query := s.tableSelectQuery.
+		OrderBy("CreateAt DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
+
+	var compliances model.Compliances
+	if err := s.GetReplica().SelectBuilder(&compliances, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find all Compliances")
 	}
+
 	return compliances, nil
 }
 
 func (s SqlComplianceStore) Get(id string) (*model.Compliance, error) {
+	query := s.tableSelectQuery.Where(sq.Eq{"Id": id})
+
 	var compliance model.Compliance
-	if err := s.GetReplica().Get(&compliance, `SELECT * FROM Compliances WHERE Id = ?`, id); err != nil {
+	if err := s.GetReplica().GetBuilder(&compliance, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Compliances", id)
 		}
