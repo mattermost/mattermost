@@ -4,19 +4,14 @@
 import React, {useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
+import type {TextFormattingOptions} from 'utils/text_formatting';
 
-import {channelBannerEnabled} from '@mattermost/types/channels';
-
-import {getChannel, getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {selectShowChannelBanner} from 'mattermost-redux/selectors/entities/channel_banner';
+import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import Markdown from 'components/markdown';
 import WithTooltip from 'components/with_tooltip';
-
-import Constants from 'utils/constants';
-import {isEnterpriseLicense} from 'utils/license_utils';
-import type {TextFormattingOptions} from 'utils/text_formatting';
 
 import type {GlobalState} from 'types/store';
 
@@ -32,14 +27,8 @@ type Props = {
 }
 
 export default function ChannelBanner({channelId}: Props) {
-    const license = useSelector(getLicense);
-
-    // TODO - check for premium license here once the corresponding PR is merged
-    const isEnterprise = isEnterpriseLicense(license);
     const channelBannerInfo = useSelector((state: GlobalState) => getChannelBanner(state, channelId));
-    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
-    const isValidChannelType = channel && (channel.type === Constants.PRIVATE_CHANNEL || channel.type === Constants.OPEN_CHANNEL);
-    const showChannelBanner = isEnterprise && isValidChannelType && channelBannerEnabled(channelBannerInfo);
+    const showChannelBanner = useSelector((state: GlobalState) => selectShowChannelBanner(state, channelId));
 
     const intl = useIntl();
     const channelBannerTextAriaLabel = intl.formatMessage({id: 'channel_banner.aria_label', defaultMessage: 'Channel banner text'});
