@@ -8,7 +8,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername, isGuest} from 'mattermost-redux/utils/user_utils';
 
 import GuestTag from 'components/widgets/tag/guest_tag';
@@ -18,9 +18,9 @@ type Props = {
 }
 
 const ChannelHeaderTitleGroup = ({
-    gmMembers,
+    gmMembers = [],
 }: Props) => {
-    const currentUser = useSelector(getCurrentUser);
+    const currentUserId = useSelector(getCurrentUserId);
     const teammateNameDisplaySetting = useSelector(getTeammateNameDisplaySetting);
     const channel = useSelector(getCurrentChannel);
 
@@ -28,38 +28,19 @@ const ChannelHeaderTitleGroup = ({
         return null;
     }
 
-    // map the displayname to the gm member users
-    const membersMap: Record<string, UserProfile[]> = {};
-    if (gmMembers) {
-        for (const user of gmMembers) {
-            if (user.id === currentUser.id) {
-                continue;
-            }
-            const userDisplayName = displayUsername(user, teammateNameDisplaySetting);
+    const usersWithNames = gmMembers.
+        filter((user) => user.id !== currentUserId).
+        map((user) => ({...user, display_name: displayUsername(user, teammateNameDisplaySetting)}));
 
-            if (!membersMap[userDisplayName]) {
-                membersMap[userDisplayName] = []; //Create an array for cases with same display name
-            }
-
-            membersMap[userDisplayName].push(user);
-        }
-    }
-
-    const displayNames = channel.display_name.split(', ');
+    usersWithNames.sort((a, b) => a.display_name.localeCompare(b.display_name));
 
     return (
         <>
-            {displayNames.map((displayName, index) => {
-                if (!membersMap[displayName]) {
-                    return displayName;
-                }
-
-                const user = membersMap[displayName].shift();
-
+            {usersWithNames.map((user, index) => {
                 return (
                     <React.Fragment key={user?.id}>
                         {index > 0 && ', '}
-                        {displayName}
+                        {user.display_name}
                         {isGuest(user?.roles ?? '') && <GuestTag/>}
                     </React.Fragment>
                 );

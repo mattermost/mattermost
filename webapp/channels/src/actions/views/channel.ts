@@ -110,7 +110,7 @@ export function switchToChannel(channel: Channel & {userId?: string}): ActionFun
         const teamUrl = selectedTeamId ? getRelativeTeamUrl(state, selectedTeamId) : getCurrentRelativeTeamUrl(state);
 
         if (channel.userId) {
-            const username = channel.userId ? channel.name : channel.display_name;
+            const username = channel.name;
             const user = getUserByUsername(state, username);
             if (!user) {
                 return {error: true};
