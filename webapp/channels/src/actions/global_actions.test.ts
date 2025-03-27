@@ -374,7 +374,6 @@ describe('actions/global_actions', () => {
                                 team_id: '',
                                 name: directChannelId,
                                 type: 'D',
-                                teammate_id: 'user2',
                             },
                             'group-channel': {
                                 id: 'group-channel',
@@ -471,7 +470,6 @@ describe('actions/global_actions', () => {
                                 team_id: '',
                                 name: directChannelId,
                                 type: 'D',
-                                teammate_id: 'user2',
                             },
                             [groupChannelId]: {
                                 id: groupChannelId,

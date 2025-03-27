@@ -42,7 +42,6 @@ describe('components/threading/ThreadViewer', () => {
         purpose: '',
         creator_id: '',
         scheme_id: '',
-        teammate_id: '',
     });
 
     const actions = {

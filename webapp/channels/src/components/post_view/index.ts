@@ -9,10 +9,9 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getUnreadScrollPositionPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeamByName, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
-import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {Constants} from 'utils/constants';
 
@@ -57,14 +56,11 @@ function makeMapStateToProps() {
     return function mapStateToProps(state: GlobalState, ownProps: Props) {
         const params = ownProps.match?.params;
         const team = getTeamByName(state, params?.team || '');
-        let teammate;
 
         const channel = getChannel(state, ownProps.channelId);
+        const teammate = getDirectTeammate(state, ownProps.channelId);
         let lastViewedAt = state.views.channel.lastChannelViewTime[ownProps.channelId];
         if (channel) {
-            if (channel.type === Constants.DM_CHANNEL && channel.teammate_id) {
-                teammate = getUser(state, channel.teammate_id);
-            }
             lastViewedAt = channel.last_post_at ? lastViewedAt : channel.last_post_at;
         }
 

@@ -43,7 +43,7 @@ type Props = {
     siteName?: string;
     currentChannel?: Channel;
     currentTeam?: Team;
-    currentTeammate: Channel | null;
+    currentTeammateName: string;
     inGlobalThreads: boolean;
     inDrafts: boolean;
     inScheduledPosts: boolean;
@@ -87,7 +87,7 @@ export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
             siteName,
             currentChannel,
             currentTeam,
-            currentTeammate,
+            currentTeammateName,
             unreadStatus,
             inGlobalThreads,
             inDrafts,
@@ -105,8 +105,8 @@ export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
         if (currentChannel && currentTeam && currentChannel.id) {
             let currentChannelName = currentChannel.display_name;
             if (currentChannel.type === Constants.DM_CHANNEL) {
-                if (currentTeammate != null) {
-                    currentChannelName = currentTeammate.display_name;
+                if (currentTeammateName) {
+                    currentChannelName = currentTeammateName;
                 }
             }
             document.title = `${mentionTitle}${unreadTitle}${currentChannelName} - ${currentTeam.display_name} ${currentSiteName}`;

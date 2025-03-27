@@ -11,6 +11,7 @@ import type {Channel} from '@mattermost/types/channels';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getRedirectChannelNameForCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
 import {leaveDirectChannel} from 'actions/views/channel';
 
@@ -40,7 +41,7 @@ export default function CloseMessage(props: Props) {
         let category;
         if (channel.type === Constants.DM_CHANNEL) {
             category = Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW;
-            name = channel.teammate_id!;
+            name = getUserIdFromChannelName(currentUserID, channel.name);
         } else {
             category = Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW;
             name = channel.id;

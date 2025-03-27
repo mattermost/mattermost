@@ -7,7 +7,7 @@ import {useSelector} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getDirectTeammateId} from 'mattermost-redux/selectors/entities/channels';
 import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getTimezoneForUserProfile, getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {
@@ -32,12 +32,10 @@ const MINUTE = 1000 * 60;
 function useTimePostBoxIndicator(channelId: string) {
     const getDisplayName = useMemo(makeGetDisplayName, []);
 
-    const teammateId = useSelector((state: GlobalState) => getDirectChannel(state, channelId)?.teammate_id || '');
+    const teammateId = useSelector((state: GlobalState) => getDirectTeammateId(state, channelId) || '');
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
 
-    const isDM = useSelector(
-        (state: GlobalState) => Boolean(getDirectChannel(state, channelId)?.teammate_id),
-    );
+    const isDM = Boolean(teammateId);
 
     // Check if the teammate is in DND status
     const isTeammateDND = useSelector((state: GlobalState) =>

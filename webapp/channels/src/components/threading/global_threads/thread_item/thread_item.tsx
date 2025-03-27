@@ -17,6 +17,7 @@ import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
 import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/actions/threads';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {Posts} from 'mattermost-redux/constants';
+import {getDirectTeammateId} from 'mattermost-redux/selectors/entities/channels';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
@@ -92,11 +93,12 @@ function ThreadItem({
     const msgDeleted = formatMessage({id: 'post_body.deleted', defaultMessage: '(message deleted)'});
     const postAuthor = ensureString(post.props?.override_username) || displayName;
 
+    const teammateId = useSelector((state: GlobalState) => (channel ? getDirectTeammateId(state, channel.id) : ''));
     useEffect(() => {
-        if (channel?.teammate_id) {
-            dispatch(getMissingProfilesByIds([channel.teammate_id]));
+        if (teammateId) {
+            dispatch(getMissingProfilesByIds([teammateId]));
         }
-    }, [channel?.teammate_id]);
+    }, [teammateId]);
 
     useEffect(() => {
         if (!channel && thread?.post.channel_id) {

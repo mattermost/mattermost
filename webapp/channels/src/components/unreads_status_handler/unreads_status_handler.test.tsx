@@ -44,7 +44,7 @@ describe('components/UnreadsStatusHandler', () => {
             description: 'Test team description',
             type: 'team-type' as TeamType,
         }),
-        currentTeammate: null,
+        currentTeammateName: '',
         inGlobalThreads: false,
         inDrafts: false,
         inScheduledPosts: false,
@@ -68,7 +68,7 @@ describe('components/UnreadsStatusHandler', () => {
 
         wrapper.setProps({
             currentChannel: {id: '1', type: Constants.DM_CHANNEL} as Props['currentChannel'],
-            currentTeammate: {display_name: 'teammate'} as Props['currentTeammate'],
+            currentTeammateName: 'teammate',
         });
         instance.updateTitle();
         expect(document.title).toBe('teammate - Test team display name');
@@ -81,7 +81,8 @@ describe('components/UnreadsStatusHandler', () => {
 
         wrapper.setProps({
             currentChannel: {} as Props['currentChannel'],
-            currentTeammate: {} as Props['currentTeammate']});
+            currentTeammateName: '',
+        });
         instance.updateTitle();
         expect(document.title).toBe('Mattermost - Join a team');
 
@@ -133,7 +134,7 @@ describe('components/UnreadsStatusHandler', () => {
         });
         wrapper.setProps({
             currentChannel: {id: '1', type: Constants.DM_CHANNEL} as Props['currentChannel'],
-            currentTeammate: {display_name: 'teammate'} as Props['currentTeammate'],
+            currentTeammateName: 'teammate',
         });
         wrapper.setProps({
             unreadStatus: 3,

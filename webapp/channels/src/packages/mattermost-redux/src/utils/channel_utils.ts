@@ -28,7 +28,6 @@ export function completeDirectChannelInfo(usersState: UsersState, teammateNameDi
         return {
             ...channel,
             display_name: displayUsername(usersState.profiles[teammateId], teammateNameDisplay, false),
-            teammate_id: teammateId,
         };
     } else if (isGroupChannel(channel)) {
         return completeDirectGroupInfo(usersState, teammateNameDisplay, channel);
@@ -55,7 +54,6 @@ export function newCompleteDirectChannelInfo(currentUserId: string, profiles: ID
         return {
             ...channel,
             display_name: displayUsername(profiles[teammateId], teammateNameDisplay, false),
-            teammate_id: teammateId,
         };
     } else if (isGroupChannel(channel)) {
         return newCompleteDirectGroupInfo(currentUserId, profiles, profilesInChannel, teammateNameDisplay, channel);

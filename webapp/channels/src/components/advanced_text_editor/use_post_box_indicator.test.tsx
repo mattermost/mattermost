@@ -18,25 +18,21 @@ function getBaseState(): DeepPartial<GlobalState> {
                 channels: {
                     dm_channel_id: {
                         id: 'dm_channel_id',
-                        teammate_id: 'teammate_user_id',
                         type: 'D',
                         name: 'current_user_id__teammate_user_id',
                     },
                     dm_near_timezone: {
                         id: 'dm_same_timezone',
-                        teammate_id: 'teammate_near_timezone_id',
                         type: 'D',
                         name: 'current_user_id__teammate_near_timezone_id',
                     },
                     bot_dm_channel_id: {
                         id: 'bot_dm_channel_id',
-                        teammate_id: 'bot_user_id',
                         type: 'D',
                         name: 'current_user_id__bot_user_id',
                     },
                     unknown_dm_channel_id: {
                         id: 'unknown_dm_channel_id',
-                        teammate_id: 'unknmown_teammate_user_id',
                         type: 'D',
                         name: 'current_user_id__teammate_user_id',
                     },

@@ -67,8 +67,7 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseMessage', () => {
     const directChannel = TestHelper.getChannelMock({
         id: 'channel_id',
         type: Constants.DM_CHANNEL as ChannelType,
-        teammate_id: 'teammate-id',
-        name: 'directChannel',
+        name: 'current_user_id__teammate-id',
     });
 
     beforeEach(() => {
@@ -124,7 +123,7 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseMessage', () => {
         expect(preferences.savePreferences).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(preferences.savePreferences).toHaveBeenCalledWith(
             'current_user_id',
-            [{user_id: 'current_user_id', category: Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: directChannel.teammate_id, value: 'false'}],
+            [{user_id: 'current_user_id', category: Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: 'teammate-id', value: 'false'}],
         );
     });
 });

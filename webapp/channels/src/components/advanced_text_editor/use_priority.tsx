@@ -8,9 +8,8 @@ import type {Channel} from '@mattermost/types/channels';
 import type {PostPriorityMetadata} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {isPostPriorityEnabled as isPostPriorityEnabledSelector} from 'mattermost-redux/selectors/entities/posts';
-import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {openModal} from 'actions/views/modals';
 
@@ -38,8 +37,8 @@ const usePriority = (
     const isPostPriorityEnabled = useSelector(isPostPriorityEnabledSelector);
     const channelType = useSelector((state: GlobalState) => getChannel(state, channelId)?.type || 'O');
     const channelTeammateUsername = useSelector((state: GlobalState) => {
-        const channel = getChannel(state, channelId);
-        return getUser(state, channel?.teammate_id || '')?.username || '';
+        const teammate = getDirectTeammate(state, channelId);
+        return teammate ? teammate.username : '';
     });
 
     const hasPrioritySet = isPostPriorityEnabled &&

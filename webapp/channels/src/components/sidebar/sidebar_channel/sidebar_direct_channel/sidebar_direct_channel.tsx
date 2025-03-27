@@ -38,7 +38,7 @@ type Props = {
 
 class SidebarDirectChannel extends React.PureComponent<Props> {
     handleLeaveChannel = (callback: () => void) => {
-        const id = this.props.channel.teammate_id;
+        const id = this.props.teammate?.id || '';
         const category = Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW;
 
         const currentUserId = this.props.currentUserId;

@@ -15,6 +15,7 @@ import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
 import Tag from 'components/widgets/tag/tag';
 
+import {makeInitialState} from 'tests/test_store';
 import {WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import * as Utils from 'utils/utils';
@@ -96,7 +97,7 @@ describe('components/threading/global_threads/thread_item', () => {
             name: 'test-team',
             display_name: 'Team name',
         } as Channel;
-        mockState = {
+        mockState = makeInitialState({
             entities: {
                 users: {
                     currentUserId: user.id,
@@ -110,7 +111,7 @@ describe('components/threading/global_threads/thread_item', () => {
                     windowSize: WindowSizes.DESKTOP_VIEW,
                 },
             },
-        };
+        });
 
         props = {
             isFirstThreadInList: false,
