@@ -59,7 +59,7 @@ export type UserProfile = {
     terms_of_service_id: string;
     terms_of_service_create_at: number;
     remote_id?: string;
-    status?: string;
+    status?: string; // HARRISON TODO
     failed_attempts?: number;
     custom_profile_attributes?: Record<string, string>;
 };

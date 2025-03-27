@@ -343,7 +343,7 @@ export async function loadProfilesForGM() {
     }
 
     if (channelUsersToLoad.length > 0) {
-        await dispatch(UserActions.getProfilesInGroupChannels(channelUsersToLoad));
+        dispatch(UserActions.getProfilesInGroupChannels(channelUsersToLoad));
     }
 
     if (userIdsForLoadingCustomEmojis.size > 0) {

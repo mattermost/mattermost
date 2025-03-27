@@ -392,6 +392,24 @@ export function batchGetProfilesInChannel(channelId: string): ActionFuncAsync<Ar
 }
 
 export function getProfilesInGroupChannels(channelsIds: string[]): ActionFuncAsync {
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.profilesInGroupChannelLoader) {
+            loaders.profilesInGroupChannelLoader = new DelayedDataLoader<Channel['id']>({
+                fetchBatch: (channelIds) => dispatch(doGetProfilesInGroupChannels(channelIds)),
+                maxBatchSize: General.MAX_GROUP_CHANNELS_FOR_PROFILES,
+                wait: missingProfilesWait,
+            });
+        }
+
+        if (channelsIds.length > 0) {
+            loaders.profilesInGroupChannelLoader.queue(channelsIds);
+        }
+
+        return {data: channelsIds};
+    };
+}
+
+function doGetProfilesInGroupChannels(channelsIds: string[]): ActionFuncAsync {
     return async (dispatch, getState) => {
         let channelProfiles;
 

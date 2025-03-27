@@ -26,7 +26,7 @@ import type {GlobalState} from 'types/store';
 export * from '@testing-library/react';
 export {userEvent};
 
-export type FullContextOptions = {
+export type RenderWithContextOptions = {
     intlMessages?: Record<string, string>;
     locale?: string;
     useMockedStore?: boolean;
@@ -37,7 +37,7 @@ export type FullContextOptions = {
 export const renderWithContext = (
     component: React.ReactElement,
     initialState: DeepPartial<GlobalState> = {},
-    partialOptions?: FullContextOptions,
+    partialOptions?: RenderWithContextOptions,
 ) => {
     const options = {
         intlMessages: partialOptions?.intlMessages,
@@ -93,10 +93,14 @@ export const renderWithContext = (
     };
 };
 
+export type RenderHookWithContextOptions<TProps> = RenderWithContextOptions & {
+    initialProps?: TProps;
+};
+
 export const renderHookWithContext = <TProps, TResult>(
     callback: (props: TProps) => TResult,
     initialState: DeepPartial<GlobalState> = {},
-    partialOptions?: FullContextOptions,
+    partialOptions?: RenderHookWithContextOptions<TProps>,
 ) => {
     const options = {
         intlMessages: partialOptions?.intlMessages,
@@ -116,6 +120,7 @@ export const renderHookWithContext = <TProps, TResult>(
     replaceGlobalStore(() => renderState.store);
 
     const results = renderHook(callback, {
+        initialProps: partialOptions?.initialProps,
         wrapper: ({children}) => {
             // Every time this is called, these values should be updated from `renderState`
             return <Providers {...renderState}>{children}</Providers>;
