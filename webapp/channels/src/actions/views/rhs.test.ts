@@ -264,10 +264,10 @@ describe('rhs view actions', () => {
         });
 
         test('it dispatches searchPosts correctly for Recent Mentions', () => {
-            const terms = `@here test search ${currentUsername} @${currentUsername} ${currentUserFirstName} multi-term`;
+            const terms = `@here test search ${currentUsername} @${currentUsername} ${currentUserFirstName} custom-hyphenated-term`;
             store.dispatch(performSearch(terms, '', true));
 
-            const mentionsQuotedTerms = `@here test search "${currentUsername}" "@${currentUsername}" "${currentUserFirstName}" multi-term`;
+            const mentionsQuotedTerms = `"@here" "test" "search" "${currentUsername}" "@${currentUsername}" "${currentUserFirstName}" "custom-hyphenated-term"`;
             const compareStore = mockStore(initialState);
             compareStore.dispatch(SearchActions.searchPostsWithParams('', {include_deleted_channels: false, terms: mentionsQuotedTerms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
             compareStore.dispatch(SearchActions.searchFilesWithParams('', {include_deleted_channels: false, terms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
