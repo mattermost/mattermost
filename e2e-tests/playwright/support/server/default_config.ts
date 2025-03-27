@@ -151,6 +151,7 @@ const defaultServerConfig: AdminConfig = {
         EnableEmojiPicker: true,
         PostEditTimeLimit: -1,
         TimeBetweenUserTypingUpdatesMilliseconds: 5000,
+        EnableCrossTeamSearch: true,
         EnablePostSearch: true,
         EnableFileSearch: true,
         MinimumHashtagLength: 3,
@@ -749,7 +750,6 @@ const defaultServerConfig: AdminConfig = {
         WebSocketEventScope: true,
         NotificationMonitoring: true,
         ExperimentalAuditSettingsSystemConsoleUI: false,
-        ExperimentalCrossTeamSearch: false,
         CustomProfileAttributes: false,
     },
     ImportSettings: {

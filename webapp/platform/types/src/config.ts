@@ -62,6 +62,7 @@ export type ClientConfig = {
     EnableUserStatuses: string;
     EnableLastActiveTime: string;
     EnableTimedDND: string;
+    EnableCrossTeamSearch: 'true' | 'false';
     EnableCustomTermsOfService: string;
     EnableDeveloper: string;
     EnableDiagnostics: string;
@@ -353,6 +354,7 @@ export type ServiceSettings = {
     GiphySdkKey: string;
     PostEditTimeLimit: number;
     TimeBetweenUserTypingUpdatesMilliseconds: number;
+    EnableCrossTeamSearch: boolean;
     EnablePostSearch: boolean;
     EnableFileSearch: boolean;
     MinimumHashtagLength: number;
