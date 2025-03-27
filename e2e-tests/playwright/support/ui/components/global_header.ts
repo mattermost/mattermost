@@ -15,7 +15,7 @@ export default class GlobalHeader {
     constructor(container: Locator) {
         this.container = container;
 
-        this.accountMenuButton = container.getByRole('button', {name: '\'s account menu'});
+        this.accountMenuButton = container.getByRole('button', {name: "'s account menu"});
         this.productSwitchMenu = container.getByRole('button', {name: 'Product switch menu'});
         this.recentMentionsButton = container.getByRole('button', {name: 'Recent mentions'});
         this.settingsButton = container.getByRole('button', {name: 'Settings'});
