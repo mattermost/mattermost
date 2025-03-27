@@ -392,6 +392,7 @@ type ServiceSettings struct {
 	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
 	PostEditTimeLimit                                 *int    `access:"user_management_permissions"`
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnableCrossTeamSearch                             *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnableFileSearch                                  *bool   `access:"write_restrictable"`
 	MinimumHashtagLength                              *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
@@ -618,6 +619,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.TimeBetweenUserTypingUpdatesMilliseconds == nil {
 		s.TimeBetweenUserTypingUpdatesMilliseconds = NewPointer(int64(5000))
+	}
+
+	if s.EnableCrossTeamSearch == nil {
+		s.EnableCrossTeamSearch = NewPointer(true)
 	}
 
 	if s.EnablePostSearch == nil {
@@ -3645,9 +3650,11 @@ func (s *ExportSettings) SetDefaults() {
 
 type ConfigFunc func() *Config
 
-const ConfigAccessTagType = "access"
-const ConfigAccessTagWriteRestrictable = "write_restrictable"
-const ConfigAccessTagCloudRestrictable = "cloud_restrictable"
+const (
+	ConfigAccessTagType              = "access"
+	ConfigAccessTagWriteRestrictable = "write_restrictable"
+	ConfigAccessTagCloudRestrictable = "cloud_restrictable"
+)
 
 // Allows read access if any PermissionSysconsoleRead* is allowed
 const ConfigAccessTagAnySysConsoleRead = "*_read"
