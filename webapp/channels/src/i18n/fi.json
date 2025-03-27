@@ -982,8 +982,6 @@
   "channel_header.delete": "Arkistoi kanava",
   "channel_header.directchannel.you": "{displayname} (sinä) ",
   "channel_header.leave": "Poistu kanavalta",
-  "channel_header.manageMembers": "Hallinnoi jäseniä",
-  "channel_header.menuAriaLabel": "Kanavavalikko",
   "channel_header.recentMentions": "Viimeaikaiset maininnat",
   "channel_header.search": "Etsi",
   "channel_header.setHeader": "Muokkaa kanavan otsikkoa",

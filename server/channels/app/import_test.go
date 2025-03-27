@@ -178,13 +178,13 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `", "` + username3 + `"], "user": "` + username + `", "message": "Hello Group Channel", "create_at": 123456789015}}
 {"type": "emoji", "emoji": {"name": "` + emojiName + `", "image": "` + testImage + `"}}`
 
-	err, line := th.App.BulkImport(th.Context, strings.NewReader(data1), nil, false, 2)
+	line, err := th.App.BulkImport(th.Context, strings.NewReader(data1), nil, false, 2)
 	require.Nil(t, err, "BulkImport should have succeeded")
 	require.Equal(t, 0, line, "BulkImport line should be 0")
 
 	// Run bulk import using a string that contains a line with invalid json.
 	data2 := `{"type": "version", "version": 1`
-	err, line = th.App.BulkImport(th.Context, strings.NewReader(data2), nil, false, 2)
+	line, err = th.App.BulkImport(th.Context, strings.NewReader(data2), nil, false, 2)
 	require.NotNil(t, err, "Should have failed due to invalid JSON on line 1.")
 	require.Equal(t, 1, line, "Should have failed due to invalid JSON on line 1.")
 
@@ -193,7 +193,7 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
 {"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}
 {"type": "user", "user": {"username": "bwshaim6qnc2ne7oqkd5b2s2rq", "email": "bwshaim6qnc2ne7oqkd5b2s2rq@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}`
-	err, line = th.App.BulkImport(th.Context, strings.NewReader(data3), nil, false, 2)
+	line, err = th.App.BulkImport(th.Context, strings.NewReader(data3), nil, false, 2)
 	require.NotNil(t, err, "Should have failed due to missing version line on line 1.")
 	require.Equal(t, 1, line, "Should have failed due to missing version line on line 1.")
 
@@ -205,7 +205,7 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
 {"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `","theme": "` + teamTheme1 + `", "channels": [{"name": "` + channelName + `"}]}]}}
 {"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012}}`
-		err, line = th.App.BulkImport(th.Context, strings.NewReader(data4+"\r\n"+posts), nil, false, 2)
+		line, err = th.App.BulkImport(th.Context, strings.NewReader(data4+"\r\n"+posts), nil, false, 2)
 		require.Nil(t, err, "BulkImport should have succeeded")
 		require.Equal(t, 0, line, "BulkImport line should be 0")
 	})
@@ -213,7 +213,7 @@ func TestImportBulkImport(t *testing.T) {
 	t.Run("First item after version without type", func(t *testing.T) {
 		data := `{"type": "version", "version": 1}
 {"name": "custom-emoji-troll", "image": "bulkdata/emoji/trollolol.png"}`
-		err, line := th.App.BulkImport(th.Context, strings.NewReader(data), nil, false, 2)
+		line, err := th.App.BulkImport(th.Context, strings.NewReader(data), nil, false, 2)
 		require.NotNil(t, err, "Should have failed due to invalid type on line 2.")
 		require.Equal(t, 2, line, "Should have failed due to invalid type on line 2.")
 	})
@@ -227,7 +227,7 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username + `"]}}
 {"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username + `"], "user": "` + username + `", "message": "Hello Direct Channel to myself", "create_at": 123456789014, "props":{"attachments":[{"id":0,"fallback":"[February 4th, 2020 2:46 PM] author: fallback","color":"D0D0D0","pretext":"","author_name":"author","author_link":"","title":"","title_link":"","text":"this post has props","fields":null,"image_url":"","thumb_url":"","footer":"Posted in #general","footer_icon":"","ts":"1580823992.000100"}]}}}`
 
-		err, line := th.App.BulkImport(th.Context, strings.NewReader(data6), nil, false, 2)
+		line, err := th.App.BulkImport(th.Context, strings.NewReader(data6), nil, false, 2)
 		require.Nil(t, err, "BulkImport should have succeeded")
 		require.Equal(t, 0, line, "BulkImport line should be 0")
 	})
@@ -489,7 +489,7 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewPointer(1000) })
 
-	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, true, 1, model.ExportDataDir)
+	_, appErr := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, true, 1, model.ExportDataDir)
 	require.Nil(t, appErr)
 
 	adminUser, appErr := th.App.GetUserByUsername("sysadmin")
