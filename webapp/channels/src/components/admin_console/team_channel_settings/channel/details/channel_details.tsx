@@ -442,27 +442,14 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             map((g) => actions.linkGroupSyncable(g.id, channelID, SyncableType.Channel, {auto_add: true, scheme_admin: g.scheme_admin}));
 
         // First execute link operations
-        let resultWithError;
-        if (link.length > 0) {
-            const promisesToExecute = [...patchChannelSyncable, ...link];
-            if (privacyChangePromise) {
-                promisesToExecute.push(privacyChangePromise);
-            }
-            const linkResult = await Promise.all(promisesToExecute);
-            resultWithError = linkResult.find((r) => 'error' in r);
-            if (resultWithError && 'error' in resultWithError) {
-                serverError = <FormError error={resultWithError.error.message}/>;
-            }
-        } else if (patchChannelSyncable.length > 0 || privacyChangePromise) {
-            const promisesToExecute = [...patchChannelSyncable];
-            if (privacyChangePromise) {
-                promisesToExecute.push(privacyChangePromise);
-            }
-            const otherResult = await Promise.all(promisesToExecute);
-            resultWithError = otherResult.find((r) => 'error' in r);
-            if (resultWithError && 'error' in resultWithError) {
-                serverError = <FormError error={resultWithError.error.message}/>;
-            }
+        const promisesToExecute = [...patchChannelSyncable, ...link];
+        if (privacyChangePromise) {
+            promisesToExecute.push(privacyChangePromise);
+        }
+        const linkResult = await Promise.all(promisesToExecute);
+        let resultWithError = linkResult.find((r) => 'error' in r);
+        if (resultWithError && 'error' in resultWithError) {
+            serverError = <FormError error={resultWithError.error.message}/>;
         }
 
         // Then patch the channel
