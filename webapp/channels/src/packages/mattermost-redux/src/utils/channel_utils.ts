@@ -29,7 +29,6 @@ export function completeDirectChannelInfo(usersState: UsersState, teammateNameDi
             ...channel,
             display_name: displayUsername(usersState.profiles[teammateId], teammateNameDisplay, false),
             teammate_id: teammateId,
-            status: usersState.statuses[teammateId] || 'offline',
         };
     } else if (isGroupChannel(channel)) {
         return completeDirectGroupInfo(usersState, teammateNameDisplay, channel);
@@ -48,7 +47,7 @@ export function splitRoles(roles: string): Set<string> {
 //
 // Ideally, this would replace completeDirectChannelInfo altogether, but is currently factored out
 // to minimize changes while addressing a critical performance issue.
-export function newCompleteDirectChannelInfo(currentUserId: string, profiles: IDMappedObjects<UserProfile>, profilesInChannel: RelationOneToManyUnique<Channel, UserProfile>, teammateStatus: string, teammateNameDisplay: string, channel: Channel): Channel {
+export function newCompleteDirectChannelInfo(currentUserId: string, profiles: IDMappedObjects<UserProfile>, profilesInChannel: RelationOneToManyUnique<Channel, UserProfile>, teammateNameDisplay: string, channel: Channel): Channel {
     if (isDirectChannel(channel)) {
         const teammateId = getUserIdFromChannelName(currentUserId, channel.name);
 
@@ -57,7 +56,6 @@ export function newCompleteDirectChannelInfo(currentUserId: string, profiles: ID
             ...channel,
             display_name: displayUsername(profiles[teammateId], teammateNameDisplay, false),
             teammate_id: teammateId,
-            status: teammateStatus,
         };
     } else if (isGroupChannel(channel)) {
         return newCompleteDirectGroupInfo(currentUserId, profiles, profilesInChannel, teammateNameDisplay, channel);

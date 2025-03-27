@@ -28,7 +28,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         update_at: 1508265709607,
     } as Channel;
 
-    const user1 = {id: 'user1', roles: 'system_user'};
+    const user1 = TestHelper.getUserMock({id: 'user1', roles: 'system_user'});
     const users = [
         {id: 'user1', roles: 'system_user'},
         {id: 'guest1', roles: 'system_guest'},
@@ -186,8 +186,9 @@ describe('components/post_view/ChannelIntroMessages', () => {
             renderWithContext(
                 <ChannelIntroMessage
                     {...props}
-                    teammate={user1 as UserProfile}
+                    teammate={user1}
                     teammateName='my teammate'
+                    teammateStatus='online'
                 />, initialState,
             );
             expect(screen.getByText('This is the start of your direct message history with my teammate.', {exact: false})).toBeInTheDocument();
@@ -198,7 +199,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
             expect(teammate).toHaveTextContent('my teammate');
             expect(teammate).toHaveClass('style--none');
 
-            const image = screen.getByRole('img');
+            const image = screen.getByAltText(`${user1.username} profile image`);
 
             expect(image).toBeInTheDocument();
             expect(image).toHaveAttribute('src', '/api/v4/users/user1/image?_=0');

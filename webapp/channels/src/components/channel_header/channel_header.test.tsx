@@ -252,7 +252,6 @@ describe('components/ChannelHeader', () => {
             channel: TestHelper.getChannelMock({
                 header: 'not the bot description',
                 type: Constants.DM_CHANNEL as ChannelType,
-                status: 'offline',
             }),
             dmUser: TestHelper.getUserMock({
                 id: 'user_id',
@@ -277,7 +276,6 @@ describe('components/ChannelHeader', () => {
             channel: TestHelper.getChannelMock({
                 header: 'not the bot description',
                 type: Constants.DM_CHANNEL as ChannelType,
-                status: 'offline',
             }),
             dmUser: TestHelper.getUserMock({
                 id: 'user_id',
@@ -312,7 +310,6 @@ describe('components/ChannelHeader', () => {
             channel: TestHelper.getChannelMock({
                 header: 'not the bot description',
                 type: Constants.DM_CHANNEL as ChannelType,
-                status: 'offline',
             }),
             dmUser: TestHelper.getUserMock({
                 id: 'user_id',
@@ -336,7 +333,6 @@ describe('components/ChannelHeader', () => {
             channel: TestHelper.getChannelMock({
                 header: 'not the bot description',
                 type: Constants.DM_CHANNEL as ChannelType,
-                status: 'offline',
             }),
             dmUser: TestHelper.getUserMock({
                 id: 'user_id',

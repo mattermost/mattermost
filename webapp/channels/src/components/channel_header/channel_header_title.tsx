@@ -8,7 +8,7 @@ import {useSelector} from 'react-redux';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannel, getCurrentChannelId, getDirectTeammateStatus} from 'mattermost-redux/selectors/entities/channels';
 
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
@@ -16,6 +16,8 @@ import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import BotTag from 'components/widgets/tag/bot_tag';
 
 import {Constants} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelHeaderTitleDirect from './channel_header_title_direct';
 import ChannelHeaderTitleFavorite from './channel_header_title_favorite';
@@ -33,6 +35,7 @@ const ChannelHeaderTitle = ({
     gmMembers,
 }: Props) => {
     const channel = useSelector(getCurrentChannel);
+    const teammateStatus = useSelector((state: GlobalState) => getDirectTeammateStatus(state, getCurrentChannelId(state)));
 
     if (!channel) {
         return null;
@@ -96,7 +99,7 @@ const ChannelHeaderTitle = ({
                 <ProfilePicture
                     src={Client4.getProfilePictureUrl(dmUser.id, dmUser.last_picture_update)}
                     size='sm'
-                    status={channel.status}
+                    status={teammateStatus}
                 />
             )}
             <ChannelHeaderMenu

@@ -48,7 +48,6 @@ export type Channel = {
     creator_id: string;
     scheme_id: string;
     teammate_id?: string;
-    status?: string;
     group_constrained: boolean;
     shared?: boolean;
     props?: Record<string, any>;

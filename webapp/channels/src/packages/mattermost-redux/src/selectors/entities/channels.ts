@@ -14,7 +14,7 @@ import type {
 } from '@mattermost/types/channels';
 import type {GlobalState} from '@mattermost/types/store';
 import type {Team} from '@mattermost/types/teams';
-import type {UserProfile, UsersState} from '@mattermost/types/users';
+import type {UserProfile, UsersState, UserStatus} from '@mattermost/types/users';
 import type {
     IDMappedObjects,
     RelationOneToManyUnique,
@@ -60,7 +60,6 @@ import {
     getUserIdFromChannelName,
     isChannelMuted,
     isDefault,
-    isDirectChannel,
     newCompleteDirectChannelInfo,
     sortChannelsByDisplayName,
 } from 'mattermost-redux/utils/channel_utils';
@@ -165,25 +164,12 @@ export function makeGetChannel(): (state: GlobalState, id: string) => Channel | 
         (state: GlobalState) => state.entities.users.profilesInChannel,
         (state: GlobalState, channelId: string | OldMakeChannelArgument) => {
             const id = typeof channelId === 'string' ? channelId : channelId.id;
-            const channel = getChannel(state, id);
-            if (!channel || !isDirectChannel(channel)) {
-                return '';
-            }
-
-            const currentUserId = getCurrentUserId(state);
-            const teammateId = getUserIdFromChannelName(currentUserId, channel.name);
-            const teammateStatus = getStatusForUserId(state, teammateId);
-
-            return teammateStatus || 'offline';
-        },
-        (state: GlobalState, channelId: string | OldMakeChannelArgument) => {
-            const id = typeof channelId === 'string' ? channelId : channelId.id;
             return getChannel(state, id);
         },
         getTeammateNameDisplaySetting,
-        (currentUserId, profiles, profilesInChannel, teammateStatus, channel, teammateNameDisplay) => {
+        (currentUserId, profiles, profilesInChannel, channel, teammateNameDisplay) => {
             if (channel) {
-                return newCompleteDirectChannelInfo(currentUserId, profiles, profilesInChannel, teammateStatus, teammateNameDisplay!, channel);
+                return newCompleteDirectChannelInfo(currentUserId, profiles, profilesInChannel, teammateNameDisplay!, channel);
             }
 
             return channel;
@@ -1335,7 +1321,7 @@ export function searchChannelsInPolicy(state: GlobalState, policyId: string, ter
     return channels;
 }
 
-export function getDirectTeammate(state: GlobalState, channelId: string): UserProfile | undefined {
+export function getDirectTeammateId(state: GlobalState, channelId: string): string | undefined {
     const channel = getChannel(state, channelId);
     if (!channel || channel.type !== 'D') {
         return undefined;
@@ -1349,16 +1335,28 @@ export function getDirectTeammate(state: GlobalState, channelId: string): UserPr
     }
 
     if (userIds[0] === userIds[1]) {
-        return getUser(state, userIds[0]);
+        return userIds[0];
     }
 
     for (const id of userIds) {
         if (id !== currentUserId) {
-            return getUser(state, id);
+            return id;
         }
     }
 
     return undefined;
+}
+
+export function getDirectTeammate(state: GlobalState, channelId: string): UserProfile | undefined {
+    const teammateId = getDirectTeammateId(state, channelId);
+
+    return teammateId ? getUser(state, teammateId) : undefined;
+}
+
+export function getDirectTeammateStatus(state: GlobalState, channelId: string): UserStatus['status'] | undefined {
+    const teammateId = getDirectTeammateId(state, channelId);
+
+    return teammateId ? getStatusForUserId(state, teammateId) : undefined;
 }
 
 export function makeGetGmChannelMemberCount(): (state: GlobalState, channel: Channel) => number {

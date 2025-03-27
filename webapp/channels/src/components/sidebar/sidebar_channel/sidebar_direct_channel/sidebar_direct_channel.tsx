@@ -7,7 +7,7 @@ import type {IntlShape} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserProfile} from '@mattermost/types/users';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -25,6 +25,7 @@ type Props = {
     intl: IntlShape;
     channel: Channel;
     teammate?: UserProfile;
+    teammateStatus?: UserStatus['status'];
     currentTeamName: string;
     currentUserId: string;
     redirectChannel: string;
@@ -52,7 +53,7 @@ class SidebarDirectChannel extends React.PureComponent<Props> {
     };
 
     getIcon = () => {
-        const {channel, teammate} = this.props;
+        const {teammate, teammateStatus} = this.props;
 
         if (!teammate) {
             return null;
@@ -65,11 +66,11 @@ class SidebarDirectChannel extends React.PureComponent<Props> {
         }
 
         let className = '';
-        if (channel.status === 'online') {
+        if (teammateStatus === 'online') {
             className = 'status-online';
-        } else if (channel.status === 'away') {
+        } else if (teammateStatus === 'away') {
             className = 'status-away';
-        } else if (channel.status === 'dnd') {
+        } else if (teammateStatus === 'dnd') {
             className = 'status-dnd';
         }
 
@@ -77,7 +78,7 @@ class SidebarDirectChannel extends React.PureComponent<Props> {
             <ProfilePicture
                 src={Client4.getProfilePictureUrl(teammate.id, teammate.last_picture_update)}
                 size={'xs'}
-                status={teammate.is_bot ? '' : channel.status}
+                status={teammate.is_bot ? '' : teammateStatus}
                 wrapperClass='DirectChannel__profile-picture'
                 newStatusIcon={true}
                 statusClass={`DirectChannel__status-icon ${className}`}

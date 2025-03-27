@@ -232,7 +232,7 @@ describe('Selectors.Channels.getMyChannels', () => {
         const channelsInCurrentTeam = [channel1, channel3].sort(sortChannelsByDisplayName.bind(null, 'en'));
         expect(Selectors.getMyChannels(testState)).toEqual([
             ...channelsInCurrentTeam,
-            {...channel4, display_name: user2.username, status: 'offline', teammate_id: user2.id},
+            {...channel4, display_name: user2.username, teammate_id: user2.id},
             {...channel5, display_name: [user2.username, user3.username].sort(sortUsernames).join(', ')},
         ]);
     });
@@ -490,7 +490,6 @@ describe('makeGetChannel', () => {
         expect(getChannel(testState, channel2.id)).toEqual({
             ...channel2,
             display_name: user2.username,
-            status: 'offline',
             teammate_id: user2.id,
         });
     });

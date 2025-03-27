@@ -6,7 +6,7 @@ import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
 
 import {BellRingOutlineIcon, GlobeIcon, PencilOutlineIcon, StarOutlineIcon, LockOutlineIcon, StarIcon} from '@mattermost/compass-icons/components';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {UserProfile as UserProfileType} from '@mattermost/types/users';
+import type {UserProfile as UserProfileType, UserStatus} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {NotificationLevel} from 'mattermost-redux/constants/channels';
@@ -44,6 +44,7 @@ type Props = {
     creatorName: string;
     teammate?: UserProfileType;
     teammateName?: string;
+    teammateStatus?: UserStatus['status'];
     currentUser: UserProfileType;
     stats: any;
     usersLimit: number;
@@ -89,6 +90,7 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
             creatorName,
             teammate,
             teammateName,
+            teammateStatus,
             currentUser,
             stats,
             usersLimit,
@@ -106,7 +108,7 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
         }
 
         if (channel.type === Constants.DM_CHANNEL) {
-            return createDMIntroMessage(channel, centeredIntro, currentUser, isFavorite, isMobileView, this.toggleFavorite, teammate, teammateName);
+            return createDMIntroMessage(channel, centeredIntro, currentUser, isFavorite, isMobileView, this.toggleFavorite, teammate, teammateName, teammateStatus);
         } else if (channel.type === Constants.GM_CHANNEL) {
             return createGMIntroMessage(channel, centeredIntro, isFavorite, isMobileView, this.toggleFavorite, channelProfiles, currentUserId, currentUser, channelMember);
         } else if (channel.name === Constants.DEFAULT_CHANNEL) {
@@ -244,6 +246,7 @@ function createDMIntroMessage(
     toggleFavorite: () => void,
     teammate?: UserProfileType,
     teammateName?: string,
+    teammateStatus?: string,
 ) {
     const channelIntroId = 'channelIntro';
     if (teammate) {
@@ -273,7 +276,7 @@ function createDMIntroMessage(
                     <ProfilePicture
                         src={src}
                         size='xl-custom-DM'
-                        status={teammate.is_bot ? '' : channel.status}
+                        status={teammate.is_bot ? '' : teammateStatus}
                         userId={teammate?.id}
                         username={teammate?.username}
                     />

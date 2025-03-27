@@ -36,7 +36,6 @@ describe('components/RhsThread', () => {
         creator_id: '',
         scheme_id: '',
         teammate_id: '',
-        status: '',
     });
 
     const actions = {
