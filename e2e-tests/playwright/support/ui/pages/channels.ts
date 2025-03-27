@@ -34,7 +34,7 @@ export default class ChannelsPage {
         this.page = page;
 
         // The main areas of the app
-        this.globalHeader = new components.GlobalHeader(page.locator('#global-header'));
+        this.globalHeader = new components.GlobalHeader(this, page.locator('#global-header'));
         this.searchPopover = new components.SearchPopover(page.locator('#searchPopover'));
         this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'));
         this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
