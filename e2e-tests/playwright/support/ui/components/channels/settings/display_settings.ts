@@ -3,21 +3,20 @@
 
 import {expect, Locator} from '@playwright/test';
 
-export type DisplaySettingsSection = (
-    'theme' |
-    'collapsedReplyThreads' |
-    'clockDisplay' |
-    'teammateNameDisplay' |
-    'availabilityStatusOnPosts' |
-    'lastActiveTime' |
-    'timezone' |
-    'showLinkPreviews' |
-    'collapseImagePreviews' |
-    'clickToReply' |
-    'channelDisplayMode' |
-    'oneClickReactions' |
-    'language'
-);
+export type DisplaySettingsSection =
+    | 'theme'
+    | 'collapsedReplyThreads'
+    | 'clockDisplay'
+    | 'teammateNameDisplay'
+    | 'availabilityStatusOnPosts'
+    | 'lastActiveTime'
+    | 'timezone'
+    | 'showLinkPreviews'
+    | 'collapseImagePreviews'
+    | 'clickToReply'
+    | 'channelDisplayMode'
+    | 'oneClickReactions'
+    | 'language';
 
 const sectionTitles: Record<DisplaySettingsSection, string> = {
     theme: 'Theme',
@@ -36,11 +35,11 @@ const sectionTitles: Record<DisplaySettingsSection, string> = {
 };
 
 export default class DisplaySettings {
-    readonly container: Locator
+    readonly container: Locator;
 
     constructor(container: Locator) {
         this.container = container;
-    };
+    }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
@@ -58,5 +57,4 @@ export default class DisplaySettings {
     }
 }
 
-
-export {DisplaySettings}
+export {DisplaySettings};
