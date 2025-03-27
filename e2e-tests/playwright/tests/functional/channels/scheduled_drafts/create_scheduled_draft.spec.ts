@@ -189,11 +189,12 @@ test('MM-T5643_3 should create a scheduled message from a DM', async ({pw}) => {
     await setupChannelPage(channelsPage, draftMessage, team.name, `@${user2.username}`);
     await scheduleMessage(channelsPage);
 
-    await channelsPage.centerView.verifyscheduledDraftChannelInfo();
+    await channelsPage.centerView.verifyscheduledDraftDMChannelInfo();
 
-    const postBoxIndicator = await channelsPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
-
-    await verifyScheduledDraft(channelsPage, scheduledDraftPage, draftMessage, postBoxIndicator);
+    await verifyscheduledDraftCount(channelsPage, '1');
+    await scheduledDraftPage.toBeVisible();
+    await scheduledDraftPage.assertBadgeCountOnTab('1');
+    await scheduledDraftPage.assertscheduledDraftBody(draftMessage);
 
     // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
