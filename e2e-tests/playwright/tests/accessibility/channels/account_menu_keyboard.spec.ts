@@ -6,7 +6,9 @@ import {ChannelsPage} from '@e2e-support/ui/pages';
 import {UserProfile} from '@mattermost/types/users';
 import {Page} from '@playwright/test';
 
-test('MM-63451 should be able to navigate the account settings menu with the keyboard after opening it with the mouse', async ({pw}) => {
+test('MM-63451 should be able to navigate the account settings menu with the keyboard after opening it with the mouse', async ({
+    pw,
+}) => {
     // # Create and sign in a new user
     const {user} = await pw.initSetup();
 
@@ -23,7 +25,9 @@ test('MM-63451 should be able to navigate the account settings menu with the key
     await testMenuWithKeyboard(user, page, channelsPage);
 });
 
-test('MM-63451 should be able to navigate the account settings menu with the keyboard after opening it with the keyboard', async ({pw}) => {
+test('MM-63451 should be able to navigate the account settings menu with the keyboard after opening it with the keyboard', async ({
+    pw,
+}) => {
     // # Create and sign in a new user
     const {user} = await pw.initSetup();
 
@@ -72,7 +76,7 @@ async function testMenuWithKeyboard(user: UserProfile, page: Page, channelsPage:
 
     // * Should be able to move into the submenu by pressing the right arrow
     await page.keyboard.press('ArrowRight');
-    await expect(page.getByRole('menuitem', {name: 'Don\'t clear'})).toBeFocused();
+    await expect(page.getByRole('menuitem', {name: "Don't clear"})).toBeFocused();
 
     // * Should be able to scroll through the submenu with the keyboard
     await page.keyboard.press('ArrowDown');
@@ -88,7 +92,7 @@ async function testMenuWithKeyboard(user: UserProfile, page: Page, channelsPage:
 
     // * Should wrap around when you reach the end
     await page.keyboard.press('ArrowDown');
-    await expect(page.getByRole('menuitem', {name: 'Don\'t clear'})).toBeFocused();
+    await expect(page.getByRole('menuitem', {name: "Don't clear"})).toBeFocused();
     await page.keyboard.press('ArrowUp');
     await expect(page.getByRole('menuitem', {name: 'Choose date and time'})).toBeFocused();
 
