@@ -40,9 +40,12 @@
         flex-direction: column;
         gap: 16px;
         height: 550px;
+        width: 100%;
     }
 
     .AdvancedTextbox {
+        width: 390px;
+
         #PreviewInputTextButton {
             position: absolute;
             z-index: 10;

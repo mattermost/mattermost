@@ -25,11 +25,6 @@ import SaveChangesPanel from 'components/widgets/modals/components/save_changes_
 
 const CHANNEL_BANNER_CHARACTER_LIMIT = 1024;
 
-// TODO: delete these when using actual channel banner values
-const initialChannelBannerEnabled = true;
-const initialBannerText = '**Controlled Unclassified:** Impact Level 5. ';
-const initialBannerBackgroundColor = '#517391';
-
 type Props = {
     channel: Channel;
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
@@ -41,11 +36,12 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
     const dispatch = useDispatch();
 
     // TODO: populate initial state witha ctual channel info
+    const initialBannerInfo = channel.banner_info;
 
     // TODO: maybe use a single object to store entire channel banner instead of individual states for each field
-    const [channelBannerEnabled, setChannelBannerEnabled] = useState(initialChannelBannerEnabled);
-    const [channelBannerColor, setChannelBannerColor] = useState(initialBannerBackgroundColor);
-    const [channelBannerText, setChannelBannerText] = useState(initialBannerText);
+    const [channelBannerEnabled, setChannelBannerEnabled] = useState(initialBannerInfo?.enabled);
+    const [channelBannerColor, setChannelBannerColor] = useState(initialBannerInfo?.background_color);
+    const [channelBannerText, setChannelBannerText] = useState(initialBannerInfo?.text);
 
     const [formError, setFormError] = useState('');
 
@@ -57,12 +53,27 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
     const [switchingTabsWithUnsaved, setSwitchingTabsWithUnsaved] = useState(IsTabSwitchActionWithUnsaved);
     const [characterLimitExceeded, setCharacterLimitExceeded] = useState(false);
 
+    const handleToggle = useCallback(() => {
+        const newValue = !channelBannerEnabled;
+        setChannelBannerEnabled(newValue);
+        if (!newValue) {
+            setChannelBannerText(initialBannerInfo?.text);
+            setChannelBannerColor(initialBannerInfo?.background_color);
+        }
+    }, [channelBannerEnabled, initialBannerInfo?.background_color, initialBannerInfo?.text]);
+
     const handleChannelBannerTextChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
         setChannelBannerText(e.target.value);
-        if (e.target.value.length > CHANNEL_BANNER_CHARACTER_LIMIT) {
+        if (e.target.value.trim().length > CHANNEL_BANNER_CHARACTER_LIMIT) {
             setFormError(formatMessage({
                 id: 'channel_settings.save_changes_panel.standard_error',
                 defaultMessage: 'There are errors in the form above',
+            }));
+            setCharacterLimitExceeded(true);
+        } else if (e.target.value.trim().length === 0) {
+            setFormError(formatMessage({
+                id: 'channel_settings.save_changes_panel.banner_text.required_error',
+                defaultMessage: 'TODO channel banner text is required',
             }));
             setCharacterLimitExceeded(true);
         } else {
@@ -74,8 +85,8 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
     const toggleBannerTextPreview = useCallback(() => setShowBannerTextPreview((show) => !show), []);
 
     const hasUnsavedChanges = useCallback(() => {
-        return channelBannerText !== initialBannerText || channelBannerColor !== initialBannerBackgroundColor || channelBannerEnabled !== initialChannelBannerEnabled;
-    }, [channelBannerColor, channelBannerEnabled, channelBannerText]);
+        return channelBannerText !== initialBannerInfo?.text || channelBannerColor !== initialBannerInfo?.background_color || channelBannerEnabled !== initialBannerInfo?.enabled;
+    }, [channelBannerColor, channelBannerEnabled, channelBannerText, initialBannerInfo?.background_color, initialBannerInfo?.enabled, initialBannerInfo?.text]);
 
     useEffect(() => {
         const unsavedChanges = hasUnsavedChanges();
@@ -162,9 +173,9 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
         setSaveChangesPanelState(undefined);
         setShowBannerTextPreview(false);
 
-        setChannelBannerText(initialBannerText);
-        setChannelBannerEnabled(initialChannelBannerEnabled);
-        setChannelBannerColor(initialBannerBackgroundColor);
+        setChannelBannerText(initialBannerInfo?.text);
+        setChannelBannerEnabled(initialBannerInfo?.enabled);
+        setChannelBannerColor(initialBannerInfo?.background_color);
 
         setFormError('');
     }, []);
@@ -202,7 +213,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
                         ariaLabel={heading}
                         size='btn-md'
                         disabled={false}
-                        onToggle={() => setChannelBannerEnabled((x) => !x)}
+                        onToggle={handleToggle}
                         toggled={channelBannerEnabled}
                         tabIndex={-1}
                         toggleClassName='btn-toggle-primary'
