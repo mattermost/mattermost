@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {waitUntil} from '@e2e-support/test_action';
 import {expect, test} from '@e2e-support/test_fixture';
 
 test('should be able to enable mobile security settings when licensed', async ({pw}) => {
@@ -35,6 +36,8 @@ test('should be able to enable mobile security settings when licensed', async ({
 
     // # Save settings
     await systemConsolePage.mobileSecurity.clickSaveButton();
+    // # Wait until the save button has settled
+    await waitUntil(async () => (await systemConsolePage.mobileSecurity.saveButton.textContent()) === 'Save');
 
     // # Go to any other section and come back to Mobile Security
     await systemConsolePage.sidebar.goToItem('Users');
@@ -57,6 +60,8 @@ test('should be able to enable mobile security settings when licensed', async ({
 
     // # Save settings
     await systemConsolePage.mobileSecurity.clickSaveButton();
+    // # Wait until the save button has settled
+    await waitUntil(async () => (await systemConsolePage.mobileSecurity.saveButton.textContent()) === 'Save');
 
     // # Go to any other section and come back to Mobile Security
     await systemConsolePage.sidebar.goToItem('Users');
@@ -79,6 +84,8 @@ test('should be able to enable mobile security settings when licensed', async ({
 
     // # Save settings
     await systemConsolePage.mobileSecurity.clickSaveButton();
+    // # Wait until the save button has settled
+    await waitUntil(async () => (await systemConsolePage.mobileSecurity.saveButton.textContent()) === 'Save');
 
     // # Go to any other section and come back to Mobile Security
     await systemConsolePage.sidebar.goToItem('Users');
