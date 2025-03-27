@@ -41,6 +41,8 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
     const dispatch = useDispatch();
 
     // TODO: populate initial state witha ctual channel info
+
+    // TODO: maybe use a single object to store entire channel banner instead of individual states for each field
     const [channelBannerEnabled, setChannelBannerEnabled] = useState(initialChannelBannerEnabled);
     const [channelBannerColor, setChannelBannerColor] = useState(initialBannerBackgroundColor);
     const [channelBannerText, setChannelBannerText] = useState(initialBannerText);
@@ -56,11 +58,18 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
     const [characterLimitExceeded, setCharacterLimitExceeded] = useState(false);
 
     const handleChannelBannerTextChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
-        console.log({val: e.target.value});
-
         setChannelBannerText(e.target.value);
-        setCharacterLimitExceeded(e.target.value.length > CHANNEL_BANNER_CHARACTER_LIMIT);
-    }, []);
+        if (e.target.value.length > CHANNEL_BANNER_CHARACTER_LIMIT) {
+            setFormError(formatMessage({
+                id: 'channel_settings.save_changes_panel.standard_error',
+                defaultMessage: 'There are errors in the form above',
+            }));
+            setCharacterLimitExceeded(true);
+        } else {
+            setFormError('');
+            setCharacterLimitExceeded(false);
+        }
+    }, [formatMessage]);
 
     const toggleBannerTextPreview = useCallback(() => setShowBannerTextPreview((show) => !show), []);
 
@@ -102,8 +111,6 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
             return false;
         }
 
-        console.log({channelBannerText});
-
         if (channelBannerEnabled && !channelBannerText.trim()) {
             setFormError(formatMessage({
                 id: 'channel_settings.error_banner_text_required',
@@ -125,13 +132,12 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
             ...channel,
         };
 
+        // todo: this will be fixed when other channel banner PR is merged
         updated.banner_info = {
             text: channelBannerText,
             background_color: channelBannerColor,
             enabled: channelBannerEnabled,
         };
-
-        console.log({updated});
 
         const {error} = await dispatch(patchChannel(channel.id, updated));
         if (error) {
@@ -140,8 +146,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
         }
 
         return true;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [channelBannerEnabled, channelBannerText, channelBannerColor]);
+    }, [channel, channelBannerText, channelBannerEnabled, channelBannerColor, dispatch, formatMessage, handleServerError]);
 
     const handleSaveChanges = useCallback(async () => {
         const success = await handleSave();
@@ -171,7 +176,6 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
 
     const hasErrors = Boolean(formError) ||
         characterLimitExceeded ||
-        Boolean(formError) ||
         Boolean(switchingTabsWithUnsaved);
 
     return (
@@ -225,6 +229,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
                                 channelId={channel.id}
                                 onChange={handleChannelBannerTextChange}
                                 createMessage={bannerTextPlaceholder}
+                                minCharacterLimit={1}
                                 characterLimit={CHANNEL_BANNER_CHARACTER_LIMIT}
                                 preview={showBannerTextPreview}
                                 togglePreview={toggleBannerTextPreview}
@@ -232,7 +237,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
                                 useChannelMentions={false}
                                 onKeypress={() => {}}
                                 hasError={false}
-                                showCharacterCount={false}
+                                showCharacterCount={true}
                             />
                         </div>
                     </div>
@@ -264,10 +269,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
                     handleClose={handleClose}
                     tabChangeError={hasErrors}
                     state={hasErrors ? 'error' : saveChangesPanelState}
-                    customErrorMessage={formatMessage({
-                        id: 'channel_settings.save_changes_panel.standard_error',
-                        defaultMessage: 'There are errors in the form above',
-                    })}
+                    customErrorMessage={formError}
                     cancelButtonText={formatMessage({
                         id: 'channel_settings.save_changes_panel.reset',
                         defaultMessage: 'Reset',

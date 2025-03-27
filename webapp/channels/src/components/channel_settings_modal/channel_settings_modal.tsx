@@ -141,7 +141,11 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
 
     const renderConfigurationTab = () => {
         return (
-            <ChannelSettingsConfigurationTab channel={channel}/>
+            <ChannelSettingsConfigurationTab
+                channel={channel}
+                setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                IsTabSwitchActionWithUnsaved={IsTabSwitchActionWithUnsaved}
+            />
         );
     };
 

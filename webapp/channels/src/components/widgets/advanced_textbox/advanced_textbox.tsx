@@ -140,26 +140,28 @@ const AdvancedTextbox = ({
                 />)
             }
 
-            {/* Character count display */}
-            {(showCharacterCount && (internalError || errorType)) && (
-                <div
-                    className={classNames('AdvancedTextbox__character-count', {
-                        'exceeds-limit': characterCount > characterLimit,
-                        'below-minimum': minCharacterLimit && characterCount > 0 && characterCount < minCharacterLimit,
-                    })}
-                >
-                    {characterCount}{'/'}
-                    {errorType === 'min' ? minCharacterLimit : characterLimit}
-                </div>
-            )}
+            <div className='AdvancedTextbox__error-wrapper'>
+                {/* Error message display */}
+                {internalError && (
+                    <div className='AdvancedTextbox__error-message'>
+                        <i className='icon icon-alert-circle-outline'/>
+                        <span>{internalError}</span>
+                    </div>
+                )}
 
-            {/* Error message display */}
-            {internalError && (
-                <div className='AdvancedTextbox__error-message'>
-                    <i className='icon icon-alert-circle-outline'/>
-                    <span>{internalError}</span>
-                </div>
-            )}
+                {/* Character count display */}
+                {(showCharacterCount && (internalError || errorType)) && (
+                    <div
+                        className={classNames('AdvancedTextbox__character-count', {
+                            'exceeds-limit': characterCount > characterLimit,
+                            'below-minimum': minCharacterLimit && characterCount > 0 && characterCount < minCharacterLimit,
+                        })}
+                    >
+                        {characterCount}{'/'}
+                        {errorType === 'min' ? minCharacterLimit : characterLimit}
+                    </div>
+                )}
+            </div>
 
             {/* Error message display */}
             {(descriptionMessage && !internalError) && (
