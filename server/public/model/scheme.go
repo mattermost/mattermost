@@ -41,8 +41,8 @@ type Scheme struct {
 	DefaultRunMemberRole      string `json:"default_run_member_role"`
 }
 
-func (scheme *Scheme) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (scheme *Scheme) Auditable() map[string]any {
+	return map[string]any{
 		"id":                           scheme.Id,
 		"name":                         scheme.Name,
 		"display_name":                 scheme.DisplayName,
@@ -112,7 +112,7 @@ func (scheme *Scheme) MarshalYAML() (any, error) {
 	}, nil
 }
 
-func (scheme *Scheme) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (scheme *Scheme) UnmarshalYAML(unmarshal func(any) error) error {
 	out := struct {
 		Id                        string `yaml:"id"`
 		Name                      string `yaml:"name"`
@@ -181,8 +181,8 @@ type SchemePatch struct {
 	Description *string `json:"description"`
 }
 
-func (scheme *SchemePatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (scheme *SchemePatch) Auditable() map[string]any {
+	return map[string]any{
 		"name":         scheme.Name,
 		"display_name": scheme.DisplayName,
 		"description":  scheme.Description,
@@ -193,8 +193,8 @@ type SchemeIDPatch struct {
 	SchemeID *string `json:"scheme_id"`
 }
 
-func (p *SchemeIDPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (p *SchemeIDPatch) Auditable() map[string]any {
+	return map[string]any{
 		"scheme_id": p.SchemeID,
 	}
 }
@@ -243,8 +243,8 @@ type SchemeRoles struct {
 	SchemeGuest bool `json:"scheme_guest"`
 }
 
-func (s *SchemeRoles) Auditable() map[string]interface{} {
-	return map[string]interface{}{}
+func (s *SchemeRoles) Auditable() map[string]any {
+	return map[string]any{}
 }
 
 func (scheme *Scheme) IsValid() bool {
