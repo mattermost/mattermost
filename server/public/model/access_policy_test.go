@@ -164,7 +164,7 @@ func TestAccessPolicyVersionV0_1(t *testing.T) {
 		}
 
 		err := policy.accessPolicyVersionV0_1()
-		require.Nil(t, err, "Should return error for channel policy with no imports")
+		require.Nil(t, err, "Should not return error for channel policy with no imports")
 	})
 
 	t.Run("channel policy with multiple imports", func(t *testing.T) {
