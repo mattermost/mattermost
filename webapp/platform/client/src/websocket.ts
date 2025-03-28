@@ -168,7 +168,7 @@ export default class WebSocketClient {
             this.ping(() => {
                 waitingForPong = false;
             });
-    
+
             // And every 30 seconds after, checking to ensure
             // we're getting responses from the server
             this.pingInterval = setInterval(
