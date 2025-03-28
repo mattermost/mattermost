@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useCallback, useEffect, useMemo} from 'react';
-import type {MouseEvent} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -94,6 +94,8 @@ function ThreadItem({
     const postAuthor = ensureString(post.props?.override_username) || displayName;
     const getMentionKeysForPost = useMemo(() => makeGetMentionKeysForPost(), []);
     const mentionsKeys = useSelector((state: GlobalState) => getMentionKeysForPost(state, post, channel));
+    const previewRef = useRef<HTMLDivElement>(null);
+    const [hasLink, setHasLink] = useState(false);
 
     useEffect(() => {
         if (channel?.teammate_id) {
@@ -107,6 +109,12 @@ function ThreadItem({
         }
     }, [channel, thread?.post.channel_id]);
 
+    useEffect(() => {
+        if (previewRef.current) {
+            setHasLink(previewRef.current.querySelector('a') !== null);
+        }
+    }, [post.message, post.state]);
+
     const participantIds = useMemo(() => {
         const ids = (thread?.participants || []).flatMap(({id}) => {
             if (id === post.user_id) {
@@ -119,7 +127,13 @@ function ThreadItem({
 
     let unreadTimestamp = post.edit_at || post.create_at;
 
-    const selectHandler = useCallback((e: MouseEvent<HTMLDivElement>) => {
+    const selectHandler = useCallback((e: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>) => {
+        // If the event is a keyboard event, check if the key is 'Enter' or ' '.
+        if ('key' in e) {
+            if (e.key !== 'Enter' && e.key !== ' ') {
+                return;
+            }
+        }
         if (e.altKey) {
             const hasUnreads = thread ? Boolean(thread.unread_replies) : false;
             const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
@@ -153,6 +167,12 @@ function ThreadItem({
     }, [threadId]);
 
     const handleFormattedTextClick = useCallback((e) => {
+        // If the event is a keyboard event, check if the key is 'Enter' or ' '.
+        if ('key' in e) {
+            if (e.key !== 'Enter' && e.key !== ' ') {
+                return;
+            }
+        }
         Utils.handleFormattedTextClick(e, currentRelativeTeamUrl);
     }, [currentRelativeTeamUrl]);
 
@@ -182,9 +202,15 @@ function ThreadItem({
                 'has-unreads': newReplies,
                 'is-selected': isSelected,
             })}
-            tabIndex={0}
+            tabIndex={isSelected ? -1 : 0}
+            role='button'
+            aria-label={formatMessage(
+                {id: 'threading.threadItem.ariaLabel', defaultMessage: 'Thread by {author}'},
+                {author: postAuthor},
+            )}
             id={isFirstThreadInList ? 'tutorial-threads-mobile-list' : ''}
             onClick={selectHandler}
+            onKeyDown={selectHandler}
         >
             <header>
                 {Boolean(newMentions || newReplies) && (
@@ -247,11 +273,13 @@ function ThreadItem({
                 </ThreadMenu>
             </div>
             <div
-                aria-readonly='true'
+                ref={previewRef}
                 className='preview'
                 dir='auto'
-                tabIndex={0}
+                tabIndex={hasLink ? 0 : -1}
+                role='button'
                 onClick={handleFormattedTextClick}
+                onKeyDown={handleFormattedTextClick}
             >
                 {post.message ? (
                     <Markdown
