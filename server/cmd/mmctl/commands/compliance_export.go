@@ -233,6 +233,10 @@ func getStartAndEnd(dateStr string, start int, end int) (int64, int64, error) {
 		return 0, 0, nil
 	}
 
+	if dateStr != "" && (start > 0 || end > 0) {
+		return 0, 0, errors.New("if date is used, start and end must not be set")
+	}
+
 	if dateStr != "" {
 		t, err := time.Parse("2006-01-02 -0700", dateStr)
 		if err != nil {

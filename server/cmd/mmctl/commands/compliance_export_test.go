@@ -352,9 +352,9 @@ func Test_getStartAndEnd(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "needs something",
+			name:    "it ok to not have date, start, or end",
 			args:    args{},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name: "needs both start and end1",
