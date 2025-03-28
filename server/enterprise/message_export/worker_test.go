@@ -43,7 +43,10 @@ func TestInitJobDataNoJobData(t *testing.T) {
 	}
 
 	// mock job store doesn't return a previously successful job, forcing fallback to config
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, errors.New("test"))
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, 100).Return(nil, errors.New("test"))
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -67,7 +70,7 @@ func TestInitJobDataNoJobData(t *testing.T) {
 	}
 
 	now := time.Now()
-	worker.initJobData(logger, job, now)
+	worker.initJobData(request.EmptyContext(logger), logger, job, now)
 
 	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[shared.JobDataExportType])
 	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[shared.JobDataBatchSize])
@@ -98,7 +101,10 @@ func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
 	}
 
 	// mock job store returns a previously successful job, but it doesn't have job data either, so we still fall back to config
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(previousJob, nil)
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, 100).Return([]*model.Job{previousJob}, nil)
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -122,7 +128,7 @@ func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
 	}
 
 	now := time.Now()
-	worker.initJobData(logger, job, now)
+	worker.initJobData(request.EmptyContext(logger), logger, job, now)
 
 	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[shared.JobDataExportType])
 	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[shared.JobDataBatchSize])
@@ -155,7 +161,10 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 	}
 
 	// mock job store returns a previously successful job that has the config that we're looking for, so we use it
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(previousJob, nil)
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, 100).Return([]*model.Job{previousJob}, nil)
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -179,7 +188,7 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 	}
 
 	now := time.Now()
-	worker.initJobData(logger, job, now)
+	worker.initJobData(request.EmptyContext(logger), logger, job, now)
 
 	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[shared.JobDataExportType])
 	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[shared.JobDataBatchSize])
@@ -212,7 +221,10 @@ func TestInitJobDataPreviousJobWithJobDataPre105(t *testing.T) {
 	}
 
 	// mock job store returns a previously successful job that has the config that we're looking for, so we use it
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(previousJob, nil)
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, 100).Return([]*model.Job{previousJob}, nil)
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -236,7 +248,7 @@ func TestInitJobDataPreviousJobWithJobDataPre105(t *testing.T) {
 	}
 
 	now := time.Now()
-	worker.initJobData(logger, job, now)
+	worker.initJobData(request.EmptyContext(logger), logger, job, now)
 
 	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[shared.JobDataExportType])
 	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[shared.JobDataBatchSize])
@@ -273,7 +285,10 @@ func TestDoJobNoPostsToExport(t *testing.T) {
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// no previous job, data will be loaded from config
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, errors.New("test"))
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, 100).Return(nil, errors.New("test"))
 
 	// no channels with activity
 	mockStore.ChannelMemberHistoryStore.On("GetChannelsWithActivityDuring", mock.Anything, mock.Anything).
@@ -356,7 +371,10 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// no previous job, data will be loaded from config
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, errors.New("test"))
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, 100).Return(nil, errors.New("test"))
 
 	channelId := st.NewTestID()
 	channelName := st.NewTestID()
@@ -521,7 +539,10 @@ func TestDoJobCancel(t *testing.T) {
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// No previous job, data will be loaded from config
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, errors.New("test"))
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, 100).Return(nil, errors.New("test"))
 
 	// Job updates the system console UI, once for getting channels, once for getting activity
 	mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(true, nil).Times(2)
@@ -570,4 +591,166 @@ func TestDoJobCancel(t *testing.T) {
 
 	// Cleanup
 	worker.Stop()
+}
+
+func TestGetPreviousJobNoJobs(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	mockStore := &storetest.Store{}
+	defer mockStore.AssertExpectations(t)
+
+	// Mock the job store to return empty jobs list
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, 100).Return([]*model.Job{}, nil).Once()
+
+	worker := &MessageExportWorker{
+		jobServer: &jobs.JobServer{
+			Store: mockStore,
+		},
+		logger: logger,
+	}
+
+	rctx := request.EmptyContext(logger)
+	job, err := worker.getPreviousJob(rctx)
+
+	require.NoError(t, err)
+	assert.Nil(t, job, "Expected nil job when no jobs are returned")
+}
+
+func TestGetPreviousJobOneRegularJob(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	mockStore := &storetest.Store{}
+	defer mockStore.AssertExpectations(t)
+
+	regularJob := &model.Job{
+		Id:     st.NewTestID(),
+		Status: model.JobStatusSuccess,
+		Type:   model.JobTypeMessageExport,
+		Data:   map[string]string{},
+	}
+
+	// Mock the job store to return one regular job
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, 100).Return([]*model.Job{regularJob}, nil).Once()
+
+	worker := &MessageExportWorker{
+		jobServer: &jobs.JobServer{
+			Store: mockStore,
+		},
+		logger: logger,
+	}
+
+	rctx := request.EmptyContext(logger)
+	job, err := worker.getPreviousJob(rctx)
+
+	require.NoError(t, err)
+	assert.Equal(t, regularJob.Id, job.Id, "Expected to get the regular job")
+}
+
+func TestGetPreviousJobOneMmctlJob(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	mockStore := &storetest.Store{}
+	defer mockStore.AssertExpectations(t)
+
+	mmctlJob := &model.Job{
+		Id:     st.NewTestID(),
+		Status: model.JobStatusSuccess,
+		Type:   model.JobTypeMessageExport,
+		Data:   map[string]string{shared.JobDataInitiatedBy: "mmctl"},
+	}
+
+	// Mock the job store to return one mmctl job (first page)
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, 100).Return([]*model.Job{mmctlJob}, nil).Once()
+
+	// Mock the job store to return no jobs (second page, empty)
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		100, 100).Return([]*model.Job{}, nil).Once()
+
+	worker := &MessageExportWorker{
+		jobServer: &jobs.JobServer{
+			Store: mockStore,
+		},
+		logger: logger,
+	}
+
+	rctx := request.EmptyContext(logger)
+	job, err := worker.getPreviousJob(rctx)
+
+	require.NoError(t, err)
+	assert.Nil(t, job, "Expected nil job when only mmctl jobs are found")
+}
+
+func TestGetPreviousJobManyJobs(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	mockStore := &storetest.Store{}
+	defer mockStore.AssertExpectations(t)
+
+	// Create 100 mmctl jobs for first page
+	firstPageJobs := make([]*model.Job, 100)
+	for i := range 100 {
+		firstPageJobs[i] = &model.Job{
+			Id:     st.NewTestID(),
+			Status: model.JobStatusSuccess,
+			Type:   model.JobTypeMessageExport,
+			Data:   map[string]string{shared.JobDataInitiatedBy: "mmctl"},
+		}
+	}
+
+	// Create 100 mmctl jobs for second page
+	secondPageJobs := make([]*model.Job, 100)
+	for i := range 100 {
+		secondPageJobs[i] = &model.Job{
+			Id:     st.NewTestID(),
+			Status: model.JobStatusSuccess,
+			Type:   model.JobTypeMessageExport,
+			Data:   map[string]string{shared.JobDataInitiatedBy: "mmctl"},
+		}
+	}
+
+	// Create 1 regular job for the third page (last job)
+	regularJob := &model.Job{
+		Id:     st.NewTestID(),
+		Status: model.JobStatusSuccess,
+		Type:   model.JobTypeMessageExport,
+		Data:   map[string]string{},
+	}
+	thirdPageJobs := []*model.Job{regularJob}
+
+	// Mock the job store to return the jobs in pages
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, 100).Return(firstPageJobs, nil).Once()
+
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		100, 100).Return(secondPageJobs, nil).Once()
+
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		200, 100).Return(thirdPageJobs, nil).Once()
+
+	worker := &MessageExportWorker{
+		jobServer: &jobs.JobServer{
+			Store: mockStore,
+		},
+		logger: logger,
+	}
+
+	rctx := request.EmptyContext(logger)
+	job, err := worker.getPreviousJob(rctx)
+
+	require.NoError(t, err)
+	assert.NotNil(t, job)
+	assert.Equal(t, regularJob.Id, job.Id, "Expected to find the regular job at the end")
 }
