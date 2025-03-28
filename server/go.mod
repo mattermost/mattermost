@@ -4,6 +4,10 @@ go 1.23.0
 
 toolchain go1.23.7
 
+replace (
+    github.com/mattermost/mattermost/server/public => /Users/ibrahim/go/src/github.com/mattermost/mattermost-server/server/public
+)
+
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
 	github.com/Masterminds/semver/v3 v3.3.1

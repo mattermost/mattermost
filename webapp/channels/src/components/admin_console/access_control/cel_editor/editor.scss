@@ -1,0 +1,124 @@
+.cel-editor {
+    margin-bottom: 24px;
+    
+    &__container {
+        position: relative;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        margin-bottom: 8px;
+    }
+    
+    &__input {
+        width: 100%;
+        min-height: 80px;
+        padding: 12px;
+        resize: vertical;
+        border: none;
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--center-channel-color);
+        background: transparent;
+        
+        &:focus {
+            outline: none;
+        }
+        
+        &::placeholder {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+    }
+    
+    &__footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    
+    &__actions {
+        display: flex;
+        align-items: center;
+    }
+    
+    &__validate-btn {
+        background: transparent;
+        border: none;
+        padding: 8px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--button-bg);
+        cursor: pointer;
+        
+        &:hover, &:focus {
+            text-decoration: underline;
+        }
+        
+        &:disabled {
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+            cursor: not-allowed;
+        }
+    }
+    
+    &__test-btn {
+        display: flex;
+        align-items: center;
+        background: transparent;
+        border: 1px solid var(--button-bg);
+        border-radius: 4px;
+        padding: 8px 0px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--button-bg);
+        cursor: pointer;
+        
+        i {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+        
+        &:disabled {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+            cursor: not-allowed;
+        }
+    }
+    
+    &__loading {
+        display: flex;
+        align-items: center;
+        
+        i {
+            margin-right: 8px;
+        }
+    }
+    
+    &__help-text {
+        font-size: 12px;
+        line-height: 1.5;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        
+        code {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+    }
+    
+    &__learn-more {
+        display: block;
+        margin-top: 4px;
+        color: var(--button-bg);
+        text-decoration: none;
+        
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
