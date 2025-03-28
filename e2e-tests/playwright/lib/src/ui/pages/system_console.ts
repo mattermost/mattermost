@@ -22,6 +22,10 @@ export default class SystemConsolePage {
     readonly systemUsersColumnToggleMenu;
     readonly systemUsersActionMenus;
 
+    readonly mobileSecurity;
+
+    readonly featureDiscovery;
+
     // modal
     readonly confirmModal;
     readonly exportModal;
@@ -36,6 +40,10 @@ export default class SystemConsolePage {
 
         // Sections and sub-sections
         this.systemUsers = new components.SystemUsers(page.getByTestId('systemUsersSection'));
+        this.mobileSecurity = new components.SystemConsoleMobileSecurity(
+            page.getByTestId('sysconsole_section_MobileSecuritySettings'),
+        );
+        this.featureDiscovery = new components.SystemConsoleFeatureDiscovery(page.getByTestId('featureDiscovery'));
 
         // Menus & Popovers
         this.systemUsersFilterPopover = new components.SystemUsersFilterPopover(

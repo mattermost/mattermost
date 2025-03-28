@@ -17,7 +17,7 @@
     "dependencies": {
         "@axe-core/playwright": "4.10.1",
         "@mattermost/playwright-lib": "*",
-        "@mattermost/types": "10.6.0-0",
+        "@mattermost/types": "10.6.0",
         "@percy/cli": "1.30.7",
         "@percy/playwright": "1.0.7",
         "@types/node": "22.13.1",

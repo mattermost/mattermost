@@ -9,29 +9,6 @@ export type TestArgs = {
     viewport?: ViewportSize | null;
 };
 
-export type TestConfig = {
-    // Server
-    baseURL: string;
-    adminUsername: string;
-    adminPassword: string;
-    adminEmail: string;
-    ensurePluginsInstalled: string[];
-    resetBeforeTest: boolean;
-    haClusterEnabled: boolean;
-    haClusterNodeCount: number;
-    haClusterName: string;
-    pushNotificationServer: string;
-    // CI
-    isCI: boolean;
-    // Playwright
-    headless: boolean;
-    slowMo: number;
-    workers: number;
-    // Visual tests
-    snapshotEnabled: boolean;
-    percyEnabled: boolean;
-};
-
 // Based on https://github.com/microsoft/playwright/blob/d6ec1ae3994f127e38b866a231a34efc6a4cac0d/packages/playwright/types/test.d.ts#L5692-L5759
 export type ScreenshotOptions = {
     /**

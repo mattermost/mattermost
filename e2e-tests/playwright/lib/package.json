@@ -32,15 +32,18 @@
   },
   "dependencies": {
     "@axe-core/playwright": "4.10.1",
+    "@mattermost/client": "10.6.0",
+    "@mattermost/types": "10.6.0",
     "@percy/cli": "1.30.7",
     "@percy/playwright": "1.0.7",
+    "@testcontainers/postgresql": "10.18.0",
     "async-wait-until": "2.0.23",
     "axe-core": "4.10.2",
     "deepmerge": "4.3.1",
     "dotenv": "16.4.7",
     "mime-types": "2.1.35",
-    "@mattermost/client": "10.6.0-0",
-    "@mattermost/types": "10.6.0-0",
+    "pg": "8.13.3",
+    "testcontainers": "10.18.0",
     "uuid": "11.0.5"
   },
   "devDependencies": {
@@ -52,14 +55,11 @@
     "rollup-plugin-copy": "3.5.0"
   },
   "peerDependencies": {
-    "@playwright/test": "^1.50.1",
-    "@mattermost/client": "10.6.x",
-    "@mattermost/types": "10.6.x"
+    "@mattermost/client": "10.6.0",
+    "@mattermost/types": "10.6.0",
+    "@playwright/test": "^1.50.1"
   },
   "peerDependenciesMeta": {
-    "@playwright/test": {
-      "optional": false
-    },
     "@mattermost/client": {
       "optional": true
     },

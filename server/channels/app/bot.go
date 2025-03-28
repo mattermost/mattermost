@@ -617,6 +617,7 @@ func (a *App) ConvertUserToBot(rctx request.CTX, user *model.User) (*model.Bot, 
 	if err := a.RevokeAllSessions(rctx, user.Id); err != nil {
 		return nil, err
 	}
+	a.InvalidateCacheForUser(user.Id)
 
 	return bot, nil
 }

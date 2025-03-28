@@ -34,6 +34,8 @@ import SystemUsersColumnToggleMenu from './system_console/sections/system_users/
 import ChannelsPostEdit from './channels/post_edit';
 import DeletePostConfirmationDialog from './channels/delete_post_confirmation_dialog';
 import RestorePostConfirmationDialog from './channels/restore_post_confirmation_dialog';
+import SystemConsoleFeatureDiscovery from './system_console/sections/system_users/feature_discovery';
+import SystemConsoleMobileSecurity from './system_console/sections/system_users/mobile_security';
 
 const components = {
     GlobalHeader,
@@ -65,6 +67,8 @@ const components = {
     SystemUsersFilterPopover,
     SystemUsersFilterMenu,
     SystemUsersColumnToggleMenu,
+    SystemConsoleFeatureDiscovery,
+    SystemConsoleMobileSecurity,
     MessagePriority,
     UserProfilePopover,
     DeletePostConfirmationDialog,

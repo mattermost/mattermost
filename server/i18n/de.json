@@ -3992,7 +3992,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Ungültige ID."
+    "translation": "Ungültige ID: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4648,11 +4648,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 130+"
+    "translation": "Version 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 130+"
+    "translation": "Version 132+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10418,5 +10418,81 @@
   {
     "id": "app.file_info.get_storage_usage.app_error",
     "translation": "Die Speichernutzung aller Dateien konnte nicht ermittelt werden."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Sitzung nicht gefunden."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Benutzerdefinierte Profilattributfelder können nicht hochgeladen werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Die Anzahl der Felder für die Attributgruppe des benutzerdefinierten Profils kann nicht gezählt werden"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Ungültige Client Side User ID: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Die Anzahl der Elemente in ClientSideUserIds {{.CurrentLength}} ist höher als die maximale Grenze von {{.MaxLength}}."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Kanalbanner können nur für öffentliche und private Kanäle konfiguriert werden."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Die Farbe des Kanalbanners darf nicht leer sein, wenn das Kanalbanner aktiviert ist"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Kanalbanner können nur für öffentliche und private Kanäle konfiguriert werden"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Kanalbanner-Infotext kann nicht leer sein, wenn Kanalbanner aktiviert ist"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Der Text im Kanalbanner ist zu lang. Die maximal zulässige Länge beträgt {{.maxLength}} Zeichen."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Der Benutzerautorisierungsdienst muss LDAP oder E-Mail sein."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Du hast nicht die Erlaubnis, diese Ressource zu aktualisieren."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Entwürfe für Benutzer können nicht gelöscht werden."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "LDAP-Lizenz erforderlich."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Ungültige maximale Anmeldeversuche für LDAP-Einstellungen. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Dein Konto ist gesperrt, weil zu viele Passwortversuche fehlgeschlagen sind. Bitte kontaktiere deinen Systemadministrator."
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Die Anmeldeversuche konnten nicht zurückgesetzt werden."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Der Benutzer konnte nicht ermittelt werden."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Funktion ist für die aktuelle Lizenz nicht verfügbar"
   }
 ]

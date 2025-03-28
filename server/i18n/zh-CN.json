@@ -3987,7 +3987,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "无效的 Id。"
+    "translation": "无效的 Id：{{.Id}}。"
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -5655,11 +5655,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 130+"
+    "translation": "版本 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 130+"
+    "translation": "版本 132+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10408,5 +10408,81 @@
   {
     "id": "app.file_info.get_count.app_error",
     "translation": "获取文件总数量失败。"
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "会话未找到。"
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "无法计算自定义个人资料属性组的字段数量"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "无效的客户端侧用户 id：{{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "ClientSideUserIds 中的元素数量 {{.CurrentLength}} 大于上限 {{.MaxLength}}。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "无法更新或插入自定义个人资料属性字段"
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "频道横幅只能在公共频道和私有频道上设置。"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "频道横幅启用时，频道横幅颜色不能为空"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "频道横幅只能在公共频道和私有频道上设置"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "频道横幅信息文本过长。最大允许长度为 {{.maxLength}} 个字符。"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "用户认证服务必须为 LDAP 或 Email。"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "您没有更新此资源的权限。"
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "无法为用户删除草稿。"
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "需要 LDAP 授权。"
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "获取用户失败。"
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "此功能在当前授权中不可用"
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "ldap 设置中的最大登录尝试次数无效。必须为正数。"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "由于过多的错误密码尝试，您的账号已被锁定。请联系您的系统管理员。"
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "重置登录尝试失败。"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "频道横幅启用时，频道横幅信息文本不能为空"
   }
 ]
