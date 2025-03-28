@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    compliance_export download o98rj3ur83dp5dppfyk5yk6osy
+  compliance_export download o98rj3ur83dp5dppfyk5yk6osy
 
 Options
 ~~~~~~~

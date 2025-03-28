@@ -5,11 +5,17 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
+	"path"
+	"strconv"
+	"time"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -44,10 +50,18 @@ var ComplianceExportCancelCmd = &cobra.Command{
 
 var ComplianceExportDownloadCmd = &cobra.Command{
 	Use:     "download [complianceExportJobID] [output filepath (optional)]",
-	Example: "  compliance_export download o98rj3ur83dp5dppfyk5yk6osy",
+	Example: "compliance_export download o98rj3ur83dp5dppfyk5yk6osy",
 	Short:   "Download compliance export file",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(complianceExportDownloadCmdF),
+}
+
+var ComplianceExportCreateCmd = &cobra.Command{
+	Use:     "create [complianceExportType] --date 2025-03-27 EDT",
+	Example: "compliance_export create csv --date 2025-03-27 EDT",
+	Short:   "Create a compliance export job, of type 'csv' or 'actiance' or 'globalrelay'",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    withClient(complianceExportCreateCmdF),
 }
 
 func init() {
@@ -57,11 +71,32 @@ func init() {
 
 	ComplianceExportDownloadCmd.Flags().Int("num-retries", 5, "Number of retries if the download fails")
 
+	ComplianceExportCreateCmd.Flags().String(
+		"date",
+		"",
+		"Run the export for one day, from 12am to 12am (minus one millisecond) inclusively, in the format with timezone"+
+			"offset: `\"YYYY-MM-DD -0000\"`. E.g., \"2024-10-21 -0400\" for Oct 21, 2024 EDT timezone. \"2023-11-01 +0000\""+
+			"for Nov 01, 2024 UTC. If set, the 'start' and 'end' flags will be ignored.",
+	)
+	ComplianceExportCreateCmd.Flags().Int(
+		"start",
+		0,
+		"The start timestamp in unix milliseconds. Posts with updateAt >= start will be exported."+
+			"If set, 'end' must be set as well. eg, `1743048000000` for 2025-03-27 EDT.",
+	)
+	ComplianceExportCreateCmd.Flags().Int(
+		"end",
+		0,
+		"The end timestamp in unix milliseconds. Posts with updateAt <= end will be exported."+
+			"If set, 'start' must be set as well. eg, `1743134400000` for 2025-03-28 EDT.",
+	)
+
 	ComplianceExportCmd.AddCommand(
 		ComplianceExportListCmd,
 		ComplianceExportShowCmd,
 		ComplianceExportCancelCmd,
 		ComplianceExportDownloadCmd,
+		ComplianceExportCreateCmd,
 	)
 	RootCmd.AddCommand(ComplianceExportCmd)
 }
@@ -125,4 +160,82 @@ func complianceExportDownloadCmdF(c client.Client, command *cobra.Command, args 
 
 	printer.Print(fmt.Sprintf("Compliance export file downloaded to %q", path))
 	return nil
+}
+
+func complianceExportCreateCmdF(c client.Client, command *cobra.Command, args []string) error {
+	exportType := args[0]
+	if exportType != model.ComplianceExportTypeActiance &&
+		exportType != model.ComplianceExportTypeCsv &&
+		exportType != model.ComplianceExportTypeGlobalrelay {
+		return fmt.Errorf("invalid export type, must be one of: csv, actiance, globalrelay")
+	}
+
+	dateStr, err := command.Flags().GetString("date")
+	if err != nil {
+		return err
+	}
+	start, err := command.Flags().GetInt("start")
+	if err != nil {
+		return err
+	}
+	end, err := command.Flags().GetInt("end")
+	if err != nil {
+		return err
+	}
+	startTimestamp, endTimestamp, err := getStartAndEnd(dateStr, start, end)
+	if err != nil {
+		return err
+	}
+	startTime := strconv.FormatInt(startTimestamp, 10)
+	endTime := strconv.FormatInt(endTimestamp, 10)
+	exportDir := path.Join(model.ComplianceExportPath, fmt.Sprintf("%s-%s-%s", time.Now().Format(model.ComplianceExportDirectoryFormat), startTime, endTime))
+
+	// If start and end are 0, we need to not set those keys in the job data.
+	// This will make the job like a manual job (it will pick up where the previous job left off).
+	data := model.StringMap{
+		shared.JobDataInitiatedBy:  "mmctl",
+		shared.JobDataExportType:   exportType,
+		shared.JobDataBatchStartId: "",
+		shared.JobDataJobStartId:   "",
+	}
+	if startTimestamp != 0 && endTimestamp != 0 {
+		data[shared.JobDataBatchStartTime] = startTime
+		data[shared.JobDataJobStartTime] = startTime
+		data[shared.JobDataJobEndTime] = endTime
+		data[shared.JobDataExportDir] = exportDir
+	}
+
+	job := &model.Job{
+		Type: model.JobTypeMessageExport,
+		Data: data,
+	}
+
+	if job, _, err = c.CreateJob(context.TODO(), job); err != nil {
+		return fmt.Errorf("failed to create compliance export job: %w", err)
+	}
+
+	printer.Print(fmt.Sprintf("Compliance export job created with ID: %s", job.Id))
+
+	return nil
+}
+
+// getStartAndEnd returns the start and end timestamps in unix milliseconds
+func getStartAndEnd(dateStr string, start int, end int) (int64, int64, error) {
+	if dateStr == "" && start == 0 && end == 0 {
+		// return 0 so that the job will be like a manual job
+		return 0, 0, nil
+	}
+
+	if dateStr != "" {
+		t, err := time.Parse("2006-01-02 -0700", dateStr)
+		if err != nil {
+			return 0, 0, fmt.Errorf("could not parse date, use the format with time zone offset: YYYY-MM-DD -0700, eg for EDT: `2024-12-24 -0400`,  error details: %w", err)
+		}
+		endTimestamp := t.AddDate(0, 0, 1).UnixMilli() - 1
+		return t.UnixMilli(), endTimestamp, nil
+	}
+	if start <= 0 || end <= 0 || start >= end {
+		return 0, 0, errors.New("if date is not used, start and end must both be > 0, and start must be < end")
+	}
+	return int64(start), int64(end), nil
 }
