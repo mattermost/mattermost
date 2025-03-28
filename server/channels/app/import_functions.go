@@ -201,8 +201,6 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 	}
 
 	team.DisplayName = *data.DisplayName
-
-	// Set Type and AllowOpenInvite - consistency will be enforced by PreUpdate/PreSave
 	team.Type = *data.Type
 
 	if data.Description != nil {
