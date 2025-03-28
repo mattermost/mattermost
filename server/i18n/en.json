@@ -8401,6 +8401,10 @@
     "translation": "Feature is not available for the current license"
   },
   {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} feature is not available for the current license"
+  },
+  {
     "id": "manaultesting.manual_test.parse.app_error",
     "translation": "Unable to parse URL."
   },

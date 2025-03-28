@@ -100,8 +100,9 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
     }, [formatMessage, updatedChannelBanner]);
 
     const handleColorChange = useCallback((color: string) => {
-        setUpdatedChannelBanner((banner) => {
-            banner.background_color = color;
+        setUpdatedChannelBanner({
+            ...updatedChannelBanner,
+            background_color: color,
         });
     }, []);
 
