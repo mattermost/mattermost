@@ -116,9 +116,6 @@ func (ts *TeamService) PatchTeam(teamID string, patch *model.TeamPatch) (*model.
 	}
 
 	team.Patch(patch)
-	if patch.AllowOpenInvite != nil && !*patch.AllowOpenInvite {
-		team.InviteId = model.NewId()
-	}
 
 	if err = ts.checkValidDomains(team); err != nil {
 		return nil, err
