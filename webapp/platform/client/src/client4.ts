@@ -3,7 +3,7 @@
 
 /* eslint-disable max-lines */
 
-import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery, AccessControlPolicy} from '@mattermost/types/admin';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -4346,6 +4346,20 @@ export default class Client4 {
         return this.doFetchWithResponse<Post>(
             `${this.getPostRoute(postId)}/restore/${restoreVersionId}`,
             {method: 'post', headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    getAccessControlPolicies = (page: number, perPage: number) => {
+        return this.doFetch<AccessControlPolicy[]>(
+            `${this.getBaseRoute()}/access_control_policies?page=${page}&per_page=${perPage}`,
+            {method: 'get'},
+        );
+    };
+
+    getAccessControlPolicy = (id: string) => {
+        return this.doFetch<AccessControlPolicy>(
+            `${this.getBaseRoute()}/access_control_policies/${id}`,
+            {method: 'get'},
         );
     };
 }

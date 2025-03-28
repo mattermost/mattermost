@@ -25,6 +25,8 @@ import {
     invalidateAllEmailInvites, testSmtp, testSiteURL, getSamlMetadataFromIdp, setSamlIdpCertificateFromMetadata,
 } from 'actions/admin_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
+import PolicyList from './access_control';
+import PolicyDetails from './access_control/policy_details';
 
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 import PluginManagement from 'components/admin_console/plugin_management';
@@ -108,6 +110,7 @@ import TeamDetails from './team_channel_settings/team/details';
 import type {Check, AdminDefinition as AdminDefinitionType, ConsoleAccess} from './types';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
+import { useUserPropertiesTable } from './system_properties/user_properties_table';
 
 const FILE_STORAGE_DRIVER_LOCAL = 'local';
 const FILE_STORAGE_DRIVER_S3 = 'amazons3';
@@ -656,6 +659,75 @@ const AdminDefinition: AdminDefinitionType = {
                             component: SystemRolesFeatureDiscovery,
                             key: 'SystemRolesFeatureDiscovery',
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.Enterprise),
+            },
+            access_control_policy_details_edit: {
+                url: `user_management/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
+                isHidden: it.any(
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'AccessControlPolicy',
+                    component: PolicyDetails,
+                },
+
+            },
+            access_control_policy_details: {
+                url: 'user_management/attribute_based_access_control/edit_policy',
+                isHidden: it.any(
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'AccessControlPolicy',
+                    component: PolicyDetails,
+                },
+            },
+            attribute_based_access_control: {
+                url: 'user_management/attribute_based_access_control',
+                title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
+                isHidden: it.any(
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'AttributeBasedAccessControl',
+                    name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access (Beta)'}),
+                    sections: [
+                        {
+                            key: 'admin.accesscontrol.settings',
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.EnableAttributeBasedAccessControl',
+                                    label: defineMessage({id: 'admin.accesscontrol.enableTitle', defaultMessage: 'Allow attribute based access controls on this server'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies'}),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.EnableChannelScopeAccessControl',
+                                    label: defineMessage({id: 'admin.accesscontrol.enableTitle', defaultMessage: 'Allow access restriction configuration in channel settings'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'When enabled, channel admins will be able to view and modify access control rules in channel settings'}),
+                                    isDisabled: it.any(
+                                        it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
+                                    ),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'admin.accesscontrol.policies',
+                            isHidden: it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
+                            settings: [
+                                {
+                                    type: 'custom',
+                                    component: PolicyList,
+                                    key: 'PolicyListPanel',
+                                },
+                            ],
                         },
                     ],
                 },

@@ -782,4 +782,8 @@ const defaultServerConfig: AdminConfig = {
         DisableSharedChannelsStatusSync: false,
         MaxPostsPerSync: 50,
     },
+    AccessControlSettings: {
+        EnableAttributeBasedAccessControl: false,
+        EnableChannelScopeAccessControl: false,
+    },
 };

@@ -156,6 +156,9 @@ type Routes struct {
 	CustomProfileAttributesFields *mux.Router // 'api/v4/custom_profile_attributes/fields'
 	CustomProfileAttributesField  *mux.Router // 'api/v4/custom_profile_attributes/fields/{field_id:[A-Za-z0-9]+}'
 	CustomProfileAttributesValues *mux.Router // 'api/v4/custom_profile_attributes/values'
+
+	AccessControlPolicies *mux.Router // 'api/v4/access_control_policies'
+	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policy/{access_policy_id:[A-Za-z0-9]+}'
 }
 
 type API struct {
@@ -298,6 +301,9 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.CustomProfileAttributesField = api.BaseRoutes.CustomProfileAttributesFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.CustomProfileAttributesValues = api.BaseRoutes.CustomProfileAttributes.PathPrefix("/values").Subrouter()
 
+	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
+	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{access_policy_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -349,6 +355,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitClientPerformanceMetrics()
 	api.InitScheduledPost()
 	api.InitCustomProfileAttributes()
+	api.InitAccessControlPolicy()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *srv.Config().ServiceSettings.EnableTesting {
@@ -436,6 +443,9 @@ func InitLocal(srv *app.Server) *API {
 	api.BaseRoutes.CustomProfileAttributesField = api.BaseRoutes.CustomProfileAttributesFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.CustomProfileAttributesValues = api.BaseRoutes.CustomProfileAttributes.PathPrefix("/values").Subrouter()
 
+	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
+	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{access_policy_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.InitUserLocal()
 	api.InitTeamLocal()
 	api.InitChannelLocal()
@@ -457,6 +467,7 @@ func InitLocal(srv *app.Server) *API {
 	api.InitJobLocal()
 	api.InitSamlLocal()
 	api.InitCustomProfileAttributesLocal()
+	api.InitAccessControlPolicyLocal()
 
 	srv.LocalRouter.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
