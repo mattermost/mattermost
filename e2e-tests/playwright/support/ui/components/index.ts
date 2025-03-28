@@ -36,6 +36,8 @@ import {SystemUsersColumnToggleMenu} from './system_console/sections/system_user
 import ChannelsPostEdit from '@e2e-support/ui/components/channels/post_edit';
 import DeletePostConfirmationDialog from '@e2e-support/ui/components/channels/delete_post_confirmation_dialog';
 import RestorePostConfirmationDialog from '@e2e-support/ui/components/channels/restore_post_confirmation_dialog';
+import MobileSecurity from './system_console/sections/system_users/mobile_security';
+import FeatureDiscovery from './system_console/sections/system_users/feature_discovery';
 
 const components = {
     GlobalHeader,
@@ -71,6 +73,8 @@ const components = {
     UserProfilePopover,
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
+    MobileSecurity,
+    FeatureDiscovery,
 };
 
 export {
