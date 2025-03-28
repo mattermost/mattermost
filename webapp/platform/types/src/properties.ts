@@ -25,7 +25,7 @@ export type PropertyValue<T> = {
     delete_at: number;
 }
 
-export type UserPropertyFieldType = 'text';
+export type UserPropertyFieldType = 'text' | 'select' | 'multiselect';
 export type UserPropertyFieldGroupID = 'custom_profile_attributes';
 
 export type UserPropertyField = PropertyField & {
