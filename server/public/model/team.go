@@ -41,10 +41,7 @@ type Team struct {
 	CompanyName    string `json:"company_name"`
 	AllowedDomains string `json:"allowed_domains"`
 	InviteId       string `json:"invite_id"`
-	// AllowOpenInvite determines whether the team can be joined without an invitation.
-	// This field controls the team's privacy setting and keeps Type in sync:
-	// - When true, the team is open and Type will be "O" (TeamOpen)
-	// - When false, the team is invite-only and Type will be "I" (TeamInvite)
+	// AllowOpenInvite determines whether the team can be joined without an invitation
 	AllowOpenInvite     bool    `json:"allow_open_invite"`
 	LastTeamIconUpdate  int64   `json:"last_team_icon_update,omitempty"`
 	SchemeId            *string `json:"scheme_id"`
