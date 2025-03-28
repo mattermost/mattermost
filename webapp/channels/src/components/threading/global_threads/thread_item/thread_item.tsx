@@ -25,6 +25,7 @@ import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import Markdown from 'components/markdown';
+import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
 import Button from 'components/threading/common/button';
 import Timestamp from 'components/timestamp';
@@ -66,7 +67,7 @@ type Props = {
 const markdownPreviewOptions = {
     singleline: true,
     mentionHighlight: false,
-    atMentions: false,
+    atMentions: true,
 };
 
 function ThreadItem({
@@ -91,6 +92,8 @@ function ThreadItem({
     const showListTutorialTip = tipStep === CrtTutorialSteps.LIST_POPOVER;
     const msgDeleted = formatMessage({id: 'post_body.deleted', defaultMessage: '(message deleted)'});
     const postAuthor = ensureString(post.props?.override_username) || displayName;
+    const getMentionKeysForPost = useMemo(() => makeGetMentionKeysForPost(), []);
+    const mentionsKeys = useSelector((state: GlobalState) => getMentionKeysForPost(state, post, channel));
 
     useEffect(() => {
         if (channel?.teammate_id) {
@@ -255,6 +258,7 @@ function ThreadItem({
                         message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
                         options={markdownPreviewOptions}
                         imagesMetadata={post?.metadata && post?.metadata?.images}
+                        mentionKeys={mentionsKeys}
                         imageProps={imageProps}
                     />
                 ) : (
