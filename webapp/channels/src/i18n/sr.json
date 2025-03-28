@@ -470,7 +470,6 @@
   "bots.token.confirm_text": "Да ли сте сигурни да желите да обришете ову објаву?",
   "bots.token.delete": "Обрисати жетон?",
   "channel_header.leave": "Напусти канал",
-  "channel_header.manageMembers": "Управљај члановима",
   "channel_header.pinnedPosts": "Закачене поруке",
   "channel_header.recentMentions": "Недавна спомињања",
   "channel_header.search": "Претрага",

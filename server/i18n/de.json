@@ -10458,5 +10458,41 @@
   {
     "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
     "translation": "Der Text im Kanalbanner ist zu lang. Die maximal zulässige Länge beträgt {{.maxLength}} Zeichen."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Der Benutzerautorisierungsdienst muss LDAP oder E-Mail sein."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Du hast nicht die Erlaubnis, diese Ressource zu aktualisieren."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Entwürfe für Benutzer können nicht gelöscht werden."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "LDAP-Lizenz erforderlich."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Ungültige maximale Anmeldeversuche für LDAP-Einstellungen. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Dein Konto ist gesperrt, weil zu viele Passwortversuche fehlgeschlagen sind. Bitte kontaktiere deinen Systemadministrator."
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Die Anmeldeversuche konnten nicht zurückgesetzt werden."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Der Benutzer konnte nicht ermittelt werden."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Funktion ist für die aktuelle Lizenz nicht verfügbar"
   }
 ]

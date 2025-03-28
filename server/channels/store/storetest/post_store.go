@@ -290,7 +290,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 	p4.Message = NewTestID()
 
 	t.Run("Save correctly a new set of posts", func(t *testing.T) {
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p1, &p2, &p3})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 		for _, post := range newPosts {
@@ -358,7 +358,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		o4.UserId = model.NewId()
 		o4.Message = NewTestID()
 
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&o1, &o2, &o3, &o4})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&o1, &o2, &o3, &o4})
 		require.NoError(t, err, "couldn't save item")
 		require.Equal(t, -1, errIdx)
 		assert.Len(t, newPosts, 4)
@@ -369,7 +369,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("Try to save mixed, already saved and not saved posts", func(t *testing.T) {
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p4, &p3})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p4, &p3})
 		require.Error(t, err)
 		require.Equal(t, 1, errIdx)
 		require.Nil(t, newPosts)
@@ -405,7 +405,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		replyPost.Message = NewTestID()
 		replyPost.RootId = rootPost.Id
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&rootPost, &replyPost})
 		require.NoError(t, err)
 
 		rrootPost, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
@@ -427,7 +427,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		// Ensure update does not occur in the same timestamp as creation
 		time.Sleep(time.Millisecond)
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
 
 		rrootPost2, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
@@ -460,7 +460,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		post3.UserId = model.NewId()
 		post3.Message = NewTestID()
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&post1, &post2, &post3})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&post1, &post2, &post3})
 		require.NoError(t, err)
 
 		rchannel, err := ss.Channel().Get(channel.Id, false)
@@ -3772,7 +3772,7 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 		o3a := ro3.Clone()
 		o3a.Message = ro3.Message + "WWWWWWW"
 
-		_, errIdx, err := ss.Post().OverwriteMultiple([]*model.Post{o1a, o2a, o3a})
+		_, errIdx, err := ss.Post().OverwriteMultiple(rctx, []*model.Post{o1a, o2a, o3a})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
@@ -3802,7 +3802,7 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 		o5a.Filenames = []string{}
 		o5a.FileIds = []string{}
 
-		_, errIdx, err := ss.Post().OverwriteMultiple([]*model.Post{o4a, o5a})
+		_, errIdx, err := ss.Post().OverwriteMultiple(rctx, []*model.Post{o4a, o5a})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
@@ -5062,12 +5062,12 @@ func testGetPostReminders(t *testing.T, rctx request.CTX, ss store.Store, s SqlS
 		require.NoError(t, ss.Post().SetPostReminder(reminder))
 	}
 
-	reminders, err := ss.Post().GetPostReminders(102)
+	reminders, err := ss.Post().GetPostReminders(101)
 	require.NoError(t, err)
 	require.Len(t, reminders, 2)
 
 	// assert one reminder is left
-	reminders, err = ss.Post().GetPostReminders(103)
+	reminders, err = ss.Post().GetPostReminders(102)
 	require.NoError(t, err)
 	require.Len(t, reminders, 1)
 

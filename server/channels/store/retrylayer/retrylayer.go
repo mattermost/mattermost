@@ -8067,11 +8067,11 @@ func (s *RetryLayerPostStore) Overwrite(rctx request.CTX, post *model.Post) (*mo
 
 }
 
-func (s *RetryLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error) {
+func (s *RetryLayerPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.PostStore.OverwriteMultiple(posts)
+		result, resultVar1, err := s.PostStore.OverwriteMultiple(rctx, posts)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -8235,11 +8235,11 @@ func (s *RetryLayerPostStore) Save(rctx request.CTX, post *model.Post) (*model.P
 
 }
 
-func (s *RetryLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
+func (s *RetryLayerPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.PostStore.SaveMultiple(posts)
+		result, resultVar1, err := s.PostStore.SaveMultiple(rctx, posts)
 		if err == nil {
 			return result, resultVar1, nil
 		}
