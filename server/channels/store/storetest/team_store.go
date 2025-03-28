@@ -31,6 +31,7 @@ func TestTeamStore(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("Save", func(t *testing.T) { testTeamStoreSave(t, rctx, ss) })
 	t.Run("Update", func(t *testing.T) { testTeamStoreUpdate(t, rctx, ss) })
+	t.Run("TypeAndOpenInviteConsistency", func(t *testing.T) { testTeamStoreTypeAndOpenInviteConsistency(t, rctx, ss) })
 	t.Run("Get", func(t *testing.T) { testTeamStoreGet(t, rctx, ss) })
 	t.Run("GetMany", func(t *testing.T) { testTeamStoreGetMany(t, rctx, ss) })
 	t.Run("GetByName", func(t *testing.T) { testTeamStoreGetByName(t, rctx, ss) })
@@ -93,6 +94,72 @@ func testTeamStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1.Id = ""
 	_, err = ss.Team().Save(&o1)
 	require.Error(t, err, "should be unique domain")
+}
+
+func testTeamStoreTypeAndOpenInviteConsistency(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Test 1: Save with Type=Open should set AllowOpenInvite=true
+	t1 := &model.Team{
+		DisplayName:    "Open Team",
+		Name:           NewTestID(),
+		Email:          MakeEmail(),
+		Type:           model.TeamOpen,
+		AllowOpenInvite: false, // Set to false to test that it gets synchronized
+	}
+
+	savedTeam, err := ss.Team().Save(t1)
+	require.NoError(t, err, "Should save team successfully")
+	require.Equal(t, model.TeamOpen, savedTeam.Type, "Team type should remain Open")
+	require.True(t, savedTeam.AllowOpenInvite, "AllowOpenInvite should be set to true for Open teams")
+
+	// Test 2: Save with Type=Invite should set AllowOpenInvite=false
+	t2 := &model.Team{
+		DisplayName:    "Private Team",
+		Name:           NewTestID(),
+		Email:          MakeEmail(),
+		Type:           model.TeamInvite,
+		AllowOpenInvite: true, // Set to true to test that it gets synchronized
+	}
+
+	savedTeam, err = ss.Team().Save(t2)
+	require.NoError(t, err, "Should save team successfully")
+	require.Equal(t, model.TeamInvite, savedTeam.Type, "Team type should remain Invite")
+	require.False(t, savedTeam.AllowOpenInvite, "AllowOpenInvite should be set to false for Invite teams")
+
+	// Test 3: Update private to open should update AllowOpenInvite
+	t2.Type = model.TeamOpen
+	t2.AllowOpenInvite = false // Should be forced to true
+
+	updatedTeam, err := ss.Team().Update(t2)
+	require.NoError(t, err, "Should update team successfully")
+	require.Equal(t, model.TeamOpen, updatedTeam.Type, "Team type should be Open after update")
+	require.True(t, updatedTeam.AllowOpenInvite, "AllowOpenInvite should be set to true after updating to Open")
+
+	// Test 4: Update open to private should update AllowOpenInvite
+	t1.Type = model.TeamInvite
+	t1.AllowOpenInvite = true // Should be forced to false
+
+	updatedTeam, err = ss.Team().Update(t1)
+	require.NoError(t, err, "Should update team successfully")
+	require.Equal(t, model.TeamInvite, updatedTeam.Type, "Team type should be Invite after update")
+	require.False(t, updatedTeam.AllowOpenInvite, "AllowOpenInvite should be set to false after updating to Invite")
+
+	// Test 5: Set AllowOpenInvite=true should update Type to Open
+	t2.AllowOpenInvite = true
+	t2.Type = model.TeamInvite // Should be forced to Open
+
+	updatedTeam, err = ss.Team().Update(t2)
+	require.NoError(t, err, "Should update team successfully")
+	require.Equal(t, model.TeamOpen, updatedTeam.Type, "Team type should change to Open")
+	require.True(t, updatedTeam.AllowOpenInvite, "AllowOpenInvite should remain true")
+
+	// Test 6: Set AllowOpenInvite=false should update Type to Invite
+	t1.AllowOpenInvite = false
+	t1.Type = model.TeamOpen // Should be forced to Invite
+
+	updatedTeam, err = ss.Team().Update(t1)
+	require.NoError(t, err, "Should update team successfully")
+	require.Equal(t, model.TeamInvite, updatedTeam.Type, "Team type should change to Invite")
+	require.False(t, updatedTeam.AllowOpenInvite, "AllowOpenInvite should remain false")
 }
 
 func testTeamStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
