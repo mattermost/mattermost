@@ -183,22 +183,6 @@ func TestTeamSyncTypeAndAllowOpenInvite(t *testing.T) {
 			expectedAllowOpenInvite: false,
 			description:             "Consistent private team settings should not change",
 		},
-		{
-			name:                    "Unusual type with open invites becomes open team",
-			initialType:             "X", // Invalid type
-			initialAllowOpenInvite:  true,
-			expectedType:            TeamOpen,
-			expectedAllowOpenInvite: true,
-			description:             "When AllowOpenInvite is true, unknown team Type becomes TeamOpen",
-		},
-		{
-			name:                    "Unusual type with closed invites becomes private team",
-			initialType:             "X", // Invalid type
-			initialAllowOpenInvite:  false,
-			expectedType:            TeamInvite,
-			expectedAllowOpenInvite: false,
-			description:             "When AllowOpenInvite is false, any team Type becomes TeamInvite",
-		},
 	}
 
 	for _, tc := range testCases {

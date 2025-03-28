@@ -309,23 +309,11 @@ func (o *Team) ShallowCopy() *Team {
 	return &c
 }
 
-// syncTypeAndAllowOpenInvite ensures consistency between Type and AllowOpenInvite fields
-// by enforcing rules that prioritize privacy.
+// syncTypeAndAllowOpenInvite ensures consistency between Type and AllowOpenInvite fields.
 func (o *Team) syncTypeAndAllowOpenInvite() {
-	// First determine the correct AllowOpenInvite value based on Type
-	// Private teams cannot have open invites
 	if o.Type == TeamInvite {
 		o.AllowOpenInvite = false
-	}
-
-	// Then determine the correct Type value based on AllowOpenInvite
-	if o.AllowOpenInvite {
-		// When open invites are allowed, use open type only if not explicitly private
-		if o.Type != TeamInvite {
-			o.Type = TeamOpen
-		}
-	} else {
-		// When open invites are disallowed, team must be private
+	} else if !o.AllowOpenInvite {
 		o.Type = TeamInvite
 	}
 }
