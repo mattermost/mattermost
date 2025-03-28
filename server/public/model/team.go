@@ -23,19 +23,28 @@ const (
 	TeamNameMinLength           = 2
 )
 
+// Team represents a team in the system.
 type Team struct {
-	Id                  string  `json:"id"`
-	CreateAt            int64   `json:"create_at"`
-	UpdateAt            int64   `json:"update_at"`
-	DeleteAt            int64   `json:"delete_at"`
-	DisplayName         string  `json:"display_name"`
-	Name                string  `json:"name"`
-	Description         string  `json:"description"`
-	Email               string  `json:"email"`
-	Type                string  `json:"type"`
-	CompanyName         string  `json:"company_name"`
-	AllowedDomains      string  `json:"allowed_domains"`
-	InviteId            string  `json:"invite_id"`
+	Id          string `json:"id"`
+	CreateAt    int64  `json:"create_at"`
+	UpdateAt    int64  `json:"update_at"`
+	DeleteAt    int64  `json:"delete_at"`
+	DisplayName string `json:"display_name"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Email       string `json:"email"`
+	// Type indicates the team's privacy setting.
+	// Deprecated: Use AllowOpenInvite instead. Type is kept in sync with AllowOpenInvite:
+	// - When AllowOpenInvite=true, Type will be "O" (TeamOpen)
+	// - When AllowOpenInvite=false, Type will be "I" (TeamInvite)
+	Type           string `json:"type"`
+	CompanyName    string `json:"company_name"`
+	AllowedDomains string `json:"allowed_domains"`
+	InviteId       string `json:"invite_id"`
+	// AllowOpenInvite determines whether the team can be joined without an invitation.
+	// This field controls the team's privacy setting and keeps Type in sync:
+	// - When true, the team is open and Type will be "O" (TeamOpen)
+	// - When false, the team is invite-only and Type will be "I" (TeamInvite)
 	AllowOpenInvite     bool    `json:"allow_open_invite"`
 	LastTeamIconUpdate  int64   `json:"last_team_icon_update,omitempty"`
 	SchemeId            *string `json:"scheme_id"`
@@ -184,6 +193,9 @@ func (o *Team) PreSave() {
 	if o.InviteId == "" {
 		o.InviteId = NewId()
 	}
+
+	// Ensure Type and AllowOpenInvite stay in sync
+	o.syncTypeAndAllowOpenInvite()
 }
 
 func (o *Team) PreUpdate() {
@@ -192,6 +204,9 @@ func (o *Team) PreUpdate() {
 	o.DisplayName = SanitizeUnicode(o.DisplayName)
 	o.Description = SanitizeUnicode(o.Description)
 	o.CompanyName = SanitizeUnicode(o.CompanyName)
+
+	// Ensure Type and AllowOpenInvite stay in sync
+	o.syncTypeAndAllowOpenInvite()
 }
 
 func IsReservedTeamName(s string) bool {
@@ -270,7 +285,12 @@ func (o *Team) Patch(patch *TeamPatch) {
 	}
 
 	if patch.AllowOpenInvite != nil {
+		// When changing to a private team, generate a new invite ID
+		if !*patch.AllowOpenInvite {
+			o.InviteId = NewId()
+		}
 		o.AllowOpenInvite = *patch.AllowOpenInvite
+		o.syncTypeAndAllowOpenInvite()
 	}
 
 	if patch.GroupConstrained != nil {
@@ -290,4 +310,25 @@ func (o *Team) IsGroupConstrained() bool {
 func (o *Team) ShallowCopy() *Team {
 	c := *o
 	return &c
+}
+
+// syncTypeAndAllowOpenInvite ensures consistency between Type and AllowOpenInvite fields
+// by enforcing rules that prioritize privacy.
+func (o *Team) syncTypeAndAllowOpenInvite() {
+	// First determine the correct AllowOpenInvite value based on Type
+	// Private teams cannot have open invites
+	if o.Type == TeamInvite {
+		o.AllowOpenInvite = false
+	}
+
+	// Then determine the correct Type value based on AllowOpenInvite
+	if o.AllowOpenInvite {
+		// When open invites are allowed, use open type only if not explicitly private
+		if o.Type != TeamInvite {
+			o.Type = TeamOpen
+		}
+	} else {
+		// When open invites are disallowed, team must be private
+		o.Type = TeamInvite
+	}
 }

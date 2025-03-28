@@ -72,6 +72,62 @@ func TestCreateTeamWithExperimentalDefaultChannels(t *testing.T) {
 	require.Equal(t, ch.DisplayName, "channel-2")
 }
 
+func TestPatchTeamTypeAndOpenInvite(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Create test team first
+	id := model.NewId()
+	team := &model.Team{
+		DisplayName:     "dn_" + id,
+		Name:            "name" + id,
+		Email:           "success+" + id + "@simulator.amazonses.com",
+		Type:            model.TeamOpen,
+		AllowOpenInvite: true,
+	}
+
+	createdTeam, err := th.service.CreateTeam(th.Context, team)
+	require.NoError(t, err, "Should create a new team")
+
+	// Test 1: Changing AllowOpenInvite to false should set Type to Invite
+	patch := &model.TeamPatch{
+		AllowOpenInvite: model.NewPointer(false),
+	}
+
+	updatedTeam, err := th.service.PatchTeam(createdTeam.Id, patch)
+	require.NoError(t, err, "Should patch team successfully")
+
+	require.Equal(t, model.TeamInvite, updatedTeam.Type, "Team type should be changed to Invite")
+	require.Equal(t, false, updatedTeam.AllowOpenInvite, "AllowOpenInvite should be false")
+	require.NotEqual(t, createdTeam.InviteId, updatedTeam.InviteId, "InviteId should be regenerated")
+
+	// Test 2: Changing AllowOpenInvite to true should set Type to Open
+	patch = &model.TeamPatch{
+		AllowOpenInvite: model.NewPointer(true),
+	}
+
+	updatedTeam, err = th.service.PatchTeam(updatedTeam.Id, patch)
+	require.NoError(t, err, "Should patch team successfully")
+
+	require.Equal(t, model.TeamOpen, updatedTeam.Type, "Team type should be changed to Open")
+	require.Equal(t, true, updatedTeam.AllowOpenInvite, "AllowOpenInvite should be true")
+
+	// Test 3: Changing other fields should not affect Type or AllowOpenInvite
+	patch = &model.TeamPatch{
+		DisplayName: model.NewPointer("New Team Name"),
+	}
+
+	beforeType := updatedTeam.Type
+	beforeAllowOpenInvite := updatedTeam.AllowOpenInvite
+
+	updatedTeam, err = th.service.PatchTeam(updatedTeam.Id, patch)
+	require.NoError(t, err, "Should patch team successfully")
+
+	require.Equal(t, beforeType, updatedTeam.Type, "Team type should not change")
+	require.Equal(t, beforeAllowOpenInvite, updatedTeam.AllowOpenInvite, "AllowOpenInvite should not change")
+	require.Equal(t, "New Team Name", updatedTeam.DisplayName, "DisplayName should be updated")
+}
+
 func TestJoinUserToTeam(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()

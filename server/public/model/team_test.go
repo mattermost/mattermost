@@ -141,3 +141,84 @@ func TestTeamPatch(t *testing.T) {
 	require.Equal(t, *p.AllowOpenInvite, o.AllowOpenInvite, "AllowOpenInvite did not update")
 	require.Equal(t, *p.GroupConstrained, *o.GroupConstrained)
 }
+
+func TestTeamSyncTypeAndAllowOpenInvite(t *testing.T) {
+	testCases := []struct {
+		name                    string
+		initialType             string
+		initialAllowOpenInvite  bool
+		expectedType            string
+		expectedAllowOpenInvite bool
+		description             string
+	}{
+		{
+			name:                    "Open team allows open invites",
+			initialType:             TeamOpen,
+			initialAllowOpenInvite:  true,
+			expectedType:            TeamOpen,
+			expectedAllowOpenInvite: true,
+			description:             "Open teams should allow open invites - no change expected",
+		},
+		{
+			name:                    "Private team cannot allow open invites",
+			initialType:             TeamInvite,
+			initialAllowOpenInvite:  true,
+			expectedType:            TeamInvite,
+			expectedAllowOpenInvite: false,
+			description:             "Private teams should force AllowOpenInvite to false",
+		},
+		{
+			name:                    "Disabling open invites makes team private",
+			initialType:             TeamOpen,
+			initialAllowOpenInvite:  false,
+			expectedType:            TeamInvite,
+			expectedAllowOpenInvite: false,
+			description:             "When AllowOpenInvite is false, team should be private",
+		},
+		{
+			name:                    "Private team with disabled open invites stays consistent",
+			initialType:             TeamInvite,
+			initialAllowOpenInvite:  false,
+			expectedType:            TeamInvite,
+			expectedAllowOpenInvite: false,
+			description:             "Consistent private team settings should not change",
+		},
+		{
+			name:                    "Unusual type with open invites becomes open team",
+			initialType:             "X", // Invalid type
+			initialAllowOpenInvite:  true,
+			expectedType:            TeamOpen,
+			expectedAllowOpenInvite: true,
+			description:             "When AllowOpenInvite is true, unknown team Type becomes TeamOpen",
+		},
+		{
+			name:                    "Unusual type with closed invites becomes private team",
+			initialType:             "X", // Invalid type
+			initialAllowOpenInvite:  false,
+			expectedType:            TeamInvite,
+			expectedAllowOpenInvite: false,
+			description:             "When AllowOpenInvite is false, any team Type becomes TeamInvite",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			team := &Team{
+				Type:            tc.initialType,
+				AllowOpenInvite: tc.initialAllowOpenInvite,
+			}
+
+			// Call the function being tested
+			team.syncTypeAndAllowOpenInvite()
+
+			// Verify the result
+			assert.Equal(t, tc.expectedType, team.Type,
+				"Team.Type should be %s when starting with Type=%s and AllowOpenInvite=%v",
+				tc.expectedType, tc.initialType, tc.initialAllowOpenInvite)
+
+			assert.Equal(t, tc.expectedAllowOpenInvite, team.AllowOpenInvite,
+				"Team.AllowOpenInvite should be %v when starting with Type=%s and AllowOpenInvite=%v",
+				tc.expectedAllowOpenInvite, tc.initialType, tc.initialAllowOpenInvite)
+		})
+	}
+}
