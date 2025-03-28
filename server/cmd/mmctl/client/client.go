@@ -151,6 +151,7 @@ type Client interface {
 	ListExports(ctx context.Context) ([]string, *model.Response, error)
 	DeleteExport(ctx context.Context, name string) (*model.Response, error)
 	DownloadExport(ctx context.Context, name string, wr io.Writer, offset int64) (int64, *model.Response, error)
+	DownloadComplianceExport(ctx context.Context, jobID string, wr io.Writer) (string, error)
 	GeneratePresignedURL(ctx context.Context, name string) (*model.PresignURLResponse, *model.Response, error)
 	ResetSamlAuthDataToEmail(ctx context.Context, includeDeleted bool, dryRun bool, userIDs []string) (int64, *model.Response, error)
 	GenerateSupportPacket(ctx context.Context) (io.ReadCloser, string, *model.Response, error)
