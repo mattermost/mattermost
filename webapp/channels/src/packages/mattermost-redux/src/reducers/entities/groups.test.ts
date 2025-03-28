@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Group} from '@mattermost/types/groups';
+
 import {GroupTypes} from 'mattermost-redux/action_types';
 import reducer from 'mattermost-redux/reducers/entities/groups';
 
@@ -339,6 +341,102 @@ describe('reducers/entities/groups', () => {
 
             const newState = reducer(state, action);
             expect(newState.syncables).toEqual(expectedState.syncables);
+        });
+    });
+    describe('Groups', () => {
+        const groupTemplate: Omit<Group, 'id' | 'member_count' | 'member_ids'> = {
+            name: 'Test Group',
+            display_name: 'Test Group',
+            description: 'Test Description',
+            source: '',
+            create_at: 1,
+            update_at: 1,
+            delete_at: 1,
+            has_syncables: false,
+            scheme_admin: false,
+            allow_reference: false,
+            remote_id: null,
+        };
+        const groupId = 'ge63nq31sbfy3duzq5f7yqn7ii';
+        const userId = 'o3tdawqxot8kikzq8bk54zggbc';
+        const stateTemplate = {
+            syncables: {},
+            stats: {},
+            myGroups: [],
+        };
+
+        const receivedMemberToAddAction = {
+            type: GroupTypes.RECEIVED_MEMBER_TO_ADD_TO_GROUP,
+            data: {
+                user_id: userId,
+                group_id: groupId,
+            },
+            id: groupId,
+        };
+        const receivedMemberToDelAction = {...receivedMemberToAddAction, type: GroupTypes.RECEIVED_MEMBER_TO_REMOVE_FROM_GROUP};
+
+        it('GroupTypes.RECEIVED_MEMBER_TO_ADD_TO_GROUP, with member list', () => {
+            const state = {
+                ...stateTemplate,
+                groups: {
+                    [userId]: {...groupTemplate, id: userId, member_ids: [], member_count: 0},
+                    [groupId]: {...groupTemplate, id: groupId, member_ids: [], member_count: 0},
+                },
+            };
+
+            const expectedState = {
+                ...stateTemplate,
+                groups: {
+                    [userId]: {...groupTemplate, id: userId, member_ids: [], member_count: 0},
+                    [groupId]: {...groupTemplate, id: groupId, member_ids: [userId], member_count: 1},
+                },
+            };
+
+            const newState = reducer(state, receivedMemberToAddAction);
+            expect(newState.groups).toEqual(expectedState.groups);
+        });
+        it('GroupTypes.RECEIVED_MEMBER_TO_ADD_TO_GROUP, doublon', () => {
+            const state = {
+                ...stateTemplate,
+                groups: {
+                    [groupId]: {...groupTemplate, id: groupId, member_ids: [userId], member_count: 1},
+                },
+            };
+
+            const newState = reducer(state, receivedMemberToAddAction);
+            expect(newState.groups).toEqual(state.groups);
+        });
+
+        it('GroupTypes.RECEIVED_MEMBER_TO_REMOVE_FROM_GROUP, with member list', () => {
+            const state = {
+                ...stateTemplate,
+                groups: {
+                    [userId]: {...groupTemplate, id: userId, member_ids: [], member_count: 0},
+                    [groupId]: {...groupTemplate, id: groupId, member_ids: [userId], member_count: 1},
+                },
+            };
+
+            const expectedState = {
+                ...stateTemplate,
+                groups: {
+                    [userId]: {...groupTemplate, id: userId, member_ids: [], member_count: 0},
+                    [groupId]: {...groupTemplate, id: groupId, member_ids: [], member_count: 0},
+                },
+            };
+
+            const newState = reducer(state, receivedMemberToDelAction);
+            expect(newState.groups).toEqual(expectedState.groups);
+        });
+        it('GroupTypes.RECEIVED_MEMBER_TO_REMOVE_FROM_GROUP, Not existant', () => {
+            const state = {
+                ...stateTemplate,
+                groups: {
+                    [groupId]: {...groupTemplate, id: groupId, member_ids: [groupId], member_count: 1},
+                },
+            };
+
+            const newState = reducer(state, receivedMemberToDelAction);
+            expect(newState.groups).toEqual(state.groups);
         });
     });
 });
