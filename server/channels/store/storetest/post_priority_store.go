@@ -51,7 +51,7 @@ func testPostPriorityStoreGetForPost(t *testing.T, rctx request.CTX, ss store.St
 		p3.UserId = model.NewId()
 		p3.Message = NewTestID()
 
-		_, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3})
+		_, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p1, &p2, &p3})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 

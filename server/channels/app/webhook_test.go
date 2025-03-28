@@ -298,44 +298,44 @@ func TestCreateWebhookPost(t *testing.T) {
 
 	post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "",
 		model.StringInterface{
-			"attachments": []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.SlackAttachment{
 				{
 					Text: "text",
 				},
 			},
-			"webhook_display_name": hook.DisplayName,
+			model.PostPropsWebhookDisplayName: hook.DisplayName,
 		},
 		model.PostTypeSlackAttachment,
 		"", nil)
 	require.Nil(t, err)
 
-	assert.Contains(t, post.GetProps(), "from_webhook", "missing from_webhook prop")
-	assert.Contains(t, post.GetProps(), "attachments", "missing attachments prop")
-	assert.Contains(t, post.GetProps(), "webhook_display_name", "missing webhook_display_name prop")
+	assert.Contains(t, post.GetProps(), model.PostPropsFromWebhook, "missing from_webhook prop")
+	assert.Contains(t, post.GetProps(), model.PostPropsAttachments, "missing attachments prop")
+	assert.Contains(t, post.GetProps(), model.PostPropsWebhookDisplayName, "missing webhook_display_name prop")
 
 	_, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.PostTypeSystemGeneric, "", nil)
 	require.NotNil(t, err, "Should have failed - bad post type")
 
 	expectedText := "`<>|<>|`"
 	post, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
-		"attachments": []*model.SlackAttachment{
+		model.PostPropsAttachments: []*model.SlackAttachment{
 			{
 				Text: "text",
 			},
 		},
-		"webhook_display_name": hook.DisplayName,
+		model.PostPropsWebhookDisplayName: hook.DisplayName,
 	}, model.PostTypeSlackAttachment, "", nil)
 	require.Nil(t, err)
 	assert.Equal(t, expectedText, post.Message)
 
 	expectedText = "< | \n|\n>"
 	post, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
-		"attachments": []*model.SlackAttachment{
+		model.PostPropsAttachments: []*model.SlackAttachment{
 			{
 				Text: "text",
 			},
 		},
-		"webhook_display_name": hook.DisplayName,
+		model.PostPropsWebhookDisplayName: hook.DisplayName,
 	}, model.PostTypeSlackAttachment, "", nil)
 	require.Nil(t, err)
 	assert.Equal(t, expectedText, post.Message)
@@ -358,12 +358,12 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
  test | 3 +++
  1 file changed, 3 insertions(+)`
 	post, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
-		"attachments": []*model.SlackAttachment{
+		model.PostPropsAttachments: []*model.SlackAttachment{
 			{
 				Text: "text",
 			},
 		},
-		"webhook_display_name": hook.DisplayName,
+		model.PostPropsWebhookDisplayName: hook.DisplayName,
 	}, model.PostTypeSlackAttachment, "", nil)
 	require.Nil(t, err)
 	assert.Equal(t, expectedText, post.Message)
@@ -415,7 +415,7 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 
 	for _, conditions := range testConditions {
 		post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo @"+th.BasicUser.Username, "user", "http://iconurl", "",
-			model.StringInterface{"webhook_display_name": hook.DisplayName},
+			model.StringInterface{model.PostPropsWebhookDisplayName: hook.DisplayName},
 			model.PostTypeSlackAttachment,
 			"",
 			&conditions,
@@ -424,7 +424,7 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 		require.Nil(t, err)
 
 		assert.Equal(t, post.Message, "foo @"+th.BasicUser.Username)
-		assert.Contains(t, post.GetProps(), "from_webhook", "missing from_webhook prop")
+		assert.Contains(t, post.GetProps(), model.PostPropsFromWebhook, "missing from_webhook prop")
 		assert.Equal(t, *conditions.Priority, *post.GetPriority().Priority)
 		assert.Equal(t, *conditions.RequestedAck, *post.GetPriority().RequestedAck)
 		assert.Equal(t, *conditions.PersistentNotifications, *post.GetPriority().PersistentNotifications)
@@ -488,7 +488,7 @@ func TestSplitWebhookPost(t *testing.T) {
 			Post: &model.Post{
 				Message: strings.Repeat("本", maxPostSize*3/2),
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: strings.Repeat("本", 1000),
 						},
@@ -508,7 +508,7 @@ func TestSplitWebhookPost(t *testing.T) {
 				{
 					Message: strings.Repeat("本", maxPostSize/2),
 					Props: map[string]any{
-						"attachments": []*model.SlackAttachment{
+						model.PostPropsAttachments: []*model.SlackAttachment{
 							{
 								Text: strings.Repeat("本", 1000),
 							},
@@ -520,7 +520,7 @@ func TestSplitWebhookPost(t *testing.T) {
 				},
 				{
 					Props: map[string]any{
-						"attachments": []*model.SlackAttachment{
+						model.PostPropsAttachments: []*model.SlackAttachment{
 							{
 								Text: strings.Repeat("本", model.PostPropsMaxUserRunes-1000),
 							},
@@ -549,7 +549,7 @@ func TestSplitWebhookPost(t *testing.T) {
 			for i, split := range splits {
 				if i < len(tc.Expected) {
 					assert.Equal(t, tc.Expected[i].Message, split.Message)
-					assert.Equal(t, tc.Expected[i].GetProp("attachments"), split.GetProp("attachments"))
+					assert.Equal(t, tc.Expected[i].GetProp(model.PostPropsAttachments), split.GetProp(model.PostPropsAttachments))
 				}
 			}
 		})
@@ -566,7 +566,7 @@ func makePost(message int, attachments []int) *model.Post {
 			}
 			sa = append(sa, attach)
 		}
-		props = map[string]any{"attachments": sa}
+		props = map[string]any{model.PostPropsAttachments: sa}
 	}
 	post := &model.Post{
 		Message: strings.Repeat("那", message),
@@ -628,7 +628,7 @@ func TestSplitWebhookPostAttachments(t *testing.T) {
 			for i, split := range splits {
 				if i < len(tc.expected) {
 					assert.Equal(t, tc.expected[i].Message, split.Message, i)
-					assert.Equal(t, tc.expected[i].GetProp("attachments"), split.GetProp("attachments"), i)
+					assert.Equal(t, tc.expected[i].GetProp(model.PostPropsAttachments), split.GetProp(model.PostPropsAttachments), i)
 				}
 			}
 		})
@@ -786,17 +786,17 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 			select {
 			case webhookPost := <-createdPost:
 				assert.Equal(t, webhookPost.Message, "sample response text from test server")
-				assert.Equal(t, webhookPost.GetProp("from_webhook"), "true")
+				assert.Equal(t, webhookPost.GetProp(model.PostPropsFromWebhook), "true")
 				if testCase.ExpectedIconURL != "" {
-					assert.Equal(t, webhookPost.GetProp("override_icon_url"), testCase.ExpectedIconURL)
+					assert.Equal(t, webhookPost.GetProp(model.PostPropsOverrideIconURL), testCase.ExpectedIconURL)
 				} else {
-					assert.Nil(t, webhookPost.GetProp("override_icon_url"))
+					assert.Nil(t, webhookPost.GetProp(model.PostPropsOverrideIconURL))
 				}
 
 				if testCase.ExpectedUsername != "" {
-					assert.Equal(t, webhookPost.GetProp("override_username"), testCase.ExpectedUsername)
+					assert.Equal(t, webhookPost.GetProp(model.PostPropsOverrideUsername), testCase.ExpectedUsername)
 				} else {
-					assert.Nil(t, webhookPost.GetProp("override_username"))
+					assert.Nil(t, webhookPost.GetProp(model.PostPropsOverrideUsername))
 				}
 			case <-time.After(5 * time.Second):
 				require.Fail(t, "Timeout, webhook response not created as post")
