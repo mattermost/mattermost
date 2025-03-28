@@ -133,9 +133,7 @@ export default class ConfirmModal extends React.Component<Props, State> {
     handleExited = () => {
         this.props.onExited?.();
         if (this.props.focusOriginElement) {
-            setTimeout(() => {
-                focusElement(this.props.focusOriginElement!, true);
-            }, 0);
+            focusElement(this.props.focusOriginElement!, true);
         }
     };
 
@@ -212,6 +210,7 @@ export default class ConfirmModal extends React.Component<Props, State> {
                             className={this.props.confirmButtonClass}
                             onClick={this.handleConfirm}
                             id='confirmModalButton'
+                            autoFocus={true}
                         >
                             {this.props.confirmButtonText}
                         </button>

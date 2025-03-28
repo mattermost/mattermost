@@ -5,6 +5,8 @@ import {act, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
+import type {ChannelType} from '@mattermost/types/channels';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -128,7 +130,7 @@ describe('ChannelSettingsInfoTab', () => {
         expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue('Initial header');
 
         // Check that the public channel button is selected.
-        expect(screen.getByRole('button', {name: /Public Channel/})).toHaveClass('selected');
+        expect(screen.getByRole('button', {name: /Public Channel/}).classList.contains('selected')).toBe(true);
     });
 
     it('should show SaveChangesPanel when changes are made', async () => {
@@ -316,65 +318,10 @@ describe('ChannelSettingsInfoTab', () => {
         expect(previewButtons.length).toBeGreaterThan(0);
     });
 
-    it('should allow channel type change when user is channel admin regardless of permissions', async () => {
+    it('should not allow channel type change when user lacks permissions', async () => {
         // Set permissions to false
         mockConvertToPublicPermission = false;
         mockConvertToPrivatePermission = false;
-
-        // But set isChannelAdmin to true
-        const userUtils = require('mattermost-redux/utils/user_utils');
-        userUtils.isChannelAdmin.mockReturnValue(true);
-
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
-
-        // Change to a private channel should be allowed
-        const privateButton = screen.getByRole('button', {name: /Private Channel/});
-        expect(privateButton).not.toBeDisabled();
-        await userEvent.click(privateButton);
-
-        // Verify the private channel button is now selected
-        expect(privateButton).toHaveClass('selected');
-    });
-
-    it('should detect channel admin from member roles', async () => {
-        // Set permissions to false
-        mockConvertToPublicPermission = false;
-        mockConvertToPrivatePermission = false;
-
-        // Create a channel member with channel_admin role
-        const adminChannelMember = TestHelper.getChannelMembershipMock({
-            roles: 'channel_user channel_admin',
-        });
-
-        // Set up the mock selector to return the admin channel member
-        const channelsSelectors = require('mattermost-redux/selectors/entities/channels');
-        channelsSelectors.getChannelMember.mockReturnValue(adminChannelMember);
-
-        // Reset the mock to use the actual implementation
-        const userUtils = require('mattermost-redux/utils/user_utils');
-        userUtils.isChannelAdmin.mockImplementation(
-            jest.requireActual('mattermost-redux/utils/user_utils').isChannelAdmin,
-        );
-
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
-
-        // Change to a private channel should be allowed because the user is a channel admin
-        const privateButton = screen.getByRole('button', {name: /Private Channel/});
-        expect(privateButton).not.toBeDisabled();
-        await userEvent.click(privateButton);
-
-        // Verify the private channel button is now selected
-        expect(privateButton).toHaveClass('selected');
-    });
-
-    it('should not allow channel type change when user is not channel admin and lacks permissions', async () => {
-        // Set permissions to false
-        mockConvertToPublicPermission = false;
-        mockConvertToPrivatePermission = false;
-
-        // Set isChannelAdmin to false
-        const userUtils = require('mattermost-redux/utils/user_utils');
-        userUtils.isChannelAdmin.mockReturnValue(false);
 
         renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
@@ -383,13 +330,13 @@ describe('ChannelSettingsInfoTab', () => {
         expect(privateButton).toHaveClass('disabled');
     });
 
-    it('should allow channel type change when user has specific permission even if not channel admin', async () => {
+    it('should allow channel type change when user has permission to convert to private', async () => {
         // Set convert permission to true
         mockConvertToPrivatePermission = true;
+        mockConvertToPublicPermission = true;
 
-        // Set isChannelAdmin to false
-        const userUtils = require('mattermost-redux/utils/user_utils');
-        userUtils.isChannelAdmin.mockReturnValue(false);
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
         renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
@@ -399,6 +346,50 @@ describe('ChannelSettingsInfoTab', () => {
 
         // Should be able to change to private
         await userEvent.click(privateButton);
-        expect(privateButton).toHaveClass('selected');
+
+        // Click the Save button
+        await act(async () => {
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        });
+
+        // Verify patchChannel was called with the updated type
+        expect(patchChannel).toHaveBeenCalled();
+    });
+
+    it('should allow channel type change when user has permission to convert to public', async () => {
+        // Set convert permission to true
+        mockConvertToPrivatePermission = true;
+        mockConvertToPublicPermission = true;
+
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+        // Start with a private channel
+        const privateChannel = {
+            ...mockChannel,
+            type: 'P' as ChannelType,
+        };
+
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+                channel={privateChannel}
+            />,
+        );
+
+        // Public channel button should not be disabled
+        const publicButton = screen.getByRole('button', {name: /Public Channel/});
+        expect(publicButton).not.toBeDisabled();
+
+        // Should be able to change to public
+        await userEvent.click(publicButton);
+
+        // Click the Save button
+        await act(async () => {
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        });
+
+        // Verify patchChannel was called with the updated type
+        expect(patchChannel).toHaveBeenCalled();
     });
 });

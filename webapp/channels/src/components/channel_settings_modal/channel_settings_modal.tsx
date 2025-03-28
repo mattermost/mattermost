@@ -17,7 +17,6 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 
 import {focusElement} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
-import {stopTryNotificationRing} from 'utils/notification_sounds';
 
 import type {GlobalState} from 'types/store';
 
@@ -62,14 +61,11 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     // Active tab
     const [activeTab, setActiveTab] = useState<ChannelSettingsTabs>(ChannelSettingsTabs.INFO);
 
-    // State (used as prop) for controlling when switching tabs with unsaved changes (passed to child tab to be provided to save changes panel)
-    const [IsTabSwitchActionWithUnsaved, setIsTabSwitchActionWithUnsaved] = useState(false);
+    // State for showing error in the save changes panel when trying to switch tabs with unsaved changes
+    const [showTabSwitchError, setShowTabSwitchError] = useState(false);
 
-    // Ref to control if there are unsaved changes avoid and a setter for ease of use
-    const areThereUnsavedChanges = useRef(false);
-    const setAreThereUnsavedChanges = (value: boolean) => {
-        areThereUnsavedChanges.current = value;
-    };
+    // State to track if there are unsaved changes
+    const [areThereUnsavedChanges, setAreThereUnsavedChanges] = useState(false);
 
     // Refs
     const modalBodyRef = useRef<HTMLDivElement>(null);
@@ -77,13 +73,14 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     // Called to set the active tab, prompting save changes panel if there are unsaved changes
     const updateTab = (newTab: string) => {
         /**
-         * If there are unsaved changes, and the tab switch action is triggered which causes this functione execution,
-         * set the state value to cause a rerender of the tab component in order to show the save changes panel and reset it after 3 seconds.
+         * If there are unsaved changes, show an error in the save changes panel
+         * and reset it after a timeout to indicate the user needs to save or discard changes
+         * before switching tabs.
          */
-        if (areThereUnsavedChanges.current) {
-            setIsTabSwitchActionWithUnsaved(true);
+        if (areThereUnsavedChanges) {
+            setShowTabSwitchError(true);
             setTimeout(() => {
-                setIsTabSwitchActionWithUnsaved(false);
+                setShowTabSwitchError(false);
             }, SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT);
             return;
         }
@@ -101,7 +98,6 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     };
 
     const handleHideConfirm = () => {
-        stopTryNotificationRing();
         setShow(false);
     };
 
@@ -134,7 +130,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             <ChannelSettingsInfoTab
                 channel={channel}
                 setAreThereUnsavedChanges={setAreThereUnsavedChanges}
-                IsTabSwitchActionWithUnsaved={IsTabSwitchActionWithUnsaved}
+                showTabSwitchError={showTabSwitchError}
             />
         );
     };

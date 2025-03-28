@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState, useEffect} from 'react';
+import React, {useCallback, useState, useEffect, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -10,10 +10,7 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {patchChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {getChannelMember} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {isChannelAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {
     setShowPreviewOnChannelSettingsHeaderModal,
@@ -38,22 +35,19 @@ type ChannelSettingsInfoTabProps = {
     channel: Channel;
     onCancel?: () => void;
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
-    IsTabSwitchActionWithUnsaved?: boolean;
+    showTabSwitchError?: boolean;
 };
-
-const SAVE_CHANGES_PANEL_ERROR_TIMEOUT = 3000;
 
 function ChannelSettingsInfoTab({
     channel,
     onCancel,
     setAreThereUnsavedChanges,
-    IsTabSwitchActionWithUnsaved,
+    showTabSwitchError,
 }: ChannelSettingsInfoTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const shouldShowPreviewPurpose = useSelector(showPreviewOnChannelSettingsPurposeModal);
     const shouldShowPreviewHeader = useSelector(showPreviewOnChannelSettingsHeaderModal);
-    const user = useSelector(getCurrentUser);
 
     // Permissions for transforming channel type
     const canConvertToPrivate = useSelector((state: GlobalState) =>
@@ -62,10 +56,6 @@ function ChannelSettingsInfoTab({
     const canConvertToPublic = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC),
     );
-
-    // verify if current user is the channel admin (if is, should have permission to manage channel properties and type)
-    const channelMember = useSelector((state: GlobalState) => getChannelMember(state, channel.id, user.id));
-    const isCurrentUserAChannelAdmin = isChannelAdmin(channelMember!.roles);
 
     // Permissions for managing channel (name, header, purpose)
     const channelPropertiesPermission = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
@@ -81,7 +71,7 @@ function ChannelSettingsInfoTab({
     const [channelNameError, setChannelNameError] = useState('');
     const [characterLimitExceeded, setCharacterLimitExceeded] = useState(false);
 
-    const [switchingTabsWithUnsaved, setSwitchingTabsWithUnsaved] = useState(IsTabSwitchActionWithUnsaved);
+    // Removed switchingTabsWithUnsaved state as we now use the showTabSwitchError prop directly
 
     // The fields we allow editing
     const [displayName, setDisplayName] = useState(channel?.display_name ?? '');
@@ -94,7 +84,6 @@ function ChannelSettingsInfoTab({
     const [formError, setFormError] = useState('');
 
     // SaveChangesPanel state
-    const [requireConfirm, setRequireConfirm] = useState(false);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
 
     // Handler for channel name validation errors
@@ -110,46 +99,19 @@ function ChannelSettingsInfoTab({
         }
     }, [channelNameError, formError, setFormError]);
 
-    // For checking unsaved changes, we compare the current form values with the original channel values
-    const hasUnsavedChanges = useCallback(() => {
-        if (!channel) {
-            return false;
-        }
-
-        return (
+    // Update parent component when changes occur
+    useEffect(() => {
+        // Calculate unsaved changes directly
+        const unsavedChanges = channel ? (
             displayName !== channel.display_name ||
             channelUrl !== channel.name ||
             channelPurpose !== channel.purpose ||
             channelHeader !== channel.header ||
             channelType !== channel.type
-        );
-    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType]);
+        ) : false;
 
-    // Set requireConfirm whenever an edit has occurred
-    useEffect(() => {
-        const unsavedChanges = hasUnsavedChanges();
-        setRequireConfirm(unsavedChanges);
         setAreThereUnsavedChanges?.(unsavedChanges);
-        setSwitchingTabsWithUnsaved(IsTabSwitchActionWithUnsaved);
-
-        // If switching tabs with unsaved changes, show the error state in the save changes panel for a few seconds
-        if (IsTabSwitchActionWithUnsaved) {
-            setTimeout(() => {
-                setSwitchingTabsWithUnsaved(false);
-            }, SAVE_CHANGES_PANEL_ERROR_TIMEOUT);
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [displayName, channelUrl, channelPurpose, channelHeader, channelType, IsTabSwitchActionWithUnsaved]);
-
-    // Update the form fields when the channel prop changes
-    useEffect(() => {
-        setDisplayName(displayName);
-        setChannelURL(channelUrl);
-        setChannelPurpose(channelPurpose);
-        setChannelHeader(channelHeader);
-        setChannelType(channelType);
-        setUrlError(internalUrlError);
-    }, [displayName, channelUrl, channelPurpose, channelHeader, channelType, internalUrlError]);
+    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, setAreThereUnsavedChanges]);
 
     const handleURLChange = useCallback((newURL: string) => {
         if (internalUrlError) {
@@ -169,11 +131,11 @@ function ChannelSettingsInfoTab({
     }, [dispatch, shouldShowPreviewHeader]);
 
     const handleChannelTypeChange = (type: ChannelType) => {
-        // If canCreatePublic is false, do not allow. Similarly if canCreatePrivate is false, do not allow
-        if (!isCurrentUserAChannelAdmin && (type === Constants.PRIVATE_CHANNEL && !canConvertToPublic)) {
+        // Check if user has permission to convert the channel
+        if (type === Constants.PRIVATE_CHANNEL && !canConvertToPublic) {
             return;
         }
-        if (!isCurrentUserAChannelAdmin && (type === Constants.OPEN_CHANNEL && !canConvertToPrivate)) {
+        if (type === Constants.OPEN_CHANNEL && !canConvertToPrivate) {
             return;
         }
         setChannelType(type);
@@ -222,6 +184,12 @@ function ChannelSettingsInfoTab({
         }
     }, [formError, channelNameError, setFormError, formatMessage]);
 
+    const handleServerError = (err: ServerError) => {
+        const errorMsg = err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'});
+        setFormError(errorMsg);
+        setUrlError(errorMsg);
+    };
+
     // Validate & Save - using useCallback to ensure it has the latest state values
     const handleSave = useCallback(async (): Promise<boolean> => {
         if (!channel) {
@@ -253,14 +221,7 @@ function ChannelSettingsInfoTab({
         }
 
         return true;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType]);
-
-    const handleServerError = (err: ServerError) => {
-        const errorMsg = err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'});
-        setFormError(errorMsg);
-        setUrlError(errorMsg);
-    };
+    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, setFormError, handleServerError]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
@@ -274,12 +235,10 @@ function ChannelSettingsInfoTab({
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState(undefined);
-        setRequireConfirm(false);
     }, []);
 
     const handleCancel = useCallback(() => {
         // First, hide the panel immediately to prevent further interactions
-        setRequireConfirm(false);
         setSaveChangesPanelState(undefined);
 
         // Then reset all form fields to their original values
@@ -305,14 +264,32 @@ function ChannelSettingsInfoTab({
     const hasErrors = Boolean(formError) ||
                      characterLimitExceeded ||
                      Boolean(channelNameError) ||
-                     Boolean(switchingTabsWithUnsaved) ||
+                     Boolean(showTabSwitchError) ||
                      Boolean(internalUrlError);
+
+    // Memoize the calculation for whether to show the save changes panel
+    const shouldShowPanel = useMemo(() => {
+        const unsavedChanges = channel ? (
+            displayName !== channel.display_name ||
+            channelUrl !== channel.name ||
+            channelPurpose !== channel.purpose ||
+            channelHeader !== channel.header ||
+            channelType !== channel.type
+        ) : false;
+
+        return unsavedChanges || saveChangesPanelState === 'saved';
+    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState]);
 
     return (
         <div className='ChannelSettingsModal__infoTab'>
 
             {/* Channel Name Section*/}
-            <label className='Input_legend'>{formatMessage({id: 'channel_settings.label.name', defaultMessage: 'Channel Name'})}</label>
+            <label
+                htmlFor='input_channel-settings-name'
+                className='Input_legend'
+            >
+                {formatMessage({id: 'channel_settings.label.name', defaultMessage: 'Channel Name'})}
+            </label>
             <ChannelNameFormField
                 value={displayName}
                 name='channel-settings-name'
@@ -337,12 +314,12 @@ function ChannelSettingsInfoTab({
                 publicButtonProps={{
                     title: formatMessage({id: 'channel_modal.type.public.title', defaultMessage: 'Public Channel'}),
                     description: formatMessage({id: 'channel_modal.type.public.description', defaultMessage: 'Anyone can join'}),
-                    disabled: !isCurrentUserAChannelAdmin && !canConvertToPublic,
+                    disabled: !canConvertToPublic,
                 }}
                 privateButtonProps={{
                     title: formatMessage({id: 'channel_modal.type.private.title', defaultMessage: 'Private Channel'}),
                     description: formatMessage({id: 'channel_modal.type.private.description', defaultMessage: 'Only invited members'}),
-                    disabled: !isCurrentUserAChannelAdmin && !canConvertToPrivate,
+                    disabled: !canConvertToPrivate,
                 }}
                 onChange={handleChannelTypeChange}
             />
@@ -410,16 +387,18 @@ function ChannelSettingsInfoTab({
             />
 
             {/* SaveChangesPanel for unsaved changes */}
-            {requireConfirm && (
+            {shouldShowPanel && (
                 <SaveChangesPanel
                     handleSubmit={handleSaveChanges}
                     handleCancel={handleCancel}
                     handleClose={handleClose}
                     tabChangeError={hasErrors}
                     state={hasErrors ? 'error' : saveChangesPanelState}
-                    customErrorMessage={formatMessage({
-                        id: 'channel_settings.save_changes_panel.standard_error',
-                        defaultMessage: 'There are errors in the form above',
+                    {...(!showTabSwitchError && { // for swowTabShiwthError use the default message
+                        customErrorMessage: formatMessage({
+                            id: 'channel_settings.save_changes_panel.standard_error',
+                            defaultMessage: 'There are errors in the form above',
+                        }),
                     })}
                     cancelButtonText={formatMessage({
                         id: 'channel_settings.save_changes_panel.reset',

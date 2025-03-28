@@ -28,17 +28,49 @@ export type Props = {
 };
 
 export default class SettingsSidebar extends React.PureComponent<Props> {
-    buttonRefs: Array<RefObject<HTMLButtonElement>>;
-    totalTabs: Tab[];
+    buttonRefs: Map<string, RefObject<HTMLButtonElement>>;
 
     constructor(props: Props) {
         super(props);
 
-        // Filter out tabs where display is explicitly set to false
+        // Initialize an empty Map for button refs
+        this.buttonRefs = new Map();
+
+        // Initialize refs for all tabs
+        this.initializeButtonRefs(props.tabs, props.pluginTabs);
+    }
+
+    // Initialize or update button refs for all tabs
+    private initializeButtonRefs(tabs: Tab[], pluginTabs?: Tab[]) {
+        // Clear existing refs if reinitializing
+        this.buttonRefs.clear();
+
+        // Create refs for all tabs, regardless of display status
+        tabs.forEach((tab) => {
+            this.buttonRefs.set(tab.name, React.createRef());
+        });
+
+        // Create refs for plugin tabs if they exist
+        if (pluginTabs?.length) {
+            pluginTabs.forEach((tab) => {
+                this.buttonRefs.set(tab.name, React.createRef());
+            });
+        }
+    }
+
+    // Update refs when props change
+    componentDidUpdate(prevProps: Props) {
+        // Check if tabs or pluginTabs have changed
+        if (prevProps.tabs !== this.props.tabs || prevProps.pluginTabs !== this.props.pluginTabs) {
+            this.initializeButtonRefs(this.props.tabs, this.props.pluginTabs);
+        }
+    }
+
+    // Get visible tabs (used in multiple places)
+    private getVisibleTabs(): Tab[] {
         const filteredTabs = this.props.tabs.filter((tab) => tab.display !== false);
         const filteredPluginTabs = this.props.pluginTabs?.filter((tab) => tab.display !== false) || [];
-        this.totalTabs = [...filteredTabs, ...filteredPluginTabs];
-        this.buttonRefs = this.totalTabs.map(() => React.createRef());
+        return [...filteredTabs, ...filteredPluginTabs];
     }
 
     public handleClick = (tab: Tab, e: React.MouseEvent) => {
@@ -48,21 +80,32 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
     };
 
     public handleKeyUp = (index: number, e: React.KeyboardEvent) => {
+        // Get the current visible tabs
+        const visibleTabs = this.getVisibleTabs();
+
         if (isKeyPressed(e, Constants.KeyCodes.UP)) {
             if (index > 0) {
-                this.props.updateTab(this.totalTabs[index - 1].name);
-                a11yFocus(this.buttonRefs[index - 1].current);
+                // Move to previous tab
+                const prevTab = visibleTabs[index - 1];
+                this.props.updateTab(prevTab.name);
+                a11yFocus(this.buttonRefs.get(prevTab.name)?.current);
             } else {
-                this.props.updateTab(this.totalTabs[this.totalTabs.length - 1].name);
-                a11yFocus(this.buttonRefs[this.buttonRefs.length - 1].current);
+                // Wrap to last tab
+                const lastTab = visibleTabs[visibleTabs.length - 1];
+                this.props.updateTab(lastTab.name);
+                a11yFocus(this.buttonRefs.get(lastTab.name)?.current);
             }
         } else if (isKeyPressed(e, Constants.KeyCodes.DOWN)) {
-            if (index < this.totalTabs.length - 1) {
-                this.props.updateTab(this.totalTabs[index + 1].name);
-                a11yFocus(this.buttonRefs[index + 1].current);
+            if (index < visibleTabs.length - 1) {
+                // Move to next tab
+                const nextTab = visibleTabs[index + 1];
+                this.props.updateTab(nextTab.name);
+                a11yFocus(this.buttonRefs.get(nextTab.name)?.current);
             } else {
-                this.props.updateTab(this.totalTabs[0].name);
-                a11yFocus(this.buttonRefs[0].current);
+                // Wrap to first tab
+                const firstTab = visibleTabs[0];
+                this.props.updateTab(firstTab.name);
+                a11yFocus(this.buttonRefs.get(firstTab.name)?.current);
             }
         }
     };
@@ -93,7 +136,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
             <React.Fragment key={key}>
                 {tab.newGroup && <hr/>}
                 <button
-                    ref={this.buttonRefs[index]}
+                    ref={this.buttonRefs.get(tab.name)}
                     id={`${tab.name}Button`}
                     className={classNames('cursor--pointer style--none nav-pills__tab', {active: isActive})}
                     onClick={this.handleClick.bind(null, tab)}

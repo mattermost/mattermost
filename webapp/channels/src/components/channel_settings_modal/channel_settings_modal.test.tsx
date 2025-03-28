@@ -53,17 +53,6 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
     }),
 }));
 
-// Mock constants
-jest.mock('utils/constants', () => {
-    const original = jest.requireActual('utils/constants');
-    return {
-        ...original,
-        DEFAULT_CHANNEL: 'town-square',
-        PRIVATE_CHANNEL: 'P',
-        OPEN_CHANNEL: 'O',
-    };
-});
-
 // Mock the child components to simplify testing
 jest.mock('./channel_settings_info_tab', () => {
     return function MockInfoTab(): JSX.Element {
@@ -111,19 +100,6 @@ jest.mock('components/settings_sidebar', () => {
                 ))}
             </div>
         );
-    };
-});
-
-// Remove React.lazy to avoid issues with testing
-jest.mock('react', () => {
-    const originalReact = jest.requireActual('react');
-    return {
-        ...originalReact,
-        lazy: (factory: () => Promise<{default: React.ComponentType<any>}>) => {
-            const Component = originalReact.lazy(factory);
-            Component.displayName = 'MockedLazyComponent';
-            return Component;
-        },
     };
 });
 
