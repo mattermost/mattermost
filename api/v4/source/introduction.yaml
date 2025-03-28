@@ -384,9 +384,6 @@ info:
 
   version: 4.0.0
   title: Mattermost API Reference
-  termsOfService: https://about.mattermost.com/default-terms/
-  contact:
-    email: feedback@mattermost.com
   x-logo:
     url: https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png
     backgroundColor: "#FFFFFF"
