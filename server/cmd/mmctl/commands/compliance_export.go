@@ -57,11 +57,18 @@ var ComplianceExportDownloadCmd = &cobra.Command{
 }
 
 var ComplianceExportCreateCmd = &cobra.Command{
-	Use:     "create [complianceExportType] --date 2025-03-27 EDT",
-	Example: "compliance_export create csv --date 2025-03-27 EDT",
-	Short:   "Create a compliance export job, of type 'csv' or 'actiance' or 'globalrelay'",
-	Args:    cobra.MinimumNArgs(1),
-	RunE:    withClient(complianceExportCreateCmdF),
+	Use:     "create [complianceExportType] --date \"2025-03-27 EDT\"",
+	Example: "compliance_export create csv --date \"2025-03-27 EDT\"",
+	Long: "Create a compliance export job, of type 'csv' or 'actiance' or 'globalrelay'. " +
+		"If --date is set, the job will run for one day, from 12am to 12am (minus one millisecond) inclusively, in the format with timezone " +
+		"offset: `\"YYYY-MM-DD -0000\"`. E.g., \"2024-10-21 -0400\" for Oct 21, 2024 EDT timezone. \"2023-11-01 +0000\" " +
+		"for Nov 01, 2024 UTC. If set, the 'start' and 'end' flags will be ignored.\n\n" +
+		"Important: Running a compliance export job from mmctl will NOT affect the next scheduled job's batch_start_time. " +
+		"This means that if you run a compliance export job from mmctl, the next scheduled job will run from the " +
+		"batch_end_time of the previous scheduled job, as usual.",
+	Short: "Create a compliance export job, of type 'csv' or 'actiance' or 'globalrelay'",
+	Args:  cobra.MinimumNArgs(1),
+	RunE:  withClient(complianceExportCreateCmdF),
 }
 
 func init() {
@@ -81,13 +88,13 @@ func init() {
 	ComplianceExportCreateCmd.Flags().Int(
 		"start",
 		0,
-		"The start timestamp in unix milliseconds. Posts with updateAt >= start will be exported."+
+		"The start timestamp in unix milliseconds. Posts with updateAt >= start will be exported. "+
 			"If set, 'end' must be set as well. eg, `1743048000000` for 2025-03-27 EDT.",
 	)
 	ComplianceExportCreateCmd.Flags().Int(
 		"end",
 		0,
-		"The end timestamp in unix milliseconds. Posts with updateAt <= end will be exported."+
+		"The end timestamp in unix milliseconds. Posts with updateAt <= end will be exported. "+
 			"If set, 'start' must be set as well. eg, `1743134400000` for 2025-03-28 EDT.",
 	)
 
