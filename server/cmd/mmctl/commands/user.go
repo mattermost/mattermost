@@ -468,7 +468,7 @@ func changeUserActiveStatus(c client.Client, user *model.User, activate bool) er
 		printer.Print("You must also deactivate user " + user.Id + " in the SSO provider or they will be reactivated on next login or sync.")
 	}
 	if _, err := c.UpdateUserActive(context.TODO(), user.Id, activate); err != nil {
-		return fmt.Errorf("unable to change activation status of user: %v", user.Id)
+		return fmt.Errorf("unable to change activation status of user %v: %w", user.Id, err)
 	}
 
 	return nil
