@@ -52,7 +52,7 @@ describe('Close direct messages', () => {
     it('Through channel header dropdown menu', () => {
         createAndVisitDMChannel([testUser.id, otherUser.id]).then((channel) => {
             // # Open channel header dropdown menu and click on Close Direct Message
-            cy.get('#channelHeaderDropdownIcon').click();
+            cy.get('#channelHeaderTitle').click();
             cy.findByText('Close Direct Message').click();
 
             verifyChannelWasProperlyClosed(channel.name);
@@ -104,7 +104,7 @@ describe('Close group messages', () => {
     it('Through channel header dropdown menu', () => {
         createAndVisitGMChannel([otherUser1, otherUser2]).then((channel) => {
             // # Open channel header dropdown menu and click on Close Direct Message
-            cy.get('#channelHeaderDropdownIcon').click();
+            cy.get('#channelHeaderTitle').click();
             cy.findByText('Close Group Message').click();
 
             verifyChannelWasProperlyClosed(channel.name);
