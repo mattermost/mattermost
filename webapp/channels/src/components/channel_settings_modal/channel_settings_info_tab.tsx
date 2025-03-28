@@ -334,11 +334,11 @@ function ChannelSettingsInfoTab({
                     id: 'channel_settings_modal.purpose.placeholder',
                     defaultMessage: 'Enter a purpose for this channel',
                 })}
-                characterLimit={Constants.MAX_CHANNELPURPOSE_LENGTH}
+                maxLength={Constants.MAX_CHANNELPURPOSE_LENGTH}
                 preview={shouldShowPreviewPurpose}
                 togglePreview={togglePurposePreview}
                 useChannelMentions={false}
-                onKeypress={() => {}}
+                onKeyPress={() => {}}
                 descriptionMessage={formatMessage({
                     id: 'channel_settings.purpose.description',
                     defaultMessage: 'Describe how this channel should be used.',
@@ -365,11 +365,11 @@ function ChannelSettingsInfoTab({
                     id: 'channel_settings_modal.header.placeholder',
                     defaultMessage: 'Enter a header description or important links',
                 })}
-                characterLimit={HEADER_MAX_LENGTH}
+                maxLength={HEADER_MAX_LENGTH}
                 preview={shouldShowPreviewHeader}
                 togglePreview={toggleHeaderPreview}
                 useChannelMentions={false}
-                onKeypress={() => {}}
+                onKeyPress={() => {}}
                 descriptionMessage={formatMessage({
                     id: 'channel_settings.purpose.header',
                     defaultMessage: 'This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).',

@@ -127,7 +127,7 @@
         }
 
         &:disabled {
-            background: #FFF;
+            background: var(--center-channel-bg);
             opacity: 0.32; 
         }
     }

@@ -3,11 +3,11 @@
 
 import classNames from 'classnames';
 import React, {useState, useEffect} from 'react';
+import {useIntl} from 'react-intl';
 
 import ShowFormat from 'components/advanced_text_editor/show_formatting/show_formatting';
 import Textbox from 'components/textbox';
 import type {TextboxElement} from 'components/textbox';
-import type TextboxClass from 'components/textbox/textbox';
 
 import './advanced_textbox.scss';
 
@@ -16,14 +16,13 @@ type AdvancedTextboxProps = {
     value: string;
     channelId: string;
     onChange: (e: React.ChangeEvent<TextboxElement>) => void;
-    onKeypress: (e: React.KeyboardEvent<TextboxElement>) => void;
+    onKeyPress: (e: React.KeyboardEvent<TextboxElement>) => void;
     createMessage: string;
-    characterLimit: number;
-    minCharacterLimit?: number;
+    maxLength: number;
+    minLength?: number;
     minLengthErrorMessage?: string;
     preview: boolean;
     togglePreview: () => void;
-    textboxRef?: React.RefObject<TextboxClass>;
     useChannelMentions?: boolean;
     descriptionMessage?: JSX.Element | string;
     hasError?: boolean;
@@ -38,14 +37,13 @@ const AdvancedTextbox = ({
     value,
     channelId,
     onChange,
-    onKeypress,
+    onKeyPress,
     createMessage,
-    characterLimit,
-    minCharacterLimit,
+    maxLength,
+    minLength,
     minLengthErrorMessage,
     preview,
     togglePreview,
-    textboxRef,
     useChannelMentions = false,
     descriptionMessage,
     hasError,
@@ -54,51 +52,40 @@ const AdvancedTextbox = ({
     showCharacterCount = false,
     readOnly = false,
 }: AdvancedTextboxProps) => {
+    const {formatMessage} = useIntl();
     const [internalError, setInternalError] = useState<string | JSX.Element | undefined>(errorMessage);
-    const [characterCount, setCharacterCount] = useState(value.length);
-    const [errorType, setErrorType] = useState<'min' | 'max' | null>(null);
 
-    // Update internal error when prop changes
+    // Derived values
+    const isTooLong = value.length > maxLength;
+    const isTooShort = minLength !== undefined && value.length > 0 && value.length < minLength;
+
+    // Update internal error when prop changes or when validation state changes
     useEffect(() => {
-        setInternalError(errorMessage);
-    }, [errorMessage]);
-
-    // Update character count when value changes
-    useEffect(() => {
-        setCharacterCount(value.length);
-
-        // Validate maximum character limit
-        if (value && value.length > characterLimit) {
-            setInternalError(`Text exceeds the maximum character limit of ${characterLimit} characters.`);
-            setErrorType('max');
-        } else if (minCharacterLimit && value && value.length > 0 && value.length < minCharacterLimit) {
-            // Validate minimum character limit (only if field is not empty)
-            setInternalError(minLengthErrorMessage ||
-                `Text must be at least ${minCharacterLimit} characters.`);
-            setErrorType('min');
+        if (errorMessage) {
+            setInternalError(errorMessage);
+        } else if (isTooLong) {
+            setInternalError(formatMessage(
+                {id: 'advanced_textbox.max_length_error', defaultMessage: 'Text exceeds the maximum character limit of {maxLength} characters.'},
+                {maxLength},
+            ));
+        } else if (isTooShort) {
+            setInternalError(minLengthErrorMessage || formatMessage(
+                {id: 'advanced_textbox.min_length_error', defaultMessage: 'Text must be at least {minLength} characters.'},
+                {minLength},
+            ));
         } else {
-            // Clear internal error if value is now valid
-            const shouldClearError = internalError &&
-                                   errorMessage === undefined &&
-                                   (!minCharacterLimit || value.length === 0 || value.length >= minCharacterLimit) &&
-                                   value.length <= characterLimit;
-            if (shouldClearError) {
-                setInternalError(undefined);
-                setErrorType(null);
-            }
+            setInternalError(undefined);
         }
-    }, [value, characterLimit, minCharacterLimit, minLengthErrorMessage, internalError, errorMessage]);
+    }, [errorMessage, isTooLong, isTooShort, maxLength, minLength, minLengthErrorMessage, formatMessage]);
 
     // Handle validation on change
     const handleChange = (e: React.ChangeEvent<TextboxElement>) => {
         const newValue = e.target.value;
-        setCharacterCount(newValue.length);
 
         // Run validation if provided
         if (onValidate) {
             const validationResult = onValidate(newValue);
-            const isValid = validationResult.isValid;
-            if (isValid === false) {
+            if (validationResult.isValid === false) {
                 setInternalError(validationResult.errorMessage);
             } else {
                 setInternalError(undefined);
@@ -119,14 +106,13 @@ const AdvancedTextbox = ({
             <Textbox
                 value={value}
                 onChange={handleChange}
-                onKeyPress={onKeypress}
+                onKeyPress={onKeyPress}
                 supportsCommands={false}
                 suggestionListPosition='bottom'
                 createMessage={createMessage}
-                ref={textboxRef}
                 channelId={channelId}
                 id={id}
-                characterLimit={characterLimit}
+                characterLimit={maxLength}
                 preview={localPreview}
                 useChannelMentions={useChannelMentions}
                 hasError={hasError}
@@ -139,15 +125,15 @@ const AdvancedTextbox = ({
             }
 
             {/* Character count display */}
-            {(showCharacterCount && (internalError || errorType)) && (
+            {showCharacterCount && (isTooLong || isTooShort || internalError) && (
                 <div
                     className={classNames('AdvancedTextbox__character-count', {
-                        'exceeds-limit': characterCount > characterLimit,
-                        'below-minimum': minCharacterLimit && characterCount > 0 && characterCount < minCharacterLimit,
+                        'exceeds-limit': isTooLong,
+                        'below-minimum': isTooShort,
                     })}
                 >
-                    {characterCount}{'/'}
-                    {errorType === 'min' ? minCharacterLimit : characterLimit}
+                    {value.length}{'/'}
+                    {isTooShort ? minLength : maxLength}
                 </div>
             )}
 

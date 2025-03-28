@@ -19,6 +19,7 @@
     
     &__error-message {
         display: flex;
+        width: 90%;
         align-items: center;
         margin-top: 4px;
         color: var(--error-text);

@@ -41,9 +41,9 @@ describe('AdvancedTextbox', () => {
         value: 'Initial value',
         channelId: 'channel1',
         onChange: jest.fn(),
-        onKeypress: jest.fn(),
+        onKeyPress: jest.fn(),
         createMessage: 'Enter text here',
-        characterLimit: 1000,
+        maxLength: 1000,
         preview: false,
         togglePreview: jest.fn(),
         useChannelMentions: false,
@@ -79,13 +79,13 @@ describe('AdvancedTextbox', () => {
         expect(defaultProps.onChange).toHaveBeenCalled();
     });
 
-    test('calls onKeypress when a key is pressed', async () => {
+    test('calls onKeyPress when a key is pressed', async () => {
         render(<AdvancedTextbox {...defaultProps}/>);
 
         const textbox = screen.getByTestId('mock-textbox');
         await userEvent.type(textbox, '{enter}');
 
-        expect(defaultProps.onKeypress).toHaveBeenCalled();
+        expect(defaultProps.onKeyPress).toHaveBeenCalled();
     });
 
     test('calls togglePreview when preview button is clicked', async () => {
@@ -121,7 +121,7 @@ describe('AdvancedTextbox', () => {
     test('displays character count when showCharacterCount is true and there is error', () => {
         const props = {
             ...defaultProps,
-            characterLimit: 10,
+            maxLength: 10,
             value: 'Short text',
             showCharacterCount: true,
         };
@@ -135,7 +135,7 @@ describe('AdvancedTextbox', () => {
     test('shows error when text exceeds character limit', async () => {
         const props = {
             ...defaultProps,
-            characterLimit: 10,
+            maxLength: 10,
             value: 'Short text',
             showCharacterCount: true,
         };
@@ -150,14 +150,14 @@ describe('AdvancedTextbox', () => {
 
         // Should show error message
         expect(screen.getByText(/exceeds the maximum character limit/)).toBeInTheDocument();
-        expect(screen.getByText('This text is too long and exceeds the limit'.length + '/' + props.characterLimit)).toBeInTheDocument();
+        expect(screen.getByText('This text is too long and exceeds the limit'.length + '/' + props.maxLength)).toBeInTheDocument();
     });
 
     test('shows error when text is below minimum character limit', async () => {
         const props = {
             ...defaultProps,
-            characterLimit: 100,
-            minCharacterLimit: 10,
+            maxLength: 100,
+            minLength: 10,
             value: '',
             showCharacterCount: true,
         };
@@ -178,8 +178,8 @@ describe('AdvancedTextbox', () => {
     test('allows custom error message for minimum length', async () => {
         const props = {
             ...defaultProps,
-            characterLimit: 100,
-            minCharacterLimit: 10,
+            maxLength: 100,
+            minLength: 10,
             minLengthErrorMessage: 'Custom minimum length error',
             value: 'Short',
             showCharacterCount: true,
@@ -194,8 +194,8 @@ describe('AdvancedTextbox', () => {
     test('clears minimum length error when text meets requirements', async () => {
         const props = {
             ...defaultProps,
-            characterLimit: 100,
-            minCharacterLimit: 5,
+            maxLength: 100,
+            minLength: 5,
             value: 'abc',
             showCharacterCount: true,
         };

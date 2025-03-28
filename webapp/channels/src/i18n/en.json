@@ -2891,6 +2891,8 @@
   "adminConsole.list.table.rowsCount.50": "50",
   "adminConsole.list.table.rowsCount.show(rowsPerPage)": "rows per page",
   "advanced_text_editor.remote_user_hour": "The time for {user} is {time}",
+  "advanced_textbox.max_length_error": "Text exceeds the maximum character limit of {maxLength} characters.",
+  "advanced_textbox.min_length_error": "Text must be at least {minLength} characters.",
   "air_gapped_contact_sales_modal.body": "Please access the link below to contact sales.",
   "air_gapped_contact_sales_modal.title": "Looks like you do not have access to the internet",
   "air_gapped_modal.close": "Close",
