@@ -70,7 +70,7 @@ const SelectType = (props: Props) => {
             }}
         >
             {[
-                <Menu.Input
+                <Menu.InputItem
                     key='filter_types'
                     id='filter_types'
                     type='text'

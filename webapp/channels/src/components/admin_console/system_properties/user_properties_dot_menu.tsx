@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
@@ -161,6 +161,28 @@ const DotMenu = ({
                     )}
                 />
             </Menu.SubMenu>
+            <Menu.LinkItem
+                id={`${menuId}_link_ad-ldap`}
+                href={`/admin_console/authentication/ldap#custom_profile_attribute-${field.name}`}
+                leadingElement={<SyncIcon size={18}/>}
+                labels={(
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.ad_ldap.link_property.label'
+                        defaultMessage={'Link property to AD/LDAP'}
+                    />
+                )}
+            />
+            <Menu.LinkItem
+                id={`${menuId}_link_ad-ldap`}
+                href={`/admin_console/authentication/saml#custom_profile_attribute-${field.name}`}
+                leadingElement={<SyncIcon size={18}/>}
+                labels={(
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.saml.link_property.label'
+                        defaultMessage={'Link property to SAML'}
+                    />
+                )}
+            />
             <Menu.Separator/>
             <Menu.Item
                 id={`${menuId}_delete`}
