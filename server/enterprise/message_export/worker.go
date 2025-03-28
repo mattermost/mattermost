@@ -158,8 +158,9 @@ func (w *MessageExportWorker) DoJob(job *model.Job) {
 	go w.jobServer.CancellationWatcher(cancelContext, job.Id, cancelWatcherChan)
 	defer cancelCancelWatcher()
 
+	rctx := request.EmptyContext(logger).WithContext(w.context)
 	// if job data is missing, we'll do our best to recover
-	w.initJobData(logger, job, time.Now())
+	w.initJobData(rctx, logger, job, time.Now())
 	data, err := extractJobData(logger, job.Data)
 	if err != nil {
 		// Error in conversion. Not much we can do about that. But it shouldn't happen, unless someone edited the db.
@@ -167,7 +168,6 @@ func (w *MessageExportWorker) DoJob(job *model.Job) {
 		return
 	}
 
-	rctx := request.EmptyContext(logger).WithContext(w.context)
 	reportProgress := func(message string) {
 		logger.Debug(message)
 		// Don't fail because we couldn't update progress.
@@ -260,7 +260,7 @@ func (w *MessageExportWorker) finishExport(rctx request.CTX, logger *mlog.Logger
 }
 
 // initializes job data if it's missing, allows us to recover from failed or improperly configured jobs
-func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Job, now time.Time) {
+func (w *MessageExportWorker) initJobData(rctx request.CTX, logger mlog.LoggerIFace, job *model.Job, now time.Time) {
 	if job.Data == nil {
 		job.Data = make(map[string]string)
 	}
@@ -307,7 +307,8 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 	}
 
 	if _, exists := job.Data[shared.JobDataBatchStartTime]; !exists {
-		previousJob, err := w.jobServer.Store.Job().GetNewestJobByStatusesAndType([]string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport)
+		previousJob, err := w.getPreviousJob(rctx)
+
 		if err != nil {
 			exportFromTimestamp := strconv.FormatInt(*w.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10)
 			logger.Info("Worker: No previously successful job found, falling back to configured MessageExportSettings.ExportFromTimestamp", mlog.String("export_from_timestamp", exportFromTimestamp))
@@ -360,6 +361,36 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 	}
 
 	job.Data[shared.JobDataExportDir] = getJobExportDir(logger, job.Data, job.Data[shared.JobDataJobStartTime], job.Data[shared.JobDataJobEndTime])
+}
+
+func (w *MessageExportWorker) getPreviousJob(rctx request.CTX) (*model.Job, error) {
+	const pageSize = 100
+	offset := 0
+
+	for {
+		jobs, err := w.jobServer.Store.Job().GetAllByTypesAndStatusesPage(rctx,
+			[]string{model.JobTypeMessageExport},
+			[]string{model.JobStatusWarning, model.JobStatusSuccess},
+			offset, pageSize)
+		if err != nil {
+			return nil, err
+		}
+
+		// If no more jobs are found, we've reached the end
+		if len(jobs) == 0 {
+			return nil, nil
+		}
+
+		// Find the first job not initiated by mmctl
+		for _, job := range jobs {
+			if job.Data == nil || job.Data[shared.JobDataInitiatedBy] != "mmctl" {
+				return job, nil
+			}
+		}
+
+		// If we didn't find a non-mmctl job in this page, continue to the next page
+		offset += pageSize
+	}
 }
 
 func extractJobData(logger *mlog.Logger, strmap map[string]string) (shared.JobData, error) {
