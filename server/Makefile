@@ -829,7 +829,7 @@ migrations-extract:
 test-migration:
 	$(GO) install github.com/mattermost/morph/cmd/morph@latest
 	# apply postgres migrations to the new db
-	bin/morph apply up --driver postgres --dsn "${POSTGRES_DSN}" --path ${POSTGRES_MIGRATIONS_PATH} --number -1
+	$(GOBIN)/morph apply up --driver postgres --dsn "${POSTGRES_DSN}" --path ${POSTGRES_MIGRATIONS_PATH} --number -1
 
 	# create temporary file for the config
 	@cp tests/template.load tests/temp.load

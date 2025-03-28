@@ -99,10 +99,10 @@ func testTeamStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 func testTeamStoreTypeAndOpenInviteConsistency(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Test 1: Save with Type=Open should set AllowOpenInvite=true
 	t1 := &model.Team{
-		DisplayName:    "Open Team",
-		Name:           NewTestID(),
-		Email:          MakeEmail(),
-		Type:           model.TeamOpen,
+		DisplayName:     "Open Team",
+		Name:            NewTestID(),
+		Email:           MakeEmail(),
+		Type:            model.TeamOpen,
 		AllowOpenInvite: false, // Set to false to test that it gets synchronized
 	}
 
@@ -113,10 +113,10 @@ func testTeamStoreTypeAndOpenInviteConsistency(t *testing.T, rctx request.CTX, s
 
 	// Test 2: Save with Type=Invite should set AllowOpenInvite=false
 	t2 := &model.Team{
-		DisplayName:    "Private Team",
-		Name:           NewTestID(),
-		Email:          MakeEmail(),
-		Type:           model.TeamInvite,
+		DisplayName:     "Private Team",
+		Name:            NewTestID(),
+		Email:           MakeEmail(),
+		Type:            model.TeamInvite,
 		AllowOpenInvite: true, // Set to true to test that it gets synchronized
 	}
 
