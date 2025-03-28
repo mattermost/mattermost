@@ -10,8 +10,3 @@ WHERE Type = 'I' AND AllowOpenInvite = true;
 UPDATE Teams 
 SET Type = 'I' 
 WHERE AllowOpenInvite = false AND Type = 'O';
-
--- Only if both are open, ensure Type is 'O'
-UPDATE Teams 
-SET Type = 'O' 
-WHERE AllowOpenInvite = true AND Type != 'O';
