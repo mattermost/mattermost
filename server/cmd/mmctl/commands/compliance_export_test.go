@@ -164,21 +164,16 @@ func (s *MmctlUnitTestSuite) TestComplianceExportCancelCmdF() {
 	s.Run("cancel job successfully", func() {
 		s.SetupTest() // Reset mocks before test
 		printer.Clean()
-		mockJob := &model.Job{
-			Id:       model.NewId(),
-			CreateAt: model.GetMillis(),
-			Type:     model.JobTypeMessageExport,
-			Status:   model.JobStatusPending,
-		}
+		id := model.NewId()
 
 		s.client.
 			EXPECT().
-			CancelJob(context.TODO(), mockJob.Id).
+			CancelJob(context.TODO(), id).
 			Return(&model.Response{}, nil).
 			Times(1)
 
 		cmd := makeCmd()
-		err := complianceExportCancelCmdF(s.client, cmd, []string{mockJob.Id})
+		err := complianceExportCancelCmdF(s.client, cmd, []string{id})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -208,11 +203,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportCancelCmdF() {
 	s.Run("cancel job with cancel error", func() {
 		s.SetupTest() // Reset mocks before test
 		printer.Clean()
-		mockJob := &model.Job{
-			Id:       model.NewId(),
-			CreateAt: model.GetMillis(),
-			Type:     model.JobTypeMessageExport,
-		}
+		id := model.NewId()
 
 		mockError := &model.AppError{
 			Message: "failed to cancel job",
@@ -220,12 +211,12 @@ func (s *MmctlUnitTestSuite) TestComplianceExportCancelCmdF() {
 
 		s.client.
 			EXPECT().
-			CancelJob(context.TODO(), mockJob.Id).
+			CancelJob(context.TODO(), id).
 			Return(&model.Response{}, mockError).
 			Times(1)
 
 		cmd := makeCmd()
-		err := complianceExportCancelCmdF(s.client, cmd, []string{mockJob.Id})
+		err := complianceExportCancelCmdF(s.client, cmd, []string{id})
 		s.Require().NotNil(err)
 		s.EqualError(err, "failed to cancel compliance export job: failed to cancel job")
 		s.Len(printer.GetLines(), 0)
