@@ -2106,8 +2106,8 @@ export default class Client4 {
         );
     };
 
-    updateCustomProfileAttributeValues = (attributeValues: Record<string, string>) => {
-        return this.doFetch<Record<string, string>>(
+    updateCustomProfileAttributeValues = (attributeValues: Record<string, string | string[]>) => {
+        return this.doFetch<Record<string, string | string[]>>(
             `${this.getCustomProfileAttributeValuesRoute()}`,
             {method: 'PATCH', body: JSON.stringify(attributeValues)},
         );
