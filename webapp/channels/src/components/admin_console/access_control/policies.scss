@@ -1,0 +1,71 @@
+.PolicyTable {
+    overflow: auto;
+
+    .DataGrid {
+        padding: 0rem;
+
+        .DataGrid_search {
+            height: 4em;
+        }
+
+        .DataGrid_searchBar {
+            margin-left: 0px;
+        }
+
+        .DataGrid_header {
+            font-size: 1em;
+            font-weight: normal;
+        }
+        
+        .DataGrid_row {
+            min-height: 40px;
+            cursor: pointer;
+        }
+
+        .DataGrid_footer {
+            border-bottom: 0px;
+        }
+    }
+
+    .policy-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        
+        .policy-header-text {
+            h1 {
+                font-size: 20px;
+                font-weight: 600;
+                margin-bottom: 8px;
+            }
+            
+            p {
+                color: rgba(63, 67, 80, 0.72);
+                margin: 0;
+            }
+        }
+        
+        .btn-primary {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            
+            .icon {
+                font-size: 18px;
+            }
+        }
+    }
+}
+
+.actions-column {
+    justify-content: flex-end;
+}
+
+.action-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 16px;
+    padding-left: 16px;
+}

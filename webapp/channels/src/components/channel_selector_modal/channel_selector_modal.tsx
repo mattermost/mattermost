@@ -31,6 +31,7 @@ type Props = {
     alreadySelected?: string[];
     excludePolicyConstrained?: boolean;
     excludeTeamIds?: string[];
+    excludeTypes?: string[];
 }
 
 type State = {
@@ -220,6 +221,9 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
         }
         if (this.props.excludeTeamIds) {
             options = options.filter((channel) => this.props.excludeTeamIds?.indexOf(channel.team_id) === -1);
+        }
+        if (this.props.excludeTypes) {
+            options = options.filter((channel) => this.props.excludeTypes?.indexOf(channel.type) === -1);
         }
         const values = this.state.values.map((i): ChannelWithTeamDataValue => ({...i, label: i.display_name, value: i.id}));
 

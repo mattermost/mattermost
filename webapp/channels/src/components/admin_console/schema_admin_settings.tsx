@@ -39,7 +39,7 @@ import Constants from 'utils/constants';
 import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapter';
 
 import Setting from './setting';
-import type {AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefinitionSettingDropdownOption, AdminDefinitionSubSectionSchema, ConsoleAccess} from './types';
+import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSection, AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefinitionSettingDropdownOption, AdminDefinitionSubSectionSchema, ConsoleAccess} from './types';
 
 import './schema_admin_settings.scss';
 
@@ -432,6 +432,13 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             return setting.isHidden(this.props.config, this.state, this.props.license);
         }
         return Boolean(setting.isHidden);
+    };
+
+    isSectionHidden = (section: AdminDefinitionConfigSchemaSection) => {
+        if (typeof section.isHidden === 'function') {
+            return section.isHidden(this.props.config, this.state, this.props.license);
+        }
+        return Boolean(section.isHidden);
     };
 
     buildButtonSetting = (setting: AdminDefinitionSetting) => {
@@ -1058,6 +1065,10 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             const sections: React.ReactNode[] = [];
 
             schema.sections.forEach((section) => {
+                if (this.isSectionHidden(section)) {
+                    return;
+                }
+
                 const settingsList: React.ReactNode[] = [];
                 if (section.settings) {
                     section.settings.forEach((setting) => {

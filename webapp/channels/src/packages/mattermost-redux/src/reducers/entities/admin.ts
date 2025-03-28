@@ -3,7 +3,7 @@
 
 import {combineReducers} from 'redux';
 
-import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState, AccessControlPolicy, AccessControlPolicies} from '@mattermost/types/admin';
 import type {Audit} from '@mattermost/types/audits';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
@@ -649,6 +649,24 @@ function dataRetentionCustomPoliciesCount(state = 0, action: MMReduxAction) {
     }
 }
 
+function accessControlPolicies(state: AccessControlPolicy[] | {} = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES:
+        return action.data;
+    default:
+        return state;
+    }
+}
+
+function accessControlPolicy(state: AccessControlPolicy | null = null, action: MMReduxAction) {
+    switch (action.type) {
+    case AdminTypes.RECEIVED_ACCESS_CONTROL_POLICY:
+        return action.data;
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
 
     // array of LogObjects each representing a log entry (JSON)
@@ -711,4 +729,8 @@ export default combineReducers({
 
     // the last trial license the server used.
     prevTrialLicense,
+
+    accessControlPolicies,
+
+    accessControlPolicy,
 });

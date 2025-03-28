@@ -69,6 +69,7 @@ export type AdminState = {
     dataRetentionCustomPolicies: DataRetentionCustomPolicies;
     dataRetentionCustomPoliciesCount: number;
     prevTrialLicense: ClientLicense;
+    accessControlPolicies: AccessControlPolicy[];
 };
 
 export type AnalyticsState = {
@@ -140,3 +141,25 @@ export type SupportPacketContent = {
     selected: boolean;
     mandatory: boolean;
 }
+
+export type AccessControlPolicy = {
+    id: string;
+    name: string;
+    type: string;
+    revision: number;
+    created_at: number;
+    version: string;
+    active: boolean;
+    imports: string[];
+    properties: string[];
+    rules: AccessControlPolicyRule[];
+}
+
+export type AccessControlPolicyRule = {
+    actions: string[];
+    expression: string;
+}
+
+export type AccessControlPolicies = {
+    [x: string]: AccessControlPolicy;
+};
