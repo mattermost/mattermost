@@ -111,6 +111,8 @@ type PlatformService struct {
 	// This is a test mode setting used to enable Redis
 	// without a license.
 	forceEnableRedis bool
+
+	pdpService einterfaces.PolicyDecisionPointInterface
 }
 
 type HookRunner interface {
@@ -473,6 +475,10 @@ func (ps *PlatformService) initEnterprise() {
 
 	if licenseInterface != nil {
 		ps.licenseManager = licenseInterface(ps)
+	}
+
+	if pdpInterface != nil {
+		ps.pdpService = pdpInterface(ps)
 	}
 }
 
