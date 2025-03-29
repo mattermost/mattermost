@@ -53,6 +53,11 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			opts.IncludeRolesAndSchemes = true
 		}
 
+		teamName, ok := job.Data["team_name"]
+		if ok {
+			opts.TeamName = &teamName
+		}
+
 		outPath := *app.Config().ExportSettings.Directory
 		exportFilename := job.Id + "_export.zip"
 
