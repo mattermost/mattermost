@@ -2,17 +2,13 @@
 // See LICENSE.txt for license information.
 
 .ScheduledPostList {
-    position: absolute;
-    width: 100%;
     height: 100%;
-    padding: 24px;
-    overflow-y: auto;
 
     .scheduledPostListErrorIndicator {
         display: flex;
         flex-direction: row;
         align-items: center;
-        margin-bottom: 16px;
+        margin: 24px 24px 16px 24px;
         font-weight: bold;
         padding-block: 10px;
     }
@@ -35,6 +31,4 @@
     .Panel.highlighted {
         animation: borderColorAnimation 10s;
     }
-
-
 }
