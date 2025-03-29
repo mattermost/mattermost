@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/require"
 )
 
 var randomJPEG []byte
@@ -82,13 +83,13 @@ func BenchmarkUploadFile(b *testing.B) {
 		{
 			title: "raw-ish DoUploadFile",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				info1, err := th.App.DoUploadFile(th.Context, time.Now(), teamID, channelID,
+				info1, appErr := th.App.DoUploadFile(th.Context, time.Now(), teamID, channelID,
 					userID, fmt.Sprintf("BenchmarkDoUploadFile-%d%s", n, ext), data, true)
-				if err != nil {
-					b.Fatal(err)
-				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
-				th.App.RemoveFile(info1.Path)
+				require.Nil(b, appErr)
+				err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
+				require.NoError(b, err)
+				appErr = th.App.RemoveFile(info1.Path)
+				require.Nil(b, appErr)
 			},
 		},
 		{
@@ -105,8 +106,10 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
-				th.App.RemoveFile(info.Path)
+				err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
+				require.NoError(b, err)
+				appErr := th.App.RemoveFile(info.Path)
+				require.Nil(b, appErr)
 			},
 		},
 		{
@@ -123,8 +126,10 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
-				th.App.RemoveFile(info.Path)
+				err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
+				require.NoError(b, err)
+				appErr := th.App.RemoveFile(info.Path)
+				require.Nil(b, appErr)
 			},
 		},
 		{
@@ -140,8 +145,10 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
-				th.App.RemoveFile(info.Path)
+				err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
+				require.NoError(b, err)
+				appErr := th.App.RemoveFile(info.Path)
+				require.Nil(b, appErr)
 			},
 		},
 		{
@@ -157,8 +164,10 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
-				th.App.RemoveFile(info.Path)
+				err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
+				require.NoError(b, err)
+				appErr := th.App.RemoveFile(info.Path)
+				require.Nil(b, appErr)
 			},
 		},
 	}
