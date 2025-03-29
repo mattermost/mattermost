@@ -641,7 +641,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, c.Params.GroupId)
+		c.App.RemoveMembershipsFromUnlinkedSyncable(c.AppContext, syncableID, syncableType)
 	})
 
 	auditRec.Success()
