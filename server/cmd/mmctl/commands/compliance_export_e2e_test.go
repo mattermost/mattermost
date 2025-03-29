@@ -10,12 +10,14 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8"
 	st "github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -232,7 +234,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 
 		cmd := makeCmd()
 		err = complianceExportCancelCmdF(s.th.Client, cmd, []string{job.Id})
-		s.Require().EqualError(err, "failed to get compliance export job: You do not have the appropriate permissions.")
+		s.Require().EqualError(err, "failed to cancel compliance export job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -242,7 +244,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 
 		cmd := makeCmd()
 		err := complianceExportCancelCmdF(c, cmd, []string{"non-existent-job-id"})
-		s.Require().EqualError(err, "failed to get compliance export job: Sorry, we could not find the page., There doesn't appear to be an api call for the url='/api/v4/jobs/non-existent-job-id'.  Typo? are you missing a team_id or user_id as part of the url?")
+		s.Require().EqualError(err, "failed to cancel compliance export job: Sorry, we could not find the page., There doesn't appear to be an api call for the url='/api/v4/jobs/non-existent-job-id/cancel'.  Typo? are you missing a team_id or user_id as part of the url?")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -583,5 +585,150 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 		}
 		s.Require().True(foundExport1, "export1.zip not found in downloaded file")
 		s.Require().True(foundExport2, "export2.zip not found in downloaded file")
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
+	s.SetupMessageExportTestHelper()
+
+	s.RunForSystemAdminAndLocal("mmctl job uses batch_start_time from previous regular job", func(c client.Client) {
+		// Ensure no jobs exist before we start
+		jobs, _, err := s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 1000)
+		s.Require().NoError(err)
+		for _, job := range jobs {
+			var result string
+			result, err = s.th.App.Srv().Store().Job().Delete(job.Id)
+			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
+		}
+
+		now := model.GetMillis()
+
+		// Create a regular (non-mmctl) export job
+		regularStartTime := now - 10000
+		regularEndTime := now - 5000
+		regularJob := s.runJobForTest(map[string]string{
+			shared.JobDataBatchStartTime: strconv.FormatInt(regularStartTime, 10),
+			shared.JobDataJobEndTime:     strconv.FormatInt(regularEndTime, 10),
+		})
+
+		s.Require().Equal(model.JobStatusSuccess, regularJob.Status, "Regular job should complete successfully")
+		s.Require().NotEmpty(regularJob.Data[shared.JobDataBatchStartTime], "Regular job should have a batch start time")
+		regularJobBatchStartTime := regularJob.Data[shared.JobDataBatchStartTime]
+
+		// Run an mmctl-initiated export job
+		cmd := &cobra.Command{}
+		cmd.Flags().String("date", "", "")
+		cmd.Flags().Int("start", 0, "")
+		cmd.Flags().Int("end", 0, "")
+		err = complianceExportCreateCmdF(c, cmd, []string{model.ComplianceExportTypeActiance})
+		s.Require().NoError(err, "Should create mmctl job successfully")
+
+		// Find the mmctl job
+		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 10)
+		s.Require().NoError(err)
+		s.Require().True(len(jobs) > 1, "Should have at least 2 jobs")
+
+		// The most recent job should be the mmctl job
+		mmctlJob := jobs[0]
+		s.Require().Equal("mmctl", mmctlJob.Data[shared.JobDataInitiatedBy])
+
+		// Wait for the mmctl job to complete
+		s.checkJobForStatus(mmctlJob.Id, model.JobStatusSuccess)
+		mmctlJob = s.getMostRecentJobWithId(mmctlJob.Id)
+
+		// The job_start_time should match the batch_start_time from the previous regular job
+		s.Require().Equal(regularJobBatchStartTime, mmctlJob.Data[shared.JobDataJobStartTime],
+			"mmctl job should use batch_start_time from previous regular job as its job_start_time")
+
+		// Clean up jobs
+		for _, job := range jobs {
+			result, err := s.th.App.Srv().Store().Job().Delete(job.Id)
+			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
+		}
+	})
+
+	s.RunForSystemAdminAndLocal("mmctl job ignores previous mmctl jobs and uses regular job", func(c client.Client) {
+		// Ensure no jobs exist before we start
+		jobs, _, err := s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 1000)
+		s.Require().NoError(err)
+		for _, job := range jobs {
+			var result string
+			result, err = s.th.App.Srv().Store().Job().Delete(job.Id)
+			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
+		}
+
+		// Create some posts
+		now := model.GetMillis()
+
+		// Create a regular (non-mmctl) export job
+		regularStartTime := now - 10000 // Start time before the posts
+		regularEndTime := now - 5000    // End time after some posts
+		regularJob := s.runJobForTest(map[string]string{
+			shared.JobDataBatchStartTime: strconv.FormatInt(regularStartTime, 10),
+			shared.JobDataJobEndTime:     strconv.FormatInt(regularEndTime, 10),
+		})
+
+		s.Require().Equal(model.JobStatusSuccess, regularJob.Status, "Regular job should complete successfully")
+		s.Require().NotEmpty(regularJob.Data[shared.JobDataBatchStartTime], "Regular job should have a batch start time")
+		regularJobBatchStartTime := regularJob.Data[shared.JobDataBatchStartTime]
+
+		// Run an mmctl-initiated export job with an explicit start time (different from the regular job)
+		cmd := &cobra.Command{}
+		cmd.Flags().String("date", "", "")
+		cmd.Flags().Int("start", int(now-2000), "")
+		cmd.Flags().Int("end", int(now-1000), "")
+		err = complianceExportCreateCmdF(c, cmd, []string{model.ComplianceExportTypeActiance})
+		s.Require().NoError(err, "Should create first mmctl job successfully")
+
+		// Find the mmctl job
+		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 10)
+		s.Require().NoError(err)
+		s.Require().True(len(jobs) > 1, "Should have at least 2 jobs")
+
+		// The most recent job should be the mmctl job
+		mmctlJob1 := jobs[0]
+		s.Require().Equal("mmctl", mmctlJob1.Data[shared.JobDataInitiatedBy])
+
+		// Wait for the mmctl job to complete
+		s.checkJobForStatus(mmctlJob1.Id, model.JobStatusSuccess)
+		mmctlJob1 = s.getMostRecentJobWithId(mmctlJob1.Id)
+
+		// Verify this job has a different batch_start_time than the regular job
+		s.Require().NotEqual(regularJobBatchStartTime, mmctlJob1.Data[shared.JobDataBatchStartTime],
+			"First mmctl job should have a different batch_start_time than regular job")
+
+		// Run a second mmctl-initiated export job WITHOUT a specified start time
+		cmd = &cobra.Command{}
+		cmd.Flags().String("date", "", "")
+		cmd.Flags().Int("start", 0, "")
+		cmd.Flags().Int("end", 0, "")
+		err = complianceExportCreateCmdF(c, cmd, []string{model.ComplianceExportTypeActiance})
+		s.Require().NoError(err, "Should create second mmctl job successfully")
+
+		// Find the second mmctl job
+		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 10)
+		s.Require().NoError(err)
+		s.Require().True(len(jobs) > 2, "Should have at least 3 jobs")
+
+		// The most recent job should be the second mmctl job
+		mmctlJob2 := jobs[0]
+		s.Require().Equal("mmctl", mmctlJob2.Data[shared.JobDataInitiatedBy])
+
+		// Wait for the second mmctl job to complete
+		s.checkJobForStatus(mmctlJob2.Id, model.JobStatusSuccess)
+		mmctlJob2 = s.getMostRecentJobWithId(mmctlJob2.Id)
+
+		// The job_start_time of the second mmctl job should match the batch_start_time from the regular job,
+		// not from the mmctl job that ran in between
+		s.Require().Equal(regularJobBatchStartTime, mmctlJob2.Data[shared.JobDataJobStartTime],
+			"Second mmctl job should use batch_start_time from previous regular job as its job_start_time, not from previous mmctl job")
+		s.Require().NotEqual(mmctlJob1.Data[shared.JobDataBatchStartTime], mmctlJob2.Data[shared.JobDataJobStartTime],
+			"Second mmctl job should not use batch_start_time from previous mmctl job as its job_start_time")
+
+		// Clean up jobs
+		for _, job := range jobs {
+			result, err := s.th.App.Srv().Store().Job().Delete(job.Id)
+			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
+		}
 	})
 }

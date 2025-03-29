@@ -42,6 +42,7 @@ const (
 
 	JobDataJobStartId              = "job_start_id"
 	JobDataExportType              = "export_type"
+	JobDataInitiatedBy             = "initiated_by"
 	JobDataBatchSize               = "batch_size"
 	JobDataChannelBatchSize        = "channel_batch_size"
 	JobDataChannelHistoryBatchSize = "channel_history_batch_size"

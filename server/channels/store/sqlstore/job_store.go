@@ -368,7 +368,7 @@ func (jss SqlJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Jo
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string, status string, offset int, limit int) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypesAndStatusesPage(c request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -382,7 +382,7 @@ func (jss SqlJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string
 
 	jobs := []*model.Job{}
 	if err = jss.GetReplica().Select(&jobs, query, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s and status=%s", strings.Join(jobType, ","), status)
+		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s and status=%s", strings.Join(jobType, ","), strings.Join(status, ","))
 	}
 
 	return jobs, nil
