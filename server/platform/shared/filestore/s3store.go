@@ -63,8 +63,8 @@ const (
 )
 
 var (
-	imageExtensions = map[string]bool{".jpg": true, ".jpeg": true, ".gif": true, ".bmp": true, ".png": true, ".tiff": true, "tif": true}
-	imageMimeTypes  = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
+	imageTypes =map[string]string{".jpg":"image/jpeg",".jpeg":"image/jpeg",".gif":"image/gif",".bmp":"image/bmp",".png":"image/png",".tiff": "image/tiff",".tif":"image/tif"}
+	videoTypes=map[string]string{".mp4": "video/mp4",".mpeg":"video/mpeg",".avi":"video/avi"}
 )
 
 var (
@@ -75,16 +75,30 @@ var (
 
 func isFileExtImage(ext string) bool {
 	ext = strings.ToLower(ext)
-	return imageExtensions[ext]
+	_,ok :=imageTypes[ext]
+	return ok 
+}
+func isFileExtVideo(ext string) bool {
+	ext = strings.ToLower(ext)
+	_,ok :=videoTypes[ext]
+	return ok
 }
 
 func getImageMimeType(ext string) string {
 	ext = strings.ToLower(ext)
-	if imageMimeTypes[ext] == "" {
-		return "image"
+	if mimeType,ok:=imageTypes[ext]; ok{
+	return mimeType
 	}
-	return imageMimeTypes[ext]
+	return "image"
+
 }
+func getVideoMimeType(ext string) string {
+	ext = strings.ToLower(ext)
+	if mimeType,ok :=videoTypes[ext]; ok{
+		return mimeType
+	}
+		return "video/mp4"
+	}
 
 func (s *S3FileBackendAuthError) Error() string {
 	return s.DetailedError
@@ -502,12 +516,17 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, error) {
 	var contentType string
 	path = filepath.Join(b.pathPrefix, path)
-	if ext := filepath.Ext(path); isFileExtImage(ext) {
+	ext := filepath.Ext(path)
+	switch {
+	case isFileExtImage(ext):
 		contentType = getImageMimeType(ext)
-	} else {
+
+	case isFileExtVideo(ext):
+		contentType = getVideoMimeType(ext)
+	default:
 		contentType = "binary/octet-stream"
 	}
-
+	
 	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
 
 	objSize := int64(-1)
