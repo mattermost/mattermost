@@ -4,14 +4,14 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import * as useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import * as useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 
 import AtPlanMention from './index';
 
 describe('components/AtPlanMention', () => {
-    it('should open pricing modal when plan mentioned is trial', () => {
-        const openPricingModal = jest.fn();
-        jest.spyOn(useOpenPricingModal, 'default').mockImplementation(() => openPricingModal);
+    it('should open pricing details when plan mentioned is trial', () => {
+        const openPricingDetails = jest.fn();
+        jest.spyOn(useOpenPricingDetails, 'default').mockImplementation(() => openPricingDetails);
 
         const wrapper = shallow(<AtPlanMention plan='Enterprise trial'/>);
         wrapper.find('a').simulate('click', {
@@ -19,12 +19,12 @@ describe('components/AtPlanMention', () => {
             },
         });
 
-        expect(openPricingModal).toHaveBeenCalledTimes(1);
+        expect(openPricingDetails).toHaveBeenCalledTimes(1);
     });
 
-    it('should open pricing modal when plan mentioned is Enterprise', () => {
-        const openPricingModal = jest.fn();
-        jest.spyOn(useOpenPricingModal, 'default').mockImplementation(() => openPricingModal);
+    it('should open pricing details when plan mentioned is Enterprise', () => {
+        const openPricingDetails = jest.fn();
+        jest.spyOn(useOpenPricingDetails, 'default').mockImplementation(() => openPricingDetails);
 
         const wrapper = shallow(<AtPlanMention plan='Enterprise plan'/>);
         wrapper.find('a').simulate('click', {
@@ -32,12 +32,12 @@ describe('components/AtPlanMention', () => {
             },
         });
 
-        expect(openPricingModal).toHaveBeenCalledTimes(1);
+        expect(openPricingDetails).toHaveBeenCalledTimes(1);
     });
 
-    it('should open purchase modal when plan mentioned is professional', () => {
-        const openPricingModal = jest.fn();
-        jest.spyOn(useOpenPricingModal, 'default').mockImplementation(() => openPricingModal);
+    it('should open pricing details when plan mentioned is professional', () => {
+        const openPricingDetails = jest.fn();
+        jest.spyOn(useOpenPricingDetails, 'default').mockImplementation(() => openPricingDetails);
 
         const wrapper = shallow(<AtPlanMention plan='Professional plan'/>);
         wrapper.find('a').simulate('click', {
@@ -45,6 +45,6 @@ describe('components/AtPlanMention', () => {
             },
         });
 
-        expect(openPricingModal).toHaveBeenCalledTimes(1);
+        expect(openPricingDetails).toHaveBeenCalledTimes(1);
     });
 });

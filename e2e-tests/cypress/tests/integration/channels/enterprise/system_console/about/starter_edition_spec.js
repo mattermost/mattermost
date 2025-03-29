@@ -16,16 +16,21 @@ describe('System console', () => {
         cy.apiDeleteLicense();
     });
 
-    it('MM-T5132 License page shows View plans button', () => {
+    it('MM-T5132 License page shows View plans button that opens external pricing page', () => {
         cy.visit('/admin_console/about/license');
 
         // *Validate View plans button exits
         cy.get('.StarterLeftPanel').get('#starter_edition_view_plans').contains('View plans');
 
+        // * Spy on window.open and click the button
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen');
+        });
+
         // # Click View plans
         cy.get('.StarterLeftPanel').get('#starter_edition_view_plans').click();
 
-        // *Ensure pricing modal is open
-        cy.get('#pricingModal').should('exist');
+        // * Verify it tried to open the pricing page
+        cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank')
     });
 });

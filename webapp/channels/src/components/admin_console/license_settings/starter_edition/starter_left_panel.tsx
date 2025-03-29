@@ -5,7 +5,7 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 
 import {FileTypes} from 'utils/constants';
 
@@ -29,13 +29,13 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
     fileInputRef,
     handleChange,
 }: StarterEditionProps) => {
-    const openPricingModal = useOpenPricingModal();
+    const openPricingDetails = useOpenPricingDetails();
     const intl = useIntl();
 
     const viewPlansButton = (
         <button
             id='starter_edition_view_plans'
-            onClick={() => openPricingModal({trackingLocation: 'license_settings_view_plans'})}
+            onClick={() => openPricingDetails({trackingLocation: 'license_settings_view_plans'})}
             className='btn btn-secondary PlanDetails__viewPlansButton'
         >
             {intl.formatMessage({
