@@ -28,6 +28,7 @@ import type {GlobalState} from 'types/store';
 
 import PostMarkdown, {type OwnProps} from './post_markdown';
 
+/* eslint-disable @stylistic/ts/indent */
 export function makeGetMentionKeysForPost(): (
     state: GlobalState,
     post?: Post,
@@ -55,6 +56,7 @@ export function makeGetMentionKeysForPost(): (
         },
     );
 }
+/* eslint-enable @stylistic/ts/indent */
 
 function makeMapStateToProps() {
     const getMentionKeysForPost = makeGetMentionKeysForPost();

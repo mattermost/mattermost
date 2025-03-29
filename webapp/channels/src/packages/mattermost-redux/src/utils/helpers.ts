@@ -5,7 +5,7 @@ import shallowEqual from 'shallow-equals';
 
 import {createSelectorCreator, defaultMemoize} from 'mattermost-redux/selectors/create_selector';
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export function memoizeResult<F extends Function>(func: F, measure: Function | undefined = undefined): F {
     let lastArgs: IArguments|null = null;
     let lastResult: any = null;

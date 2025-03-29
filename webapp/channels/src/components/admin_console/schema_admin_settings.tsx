@@ -263,7 +263,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 if (setting.type === Constants.SettingsTypes.TYPE_PERMISSION) {
                     try {
                         state[setting.key] = mappingValueFromRoles(setting.permissions_mapping_name, roles!) === 'true';
-                    } catch (e) {
+                    } catch {
                         state[setting.key] = false;
                     }
                     return;
