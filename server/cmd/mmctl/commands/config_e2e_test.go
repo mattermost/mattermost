@@ -234,6 +234,29 @@ func (s *MmctlE2ETestSuite) TestConfigShowCmdF() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestConfigReloadCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForSystemAdminAndLocal("Reload server config", func(c client.Client) {
+		printer.Clean()
+
+		err := configReloadCmdF(c, nil, nil)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Reload server config without permissions", func() {
+		printer.Clean()
+
+		err := configReloadCmdF(s.th.Client, nil, nil)
+		s.Require().NotNil(err)
+		s.Require().Error(err, "You do not have the appropriate permissions")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
 	s.SetupTestHelper().InitBasic()
 
