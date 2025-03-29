@@ -281,6 +281,7 @@ describe('Channel Type Conversion', () => {
             // # Setup permissions - enable for channel admin
             setupPermissions({
                 resetToDefault: true,
+                publicToPrivate: true,
                 privateToPublic: {
                     channelAdmin: true,
                     teamAdmin: false,
