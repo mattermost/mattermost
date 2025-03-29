@@ -17,14 +17,10 @@ export enum HostingType {
 
 export enum AuthorType {
     Mattermost = 'mattermost',
-    Partner = 'partner',
-    Community = 'community',
 }
 
 export enum ReleaseStage {
     Production = 'production',
-    Beta = 'beta',
-    Experimental = 'experimental',
 }
 
 interface MarketplaceBaseItem {

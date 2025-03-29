@@ -15,7 +15,7 @@ import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
 
 import './renew_license_card.scss';
 
-export interface RenewLicenseCardProps {
+interface RenewLicenseCardProps {
     license: ClientLicense;
     isLicenseExpired: boolean;
     totalUsers: number;
