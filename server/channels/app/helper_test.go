@@ -55,8 +55,9 @@ type PostOptions func(*model.Post)
 type PostPatchOptions func(patch *model.PostPatch)
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool,
-	updateConfig func(*model.Config), options []Option, tb testing.TB) *TestHelper {
-	tempWorkspace, err := os.MkdirTemp("", "apptest")
+	updateConfig func(*model.Config), options []Option, tb testing.TB,
+) *TestHelper {
+	tempWorkspace, err := os.MkdirTemp("", "apptestblahblah")
 	if err != nil {
 		panic(err)
 	}
@@ -253,12 +254,14 @@ func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface) *
 	return setupTestHelper(dbStore, true, true, nil, []Option{SetCluster(cluster)}, tb)
 }
 
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser *model.User
-	BasicUser       *model.User
-	BasicUser2      *model.User
-}
+var (
+	initBasicOnce sync.Once
+	userCache     struct {
+		SystemAdminUser *model.User
+		BasicUser       *model.User
+		BasicUser2      *model.User
+	}
+)
 
 func (th *TestHelper) InitBasic() *TestHelper {
 	// create users once and cache them because password hashing is slow

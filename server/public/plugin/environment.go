@@ -60,6 +60,7 @@ type Environment struct {
 	prepackagedPlugins               []*PrepackagedPlugin
 	transitionallyPrepackagedPlugins []*PrepackagedPlugin
 	prepackagedPluginsLock           sync.RWMutex
+	PluginDir                        string
 }
 
 func NewEnvironment(
@@ -76,6 +77,7 @@ func NewEnvironment(
 		newAPIImpl:      newAPIImpl,
 		dbDriver:        dbDriver,
 		pluginDir:       pluginDir,
+		PluginDir:       pluginDir,
 		webappPluginDir: webappPluginDir,
 	}, nil
 }
