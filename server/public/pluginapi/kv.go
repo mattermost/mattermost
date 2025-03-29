@@ -24,7 +24,7 @@ type KVService struct {
 
 type KVSetOptions struct {
 	model.PluginKVSetOptions
-	oldValue interface{}
+	oldValue any
 }
 
 // KVSetOption is an option passed to Set() operation.
@@ -33,7 +33,7 @@ type KVSetOption func(*KVSetOptions)
 // SetAtomic guarantees the write will occur only when the current value of matches the given old
 // value. A client is expected to read the old value first, then pass it back to ensure the value
 // has not since been modified.
-func SetAtomic(oldValue interface{}) KVSetOption {
+func SetAtomic(oldValue any) KVSetOption {
 	return func(o *KVSetOptions) {
 		o.Atomic = true
 		o.oldValue = oldValue
@@ -55,7 +55,7 @@ func SetExpiry(ttl time.Duration) KVSetOption {
 // Returns (true, nil) if the value was set
 //
 // Minimum server version: 5.18
-func (k *KVService) Set(key string, value interface{}, options ...KVSetOption) (bool, error) {
+func (k *KVService) Set(key string, value any, options ...KVSetOption) (bool, error) {
 	if strings.HasPrefix(key, internalKeyPrefix) {
 		return false, errors.Errorf("'%s' prefix is not allowed for keys", internalKeyPrefix)
 	}
@@ -123,7 +123,7 @@ func (k *KVService) Set(key string, value interface{}, options ...KVSetOption) (
 //	Returns nil if the value was set.
 //
 // Minimum server version: 5.18
-func (k *KVService) SetAtomicWithRetries(key string, valueFunc func(oldValue []byte) (newValue interface{}, err error)) error {
+func (k *KVService) SetAtomicWithRetries(key string, valueFunc func(oldValue []byte) (newValue any, err error)) error {
 	for i := 0; i < numRetries; i++ {
 		var oldVal []byte
 		if err := k.Get(key, &oldVal); err != nil {
@@ -153,7 +153,7 @@ func (k *KVService) SetAtomicWithRetries(key string, valueFunc func(oldValue []b
 // error, with nothing written to the given interface.
 //
 // Minimum server version: 5.2
-func (k *KVService) Get(key string, o interface{}) error {
+func (k *KVService) Get(key string, o any) error {
 	data, appErr := k.api.KVGet(key)
 	if appErr != nil {
 		return normalizeAppErr(appErr)

@@ -18,7 +18,7 @@ type PluginAPI interface {
 	GetBundlePath() (string, error)
 	GetConfig() *model.Config
 	GetUser(userID string) (*model.User, *model.AppError)
-	LogWarn(msg string, keyValuePairs ...interface{})
+	LogWarn(msg string, keyValuePairs ...any)
 }
 
 // Message is a string that can be localized.

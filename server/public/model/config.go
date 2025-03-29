@@ -3741,8 +3741,8 @@ type Config struct {
 	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
 }
 
-func (o *Config) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *Config) Auditable() map[string]any {
+	return map[string]any{
 		// TODO
 	}
 }
