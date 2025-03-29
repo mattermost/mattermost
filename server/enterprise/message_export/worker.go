@@ -22,7 +22,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
-const TimeBetweenBatchesMs = 100
+const (
+	TimeBetweenBatchesMs       = 100
+	DefaultPreviousJobPageSize = 5
+)
 
 // testEndOfBatchCb is only used for testing
 var testEndOfBatchCb func(worker *MessageExportWorker)
@@ -364,14 +367,13 @@ func (w *MessageExportWorker) initJobData(rctx request.CTX, logger mlog.LoggerIF
 }
 
 func (w *MessageExportWorker) getPreviousJob(rctx request.CTX) (*model.Job, error) {
-	const pageSize = 100
 	offset := 0
 
 	for {
 		jobs, err := w.jobServer.Store.Job().GetAllByTypesAndStatusesPage(rctx,
 			[]string{model.JobTypeMessageExport},
 			[]string{model.JobStatusWarning, model.JobStatusSuccess},
-			offset, pageSize)
+			offset, DefaultPreviousJobPageSize)
 		if err != nil {
 			return nil, err
 		}
@@ -389,7 +391,7 @@ func (w *MessageExportWorker) getPreviousJob(rctx request.CTX) (*model.Job, erro
 		}
 
 		// If we didn't find a non-mmctl job in this page, continue to the next page
-		offset += pageSize
+		offset += DefaultPreviousJobPageSize
 	}
 }
 

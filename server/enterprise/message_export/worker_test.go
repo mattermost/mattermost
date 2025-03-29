@@ -46,7 +46,7 @@ func TestInitJobDataNoJobData(t *testing.T) {
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		0, 100).Return(nil, errors.New("test"))
+		0, DefaultPreviousJobPageSize).Return(nil, errors.New("test"))
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -104,7 +104,7 @@ func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		0, 100).Return([]*model.Job{previousJob}, nil)
+		0, DefaultPreviousJobPageSize).Return([]*model.Job{previousJob}, nil)
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -164,7 +164,7 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		0, 100).Return([]*model.Job{previousJob}, nil)
+		0, DefaultPreviousJobPageSize).Return([]*model.Job{previousJob}, nil)
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -224,7 +224,7 @@ func TestInitJobDataPreviousJobWithJobDataPre105(t *testing.T) {
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		0, 100).Return([]*model.Job{previousJob}, nil)
+		0, DefaultPreviousJobPageSize).Return([]*model.Job{previousJob}, nil)
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -288,7 +288,7 @@ func TestDoJobNoPostsToExport(t *testing.T) {
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		0, 100).Return(nil, errors.New("test"))
+		0, DefaultPreviousJobPageSize).Return(nil, errors.New("test"))
 
 	// no channels with activity
 	mockStore.ChannelMemberHistoryStore.On("GetChannelsWithActivityDuring", mock.Anything, mock.Anything).
@@ -374,7 +374,7 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		0, 100).Return(nil, errors.New("test"))
+		0, DefaultPreviousJobPageSize).Return(nil, errors.New("test"))
 
 	channelId := st.NewTestID()
 	channelName := st.NewTestID()
@@ -542,7 +542,7 @@ func TestDoJobCancel(t *testing.T) {
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		0, 100).Return(nil, errors.New("test"))
+		0, DefaultPreviousJobPageSize).Return(nil, errors.New("test"))
 
 	// Job updates the system console UI, once for getting channels, once for getting activity
 	mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(true, nil).Times(2)
@@ -602,7 +602,7 @@ func TestGetPreviousJobNoJobs(t *testing.T) {
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		0, 100).Return([]*model.Job{}, nil).Once()
+		0, DefaultPreviousJobPageSize).Return([]*model.Job{}, nil).Once()
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -634,7 +634,7 @@ func TestGetPreviousJobOneRegularJob(t *testing.T) {
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		0, 100).Return([]*model.Job{regularJob}, nil).Once()
+		0, DefaultPreviousJobPageSize).Return([]*model.Job{regularJob}, nil).Once()
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -666,13 +666,13 @@ func TestGetPreviousJobOneMmctlJob(t *testing.T) {
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		0, 100).Return([]*model.Job{mmctlJob}, nil).Once()
+		0, DefaultPreviousJobPageSize).Return([]*model.Job{mmctlJob}, nil).Once()
 
 	// Mock the job store to return no jobs (second page, empty)
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		100, 100).Return([]*model.Job{}, nil).Once()
+		DefaultPreviousJobPageSize, DefaultPreviousJobPageSize).Return([]*model.Job{}, nil).Once()
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -693,9 +693,9 @@ func TestGetPreviousJobManyJobs(t *testing.T) {
 	mockStore := &storetest.Store{}
 	defer mockStore.AssertExpectations(t)
 
-	// Create 100 mmctl jobs for first page
-	firstPageJobs := make([]*model.Job, 100)
-	for i := range 100 {
+	// Create DefaultPageSize mmctl jobs for first page
+	firstPageJobs := make([]*model.Job, DefaultPreviousJobPageSize)
+	for i := range DefaultPreviousJobPageSize {
 		firstPageJobs[i] = &model.Job{
 			Id:     st.NewTestID(),
 			Status: model.JobStatusSuccess,
@@ -704,9 +704,9 @@ func TestGetPreviousJobManyJobs(t *testing.T) {
 		}
 	}
 
-	// Create 100 mmctl jobs for second page
-	secondPageJobs := make([]*model.Job, 100)
-	for i := range 100 {
+	// Create DefaultPageSize mmctl jobs for second page
+	secondPageJobs := make([]*model.Job, DefaultPreviousJobPageSize)
+	for i := range DefaultPreviousJobPageSize {
 		secondPageJobs[i] = &model.Job{
 			Id:     st.NewTestID(),
 			Status: model.JobStatusSuccess,
@@ -728,17 +728,17 @@ func TestGetPreviousJobManyJobs(t *testing.T) {
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		0, 100).Return(firstPageJobs, nil).Once()
+		0, DefaultPreviousJobPageSize).Return(firstPageJobs, nil).Once()
 
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		100, 100).Return(secondPageJobs, nil).Once()
+		1*DefaultPreviousJobPageSize, DefaultPreviousJobPageSize).Return(secondPageJobs, nil).Once()
 
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		200, 100).Return(thirdPageJobs, nil).Once()
+		2*DefaultPreviousJobPageSize, DefaultPreviousJobPageSize).Return(thirdPageJobs, nil).Once()
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
