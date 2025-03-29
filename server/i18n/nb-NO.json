@@ -302,5 +302,17 @@
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_to",
     "translation": "%s oppdaterte kanalens formål til: %s"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Lær mer"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Hva er Mattermost?"
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "Du ble invitert som gjest for å samarbeide med teamet"
   }
 ]
