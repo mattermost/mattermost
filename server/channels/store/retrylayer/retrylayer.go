@@ -23,6 +23,7 @@ const mySQLDeadlockCode = uint16(1213)
 
 type RetryLayer struct {
 	store.Store
+	AccessControlPolicyStore        store.AccessControlPolicyStore
 	AuditStore                      store.AuditStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
@@ -72,6 +73,10 @@ type RetryLayer struct {
 	UserAccessTokenStore            store.UserAccessTokenStore
 	UserTermsOfServiceStore         store.UserTermsOfServiceStore
 	WebhookStore                    store.WebhookStore
+}
+
+func (s *RetryLayer) AccessControlPolicy() store.AccessControlPolicyStore {
+	return s.AccessControlPolicyStore
 }
 
 func (s *RetryLayer) Audit() store.AuditStore {
@@ -268,6 +273,11 @@ func (s *RetryLayer) UserTermsOfService() store.UserTermsOfServiceStore {
 
 func (s *RetryLayer) Webhook() store.WebhookStore {
 	return s.WebhookStore
+}
+
+type RetryLayerAccessControlPolicyStore struct {
+	store.AccessControlPolicyStore
+	Root *RetryLayer
 }
 
 type RetryLayerAuditStore struct {
@@ -529,6 +539,111 @@ func isRepeatableError(err error) bool {
 		}
 	}
 	return false
+}
+
+func (s *RetryLayerAccessControlPolicyStore) Delete(c request.CTX, id string) error {
+
+	tries := 0
+	for {
+		err := s.AccessControlPolicyStore.Delete(c, id)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAccessControlPolicyStore) Get(c request.CTX, id string) (*model.AccessControlPolicy, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.Get(c, id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAccessControlPolicyStore) GetAll(rctxc request.CTX, opts store.GetPolicyOptions) ([]*model.AccessControlPolicy, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.GetAll(rctxc, opts)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAccessControlPolicyStore) Save(c request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.Save(c, policy)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAccessControlPolicyStore) SetActiveStatus(c request.CTX, id string, active bool) (*model.AccessControlPolicy, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.SetActiveStatus(c, id, active)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
 }
 
 func (s *RetryLayerAuditStore) Get(userID string, offset int, limit int) (model.Audits, error) {
@@ -16334,6 +16449,7 @@ func New(childStore store.Store) *RetryLayer {
 		Store: childStore,
 	}
 
+	newStore.AccessControlPolicyStore = &RetryLayerAccessControlPolicyStore{AccessControlPolicyStore: childStore.AccessControlPolicy(), Root: &newStore}
 	newStore.AuditStore = &RetryLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
 	newStore.BotStore = &RetryLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &RetryLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
