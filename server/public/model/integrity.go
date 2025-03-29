@@ -8,6 +8,11 @@ import (
 	"errors"
 )
 
+type NameIntegrityCheckData struct {
+	RelName string   `json:"rel_name"`
+	Names   []string `json:"names"`
+}
+
 type OrphanedRecord struct {
 	ParentId *string `json:"parent_id"`
 	ChildId  *string `json:"child_id"`
@@ -34,20 +39,43 @@ func (r *IntegrityCheckResult) UnmarshalJSON(b []byte) error {
 	if d, ok := data["data"]; ok && d != nil {
 		var rdata RelationalIntegrityCheckData
 		m := d.(map[string]any)
-		rdata.ParentName = m["parent_name"].(string)
-		rdata.ChildName = m["child_name"].(string)
-		rdata.ParentIdAttr = m["parent_id_attr"].(string)
-		rdata.ChildIdAttr = m["child_id_attr"].(string)
-		for _, recData := range m["records"].([]any) {
-			var record OrphanedRecord
-			m := recData.(map[string]any)
-			if val := m["parent_id"]; val != nil {
-				record.ParentId = NewPointer(val.(string))
+		if _, ok := m["parent_name"]; ok {
+			rdata.ParentName = m["parent_name"].(string)
+		}
+		if _, ok := m["child_name"]; ok {
+			rdata.ChildName = m["child_name"].(string)
+		}
+		if _, ok := m["parent_id_attr"]; ok {
+			rdata.ParentIdAttr = m["parent_id_attr"].(string)
+		}
+		if _, ok := m["child_id_attr"]; ok {
+			rdata.ChildIdAttr = m["child_id_attr"].(string)
+		}
+		if _, ok := m["records"].([]any); ok {
+			for _, recData := range m["records"].([]any) {
+				var record OrphanedRecord
+				m := recData.(map[string]any)
+				if val := m["parent_id"]; val != nil {
+					record.ParentId = NewPointer(val.(string))
+				}
+				if val := m["child_id"]; val != nil {
+					record.ChildId = NewPointer(val.(string))
+				}
+				rdata.Records = append(rdata.Records, record)
 			}
-			if val := m["child_id"]; val != nil {
-				record.ChildId = NewPointer(val.(string))
+		}
+
+		//This is for data of type [NameIntegrityCheckData]
+		if len(rdata.ParentName) == 0 {
+			rdata.ParentName = m["rel_name"].(string)
+		}
+		if _, ok := m["names"].([]string); ok {
+			for _, invalidChannelName := range m["names"].([]string) {
+				var record OrphanedRecord
+				record.ParentId = NewPointer("Channel")
+				record.ChildId = NewPointer(invalidChannelName)
+				rdata.Records = append(rdata.Records, record)
 			}
-			rdata.Records = append(rdata.Records, record)
 		}
 		r.Data = rdata
 	}
