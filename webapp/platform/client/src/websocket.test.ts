@@ -92,7 +92,7 @@ describe('websocketclient', () => {
 
         mockWebSocket.close();
 
-        jest.advanceTimersByTime(40);
+        jest.advanceTimersByTime(100);
 
         client.close();
         expect(openSpy).toHaveBeenCalledTimes(2);
@@ -206,6 +206,200 @@ describe('websocketclient', () => {
         client.close();
         expect(initializeSpy).toBeCalledTimes(2);
         expect(openSpy).toBeCalledTimes(2);
+
+        jest.useRealTimers();
+    });
+
+    test('should stay connected after ping response', () => {
+        jest.useFakeTimers();
+
+        const mockWebSocket = new MockWebSocket();
+        const client = new WebSocketClient({
+            newWebSocketFn: (url: string) => {
+                mockWebSocket.url = url;
+                if (mockWebSocket.onopen) {
+                    mockWebSocket.open();
+                }
+                return mockWebSocket;
+            },
+            minWebSocketRetryTime: 1,
+            reconnectJitterRange: 1,
+            clientPingInterval: 1,
+        });
+
+        let numPings = 0;
+        let numPongs = 0;
+        mockWebSocket.send = (evt) => {
+            const msg = JSON.parse(evt);
+
+            if (msg.action !== 'ping') {
+                return;
+            }
+            numPings++;
+
+            const rsp = {
+                text: 'pong',
+                seq_reply: msg.seq,
+            };
+
+            if (mockWebSocket.onmessage) {
+                mockWebSocket.onmessage({data: JSON.stringify(rsp)});
+                numPongs++;
+            }
+        };
+
+        const openSpy = jest.spyOn(mockWebSocket, 'open');
+        const closeSpy = jest.spyOn(mockWebSocket, 'close');
+
+        client.initialize('mock.url');
+        mockWebSocket.open();
+
+        jest.advanceTimersByTime(30);
+
+        client.close();
+
+        expect(openSpy).toBeCalledTimes(1);
+        expect(closeSpy).toBeCalledTimes(1);
+        expect(numPings).toBeGreaterThan(10);
+        expect(numPongs).toBeGreaterThan(10);
+
+        jest.useRealTimers();
+    });
+
+    test('should reconnect after no ping response', () => {
+        jest.useFakeTimers();
+
+        const mockWebSocket = new MockWebSocket();
+        const client = new WebSocketClient({
+            newWebSocketFn: (url: string) => {
+                mockWebSocket.url = url;
+                if (mockWebSocket.onopen) {
+                    mockWebSocket.open();
+                }
+                return mockWebSocket;
+            },
+            minWebSocketRetryTime: 1,
+            reconnectJitterRange: 1,
+            clientPingInterval: 1,
+        });
+
+        let numPings = 0;
+        let numPongs = 0;
+        mockWebSocket.send = (evt) => {
+            const msg = JSON.parse(evt);
+
+            if (msg.action !== 'ping') {
+                return;
+            }
+            numPings++;
+
+            // stop responding after three pings
+            if (numPings > 3) {
+                return;
+            }
+
+            const rsp = {
+                text: 'pong',
+                seq_reply: msg.seq,
+            };
+
+            if (mockWebSocket.onmessage) {
+                mockWebSocket.onmessage({data: JSON.stringify(rsp)});
+                numPongs++;
+            }
+        };
+
+        mockWebSocket.open = jest.fn(mockWebSocket.open);
+        mockWebSocket.close = jest.fn(() => {
+            mockWebSocket.readyState = WebSocket.CLOSED;
+            if (mockWebSocket.onclose) {
+                mockWebSocket.onclose();
+            }
+            if ((mockWebSocket.close as jest.Mock).mock.calls.length > 2) {
+                client.close();
+            }
+        });
+
+        client.initialize('mock.url');
+        mockWebSocket.open();
+
+        jest.advanceTimersByTime(30);
+
+        client.close();
+
+        expect(mockWebSocket.open).toBeCalledTimes(3);
+        expect(mockWebSocket.close).toBeCalledTimes(3);
+        expect(numPings).toBe(6);
+        expect(numPongs).toBe(3);
+
+        jest.useRealTimers();
+    });
+
+    test('should reset ping interval state when reconnecting during pending ping', () => {
+        jest.useFakeTimers();
+
+        const mockWebSocket = new MockWebSocket();
+        const client = new WebSocketClient({
+            newWebSocketFn: (url: string) => {
+                mockWebSocket.url = url;
+                if (mockWebSocket.onopen) {
+                    mockWebSocket.open();
+                }
+                return mockWebSocket;
+            },
+            minWebSocketRetryTime: 1,
+            reconnectJitterRange: 1,
+            clientPingInterval: 15,
+        });
+
+        let numPings = 0;
+        let numPongs = 0;
+        mockWebSocket.send = (evt) => {
+            const msg = JSON.parse(evt);
+
+            if (msg.action !== 'ping') {
+                return;
+            }
+            numPings++;
+
+            // don't respond to first ping
+            if (numPings === 1) {
+                return;
+            }
+
+            const rsp = {
+                text: 'pong',
+                seq_reply: msg.seq,
+            };
+
+            if (mockWebSocket.onmessage) {
+                mockWebSocket.onmessage({data: JSON.stringify(rsp)});
+                numPongs++;
+            }
+        };
+
+        const openSpy = jest.spyOn(mockWebSocket, 'open');
+        const closeSpy = jest.spyOn(mockWebSocket, 'close');
+
+        client.initialize('mock.url');
+        mockWebSocket.open();
+
+        // Let first ping happen
+        jest.advanceTimersByTime(25);
+        expect(numPings).toBe(1);
+        expect(numPongs).toBe(0);
+
+        // Close and reopen connection before ping timeout
+        mockWebSocket.close();
+
+        // Let new connection run for a while to ensure no immediate reconnect
+        jest.advanceTimersByTime(100);
+        client.close();
+
+        expect(numPings).toBe(7);
+        expect(numPongs).toBe(numPings - 1); // Ensure we only skipped the first response
+        expect(openSpy).toHaveBeenCalledTimes(2); // Initial open and one reconnect
+        expect(closeSpy).toHaveBeenCalledTimes(2); // Manual close and final close
 
         jest.useRealTimers();
     });
