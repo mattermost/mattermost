@@ -5,6 +5,8 @@ import React, {useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+
 import {getSearchTeam} from 'selectors/rhs';
 
 import SelectTeam from 'components/new_search/select_team';
@@ -28,6 +30,7 @@ type Props = {
     selectedFilter: SearchFilterType;
     messagesCounter: string;
     filesCounter: string;
+    omnisearchCounter: string;
     isFileAttachmentsEnabled: boolean;
     crossTeamSearchEnabled: boolean;
     onChange: (value: SearchType) => void;
@@ -43,6 +46,8 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
     // REFS to the tabs so there is ability to pass the custom A11y focus event
     const messagesTabRef = useRef<HTMLButtonElement>(null);
     const filesTabRef = useRef<HTMLButtonElement>(null);
+    const omnisearchTabRef = useRef<HTMLButtonElement>(null);
+    const config = useSelector(getConfig);
 
     // Enhanced arrow key handling to focus the new select tab and also send the a11y custom event
     const handleTabKeyDown = (
@@ -58,6 +63,12 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
             if (currentTab === DataSearchTypes.MESSAGES_SEARCH_TYPE && props.isFileAttachmentsEnabled) {
                 nextTab = DataSearchTypes.FILES_SEARCH_TYPE;
                 nextTabRef = filesTabRef;
+            } else if (currentTab === DataSearchTypes.MESSAGES_SEARCH_TYPE && !props.isFileAttachmentsEnabled && config.EnableOmniSearch === 'true') {
+                nextTab = DataSearchTypes.OMNISEARCH_SEARCH_TYPE;
+                nextTabRef = omnisearchTabRef;
+            } else if (currentTab === DataSearchTypes.FILES_SEARCH_TYPE && config.EnableOmniSearch === 'true') {
+                nextTab = DataSearchTypes.OMNISEARCH_SEARCH_TYPE;
+                nextTabRef = omnisearchTabRef;
             } else {
                 nextTab = DataSearchTypes.MESSAGES_SEARCH_TYPE;
                 nextTabRef = messagesTabRef;
@@ -127,6 +138,25 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
                             defaultMessage='Files'
                         />
                         <span className='counter'>{props.filesCounter}</span>
+                    </button>
+                )}
+                {(config.EnableOmniSearch === 'true') && (
+                    <button
+                        ref={omnisearchTabRef}
+                        role='tab'
+                        aria-selected={props.selected === DataSearchTypes.OMNISEARCH_SEARCH_TYPE ? 'true' : 'false'}
+                        tabIndex={props.selected === DataSearchTypes.OMNISEARCH_SEARCH_TYPE ? 0 : -1}
+                        aria-controls='omnisearchPanel'
+                        id='omnisearchTab'
+                        onClick={() => props.onChange('omnisearch')}
+                        onKeyDown={(e: React.KeyboardEvent<HTMLSpanElement>) => Keyboard.isKeyPressed(e, KeyCodes.ENTER) && props.onChange('omnisearch')}
+                        className={props.selected === 'omnisearch' ? 'active tab files-tab' : 'tab files-tab'}
+                    >
+                        <FormattedMessage
+                            id='search_bar.omnisearch_tab'
+                            defaultMessage='Omnisearch'
+                        />
+                        <span className='counter'>{props.omnisearchCounter}</span>
                     </button>
                 )}
             </div>

@@ -49,6 +49,7 @@
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnableCrossTeamSearch": true,
         "EnablePostSearch": true,
+        "EnableOmniSearch": false,
         "MinimumHashtagLength": 3,
         "EnableUserTypingMessages": true,
         "EnableChannelViewedMessages": true,

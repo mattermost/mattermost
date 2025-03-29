@@ -528,6 +528,7 @@ func (ts *TelemetryService) trackConfig() {
 		"cluster_log_timeout_milliseconds":                        *cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
 		"enable_cross_team_search":                                *cfg.ServiceSettings.EnableCrossTeamSearch,
 		"enable_post_search":                                      *cfg.ServiceSettings.EnablePostSearch,
+		"enable_omni_search":                                      *cfg.ServiceSettings.EnableOmniSearch,
 		"minimum_hashtag_length":                                  *cfg.ServiceSettings.MinimumHashtagLength,
 		"enable_user_statuses":                                    *cfg.ServiceSettings.EnableUserStatuses,
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,

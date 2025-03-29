@@ -299,3 +299,10 @@ func (hooks *hooksTimerLayer) OnSAMLLogin(c *Context, user *model.User, assertio
 	hooks.recordTime(startTime, "OnSAMLLogin", _returnsA == nil)
 	return _returnsA
 }
+
+func (hooks *hooksTimerLayer) OnOmniSearch(c *Context, terms string, userID string, isOrSearch bool, timeZoneOffset int, page int, perPage int) ([]*model.OmniSearchResult, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.OnOmniSearch(c, terms, userID, isOrSearch, timeZoneOffset, page, perPage)
+	hooks.recordTime(startTime, "OnOmniSearch", _returnsB == nil)
+	return _returnsA, _returnsB
+}

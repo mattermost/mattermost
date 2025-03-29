@@ -154,6 +154,7 @@ const defaultServerConfig: AdminConfig = {
         EnableCrossTeamSearch: true,
         EnablePostSearch: true,
         EnableFileSearch: true,
+        EnableOmniSearch: false,
         MinimumHashtagLength: 3,
         EnableUserTypingMessages: true,
         EnableChannelViewedMessages: true,
