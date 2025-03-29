@@ -92,7 +92,6 @@ issues:
         channels/app/permissions_test.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\
-        channels/app/platform/session.go|\
         channels/app/platform/status.go|\
         channels/app/platform/web_hub_test.go|\
         channels/app/plugin_test.go|\
