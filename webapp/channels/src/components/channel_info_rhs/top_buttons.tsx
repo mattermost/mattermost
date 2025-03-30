@@ -69,6 +69,10 @@ const CopyButton = styled(Button)`
     &.success {
         background: var(--denim-status-online);
         color: var(--button-color);
+
+        & i {
+            color: var(--button-color);
+        }
     }
 `;
 
@@ -124,8 +128,6 @@ export default function TopButtons({
     return (
         <ChannelInfoRhsTopButtons>
             <WithTooltip
-                placement='top'
-                id='favorite-tooltip'
                 title={
                     <FormattedMessage
                         id='channel_info_rhs.top_buttons.favorite.tooltip'
@@ -136,6 +138,8 @@ export default function TopButtons({
                 <Button
                     onClick={actions.toggleFavorite}
                     className={isFavorite ? 'active' : ''}
+                    aria-label={favoriteText}
+                    id='channelInfoRHSAddFavoriteButton'
                 >
                     <div>
                         <i className={'icon ' + favoriteIcon}/>
@@ -144,8 +148,6 @@ export default function TopButtons({
                 </Button>
             </WithTooltip>
             <WithTooltip
-                placement='top'
-                id='mute-tooltip'
                 title={
                     <FormattedMessage
                         id='channel_info_rhs.top_buttons.mute.tooltip'
@@ -156,6 +158,8 @@ export default function TopButtons({
                 <Button
                     onClick={actions.toggleMute}
                     className={isMuted ? 'active' : ''}
+                    aria-label={mutedText}
+                    id='channelInfoRHSMuteChannelButton'
                 >
                     <div>
                         <i className={'icon ' + mutedIcon}/>
@@ -165,8 +169,6 @@ export default function TopButtons({
             </WithTooltip>
             {canAddPeople && (
                 <WithTooltip
-                    id='add-people-tooltip'
-                    placement='top'
                     title={
                         <FormattedMessage
                             id='channel_info_rhs.top_buttons.add_people.tooltip'
@@ -177,6 +179,7 @@ export default function TopButtons({
                     <Button
                         onClick={actions.addPeople}
                         className={isInvitingPeople ? 'active' : ''}
+                        id='channelInfoRHSAddPeopleButton'
                     >
                         <div>
                             <i className='icon icon-account-plus-outline'/>
@@ -192,8 +195,6 @@ export default function TopButtons({
             )}
             {canCopyLink && (
                 <WithTooltip
-                    id='copy-link-tooltip'
-                    placement='top'
                     title={
                         <FormattedMessage
                             id='channel_info_rhs.top_buttons.copy_link.tooltip'
@@ -204,6 +205,7 @@ export default function TopButtons({
                     <CopyButton
                         onClick={copyLink.onClick}
                         className={copyLink.copiedRecently ? 'success' : ''}
+                        aria-label={copyText}
                     >
                         <div>
                             <i className={'icon ' + copyIcon}/>

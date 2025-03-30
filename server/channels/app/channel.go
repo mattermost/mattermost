@@ -1245,7 +1245,7 @@ func (a *App) UpdateChannelMemberSchemeRoles(c request.CTX, channelID string, us
 
 	// If the migration is not completed, we also need to check the default channel_admin/channel_user roles are not present in the roles field.
 	if err = a.IsPhase2MigrationCompleted(); err != nil {
-		member.ExplicitRoles = RemoveRoles([]string{model.ChannelGuestRoleId, model.ChannelUserRoleId, model.ChannelAdminRoleId}, member.ExplicitRoles)
+		member.ExplicitRoles = removeRoles([]string{model.ChannelGuestRoleId, model.ChannelUserRoleId, model.ChannelAdminRoleId}, member.ExplicitRoles)
 	}
 
 	return a.updateChannelMember(c, member)
@@ -3276,6 +3276,11 @@ func (a *App) MoveChannel(c request.CTX, team *model.Team, channel *model.Channe
 		}
 	}
 
+	// Update the threads within this channel to the new team
+	if err := a.Srv().Store().Thread().UpdateTeamIdForChannelThreads(channel.Id, team.Id); err != nil {
+		c.Logger().Warn("error while updating threads after channel move", mlog.Err(err))
+	}
+
 	if err := a.RemoveUsersFromChannelNotMemberOfTeam(c, user, channel, team); err != nil {
 		c.Logger().Warn("error while removing non-team member users", mlog.Err(err))
 	}
@@ -3585,7 +3590,7 @@ func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string)
 		Active:      true,
 	})
 
-	var userIDs = make([]string, len(users))
+	userIDs := make([]string, len(users))
 	for i := 0; i < len(users); i++ {
 		userIDs[i] = users[i].Id
 	}

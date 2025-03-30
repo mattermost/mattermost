@@ -30,19 +30,20 @@ describe('Channel Settings - Channel Header', () => {
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
             // # Click on the channel name in the channel header to open the channel menu options
-            cy.get('[aria-label="channel menu"]').click();
+            cy.get(`[aria-label="${channel.display_name.split('-').join(' ').toLowerCase()} channel menu"]`).click();
 
             // # Select the "Edit Channel Header" option from the dropdown
+            cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
             cy.findByText('Edit Channel Header').click();
 
             // # Type something in the header edit box
-            cy.get('[aria-label="edit the channel header..."]').clear().type('This is the new header content');
+            cy.get('textarea[placeholder="Edit the Channel Header..."]').clear().type('This is the new header content');
 
             // * Verify the "Preview" button exists
             cy.findByText('Preview').should('be.visible');
 
             // * Verify that before hitting the preview button, the style on the textbox is `display: block`
-            cy.get('[aria-label="edit the channel header..."]').should('have.css', 'display', 'block');
+            cy.get('textarea[placeholder="Edit the Channel Header..."]').should('have.css', 'display', 'block');
 
             // # Click the "Preview" button
             cy.findByText('Preview').click();
@@ -51,7 +52,7 @@ describe('Channel Settings - Channel Header', () => {
             cy.findByText('Edit').should('be.visible');
 
             // * Verify that the display is now none on the textbox element
-            cy.get('[aria-label="edit the channel header..."]').should('have.css', 'display', 'none');
+            cy.get('textarea[placeholder="Edit the Channel Header..."]').should('have.css', 'display', 'none');
         });
     });
 });

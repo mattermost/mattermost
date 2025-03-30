@@ -35,6 +35,8 @@ import (
 
 type migrationDirection string
 
+type Option func(s *SqlStore) error
+
 const (
 	IndexTypeFullText                 = "full_text"
 	IndexTypeFullTextFunc             = "full_text_func"
@@ -52,7 +54,7 @@ const (
 	// After 10, it's major and minor only.
 	// 10.1 would be 100001.
 	// 9.6.3 would be 90603.
-	minimumRequiredPostgresVersion = 110000
+	minimumRequiredPostgresVersion = 130000
 	// major*1000 + minor*100 + patch
 	minimumRequiredMySQLVersion = 8000
 
@@ -113,6 +115,9 @@ type SqlStoreStores struct {
 	desktopTokens              store.DesktopTokensStore
 	channelBookmarks           store.ChannelBookmarkStore
 	scheduledPost              store.ScheduledPostStore
+	propertyGroup              store.PropertyGroupStore
+	propertyField              store.PropertyFieldStore
+	propertyValue              store.PropertyValueStore
 }
 
 type SqlStore struct {
@@ -139,12 +144,20 @@ type SqlStore struct {
 
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
+	skipMigrations            bool
 
 	quitMonitor chan struct{}
 	wgMonitor   *sync.WaitGroup
 }
 
-func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterfaces.MetricsInterface) (*SqlStore, error) {
+func SkipMigrations() Option {
+	return func(s *SqlStore) error {
+		s.skipMigrations = true
+		return nil
+	}
+}
+
+func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterfaces.MetricsInterface, options ...Option) (*SqlStore, error) {
 	store := &SqlStore{
 		rrCounter:   0,
 		srCounter:   0,
@@ -153,6 +166,12 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 		logger:      logger,
 		quitMonitor: make(chan struct{}),
 		wgMonitor:   &sync.WaitGroup{},
+	}
+
+	for _, option := range options {
+		if err := option(store); err != nil {
+			return nil, fmt.Errorf("failed to apply option: %w", err)
+		}
 	}
 
 	err := store.initConnection()
@@ -178,9 +197,11 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 		return nil, errors.Wrap(err, "error while checking DB collation")
 	}
 
-	err = store.migrate(migrationsDirectionUp, false)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to apply database migrations")
+	if !store.skipMigrations {
+		err = store.migrate(migrationsDirectionUp, false)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to apply database migrations")
+		}
 	}
 
 	store.isBinaryParam, err = store.computeBinaryParam()
@@ -239,6 +260,9 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
 	store.stores.scheduledPost = newScheduledPostStore(store)
+	store.stores.propertyGroup = newPropertyGroupStore(store)
+	store.stores.propertyField = newPropertyFieldStore(store)
+	store.stores.propertyValue = newPropertyValueStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -317,16 +341,17 @@ func (ss *SqlStore) initConnection() error {
 	}
 
 	if len(ss.settings.ReplicaLagSettings) > 0 {
-		ss.replicaLagHandles = make([]*dbsql.DB, len(ss.settings.ReplicaLagSettings))
+		ss.replicaLagHandles = make([]*dbsql.DB, 0, len(ss.settings.ReplicaLagSettings))
 		for i, src := range ss.settings.ReplicaLagSettings {
 			if src.DataSource == nil {
 				continue
 			}
-			ss.replicaLagHandles[i], err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBReplicaPingAttempts)
+			replicaLagHandle, err := sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBReplicaPingAttempts)
 			if err != nil {
 				mlog.Warn("Failed to setup replica lag handle. Skipping..", mlog.String("db", fmt.Sprintf(replicaLagPrefix+"-%d", i)), mlog.Err(err))
 				continue
 			}
+			ss.replicaLagHandles = append(ss.replicaLagHandles, replicaLagHandle)
 		}
 	}
 	return nil
@@ -1040,6 +1065,18 @@ func (ss *SqlStore) DesktopTokens() store.DesktopTokensStore {
 
 func (ss *SqlStore) ChannelBookmark() store.ChannelBookmarkStore {
 	return ss.stores.channelBookmarks
+}
+
+func (ss *SqlStore) PropertyGroup() store.PropertyGroupStore {
+	return ss.stores.propertyGroup
+}
+
+func (ss *SqlStore) PropertyField() store.PropertyFieldStore {
+	return ss.stores.propertyField
+}
+
+func (ss *SqlStore) PropertyValue() store.PropertyValueStore {
+	return ss.stores.propertyValue
 }
 
 func (ss *SqlStore) DropAllTables() {

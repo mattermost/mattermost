@@ -44,7 +44,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
         renderDividers: [],
         renderNoResults: false,
     };
-    contentRef: React.RefObject<HTMLDivElement>;
+    contentRef: React.RefObject<HTMLUListElement>;
     wrapperRef: React.RefObject<HTMLDivElement>;
     itemRefs: Map<string, any>;
     currentLabel: string | null;
@@ -206,20 +206,21 @@ export default class SuggestionList extends React.PureComponent<Props> {
     renderDivider(type: string) {
         const id = type ? 'suggestion.' + type : 'suggestion.default';
         return (
-            <div
+            <li
                 key={type + '-divider'}
                 className='suggestion-list__divider'
+                role='separator'
             >
                 <span>
                     <FormattedMessage id={id}/>
                 </span>
-            </div>
+            </li>
         );
     }
 
     renderNoResults() {
         return (
-            <div
+            <ul
                 key='list-no-results'
                 className='suggestion-list__no-results'
                 ref={this.contentRef}
@@ -232,7 +233,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
-            </div>
+            </ul>
         );
     }
 
@@ -296,9 +297,10 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 ref={this.wrapperRef}
                 className={mainClass}
             >
-                <div
+                <ul
                     id='suggestionList'
-                    role='list'
+                    data-testid='suggestionList'
+                    role='listbox'
                     ref={this.contentRef}
                     style={{
                         maxHeight: this.maxHeight,
@@ -308,7 +310,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                     onMouseDown={this.props.preventClose}
                 >
                     {items}
-                </div>
+                </ul>
             </div>
         );
     }

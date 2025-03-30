@@ -261,7 +261,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		case errors.Is(nErr, users.AcceptedDomainError):
 			return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("createUserOrGuest", nfErr.Id(), map[string]interface{}{"Min": *a.Config().PasswordSettings.MinimumLength}, "", http.StatusBadRequest)
+			return nil, model.NewAppError("createUserOrGuest", nfErr.Id(), map[string]any{"Min": *a.Config().PasswordSettings.MinimumLength}, "", http.StatusBadRequest)
 		case errors.Is(nErr, users.UserStoreIsEmptyError):
 			return nil, model.NewAppError("createUserOrGuest", "app.user.store_is_empty.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		case errors.As(nErr, &invErr):
@@ -1832,6 +1832,10 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 		return model.NewAppError("PermanentDeleteUser", "app.scheduled_post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	if err := a.Srv().Store().Draft().PermanentDeleteByUser(user.Id); err != nil {
+		return model.NewAppError("PermanentDeleteUser", "app.drafts.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	if err := a.Srv().Store().Bot().PermanentDelete(user.Id); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -2923,12 +2927,11 @@ func (a *App) UserIsFirstAdmin(rctx request.CTX, user *model.User) bool {
 	return true
 }
 
-func (a *App) getAllSystemAdmins() ([]*model.User, *model.AppError) {
-	userOptions := &model.UserGetOptions{
-		Page:     0,
-		PerPage:  500,
-		Role:     model.SystemAdminRoleId,
-		Inactive: false,
+func (a *App) ResetPasswordFailedAttempts(c request.CTX, user *model.User) *model.AppError {
+	err := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0)
+	if err != nil {
+		return model.NewAppError("ResetPasswordFailedAttempts", "app.user.reset_password_failed_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return a.GetUsersFromProfiles(userOptions)
+
+	return nil
 }

@@ -377,6 +377,14 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if patch.BannerInfo != nil {
+		if channelBannerAppErr := canEditChannelBanner(c.App.License(), originalOldChannel); channelBannerAppErr != nil {
+			channelBannerAppErr.Where = "patchChannel"
+			c.Err = channelBannerAppErr
+			return
+		}
+	}
+
 	rchannel, appErr := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -1406,7 +1414,9 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
+		// allows team admins to access private channel
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeam) &&
+			!c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
 			c.Err = model.NewAppError("getChannelByName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 			return
 		}
@@ -1436,17 +1446,19 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	teamOk := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)
 	channelOk := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel)
-
 	if channel.Type == model.ChannelTypeOpen {
+		teamOk := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)
 		if !teamOk && !channelOk {
 			c.SetPermissionError(model.PermissionReadPublicChannel)
 			return
 		}
 	} else if !channelOk {
-		c.Err = model.NewAppError("getChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
-		return
+		// allows team admins to access private channel
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeam) {
+			c.Err = model.NewAppError("getChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
+			return
+		}
 	}
 
 	appErr = c.App.FillInChannelProps(c.AppContext, channel)
@@ -1774,7 +1786,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.StringInterfaceFromJSON(r.Body)
 
 	var userIds []string
-	interfaceIds, ok := props["user_ids"].([]interface{})
+	interfaceIds, ok := props["user_ids"].([]any)
 	if ok {
 		if len(interfaceIds) > maxListSize {
 			c.SetInvalidParam("user_ids")
@@ -2429,4 +2441,16 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	if err := json.NewEncoder(w).Encode(updatedChannel); err != nil {
 		c.Logger.Warn("Error while writing response from convertGroupMessageToChannel", mlog.Err(err))
 	}
+}
+
+func canEditChannelBanner(license *model.License, originalChannel *model.Channel) *model.AppError {
+	if license == nil || !license.IsE20OrEnterprise() {
+		return model.NewAppError("", "license_error.feature_unavailable", nil, "feature is not available for the current license", http.StatusForbidden)
+	}
+
+	if originalChannel.Type != model.ChannelTypeOpen && originalChannel.Type != model.ChannelTypePrivate {
+		return model.NewAppError("", "api.channel.update_channel.banner_info.channel_type.not_allowed", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }

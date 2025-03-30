@@ -209,7 +209,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		for _, profile := range profileMap {
 			if (profile.NotifyProps[model.PushNotifyProp] == model.UserNotifyAll ||
 				channelMemberNotifyPropsMap[profile.Id][model.PushNotifyProp] == model.ChannelNotifyAll) &&
-				(post.UserId != profile.Id || post.GetProp("from_webhook") == "true") &&
+				(post.UserId != profile.Id || post.GetProp(model.PostPropsFromWebhook) == "true") &&
 				!post.IsSystemMessage() &&
 				!(a.IsCRTEnabledForUser(c, profile.Id) && post.RootId != "") {
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
@@ -228,8 +228,10 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		var rootMentions *MentionResults
 		if parentPostList != nil {
 			rootPost := parentPostList.Posts[parentPostList.Order[0]]
-			if rootPost.GetProp("from_webhook") != "true" {
-				threadParticipants[rootPost.UserId] = true
+			if rootPost.GetProp(model.PostPropsFromWebhook) != "true" {
+				if _, ok := profileMap[rootPost.UserId]; ok {
+					threadParticipants[rootPost.UserId] = true
+				}
 			}
 			if channel.Type != model.ChannelTypeDirect {
 				rootMentions = getExplicitMentions(rootPost, keywords)
@@ -356,7 +358,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				continue
 			}
 
-			if post.GetProp("from_webhook") != "true" && uid == post.UserId {
+			if post.GetProp(model.PostPropsFromWebhook) != "true" && uid == post.UserId {
 				continue
 			}
 
@@ -395,7 +397,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				continue
 			}
 
-			//If email verification is required and user email is not verified don't send email.
+			// If email verification is required and user email is not verified don't send email.
 			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
 				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeEmail, model.NotificationReasonEmailNotVerified, model.NotificationNoPlatform)
 				a.NotificationsLog().Debug("Email not verified",
@@ -619,7 +621,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				status = &model.Status{UserId: id, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
-			if statusReason := DoesStatusAllowPushNotification(profileMap[id].NotifyProps, status, post.ChannelId, true); statusReason == "" {
+			if statusReason := doesStatusAllowPushNotification(profileMap[id].NotifyProps, status, post.ChannelId, true); statusReason == "" {
 				a.sendPushNotification(
 					notification,
 					profileMap[id],
@@ -696,7 +698,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		userNotificationLevel := profile.NotifyProps[model.DesktopNotifyProp]
 		channelNotificationLevel := channelMemberNotifyPropsMap[id][model.DesktopNotifyProp]
 
-		if ShouldAckWebsocketNotification(channel.Type, userNotificationLevel, channelNotificationLevel) {
+		if shouldAckWebsocketNotification(channel.Type, userNotificationLevel, channelNotificationLevel) {
 			usersToAck = append(usersToAck, id)
 		}
 	}
@@ -1036,7 +1038,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 	var keywords MentionKeywords
 
 	if channel.Type == model.ChannelTypeDirect {
-		isWebhook := post.GetProp("from_webhook") == "true"
+		isWebhook := post.GetProp(model.PostPropsFromWebhook) == "true"
 
 		// A bot can post in a DM where it doesn't belong to.
 		// Therefore, we cannot "guess" who is the other user,
@@ -1117,7 +1119,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 		}
 
 		// Prevent the user from mentioning themselves
-		if post.GetProp("from_webhook") != "true" {
+		if post.GetProp(model.PostPropsFromWebhook) != "true" {
 			mentions.removeMention(post.UserId)
 		}
 	}
@@ -1637,7 +1639,7 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 	}
 
 	if overridesAllowed && n.Channel.Type != model.ChannelTypeDirect {
-		if value := n.Post.GetProps()["override_username"]; value != nil && n.Post.GetProp("from_webhook") == "true" {
+		if value := n.Post.GetProp(model.PostPropsOverrideUsername); value != nil && n.Post.GetProp(model.PostPropsFromWebhook) == "true" {
 			if s, ok := value.(string); ok {
 				return s
 			}
@@ -1755,7 +1757,7 @@ func shouldChannelMemberNotifyCRT(userNotifyProps model.StringMap, channelMember
 	return
 }
 
-func ShouldAckWebsocketNotification(channelType model.ChannelType, userNotificationLevel, channelNotificationLevel string) bool {
+func shouldAckWebsocketNotification(channelType model.ChannelType, userNotificationLevel, channelNotificationLevel string) bool {
 	if channelNotificationLevel == model.ChannelNotifyAll {
 		// Should ACK on if we notify for all messages in the channel
 		return true

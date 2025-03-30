@@ -64,6 +64,17 @@
         max-width: 920px;
     }
 
+    .admin-console__checkbox-list {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+
+        li > .alert {
+            margin-top: 4px;
+            margin-bottom: 10px;
+        }
+    }
+
     mark {
         border-radius: 5%;
         background-color: variables.$highlight-color;
@@ -228,24 +239,12 @@
         }
 
         .file__upload {
-            position: relative;
             display: inline-block;
+            width: fit-content;
             margin: 0 10px 10px 0;
 
             input {
-                position: absolute;
-                z-index: 5;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                padding-left: 100%;
-                cursor: pointer;
-                opacity: 0;
-
-                &[disabled] {
-                    cursor: not-allowed;
-                }
+                display: none;
             }
         }
 
@@ -785,6 +784,7 @@
         position: absolute;
         top: 0;
         right: 0;
+        display: flex;
         height: 100%;
 
         i {
@@ -967,6 +967,9 @@
         strong {
             margin-right: 10px;
         }
+        p strong {
+            margin-right: 5px;
+        }
     }
 
     .member-row-lone-padding {
@@ -1076,6 +1079,12 @@
 
 .password__group-addon-space {
     margin-bottom: 20px;
+}
+
+.password-settings__preview-heading {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
 }
 
 #error-tooltip {

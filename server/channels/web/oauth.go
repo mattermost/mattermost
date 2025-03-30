@@ -80,7 +80,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	_, err = w.Write([]byte(model.MapToJSON(map[string]string{"redirect": redirectURL})))
 	if err != nil {
-		c.Logger.Error("Error writing response", mlog.Err(err))
+		c.Logger.Warn("Error writing response", mlog.Err(err))
 	}
 }
 
@@ -195,7 +195,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
-	w.Header().Set("Content-Security-Policy", fmt.Sprintf("frame-ancestors %s", frameAncestors))
+	w.Header().Set("Content-Security-Policy", fmt.Sprintf("frame-ancestors 'self' %s", *c.App.Config().ServiceSettings.FrameAncestors))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926")
 

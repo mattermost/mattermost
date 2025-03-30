@@ -67,16 +67,17 @@ const LessThanMaxFreeUsers = ({pluginButtons}: {pluginButtons: React.ReactNode})
             {pluginButtons}
             <div className='LessThanMaxFreeUsers'>
                 <ToggleModalButton
-                    ariaLabel={formatMessage({id: 'intro_messages.inviteOthers', defaultMessage: 'Invite others to the workspace'})}
                     id='introTextInvite'
                     className='btn btn-sm btn-primary'
                     modalId={ModalIdentifiers.INVITATION}
                     dialogType={InvitationModal}
                     onClick={() => trackEvent('channel_intro_message', 'click_invite_button')}
+                    dialogProps={{focusOriginElement: 'browseOrAddChannelMenuButton'}}
                 >
                     <i
                         className='icon-email-plus-outline'
                         title={formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
+                        aria-hidden='true'
                     />
                     <FormattedMessage
                         id='intro_messages.inviteOthersToWorkspace.button'
@@ -116,6 +117,7 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
                         <i
                             className='icon-account-plus-outline'
                             title={formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
+                            aria-hidden='true'
                         />
                         {channel.group_constrained &&
                             <FormattedMessage

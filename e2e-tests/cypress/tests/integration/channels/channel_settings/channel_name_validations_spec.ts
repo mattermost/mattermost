@@ -35,7 +35,10 @@ describe('Channel routing', () => {
         cy.uiCreateChannel({name: 'Test__Channel'});
 
         // # Click on channel menu and press rename channel
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
+
+        // * Channel Settings menu option should be visible
+        cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
         cy.findByText('Rename Channel').click();
 
         // # Assert if the rename modal present
@@ -53,7 +56,7 @@ describe('Channel routing', () => {
 
     it('MM-T884_2 Creating new channel validates against two user IDs being used as channel name', () => {
         // # click on create public channel
-        cy.uiBrowseOrCreateChannel('Create new channel').click();
+        cy.uiBrowseOrCreateChannel('Create new channel');
 
         // * Verify that the new channel modal is visible
         cy.get('#new-channel-modal').should('be.visible').within(() => {
@@ -73,7 +76,7 @@ describe('Channel routing', () => {
 
     it('MM-T884_3 Creating a new channel validates against gm-like names being used as channel name', () => {
         // # click on create public channel
-        cy.uiBrowseOrCreateChannel('Create new channel').click();
+        cy.uiBrowseOrCreateChannel('Create new channel');
 
         // * Verify that the new channel modal is visible
         cy.findByRole('dialog', {name: 'Create a new channel'}).within(() => {
@@ -97,7 +100,10 @@ describe('Channel routing', () => {
 
         // # In a test channel, click the "v" to the right of the channel name in the header
         cy.findByText(`${testChannel.display_name}`).click();
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
+
+        // * Channel Settings menu option should be visible
+        cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
 
         // # Select "Rename Channel"
         cy.findByText('Rename Channel').click();
@@ -113,7 +119,10 @@ describe('Channel routing', () => {
         cy.get('#channelHeaderTitle').contains(`${firstWord} ${secondWord}`);
 
         // # In a test channel, click the "v" to the right of the channel name in the header
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
+
+        // * Channel Settings menu option should be visible
+        cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
 
         // # Select "Rename Channel"
         cy.findByText('Rename Channel').click();

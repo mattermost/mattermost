@@ -13,6 +13,7 @@ const state: GlobalState = {
             serverVersion: '',
             firstAdminVisitMarketplaceStatus: false,
             firstAdminCompleteSetup: false,
+            customProfileAttributes: {},
         },
         users: {
             currentUserId: '',
@@ -132,6 +133,7 @@ const state: GlobalState = {
             commands: {},
             appsBotIDs: [],
             appsOAuthAppIDs: [],
+            dialogTriggerId: '',
             outgoingOAuthConnections: {},
         },
         files: {

@@ -17,19 +17,19 @@ import (
 )
 
 func cleanupStoreState(t *testing.T, rctx request.CTX, ss store.Store) {
-	//remove existing users
+	// remove existing users
 	allUsers, err := ss.User().GetAll()
 	require.NoError(t, err, "error cleaning all test users", err)
 	for _, u := range allUsers {
 		err = ss.User().PermanentDelete(rctx, u.Id)
 		require.NoError(t, err, "failed cleaning up test user %s", u.Username)
 
-		//remove all posts by this user
+		// remove all posts by this user
 		nErr := ss.Post().PermanentDeleteByUser(rctx, u.Id)
 		require.NoError(t, nErr, "failed cleaning all posts of test user %s", u.Username)
 	}
 
-	//remove existing channels
+	// remove existing channels
 	allChannels, nErr := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.NoError(t, nErr, "error cleaning all test channels", nErr)
 	for _, channel := range allChannels {
@@ -37,7 +37,7 @@ func cleanupStoreState(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, nErr, "failed cleaning up test channel %s", channel.Id)
 	}
 
-	//remove existing teams
+	// remove existing teams
 	allTeams, nErr := ss.Team().GetAll()
 	require.NoError(t, nErr, "error cleaning all test teams", nErr)
 	for _, team := range allTeams {
@@ -58,6 +58,7 @@ func TestComplianceStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("MessageEditAfterExportMessage", func(t *testing.T) { testEditAfterExportMessage(t, rctx, ss) })
 	t.Run("MessageDeleteExportMessage", func(t *testing.T) { testDeleteExportMessage(t, rctx, ss) })
 	t.Run("MessageDeleteAfterExportMessage", func(t *testing.T) { testDeleteAfterExportMessage(t, rctx, ss) })
+	t.Run("MessageExport_UntilUpdateAt", func(t *testing.T) { testMessageExportUntilUpdateAt(t, rctx, ss) })
 }
 
 func testComplianceStore(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -71,8 +72,10 @@ func testComplianceStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
 
-	compliances, _ := ss.Compliance().GetAll(0, 1000)
+	compliances, err := ss.Compliance().GetAll(0, 1000)
+	require.NoError(t, err)
 
+	require.Len(t, compliances, 2)
 	require.Equal(t, model.ComplianceStatusRunning, compliances[0].Status)
 	require.Equal(t, compliance2.Id, compliances[0].Id)
 
@@ -80,20 +83,26 @@ func testComplianceStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Compliance().Update(compliance2)
 	require.NoError(t, err)
 
-	compliances, _ = ss.Compliance().GetAll(0, 1000)
+	compliances, err = ss.Compliance().GetAll(0, 1000)
+	require.NoError(t, err)
 
+	require.Len(t, compliances, 2)
 	require.Equal(t, model.ComplianceStatusFailed, compliances[0].Status)
 	require.Equal(t, compliance2.Id, compliances[0].Id)
 
-	compliances, _ = ss.Compliance().GetAll(0, 1)
+	compliances, err = ss.Compliance().GetAll(0, 1)
+	require.NoError(t, err)
 
 	require.Len(t, compliances, 1)
 
-	compliances, _ = ss.Compliance().GetAll(1, 1)
+	compliances, err = ss.Compliance().GetAll(1, 1)
+	require.NoError(t, err)
 
 	require.Len(t, compliances, 1)
 
-	rc2, _ := ss.Compliance().Get(compliance2.Id)
+	rc2, err := ss.Compliance().Get(compliance2.Id)
+	require.NoError(t, err)
+
 	require.Equal(t, compliance2.Status, rc2.Status)
 }
 
@@ -836,7 +845,7 @@ func testEditExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 	post1, err = ss.Post().Save(rctx, post1)
 	require.NoError(t, err)
 
-	//user 1 edits the previous post
+	// user 1 edits the previous post
 	post1e := post1.Clone()
 	post1e.Message = "edit " + post1.Message
 
@@ -947,7 +956,7 @@ func testEditAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store) 
 	assert.Equal(t, user1.Username, *v.Username)
 
 	postEditTime := post1.UpdateAt + 1
-	//user 1 edits the previous post
+	// user 1 edits the previous post
 	post1e := post1.Clone()
 	post1e.EditAt = postEditTime
 	post1e.Message = "edit " + post1.Message
@@ -1039,7 +1048,7 @@ func testDeleteExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 	post1, err = ss.Post().Save(rctx, post1)
 	require.NoError(t, err)
 
-	//user 1 deletes the previous post
+	// user 1 deletes the previous post
 	postDeleteTime := post1.UpdateAt + 1
 	err = ss.Post().Delete(rctx, post1.Id, postDeleteTime, user1.Id)
 	require.NoError(t, err)
@@ -1142,7 +1151,7 @@ func testDeleteAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store
 	assert.Equal(t, user1.Email, *v.UserEmail)
 	assert.Equal(t, user1.Username, *v.Username)
 
-	//user 1 deletes the previous post
+	// user 1 deletes the previous post
 	postDeleteTime := post1.UpdateAt + 1
 	err = ss.Post().Delete(rctx, post1.Id, postDeleteTime, user1.Id)
 	require.NoError(t, err)
@@ -1173,4 +1182,106 @@ func testDeleteAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store
 	assert.Equal(t, user1.Id, *v.UserId)
 	assert.Equal(t, user1.Email, *v.UserEmail)
 	assert.Equal(t, user1.Username, *v.Username)
+}
+
+func testMessageExportUntilUpdateAt(t *testing.T, rctx request.CTX, ss store.Store) {
+	defer cleanupStoreState(t, rctx, ss)
+
+	// get the starting number of message export entries
+	startTime := model.GetMillis()
+	messages, _, err := ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
+	require.NoError(t, err)
+	assert.Equal(t, 0, len(messages))
+
+	// need a team
+	team := &model.Team{
+		DisplayName: "DisplayName",
+		Name:        model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	}
+	team, err = ss.Team().Save(team)
+	require.NoError(t, err)
+
+	// and two users that are a part of that team
+	user1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+	}
+	user1, err = ss.User().Save(rctx, user1)
+	require.NoError(t, err)
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{
+		TeamId: team.Id,
+		UserId: user1.Id,
+	}, -1)
+	require.NoError(t, nErr)
+
+	user2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+	}
+	user2, err = ss.User().Save(rctx, user2)
+	require.NoError(t, err)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{
+		TeamId: team.Id,
+		UserId: user2.Id,
+	}, -1)
+	require.NoError(t, nErr)
+
+	// need a public channel
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		Name:        model.NewId(),
+		DisplayName: "Public Channel",
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, nErr = ss.Channel().Save(rctx, channel, -1)
+	require.NoError(t, nErr)
+
+	var posts []*model.Post
+	// user1 posts ten times in the public channel
+	for i := 0; i < 10; i++ {
+		post := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    user1.Id,
+			CreateAt:  startTime + int64(i),
+			UpdateAt:  startTime + int64(i),
+			Message:   model.NewId(),
+		}
+		post, err = ss.Post().Save(rctx, post)
+		require.NoError(t, err)
+		posts = append(posts, post)
+	}
+
+	// fetch 5 starting from the third post, using LastPostUpdateAt and UntilUpdateAt.
+	// UntilUpdateAt is inclusive
+	messageExportMap := map[string]model.MessageExport{}
+	messages, _, err = ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: posts[2].UpdateAt, UntilUpdateAt: posts[2].UpdateAt + 4}, 10000)
+	require.NoError(t, err)
+	assert.Equal(t, 5, len(messages))
+
+	for _, v := range messages {
+		messageExportMap[*v.PostId] = *v
+	}
+
+	for i := 2; i < 7; i++ {
+		assert.Equal(t, posts[i].Id, *messageExportMap[posts[i].Id].PostId)
+		assert.Equal(t, posts[i].CreateAt, *messageExportMap[posts[i].Id].PostCreateAt)
+		assert.Equal(t, posts[i].Message, *messageExportMap[posts[i].Id].PostMessage)
+		assert.Equal(t, channel.Id, *messageExportMap[posts[i].Id].ChannelId)
+		assert.Equal(t, channel.DisplayName, *messageExportMap[posts[i].Id].ChannelDisplayName)
+		assert.Equal(t, user1.Id, *messageExportMap[posts[i].Id].UserId)
+		assert.Equal(t, user1.Email, *messageExportMap[posts[i].Id].UserEmail)
+		assert.Equal(t, user1.Username, *messageExportMap[posts[i].Id].Username)
+	}
+
+	// Also test AnalyticsPostCount because they are used in tandem for MessageExports
+	count, err := ss.Post().AnalyticsPostCount(&model.PostCountOptions{
+		TeamId:             channel.TeamId,
+		ExcludeSystemPosts: true,
+		SinceUpdateAt:      posts[2].UpdateAt,
+		UntilUpdateAt:      posts[2].UpdateAt + 4,
+	})
+	require.NoError(t, err)
+	require.Equal(t, 5, int(count))
 }

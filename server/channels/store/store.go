@@ -92,6 +92,9 @@ type Store interface {
 	DesktopTokens() DesktopTokensStore
 	ChannelBookmark() ChannelBookmarkStore
 	ScheduledPost() ScheduledPostStore
+	PropertyGroup() PropertyGroupStore
+	PropertyField() PropertyFieldStore
+	PropertyValue() PropertyValueStore
 }
 
 type RetentionPolicyStore interface {
@@ -257,6 +260,8 @@ type ChannelStore interface {
 	CountUrgentPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, error)
 	IncrementMentionCount(channelID string, userIDs []string, isRoot, isUrgent bool) error
 	AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error)
+	AnalyticsDeletedTypeCount(teamID string, channelType model.ChannelType) (int64, error)
+	AnalyticsCountAll(teamID string) (map[model.ChannelType]int64, error)
 	GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error)
 	GetTeamMembersForChannel(channelID string) ([]string, error)
 	GetMembersForUserWithPagination(userID string, page, perPage int) (model.ChannelMembersWithTeamData, error)
@@ -272,7 +277,6 @@ type ChannelStore interface {
 	GetMembersByIds(channelID string, userIds []string) (model.ChannelMembers, error)
 	GetMembersByChannelIds(channelIds []string, userID string) (model.ChannelMembers, error)
 	GetMembersInfoByChannelIds(channelIDs []string) (map[string][]*model.User, error)
-	AnalyticsDeletedTypeCount(teamID string, channelType model.ChannelType) (int64, error)
 	GetChannelUnread(channelID, userID string) (*model.ChannelUnread, error)
 	GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error)
 	ClearCaches()
@@ -318,7 +322,8 @@ type ChannelStore interface {
 type ChannelMemberHistoryStore interface {
 	LogJoinEvent(userID string, channelID string, joinTime int64) error
 	LogLeaveEvent(userID string, channelID string, leaveTime int64) error
-	GetUsersInChannelDuring(startTime int64, endTime int64, channelID string) ([]*model.ChannelMemberHistoryResult, error)
+	GetUsersInChannelDuring(startTime int64, endTime int64, channelID []string) ([]*model.ChannelMemberHistoryResult, error)
+	GetChannelsWithActivityDuring(startTime int64, endTime int64) ([]string, error)
 	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
@@ -355,10 +360,11 @@ type ThreadStore interface {
 
 	SaveMultipleMemberships(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error)
 	MaintainMultipleFromImport(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error)
+	UpdateTeamIdForChannelThreads(channelId, teamId string) error
 }
 
 type PostStore interface {
-	SaveMultiple(posts []*model.Post) ([]*model.Post, int, error)
+	SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error)
 	Save(rctx request.CTX, post *model.Post) (*model.Post, error)
 	Update(rctx request.CTX, newPost *model.Post, oldPost *model.Post) (*model.Post, error)
 	Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error)
@@ -369,7 +375,6 @@ type PostStore interface {
 	PermanentDeleteByChannel(rctx request.CTX, channelID string) error
 	GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, error)
-	// @openTracingParams userID, teamID, offset, limit
 	GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, error)
 	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, error)
 	GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
@@ -384,11 +389,12 @@ type PostStore interface {
 	AnalyticsUserCountsWithPostsByDay(teamID string) (model.AnalyticsRows, error)
 	AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error)
 	AnalyticsPostCount(options *model.PostCountOptions) (int64, error)
+	AnalyticsPostCountByTeam(teamID string) (int64, error)
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelID string)
 	GetPostsCreatedAt(channelID string, timestamp int64) ([]*model.Post, error)
 	Overwrite(rctx request.CTX, post *model.Post) (*model.Post, error)
-	OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error)
+	OverwriteMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error)
 	GetPostsByIds(postIds []string) ([]*model.Post, error)
 	GetEditHistoryForPost(postID string) ([]*model.Post, error)
 	GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error)
@@ -408,6 +414,8 @@ type PostStore interface {
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
+	// RefreshPostStats refreshes the various materialized views for admin console post stats.
+	RefreshPostStats() error
 }
 
 type UserStore interface {
@@ -658,7 +666,7 @@ type CommandWebhookStore interface {
 type PreferenceStore interface {
 	Save(preferences model.Preferences) error
 	GetCategory(userID string, category string) (model.Preferences, error)
-	GetCategoryAndName(category string, nane string) (model.Preferences, error)
+	GetCategoryAndName(category string, name string) (model.Preferences, error)
 	Get(userID string, category string, name string) (*model.Preference, error)
 	GetAll(userID string) (model.Preferences, error)
 	Delete(userID, category, name string) error
@@ -718,7 +726,7 @@ type FileInfoStore interface {
 	Upsert(rctx request.CTX, info *model.FileInfo) (*model.FileInfo, error)
 	Get(id string) (*model.FileInfo, error)
 	GetFromMaster(id string) (*model.FileInfo, error)
-	GetByIds(ids []string) ([]*model.FileInfo, error)
+	GetByIds(ids []string, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
 	GetByPath(path string) (*model.FileInfo, error)
 	GetForPost(postID string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
 	GetForUser(userID string) ([]*model.FileInfo, error)
@@ -726,6 +734,8 @@ type FileInfoStore interface {
 	InvalidateFileInfosForPostCache(postID string, deleted bool)
 	AttachToPost(c request.CTX, fileID string, postID string, channelID, creatorID string) error
 	DeleteForPost(c request.CTX, postID string) (string, error)
+	DeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error
+	RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error
 	PermanentDeleteForPost(rctx request.CTX, postID string) error
 	PermanentDelete(c request.CTX, fileID string) error
 	PermanentDeleteBatch(ctx request.CTX, endTime int64, limit int64) (int64, error)
@@ -738,6 +748,8 @@ type FileInfoStore interface {
 	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
 	// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
 	GetUptoNSizeFileTime(n int64) (int64, error)
+	// RefreshFileStats recomputes the fileinfo materialized views.
+	RefreshFileStats() error
 }
 
 type UploadSessionStore interface {
@@ -771,7 +783,7 @@ type JobStore interface {
 	SaveOnce(job *model.Job) (*model.Job, error)
 	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
 	UpdateStatus(id string, status string) (*model.Job, error)
-	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error)
+	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error)
 	Get(c request.CTX, id string) (*model.Job, error)
 	GetAllByType(c request.CTX, jobType string) ([]*model.Job, error)
 	GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error)
@@ -1027,6 +1039,7 @@ type DraftStore interface {
 	GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt int64, userID string) (int64, string, error)
 	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error
+	PermanentDeleteByUser(userId string) error
 }
 
 type PostAcknowledgementStore interface {
@@ -1047,7 +1060,7 @@ type PostPersistentNotificationStore interface {
 	DeleteByTeam(teamIds []string) error
 }
 type ChannelBookmarkStore interface {
-	ErrorIfBookmarkFileInfoAlreadyAttached(fileID string) error
+	ErrorIfBookmarkFileInfoAlreadyAttached(fileID string, channelID string) error
 	Get(Id string, includeDeleted bool) (b *model.ChannelBookmarkWithFileInfo, err error)
 	Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (b *model.ChannelBookmarkWithFileInfo, err error)
 	Update(bookmark *model.ChannelBookmark) error
@@ -1066,6 +1079,32 @@ type ScheduledPostStore interface {
 	Get(scheduledPostId string) (*model.ScheduledPost, error)
 	UpdateOldScheduledPosts(beforeTime int64) error
 	PermanentDeleteByUser(userId string) error
+}
+
+type PropertyGroupStore interface {
+	Register(name string) (*model.PropertyGroup, error)
+	Get(name string) (*model.PropertyGroup, error)
+}
+
+type PropertyFieldStore interface {
+	Create(field *model.PropertyField) (*model.PropertyField, error)
+	Get(groupID, id string) (*model.PropertyField, error)
+	GetMany(groupID string, ids []string) ([]*model.PropertyField, error)
+	CountForGroup(groupID string, includeDeleted bool) (int64, error)
+	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+	Update(fields []*model.PropertyField) ([]*model.PropertyField, error)
+	Delete(id string) error
+}
+
+type PropertyValueStore interface {
+	Create(value *model.PropertyValue) (*model.PropertyValue, error)
+	Get(groupID, id string) (*model.PropertyValue, error)
+	GetMany(groupID string, ids []string) ([]*model.PropertyValue, error)
+	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
+	Update(values []*model.PropertyValue) ([]*model.PropertyValue, error)
+	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
+	Delete(id string) error
+	DeleteForField(id string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

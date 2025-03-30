@@ -62,6 +62,7 @@ export type ClientConfig = {
     EnableUserStatuses: string;
     EnableLastActiveTime: string;
     EnableTimedDND: string;
+    EnableCrossTeamSearch: 'true' | 'false';
     EnableCustomTermsOfService: string;
     EnableDeveloper: string;
     EnableDiagnostics: string;
@@ -123,6 +124,7 @@ export type ClientConfig = {
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
+    FeatureFlagCustomProfileAttributes: string;
     FeatureFlagWebSocketEventScope: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -322,7 +324,6 @@ export type ServiceSettings = {
     EnableDeveloper: boolean;
     DeveloperFlags: string;
     EnableClientPerformanceDebugging: boolean;
-    EnableOpenTracing: boolean;
     EnableSecurityFixAlert: boolean;
     EnableInsecureOutgoingConnections: boolean;
     AllowedUntrustedInternalConnections: string;
@@ -353,6 +354,7 @@ export type ServiceSettings = {
     GiphySdkKey: string;
     PostEditTimeLimit: number;
     TimeBetweenUserTypingUpdatesMilliseconds: number;
+    EnableCrossTeamSearch: boolean;
     EnablePostSearch: boolean;
     EnableFileSearch: boolean;
     MinimumHashtagLength: number;
@@ -709,6 +711,7 @@ export type LdapSettings = {
     LoginButtonColor: string;
     LoginButtonBorderColor: string;
     LoginButtonTextColor: string;
+    MaximumLoginAttempts: number;
 };
 
 export type ComplianceSettings = {
@@ -878,6 +881,8 @@ export type MessageExportSettings = {
     DailyRunTime: string;
     ExportFromTimestamp: number;
     BatchSize: number;
+    ChannelBatchSize: number;
+    ChannelHistoryBatchSize: number;
     GlobalRelaySettings: {
         CustomerType: string;
         SMTPUsername: string;

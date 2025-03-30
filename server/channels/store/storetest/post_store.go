@@ -31,6 +31,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("Delete", func(t *testing.T) { testPostStoreDelete(t, rctx, ss) })
 	t.Run("PermDelete1Level", func(t *testing.T) { testPostStorePermDelete1Level(t, rctx, ss) })
 	t.Run("PermDelete1Level2", func(t *testing.T) { testPostStorePermDelete1Level2(t, rctx, ss) })
+	t.Run("PermDeleteLimitExceeded", func(t *testing.T) { testPostStorePermDeleteLimitExceeded(t, rctx, ss) })
 	t.Run("GetWithChildren", func(t *testing.T) { testPostStoreGetWithChildren(t, rctx, ss) })
 	t.Run("GetPostsWithDetails", func(t *testing.T) { testPostStoreGetPostsWithDetails(t, rctx, ss) })
 	t.Run("GetPostsBeforeAfter", func(t *testing.T) { testPostStoreGetPostsBeforeAfter(t, rctx, ss) })
@@ -289,7 +290,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 	p4.Message = NewTestID()
 
 	t.Run("Save correctly a new set of posts", func(t *testing.T) {
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p1, &p2, &p3})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 		for _, post := range newPosts {
@@ -357,7 +358,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		o4.UserId = model.NewId()
 		o4.Message = NewTestID()
 
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&o1, &o2, &o3, &o4})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&o1, &o2, &o3, &o4})
 		require.NoError(t, err, "couldn't save item")
 		require.Equal(t, -1, errIdx)
 		assert.Len(t, newPosts, 4)
@@ -368,7 +369,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("Try to save mixed, already saved and not saved posts", func(t *testing.T) {
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p4, &p3})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p4, &p3})
 		require.Error(t, err)
 		require.Equal(t, 1, errIdx)
 		require.Nil(t, newPosts)
@@ -404,7 +405,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		replyPost.Message = NewTestID()
 		replyPost.RootId = rootPost.Id
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&rootPost, &replyPost})
 		require.NoError(t, err)
 
 		rrootPost, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
@@ -426,7 +427,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		// Ensure update does not occur in the same timestamp as creation
 		time.Sleep(time.Millisecond)
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
 
 		rrootPost2, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
@@ -459,7 +460,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		post3.UserId = model.NewId()
 		post3.Message = NewTestID()
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&post1, &post2, &post3})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&post1, &post2, &post3})
 		require.NoError(t, err)
 
 		rchannel, err := ss.Channel().Get(channel.Id, false)
@@ -1686,6 +1687,33 @@ func testPostStorePermDelete1Level2(t *testing.T, rctx request.CTX, ss store.Sto
 	require.NoError(t, err, "Deleted id should have failed")
 }
 
+func testPostStorePermDeleteLimitExceeded(t *testing.T, rctx request.CTX, ss store.Store) {
+	const maxPosts = 10000
+	teamID := model.NewId()
+	userID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "10KPosts",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	for i := 0; i < maxPosts+100; i++ {
+		post := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Message:   NewTestID(),
+		}
+		_, err = ss.Post().Save(rctx, post)
+		require.NoError(t, err)
+	}
+
+	err = ss.Post().PermanentDeleteByUser(rctx, userID)
+	var errLimitExceeded *store.ErrLimitExceeded
+	require.ErrorAs(t, err, &errLimitExceeded)
+}
+
 func testPostStoreGetWithChildren(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamID := model.NewId()
 	channel1, err := ss.Channel().Save(rctx, &model.Channel{
@@ -2867,6 +2895,8 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, nErr = ss.Post().Save(rctx, b1a)
 	require.NoError(t, nErr)
 
+	require.NoError(t, ss.Post().RefreshPostStats())
+
 	time.Sleep(1 * time.Second)
 
 	// summary of posts
@@ -2879,6 +2909,8 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	assert.Equal(t, float64(3), r1[0].Value)
 	assert.Equal(t, float64(3), r1[1].Value)
+	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
+	assert.Equal(t, utils.Yesterday().Add(-48*time.Hour).Format("2006-01-02"), r1[1].Name)
 
 	// last 31 days, bots only
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: true, YesterdayOnly: false}
@@ -2886,18 +2918,22 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	assert.Equal(t, float64(1), r1[0].Value)
 	assert.Equal(t, float64(1), r1[1].Value)
+	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
+	assert.Equal(t, utils.Yesterday().Add(-48*time.Hour).Format("2006-01-02"), r1[1].Name)
 
 	// yesterday only, all users (including bots)
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: false, YesterdayOnly: true}
 	r1, err = ss.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	require.NoError(t, err)
 	assert.Equal(t, float64(3), r1[0].Value)
+	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
 
 	// yesterday only, bots only
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: true, YesterdayOnly: true}
 	r1, err = ss.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	require.NoError(t, err)
 	assert.Equal(t, float64(1), r1[0].Value)
+	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
 }
 
 func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -3001,6 +3037,8 @@ func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, nErr = ss.Post().Save(rctx, p7)
 	require.NoError(t, nErr)
 
+	require.NoError(t, ss.Post().RefreshPostStats())
+
 	// total across all teams
 	c, err := ss.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	require.NoError(t, err)
@@ -3008,6 +3046,10 @@ func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	// total for single team
 	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id})
+	require.NoError(t, err)
+	assert.Equal(t, int64(7), c)
+
+	c, err = ss.Post().AnalyticsPostCountByTeam(t1.Id)
 	require.NoError(t, err)
 	assert.Equal(t, int64(7), c)
 
@@ -3730,7 +3772,7 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 		o3a := ro3.Clone()
 		o3a.Message = ro3.Message + "WWWWWWW"
 
-		_, errIdx, err := ss.Post().OverwriteMultiple([]*model.Post{o1a, o2a, o3a})
+		_, errIdx, err := ss.Post().OverwriteMultiple(rctx, []*model.Post{o1a, o2a, o3a})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
@@ -3760,7 +3802,7 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 		o5a.Filenames = []string{}
 		o5a.FileIds = []string{}
 
-		_, errIdx, err := ss.Post().OverwriteMultiple([]*model.Post{o4a, o5a})
+		_, errIdx, err := ss.Post().OverwriteMultiple(rctx, []*model.Post{o4a, o5a})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
@@ -4314,8 +4356,7 @@ func testPostStoreGetOldest(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.EqualValues(t, o2.Id, r1.Id)
 }
 
-func testGetMaxPostSize(t *testing.T, rctx request.CTX, ss store.Store) {
-	assert.Equal(t, model.PostMessageMaxRunesV2, ss.Post().GetMaxPostSize())
+func testGetMaxPostSize(t *testing.T, _ request.CTX, ss store.Store) {
 	assert.Equal(t, model.PostMessageMaxRunesV2, ss.Post().GetMaxPostSize())
 }
 
@@ -5021,12 +5062,12 @@ func testGetPostReminders(t *testing.T, rctx request.CTX, ss store.Store, s SqlS
 		require.NoError(t, ss.Post().SetPostReminder(reminder))
 	}
 
-	reminders, err := ss.Post().GetPostReminders(102)
+	reminders, err := ss.Post().GetPostReminders(101)
 	require.NoError(t, err)
 	require.Len(t, reminders, 2)
 
 	// assert one reminder is left
-	reminders, err = ss.Post().GetPostReminders(103)
+	reminders, err = ss.Post().GetPostReminders(102)
 	require.NoError(t, err)
 	require.Len(t, reminders, 1)
 

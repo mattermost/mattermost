@@ -40,6 +40,12 @@ type customProvider struct {
 	isSignV2 bool
 }
 
+// RetrieveWithCredContext simply calls Retrieve, because we don't need to use
+// the param.
+func (cp customProvider) RetrieveWithCredContext(_ *credentials.CredContext) (credentials.Value, error) {
+	return cp.Retrieve()
+}
+
 // Retrieve just returns empty credentials.
 func (cp customProvider) Retrieve() (credentials.Value, error) {
 	sign := credentials.SignatureV4
