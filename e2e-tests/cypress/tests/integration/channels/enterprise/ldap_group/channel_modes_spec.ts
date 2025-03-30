@@ -36,7 +36,7 @@ describe('LDAP Group Sync - Test channel public/private toggle', () => {
             assert(channel.type === 'O');
             cy.visit(`/admin_console/user_management/channels/${channel.id}`);
             cy.get('#channel_profile').contains(channel.display_name);
-            cy.get('#channel_manage .group-teams-and-channels--body').findByTestId('allow-all-toggle-button').eq(1).click();
+            cy.get('#channel_manage .group-teams-and-channels--body').find('button').eq(1).click();
             cy.get('#saveSetting').click();
             cy.get('#confirmModalButton').click();
             return cy.apiGetChannel(channel.id);
@@ -44,7 +44,7 @@ describe('LDAP Group Sync - Test channel public/private toggle', () => {
             assert(channel.type === 'P');
             cy.visit(`/admin_console/user_management/channels/${channel.id}`);
             cy.get('#channel_profile').contains(channel.display_name);
-            cy.get('#channel_manage .group-teams-and-channels--body').findByTestId('allow-all-toggle-button').eq(1).click();
+            cy.get('#channel_manage .group-teams-and-channels--body').find('button').eq(1).click();
             cy.get('#saveSetting').click();
             cy.get('#confirmModalButton').click();
             return cy.apiGetChannel(channel.id);
