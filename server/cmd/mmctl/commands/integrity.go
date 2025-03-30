@@ -68,12 +68,12 @@ func printRelationalIntegrityCheckResult(data model.RelationalIntegrityCheckData
 }
 
 func printNameIntegrityCheckResult(data model.NameIntegrityCheckData, verbose bool) {
-	printer.PrintT("Found {{len .Names}} invalid channel name(s)", data)
+	printer.PrintT("Found {{len .Names}} {{.RelName}}", data)
 
 	if !verbose {
 		return
 	}
-	fmt.Printf(" Invalid Channel Name(s): %s\n", strings.Join(data.Names, ","))
+	fmt.Printf(" {{.RelName}}: %s\n", strings.Join(data.Names, ","))
 }
 
 func printIntegrityCheckResult(result model.IntegrityCheckResult, verbose bool) {
