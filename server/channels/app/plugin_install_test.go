@@ -281,10 +281,6 @@ func TestInstallPluginLocally(t *testing.T) {
 		})
 
 		actualManifest, appError := th.App.ch.installPluginLocally(reader, installationStrategy)
-		//TODO: Delete this after QA verification
-		// require.Nil(t, appError)
-		// require.Equal(t, manifest, actualManifest)
-
 		if actualManifest != nil {
 			mp = th.App.Config().PluginSettings.Plugins[actualManifest.Id]
 		}
@@ -375,11 +371,6 @@ func TestInstallPluginLocally(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Nil(t, actualManifest)
 		require.Empty(t, returnedMap)
-
-		//TODO: Delete this after QA verification
-		// for k, v := range returnedMap {
-		// 	require.Equalf(t, expectedManifest.Props[k], v, "it works!")
-		// }
 	})
 }
 
