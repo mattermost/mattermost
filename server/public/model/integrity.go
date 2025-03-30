@@ -37,22 +37,23 @@ func (r *IntegrityCheckResult) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	if d, ok := data["data"]; ok && d != nil {
-		var rdata RelationalIntegrityCheckData
 		m := d.(map[string]any)
-		if _, ok := m["parent_name"]; ok {
-			rdata.ParentName = m["parent_name"].(string)
-		}
-		if _, ok := m["child_name"]; ok {
-			rdata.ChildName = m["child_name"].(string)
-		}
-		if _, ok := m["parent_id_attr"]; ok {
-			rdata.ParentIdAttr = m["parent_id_attr"].(string)
-		}
-		if _, ok := m["child_id_attr"]; ok {
-			rdata.ChildIdAttr = m["child_id_attr"].(string)
-		}
-		if _, ok := m["records"].([]any); ok {
-			for _, recData := range m["records"].([]any) {
+
+		if records, ok := m["records"].([]any); ok { // data is RelationalIntegrityCheckData
+			var rdata RelationalIntegrityCheckData
+			if _, ok := m["parent_name"]; ok {
+				rdata.ParentName = m["parent_name"].(string)
+			}
+			if _, ok := m["child_name"]; ok {
+				rdata.ChildName = m["child_name"].(string)
+			}
+			if _, ok := m["parent_id_attr"]; ok {
+				rdata.ParentIdAttr = m["parent_id_attr"].(string)
+			}
+			if _, ok := m["child_id_attr"]; ok {
+				rdata.ChildIdAttr = m["child_id_attr"].(string)
+			}
+			for _, recData := range records {
 				var record OrphanedRecord
 				m := recData.(map[string]any)
 				if val := m["parent_id"]; val != nil {
@@ -63,21 +64,16 @@ func (r *IntegrityCheckResult) UnmarshalJSON(b []byte) error {
 				}
 				rdata.Records = append(rdata.Records, record)
 			}
-		}
 
-		//This is for data of type [NameIntegrityCheckData]
-		if len(rdata.ParentName) == 0 {
-			rdata.ParentName = m["rel_name"].(string)
-		}
-		if _, ok := m["names"].([]string); ok {
-			for _, invalidChannelName := range m["names"].([]string) {
-				var record OrphanedRecord
-				record.ParentId = NewPointer("Channel")
-				record.ChildId = NewPointer(invalidChannelName)
-				rdata.Records = append(rdata.Records, record)
+			r.Data = rdata
+		} else if names, ok := m["names"].([]string); ok { // data is NameIntegrityCheckData
+			var ndata NameIntegrityCheckData
+			ndata.RelName = m["rel_name"].(string)
+			for _, name := range names {
+				ndata.Names = append(ndata.Names, name)
 			}
+			r.Data = ndata
 		}
-		r.Data = rdata
 	}
 	if err, ok := data["err"]; ok && err != nil {
 		r.Err = errors.New(data["err"].(string))
