@@ -306,11 +306,11 @@ func Test_getStartAndEnd(t *testing.T) {
 		end     int
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    int64
-		want1   int64
-		wantErr bool
+		name          string
+		args          args
+		expectedStart int64
+		expectedEnd   int64
+		wantErr       bool
 	}{
 		// check with: https://www.epochconverter.com/
 		{
@@ -318,24 +318,24 @@ func Test_getStartAndEnd(t *testing.T) {
 			args: args{
 				dateStr: "2024-10-21 -0400",
 			},
-			want:  1729483200000,
-			want1: 1729569599999,
+			expectedStart: 1729483200000,
+			expectedEnd:   1729569599999,
 		},
 		{
 			name: "parse a date in UTC (+0)",
 			args: args{
 				dateStr: "2024-10-21 +0000",
 			},
-			want:  1729468800000,
-			want1: 1729555199999,
+			expectedStart: 1729468800000,
+			expectedEnd:   1729555199999,
 		},
 		{
 			name: "parse a date in CDT (-0500)",
 			args: args{
 				dateStr: "2024-10-21 -0500",
 			},
-			want:  1729486800000,
-			want1: 1729573199999,
+			expectedStart: 1729486800000,
+			expectedEnd:   1729573199999,
 		},
 		{
 			name: "bad format",
@@ -352,19 +352,19 @@ func Test_getStartAndEnd(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "it ok to not have date, start, or end",
+			name:    "it's ok to not have date, start, or end",
 			args:    args{},
 			wantErr: false,
 		},
 		{
-			name: "needs both start and end1",
+			name: "needs both start and end pt1",
 			args: args{
 				start: 12345,
 			},
 			wantErr: true,
 		},
 		{
-			name: "needs both start and end2",
+			name: "needs both start and end pt2",
 			args: args{
 				end: 12345,
 			},
@@ -376,9 +376,9 @@ func Test_getStartAndEnd(t *testing.T) {
 				start: 12345,
 				end:   678912,
 			},
-			want:    12345,
-			want1:   678912,
-			wantErr: false,
+			expectedStart: 12345,
+			expectedEnd:   678912,
+			wantErr:       false,
 		},
 		{
 			name: "date and start",
@@ -404,11 +404,11 @@ func Test_getStartAndEnd(t *testing.T) {
 				t.Errorf("getStartAndEnd() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("getStartAndEnd() got = %v, want %v", got, tt.want)
+			if got != tt.expectedStart {
+				t.Errorf("getStartAndEnd() got = %v, want %v", got, tt.expectedStart)
 			}
-			if got1 != tt.want1 {
-				t.Errorf("getStartAndEnd() got1 = %v, want %v", got1, tt.want1)
+			if got1 != tt.expectedEnd {
+				t.Errorf("getStartAndEnd() got1 = %v, want %v", got1, tt.expectedEnd)
 			}
 		})
 	}

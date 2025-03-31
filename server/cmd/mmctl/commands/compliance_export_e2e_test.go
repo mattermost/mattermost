@@ -657,12 +657,11 @@ func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
 			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
 		}
 
-		// Create some posts
 		now := model.GetMillis()
 
 		// Create a regular (non-mmctl) export job
-		regularStartTime := now - 10000 // Start time before the posts
-		regularEndTime := now - 5000    // End time after some posts
+		regularStartTime := now - 10000
+		regularEndTime := now - 5000
 		regularJob := s.runJobForTest(map[string]string{
 			shared.JobDataBatchStartTime: strconv.FormatInt(regularStartTime, 10),
 			shared.JobDataJobEndTime:     strconv.FormatInt(regularEndTime, 10),

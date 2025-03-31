@@ -57,8 +57,8 @@ var ComplianceExportDownloadCmd = &cobra.Command{
 }
 
 var ComplianceExportCreateCmd = &cobra.Command{
-	Use:     "create [complianceExportType] --date \"2025-03-27 EDT\"",
-	Example: "compliance_export create csv --date \"2025-03-27 EDT\"",
+	Use:     "create [complianceExportType] --date \"2025-03-27 -0400\"",
+	Example: "compliance_export create csv --date \"2025-03-27 -0400\"",
 	Long: "Create a compliance export job, of type 'csv' or 'actiance' or 'globalrelay'. " +
 		"If --date is set, the job will run for one day, from 12am to 12am (minus one millisecond) inclusively, in the format with timezone " +
 		"offset: `\"YYYY-MM-DD -0000\"`. E.g., \"2024-10-21 -0400\" for Oct 21, 2024 EDT timezone. \"2023-11-01 +0000\" " +

@@ -15,14 +15,14 @@ Important: Running a compliance export job from mmctl will NOT affect the next s
 
 ::
 
-  mmctl compliance_export create [complianceExportType] --date "2025-03-27 EDT" [flags]
+  mmctl compliance_export create [complianceExportType] --date "2025-03-27 -0400" [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-  compliance_export create csv --date "2025-03-27 EDT"
+  compliance_export create csv --date "2025-03-27 -0400"
 
 Options
 ~~~~~~~
