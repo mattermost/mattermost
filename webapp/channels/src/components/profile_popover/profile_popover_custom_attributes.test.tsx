@@ -170,7 +170,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
                         text_attribute_id: {
                             ...textAttribute,
                             attrs: {
-                                visibility: 'never',
+                                visibility: 'hidden',
                             },
                         },
                     },
@@ -186,7 +186,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
             </Provider>,
         );
 
-        // The attribute with 'never' visibility should not be rendered
+        // The attribute with 'hidden' visibility should not be rendered
         expect(screen.queryByText('Text Attribute')).not.toBeInTheDocument();
 
         // Other attributes should still be rendered
