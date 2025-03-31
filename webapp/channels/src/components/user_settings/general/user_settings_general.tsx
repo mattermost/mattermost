@@ -4,7 +4,7 @@
 /* eslint-disable max-lines */
 
 import React, {PureComponent} from 'react';
-import {defineMessage, defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
+import {defineMessage, defineMessages, FormattedDate, FormattedMessage, FormattedList, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
@@ -25,7 +25,7 @@ import SettingPicture from 'components/setting_picture';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
-import {isValidUrl} from 'utils/url';
+import {validHttpUrl} from 'utils/url';
 import * as Utils from 'utils/utils';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
@@ -459,7 +459,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 }
             }
             if (attributeField.attrs.value_type === 'url') {
-                if (attributeValue !== '' && !isValidUrl(attributeValue)) {
+                if (attributeValue !== '' && validHttpUrl(attributeValue)) {
                     this.setState({clientError: formatMessage(holders.validUrl), emailError: '', serverError: ''});
                     return;
                 }
@@ -1519,7 +1519,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 if (typeof attributeValue === 'string') {
                     describe = attributeValue;
                 } else if (Array.isArray(attributeValue) && attributeValue.length > 0) {
-                    describe = attributeValue.map((attrib) => attrib.label).join(',');
+                    describe = <FormattedList value={attributeValue.map((attrib) => attrib.label)}/>;
                 } else if (!Array.isArray(attributeValue) && Object.hasOwn(attributeValue, 'label')) {
                     describe = attributeValue.label || '';
                 }

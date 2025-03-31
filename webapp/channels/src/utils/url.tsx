@@ -354,3 +354,20 @@ export function parseLink(href: string, defaultSecure = location.protocol === 'h
 
     return outHref;
 }
+
+export const validHttpUrl = (input: string) => {
+    const val = parseLink(input);
+
+    if (!val || !isValidUrl(val)) {
+        return null;
+    }
+
+    let url;
+    try {
+        url = new URL(val);
+    } catch {
+        return null;
+    }
+
+    return url;
+};
