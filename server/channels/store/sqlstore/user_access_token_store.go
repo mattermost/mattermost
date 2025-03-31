@@ -201,7 +201,7 @@ func (s SqlUserAccessTokenStore) GetByUser(userId string, offset, limit int) ([]
 func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, error) {
 	term = sanitizeSearchTerm(term, "\\")
 	tokens := []*model.UserAccessToken{}
-	
+
 	query := s.userAccessTokensSelectQuery.
 		InnerJoin("Users ON UserAccessTokens.UserId = Users.Id").
 		Where(sq.Or{
