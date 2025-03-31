@@ -1145,9 +1145,8 @@ func (us SqlUserStore) GetProfileByGroupChannelIdsForUser(userId string, channel
           ChannelId = cm.ChannelId
         )`, userId)
 
-	query := us.getQueryBuilder().
-		Select("Users.*, cm.ChannelId").
-		From("Users").
+	query := us.usersQuery.
+		Columns("cm.ChannelId").
 		Join("ChannelMembers cm ON Users.Id = cm.UserId").
 		Join("Channels c ON cm.ChannelId = c.Id").
 		Where(sq.Eq{"c.Type": model.ChannelTypeGroup, "cm.ChannelId": channelIds}).
@@ -2361,7 +2360,7 @@ func (us SqlUserStore) GetUserCountForReport(filter *model.UserReportOptions) (i
 
 func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
 	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
-	selectColumns := []string{"Users.*", "MAX(s.LastActivityAt) AS LastStatusAt"}
+	selectColumns := append(getUsersColumns(), "MAX(s.LastActivityAt) AS LastStatusAt")
 	if isPostgres {
 		selectColumns = append(selectColumns,
 			"MAX(ps.LastPostDate) AS LastPostDate",
