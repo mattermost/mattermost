@@ -478,7 +478,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     this.updateSection('');
                     this.setState({customAttributeValues: {...this.state.customAttributeValues, ...data}});
                 } else if (err) {
-                    const serverError = err;
+                    const serverError = err.message;
                     this.setState({serverError, emailError: '', clientError: '', sectionIsSaving: false});
                 }
             });
