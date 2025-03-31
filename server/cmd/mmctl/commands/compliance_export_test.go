@@ -286,7 +286,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
 			EXPECT().
 			DownloadComplianceExport(context.TODO(), mockJob.Id, gomock.Any()).
 			Return("", mockError).
-			Times(6) // Initial attempt + 5 retries
+			Times(5) // Initial attempt + 4 retries
 
 		cmd := makeCmd()
 		cmd.Flags().Int("num-retries", 5, "")
