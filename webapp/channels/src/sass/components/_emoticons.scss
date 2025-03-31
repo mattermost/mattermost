@@ -100,16 +100,6 @@
 
     @include mixins.clearfix;
 
-    .emoji-picker__header {
-        background: var(--sidebar-header-bg);
-    }
-
-    &.emoji-picker--single {
-        .emoji-picker__header {
-            position: relative;
-        }
-    }
-
     .browser--ie & {
         width: 325px;
     }
@@ -232,8 +222,8 @@
     display: none; // only visible < 480px width screen
     width: 100%;
     padding: 13px 10px 13px 15px;
-    border: 1px solid variables.$light-gray;
-    background: variables.$primary-color;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    background: var(--sidebar-header-bg);
     color: var(--sidebar-header-text-color);
 
     .emoji-picker__header-title {
