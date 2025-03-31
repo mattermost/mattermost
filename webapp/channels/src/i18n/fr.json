@@ -4927,6 +4927,7 @@
   "userGuideHelp.reportAProblem": "Signaler un problème",
   "userGuideHelp.trainingResources": "Ressources de formation",
   "userSettingsModal.pluginPreferences.header": "PRÉFÉRENCES D’EXTENSION",
+  "user_group_popover.memberCount": "{member_count} {member_count, plural, one {Membre} other {Membres}}",
   "user_group_popover.searchGroupMembers": "Chercher des membres",
   "user_groups_modal.addPeople": "Ajouter des personnes",
   "user_groups_modal.addPeopleTitle": "Ajouter des personnes à {group}",
