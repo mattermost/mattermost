@@ -112,26 +112,27 @@ func complianceExportDownloadCmdF(c client.Client, command *cobra.Command, args 
 	case err != nil:
 		// file does not exist, we create it
 		outFile, err = os.Create(path)
+		if err != nil {
+			return fmt.Errorf("failed to create compliance export file: %w", err)
+		}
 	default:
 		// no error, file exists, we open it
 		outFile, err = os.OpenFile(path, os.O_WRONLY, 0600)
+		if err != nil {
+			return fmt.Errorf("failed to open compliance export file: %w", err)
+		}
 	}
 
-	if err != nil {
-		return fmt.Errorf("failed to create/open compliance export file: %w", err)
-	}
 	defer outFile.Close()
 
-	i := 0
 	var suggestedFilename string
-	for i < retries+1 {
+	for i := range retries {
 		suggestedFilename, err = c.DownloadComplianceExport(context.TODO(), jobID, outFile)
 		if err != nil {
-			if i == retries {
+			if i >= retries-1 {
 				return fmt.Errorf("failed to download compliance export file: %w", err)
 			}
-			i++
-			fmt.Printf("Download attempt %d/%d failed: %v. Retrying...\n", i, retries+1, err)
+			fmt.Printf("Download attempt %d/%d failed: %v. Retrying...\n", i+1, retries+1, err)
 			continue
 		}
 		break
@@ -144,10 +145,10 @@ func complianceExportDownloadCmdF(c client.Client, command *cobra.Command, args 
 
 		// If the suggested name already exists, don't overwrite
 		if _, err := os.Stat(suggestedFilename); err == nil {
-			printer.PrintWarning(fmt.Sprintf("File with suggested name %q already exists, keeping %q", suggestedFilename, path))
+			printer.PrintWarning(fmt.Sprintf("File with the server's suggested name %q already exists, keeping %q", suggestedFilename, path))
 		} else {
 			if err := os.Rename(path, suggestedFilename); err != nil {
-				printer.PrintWarning(fmt.Sprintf("Could not rename file to suggested name %q: %v", suggestedFilename, err))
+				printer.PrintWarning(fmt.Sprintf("Could not rename file to the server's suggested name %q: %v", suggestedFilename, err))
 			} else {
 				path = suggestedFilename
 			}
