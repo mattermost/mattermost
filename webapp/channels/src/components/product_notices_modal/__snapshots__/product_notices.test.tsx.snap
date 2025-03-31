@@ -4,7 +4,6 @@ exports[`ProductNoticesModal Match snapshot for single notice 1`] = `
 <GenericModal
   autoCloseOnCancelButton={false}
   autoCloseOnConfirmButton={true}
-  bodyPadding={true}
   cancelButtonText={null}
   className="productNotices"
   compassDesign={true}
@@ -13,21 +12,14 @@ exports[`ProductNoticesModal Match snapshot for single notice 1`] = `
       Download
     </span>
   }
-  enforceFocus={true}
   handleConfirm={[Function]}
   handleEnterKeyPress={[Function]}
-  id="genericModal"
-  keyboardEscape={true}
   modalHeaderText={
     <span>
       title
     </span>
   }
-  modalLocation="center"
   onExited={[Function]}
-  show={true}
-  showCloseButton={true}
-  showHeader={true}
 >
   <span
     className="productNotices__helpText"
@@ -49,7 +41,6 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
 <GenericModal
   autoCloseOnCancelButton={false}
   autoCloseOnConfirmButton={true}
-  bodyPadding={true}
   cancelButtonText={
     <React.Fragment>
       <Memo(PreviousIcon) />
@@ -67,22 +58,15 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
       id="generic.done"
     />
   }
-  enforceFocus={true}
   handleCancel={[Function]}
   handleConfirm={[Function]}
   handleEnterKeyPress={[Function]}
-  id="genericModal"
-  keyboardEscape={true}
   modalHeaderText={
     <span>
       title
     </span>
   }
-  modalLocation="center"
   onExited={[Function]}
-  show={true}
-  showCloseButton={true}
-  showHeader={true}
 >
   <span
     className="productNotices__helpText"
@@ -130,7 +114,6 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
 <GenericModal
   autoCloseOnCancelButton={false}
   autoCloseOnConfirmButton={false}
-  bodyPadding={true}
   cancelButtonText={null}
   className="productNotices"
   compassDesign={true}
@@ -143,21 +126,14 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
       <Memo(NextIcon) />
     </React.Fragment>
   }
-  enforceFocus={true}
   handleConfirm={[Function]}
   handleEnterKeyPress={[Function]}
-  id="genericModal"
-  keyboardEscape={true}
   modalHeaderText={
     <span>
       for sysadmin
     </span>
   }
-  modalLocation="center"
   onExited={[Function]}
-  show={true}
-  showCloseButton={true}
-  showHeader={true}
 >
   <span
     className="productNotices__helpText"

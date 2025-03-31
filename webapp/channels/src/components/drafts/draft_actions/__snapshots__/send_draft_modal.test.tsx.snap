@@ -2,12 +2,8 @@
 
 exports[`components/drafts/draft_actions/send_draft_modal should have called onConfirm 1`] = `
 <GenericModal
-  autoCloseOnCancelButton={true}
-  autoCloseOnConfirmButton={true}
-  bodyPadding={true}
   compassDesign={true}
   confirmButtonText="Yes, send now"
-  enforceFocus={true}
   handleCancel={[Function]}
   handleConfirm={
     [MockFunction] {
@@ -22,14 +18,8 @@ exports[`components/drafts/draft_actions/send_draft_modal should have called onC
       ],
     }
   }
-  id="genericModal"
-  keyboardEscape={true}
   modalHeaderText="Send message now"
-  modalLocation="center"
   onExited={[MockFunction]}
-  show={true}
-  showCloseButton={true}
-  showHeader={true}
 >
   <MemoizedFormattedMessage
     defaultMessage="Are you sure you want to send this message to <strong>{displayName}</strong>?"
@@ -46,18 +36,11 @@ exports[`components/drafts/draft_actions/send_draft_modal should have called onC
 
 exports[`components/drafts/draft_actions/send_draft_modal should have called onExited 1`] = `
 <GenericModal
-  autoCloseOnCancelButton={true}
-  autoCloseOnConfirmButton={true}
-  bodyPadding={true}
   compassDesign={true}
   confirmButtonText="Yes, send now"
-  enforceFocus={true}
   handleCancel={[Function]}
   handleConfirm={[MockFunction]}
-  id="genericModal"
-  keyboardEscape={true}
   modalHeaderText="Send message now"
-  modalLocation="center"
   onExited={
     [MockFunction] {
       "calls": Array [
@@ -71,9 +54,6 @@ exports[`components/drafts/draft_actions/send_draft_modal should have called onE
       ],
     }
   }
-  show={true}
-  showCloseButton={true}
-  showHeader={true}
 >
   <MemoizedFormattedMessage
     defaultMessage="Are you sure you want to send this message to <strong>{displayName}</strong>?"
