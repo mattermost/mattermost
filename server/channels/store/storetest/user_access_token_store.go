@@ -188,6 +188,13 @@ func testUserAccessTokenPagination(t *testing.T, rctx request.CTX, ss store.Stor
 		require.NoError(t, nErr)
 	}
 
+	// Set up cleanup to run even if the test fails
+	t.Cleanup(func() {
+		for _, token := range tokens {
+			_ = ss.UserAccessToken().Delete(token.Id)
+		}
+	})
+
 	// Test GetAll with pagination
 	// First page (3 tokens)
 	result, nErr := ss.UserAccessToken().GetAll(0, 3)
@@ -234,10 +241,4 @@ func testUserAccessTokenPagination(t *testing.T, rctx request.CTX, ss store.Stor
 	result, nErr = ss.UserAccessToken().GetByUser(model.NewId(), 0, 100)
 	require.NoError(t, nErr)
 	require.Len(t, result, 0, "Should return 0 tokens for non-existent user")
-
-	// Clean up
-	for _, token := range tokens {
-		nErr = ss.UserAccessToken().Delete(token.Id)
-		require.NoError(t, nErr)
-	}
 }
