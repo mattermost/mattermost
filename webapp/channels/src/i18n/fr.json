@@ -3129,7 +3129,7 @@
   "drafts.confirm.delete.text": "Êtes-vous sûr de vouloir supprimer ce brouillon de <strong>{displayName}</strong> ?",
   "drafts.confirm.delete.title": "Supprimer le brouillon",
   "drafts.confirm.send.button": "Oui, envoyer maintenant",
-  "drafts.confirm.send.text": "Êtes-vous sûr de vouloir envoyer ce message sur <strong>{displayName}</strong> ?",
+  "drafts.confirm.send.text": "Êtes-vous sûr de vouloir envoyer ce message à <strong>{displayName}</strong> ?",
   "drafts.confirm.send.title": "Envoyer le message maintenant",
   "drafts.draft_title.channel": "Dans : {icon}<span>{channelName}</span>",
   "drafts.draft_title.channel_thread": "Fil dans : {icon}<span>{channelName}</span>",
