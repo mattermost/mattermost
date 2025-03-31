@@ -195,7 +195,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         expect(screen.getByText('Select Attribute')).toBeInTheDocument();
     });
 
-    test('should respect when-set visibility with empty values', () => {
+    test('should respect when_set visibility with empty values', () => {
         const state = {
             ...baseState,
             entities: {
@@ -218,7 +218,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
                         text_attribute_id: {
                             ...textAttribute,
                             attrs: {
-                                visibility: 'when-set',
+                                visibility: 'when_set',
                             },
                         },
                     },
@@ -234,7 +234,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
             </Provider>,
         );
 
-        // The attribute with empty value and 'when-set' visibility should not be rendered
+        // The attribute with empty value and 'when_set' visibility should not be rendered
         expect(screen.queryByText('Text Attribute')).not.toBeInTheDocument();
     });
 });

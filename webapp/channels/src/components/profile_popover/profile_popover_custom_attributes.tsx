@@ -37,15 +37,15 @@ const ProfilePopoverCustomAttributes = ({
 
     const attributeSections = customProfileAttributeFields.map((attribute) => {
         if (!hideStatus && userProfile.custom_profile_attributes) {
-            const visibility = attribute.attrs?.visibility || 'when-set';
-            if (visibility === 'never') {
+            const visibility = attribute.attrs?.visibility || 'when_set';
+            if (visibility === 'hidden') {
                 return null;
             }
 
             // Check if the attribute has a value
             const hasValue = userProfile.custom_profile_attributes[attribute.id]?.length > 0;
 
-            if (!hasValue && visibility === 'when-set') {
+            if (!hasValue && visibility === 'when_set') {
                 return null;
             }
 
