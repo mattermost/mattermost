@@ -8469,6 +8469,38 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Invalid policyy id."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Invalid imports for the policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Invalid name for the policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Invalid policy revision."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Rule(s) is not valid."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Policy must either import or define rules."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Invalid policy type."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Version is not valid for this access control policy."
+  },
+  {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
     "translation": "Invalid post id."
   },
