@@ -13,7 +13,9 @@ EOF
 
 mme2e_log "Prepare Playwright: install dependencies"
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash <<EOF
-cd e2e-tests/playwright
+cd webapp/
+npm install --cache /tmp/empty-cache
+cd ../e2e-tests/playwright
 npm install --cache /tmp/empty-cache
 EOF
 

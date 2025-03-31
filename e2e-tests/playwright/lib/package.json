@@ -1,6 +1,17 @@
 {
   "name": "@mattermost/playwright-lib",
   "version": "10.6.0",
+  "description": "A comprehensive end-to-end testing library for Mattermost web, desktop and plugin applications using Playwright",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattermost/mattermost.git"
+  },
+  "author": "mattermost",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mattermost/mattermost/issues"
+  },
+  "homepage": "https://github.com/mattermost/mattermost/tree/master/e2e-tests/playwright/lib#readme",
   "type": "commonjs",
   "files": [
     "dist"

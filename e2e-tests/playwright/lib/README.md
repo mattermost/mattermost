@@ -207,8 +207,8 @@ test('verify notification on mention', async ({pw}) => {
 
 ## Contributing
 
-See [CONTRIBUTING.md](../../../CONTRIBUTING.md) for development setup and guidelines.
+See [CONTRIBUTING.md](https://github.com/mattermost/mattermost/blob/master/CONTRIBUTING.md) for development setup and guidelines.
 
 ## License
 
-See [LICENSE.txt](../../../LICENSE.txt) for license information.
+See [LICENSE.txt](https://github.com/mattermost/mattermost/blob/master/LICENSE.txt) for license information.

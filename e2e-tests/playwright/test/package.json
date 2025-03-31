@@ -15,7 +15,9 @@
         "clean": "rm -rf dist node_modules *.tsbuildinfo logs results storage_state test-results"
     },
     "dependencies": {
+        "@mattermost/client": "file:../../../webapp/platform/client",
         "@mattermost/playwright-lib": "*",
+        "@mattermost/types": "file:../../../webapp/platform/types",
         "zod": "3.24.2"
     },
     "devDependencies": {
