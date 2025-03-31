@@ -277,7 +277,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	if pchan != nil {
 		result := <-pchan
 		if result.NErr != nil {
-			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest).Wrap(result.NErr)
 		}
 		parentPostList = result.Data
 		if len(parentPostList.Posts) == 0 || !parentPostList.IsChannelId(post.ChannelId) {
@@ -2580,7 +2580,7 @@ func (a *App) CopyWranglerPostlist(c request.CTX, wpl *model.WranglerPostList, t
 func (a *App) MoveThread(c request.CTX, postID string, sourceChannelID, channelID string, user *model.User) *model.AppError {
 	postListResponse, appErr := a.GetPostThread(postID, model.GetPostsOptions{}, user.Id)
 	if appErr != nil {
-		return model.NewAppError("getPostThread", "app.post.move_thread_command.error", nil, "postID="+postID+", "+"UserId="+user.Id+"", http.StatusBadRequest)
+		return model.NewAppError("getPostThread", "app.post.move_thread_command.error", nil, "postID="+postID+", "+"UserId="+user.Id+"", http.StatusBadRequest).Wrap(appErr)
 	}
 	wpl := postListResponse.BuildWranglerPostList()
 

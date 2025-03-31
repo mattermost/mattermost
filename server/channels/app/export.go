@@ -123,7 +123,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		writer, err = zipWr.Create("import.jsonl")
 		if err != nil {
 			return model.NewAppError("BulkExport", "app.export.zip_create.error",
-				nil, "err="+err.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -227,7 +227,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 				_, err := warningsFile.Write([]byte(warning + "\n"))
 				if err != nil {
 					return model.NewAppError("BulkExport", "app.export.zip_create.error",
-						nil, "err="+err.Error(), http.StatusInternalServerError)
+						nil, "", http.StatusInternalServerError).Wrap(err)
 				}
 			}
 			updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "num_warnings", len(warnings))
@@ -897,7 +897,7 @@ func (a *App) exportCustomEmoji(rctx request.CTX, job *model.Job, writer io.Writ
 		if exportFiles {
 			if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
 				if err := os.Mkdir(pathToDir, os.ModePerm); err != nil {
-					return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.mkdir.error", nil, "err="+err.Error(), http.StatusBadRequest)
+					return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.mkdir.error", nil, "", http.StatusBadRequest).Wrap(err)
 				}
 			}
 
@@ -907,7 +907,7 @@ func (a *App) exportCustomEmoji(rctx request.CTX, job *model.Job, writer io.Writ
 				if exportFiles {
 					err := a.copyEmojiImages(rctx, emoji.Id, emojiImagePath, pathToDir)
 					if err != nil {
-						return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "err="+err.Error(), http.StatusBadRequest)
+						return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "", http.StatusBadRequest).Wrap(err)
 					}
 				} else {
 					filePath = filepath.Join("emoji", emoji.Id, "image")
@@ -1212,24 +1212,24 @@ func (a *App) exportFile(rctx request.CTX, outPath, filePath string, zipWr *zip.
 		})
 		if err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.zip_create_header.error",
-				nil, "err="+err.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		if _, err = io.Copy(wr, rd); err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.copy_file.error",
-				nil, "err="+err.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	} else {
 		filePath = filepath.Join(outPath, model.ExportDataDir, filePath)
 		if err := os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.mkdirall.error",
-				nil, "err="+err.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		file, err := os.Create(filePath)
 		if err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.create_file.error",
-				nil, "err="+err.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		defer func() {
 			if err = file.Close(); err != nil {
@@ -1239,7 +1239,7 @@ func (a *App) exportFile(rctx request.CTX, outPath, filePath string, zipWr *zip.
 
 		if _, err = io.Copy(file, rd); err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.copy_file.error",
-				nil, "err="+err.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -1278,7 +1278,7 @@ func (a *App) GeneratePresignURLForExport(name string) (*model.PresignURLRespons
 	p := path.Join(*a.Config().ExportSettings.Directory, filepath.Base(name))
 	found, err := b.FileExists(p)
 	if err != nil {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.fileexist.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.fileexist.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if !found {
 		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.notfound.app_error", nil, "", http.StatusInternalServerError)
@@ -1286,7 +1286,7 @@ func (a *App) GeneratePresignURLForExport(name string) (*model.PresignURLRespons
 
 	link, exp, err := backend.GeneratePublicLink(p)
 	if err != nil {
-		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.link.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GeneratePresignURLForExport", "app.eport.generate_presigned_url.link.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return &model.PresignURLResponse{

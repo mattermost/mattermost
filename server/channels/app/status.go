@@ -183,7 +183,11 @@ func (a *App) RemoveRecentCustomStatus(c request.CTX, userID string, status *mod
 		return model.NewAppError("RemoveRecentCustomStatus", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if ok, err := existingRCS.Contains(status); !ok || err != nil {
+	ok, err := existingRCS.Contains(status)
+	if err != nil {
+		return model.NewAppError("RemoveRecentCustomStatus", "api.custom_status.recent_custom_statuses.delete.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	if !ok {
 		return model.NewAppError("RemoveRecentCustomStatus", "api.custom_status.recent_custom_statuses.delete.app_error", nil, "", http.StatusBadRequest)
 	}
 

@@ -1874,7 +1874,7 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 	if tokenID != "" {
 		token, err := a.Srv().Store().Token().GetByToken(tokenID)
 		if err != nil {
-			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
 		if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation {
