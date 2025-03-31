@@ -416,7 +416,7 @@ func TestPostAction(t *testing.T) {
 
 			_, err = th.App.DoPostActionWithCookie(th.Context, postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 			require.NotNil(t, err)
-			assert.ErrorContains(t, err, "address forbidden")
+			assert.ErrorContains(t, err, "connection refused")
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.SiteURL = ts.URL + "/subpath"
