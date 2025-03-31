@@ -35,8 +35,8 @@ type PropertyField struct {
 	DeleteAt   int64             `json:"delete_at"`
 }
 
-func (pf *PropertyField) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (pf *PropertyField) Auditable() map[string]any {
+	return map[string]any{
 		"id":          pf.ID,
 		"group_id":    pf.GroupID,
 		"name":        pf.Name,
@@ -106,8 +106,8 @@ type PropertyFieldPatch struct {
 	TargetType *string            `json:"target_type"`
 }
 
-func (pfp *PropertyFieldPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (pfp *PropertyFieldPatch) Auditable() map[string]any {
+	return map[string]any{
 		"name":        pfp.Name,
 		"type":        pfp.Type,
 		"attrs":       pfp.Attrs,

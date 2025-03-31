@@ -33,8 +33,8 @@ type storeAccessControlPolicy struct {
 	CreateAt int64
 	Revision int
 	Version  string
-	Data     json.RawMessage
-	Props    json.RawMessage
+	Data     []byte
+	Props    []byte
 }
 
 // This needs to be updated with the new version of the policy.
@@ -163,16 +163,24 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 
 	if existingPolicy != nil {
 		// move existing policy to history
-		tmp, err := fromModel(existingPolicy)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to parse policy with id=%s", policy.ID)
+		tmp, err2 := fromModel(existingPolicy)
+		if err2 != nil {
+			return nil, errors.Wrapf(err2, "failed to parse policy with id=%s", policy.ID)
 		}
 
-		query := `INSERT INTO AccessControlPolicyHistory
-		(ID, Name, Type, CreateAt, Revision, Version, Data, Props)
-		VALUES
-		(:ID, :Name, :Type, :CreateAt, :Revision, :Version, :Data, :Props)`
-		_, err = tx.NamedExec(query, tmp)
+		data := tmp.Data
+		props := tmp.Props
+		if s.IsBinaryParamEnabled() {
+			data = AppendBinaryFlag(data)
+			props = AppendBinaryFlag(props)
+		}
+
+		query := s.getQueryBuilder().
+			Insert("AccessControlPolicyHistory").
+			Columns("ID", "Name", "Type", "CreateAt", "Revision", "Version", "Data", "Props").
+			Values(tmp.ID, tmp.Name, tmp.Type, tmp.CreateAt, tmp.Revision, tmp.Version, data, props)
+
+		_, err = tx.ExecBuilder(query)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to save policy with id=%s to history", policy.ID)
 		}
@@ -190,17 +198,24 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		return nil, errors.Wrapf(err, "failed to parse policy with Id=%s", policy.ID)
 	}
 
-	query := `INSERT INTO AccessControlPolicies
-	(ID, Name, Type, Active, CreateAt, Revision, Version, Data, Props)
-	VALUES
-	(:ID, :Name, :Type, :Active, :CreateAt, :Revision, :Version, :Data, :Props)`
+	data := storePolicy.Data
+	props := storePolicy.Props
+	if s.IsBinaryParamEnabled() {
+		data = AppendBinaryFlag(data)
+		props = AppendBinaryFlag(props)
+	}
 
-	_, err = tx.NamedExec(query, storePolicy)
+	query := s.getQueryBuilder().
+		Insert("AccessControlPolicies").
+		Columns(accessControlPolicySliceColumns()...).
+		Values(storePolicy.ID, storePolicy.Name, storePolicy.Type, storePolicy.Active, storePolicy.CreateAt, storePolicy.Revision, storePolicy.Version, data, props)
+
+	_, err = tx.ExecBuilder(query)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to save policy with id=%s", policy.ID)
 	}
 
-	copy, err := storePolicy.toModel()
+	cp, err := storePolicy.toModel()
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse policy with id=%s", policy.ID)
 	}
@@ -209,7 +224,7 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
-	return copy, nil
+	return cp, nil
 }
 
 func (s *SqlAccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
@@ -225,16 +240,23 @@ func (s *SqlAccessControlPolicyStore) Delete(rctx request.CTX, id string) error 
 	}
 
 	if existingPolicy != nil {
-		tmp, err := fromModel(existingPolicy)
-		if err != nil {
-			return errors.Wrapf(err, "failed to parse policy with id=%s", id)
+		tmp, err2 := fromModel(existingPolicy)
+		if err2 != nil {
+			return errors.Wrapf(err2, "failed to parse policy with id=%s", id)
+		}
+		data := tmp.Data
+		props := tmp.Props
+		if s.IsBinaryParamEnabled() {
+			data = AppendBinaryFlag(data)
+			props = AppendBinaryFlag(props)
 		}
 
-		query := `INSERT INTO AccessControlPolicyHistory
-		(ID, Name, Type, CreateAt, Revision, Version, Data, Props)
-		VALUES
-		(:ID, :Name, :Type, :CreateAt, :Revision, :Version, :Data, :Props)`
-		_, err = tx.NamedExec(query, tmp)
+		query := s.getQueryBuilder().
+			Insert("AccessControlPolicyHistory").
+			Columns("ID", "Name", "Type", "CreateAt", "Revision", "Version", "Data", "Props").
+			Values(tmp.ID, tmp.Name, tmp.Type, tmp.CreateAt, tmp.Revision, tmp.Version, data, props)
+
+		_, err = tx.ExecBuilder(query)
 		if err != nil {
 			return errors.Wrapf(err, "failed to save policy with id=%s to history", id)
 		}

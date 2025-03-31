@@ -200,8 +200,9 @@ func testAccessControlPolicyStoreDelete(t *testing.T, rctx request.CTX, ss store
 
 func testAccessControlPolicyStoreSetActive(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save policy", func(t *testing.T) {
+		id := model.NewId()
 		policy := &model.AccessControlPolicy{
-			ID:       model.NewId(),
+			ID:       id,
 			Name:     "Name",
 			Type:     model.AccessControlPolicyTypeChannel,
 			Active:   false,
@@ -221,7 +222,7 @@ func testAccessControlPolicyStoreSetActive(t *testing.T, rctx request.CTX, ss st
 		require.NotNil(t, policy)
 
 		t.Cleanup(func() {
-			err := ss.AccessControlPolicy().Delete(rctx, policy.ID)
+			err = ss.AccessControlPolicy().Delete(rctx, id)
 			require.NoError(t, err)
 		})
 
@@ -240,12 +241,12 @@ func testAccessControlPolicyStoreSetActive(t *testing.T, rctx request.CTX, ss st
 		require.NotNil(t, policy)
 		require.True(t, policy.Active)
 	})
-
 }
 
 func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
+	id := model.NewId()
 	parentPolicy := &model.AccessControlPolicy{
-		ID:       model.NewId(),
+		ID:       id,
 		Name:     "Name",
 		Type:     model.AccessControlPolicyTypeParent,
 		Active:   true,
@@ -260,7 +261,7 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		},
 	}
 	t.Cleanup(func() {
-		err := ss.AccessControlPolicy().Delete(rctx, parentPolicy.ID)
+		err := ss.AccessControlPolicy().Delete(rctx, id)
 		require.NoError(t, err)
 	})
 
@@ -268,8 +269,9 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 	require.NoError(t, err)
 	require.NotNil(t, parentPolicy)
 
+	id2 := model.NewId()
 	resourcePolicy := &model.AccessControlPolicy{
-		ID:       model.NewId(),
+		ID:       id2,
 		Name:     "Name",
 		Type:     model.AccessControlPolicyTypeChannel,
 		Active:   true,
@@ -284,7 +286,7 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		},
 	}
 	t.Cleanup(func() {
-		err := ss.AccessControlPolicy().Delete(rctx, resourcePolicy.ID)
+		err = ss.AccessControlPolicy().Delete(rctx, id2)
 		require.NoError(t, err)
 	})
 
@@ -292,7 +294,6 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 	require.NoError(t, err)
 	require.NotNil(t, resourcePolicy)
 	t.Run("GetAll", func(t *testing.T) {
-
 		policies, err := ss.AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
@@ -300,7 +301,6 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 	})
 
 	t.Run("GetAll by type", func(t *testing.T) {
-
 		policies, err := ss.AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{Type: model.AccessControlPolicyTypeParent})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
