@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-export {Client4} from '@mattermost/client';
-
 export {test, expect, PlaywrightExtended} from './test_fixture';
 export {testConfig} from './test_config';
 export {baseGlobalSetup} from './global_setup';

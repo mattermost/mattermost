@@ -21,5 +21,21 @@ export default {
             targets: [{src: 'src/asset/**/*', dest: 'dist/asset'}], // Copy assets to dist/
         }),
     ],
-    external: ['playwright'], // Prevent bundling Playwright
+    external: [
+        '@playwright/test',
+        '@mattermost/client',
+        '@mattermost/types/config',
+        '@axe-core/playwright',
+        '@percy/playwright',
+        'dotenv',
+        'node:fs/promises',
+        'node:path',
+        'node:fs',
+        'node:os',
+        'mime-types',
+        'uuid',
+        'async-wait-until',
+        'chalk',
+        'deepmerge',
+    ],
 };
