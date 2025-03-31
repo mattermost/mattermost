@@ -1092,8 +1092,8 @@ type PropertyFieldStore interface {
 	GetMany(groupID string, ids []string) ([]*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
-	Update(fields []*model.PropertyField) ([]*model.PropertyField, error)
-	Delete(id string) error
+	Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
+	Delete(groupID string, id string) error
 }
 
 type PropertyValueStore interface {
@@ -1101,9 +1101,9 @@ type PropertyValueStore interface {
 	Get(groupID, id string) (*model.PropertyValue, error)
 	GetMany(groupID string, ids []string) ([]*model.PropertyValue, error)
 	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
-	Update(values []*model.PropertyValue) ([]*model.PropertyValue, error)
+	Update(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
-	Delete(id string) error
+	Delete(groupID string, id string) error
 	DeleteForField(id string) error
 }
 
