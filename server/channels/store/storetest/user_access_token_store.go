@@ -191,7 +191,10 @@ func testUserAccessTokenPagination(t *testing.T, rctx request.CTX, ss store.Stor
 	// Set up cleanup to run even if the test fails
 	t.Cleanup(func() {
 		for _, token := range tokens {
-			_ = ss.UserAccessToken().Delete(token.Id)
+			// Cleanup shouldn't fail the test, but we still log errors
+			if err := ss.UserAccessToken().Delete(token.Id); err != nil {
+				t.Logf("Failed to cleanup token %s: %v", token.Id, err)
+			}
 		}
 	})
 
