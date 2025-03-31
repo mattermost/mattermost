@@ -43,7 +43,7 @@ npm run test
 Change to the `e2e-tests/playwright` directory, then run the docker container. (See https://playwright.dev/docs/docker for reference.)
 
 ```
-docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.50.1-noble /bin/bash
+docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.51.1-noble /bin/bash
 ```
 
 #### 2. Inside the docker container

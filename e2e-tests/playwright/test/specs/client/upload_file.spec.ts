@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from '@mattermost/client';
-import {expect, test} from '@mattermost/playwright-lib';
+import {Client4, expect, test, getFileFromAsset, getBlobFromAsset} from '@mattermost/playwright-lib';
 import {ServerChannel} from '@mattermost/types/channels';
 import {FileUploadResponse} from '@mattermost/types/files';
 import {Team} from '@mattermost/types/teams';
@@ -16,13 +15,8 @@ let team: Team;
 let townSquareChannel: ServerChannel;
 
 const filename = 'mattermost-icon_128x128.png';
-let file: File;
-let blob: Blob;
-
-test.beforeAll(async ({pw}) => {
-    file = pw.getFileFromAsset(filename);
-    blob = pw.getBlobFromAsset(filename);
-});
+const file = getFileFromAsset(filename);
+const blob = getBlobFromAsset(filename);
 
 test.beforeEach(async ({pw}) => {
     ({userClient, user, team} = await pw.initSetup());

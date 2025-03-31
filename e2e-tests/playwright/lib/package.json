@@ -32,39 +32,26 @@
   },
   "dependencies": {
     "@axe-core/playwright": "4.10.1",
-    "@mattermost/client": "10.6.0",
-    "@mattermost/types": "10.6.0",
+    "@mattermost/client": "file:../../../webapp/platform/client",
+    "@mattermost/types": "file:../../../webapp/platform/types",
     "@percy/cli": "1.30.7",
     "@percy/playwright": "1.0.7",
-    "@testcontainers/postgresql": "10.18.0",
     "async-wait-until": "2.0.23",
-    "axe-core": "4.10.2",
+    "axe-core": "4.10.3",
     "deepmerge": "4.3.1",
     "dotenv": "16.4.7",
-    "mime-types": "2.1.35",
-    "pg": "8.13.3",
-    "testcontainers": "10.18.0",
-    "uuid": "11.0.5"
+    "mime-types": "3.0.1",
+    "uuid": "11.1.0"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "12.1.2",
     "@types/mime-types": "2.1.4",
-    "@types/node": "22.13.1",
-    "@types/react": "19.0.8",
-    "rollup": "4.34.6",
+    "@types/node": "22.13.14",
+    "@types/react": "19.0.12",
+    "rollup": "4.38.0",
     "rollup-plugin-copy": "3.5.0"
   },
   "peerDependencies": {
-    "@mattermost/client": "10.6.0",
-    "@mattermost/types": "10.6.0",
-    "@playwright/test": "^1.50.1"
-  },
-  "peerDependenciesMeta": {
-    "@mattermost/client": {
-      "optional": true
-    },
-    "@mattermost/types": {
-      "optional": true
-    }
+    "@playwright/test": "1.51.1"
   }
 }

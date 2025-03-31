@@ -19,15 +19,16 @@
     "test:ci": "npm run test:ci --workspace=test"
   },
   "dependencies": {
-    "@playwright/test": "1.50.1"
+    "dayjs": "1.11.13",
+    "@playwright/test": "1.51.1"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "8.23.0",
-    "eslint": "9.20.0",
-    "eslint-import-resolver-typescript": "3.8.0",
+    "@typescript-eslint/eslint-plugin": "8.28.0",
+    "eslint": "9.23.0",
+    "eslint-import-resolver-typescript": "4.2.7",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.31.0",
-    "prettier": "3.5.0",
+    "prettier": "3.5.3",
     "typescript": "5.7.3"
   }
 }

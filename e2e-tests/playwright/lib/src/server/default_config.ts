@@ -200,7 +200,6 @@ const defaultServerConfig: AdminConfig = {
         MaximumPayloadSizeBytes: 300000,
         MaximumURLLength: 2048,
         ScheduledPosts: true,
-        EnableOpenTracing: false,
     },
     TeamSettings: {
         SiteName: 'Mattermost',

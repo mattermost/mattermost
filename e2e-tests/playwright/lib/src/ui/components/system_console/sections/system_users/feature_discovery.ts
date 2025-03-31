@@ -21,5 +21,3 @@ export default class FeatureDiscovery {
         await expect(this.container.getByTestId('featureDiscovery_title')).toHaveText(title);
     }
 }
-
-export {FeatureDiscovery};

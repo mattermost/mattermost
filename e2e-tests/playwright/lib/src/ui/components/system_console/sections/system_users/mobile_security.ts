@@ -77,5 +77,3 @@ export default class MobileSecurity {
         await this.saveButton.click();
     }
 }
-
-export {MobileSecurity};

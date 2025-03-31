@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, pages, PlaywrightExtended, test} from '@mattermost/playwright-lib';
-import {Page} from '@playwright/test';
+import {expect, PlaywrightExtended, test} from '@mattermost/playwright-lib';
+import type {ChannelsPage, ScheduledDraftPage} from '@mattermost/playwright-lib';
+import type {Page} from '@playwright/test';
 
 test.skip('MM-T5643_1 should create a scheduled message from a channel', async ({pw}) => {
     test.setTimeout(pw.duration.four_min);
@@ -322,7 +323,7 @@ async function replyToLastPost(post: any): Promise<void> {
 }
 
 async function setupChannelPage(
-    channelsPage: pages.ChannelsPage,
+    channelsPage: ChannelsPage,
     draftMessage: string,
     teamName?: string,
     channelName?: string,
@@ -337,7 +338,7 @@ async function setupChannelPage(
 /**
  * Schedules a draft message by selecting a custom time and confirming.
  */
-async function scheduleMessage(channelsPage: pages.ChannelsPage): Promise<void> {
+async function scheduleMessage(channelsPage: ChannelsPage): Promise<void> {
     await channelsPage.scheduledDraftDropdown.toBeVisible();
     await channelsPage.scheduledDraftDropdown.selectCustomTime();
 
@@ -351,8 +352,8 @@ async function scheduleMessage(channelsPage: pages.ChannelsPage): Promise<void> 
  * Extracts and verifies the scheduled message on the scheduled page and in the channel.
  */
 async function verifyScheduledDraft(
-    channelsPage: pages.ChannelsPage,
-    scheduledDraftPage: pages.ScheduledDraftPage,
+    channelsPage: ChannelsPage,
+    scheduledDraftPage: ScheduledDraftPage,
     draftMessage: string,
     postBoxIndicator: string,
 ): Promise<void> {
@@ -368,7 +369,7 @@ async function verifyScheduledDraft(
 /**
  * Verifies the scheduled message count on the sidebar.
  */
-async function verifyscheduledDraftCount(page: pages.ChannelsPage, expectedCount: string): Promise<void> {
+async function verifyscheduledDraftCount(page: ChannelsPage, expectedCount: string): Promise<void> {
     await page.centerView.clickOnSeeAllscheduledDrafts();
     await page.sidebarLeft.assertscheduledDraftCountLHS(expectedCount);
 }
@@ -379,7 +380,7 @@ async function verifyscheduledDraftCount(page: pages.ChannelsPage, expectedCount
 async function compareMessageTimestamps(
     timeInChannel: string,
     scheduledDraftPageInfo: string,
-    scheduledDraftPage: pages.ScheduledDraftPage,
+    scheduledDraftPage: ScheduledDraftPage,
 ): Promise<void> {
     // Extract time from channel using the same date pattern
     const matchedTimeInChannel = timeInChannel.match(scheduledDraftPage.datePattern);
@@ -399,10 +400,7 @@ async function compareMessageTimestamps(
 /**
  * Removes HTML tags from the scheduled message content and extracts the time pattern.
  */
-function extractTimeFromHtml(
-    htmlContent: string,
-    scheduledDraftPage: pages.ScheduledDraftPage,
-): RegExpMatchArray | null {
+function extractTimeFromHtml(htmlContent: string, scheduledDraftPage: ScheduledDraftPage): RegExpMatchArray | null {
     // Remove all HTML tags and match the expected time pattern using the datePattern from scheduledDraftPage
     const cleanedText = htmlContent.replace(/<\/?[^>]+(>|$)/g, '');
 
