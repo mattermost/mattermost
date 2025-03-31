@@ -4,7 +4,6 @@
 package app
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
