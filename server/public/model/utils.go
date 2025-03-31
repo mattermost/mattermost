@@ -872,3 +872,12 @@ func SliceToMapKey(s ...string) map[string]any {
 
 	return m
 }
+
+func LimitRunes(s string, maxRunes int) string {
+	runes := []rune(s)
+	if len(runes) > maxRunes {
+		runes = runes[:maxRunes]
+	}
+
+	return string(runes)
+}
