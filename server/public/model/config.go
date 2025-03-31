@@ -3649,7 +3649,7 @@ func (s *ExportSettings) SetDefaults() {
 }
 
 type AccessControlSettings struct {
-	EnableAttributeBasedAccessControl *bool `access:"write_restrictable,cloud_restrictable`
+	EnableAttributeBasedAccessControl *bool `access:"write_restrictable,cloud_restrictable"`
 	EnableChannelScopeAccessControl   *bool `access:"cloud_restrictable"`
 }
 
