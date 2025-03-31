@@ -4,6 +4,7 @@
 import React, {useEffect, useState, memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
+import {Link} from 'react-router-dom';
 
 import type {PropertyField, UserPropertyFieldType} from '@mattermost/types/properties';
 
