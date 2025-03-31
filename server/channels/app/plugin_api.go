@@ -661,7 +661,7 @@ func (api *PluginAPI) GetGroupsBySource(groupSource model.GroupSource) ([]*model
 }
 
 func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.AppError) {
-	return api.app.GetGroupsByUserId(userID)
+	return api.app.GetGroupsByUserId(userID, model.GroupSearchOpts{})
 }
 
 func (api *PluginAPI) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
@@ -756,7 +756,7 @@ func (api *PluginAPI) DeleteGroupSyncable(groupID string, syncableID string, syn
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
-	post.AddProp("from_plugin", "true")
+	post.AddProp(model.PostPropsFromPlugin, "true")
 
 	post, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true, true)
 	if post != nil {

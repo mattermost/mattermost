@@ -27,7 +27,8 @@ type SqlChannelStore struct {
 	*SqlStore
 	metrics einterfaces.MetricsInterface
 
-	tableSelectQuery sq.SelectBuilder
+	tableSelectQuery           sq.SelectBuilder
+	sidebarCategorySelectQuery sq.SelectBuilder
 
 	// prepared query builders for use in multiple methods
 	channelMembersForTeamWithSchemeSelectQuery sq.SelectBuilder
@@ -139,8 +140,8 @@ func channelSliceColumns(prefix ...string) []string {
 	}
 }
 
-func channelToSlice(channel *model.Channel) []interface{} {
-	return []interface{}{
+func channelToSlice(channel *model.Channel) []any {
+	return []any{
 		channel.Id,
 		channel.CreateAt,
 		channel.UpdateAt,
@@ -506,6 +507,10 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 	}
 
 	s.tableSelectQuery = s.getQueryBuilder().Select(channelSliceColumns()...).From("Channels")
+
+	s.sidebarCategorySelectQuery = s.getQueryBuilder().
+		Select("SidebarCategories.Id", "SidebarCategories.UserId", "SidebarCategories.TeamId", "SidebarCategories.SortOrder", "SidebarCategories.Sorting", "SidebarCategories.Type", "SidebarCategories.DisplayName", "SidebarCategories.Muted", "SidebarCategories.Collapsed").
+		From("SidebarCategories")
 
 	s.initializeQueries()
 

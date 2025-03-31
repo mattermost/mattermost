@@ -91,8 +91,8 @@ type Job struct {
 	Data           StringMap `json:"data"`
 }
 
-func (j *Job) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (j *Job) Auditable() map[string]any {
+	return map[string]any{
 		"id":               j.Id,
 		"type":             j.Type,
 		"priority":         j.Priority,
@@ -129,7 +129,7 @@ func (j *Job) MarshalYAML() (any, error) {
 	}, nil
 }
 
-func (j *Job) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (j *Job) UnmarshalYAML(unmarshal func(any) error) error {
 	out := struct {
 		Id             string    `yaml:"id"`
 		Type           string    `yaml:"type"`

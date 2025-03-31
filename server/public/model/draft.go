@@ -97,7 +97,7 @@ func (o *Draft) PreSave() {
 
 func (o *Draft) PreCommit() {
 	if o.GetProps() == nil {
-		o.SetProps(make(map[string]interface{}))
+		o.SetProps(make(map[string]any))
 	}
 
 	if o.FileIds == nil {
