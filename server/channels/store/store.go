@@ -1209,6 +1209,7 @@ type ThreadMembershipImportData struct {
 	UnreadMentions int64
 }
 
+// GetPolicyOptions contains options for filtering policy records.
 type GetPolicyOptions struct {
 	// ParentID will filter policy records where they inherit parent with PolicyID.
 	ParentID string

@@ -553,7 +553,7 @@ func (s *TimerLayerAccessControlPolicyStore) Get(c request.CTX, id string) (*mod
 	return result, err
 }
 
-func (s *TimerLayerAccessControlPolicyStore) GetAll(rctxc request.CTX, opts GetPolicyOptions) ([]*model.AccessControlPolicy, error) {
+func (s *TimerLayerAccessControlPolicyStore) GetAll(rctxc request.CTX, opts store.GetPolicyOptions) ([]*model.AccessControlPolicy, error) {
 	start := time.Now()
 
 	result, err := s.AccessControlPolicyStore.GetAll(rctxc, opts)
