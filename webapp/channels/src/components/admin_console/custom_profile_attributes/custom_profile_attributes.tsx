@@ -131,12 +131,11 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                     defaultMessage='You can add or remove custom profile attributes by going to the <link>system properties page</link>.'
                     values={{
                         link: (msg: string) => (
-                            <a
-                                href='/admin_console/site_config/system_properties'
-                                rel='noopener noreferrer'
+                            <Link
+                                to='/admin_console/site_config/system_properties'
                             >
                                 {msg}
-                            </a>
+                            </Link>
                         ),
                     }}
                 />
@@ -145,7 +144,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
             {attributes.map((attr) => (
                 <TextSetting
                     key={attr.id}
-                    id={attr.name}
+                    id={`custom_profile_attribute-${attr.name}`}
                     label={attr.name}
                     value={attr.attrs?.[attributeKey] as string || ''}
                     onChange={(id, newValue) => {
