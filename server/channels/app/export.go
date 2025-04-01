@@ -150,7 +150,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	var appErr *model.AppError
 	teamId := ""
 	if opts.TeamName == nil {
-		ctx.Logger().Info("Bulk export: exporting teams")
+		ctx.Logger().Info("Bulk export: exporting all teams")
 		teamNames, appErr = a.exportAllTeams(ctx, job, writer)
 	} else {
 		ctx.Logger().Info("Bulk export: exporting a single team")
