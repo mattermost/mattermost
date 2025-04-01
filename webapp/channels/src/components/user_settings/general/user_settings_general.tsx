@@ -459,7 +459,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 }
             }
             if (attributeField.attrs.value_type === 'url') {
-                if (attributeValue !== '' && validHttpUrl(attributeValue)) {
+                if (attributeValue !== '' && !validHttpUrl(attributeValue)) {
                     this.setState({clientError: formatMessage(holders.validUrl), emailError: '', serverError: ''});
                     return;
                 }
