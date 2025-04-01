@@ -34,7 +34,6 @@ describe('components/TeamGroupsManageModal', () => {
         expect(await wrapper.findByTestId('group-name')).toBeInTheDocument();
         userEvent.click(wrapper.getByTestId('menu-button'));
 
-        // Find the "Remove Group" button by role and name
         userEvent.click(wrapper.getByTestId('remove-group-button'));
 
         expect(await wrapper.findByTestId('confirm-modal')).toBeInTheDocument();

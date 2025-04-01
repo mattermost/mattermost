@@ -54,8 +54,29 @@ export type Props = {
     headerButton?: React.ReactNode;
     showCloseButton?: boolean;
     showHeader?: boolean;
+
+    /*
+     * Controls the vertical location of the modal.
+     * 'top' => margin-top: 5vh
+     * 'center' => margin-top: calc(50vh - 240px)
+     * 'bottom' => margin-top: calc(50vh + 240px) (example calculation)
+     */
     modalLocation?: ModalLocation;
+
+    /**
+     * Optionally set a test ID for the container, so that the modal can be easily referenced
+     * in tests (Cypress, Playwright, etc.)
+     */
     dataTestId?: string;
+
+    /**
+     * Delay in milliseconds before activating the focus trap.
+     *
+     * This is useful for modals with dynamic content that might not be fully
+     * rendered when the modal is opened. The delay allows the DOM to settle
+     * before the focus trap identifies focusable elements. ie. MultiSelect
+     */
+    focusTrapDelay?: number;
 };
 
 export const GenericModal: React.FC<Props> = (props) => {
@@ -78,7 +99,9 @@ export const GenericModal: React.FC<Props> = (props) => {
     const [showState, setShowState] = useState(show);
 
     // Use focus trap to keep focus within the modal when it's open
-    useFocusTrap(showState, containerRef);
+    useFocusTrap(showState, containerRef, {
+        delayMs: props.focusTrapDelay,
+    });
 
     useEffect(() => {
         setShowState(show);
@@ -187,7 +210,14 @@ export const GenericModal: React.FC<Props> = (props) => {
     };
     const modalLocationClass = locationClassMapping[modalLocation];
 
-    // Accessibility labeling: if ariaLabelledby is provided, use it; otherwise default to 'genericModalLabel'
+    // Accessibility labeling strategy:
+    // 1. We always set aria-labelledby to ensure the modal has a proper label
+    //    - First try to use the provided ariaLabeledBy prop
+    //    - Fall back to 'genericModalLabel' which references the modal title
+    // 2. We also support aria-label as a secondary option
+    //    - This will only be used by screen readers if the element referenced by aria-labelledby doesn't exist
+    //    - This provides a fallback for accessibility in case the referenced element is missing
+    // Note: When both aria-labelledby and aria-label are present, aria-labelledby takes precedence
     const ariaLabelledby = props.ariaLabelledby || 'genericModalLabel';
 
     return (
