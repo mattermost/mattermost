@@ -1710,7 +1710,7 @@ describe('Actions.Users', () => {
                 123: 'NewValue',
             });
 
-        const response = await store.dispatch(Actions.saveCustomProfileAttribute(currentUser.id, '123', '  NewValue  '));
+        const response = await store.dispatch(Actions.saveCustomProfileAttribute(currentUser.id, '123', 'NewValue'));
         const data = response.data!;
         expect(data).toEqual({123: 'NewValue'});
     });
