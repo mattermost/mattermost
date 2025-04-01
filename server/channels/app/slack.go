@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/slackimport"
@@ -38,8 +39,12 @@ func (a *App) SlackImport(c request.CTX, fileData multipart.File, fileSize int64
 		},
 		GenerateThumbnailImage: a.generateThumbnailImage,
 		GeneratePreviewImage:   a.generatePreviewImage,
-		InvalidateAllCaches:    func() { a.ch.srv.InvalidateAllCaches() },
-		MaxPostSize:            func() int { return a.ch.srv.platform.MaxPostSize() },
+		InvalidateAllCaches: func() {
+			if err := a.ch.srv.InvalidateAllCaches(); err != nil {
+				c.Logger().Error("Error invalidating cache during Slack import", mlog.Err(err))
+			}
+		},
+		MaxPostSize: func() int { return a.ch.srv.platform.MaxPostSize() },
 		PrepareImage: func(fileData []byte) (image.Image, string, func(), error) {
 			img, imgType, release, err := prepareImage(c, a.ch.imgDecoder, bytes.NewReader(fileData))
 			if err != nil {
