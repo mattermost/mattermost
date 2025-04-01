@@ -8,18 +8,20 @@ type Props = {
     email?: string;
     haveOverrideProp?: boolean;
     isBot?: boolean;
+    userId: string;
 }
 const ProfilePopoverEmail = ({
     email,
     haveOverrideProp,
     isBot,
+    userId,
 }: Props) => {
     if (!email || isBot || haveOverrideProp) {
         return null;
     }
 
     // Generate a unique ID for accessibility
-    const titleId = `user-popover__custom_attributes-title-${Math.random().toString(36).substring(2, 26)}`;
+    const titleId = `user-popover__custom_attributes-title-${userId}`;
 
     return (
         <div className='user-popover__custom_attributes'>

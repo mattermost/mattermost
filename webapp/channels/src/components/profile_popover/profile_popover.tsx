@@ -182,6 +182,7 @@ const ProfilePopover = ({
                     email={user.email}
                     haveOverrideProp={haveOverrideProp}
                     isBot={user.is_bot}
+                    userId={user.id}
                 />
                 <ProfilePopoverPosition
                     position={user.position}
