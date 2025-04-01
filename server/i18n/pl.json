@@ -10510,5 +10510,41 @@
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
     "translation": "Nieprawidłowe atrybuty wartości właściwości: {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Nieprawidłowa poprawka pola atrybutu profilu niestandardowego"
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Nieprawidłowy typ polityki."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Wersja nie jest ważna dla tej polityki kontroli dostępu."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Nieprawidłowy identyfikator polityki."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Nieprawidłowy import dla polityki."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Nieprawidłowa nazwa polityki."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Nieprawidłowa zmiana zasad."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Reguła(y) jest(są) nieważna(e)."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Polityka musi importować lub definiować reguły."
   }
 ]
