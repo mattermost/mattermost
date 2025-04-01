@@ -23,6 +23,6 @@ func (s *baseSetting) GetDependency() string {
 	return s.dependsOn
 }
 
-func (s *baseSetting) IsDisabled(foreignValue interface{}) bool {
+func (s *baseSetting) IsDisabled(foreignValue any) bool {
 	return false
 }

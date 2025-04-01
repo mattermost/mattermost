@@ -1154,6 +1154,25 @@ func (a *App) removeGetAnalyticsPermissionMigration() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) addSysConsoleMobileSecurityPermission() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	transformations = append(transformations, permissionTransformation{
+		On:  isExactRole(model.SystemAdminRoleId),
+		Add: []string{model.PermissionSysconsoleWriteEnvironmentMobileSecurity.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On: permissionOr(
+			isExactRole(model.SystemAdminRoleId),
+			isExactRole(model.SystemReadOnlyAdminRoleId),
+		),
+		Add: []string{model.PermissionSysconsoleReadEnvironmentMobileSecurity.Id},
+	})
+
+	return transformations, nil
+}
+
 // Only sysadmins, team admins, and users with channels and groups managements have access to "convert channel to public"
 func (a *App) getRestrictAcessToChannelConversionToPublic() (permissionsMap, error) {
 	return []permissionTransformation{
@@ -1223,6 +1242,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.RestrictAccessToChannelConversionToPublic, Migration: a.getRestrictAcessToChannelConversionToPublic},
 		{Key: model.MigrationKeyFixReadAuditsPermission, Migration: a.getFixReadAuditsPermissionMigration},
 		{Key: model.MigrationRemoveGetAnalyticsPermission, Migration: a.removeGetAnalyticsPermissionMigration},
+		{Key: model.MigrationAddSysconsoleMobileSecurityPermission, Migration: a.addSysConsoleMobileSecurityPermission},
 	}
 
 	roles, err := s.Store().Role().GetAll()

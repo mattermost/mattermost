@@ -257,7 +257,8 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if oldTeam, err := c.App.GetTeam(c.Params.TeamId); err == nil {
+	oldTeam, err := c.App.GetTeam(c.Params.TeamId)
+	if err == nil {
 		auditRec.AddEventPriorState(oldTeam)
 		auditRec.AddEventObjectType("team")
 	}
@@ -266,6 +267,15 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	// If the team is now group constrained but wasn't previously, delete members that aren't part of the team's groups
+	if patchedTeam.GroupConstrained != nil && *patchedTeam.GroupConstrained && (oldTeam.GroupConstrained == nil || !*oldTeam.GroupConstrained) {
+		c.App.Srv().Go(func() {
+			if err := c.App.DeleteGroupConstrainedTeamMemberships(c.AppContext, &c.Params.TeamId); err != nil {
+				c.Logger.Warn("Error deleting group-constrained team memberships", mlog.Err(err))
+			}
+		})
 	}
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), patchedTeam)
