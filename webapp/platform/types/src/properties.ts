@@ -53,7 +53,7 @@ export type PropertyFieldOption = {
 
 export type UserPropertyField = PropertyField & {
     group_id: UserPropertyFieldGroupID;
-    attrs: {
+    attrs?: {
         sort_order: number;
         visibility: FieldVisibility;
         value_type: FieldValueType;

@@ -281,6 +281,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             ...customProfileAttribute,
             type: 'select',
             attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
                 options: [
                     {id: 'opt1', name: 'Option 1', color: ''},
                     {id: 'opt2', name: 'Option 2', color: ''},
@@ -306,6 +309,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             ...customProfileAttribute,
             type: 'multiselect',
             attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
                 options: [
                     {id: 'opt1', name: 'Option 1', color: ''},
                     {id: 'opt2', name: 'Option 2', color: ''},
@@ -375,6 +381,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             ...customProfileAttribute,
             type: 'select',
             attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
                 options: [
                     {id: 'opt1', name: 'Option 1', color: ''},
                     {id: 'opt2', name: 'Option 2', color: ''},
@@ -412,6 +421,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             ...customProfileAttribute,
             type: 'multiselect',
             attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
                 options: [
                     {id: 'opt1', name: 'Option 1', color: ''},
                     {id: 'opt2', name: 'Option 2', color: ''},
@@ -452,6 +464,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             ...customProfileAttribute,
             type: 'select',
             attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
                 options: [
                     {id: 'opt1', name: 'Option 1', color: ''},
                     {id: 'opt2', name: 'Option 2', color: ''},

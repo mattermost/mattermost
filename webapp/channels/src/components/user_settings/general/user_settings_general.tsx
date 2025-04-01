@@ -1412,7 +1412,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 }
 
                 if (attribute.type === 'select' || attribute.type === 'multiselect') {
-                    const attribOptions = attribute.attrs.options;
+                    const attribOptions = attribute.attrs?.options;
                     if (!attribOptions) {
                         return '';
                     }

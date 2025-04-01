@@ -178,7 +178,7 @@ export const useUserPropertyFields = () => {
             pendingIO.apply((pending) => {
                 const nextOrder = Object.values(pending.data).filter((x) => !isDeletePending(x)).length;
                 const name = getIncrementedName('Text', pending);
-                const field = newPendingField({name, type: 'text', attrs: {sort_order: nextOrder}});
+                const field = newPendingField({name, type: 'text', attrs: {sort_order: nextOrder, visibility: 'when_set', value_type: ''}});
                 return collectionAddItem(pending, field);
             });
         },
@@ -195,7 +195,7 @@ export const useUserPropertyFields = () => {
                     const itemNextOrder = nextOrder.indexOf(item.id);
 
                     if (itemNextOrder !== itemCurrentOrder) {
-                        changedItems.push({...item, attrs: {sort_order: itemNextOrder}});
+                        changedItems.push({...item, attrs: {sort_order: itemNextOrder, visibility: 'when_set', value_type: ''}});
                     }
 
                     return changedItems;
