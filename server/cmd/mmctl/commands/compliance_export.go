@@ -100,49 +100,17 @@ func complianceExportDownloadCmdF(c client.Client, command *cobra.Command, args 
 
 	retries, _ := command.Flags().GetInt("num-retries")
 
-	var outFile *os.File
-	info, err := os.Stat(path)
-	switch {
-	case err != nil && !os.IsNotExist(err):
-		// some error occurred and not because file doesn't exist
-		return fmt.Errorf("failed to stat compliance export file: %w", err)
-	case err == nil && info.Size() > 0:
-		// we exit to avoid overwriting an existing non-empty file
-		return fmt.Errorf("compliance export file already exists")
-	case err != nil:
-		// file does not exist, we create it
-		outFile, err = os.Create(path)
-		if err != nil {
-			return fmt.Errorf("failed to create compliance export file: %w", err)
-		}
-	default:
-		// no error, file exists, we open it
-		outFile, err = os.OpenFile(path, os.O_WRONLY, 0600)
-		if err != nil {
-			return fmt.Errorf("failed to open compliance export file: %w", err)
-		}
+	downloadFn := func(outFile *os.File) (string, error) {
+		return c.DownloadComplianceExport(context.TODO(), jobID, outFile)
 	}
 
-	defer outFile.Close()
-
-	var suggestedFilename string
-	for i := range retries {
-		suggestedFilename, err = c.DownloadComplianceExport(context.TODO(), jobID, outFile)
-		if err != nil {
-			if i >= retries-1 {
-				return fmt.Errorf("failed to download compliance export file: %w", err)
-			}
-			fmt.Printf("Download attempt %d/%d failed: %v. Retrying...\n", i+1, retries+1, err)
-			continue
-		}
-		break
+	suggestedFilename, err := downloadFile(path, downloadFn, retries, "compliance export")
+	if err != nil {
+		return err
 	}
 
 	// If we didn't provide a path and got a suggested filename, rename the file
 	if len(args) == 1 && suggestedFilename != "" && suggestedFilename != path {
-		// Close the file before renaming
-		outFile.Close()
-
 		// If the suggested name already exists, don't overwrite
 		if _, err := os.Stat(suggestedFilename); err == nil {
 			printer.PrintWarning(fmt.Sprintf("File with the server's suggested name %q already exists, keeping %q", suggestedFilename, path))
