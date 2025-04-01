@@ -153,9 +153,10 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		if teamId := relayProps["team_id"]; teamId != "" {
 			if err = c.App.AddUserToTeamByTeamId(c.AppContext, teamId, user); err != nil {
 				c.LogErrorByCode(err)
-				break
 			}
-			c.App.AddDirectChannels(c.AppContext, teamId, user)
+			if err = c.App.AddDirectChannels(c.AppContext, teamId, user); err != nil {
+				c.LogErrorByCode(err)
+			}
 		}
 	case model.OAuthActionEmailToSSO:
 		if err = c.App.RevokeAllSessions(c.AppContext, user.Id); err != nil {
