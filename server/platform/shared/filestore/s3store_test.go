@@ -438,7 +438,6 @@ func TestWriteFileVideoMimeTypes(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, mimeType, props.ContentType)
 
-			
 			defer func() {
 				err = fileBackend.RemoveFile(path)
 				require.NoError(t, err)

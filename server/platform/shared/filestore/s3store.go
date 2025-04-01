@@ -63,8 +63,8 @@ const (
 )
 
 var (
-	imageTypes =map[string]string{".jpg":"image/jpeg",".jpeg":"image/jpeg",".gif":"image/gif",".bmp":"image/bmp",".png":"image/png",".tiff": "image/tiff",".tif":"image/tif"}
-	videoTypes=map[string]string{".mp4": "video/mp4",".mpeg":"video/mpeg",".avi":"video/avi"}
+	imageTypes = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
+	videoTypes = map[string]string{".mp4": "video/mp4", ".mpeg": "video/mpeg", ".avi": "video/avi"}
 )
 
 var (
@@ -75,30 +75,30 @@ var (
 
 func isFileExtImage(ext string) bool {
 	ext = strings.ToLower(ext)
-	_,ok :=imageTypes[ext]
-	return ok 
+	_, ok := imageTypes[ext]
+	return ok
 }
 func isFileExtVideo(ext string) bool {
 	ext = strings.ToLower(ext)
-	_,ok :=videoTypes[ext]
+	_, ok := videoTypes[ext]
 	return ok
 }
 
 func getImageMimeType(ext string) string {
 	ext = strings.ToLower(ext)
-	if mimeType,ok:=imageTypes[ext]; ok{
-	return mimeType
+	if mimeType, ok := imageTypes[ext]; ok {
+		return mimeType
 	}
 	return "image"
 
 }
 func getVideoMimeType(ext string) string {
 	ext = strings.ToLower(ext)
-	if mimeType,ok :=videoTypes[ext]; ok{
+	if mimeType, ok := videoTypes[ext]; ok {
 		return mimeType
 	}
-		return "video/mp4"
-	}
+	return "video/mp4"
+}
 
 func (s *S3FileBackendAuthError) Error() string {
 	return s.DetailedError
@@ -526,7 +526,7 @@ func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path
 	default:
 		contentType = "binary/octet-stream"
 	}
-	
+
 	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
 
 	objSize := int64(-1)
