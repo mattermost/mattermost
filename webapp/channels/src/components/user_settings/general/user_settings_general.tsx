@@ -1412,7 +1412,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 }
 
                 if (attribute.type === 'select' || attribute.type === 'multiselect') {
-                    const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
+                    const attribOptions = attribute.attrs.options;
+                    if (!attribOptions) {
+                        return '';
+                    }
                     if (Array.isArray(attributeValue)) {
                         return attributeValue.map((value) => {
                             const option = attribOptions.find((o) => o.id === value);
