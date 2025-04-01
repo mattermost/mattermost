@@ -23,6 +23,7 @@ func (api *API) InitCustomProfileAttributes() {
 		api.BaseRoutes.CustomProfileAttributesField.Handle("", api.APISessionRequired(deleteCPAField)).Methods(http.MethodDelete)
 		api.BaseRoutes.User.Handle("/custom_profile_attributes", api.APISessionRequired(listCPAValues)).Methods(http.MethodGet)
 		api.BaseRoutes.CustomProfileAttributesValues.Handle("", api.APISessionRequired(patchCPAValues)).Methods(http.MethodPatch)
+		api.BaseRoutes.CustomProfileAttributes.Handle("/group", api.APISessionRequired(getCPAGroup)).Methods(http.MethodGet)
 	}
 }
 
@@ -182,6 +183,23 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("property_field")
 
 	ReturnStatusOK(w)
+}
+
+func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
+		c.Err = model.NewAppError("Api4.getCPAGroup", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	groupID, err := c.App.CpaGroupID()
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getCPAGroup", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(map[string]string{"id": groupID}); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func sanitizePropertyValue(cpaField *model.CPAField, rawValue json.RawMessage) (json.RawMessage, error) {
