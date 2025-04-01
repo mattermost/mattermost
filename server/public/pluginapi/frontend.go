@@ -25,6 +25,6 @@ func (f *FrontendService) OpenInteractiveDialog(dialog model.OpenDialogRequest) 
 // broadcast determines to which users to send the event.
 //
 // Minimum server version: 5.2
-func (f *FrontendService) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
+func (f *FrontendService) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	f.api.PublishWebSocketEvent(event, payload, broadcast)
 }
