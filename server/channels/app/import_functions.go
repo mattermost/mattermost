@@ -939,8 +939,7 @@ func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.
 		var f io.ReadCloser
 		f, err = data.ProfileImageData.Open()
 		if err != nil {
-			rctx.Logger().Warn("Unable to open the profile image data.", mlog.Err(err))
-			return model.NewAppError("importProfileImage", "app.import.profile_image.open_data.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return model.NewAppError("importProfileImage", "app.import.profile_image.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		defer func() {
@@ -953,15 +952,14 @@ func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.
 		var b []byte
 		b, err = io.ReadAll(limitedReader)
 		if err != nil {
-			rctx.Logger().Warn("Unable to read all bytes from profile picture.", mlog.Err(err))
 			return model.NewAppError("importProfileImage", "app.import.profile_image.read_data.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		file = bytes.NewReader(b)
 	} else {
-		file, err = os.Open(*data.ProfileImage)
+		path := *data.ProfileImage
+		file, err = os.Open(path)
 		if err != nil {
-			rctx.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
-			return model.NewAppError("importProfileImage", "app.import.profile_image.open_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return model.NewAppError("importProfileImage", "app.import.profile_image.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		defer func() {
@@ -972,12 +970,11 @@ func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.
 	}
 
 	if file != nil {
-		if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
+		if err := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); err != nil {
 			return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 		}
 		if err := a.SetProfileImageFromFile(rctx, userID, file); err != nil {
-			rctx.Logger().Warn("Unable to set the profile image from a file.", mlog.Err(err))
-			return model.NewAppError("importProfileImage", "app.import.profile_image.set_image.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return err
 		}
 	}
 
@@ -1510,9 +1507,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 	}
 
 	for _, postWithData := range postsWithData {
-		if err := a.updateFileInfoWithPostId(rctx, postWithData.post); err != nil {
-			rctx.Logger().Warn("Error updating file info with post ID", mlog.String("post_id", postWithData.post.Id), mlog.Err(err))
-		}
+		a.updateFileInfoWithPostId(rctx, postWithData.post)
 
 		if postWithData.replyData.FlaggedBy != nil {
 			var preferences model.Preferences
@@ -2032,9 +2027,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 				return postWithData.lineNumber, err
 			}
 		}
-		if err := a.updateFileInfoWithPostId(rctx, postWithData.post); err != nil {
-			rctx.Logger().Warn("Error updating file info with post ID", mlog.String("post_id", postWithData.post.Id), mlog.Err(err))
-		}
+		a.updateFileInfoWithPostId(rctx, postWithData.post)
 	}
 	return 0, nil
 }
@@ -2065,14 +2058,12 @@ func (a *App) uploadAttachments(rctx request.CTX, attachments *[]imports.Attachm
 	return fileIDs
 }
 
-func (a *App) updateFileInfoWithPostId(rctx request.CTX, post *model.Post) *model.AppError {
+func (a *App) updateFileInfoWithPostId(rctx request.CTX, post *model.Post) {
 	for _, fileID := range post.FileIds {
 		if err := a.Srv().Store().FileInfo().AttachToPost(rctx, fileID, post.Id, post.ChannelId, post.UserId); err != nil {
 			rctx.Logger().Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Array("post_file_ids", post.FileIds), mlog.Err(err))
-			return model.NewAppError("updateFileInfoWithPostId", "app.import.attach_files_to_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
-	return nil
 }
 func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelImportData, dryRun bool) *model.AppError {
 	var err *model.AppError
@@ -2545,9 +2536,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 			}
 		}
 
-		if err := a.updateFileInfoWithPostId(rctx, postWithData.post); err != nil {
-			rctx.Logger().Warn("Error updating file info with post ID", mlog.String("post_id", postWithData.post.Id), mlog.Err(err))
-		}
+		a.updateFileInfoWithPostId(rctx, postWithData.post)
 	}
 	return 0, nil
 }
