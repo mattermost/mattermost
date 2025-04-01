@@ -10525,6 +10525,14 @@
     "translation": "Unable to parse incoming data."
   },
   {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Failed to parse form for webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Failed to parse multipart form for webhook {{.hook_id}}."
+  },
+  {
     "id": "web.incoming_webhook.permissions.app_error",
     "translation": "User {{.user}} does not have appropriate permissions to channel {{.channel}}"
   },

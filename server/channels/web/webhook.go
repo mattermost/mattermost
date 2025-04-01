@@ -101,7 +101,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	if _, err := w.Write([]byte("ok")); err != nil {
-		c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.write_response.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 		return
 	}
 }
@@ -125,7 +125,7 @@ func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	if _, err := w.Write([]byte("ok")); err != nil {
-		c.Err = model.NewAppError("commandWebhook", "web.command_webhook.write_response.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 		return
 	}
 }
