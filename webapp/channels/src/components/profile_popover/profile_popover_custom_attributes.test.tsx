@@ -29,6 +29,11 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         create_at: 0,
         update_at: 0,
         delete_at: 0,
+        attrs: {
+            value_type: '' as UserPropertyValueType,
+            visibility: 'when_set',
+            sort_order: 0,
+        },
     };
 
     const phoneAttribute: UserPropertyField = {
@@ -41,6 +46,8 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         delete_at: 0,
         attrs: {
             value_type: 'phone' as UserPropertyValueType,
+            visibility: 'when_set',
+            sort_order: 1,
         },
     };
 
@@ -54,6 +61,8 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         delete_at: 0,
         attrs: {
             value_type: 'url' as UserPropertyValueType,
+            visibility: 'when_set',
+            sort_order: 2,
         },
     };
 
@@ -66,6 +75,9 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         update_at: 0,
         delete_at: 0,
         attrs: {
+            visibility: 'when_set',
+            sort_order: 3,
+            value_type: '',
             options: [
                 {id: 'option1', name: 'Option 1', color: '#FF0000'},
                 {id: 'option2', name: 'Option 2', color: '#00FF00'},

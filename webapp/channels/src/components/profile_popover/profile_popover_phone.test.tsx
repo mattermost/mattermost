@@ -23,6 +23,8 @@ describe('components/ProfilePopoverPhone', () => {
         delete_at: 0,
         attrs: {
             value_type: 'phone',
+            visibility: 'when_set',
+            sort_order: 0,
         },
     };
 
