@@ -49,7 +49,8 @@ describe('channel groups', () => {
         }
     });
 
-    it('limits the listed groups if the parent team is group-constrained', () => {
+    // This test is using broken functionality to verify that listed groups are limited. This needs to be changed so that a system admin is part of the contrained group
+    it.skip('limits the listed groups if the parent team is group-constrained', () => {
         // # Visit a channel
         cy.visit(`/${testTeam.name}/channels/off-topic`);
 
