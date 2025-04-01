@@ -164,7 +164,7 @@ issues:
         channels/store/storetest/team_store.go|\
         channels/store/storetest/thread_store.go|\
         channels/store/storetest/user_store.go|\
-        channels/utils/license_test.go|\
+\
         channels/web/oauth_test.go|\
         channels/web/saml.go|\
         channels/web/web_test.go|\
