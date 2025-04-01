@@ -1148,12 +1148,12 @@ func TestExportSingleTeam(t *testing.T) {
 	th1 := Setup(t).InitBasic()
 	defer th1.TearDown()
 
-	teams1, errTeams := th1.App.GetAllTeams()
-	assert.Nil(t, errTeams)
+	teams1, appErr := th1.App.GetAllTeams()
+	require.Nil(t, appErr)
 	assert.Equal(t, len(teams1), 1)
 
-	channels1, err1 := th1.App.GetAllChannels(th1.Context, 0, 10, model.ChannelSearchOpts{})
-	assert.Nil(t, err1)
+	channels1, appErr := th1.App.GetAllChannels(th1.Context, 0, 10, model.ChannelSearchOpts{})
+	require.Nil(t, appErr)
 	assert.Equal(t, 3, len(channels1))
 
 	// create DM and GM channels, which shouldn't be exported
@@ -1168,30 +1168,27 @@ func TestExportSingleTeam(t *testing.T) {
 	channel1 := th1.CreateChannel(th1.Context, team1)
 	th1.CreatePost(channel1)
 
-	all_teams, err1 := th1.App.GetAllTeams()
-	assert.Nil(t, err1)
-	assert.Equal(t, 2, len(all_teams))
-	all_channels, err1 := th1.App.GetAllChannels(th1.Context, 0, 10, model.ChannelSearchOpts{})
-	assert.Nil(t, err1)
-	assert.Equal(t, 6, len(all_channels))
+	allChannels, appErr := th1.App.GetAllChannels(th1.Context, 0, 10, model.ChannelSearchOpts{})
+	require.Nil(t, appErr)
+	assert.Equal(t, 6, len(allChannels))
 
 	var b bytes.Buffer
-	err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{TeamName: &th1.BasicTeam.Name})
-	require.Nil(t, err)
+	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{TeamName: &th1.BasicTeam.Name})
+	require.Nil(t, appErr)
 
 	th2 := Setup(t)
 	defer th2.TearDown()
-	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
-	assert.Nil(t, err)
+	appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	require.Nil(t, appErr)
 	assert.Equal(t, 0, i)
 
-	teams2, err := th2.App.GetAllTeams()
-	assert.Nil(t, err)
+	teams2, appErr := th2.App.GetAllTeams()
+	require.Nil(t, appErr)
 	assert.Equal(t, 1, len(teams2))
 	assert.Equal(t, th1.BasicTeam.Name, teams2[0].Name)
 
-	channels2, err := th2.App.GetAllChannels(th1.Context, 0, 10, model.ChannelSearchOpts{})
-	assert.Nil(t, err)
+	channels2, appErr := th2.App.GetAllChannels(th1.Context, 0, 10, model.ChannelSearchOpts{})
+	require.Nil(t, appErr)
 	assert.Equal(t, 3, len(channels2)) // the DM and GM channels were excluded
 	channelNames := []string{channels1[0].Name, channels1[1].Name, channels1[2].Name}
 	for _, channel := range channels2 {
@@ -1203,16 +1200,16 @@ func TestExportMissingTeam(t *testing.T) {
 	th1 := Setup(t).InitBasic()
 	defer th1.TearDown()
 
-	teams1, errTeams := th1.App.GetAllTeams()
-	assert.Nil(t, errTeams)
+	teams1, appErr := th1.App.GetAllTeams()
+	require.Nil(t, appErr)
 	assert.Equal(t, len(teams1), 1)
 
 	var b bytes.Buffer
 	unknownTeam := "some_nonexistent_team"
-	err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{TeamName: &unknownTeam})
-	require.NotNil(t, err)
-	assert.Equal(t, err.Id, "app.team.get.app_error")
-	assert.Equal(t, err.DetailedError, "team=some_nonexistent_team")
+	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{TeamName: &unknownTeam})
+	require.NotNil(t, appErr)
+	assert.Equal(t, appErr.Id, "app.team.get.app_error")
+	assert.Equal(t, appErr.DetailedError, "team=some_nonexistent_team")
 }
 
 func TestExportArchivedChannels(t *testing.T) {

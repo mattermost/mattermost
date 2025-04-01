@@ -153,10 +153,11 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		ctx.Logger().Info("Bulk export: exporting all teams")
 		teamNames, appErr = a.exportAllTeams(ctx, job, writer)
 	} else {
-		ctx.Logger().Info("Bulk export: exporting a single team")
-		team, errGet := a.Srv().Store().Team().GetByName(*opts.TeamName)
-		if errGet != nil {
-			return model.NewAppError("BulkExport", "app.team.get.app_error", nil, "team="+*opts.TeamName, http.StatusInternalServerError).Wrap(errGet)
+		ctx.Logger().Info("Bulk export: exporting a single team", mlog.String("team_id", teamId))
+		var team *model.Team
+		team, err := a.Srv().Store().Team().GetByName(*opts.TeamName)
+		if err != nil {
+			return model.NewAppError("BulkExport", "app.team.get.app_error", nil, "team="+*opts.TeamName, http.StatusInternalServerError).Wrap(err)
 		}
 		teamId = team.Id
 		teamNames, appErr = a.exportSingleTeam(ctx, job, writer, teamId)
@@ -183,7 +184,11 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 	profilePictures = append(profilePictures, botPPs...)
 
-	ctx.Logger().Info("Bulk export: exporting posts")
+	if opts.TeamName == nil {
+		ctx.Logger().Info("Bulk export: exporting all posts")
+	} else {
+		ctx.Logger().Info("Bulk export: exporting posts from selected team", mlog.String("team_name", *opts.TeamName))
+	}
 	attachments, appErr := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels, teamId)
 	if appErr != nil {
 		return appErr
@@ -207,6 +212,8 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		if appErr != nil {
 			return appErr
 		}
+	} else {
+		ctx.Logger().Info("Bulk export: not exporting direct channels or direct posts as export is restricted to a team", mlog.String("team_id", teamId))
 	}
 
 	if opts.IncludeAttachments {
@@ -460,7 +467,7 @@ func (a *App) exportSingleTeam(ctx request.CTX, job *model.Job, writer io.Writer
 	}
 
 	if team.DeleteAt != 0 {
-		return nil, model.NewAppError("exportSingleTeam", "app.team.get.deleted.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("exportSingleTeam", "app.team.get.deleted.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "teams_exported", 1)
@@ -518,7 +525,6 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 	profilePictures := []string{}
 	for {
 		users, err := a.Srv().Store().User().GetAllAfter(1000, afterId)
-
 		if err != nil {
 			return profilePictures, model.NewAppError("exportAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
