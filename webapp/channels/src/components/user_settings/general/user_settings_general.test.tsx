@@ -350,7 +350,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
     });
 
     test('submitAttribute() should handle server error', async () => {
-        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({error: 'Server Error'});
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({error: {message: 'Server Error'}});
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
