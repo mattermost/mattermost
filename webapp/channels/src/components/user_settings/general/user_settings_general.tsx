@@ -534,13 +534,13 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             attributeValues[fieldID] = '';
         } else if (Array.isArray(selectedOption)) {
             // Handle multi-select
-            const values = selectedOption.filter((option): option is SelectOption => Boolean(option && 'value' in option && option.value)).map((option) => option.value);
-
-            // Store as comma-separated string for consistency with backend
-            attributeValues[fieldID] = values;
-        } else if ('value' in selectedOption && selectedOption.value) {
+            attributeValues[fieldID] = selectedOption.
+                filter((option): option is SelectOption =>
+                    Boolean(option && Object.hasOwn(option, 'value'))).
+                map((option) => option.value);
+        } else if ('value' in selectedOption) {
             // Handle single select
-            attributeValues[fieldID] = selectedOption.value;
+            attributeValues[fieldID] = selectedOption.value || '';
         } else {
             attributeValues[fieldID] = '';
         }
