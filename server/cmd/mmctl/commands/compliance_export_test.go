@@ -286,13 +286,13 @@ func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
 			EXPECT().
 			DownloadComplianceExport(context.TODO(), mockJob.Id, gomock.Any()).
 			Return("", mockError).
-			Times(5) // Initial attempt + 4 retries
+			Times(6) // Initial attempt + 5 retries
 
 		cmd := makeCmd()
 		cmd.Flags().Int("num-retries", 5, "")
 		err := complianceExportDownloadCmdF(s.client, cmd, []string{mockJob.Id})
 		s.Require().NotNil(err)
-		s.EqualError(err, "failed to download compliance export file: failed to download file")
+		s.EqualError(err, "failed to download compliance export after 5 retries: failed to download file")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
