@@ -55,7 +55,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 
 		teamName, ok := job.Data["team_name"]
 		if ok {
-			opts.TeamName = &teamName
+			opts.TeamName = teamName
 		}
 
 		outPath := *app.Config().ExportSettings.Directory

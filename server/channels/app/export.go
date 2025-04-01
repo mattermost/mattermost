@@ -149,15 +149,15 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	var teamNames map[string]bool
 	var appErr *model.AppError
 	teamId := ""
-	if opts.TeamName == nil {
+	if opts.TeamName == "" {
 		ctx.Logger().Info("Bulk export: exporting all teams")
 		teamNames, appErr = a.exportAllTeams(ctx, job, writer)
 	} else {
 		ctx.Logger().Info("Bulk export: exporting a single team", mlog.String("team_id", teamId))
 		var team *model.Team
-		team, err := a.Srv().Store().Team().GetByName(*opts.TeamName)
+		team, err := a.Srv().Store().Team().GetByName(opts.TeamName)
 		if err != nil {
-			return model.NewAppError("BulkExport", "app.team.get.app_error", nil, "team="+*opts.TeamName, http.StatusInternalServerError).Wrap(err)
+			return model.NewAppError("BulkExport", "app.team.get.app_error", nil, "team="+opts.TeamName, http.StatusInternalServerError).Wrap(err)
 		}
 		teamId = team.Id
 		teamNames, appErr = a.exportSingleTeam(ctx, job, writer, teamId)
@@ -184,10 +184,10 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 	profilePictures = append(profilePictures, botPPs...)
 
-	if opts.TeamName == nil {
+	if opts.TeamName == "" {
 		ctx.Logger().Info("Bulk export: exporting all posts")
 	} else {
-		ctx.Logger().Info("Bulk export: exporting posts from selected team", mlog.String("team_name", *opts.TeamName))
+		ctx.Logger().Info("Bulk export: exporting posts from selected team", mlog.String("team_name", opts.TeamName))
 	}
 	attachments, appErr := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels, teamId)
 	if appErr != nil {

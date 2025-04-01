@@ -1173,7 +1173,7 @@ func TestExportSingleTeam(t *testing.T) {
 	assert.Equal(t, 6, len(allChannels))
 
 	var b bytes.Buffer
-	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{TeamName: &th1.BasicTeam.Name})
+	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{TeamName: th1.BasicTeam.Name})
 	require.Nil(t, appErr)
 
 	th2 := Setup(t)
@@ -1206,7 +1206,7 @@ func TestExportMissingTeam(t *testing.T) {
 
 	var b bytes.Buffer
 	unknownTeam := "some_nonexistent_team"
-	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{TeamName: &unknownTeam})
+	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{TeamName: unknownTeam})
 	require.NotNil(t, appErr)
 	assert.Equal(t, appErr.Id, "app.team.get.app_error")
 	assert.Equal(t, appErr.DetailedError, "team=some_nonexistent_team")
