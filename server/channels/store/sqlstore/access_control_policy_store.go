@@ -113,6 +113,26 @@ func accessControlPolicySliceColumns(prefix ...string) []string {
 	}
 }
 
+func accessControlPolicyHistorySliceColumns(prefix ...string) []string {
+	var p string
+	if len(prefix) == 1 {
+		p = prefix[0] + "."
+	} else if len(prefix) > 1 {
+		panic("cannot accept multiple prefixes")
+	}
+
+	return []string{
+		p + "ID",
+		p + "Name",
+		p + "Type",
+		p + "CreateAt",
+		p + "Revision",
+		p + "Version",
+		p + "Data",
+		p + "Props",
+	}
+}
+
 type SqlAccessControlPolicyStore struct {
 	*SqlStore
 	metrics einterfaces.MetricsInterface
@@ -177,7 +197,7 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 
 		query := s.getQueryBuilder().
 			Insert("AccessControlPolicyHistory").
-			Columns("ID", "Name", "Type", "CreateAt", "Revision", "Version", "Data", "Props").
+			Columns(accessControlPolicyHistorySliceColumns()...).
 			Values(tmp.ID, tmp.Name, tmp.Type, tmp.CreateAt, tmp.Revision, tmp.Version, data, props)
 
 		_, err = tx.ExecBuilder(query)
@@ -253,7 +273,7 @@ func (s *SqlAccessControlPolicyStore) Delete(rctx request.CTX, id string) error 
 
 		query := s.getQueryBuilder().
 			Insert("AccessControlPolicyHistory").
-			Columns("ID", "Name", "Type", "CreateAt", "Revision", "Version", "Data", "Props").
+			Columns(accessControlPolicyHistorySliceColumns()...).
 			Values(tmp.ID, tmp.Name, tmp.Type, tmp.CreateAt, tmp.Revision, tmp.Version, data, props)
 
 		_, err = tx.ExecBuilder(query)
@@ -305,14 +325,11 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 		return nil, appErr
 	}
 
-	tmp, err := fromModel(existingPolicy)
+	query, args, err := s.getQueryBuilder().Update("AccessControlPolicies").Set("Active", active).Where(sq.Eq{"ID": id}).ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse policy with id=%s", id)
+		return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
 	}
-
-	query := `Update AccessControlPolicies
-	SET Active = :Active WHERE ID = :ID`
-	_, err = tx.NamedExec(query, tmp)
+	_, err = tx.Query(query, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update policy with id=%s", id)
 	}
@@ -377,7 +394,7 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts store.GetPolicy
 
 	if opts.ParentID != "" {
 		if s.DriverName() == model.DatabaseDriverPostgres {
-			query = query.Where(sq.Expr("Data->'imports' @> ?", fmt.Sprintf("[%q]", opts.ParentID)))
+			query = query.Where(sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID)))
 		} else {
 			query = query.Where(sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", opts.ParentID)))
 		}
