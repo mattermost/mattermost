@@ -4445,10 +4445,10 @@ func (s *TimerLayerGroupStore) GetByRemoteID(remoteID string, groupSource model.
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) GetByUser(userID string) ([]*model.Group, error) {
+func (s *TimerLayerGroupStore) GetByUser(userID string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 	start := time.Now()
 
-	result, err := s.GroupStore.GetByUser(userID)
+	result, err := s.GroupStore.GetByUser(userID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7243,10 +7243,10 @@ func (s *TimerLayerPropertyFieldStore) Create(field *model.PropertyField) (*mode
 	return result, err
 }
 
-func (s *TimerLayerPropertyFieldStore) Delete(id string) error {
+func (s *TimerLayerPropertyFieldStore) Delete(groupID string, id string) error {
 	start := time.Now()
 
-	err := s.PropertyFieldStore.Delete(id)
+	err := s.PropertyFieldStore.Delete(groupID, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7307,10 +7307,10 @@ func (s *TimerLayerPropertyFieldStore) SearchPropertyFields(opts model.PropertyF
 	return result, err
 }
 
-func (s *TimerLayerPropertyFieldStore) Update(fields []*model.PropertyField) ([]*model.PropertyField, error) {
+func (s *TimerLayerPropertyFieldStore) Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
 	start := time.Now()
 
-	result, err := s.PropertyFieldStore.Update(fields)
+	result, err := s.PropertyFieldStore.Update(groupID, fields)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7371,10 +7371,10 @@ func (s *TimerLayerPropertyValueStore) Create(value *model.PropertyValue) (*mode
 	return result, err
 }
 
-func (s *TimerLayerPropertyValueStore) Delete(id string) error {
+func (s *TimerLayerPropertyValueStore) Delete(groupID string, id string) error {
 	start := time.Now()
 
-	err := s.PropertyValueStore.Delete(id)
+	err := s.PropertyValueStore.Delete(groupID, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7451,10 +7451,10 @@ func (s *TimerLayerPropertyValueStore) SearchPropertyValues(opts model.PropertyV
 	return result, err
 }
 
-func (s *TimerLayerPropertyValueStore) Update(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+func (s *TimerLayerPropertyValueStore) Update(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	start := time.Now()
 
-	result, err := s.PropertyValueStore.Update(values)
+	result, err := s.PropertyValueStore.Update(groupID, values)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
