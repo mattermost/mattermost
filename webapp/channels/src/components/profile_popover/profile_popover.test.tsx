@@ -402,6 +402,66 @@ describe('components/ProfilePopover', () => {
         expect(screen.queryByText('Base')).not.toBeInTheDocument();
     });
 
+    test('should display select attribute values correctly', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => {
+            return {
+                123: 'opt1',
+            };
+        });
+
+        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.customProfileAttributes = {
+            123: {
+                id: '123',
+                name: 'Department',
+                type: 'select',
+                attrs: {
+                    options: [
+                        {id: 'opt1', name: 'Engineering', color: ''},
+                        {id: 'opt2', name: 'Sales', color: ''},
+                    ],
+                },
+            },
+        };
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await act(async () => {
+            expect(await screen.findByText('Engineering')).toBeInTheDocument();
+            expect(screen.queryByText('opt1')).not.toBeInTheDocument();
+        });
+    });
+
+    test('should display multiselect attribute values correctly', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => {
+            return {
+                123: ['opt1', 'opt2'],
+            };
+        });
+
+        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.customProfileAttributes = {
+            123: {
+                id: '123',
+                name: 'Skills',
+                type: 'multiselect',
+                attrs: {
+                    options: [
+                        {id: 'opt1', name: 'JavaScript', color: ''},
+                        {id: 'opt2', name: 'Python', color: ''},
+                    ],
+                },
+            },
+        };
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await act(async () => {
+            expect(await screen.findByText(/JavaScript/)).toBeInTheDocument();
+            expect(await screen.findByText(/Python/)).toBeInTheDocument();
+        });
+    });
+
     test('should not display attributes if user attributes is null', async () => {
         const [props, initialState] = getBasePropsAndState();
 
