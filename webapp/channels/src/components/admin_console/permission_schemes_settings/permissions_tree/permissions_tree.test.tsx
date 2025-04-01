@@ -112,7 +112,7 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
     test.each([
         {roleName: GeneralConstants.SYSTEM_ADMIN_ROLE, shouldSeeConvertPrivateToPublic: true},
         {roleName: GeneralConstants.TEAM_ADMIN_ROLE, shouldSeeConvertPrivateToPublic: true},
-        {roleName: GeneralConstants.CHANNEL_ADMIN_ROLE, shouldSeeConvertPrivateToPublic: false},
+        {roleName: GeneralConstants.CHANNEL_ADMIN_ROLE, shouldSeeConvertPrivateToPublic: true},
         {roleName: GeneralConstants.SYSTEM_USER_ROLE, shouldSeeConvertPrivateToPublic: false},
         {roleName: GeneralConstants.SYSTEM_GUEST_ROLE, shouldSeeConvertPrivateToPublic: false},
     ])('should show convert private channel to public for $roleName: $shouldSeeConvertPrivateToPublic', ({roleName, shouldSeeConvertPrivateToPublic}) => {

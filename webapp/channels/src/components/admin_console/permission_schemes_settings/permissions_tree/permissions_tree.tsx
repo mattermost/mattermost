@@ -259,7 +259,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
             customGroupsGroup?.permissions.pop();
         }
 
-        if ([GeneralConstants.TEAM_ADMIN_ROLE, GeneralConstants.SYSTEM_ADMIN_ROLE].includes(role.name || '')) {
+        if ([GeneralConstants.TEAM_ADMIN_ROLE, GeneralConstants.SYSTEM_ADMIN_ROLE, GeneralConstants.CHANNEL_ADMIN_ROLE].includes(role.name || '')) {
             privateChannelsGroup.permissions.push(Permissions.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC);
         }
 

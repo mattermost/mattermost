@@ -5,7 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch} from '@mattermost/types/channels';
+import type {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch, ChannelType} from '@mattermost/types/channels';
 import {SyncableType} from '@mattermost/types/groups';
 import type {SyncablePatch, Group} from '@mattermost/types/groups';
 import type {Scheme} from '@mattermost/types/schemes';
@@ -425,27 +425,13 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         }
 
         const promises = [];
-        if (isPrivacyChanging) {
-            const convert = actions.updateChannelPrivacy(channel.id, isPublic ? Constants.OPEN_CHANNEL : Constants.PRIVATE_CHANNEL);
-            promises.push(
-                convert.then((res: ActionResult) => {
-                    if ('error' in res) {
-                        return res;
-                    }
-                    return actions.patchChannel(channel.id, {
-                        ...channel,
-                        group_constrained: isSynced,
-                    });
-                }),
-            );
-        } else {
-            promises.push(
-                actions.patchChannel(channel.id, {
-                    ...channel,
-                    group_constrained: isSynced,
-                }),
-            );
-        }
+        promises.push(
+            actions.patchChannel(channel.id, {
+                ...channel,
+                group_constrained: isSynced,
+                type: (isPublic ? Constants.OPEN_CHANNEL : Constants.PRIVATE_CHANNEL) as ChannelType,
+            }),
+        );
 
         const patchChannelSyncable = groups.
             filter((g) => {
