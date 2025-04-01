@@ -18,6 +18,7 @@ import JobsTable from './jobs';
 import OLDAdminSettings from './old_admin_settings';
 import type {BaseProps, BaseState} from './old_admin_settings';
 import RequestButton from './request_button/request_button';
+import SettingSet from './setting_set';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
@@ -174,27 +175,24 @@ export default class BleveSettings extends OLDAdminSettings<Props, State> {
                     setByEnv={this.isSetByEnv('BleveSettings.IndexDir')}
                     disabled={this.props.isDisabled}
                 />
-                <div className='form-group'>
-                    <label className='control-label col-sm-4'>
-                        <FormattedMessage {...messages.bulkIndexingTitle}/>
-                    </label>
-                    <div className='col-sm-8'>
-                        <div className='job-table-setting'>
-                            <JobsTable
-                                jobType={JobTypes.BLEVE_POST_INDEXING}
-                                disabled={!this.state.canPurgeAndIndex || Boolean(this.props.isDisabled)}
-                                createJobButtonText={
-                                    <FormattedMessage
-                                        id='admin.bleve.createJob.title'
-                                        defaultMessage='Index Now'
-                                    />
-                                }
-                                createJobHelpText={<FormattedMessage {...messages.createJob_help}/>}
-                                getExtraInfoText={this.getExtraInfo}
-                            />
-                        </div>
+                <SettingSet
+                    label={<FormattedMessage {...messages.bulkIndexingTitle}/>}
+                >
+                    <div className='job-table-setting'>
+                        <JobsTable
+                            jobType={JobTypes.BLEVE_POST_INDEXING}
+                            disabled={!this.state.canPurgeAndIndex || Boolean(this.props.isDisabled)}
+                            createJobButtonText={
+                                <FormattedMessage
+                                    id='admin.bleve.createJob.title'
+                                    defaultMessage='Index Now'
+                                />
+                            }
+                            createJobHelpText={<FormattedMessage {...messages.createJob_help}/>}
+                            getExtraInfoText={this.getExtraInfo}
+                        />
                     </div>
-                </div>
+                </SettingSet>
                 <RequestButton
                     id='purgeIndexesSection'
                     requestAction={blevePurgeIndexes}

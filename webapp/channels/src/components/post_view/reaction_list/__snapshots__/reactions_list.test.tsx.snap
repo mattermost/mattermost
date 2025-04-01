@@ -48,54 +48,36 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
       ]
     }
   />
-  <div
-    className="post-add-reaction"
-  >
-    <span
-      className="emoji-picker__container"
-    >
-      <Connect(EmojiPickerOverlay)
-        onEmojiClick={[Function]}
-        onHide={[Function]}
-        rightOffset={15}
-        show={false}
-        target={[Function]}
-        topOffset={-5}
-      />
-      <Memo(ChannelPermissionGate)
-        channelId=""
-        permissions={
-          Array [
-            "add_reaction",
-          ]
-        }
-        teamId="teamId"
-      >
-        <WithTooltip
-          id="addReactionTooltip"
-          placement="top"
-          title={
-            Object {
-              "defaultMessage": "Add a reaction",
-              "id": "reaction_list.addReactionTooltip",
-            }
-          }
-        >
-          <button
-            aria-label="Add a reaction"
-            className="Reaction"
-            onClick={[Function]}
-          >
-            <span
-              className="Reaction__add"
-              id="addReaction-post_id"
-            >
-              <AddReactionIcon />
-            </span>
-          </button>
-        </WithTooltip>
-      </Memo(ChannelPermissionGate)>
-    </span>
-  </div>
+  <AddReactionButton
+    onEmojiClick={[Function]}
+    post={
+      Object {
+        "channel_id": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "edit_at": 0,
+        "hashtags": "",
+        "id": "post_id",
+        "is_pinned": false,
+        "message": "post message",
+        "metadata": Object {
+          "embeds": Array [],
+          "emojis": Array [],
+          "files": Array [],
+          "images": Object {},
+          "reactions": Array [],
+        },
+        "original_id": "",
+        "pending_post_id": "",
+        "props": Object {},
+        "reply_count": 0,
+        "root_id": "",
+        "type": "system_add_remove",
+        "update_at": 0,
+        "user_id": "user_id",
+      }
+    }
+    teamId="teamId"
+  />
 </div>
 `;

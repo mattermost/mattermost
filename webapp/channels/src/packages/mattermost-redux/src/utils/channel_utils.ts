@@ -161,6 +161,11 @@ export function completeDirectGroupInfo(usersState: UsersState, teammateNameDisp
     const gm = {...channel};
 
     if (profilesIds) {
+        // sometimes the current user is not part of the profilesInChannel
+        if (!omitCurrentUser) {
+            profilesIds.add(currentUserId);
+        }
+
         gm.display_name = getGroupDisplayNameFromUserIds(profilesIds, profiles, currentUserId, teammateNameDisplay, omitCurrentUser);
         return gm;
     }

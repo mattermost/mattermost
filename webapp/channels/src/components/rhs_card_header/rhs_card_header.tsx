@@ -115,9 +115,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
         if (title) {
             back = (
                 <WithTooltip
-                    id='backToResultsTooltip'
                     title={title}
-                    placement='top'
                 >
                     <button
                         className='sidebar--right__back btn btn-icon btn-sm'
@@ -132,9 +130,15 @@ class RhsCardHeader extends React.PureComponent<Props> {
             );
         }
 
+        const collapseIconLabel = this.props.intl.formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'});
+        const expandIconLabel = this.props.intl.formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'});
+
         return (
             <div className='sidebar--right__header'>
-                <span className='sidebar--right__title'>
+                <span
+                    className='sidebar--right__title'
+                    id='rhsPanelTitle'
+                >
                     {back}
                     <FormattedMessage
                         id='search_header.title5'
@@ -143,35 +147,29 @@ class RhsCardHeader extends React.PureComponent<Props> {
                 </span>
                 <div className='pull-right'>
                     <WithTooltip
-                        id={this.props.isExpanded ? 'shrinkSidebarTooltip' : 'expandSidebarTooltip'}
                         title={this.props.isExpanded ? shrinkSidebarTooltip : expandSidebarTooltip}
-                        placement='bottom'
                     >
                         <button
                             type='button'
                             className='sidebar--right__expand btn btn-icon btn-sm'
-                            aria-label='Expand'
+                            aria-label={this.props.isExpanded ? collapseIconLabel : expandIconLabel}
                             onClick={this.props.actions.toggleRhsExpanded}
                         >
                             <i
                                 className='icon icon-arrow-expand'
-                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
                             />
                             <i
                                 className='icon icon-arrow-collapse'
-                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
                             />
                         </button>
                     </WithTooltip>
                     <WithTooltip
-                        id='closeSidebarTooltip'
                         title={
                             <FormattedMessage
                                 id='rhs_header.closeSidebarTooltip'
                                 defaultMessage='Close'
                             />
                         }
-                        placement={'top'}
                     >
                         <button
                             type='button'

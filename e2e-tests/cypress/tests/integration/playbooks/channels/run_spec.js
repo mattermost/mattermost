@@ -104,6 +104,7 @@ describe('channels > run', {testIsolation: true}, () => {
 
         // # Open the channel header
         cy.get('#channelHeaderTitle').click();
+        cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
 
         // * Verify the ability to edit the channel header exists
         cy.get('#channelEditHeader').should('exist');

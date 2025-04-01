@@ -3,6 +3,7 @@
 exports[`components/admin_console/CustomPluginSettings should match snapshot with no settings and plugin 1`] = `
 <div
   className="wrapper--fixed "
+  data-testid="sysconsole_section_testplugin"
 >
   <AdminHeader>
     testplugin
@@ -180,8 +181,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       savingMessage="Saving Config..."
     />
     <WithTooltip
-      id="error-tooltip"
-      placement="top"
       title=""
     >
       <div
@@ -205,6 +204,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 exports[`components/admin_console/CustomPluginSettings should match snapshot with settings and no plugin 1`] = `
 <div
   className="wrapper--fixed "
+  data-testid="sysconsole_section_testplugin"
 >
   <AdminHeader>
     testplugin
@@ -232,8 +232,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       savingMessage="Saving Config..."
     />
     <WithTooltip
-      id="error-tooltip"
-      placement="top"
       title=""
     >
       <div
@@ -257,6 +255,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 exports[`components/admin_console/CustomPluginSettings should match snapshot with settings and plugin 1`] = `
 <div
   className="wrapper--fixed "
+  data-testid="sysconsole_section_testplugin"
 >
   <AdminHeader>
     testplugin
@@ -434,8 +433,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       savingMessage="Saving Config..."
     />
     <WithTooltip
-      id="error-tooltip"
-      placement="top"
       title=""
     >
       <div

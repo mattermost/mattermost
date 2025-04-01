@@ -62,7 +62,7 @@ const sectionsList: SystemSection[] = [
             {name: 'user_management_teams'},
             {name: 'user_management_channels'},
             {name: 'user_management_permissions'},
-            {name: 'user_management_system_roles', disabled: true},
+            {name: 'user_management_system_roles', hasDescription: true, disabled: true},
         ],
     },
     {
@@ -82,6 +82,7 @@ const sectionsList: SystemSection[] = [
             {name: 'environment_session_lengths'},
             {name: 'environment_performance_monitoring'},
             {name: 'environment_developer'},
+            {name: 'environment_mobile_security'},
         ],
     },
     {

@@ -5,8 +5,10 @@ package model
 
 import (
 	"crypto/sha1"
+	"database/sql/driver"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -32,37 +34,70 @@ const (
 	ChannelHeaderMaxRunes      = 1024
 	ChannelPurposeMaxRunes     = 250
 	ChannelCacheSize           = 25000
+	ChannelBannerInfoMaxLength = 1024
 
 	ChannelSortByUsername = "username"
 	ChannelSortByStatus   = "status"
 )
 
-type Channel struct {
-	Id                string         `json:"id"`
-	CreateAt          int64          `json:"create_at"`
-	UpdateAt          int64          `json:"update_at"`
-	DeleteAt          int64          `json:"delete_at"`
-	TeamId            string         `json:"team_id"`
-	Type              ChannelType    `json:"type"`
-	DisplayName       string         `json:"display_name"`
-	Name              string         `json:"name"`
-	Header            string         `json:"header"`
-	Purpose           string         `json:"purpose"`
-	LastPostAt        int64          `json:"last_post_at"`
-	TotalMsgCount     int64          `json:"total_msg_count"`
-	ExtraUpdateAt     int64          `json:"extra_update_at"`
-	CreatorId         string         `json:"creator_id"`
-	SchemeId          *string        `json:"scheme_id"`
-	Props             map[string]any `json:"props"`
-	GroupConstrained  *bool          `json:"group_constrained"`
-	Shared            *bool          `json:"shared"`
-	TotalMsgCountRoot int64          `json:"total_msg_count_root"`
-	PolicyID          *string        `json:"policy_id"`
-	LastRootPostAt    int64          `json:"last_root_post_at"`
+type ChannelBannerInfo struct {
+	Enabled         *bool   `json:"enabled"`
+	Text            *string `json:"text"`
+	BackgroundColor *string `json:"background_color"`
 }
 
-func (o *Channel) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *ChannelBannerInfo) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	b, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("expected []byte, got %T", value)
+	}
+
+	return json.Unmarshal(b, c)
+}
+
+func (c ChannelBannerInfo) Value() (driver.Value, error) {
+	if c == (ChannelBannerInfo{}) {
+		return nil, nil
+	}
+
+	j, err := json.Marshal(c)
+	if err != nil {
+		return nil, err
+	}
+	return string(j), nil
+}
+
+type Channel struct {
+	Id                string             `json:"id"`
+	CreateAt          int64              `json:"create_at"`
+	UpdateAt          int64              `json:"update_at"`
+	DeleteAt          int64              `json:"delete_at"`
+	TeamId            string             `json:"team_id"`
+	Type              ChannelType        `json:"type"`
+	DisplayName       string             `json:"display_name"`
+	Name              string             `json:"name"`
+	Header            string             `json:"header"`
+	Purpose           string             `json:"purpose"`
+	LastPostAt        int64              `json:"last_post_at"`
+	TotalMsgCount     int64              `json:"total_msg_count"`
+	ExtraUpdateAt     int64              `json:"extra_update_at"`
+	CreatorId         string             `json:"creator_id"`
+	SchemeId          *string            `json:"scheme_id"`
+	Props             map[string]any     `json:"props"`
+	GroupConstrained  *bool              `json:"group_constrained"`
+	Shared            *bool              `json:"shared"`
+	TotalMsgCountRoot int64              `json:"total_msg_count_root"`
+	PolicyID          *string            `json:"policy_id"`
+	LastRootPostAt    int64              `json:"last_root_post_at"`
+	BannerInfo        *ChannelBannerInfo `json:"banner_info"`
+}
+
+func (o *Channel) Auditable() map[string]any {
+	return map[string]any{
 		"create_at":            o.CreateAt,
 		"creator_id":           o.CreatorId,
 		"delete_at":            o.DeleteAt,
@@ -99,15 +134,16 @@ type ChannelsWithCount struct {
 }
 
 type ChannelPatch struct {
-	DisplayName      *string `json:"display_name"`
-	Name             *string `json:"name"`
-	Header           *string `json:"header"`
-	Purpose          *string `json:"purpose"`
-	GroupConstrained *bool   `json:"group_constrained"`
+	DisplayName      *string            `json:"display_name"`
+	Name             *string            `json:"name"`
+	Header           *string            `json:"header"`
+	Purpose          *string            `json:"purpose"`
+	GroupConstrained *bool              `json:"group_constrained"`
+	BannerInfo       *ChannelBannerInfo `json:"banner_info"`
 }
 
-func (c *ChannelPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *ChannelPatch) Auditable() map[string]any {
+	return map[string]any{
 		"header":            c.Header,
 		"group_constrained": c.GroupConstrained,
 		"purpose":           c.Purpose,
@@ -145,8 +181,8 @@ type ChannelModerationPatch struct {
 	Roles *ChannelModeratedRolesPatch `json:"roles"`
 }
 
-func (c *ChannelModerationPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *ChannelModerationPatch) Auditable() map[string]any {
+	return map[string]any{
 		"name":  c.Name,
 		"roles": c.Roles,
 	}
@@ -261,6 +297,22 @@ func (o *Channel) IsValid() *AppError {
 		}
 	}
 
+	if o.BannerInfo != nil && o.BannerInfo.Enabled != nil && *o.BannerInfo.Enabled {
+		if o.Type != ChannelTypeOpen && o.Type != ChannelTypePrivate {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.channel_type.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if o.BannerInfo.Text == nil || len(*o.BannerInfo.Text) == 0 {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.text.empty.app_error", nil, "", http.StatusBadRequest)
+		} else if len(*o.BannerInfo.Text) > ChannelBannerInfoMaxLength {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.text.invalid_length.app_error", map[string]any{"maxLength": ChannelBannerInfoMaxLength}, "", http.StatusBadRequest)
+		}
+
+		if o.BannerInfo.BackgroundColor == nil || len(*o.BannerInfo.BackgroundColor) == 0 {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.background_color.empty.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	return nil
 }
 
@@ -311,6 +363,25 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 
 	if patch.GroupConstrained != nil {
 		o.GroupConstrained = patch.GroupConstrained
+	}
+
+	// patching channel banner info
+	if patch.BannerInfo != nil {
+		if o.BannerInfo == nil {
+			o.BannerInfo = &ChannelBannerInfo{}
+		}
+
+		if patch.BannerInfo.Enabled != nil {
+			o.BannerInfo.Enabled = patch.BannerInfo.Enabled
+		}
+
+		if patch.BannerInfo.Text != nil {
+			o.BannerInfo.Text = patch.BannerInfo.Text
+		}
+
+		if patch.BannerInfo.BackgroundColor != nil {
+			o.BannerInfo.BackgroundColor = patch.BannerInfo.BackgroundColor
+		}
 	}
 }
 

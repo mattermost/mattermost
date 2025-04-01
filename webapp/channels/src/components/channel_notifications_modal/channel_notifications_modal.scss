@@ -1,51 +1,66 @@
-.modal .channel-notifications-settings-modal {
-    overflow: hidden;
+.modal .ChannelNotificationModal {
     width: 100%;
     max-width: 600px;
-    margin-top: -24px;
+    margin-top: 5vh !important;
+    overflow-y: hidden;
 
     .modal-content {
-        display: flex;
-        overflow: hidden;
-        max-height: calc(100vh - 240px);
         flex-direction: column;
         border: var(--border-default);
         border-radius: var(--radius-l);
         box-shadow: var(--elevation-6);
+        overflow-y: hidden;
+
+        .GenericModal__wrapper {
+            display: flex;
+            overflow: hidden;
+            max-height: calc(100vh - 160px);
+            flex-direction: column;
+            border: var(--border-default);
+            border-radius: var(--radius-l);
+            box-shadow: var(--elevation-6);
+
+            .modal-header {
+                padding: 0 !important;
+            }
+
+            .modal-body {
+                display: flex;
+                width: 100%;
+                max-width: 1024px;
+                min-height: 150px;
+                flex-direction: column;
+                gap: 24px;
+                overflow-x: hidden;
+                overflow-y: auto;
+
+                main {
+                    display: flex;
+                    width: 100%;
+                    max-width: 1024px;
+                    min-height: 150px;
+                    flex-direction: column;
+                    padding: 28px 32px;
+                    gap: 24px;
+                    overflow-x: hidden;
+                    overflow-y: auto;
+                }
+            }
+
+            .modal-footer {
+                display: flex;
+                width: 100%;
+                max-width: 1024px;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 8px;
+            }
+        }
     }
 
     &__ctr {
         display: flex;
         place-items: center;
-    }
-
-    .modal-header {
-        border: none;
-        border-bottom: var(--border-light);
-        background: none;
-    }
-
-    &__body {
-        display: flex;
-        width: 100%;
-        max-width: 1024px;
-        min-height: 150px;
-        flex-direction: column;
-        padding: 28px 32px;
-        gap: 24px;
-        overflow-x: hidden;
-        overflow-y: auto;
-    }
-
-    &__footer {
-        display: flex;
-        width: 100%;
-        max-width: 1024px;
-        align-items: center;
-        justify-content: flex-end;
-        padding: 24px 32px;
-        border-top: var(--border-light);
-        gap: 8px;
     }
 
     &__reset-btn {
@@ -97,4 +112,11 @@
             max-height: calc(100vh - 160px);
         }
     }
+
+    @media screen and (max-height: 600px) {
+        .modal-content, .GenericModal__wrapper {
+            max-height: 85vh !important;
+        }
+    }
+    
 }

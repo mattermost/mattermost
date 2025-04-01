@@ -1412,6 +1412,9 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 			rctx.Logger().Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int("reply_create_at", reply.CreateAt), mlog.Int("parent_create_at", post.CreateAt))
 			reply.CreateAt = post.CreateAt
 		}
+		if replyData.Props != nil {
+			reply.Props = *replyData.Props
+		}
 		if replyData.Type != nil {
 			reply.Type = *replyData.Type
 		}
@@ -1452,7 +1455,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 	}
 
 	if len(postsForCreateList) > 0 {
-		postsCreated, _, err := a.Srv().Store().Post().SaveMultiple(postsForCreateList)
+		postsCreated, _, err := a.Srv().Store().Post().SaveMultiple(rctx, postsForCreateList)
 		if err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
@@ -1475,7 +1478,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		}
 	}
 
-	if _, _, nErr := a.Srv().Store().Post().OverwriteMultiple(postsForOverwriteList); nErr != nil {
+	if _, _, nErr := a.Srv().Store().Post().OverwriteMultiple(rctx, postsForOverwriteList); nErr != nil {
 		return model.NewAppError("importReplies", "app.post.overwrite.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
@@ -1889,7 +1892,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 	}
 
 	if len(postsForCreateList) > 0 {
-		_, idx, nErr := a.Srv().Store().Post().SaveMultiple(postsForCreateList)
+		_, idx, nErr := a.Srv().Store().Post().SaveMultiple(rctx, postsForCreateList)
 		if nErr != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
@@ -1943,7 +1946,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		}
 	}
 
-	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(postsForOverwriteList); err != nil {
+	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(rctx, postsForOverwriteList); err != nil {
 		if idx != -1 && idx < len(postsForOverwriteList) {
 			post := postsForOverwriteList[idx]
 			if lineNumber, ok := postsForOverwriteMap[getPostStrID(post)]; ok {
@@ -2324,12 +2327,15 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_direct_channel.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 			channel = ch
-		} else {
+		} else if len(userIDs) > 2 {
 			ch, err = a.createGroupChannel(rctx, userIDs)
 			if err != nil && err.Id != store.ChannelExistsError {
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 			channel = ch
+		} else {
+			rctx.Logger().Warn("Not enough users to create a direct channel", mlog.Int("line_number", line.LineNumber))
+			continue
 		}
 
 		user := users[strings.ToLower(*line.DirectPost.User)]
@@ -2405,7 +2411,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 	}
 
 	if len(postsForCreateList) > 0 {
-		if _, idx, err := a.Srv().Store().Post().SaveMultiple(postsForCreateList); err != nil {
+		if _, idx, err := a.Srv().Store().Post().SaveMultiple(rctx, postsForCreateList); err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
 			var retErr *model.AppError
@@ -2453,7 +2459,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		}
 	}
 
-	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(postsForOverwriteList); err != nil {
+	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(rctx, postsForOverwriteList); err != nil {
 		if idx != -1 && idx < len(postsForOverwriteList) {
 			post := postsForOverwriteList[idx]
 			if lineNumber, ok := postsForOverwriteMap[getPostStrID(post)]; ok {

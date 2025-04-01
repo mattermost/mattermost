@@ -68,6 +68,7 @@ type ESFile struct {
 type ESChannel struct {
 	Id            string            `json:"id"`
 	Type          model.ChannelType `json:"type"`
+	DeleteAt      int64             `json:"delete_at"`
 	UserIDs       []string          `json:"user_ids"`
 	TeamId        string            `json:"team_id"`
 	TeamMemberIDs []string          `json:"team_member_ids"`
@@ -109,7 +110,7 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 
 	var searchAttachments []string
 
-	if attachments := post.GetProp("attachments"); attachments != nil {
+	if attachments := post.GetProp(model.PostPropsAttachments); attachments != nil {
 		attachmentsInterfaceArray, ok := attachments.([]any)
 		if ok {
 			for _, attachment := range attachmentsInterfaceArray {
@@ -206,6 +207,7 @@ func ESChannelFromChannel(channel *model.Channel, userIDs, teamMemberIDs []strin
 	return &ESChannel{
 		Id:            channel.Id,
 		Type:          channel.Type,
+		DeleteAt:      channel.DeleteAt,
 		UserIDs:       userIDs,
 		TeamId:        channel.TeamId,
 		TeamMemberIDs: teamMemberIDs,
