@@ -39,9 +39,9 @@ func NewTrackerConfig(config *model.Config) TrackerConfig {
 // Tracker defines a telemetry tracker
 type Tracker interface {
 	// TrackEvent registers an event through the configured telemetry client
-	TrackEvent(event string, properties map[string]interface{}) error
+	TrackEvent(event string, properties map[string]any) error
 	// TrackUserEvent registers an event through the configured telemetry client associated to a user
-	TrackUserEvent(event string, userID string, properties map[string]interface{}) error
+	TrackUserEvent(event string, userID string, properties map[string]any) error
 	// Reload Config re-evaluates tracker config to determine if tracking behavior should change
 	ReloadConfig(config TrackerConfig)
 }
@@ -58,7 +58,7 @@ type Client interface {
 type Track struct {
 	UserID         string
 	Event          string
-	Properties     map[string]interface{}
+	Properties     map[string]any
 	InstallationID string
 }
 
@@ -126,14 +126,14 @@ func (t *tracker) ReloadConfig(config TrackerConfig) {
 }
 
 // Note that config lock is handled by the caller.
-func (t *tracker) debugf(message string, args ...interface{}) {
+func (t *tracker) debugf(message string, args ...any) {
 	if t.logger == nil || !t.config.EnabledLogging {
 		return
 	}
 	t.logger.Debugf(message, args...)
 }
 
-func (t *tracker) TrackEvent(event string, properties map[string]interface{}) error {
+func (t *tracker) TrackEvent(event string, properties map[string]any) error {
 	t.configLock.RLock()
 	defer t.configLock.RUnlock()
 
@@ -144,7 +144,7 @@ func (t *tracker) TrackEvent(event string, properties map[string]interface{}) er
 	}
 
 	if properties == nil {
-		properties = map[string]interface{}{}
+		properties = map[string]any{}
 	}
 	properties["PluginID"] = t.pluginID
 	properties["PluginVersion"] = t.pluginVersion
@@ -169,9 +169,9 @@ func (t *tracker) TrackEvent(event string, properties map[string]interface{}) er
 	return nil
 }
 
-func (t *tracker) TrackUserEvent(event, userID string, properties map[string]interface{}) error {
+func (t *tracker) TrackUserEvent(event, userID string, properties map[string]any) error {
 	if properties == nil {
-		properties = map[string]interface{}{}
+		properties = map[string]any{}
 	}
 
 	properties["UserActualID"] = userID
