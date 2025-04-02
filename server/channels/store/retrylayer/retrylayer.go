@@ -604,6 +604,27 @@ func (s *RetryLayerAccessControlPolicyStore) GetAll(rctxc request.CTX, opts stor
 
 }
 
+func (s *RetryLayerAccessControlPolicyStore) GetAllSubjects(rctxc request.CTX) ([]*model.Subject, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.GetAllSubjects(rctxc)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerAccessControlPolicyStore) Save(c request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
 
 	tries := 0

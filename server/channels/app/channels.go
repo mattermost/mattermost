@@ -64,6 +64,8 @@ type Channels struct {
 	Saml             einterfaces.SamlInterface
 	Notification     einterfaces.NotificationInterface
 	Ldap             einterfaces.LdapInterface
+	PDP              einterfaces.PolicyDecisionPointInterface
+	PAP              einterfaces.PolicyAdministrationPointInterface
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -132,6 +134,12 @@ func NewChannels(s *Server) (*Channels, error) {
 			}
 		})
 	}
+	pap := &PolicyAdministrationPoint{}
+	appErr := pap.Init(request.EmptyContext(s.Log()))
+	if appErr != nil {
+		return nil, appErr
+	}
+	ch.PAP = pap
 
 	var imgErr error
 	decoderConcurrency := int(*ch.cfgSvc.Config().FileSettings.MaxImageDecoderConcurrency)

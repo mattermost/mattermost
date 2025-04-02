@@ -1115,6 +1115,7 @@ type AccessControlPolicyStore interface {
 	SetActiveStatus(c request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
 	Get(c request.CTX, id string) (*model.AccessControlPolicy, error)
 	GetAll(rctxc request.CTX, opts GetPolicyOptions) ([]*model.AccessControlPolicy, error)
+	GetAllSubjects(rctxc request.CTX) ([]*model.Subject, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.
