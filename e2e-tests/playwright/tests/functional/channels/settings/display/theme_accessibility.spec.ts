@@ -3,7 +3,7 @@
 
 import {expect} from '@playwright/test';
 
-import {test} from '@e2e-support/test_fixture';
+import {test} from '@mattermost/playwright-lib';
 
 test('Theme settings should be keyboard accessible', async ({pw}) => {
     const {user} = await pw.initSetup();
