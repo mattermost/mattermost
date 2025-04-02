@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { FormattedMessage } from 'react-intl';
+import {Client4} from 'mattermost-redux/client';
 
 import './editor.scss';
+import Markdown from 'components/markdown';
+import TestResultsModal from '../test_modal/test_modal';
+
+import type {AccessControlTestResult} from '@mattermost/types/admin';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 interface CELEditorProps {
     value: string;
@@ -15,13 +21,17 @@ const CELEditor: React.FC<CELEditorProps> = ({
     value,
     onChange,
     onValidate,
-    placeholder = 'user.properties.<attribute> is <value> or is any of <list>',
+    placeholder = 'user.attributes.<attribute> == <value>',
     className = '',
 }) => {
     const [expression, setExpression] = useState(value);
     const [isValidating, setIsValidating] = useState(false);
     const [isValid, setIsValid] = useState(true);
-
+    const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 });
+    const [validationErrors, setValidationErrors] = useState<string[]>([]);
+    const [statusBarColor, setStatusBarColor] = useState('var(--button-bg)'); // default color
+    const [showTestResults, setShowTestResults] = useState(false);
+    const [testResults, setTestResults] = useState<AccessControlTestResult | null>(null);
     useEffect(() => {
         setExpression(value);
     }, [value]);
@@ -30,66 +40,159 @@ const CELEditor: React.FC<CELEditorProps> = ({
         const newValue = e.target.value;
         setExpression(newValue);
         onChange(newValue);
+        // Reset status bar color and validation state when user types
+        setStatusBarColor('var(--button-bg)'); // back to blue
+        setValidationErrors([]);
     };
 
-    const validateSyntax = () => {
+    const handleKeyUp = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        const target = e.currentTarget;
+        const value = target.value;
+        const selectionStart = target.selectionStart;
+
+        // Handle Alt/Option + Enter for validation
+        if (e.altKey && e.key === 'Enter') {
+            e.preventDefault();
+            validateSyntax();
+            return;
+        }
+
+        const textBeforeCursor = value.substring(0, selectionStart);
+        const lines = textBeforeCursor.split('\n');
+        const currentLine = lines.length;
+        const currentColumn = lines[lines.length - 1].length + 1;
+
+        setCursorPosition({ line: currentLine, column: currentColumn });
+    };
+
+    const handleClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
+        const target = e.currentTarget;
+        const value = target.value;
+        const selectionStart = target.selectionStart;
+
+        const textBeforeCursor = value.substring(0, selectionStart);
+        const lines = textBeforeCursor.split('\n');
+        const currentLine = lines.length;
+        const currentColumn = lines[lines.length - 1].length + 1;
+
+        setCursorPosition({ line: currentLine, column: currentColumn });
+    };
+
+    const validateSyntax = async () => {
         setIsValidating(true);
         
-        // This is a placeholder for actual validation logic
-        // In a real implementation, you would call an API to validate the CEL expression
-        setTimeout(() => {
-            // Simulate validation - in reality, this would be an API call
-            const valid = expression.trim().length > 0;
-            setIsValid(valid);
-            if (onValidate) {
-                onValidate(valid);
+        try {
+            const errors = await Client4.checkAccessControlExpression(expression);
+            if (errors.length > 0) {
+                setIsValid(false);
+                setValidationErrors(errors.map((error) => 
+                    `${error.message} @L${error.line}:${error.column+1}`
+                ));
+                setStatusBarColor('var(--error-text)'); // red for errors
+                if (onValidate) {
+                    onValidate(false);
+                }
+            } else {
+                setIsValid(true);
+                setValidationErrors([]);
+                setStatusBarColor('var(--online-indicator)'); // green for success
+                if (onValidate) {
+                    onValidate(true);
+                }
             }
+        } catch (error) {
+            setIsValid(false);
+            setValidationErrors([error.detailed_error || 'Unknown error']);
+            setStatusBarColor('var(--error-text)');
+            if (onValidate) {
+                onValidate(false);
+            }
+        } finally {
             setIsValidating(false);
-        }, 500);
+        }
     };
 
-    const testAccessRule = () => {
-        // This would be implemented to test the access rule against sample data
-        // For now, it's just a placeholder
-        console.log('Testing access rule:', expression);
+    const testAccessRule = async () => {
+        try {
+            const result = await Client4.testAccessControlExpression(expression);
+            setTestResults({
+                attributes: result.attributes || {},
+                users: result.users || [],
+            });
+            setShowTestResults(true);
+        } catch (error) {
+            console.error('Error testing access rule:', error);
+        }
     };
 
     return (
         <div className={`cel-editor ${className}`}>
-            <div className="cel-editor__container">
+            <div 
+                className="cel-editor__container"
+                data-status-color={statusBarColor}
+            >
                 <textarea
                     className="cel-editor__input"
                     value={expression}
                     onChange={handleChange}
+                    onKeyUp={handleKeyUp}
+                    onClick={handleClick}
                     placeholder={placeholder}
                     aria-label="CEL Expression Editor"
                 />
+                <div 
+                    className="cel-editor__status-bar"
+                    style={{ backgroundColor: statusBarColor }}
+                >
+                    <div className="cel-editor__status-message">
+                        {validationErrors.length > 0 ? (
+                            <span className="cel-editor__error">
+                                <i 
+                                    className="icon icon-refresh"
+                                    onClick={validateSyntax}
+                                    role="button"
+                                    aria-label="Retry validation"
+                                />
+                                {validationErrors[0]}
+                            </span>
+                        ) : isValid && statusBarColor === 'var(--online-indicator)' ? (
+                            <span className="cel-editor__valid">
+                                <i className="icon icon-check" />
+                                Valid
+                            </span>
+                        ) : (
+                            <button
+                                className="cel-editor__inline-validate-btn"
+                                onClick={validateSyntax}
+                                disabled={isValidating}
+                            >
+                                {isValidating ? (
+                                    <span className="cel-editor__loading">
+                                        <i className="fa fa-spinner fa-spin" />
+                                        <FormattedMessage
+                                            id="admin.access_control.cel.validating"
+                                            defaultMessage="Validating..."
+                                        />
+                                    </span>
+                                ) : (
+                                    <span className="cel-editor__loading">
+                                    <i className="icon icon-magnify" />
+                                    <FormattedMessage
+                                        id="admin.access_control.cel.validateSyntax"
+                                        defaultMessage="Validate syntax"
+                                    />
+                                </span>
+                                )}
+                            </button>
+                        )}
+                    </div>
+                    <div className="cel-editor__cursor-position">
+                        L{cursorPosition.line}:{cursorPosition.column}
+                    </div>
+                </div>
             </div>
             
             <div className="cel-editor__footer">
-                <div className="cel-editor__actions">
-                    <button
-                        className="cel-editor__validate-btn"
-                        onClick={validateSyntax}
-                        disabled={isValidating}
-                    >
-                        {isValidating ? (
-                            <span className="cel-editor__loading">
-                                <i className="fa fa-spinner fa-spin" />
-                                <FormattedMessage
-                                    id="admin.access_control.cel.validating"
-                                    defaultMessage="Validating..."
-                                />
-                            </span>
-                        ) : (
-                            <FormattedMessage
-                                id="admin.access_control.cel.validateSyntax"
-                                defaultMessage="Validate syntax"
-                            />
-                        )}
-                    </button>
-                </div>
-                
                 <button
                     className="cel-editor__test-btn"
                     onClick={testAccessRule}
@@ -104,26 +207,10 @@ const CELEditor: React.FC<CELEditorProps> = ({
             </div>
             
             <div className="cel-editor__help-text">
-                <FormattedMessage
-                    id="admin.access_control.cel.writeRules"
-                    defaultMessage="Write rules like "
+                <Markdown
+                    message={"Write rules like `user.<attribute> == <value>`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`."}
+                    options={{mentionHighlight: false}}
                 />
-                <code>user.&lt;attribute&gt; is &lt;value&gt;</code>
-                <FormattedMessage
-                    id="admin.access_control.cel.or"
-                    defaultMessage=" or "
-                />
-                <code>is any of &lt;list&gt;</code>
-                <FormattedMessage
-                    id="admin.access_control.cel.useOperators"
-                    defaultMessage=". Use "
-                />
-                <code>AND</code> / <code>OR</code>
-                <FormattedMessage
-                    id="admin.access_control.cel.forMultipleConditions"
-                    defaultMessage=" for multiple conditions. Group conditions with "
-                />
-                <code>()</code>.
                 <a href="#" className="cel-editor__learn-more">
                     <FormattedMessage
                         id="admin.access_control.cel.learnMore"
@@ -131,6 +218,16 @@ const CELEditor: React.FC<CELEditorProps> = ({
                     />
                 </a>
             </div>
+            {showTestResults && (
+                <TestResultsModal
+                    testResults={testResults}
+                    onExited={() => setShowTestResults(false)}
+                    actions={{
+                        openModal: () => {},
+                        setModalSearchTerm: (term: string): ActionResult => ({data: term}),
+                    }}
+                />
+            )}
         </div>
     );
 };

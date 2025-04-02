@@ -160,6 +160,17 @@ export type AccessControlPolicyRule = {
     expression: string;
 }
 
+export type CELExpressionError = {
+    message: string;
+    line: number;
+    column: number;
+}
+
 export type AccessControlPolicies = {
     [x: string]: AccessControlPolicy;
 };
+
+export type AccessControlTestResult = {
+    users: UserProfile[];
+    attributes: string[];
+}

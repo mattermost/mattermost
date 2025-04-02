@@ -95,6 +95,36 @@ func (_m *AccessControlPolicyStore) GetAll(rctxc request.CTX, opts store.GetPoli
 	return r0, r1
 }
 
+// GetAllSubjects provides a mock function with given fields: rctxc
+func (_m *AccessControlPolicyStore) GetAllSubjects(rctxc request.CTX) ([]*model.Subject, error) {
+	ret := _m.Called(rctxc)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllSubjects")
+	}
+
+	var r0 []*model.Subject
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX) ([]*model.Subject, error)); ok {
+		return rf(rctxc)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX) []*model.Subject); ok {
+		r0 = rf(rctxc)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Subject)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX) error); ok {
+		r1 = rf(rctxc)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Save provides a mock function with given fields: c, policy
 func (_m *AccessControlPolicyStore) Save(c request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
 	ret := _m.Called(c, policy)

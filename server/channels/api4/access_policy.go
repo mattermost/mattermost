@@ -25,7 +25,7 @@ var policies = []*model.AccessControlPolicy{
 		Rules: []model.AccessControlPolicyRule{
 			{
 				Actions:    []string{"join_channel"},
-				Expression: "(subject.properties.program == \"Dragon Spacecraft\" || subject.properties.program == \"Black Phoenix\") && subject.properties.clearance == \"Confidential\"",
+				Expression: "(user.attributes.Program == \"Dragon Spacecraft\" || user.attributes.Program == \"Black Phoenix\") && user.attributes.Clearance == \"L3\"",
 			},
 		},
 	},
@@ -40,7 +40,7 @@ var policies = []*model.AccessControlPolicy{
 		Rules: []model.AccessControlPolicyRule{
 			{
 				Actions:    []string{"join_channel"},
-				Expression: "subject.properties.program == \"Northern Command\"",
+				Expression: "user.attributes.Program == \"Northern Command\"",
 			},
 		},
 	},
@@ -55,7 +55,7 @@ var policies = []*model.AccessControlPolicy{
 		Rules: []model.AccessControlPolicyRule{
 			{
 				Actions:    []string{"join_channel"},
-				Expression: "subject.properties.program == \"Dragon Spacecraft\"",
+				Expression: "user.attributes.Program == \"Dragon Spacecraft\"",
 			},
 		},
 	},
@@ -70,7 +70,7 @@ var policies = []*model.AccessControlPolicy{
 		Rules: []model.AccessControlPolicyRule{
 			{
 				Actions:    []string{"join_channel"},
-				Expression: "subject.properties.clearance == \"Confidential\"",
+				Expression: "user.attributes.Clearance >= \"L4\"",
 			},
 		},
 	},
@@ -81,6 +81,9 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(getAccessPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(getAccessPolicies)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchAccessPolicies)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicy.Handle("/assign", api.APISessionRequired(assignAccessPolicy)).Methods(http.MethodPost)
 }
 
 func createAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -141,6 +144,18 @@ func getAccessPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fields, appErr := c.App.ListCPAFields()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	for _, field := range fields {
+		fmt.Printf("Field ID: %s", field.ID)
+		fmt.Printf(" Field Name: %s", field.Name)
+		fmt.Printf(" Field Type: %s\n", field.Type)
+	}
+
 	if _, err := w.Write(js); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -151,4 +166,83 @@ func searchAccessPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
 	// - search by name
 	// - search by attribute
 	// - search by channel
+}
+
+func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
+	checkExpressionRequest := struct {
+		Expression string `json:"expression"`
+	}{}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&checkExpressionRequest); jsonErr != nil {
+		c.SetInvalidParamWithErr("user", jsonErr)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("checkExpression", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	errs, appErr := c.App.CheckExpression(c.AppContext, checkExpressionRequest.Expression)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(errs)
+	if err != nil {
+		c.Err = model.NewAppError("checkExpression", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
+	checkExpressionRequest := struct {
+		Expression string `json:"expression"`
+	}{}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&checkExpressionRequest); jsonErr != nil {
+		c.SetInvalidParamWithErr("user", jsonErr)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("checkExpression", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	users, attributes, appErr := c.App.TestExpression(c.AppContext, checkExpressionRequest.Expression)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	resp := model.AccessControlPolicyTestResponse{
+		Users:      users,
+		Attributes: attributes,
+	}
+
+	js, err := json.Marshal(resp)
+	if err != nil {
+		c.Err = model.NewAppError("checkExpression", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	// assign access policy to channel
+	// assign access policy to user
+	// assign access policy to group
 }

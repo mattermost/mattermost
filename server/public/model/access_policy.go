@@ -27,6 +27,11 @@ type ParentPolicy struct {
 	Children   []*AccessControlPolicy `json:"children"`
 }
 
+type AccessControlPolicyTestResponse struct {
+	Users      []*User  `json:"users"`
+	Attributes []string `json:"attributes"`
+}
+
 type AccessControlPolicy struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
@@ -46,6 +51,12 @@ type AccessControlPolicy struct {
 type AccessControlPolicyRule struct {
 	Actions    []string `json:"actions"`
 	Expression string   `json:"expression"`
+}
+
+type CELExpressionError struct {
+	Line    int    `json:"line"`
+	Column  int    `json:"column"`
+	Message string `json:"message"`
 }
 
 func (p *AccessControlPolicy) IsValid() *AppError {

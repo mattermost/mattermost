@@ -1,0 +1,35 @@
+.test-results-modal {
+    .col-sm-12 {
+        padding-left: 0px;
+        padding-bottom: 12px;
+        padding-top: 12px;
+    }
+
+    .more-modal__row {
+        padding: 10px 12px;
+    }
+
+    .col-xs-12 {
+        padding-right: 0px;
+        padding-left: 0px;
+    }
+
+    .more-modal__row{
+        padding: 10px 0px;
+    }
+}
+
+.attributes-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.attribute-pill {
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-block;
+}
