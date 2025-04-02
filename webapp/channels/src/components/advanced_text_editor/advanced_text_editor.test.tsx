@@ -130,7 +130,7 @@ const baseProps = {
     uploadsProgressPercent: {},
     currentChannel: initialState.entities.channels.channels.current_channel_id as Channel,
     channelId,
-    postId: '',
+    rootId: '',
     errorClass: null,
     serverError: null,
     postError: null,
@@ -390,7 +390,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     it('should show @mention warning when a mention exists in the message', () => {
         const props = {
             ...baseProps,
-            postId: 'post_id_1',
+            rootId: 'post_id_1',
             isInEditMode: true,
         };
 
@@ -426,7 +426,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         );
         expect(container.querySelector('#createPostFileDropOverlay')).toBeVisible();
 
-        props.postId = 'post_id_1';
+        props.rootId = 'post_id_1';
         rerender(<AdvancedTextEditor {...props}/>);
         expect(container.querySelector('#createCommentFileDropOverlay')).toBeVisible();
 
