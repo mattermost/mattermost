@@ -110,7 +110,7 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 
 	var searchAttachments []string
 
-	if attachments := post.GetProp("attachments"); attachments != nil {
+	if attachments := post.GetProp(model.PostPropsAttachments); attachments != nil {
 		attachmentsInterfaceArray, ok := attachments.([]any)
 		if ok {
 			for _, attachment := range attachmentsInterfaceArray {

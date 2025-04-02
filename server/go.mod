@@ -1,8 +1,8 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.22.0
+go 1.23.0
 
-toolchain go1.22.6
+toolchain go1.23.7
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
@@ -10,6 +10,7 @@ require (
 	github.com/anthonynsimon/bild v0.14.0
 	github.com/avct/uasurfer v0.0.0-20240501094946-ca0c4d1e541b
 	github.com/aws/aws-sdk-go v1.55.6
+	github.com/bep/imagemeta v0.10.0
 	github.com/blang/semver/v4 v4.0.0
 	github.com/blevesearch/bleve/v2 v2.4.4-0.20250115090822-cbafdca08538
 	github.com/cespare/xxhash/v2 v2.3.0
@@ -59,7 +60,6 @@ require (
 	github.com/reflog/dateconstraints v0.2.1
 	github.com/rs/cors v1.11.1
 	github.com/rudderlabs/analytics-go v3.3.3+incompatible
-	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
@@ -75,7 +75,7 @@ require (
 	golang.org/x/crypto v0.32.0
 	golang.org/x/image v0.23.0
 	golang.org/x/net v0.34.0
-	golang.org/x/sync v0.10.0
+	golang.org/x/sync v0.12.0
 	golang.org/x/term v0.28.0
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -222,7 +222,7 @@ require (
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/tools v0.29.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250124145028-65684f501c47 // indirect
 	google.golang.org/grpc v1.70.0 // indirect
@@ -242,10 +242,6 @@ require (
 // github.com/bits-and-blooms/bitset and a couple of dependent repos are yet
 // to update their module paths.
 exclude (
-	// goquery requires go >= 1.23. Remove this once we upgrade to 1.23
-	github.com/PuerkitoBio/goquery v1.9.3
-	github.com/PuerkitoBio/goquery v1.10.0
-	github.com/PuerkitoBio/goquery v1.10.1
 	github.com/RoaringBitmap/roaring v0.7.0
 	github.com/RoaringBitmap/roaring v0.7.1
 	github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09

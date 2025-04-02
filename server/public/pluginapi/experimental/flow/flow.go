@@ -259,8 +259,8 @@ func Goto(toName Name) func(*Flow) (Name, State, error) {
 	}
 }
 
-func DialogGoto(toName Name) func(*Flow, map[string]interface{}) (Name, State, map[string]string, error) {
-	return func(_ *Flow, submitted map[string]interface{}) (Name, State, map[string]string, error) {
+func DialogGoto(toName Name) func(*Flow, map[string]any) (Name, State, map[string]string, error) {
+	return func(_ *Flow, submitted map[string]any) (Name, State, map[string]string, error) {
 		stateUpdate := State{}
 		for k, v := range submitted {
 			stateUpdate[k] = fmt.Sprintf("%v", v)
