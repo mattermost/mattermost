@@ -612,6 +612,187 @@ func (s *FileBackendTestSuite) TestFileModTime() {
 	})
 }
 
+type FileStoreBenchmarkSuite struct {
+	backend     FileBackend
+	name        string
+	description string
+}
+
+// BenchmarkFileStore runs benchmarks for both local and S3 backends
+func BenchmarkFileStore(b *testing.B) {
+	fileSizes := []int{
+		1024 * 100,          // 100KB
+		1024 * 1024,         // 1MB
+		1024 * 1024 * 10,    // 10MB
+		1024 * 1024 * 100,   // 100MB
+		1024 * 1024 * 1000,  // 1GB
+		1024 * 1024 * 10000, // 10GB
+	}
+
+	// Use MM_FILESETTINGS_DIRECTORY if set (useful to test a different mount point, e.g. NFS)
+	var dir string
+	if val := os.Getenv("MM_FILESETTINGS_DIRECTORY"); val != "" {
+		dir = val
+	}
+
+	// Create a temporary directory for local backend
+	dir, err := os.MkdirTemp(dir, "filebackend-benchmark")
+	require.NoError(b, err)
+	defer os.RemoveAll(dir)
+
+	// Setup local backend
+	localBackend, err := NewFileBackend(FileBackendSettings{
+		DriverName: driverLocal,
+		Directory:  dir,
+	})
+	require.NoError(b, err)
+
+	// Setup S3 backend
+	s3Host := os.Getenv("CI_MINIO_HOST")
+	if s3Host == "" {
+		s3Host = "localhost"
+	}
+
+	s3Port := os.Getenv("CI_MINIO_PORT")
+	if s3Port == "" {
+		s3Port = "9000"
+	}
+
+	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+
+	s3Settings := FileBackendSettings{
+		DriverName:                         driverS3,
+		AmazonS3AccessKeyId:                "minioaccesskey",
+		AmazonS3SecretAccessKey:            "miniosecretkey",
+		AmazonS3Bucket:                     "mattermost-test",
+		AmazonS3Region:                     "",
+		AmazonS3Endpoint:                   s3Endpoint,
+		AmazonS3PathPrefix:                 "",
+		AmazonS3SSL:                        false,
+		AmazonS3SSE:                        false,
+		AmazonS3RequestTimeoutMilliseconds: 300 * 1000,
+		AmazonS3UploadPartSizeBytes:        model.FileSettingsDefaultS3ExportUploadPartSizeBytes,
+	}
+
+	// The following overrides make it easier to test these against different backends
+	if val := os.Getenv("MM_FILESETTINGS_AMAZONS3BUCKET"); val != "" {
+		s3Settings.AmazonS3Bucket = val
+	}
+	if val := os.Getenv("MM_FILESETTINGS_AMAZONS3REGION"); val != "" {
+		s3Settings.AmazonS3Region = val
+	}
+	if val := os.Getenv("MM_FILESETTINGS_AMAZONS3ACCESSKEYID"); val != "" {
+		s3Settings.AmazonS3AccessKeyId = val
+	}
+	if val := os.Getenv("MM_FILESETTINGS_AMAZONS3SECRETACCESSKEY"); val != "" {
+		s3Settings.AmazonS3SecretAccessKey = val
+	}
+	if val := os.Getenv("MM_FILESETTINGS_AMAZONS3ENDPOINT"); val != "" {
+		s3Settings.AmazonS3Endpoint = val
+	}
+	if val := os.Getenv("MM_FILESETTINGS_AMAZONS3TRACE"); val == "true" {
+		s3Settings.AmazonS3Trace = true
+	}
+
+	s3Backend, err := NewFileBackend(s3Settings)
+	require.NoError(b, err)
+
+	// Create bucket if it doesn't exist
+	err = s3Backend.TestConnection()
+	if _, ok := err.(*S3FileBackendNoBucketError); ok {
+		require.NoError(b, s3Backend.(*S3FileBackend).MakeBucket())
+	} else {
+		require.NoError(b, err)
+	}
+
+	// Define test suites
+	suites := []FileStoreBenchmarkSuite{
+		{
+			backend:     localBackend,
+			name:        "Local",
+			description: "Local file system backend",
+		},
+		{
+			backend:     s3Backend,
+			name:        "S3",
+			description: "S3 compatible backend",
+		},
+	}
+
+	// Run benchmarks for each backend
+	for _, suite := range suites {
+		b.Run(suite.name, func(b *testing.B) {
+			for _, size := range fileSizes {
+				tcName := fmt.Sprintf("%dMB", int(math.Round(float64(size)/1024/1024)))
+				benchmarkWriteFile(b, suite.backend, tcName, size)
+				benchmarkReadFile(b, suite.backend, tcName, size)
+				err = suite.backend.RemoveFile("tests/" + tcName)
+				require.NoError(b, err)
+			}
+		})
+	}
+}
+
+// benchmarkWriteFile benchmarks writing a file of the given size
+func benchmarkWriteFile(b *testing.B, backend FileBackend, tcName string, size int) {
+	b.Run("Write_"+tcName, func(b *testing.B) {
+		bufferSize := 1024 * 1024 * 4 // 4 MB
+		buffer := make([]byte, bufferSize)
+
+		b.ResetTimer()
+		b.ReportAllocs()
+
+		for i := 0; i < b.N; i++ {
+			rd, wr := io.Pipe()
+			go func() {
+				defer wr.Close()
+				for i := 0; i < size; i += bufferSize {
+					b := buffer
+					left := size - i
+					if left < bufferSize {
+						b = b[:left]
+					}
+					wr.Write(b)
+				}
+			}()
+
+			b.StartTimer()
+			written, err := backend.WriteFile(rd, "tests/"+tcName)
+			b.StopTimer()
+			require.NoError(b, err)
+			require.Equal(b, int64(size), written)
+		}
+	})
+}
+
+// benchmarkReadFile benchmarks reading a file of the given size
+func benchmarkReadFile(b *testing.B, backend FileBackend, tcName string, size int) {
+	b.Run("Read_"+tcName, func(b *testing.B) {
+		bufferSize := 1024 * 1024 * 4 // 4 MB
+		buffer := make([]byte, bufferSize)
+
+		b.ResetTimer()
+		b.ReportAllocs()
+
+		for i := 0; i < b.N; i++ {
+			b.StartTimer()
+			rd, err := backend.Reader("tests/" + tcName)
+			require.NoError(b, err)
+			var total int
+			for {
+				n, err := rd.Read(buffer)
+				total += n
+				if err == io.EOF {
+					break
+				}
+				require.NoError(b, err)
+			}
+			b.StopTimer()
+			require.Equal(b, size, total)
+		}
+	})
+}
+
 func BenchmarkS3WriteFile(b *testing.B) {
 	fileSizes := []int{
 		1024 * 100,          // 100KB
@@ -683,7 +864,7 @@ func BenchmarkS3WriteFile(b *testing.B) {
 		backendMap[partSize] = backend
 	}
 
-	bufferSize := 1024 * 1024 // 4MB
+	bufferSize := 1024 * 1024 // 1MB
 	buffer := make([]byte, bufferSize)
 
 	for _, size := range fileSizes {
