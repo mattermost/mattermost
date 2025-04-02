@@ -85,13 +85,15 @@ func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session
 	channel, appErr := a.GetChannel(c, channelID)
 	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
 		return false
+	} else if appErr != nil {
+		c.Logger().Warn("Failed to get channel", mlog.String("channel_id", channelID), mlog.Err(appErr))
 	}
 
 	if session.IsUnrestricted() || a.RolesGrantPermission(session.GetUserRoles(), model.PermissionManageSystem.Id) {
 		return true
 	}
 
-	if a.isChannelArchivedAndHidden(channel) {
+	if appErr == nil && a.isChannelArchivedAndHidden(channel) {
 		return false
 	}
 
