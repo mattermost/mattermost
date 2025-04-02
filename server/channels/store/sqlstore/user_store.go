@@ -218,7 +218,8 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 	}
 
 	oldUser := model.User{}
-	err := us.GetMaster().Get(&oldUser, "SELECT * FROM Users WHERE Id=?", user.Id)
+	query := us.usersQuery.Where(sq.Eq{"Users.Id": user.Id})
+	err := us.GetMaster().GetBuilder(&oldUser, query)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get User with userId=%s", user.Id)
 	}
@@ -261,7 +262,7 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 		user.UpdateMentionKeysFromUsername(oldUser.Username)
 	}
 
-	query := `UPDATE Users
+	updateQuery := `UPDATE Users
 			SET CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, Username=:Username, Password=:Password,
 				AuthData=:AuthData, AuthService=:AuthService,Email=:Email, EmailVerified=:EmailVerified,
 				Nickname=:Nickname, FirstName=:FirstName, LastName=:LastName, Position=:Position, Roles=:Roles,
@@ -272,7 +273,7 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 			WHERE Id=:Id`
 
 	user.Props = wrapBinaryParamStringMap(us.IsBinaryParamEnabled(), user.Props)
-	res, err := us.GetMaster().NamedExec(query, user)
+	res, err := us.GetMaster().NamedExec(updateQuery, user)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique"}) {
 			return nil, store.NewErrConflict("Email", err, user.Email)
@@ -1144,9 +1145,8 @@ func (us SqlUserStore) GetProfileByGroupChannelIdsForUser(userId string, channel
           ChannelId = cm.ChannelId
         )`, userId)
 
-	query := us.getQueryBuilder().
-		Select("Users.*, cm.ChannelId").
-		From("Users").
+	query := us.usersQuery.
+		Columns("cm.ChannelId").
 		Join("ChannelMembers cm ON Users.Id = cm.UserId").
 		Join("Channels c ON cm.ChannelId = c.Id").
 		Where(sq.Eq{"c.Type": model.ChannelTypeGroup, "cm.ChannelId": channelIds}).
@@ -1812,7 +1812,8 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() (err error) {
 		defer finalizeTransactionX(transaction, &err)
 
 		users := []*model.User{}
-		if err := transaction.Select(&users, "SELECT * from Users WHERE Id > ? ORDER BY Id LIMIT 1000", lastUserId); err != nil {
+		query := us.usersQuery.Where(sq.Gt{"Users.Id": lastUserId}).OrderBy("Users.Id").Limit(1000)
+		if err := transaction.SelectBuilder(&users, query); err != nil {
 			return errors.Wrapf(err, "failed to find Users with id > %s", lastUserId)
 		}
 
@@ -2359,7 +2360,7 @@ func (us SqlUserStore) GetUserCountForReport(filter *model.UserReportOptions) (i
 
 func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
 	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
-	selectColumns := []string{"Users.*", "MAX(s.LastActivityAt) AS LastStatusAt"}
+	selectColumns := append(getUsersColumns(), "MAX(s.LastActivityAt) AS LastStatusAt")
 	if isPostgres {
 		selectColumns = append(selectColumns,
 			"MAX(ps.LastPostDate) AS LastPostDate",
@@ -2444,7 +2445,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		}
 
 		parentQuery = us.getQueryBuilder().
-			Select("*").
+			Select("data.*").
 			FromSelect(query, "data").
 			OrderBy(filter.SortColumn+" "+reverseSortDirection, "Id")
 	}
