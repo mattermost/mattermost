@@ -39,11 +39,25 @@ function getBaseState(): DeepPartial<GlobalState> {
 describe('SystemProperties', () => {
     const getFields = jest.spyOn(Client4, 'getCustomProfileAttributeFields');
 
-    const baseField = {type: 'text' as const, group_id: 'custom_profile_attributes' as const, create_at: 1736541716295, delete_at: 0, update_at: 0};
-    const field0: UserPropertyField = {id: 'f0', name: 'test attribute 0', ...baseField};
-    const field1: UserPropertyField = {id: 'f1', name: 'test attribute 1', ...baseField};
-    const field2: UserPropertyField = {id: 'f2', name: 'test attribute 2', ...baseField};
-    const field3: UserPropertyField = {id: 'f3', name: 'test attribute 3', ...baseField};
+    const baseField: UserPropertyField = {
+        id: 'test-id',
+        name: 'Test Field',
+        type: 'text' as const,
+        group_id: 'custom_profile_attributes',
+        create_at: 1736541716295,
+        delete_at: 0,
+        update_at: 0,
+        attrs: {
+            sort_order: 0,
+            visibility: 'when_set' as const,
+            value_type: '',
+        },
+    };
+
+    const field0: UserPropertyField = {...baseField, id: 'test-id-0', name: 'test attribute 0'};
+    const field1: UserPropertyField = {...baseField, id: 'test-id-1', name: 'test attribute 1'};
+    const field2: UserPropertyField = {...baseField, id: 'test-id-2', name: 'test attribute 2'};
+    const field3: UserPropertyField = {...baseField, id: 'test-id-3', name: 'test attribute 3'};
 
     getFields.mockResolvedValue([field0, field1, field2, field3]);
 

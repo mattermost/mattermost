@@ -1,0 +1,32 @@
+.user-property-field-dotmenu-menu-button {
+    height: 40px;
+    justify-content: start;
+    border-color: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    font-weight: normal;
+    &:hover,
+    &:focus {
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.04)
+    }
+    &:focus,
+    &[aria-expanded="true"] {
+        background: rgba(var(--button-bg-rgb), 0.08);
+    }
+
+    &.deleted {
+        color: #D24B4E;
+        text-decoration: line-through;
+    }
+
+    &.strong {
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 600;
+    }
+}
