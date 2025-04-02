@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/playwright-lib",
-  "version": "10.6.1",
+  "version": "10.7.0",
   "description": "A comprehensive end-to-end testing library for Mattermost web, desktop and plugin applications using Playwright",
   "repository": {
     "type": "git",
