@@ -537,7 +537,7 @@ function SharedChannelRemotesTable(props: {data: SharedChannelRemoteRow[]; filte
 }
 
 const TableWrapper = styled.div`
-    table.adminConsoleListTable {
+    table.adminConsoleListTable.sharedChannelRemotes {
 
         td, th {
             &:after, &:before {
@@ -554,8 +554,8 @@ const TableWrapper = styled.div`
             tr {
                 border-top: none;
                 td {
-                    padding-block-end: 0;
-                    padding-block-start: 0;
+                    padding-block-end: 8px;
+                    padding-block-start: 8px;
 
                 }
             }
