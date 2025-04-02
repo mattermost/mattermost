@@ -37,3 +37,9 @@ var metricsInterfaceFn func(*PlatformService, string, string) einterfaces.Metric
 func RegisterMetricsInterface(f func(*PlatformService, string, string) einterfaces.MetricsInterface) {
 	metricsInterfaceFn = f
 }
+
+var pdpInterface func(*PlatformService) einterfaces.PolicyDecisionPointInterface
+
+func RegisterPdpInterface(f func(*PlatformService) einterfaces.PolicyDecisionPointInterface) {
+	pdpInterface = f
+}
