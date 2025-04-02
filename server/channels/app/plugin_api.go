@@ -661,7 +661,7 @@ func (api *PluginAPI) GetGroupsBySource(groupSource model.GroupSource) ([]*model
 }
 
 func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.AppError) {
-	return api.app.GetGroupsByUserId(userID)
+	return api.app.GetGroupsByUserId(userID, model.GroupSearchOpts{})
 }
 
 func (api *PluginAPI) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
@@ -756,7 +756,7 @@ func (api *PluginAPI) DeleteGroupSyncable(groupID string, syncableID string, syn
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
-	post.AddProp("from_plugin", "true")
+	post.AddProp(model.PostPropsFromPlugin, "true")
 
 	post, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true, true)
 	if post != nil {
@@ -948,7 +948,7 @@ func (api *PluginAPI) SetTeamIcon(teamID string, data []byte) *model.AppError {
 		return err
 	}
 
-	return api.app.SetTeamIconFromFile(team, bytes.NewReader(data))
+	return api.app.SetTeamIconFromFile(api.ctx, team, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
@@ -1103,12 +1103,15 @@ func (api *PluginAPI) UpdateUserRoles(userID string, newRoles string) (*model.Us
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...any) {
 	api.logger.Debugw(msg, keyValuePairs...)
 }
+
 func (api *PluginAPI) LogInfo(msg string, keyValuePairs ...any) {
 	api.logger.Infow(msg, keyValuePairs...)
 }
+
 func (api *PluginAPI) LogError(msg string, keyValuePairs ...any) {
 	api.logger.Errorw(msg, keyValuePairs...)
 }
+
 func (api *PluginAPI) LogWarn(msg string, keyValuePairs ...any) {
 	api.logger.Warnw(msg, keyValuePairs...)
 }
@@ -1320,7 +1323,8 @@ func (api *PluginAPI) DeleteOAuthApp(appID string) *model.AppError {
 // PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
 // the calling plugin.
 func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
-	opts model.PluginClusterEventSendOptions) error {
+	opts model.PluginClusterEventSendOptions,
+) error {
 	if api.app.Cluster() == nil {
 		return nil
 	}

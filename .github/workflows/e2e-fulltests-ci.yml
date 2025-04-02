@@ -70,7 +70,7 @@ jobs:
       SERVER: "${{ steps.generate.outputs.SERVER }}"
       ENABLED_DOCKER_SERVICES: "${{ steps.generate.outputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER_CYPRESS: "${{ steps.generate.outputs.TEST_FILTER_CYPRESS }}"
-      TEST_FILTER_PLAYWRIGHT: "tests/ --project=chrome" # Note: Run on chrome but eventually will enable to all projects which include firefox and ipad.
+      TEST_FILTER_PLAYWRIGHT: "tests"
       BUILD_ID: "${{ steps.generate.outputs.BUILD_ID }}"
       TM4J_ENABLE: "${{ steps.generate.outputs.TM4J_ENABLE }}"
       REPORT_TYPE: "${{ steps.generate.outputs.REPORT_TYPE }}"

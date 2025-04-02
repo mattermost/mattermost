@@ -40,7 +40,7 @@ func (o *PostSearchResults) ForPlugin() *PostSearchResults {
 	return &plCopy
 }
 
-func (o *PostSearchResults) Auditable() map[string]interface{} {
+func (o *PostSearchResults) Auditable() map[string]any {
 	var numResults int
 	var hasNext bool
 
