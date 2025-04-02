@@ -90,7 +90,6 @@ func getImageMimeType(ext string) string {
 		return mimeType
 	}
 	return "image"
-
 }
 func getVideoMimeType(ext string) string {
 	ext = strings.ToLower(ext)
