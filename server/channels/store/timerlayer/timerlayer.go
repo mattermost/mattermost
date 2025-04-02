@@ -4947,22 +4947,6 @@ func (s *TimerLayerJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string, status string, offset int, limit int) ([]*model.Job, error) {
-	start := time.Now()
-
-	result, err := s.JobStore.GetAllByTypeAndStatusPage(c, jobType, status, offset, limit)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetAllByTypeAndStatusPage", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerJobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error) {
 	start := time.Now()
 
@@ -4975,6 +4959,22 @@ func (s *TimerLayerJobStore) GetAllByTypePage(c request.CTX, jobType string, off
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetAllByTypePage", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerJobStore) GetAllByTypesAndStatusesPage(c request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error) {
+	start := time.Now()
+
+	result, err := s.JobStore.GetAllByTypesAndStatusesPage(c, jobType, status, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetAllByTypesAndStatusesPage", success, elapsed)
 	}
 	return result, err
 }
