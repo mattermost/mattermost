@@ -1,6 +1,10 @@
-#!/usr/bin/env node
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+/* eslint-disable @typescript-eslint/no-require-imports */
 
 const fs = require('fs');
+
 const dayjs = require('dayjs');
 const duration = require('dayjs/plugin/duration');
 dayjs.extend(duration);
@@ -90,5 +94,5 @@ function generateWebhookBody() {
     };
 }
 
-let webhookBody = generateWebhookBody();
+const webhookBody = generateWebhookBody();
 process.stdout.write(JSON.stringify(webhookBody));
