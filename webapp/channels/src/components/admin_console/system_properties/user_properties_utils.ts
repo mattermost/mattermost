@@ -212,7 +212,7 @@ export const useUserPropertyFields = () => {
                     const itemNextOrder = nextOrder.indexOf(item.id);
 
                     if (itemNextOrder !== itemCurrentOrder) {
-                        changedItems.push({...item, attrs: {sort_order: itemNextOrder, visibility: 'when_set', value_type: ''}});
+                        changedItems.push({...item, attrs: {...item.attrs, sort_order: itemNextOrder}});
                     }
 
                     return changedItems;
