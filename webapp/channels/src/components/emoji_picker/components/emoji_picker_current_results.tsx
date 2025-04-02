@@ -13,7 +13,7 @@ import type {Emoji, EmojiCategory, CustomEmoji, SystemEmoji} from '@mattermost/t
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import EmojiPickerCategoryOrEmojiRow from 'components/emoji_picker/components/emoji_picker_category_or_emoji_row';
-import {ITEM_HEIGHT, EMOJI_ROWS_OVERSCAN_COUNT, EMOJI_CONTAINER_HEIGHT, CUSTOM_EMOJIS_PER_PAGE, EMOJI_SCROLL_THROTTLE_DELAY} from 'components/emoji_picker/constants';
+import {ITEM_HEIGHT, EMOJI_ROWS_OVERSCAN_COUNT, EMOJI_CONTAINER_HEIGHT, CUSTOM_EMOJIS_PER_PAGE, EMOJI_SCROLL_THROTTLE_DELAY, CATEGORIES_CONTAINER_HEIGHT} from 'components/emoji_picker/constants';
 import type {CategoryOrEmojiRow, EmojiCursor} from 'components/emoji_picker/types';
 import {isCategoryHeaderRow} from 'components/emoji_picker/utils';
 
@@ -89,7 +89,7 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
     return (
         <div
             className='emoji-picker__items'
-            style={{height: EMOJI_CONTAINER_HEIGHT}}
+            style={{height: isFiltering ? EMOJI_CONTAINER_HEIGHT + CATEGORIES_CONTAINER_HEIGHT : EMOJI_CONTAINER_HEIGHT}}
         >
             <div
                 className='emoji-picker__container'

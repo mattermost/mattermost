@@ -1936,7 +1936,6 @@
   "channel_header.convert": "निजी चैनल में कनवर्ट करें",
   "channel_header.directchannel.you": "{displayname} (आप) ",
   "channel_header.groupMessageHasGuests": "इस समूह संदेश में अतिथि हैं",
-  "channel_header.manageMembers": "सदस्यों को प्रबंधित करें",
   "channel_header.viewMembers": "सदस्य देखें",
   "channel_loader.someone": "कोई व्यक्ति",
   "channel_modal.cancel": "रद्द करना",
