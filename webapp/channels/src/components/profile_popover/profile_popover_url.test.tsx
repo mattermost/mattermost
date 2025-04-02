@@ -23,6 +23,8 @@ describe('components/ProfilePopoverUrl', () => {
         delete_at: 0,
         attrs: {
             value_type: 'url',
+            visibility: 'when_set',
+            sort_order: 0,
         },
     };
 

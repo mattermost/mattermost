@@ -29,6 +29,9 @@ describe('components/ProfilePopoverSelectAttribute', () => {
         delete_at: 0,
         attrs: {
             options,
+            visibility: 'when_set',
+            sort_order: 0,
+            value_type: '',
         },
     };
 
@@ -88,7 +91,10 @@ describe('components/ProfilePopoverSelectAttribute', () => {
             ...baseProps,
             attribute: {
                 ...attribute,
-                attrs: {},
+                attrs: {
+                    ...attribute.attrs,
+                    options: [],
+                },
             },
         };
         const {container} = renderWithContext(<ProfilePopoverSelectAttribute {...props}/>);
