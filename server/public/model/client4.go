@@ -120,9 +120,9 @@ func closeBody(r *http.Response) {
 	}
 }
 
-func NewAPIv4Client(url string, userID string) *Client4 {
+func NewAPIv4Client(url string) *Client4 {
 	url = strings.TrimRight(url, "/")
-	return &Client4{url, url + APIURLSuffix, &http.Client{}, "", "", map[string]string{"X-Mattermost-Id": userID}, "", ""}
+	return &Client4{url, url + APIURLSuffix, &http.Client{}, "", "", map[string]string{}, "", ""}
 }
 
 func NewAPIv4SocketClient(socketPath string, userID string) *Client4 {
@@ -132,8 +132,9 @@ func NewAPIv4SocketClient(socketPath string, userID string) *Client4 {
 		},
 	}
 
-	client := NewAPIv4Client("http://_", userID)
+	client := NewAPIv4Client("http://_")
 	client.HTTPClient = &http.Client{Transport: tr}
+	client.HTTPHeader = map[string]string{"X-Mattermost-Id": userID}
 
 	return client
 }

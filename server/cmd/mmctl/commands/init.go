@@ -172,7 +172,7 @@ func VerifyCertificates(rawCerts [][]byte, verifiedChains [][]*x509.Certificate)
 }
 
 func NewAPIv4Client(instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) *model.Client4 {
-	client := model.NewAPIv4Client(instanceURL, "")
+	client := model.NewAPIv4Client(instanceURL)
 	userAgent := fmt.Sprintf("mmctl/%s (%s)", Version, runtime.GOOS)
 	client.HTTPHeader = map[string]string{"User-Agent": userAgent}
 
