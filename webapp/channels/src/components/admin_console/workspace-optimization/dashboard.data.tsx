@@ -31,11 +31,7 @@ import {runEaseOfUseChecks} from './dashboard_checks/easy_management';
 import {runPerformanceChecks} from './dashboard_checks/performance';
 import {runUpdateChecks} from './dashboard_checks/updates';
 
-import {
-    daysToLicenseExpire,
-    getIsStarterLicense,
-    isEnterpriseLicense,
-} from '../../../utils/license_utils';
+import {daysToLicenseExpire, getIsStarterLicense, isEnterpriseLicense} from '../../../utils/license_utils';
 
 export const impactModifiers: Record<ItemStatus, number> = {
     [ItemStatus.NONE]: 1,

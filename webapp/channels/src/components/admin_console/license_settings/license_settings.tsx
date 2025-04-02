@@ -18,13 +18,7 @@ import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {AboutLinks, CloudLinks, ModalIdentifiers} from 'utils/constants';
-import {
-    isLicenseExpired,
-    isLicenseExpiring,
-    isTrialLicense,
-    licenseSKUWithFirstLetterCapitalized,
-    isEnterpriseLicense,
-} from 'utils/license_utils';
+import {isLicenseExpired, isLicenseExpiring, isTrialLicense, licenseSKUWithFirstLetterCapitalized, isEnterpriseLicense} from 'utils/license_utils';
 
 import type {ModalData} from 'types/actions';
 
