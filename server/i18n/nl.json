@@ -10506,5 +10506,17 @@
   {
     "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
     "translation": "Ongeldige maximale aanmeldpogingen voor ldap-instellingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_conversion_error",
+    "translation": "Kan het eigenschapveld niet converteren naar een aangepast profielattribuutveld"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Kan het eigenschapveld niet converteren naar een aangepast profielattribuutveld"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Ongeldige eigenschap waarde attributen : {{.AttributeName}} ({{.Reason}})."
   }
 ]
