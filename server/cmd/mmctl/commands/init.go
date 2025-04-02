@@ -84,7 +84,7 @@ func getClient(ctx context.Context, cmd *cobra.Command) (*model.Client4, string,
 	}
 
 	if useLocal {
-		c, err := InitUnixClient(viper.GetString("local-socket-path"))
+		c, err := InitUnixClient(viper.GetString("local-socket-path"), viper.GetString("local-user-id"))
 		if err != nil {
 			return nil, "", true, err
 		}
@@ -172,7 +172,7 @@ func VerifyCertificates(rawCerts [][]byte, verifiedChains [][]*x509.Certificate)
 }
 
 func NewAPIv4Client(instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) *model.Client4 {
-	client := model.NewAPIv4Client(instanceURL)
+	client := model.NewAPIv4Client(instanceURL, "")
 	userAgent := fmt.Sprintf("mmctl/%s (%s)", Version, runtime.GOOS)
 	client.HTTPHeader = map[string]string{"User-Agent": userAgent}
 
@@ -251,12 +251,12 @@ func InitWebSocketClient() (*model.WebSocketClient, error) {
 	return client, nil
 }
 
-func InitUnixClient(socketPath string) (*model.Client4, error) {
+func InitUnixClient(socketPath string, userID string) (*model.Client4, error) {
 	if err := checkValidSocket(socketPath); err != nil {
 		return nil, err
 	}
 
-	return model.NewAPIv4SocketClient(socketPath), nil
+	return model.NewAPIv4SocketClient(socketPath, userID), nil
 }
 
 func checkInsecureTLSError(err error, allowInsecureTLS bool) error {

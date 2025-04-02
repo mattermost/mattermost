@@ -11,6 +11,7 @@ import (
 )
 
 func (api *API) InitPostLocal() {
+	api.BaseRoutes.Posts.Handle("", api.APILocal(createPost)).Methods(http.MethodPost)
 	api.BaseRoutes.Post.Handle("", api.APILocal(getPost)).Methods(http.MethodGet)
 	api.BaseRoutes.PostsForChannel.Handle("", api.APILocal(getPostsForChannel)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("", api.APILocal(localDeletePost)).Methods(http.MethodDelete)

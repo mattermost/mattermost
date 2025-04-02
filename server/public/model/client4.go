@@ -120,19 +120,19 @@ func closeBody(r *http.Response) {
 	}
 }
 
-func NewAPIv4Client(url string) *Client4 {
+func NewAPIv4Client(url string, userID string) *Client4 {
 	url = strings.TrimRight(url, "/")
-	return &Client4{url, url + APIURLSuffix, &http.Client{}, "", "", map[string]string{}, "", ""}
+	return &Client4{url, url + APIURLSuffix, &http.Client{}, "", "", map[string]string{"X-Mattermost-Id": userID}, "", ""}
 }
 
-func NewAPIv4SocketClient(socketPath string) *Client4 {
+func NewAPIv4SocketClient(socketPath string, userID string) *Client4 {
 	tr := &http.Transport{
 		Dial: func(network, addr string) (net.Conn, error) {
 			return net.Dial("unix", socketPath)
 		},
 	}
 
-	client := NewAPIv4Client("http://_")
+	client := NewAPIv4Client("http://_", userID)
 	client.HTTPClient = &http.Client{Transport: tr}
 
 	return client

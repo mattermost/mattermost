@@ -540,7 +540,7 @@ func (th *TestHelper) waitForConnectivity() {
 }
 
 func (th *TestHelper) CreateClient() *model.Client4 {
-	return model.NewAPIv4Client(fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port))
+	return model.NewAPIv4Client(fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port), "")
 }
 
 // ToDo: maybe move this to NewAPIv4SocketClient and reuse it in mmctl
