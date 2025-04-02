@@ -26,6 +26,7 @@ export type PropertyValue<T> = {
 }
 
 export type UserPropertyFieldType = 'text';
+
 export type UserPropertyFieldGroupID = 'custom_profile_attributes';
 
 export type UserPropertyField = PropertyField & {
@@ -33,4 +34,5 @@ export type UserPropertyField = PropertyField & {
     group_id: UserPropertyFieldGroupID;
     attrs?: {sort_order?: number};
 }
-export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type' | 'attrs'>>;
+export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;
+
