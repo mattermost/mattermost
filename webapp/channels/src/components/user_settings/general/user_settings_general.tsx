@@ -152,8 +152,8 @@ export type Props = {
         sendVerificationEmail: (email: string) => Promise<ActionResult>;
         setDefaultProfileImage: (id: string) => void;
         uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
+        getCustomProfileAttributeValues: (userID: string) => Promise<ActionResult<Record<string, string | string[]>>>;
         saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string | string[]) => Promise<ActionResult<Record<string, string | string[]>>>;
-        getCustomProfileAttributeValues: (userID: string) => Promise<ActionResult<Record<string, string>>>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;
@@ -472,7 +472,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
         this.setState({sectionIsSaving: true});
 
-        this.props.actions.saveCustomProfileAttribute(this.props.user.id, attributeID, attributeValue).
+        this.props.actions.saveCustomProfileAttribute(this.props.user.id, attributeID, attributeValue as string).
             then(({data, error: err}) => {
                 if (data) {
                     this.updateSection('');
