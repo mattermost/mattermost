@@ -71,6 +71,11 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         create_at: 0,
         update_at: 0,
         delete_at: 0,
+        attrs: {
+            sort_order: 0,
+            visibility: 'when_set',
+            value_type: '',
+        },
     };
 
     let store: ReturnType<typeof configureStore>;

@@ -51,6 +51,19 @@ export type PropertyFieldOption = {
     color?: string;
 }
 
+export type FieldVisibility = 'always' | 'hidden' | 'when_set';
+export type FieldValueType =
+    'email' |
+    'url' |
+    'phone' |
+    '';
+
+export type PropertyFieldOption = {
+    id: string;
+    name: string;
+    color?: string;
+}
+
 export type UserPropertyField = PropertyField & {
     group_id: UserPropertyFieldGroupID;
     attrs: {
