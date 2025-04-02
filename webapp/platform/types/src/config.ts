@@ -402,6 +402,8 @@ export type ServiceSettings = {
     EnableDesktopLandingPage: boolean;
     MaximumURLLength: number;
     ScheduledPosts: boolean;
+    EnableWebHubChannelIteration: boolean;
+    FrameAncestors: string;
 };
 
 export type TeamSettings = {
@@ -770,6 +772,9 @@ export type NativeAppSettings = {
     AndroidAppDownloadLink: string;
     IosAppDownloadLink: string;
     MobileExternalBrowser: boolean;
+    MobileEnableBiometrics: boolean;
+    MobilePreventScreenCapture: boolean;
+    MobileJailbreakProtection: boolean;
 };
 
 export type ClusterSettings = {
@@ -792,6 +797,7 @@ export type MetricsSettings = {
     ListenAddress: string;
     EnableClientMetrics: boolean;
     EnableNotificationMetrics: boolean;
+    ClientSideUserIds: string[];
 };
 
 export type ExperimentalSettings = {
@@ -818,6 +824,7 @@ export type CacheSettings = {
     RedisAddress: string;
     RedisPassword: string;
     RedisDB: number;
+    RedisCachePrefix: string;
     DisableClientCache: boolean;
 };
 
