@@ -123,7 +123,7 @@ type CPAField struct {
 
 type CPAAttrs struct {
 	Visibility string                                                `json:"visibility"`
-	SortOrder  int                                                   `json:"sort_order"`
+	SortOrder  float64                                               `json:"sort_order"`
 	Options    PropertyOptions[*CustomProfileAttributesSelectOption] `json:"options"`
 	ValueType  string                                                `json:"value_type"`
 	LDAP       string                                                `json:"ldap"`
