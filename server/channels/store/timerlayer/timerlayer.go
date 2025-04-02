@@ -569,6 +569,22 @@ func (s *TimerLayerAccessControlPolicyStore) GetAll(rctxc request.CTX, opts stor
 	return result, err
 }
 
+func (s *TimerLayerAccessControlPolicyStore) GetAllSubjects(rctxc request.CTX) ([]*model.Subject, error) {
+	start := time.Now()
+
+	result, err := s.AccessControlPolicyStore.GetAllSubjects(rctxc)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetAllSubjects", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerAccessControlPolicyStore) Save(c request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
 	start := time.Now()
 

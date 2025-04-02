@@ -105,16 +105,16 @@ export default class PolicyList extends React.PureComponent<Props, State> {
             return {
                 cells: {
                     name: policy.name,
-                    properties: policy.properties?.join(', '),
-                    applies_to: (
-                        <FormattedMessage
-                            id='admin.access_control.policies.channels_count'
-                            defaultMessage='{count} channels'
-                            values={{
-                                count: 4, // TODO: get the actual number of channels
-                            }}
-                        />
-                    ),
+                    // properties: policy.properties?.join(', '),
+                    // applies_to: (
+                    //     <FormattedMessage
+                    //         id='admin.access_control.policies.channels_count'
+                    //         defaultMessage='{count} channels'
+                    //         values={{
+                    //             count: 4, // TODO: get the actual number of channels
+                    //         }}
+                    //     />
+                    // ),
                     actions: (
                         <div className='action-wrapper'>
                             <a
@@ -146,24 +146,24 @@ export default class PolicyList extends React.PureComponent<Props, State> {
                 ),
                 field: 'name',
             },
-            {
-                name: (
-                    <FormattedMessage
-                        id='admin.access_control.policies.properties'
-                        defaultMessage='Properties'
-                    />
-                ),
-                field: 'properties',
-            },
-            {
-                name: (
-                    <FormattedMessage
-                        id='admin.access_control.policies.applies_to'
-                        defaultMessage='Applies to'
-                    />
-                ),
-                field: 'applies_to',
-            },
+            // {
+            //     name: (
+            //         <FormattedMessage
+            //             id='admin.access_control.policies.properties'
+            //             defaultMessage='Properties'
+            //         />
+            //     ),
+            //     field: 'properties',
+            // },
+            // {
+            //     name: (
+            //         <FormattedMessage
+            //             id='admin.access_control.policies.applies_to'
+            //             defaultMessage='Applies to'
+            //         />
+            //     ),
+            //     field: 'applies_to',
+            // },
             {
                 name: (
                     <span></span>

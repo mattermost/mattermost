@@ -3,23 +3,34 @@
     
     &__container {
         position: relative;
+        display: flex;
+        flex-direction: column;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
         background: var(--center-channel-bg);
         margin-bottom: 8px;
     }
     
+    &__cursor-position {
+        position: absolute;
+        right: 8px;
+        font-size: 12px;
+        color: var(--button-color);
+        font-family: monospace;
+        padding: 2px 4px;
+        border-radius: 4px;
+        pointer-events: none;
+    }
+    
     &__input {
         width: 100%;
-        min-height: 80px;
-        padding: 12px;
+        min-height: 120px;
         resize: vertical;
-        border: none;
-        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-        font-size: 14px;
-        line-height: 1.5;
-        color: var(--center-channel-color);
-        background: transparent;
+        border: 1px solid var(--button-bg);
+        border-radius: 4px 4px 0 0;
+        padding: 12px;
+        font-family: monospace;
+        transition: border-color 0.15s ease;
         
         &:focus {
             outline: none;
@@ -28,11 +39,23 @@
         &::placeholder {
             color: rgba(var(--center-channel-color-rgb), 0.56);
         }
+
+        .cel-editor__container[data-status-color='var(--error-text)'] & {
+            border-color: var(--error-text);
+        }
+
+        .cel-editor__container[data-status-color='var(--online-indicator)'] & {
+            border-color: var(--online-indicator);
+        }
+
+        .cel-editor__container[data-status-color='var(--button-bg)'] & {
+            border-color: var(--button-bg);
+        }
     }
     
     &__footer {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
         margin-bottom: 16px;
     }
@@ -42,39 +65,19 @@
         align-items: center;
     }
     
-    &__validate-btn {
-        background: transparent;
-        border: none;
-        padding: 8px 16px;
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--button-bg);
-        cursor: pointer;
-        
-        &:hover, &:focus {
-            text-decoration: underline;
-        }
-        
-        &:disabled {
-            color: rgba(var(--center-channel-color-rgb), 0.32);
-            cursor: not-allowed;
-        }
-    }
-    
     &__test-btn {
         display: flex;
         align-items: center;
         background: transparent;
         border: 1px solid var(--button-bg);
         border-radius: 4px;
-        padding: 8px 0px;
+        padding: 8px 8px;
         font-size: 14px;
         font-weight: 600;
         color: var(--button-bg);
         cursor: pointer;
         
         i {
-            margin-right: 8px;
             font-size: 16px;
         }
         
@@ -119,6 +122,138 @@
         
         &:hover {
             text-decoration: underline;
+        }
+    }
+
+    &__status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 24px;
+        padding: 0 8px;
+        font-size: 12px;
+        font-family: monospace;
+        color: var(--button-color);
+        border-radius: 0 0 4px 4px;
+        transition: background-color 0.15s ease;
+    }
+
+    &__error-message {
+        display: flex;
+        align-items: center;
+        
+        .icon {
+            margin-right: 4px;
+            font-size: 14px;
+        }
+    }
+
+    &__error {
+        display: flex;
+        align-items: center;
+        color: var(--button-color);
+    }
+
+    &__status-message {
+        display: flex;
+        align-items: center;
+        
+        .icon {
+            margin-right: 4px;
+            font-size: 14px;
+
+            &.icon-refresh {
+                cursor: pointer;
+                &:hover {
+                    opacity: 0.8;
+                }
+            }
+        }
+    }
+
+    &__inline-validate-btn {
+        background: transparent;
+        border: none;
+        padding: 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--button-color);
+        cursor: pointer;
+        
+        &:hover {
+            text-decoration: underline;
+        }
+        
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .cel-editor__loading {
+            display: flex;
+            align-items: center;
+            
+            i {
+                margin-right: 4px;
+                font-size: 12px;
+            }
+        }
+    }
+
+    &__validate-btn {
+        display: none;
+    }
+}
+
+.cel-test-results-modal {
+    .modal-body {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .cel-test-attributes {
+        margin-bottom: 20px;
+        padding: 10px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+        .cel-attribute-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 0 4px 4px 0;
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+    }
+
+    .cel-subjects-list {
+        .cel-subject-item {
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            border-radius: 4px;
+
+            .cel-subject-header {
+                margin-bottom: 8px;
+                font-weight: 600;
+            }
+
+            .cel-subject-attributes {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 8px;
+
+                .cel-subject-attribute {
+                    .cel-attribute-key {
+                        font-weight: 500;
+                        margin-right: 4px;
+                    }
+
+                    .cel-attribute-value {
+                        color: rgba(var(--center-channel-color-rgb), 0.72);
+                    }
+                }
+            }
         }
     }
 }

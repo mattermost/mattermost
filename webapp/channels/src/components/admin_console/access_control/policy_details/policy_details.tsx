@@ -116,7 +116,7 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                             </Card.Header>
                             <Card.Body>
                                 <CELEditor
-                                   value={this.props.policy?.rules[0].expression || ''}
+                                   value={this.props.policy?.rules?.[0]?.expression || ''}
                                    onChange={() => {}}
                                    onValidate={() => {}}
                                />

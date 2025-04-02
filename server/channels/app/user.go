@@ -2355,15 +2355,15 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 		}
 	}
 
-	if len(restrictions.Channels) > 0 {
-		result, err := a.userBelongsToChannels(otherUserId, restrictions.Channels)
-		if err != nil {
-			return false, err
-		}
-		if result {
-			return true, nil
-		}
-	}
+	// if len(restrictions.Channels) > 0 {
+	// 	result, err := a.userBelongsToChannels(otherUserId, restrictions.Channels)
+	// 	if err != nil {
+	// 		return false, err
+	// 	}
+	// 	if result {
+	// 		return true, nil
+	// 	}
+	// }
 
 	return false, nil
 }
@@ -2394,7 +2394,7 @@ func (a *App) GetViewUsersRestrictions(c request.CTX, userID string) (*model.Vie
 		}
 	}
 
-	userChannelMembers, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(c, userID, true, true)
+	userChannelMembers, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(c, userID, true, false)
 	if err != nil {
 		return nil, model.NewAppError("GetViewUsersRestrictions", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

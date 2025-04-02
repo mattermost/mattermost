@@ -419,3 +419,43 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts store.GetPolicy
 
 	return policies, nil
 }
+
+func (s *SqlAccessControlPolicyStore) GetAllSubjects(rctxc request.CTX) ([]*model.Subject, error) {
+	subjects := []*model.Subject{}
+
+	selectQuery := s.getQueryBuilder().
+		Select("TargetID as Id, Properties").
+		From("PropertyView")
+
+	query, args, err := selectQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build query for subjects")
+	}
+
+	rows, err := s.GetReplica().Query(query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get all subjects")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var subject model.Subject
+		var properties []byte
+
+		if err := rows.Scan(&subject.ID, &properties); err != nil {
+			return nil, errors.Wrap(err, "failed to scan subject row")
+		}
+
+		if err := json.Unmarshal(properties, &subject.Properties); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal properties")
+		}
+
+		subjects = append(subjects, &subject)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "rows iteration error")
+	}
+
+	return subjects, nil
+}

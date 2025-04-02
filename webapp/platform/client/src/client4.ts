@@ -3,7 +3,7 @@
 
 /* eslint-disable max-lines */
 
-import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery, AccessControlPolicy} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery, AccessControlPolicy, CELExpressionError, AccessControlTestResult} from '@mattermost/types/admin';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -4360,6 +4360,20 @@ export default class Client4 {
         return this.doFetch<AccessControlPolicy>(
             `${this.getBaseRoute()}/access_control_policies/${id}`,
             {method: 'get'},
+        );
+    };
+
+    checkAccessControlExpression = (expression: string) => {
+        return this.doFetch<CELExpressionError[]>(
+            `${this.getBaseRoute()}/access_control_policies/check`,
+            {method: 'post', body: JSON.stringify({"expression": expression})},
+        );
+    };
+
+    testAccessControlExpression = (expression: string) => {
+        return this.doFetch<AccessControlTestResult>(
+            `${this.getBaseRoute()}/access_control_policies/test`,
+            {method: 'post', body: JSON.stringify({"expression": expression})},
         );
     };
 }
