@@ -89,7 +89,7 @@ jobs:
           # We skip the very last line, which simply contains the date of the dump
           head -n -1 ${DUMP_SERVER_NAME} | gzip > ${DUMP_SERVER_NAME}.gz
       - name: Upload dump
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: upgraded-dump-server
           path: ${{ env.DUMP_SERVER_NAME }}.gz
@@ -134,7 +134,7 @@ jobs:
           # We skip the very last line, which simply contains the date of the dump
           head -n -1 ${DUMP_SCRIPT_NAME} | gzip > ${DUMP_SCRIPT_NAME}.gz
       - name: Upload dump
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: upgraded-dump-script
           path: ${{ env.DUMP_SCRIPT_NAME }}.gz
@@ -145,7 +145,7 @@ jobs:
       - esr-upgrade-script
     steps:
       - name: Retrieve dumps
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
       - name: Diff dumps
         run: |
           gzip -d upgraded-dump-server/${DUMP_SERVER_NAME}.gz
@@ -153,7 +153,7 @@ jobs:
           diff upgraded-dump-server/$DUMP_SERVER_NAME upgraded-dump-script/$DUMP_SCRIPT_NAME > $DIFF_NAME
       - name: Upload diff
         if: failure() # Upload the diff only if the previous step failed; i.e., if the diff is non-empty
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dumps-diff
           path: ${{ env.DIFF_NAME }}

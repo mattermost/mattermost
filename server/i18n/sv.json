@@ -10438,5 +10438,25 @@
   {
     "id": "api.command.execute_command.deleted.error",
     "translation": "Kan inte köra kommando i raderad kanal."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Kanalbanner kan endast konfigureras i Publika och Privata kanaler."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Kanalbannerns färg kan inte vara tom när kanalbannern är aktiverad"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Kanalbanner kan endast konfigureras i Publika och Privata kanaler"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Infotext i kanalbanner kan inte vara tom när kanalbanner är aktiverad"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Kanalbannerns infotext är för lång. Maximal tillåten längd är {{.maxLength}} tecken."
   }
 ]

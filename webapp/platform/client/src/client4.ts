@@ -77,6 +77,7 @@ import type {
     GetGroupsParams,
     GetGroupsForUserParams,
     GroupStats,
+    GroupMember,
 } from '@mattermost/types/groups';
 import type {PostActionResponse} from '@mattermost/types/integration_actions';
 import type {
@@ -2105,8 +2106,8 @@ export default class Client4 {
         );
     };
 
-    updateCustomProfileAttributeValues = (attributeValues: Record<string, string>) => {
-        return this.doFetch<Record<string, string>>(
+    updateCustomProfileAttributeValues = (attributeValues: Record<string, string | string[]>) => {
+        return this.doFetch<Record<string, string | string[]>>(
             `${this.getCustomProfileAttributeValuesRoute()}`,
             {method: 'PATCH', body: JSON.stringify(attributeValues)},
         );
@@ -3745,14 +3746,14 @@ export default class Client4 {
     };
 
     addUsersToGroup = (groupId: string, userIds: string[]) => {
-        return this.doFetch<UserProfile[]>(
+        return this.doFetch<GroupMember[]>(
             `${this.getGroupRoute(groupId)}/members`,
             {method: 'post', body: JSON.stringify({user_ids: userIds})},
         );
     };
 
     removeUsersFromGroup = (groupId: string, userIds: string[]) => {
-        return this.doFetch<UserProfile[]>(
+        return this.doFetch<GroupMember[]>(
             `${this.getGroupRoute(groupId)}/members`,
             {method: 'delete', body: JSON.stringify({user_ids: userIds})},
         );

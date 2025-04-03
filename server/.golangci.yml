@@ -4,6 +4,9 @@ run:
 linters-settings:
   gofmt:
     simplify: true
+    rewrite-rules:
+      - pattern: 'interface{}'
+        replacement: 'any'
   govet:
     enable-all: true
     disable:
@@ -53,6 +56,10 @@ issues:
     - linters:
       - staticcheck
       text: SA1019
+
+    - linters:
+      - gofmt
+      path: "mock.*"
 
     - linters:
         - errcheck

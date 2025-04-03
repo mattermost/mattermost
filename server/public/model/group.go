@@ -43,8 +43,8 @@ type Group struct {
 	MemberIDs                   []string    `db:"-" json:"member_ids"`
 }
 
-func (group *Group) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (group *Group) Auditable() map[string]any {
+	return map[string]any{
 		"id":              group.Id,
 		"source":          group.Source,
 		"remote_id":       group.GetRemoteId(),
@@ -58,7 +58,7 @@ func (group *Group) Auditable() map[string]interface{} {
 }
 
 func (group *Group) LogClone() any {
-	return map[string]interface{}{
+	return map[string]any{
 		"id":              group.Id,
 		"name":            group.GetName(),
 		"display_name":    group.DisplayName,
@@ -78,8 +78,8 @@ type GroupWithUserIds struct {
 	UserIds []string `json:"user_ids"`
 }
 
-func (group *GroupWithUserIds) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (group *GroupWithUserIds) Auditable() map[string]any {
+	return map[string]any{
 		"id":              group.Id,
 		"source":          group.Source,
 		"remote_id":       group.GetRemoteId(),
@@ -176,8 +176,8 @@ type GroupModifyMembers struct {
 	UserIds []string `json:"user_ids"`
 }
 
-func (group *GroupModifyMembers) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (group *GroupModifyMembers) Auditable() map[string]any {
+	return map[string]any{
 		"user_ids": group.UserIds,
 	}
 }
