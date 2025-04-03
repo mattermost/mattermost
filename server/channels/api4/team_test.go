@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -650,6 +651,149 @@ func TestPatchTeam(t *testing.T) {
 		}
 		_, _, err3 = th.Client.PatchTeam(context.Background(), rteam2.Id, patch2)
 		require.Error(t, err3)
+	})
+
+	t.Run("GroupConstrained flag set to true and non group members are removed", func(t *testing.T) {
+		var appErr *model.AppError
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			appErr = th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+		th.LoginTeamAdmin()
+		team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen, AllowOpenInvite: false}
+		team2, _, _ = th.Client.CreateTeam(context.Background(), team2)
+
+		_, resp, err := th.SystemAdminClient.AddTeamMember(context.Background(), team2.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		// Create a test group
+		group := th.CreateGroup()
+
+		// Create a group user
+		groupUser := th.CreateUser()
+		th.LinkUserToTeam(groupUser, th.BasicTeam)
+
+		// Create a group member
+		_, appErr = th.App.UpsertGroupMember(group.Id, groupUser.Id)
+		require.Nil(t, appErr)
+
+		// Associate the group with the team
+		autoAdd := true
+		schemeAdmin := true
+		_, r, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), group.Id, team2.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{AutoAdd: &autoAdd, SchemeAdmin: &schemeAdmin})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, r)
+
+		patch := &model.TeamPatch{}
+		patch.GroupConstrained = model.NewPointer(true)
+		_, r, err = th.SystemAdminClient.PatchTeam(context.Background(), team2.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+
+		// Wait for the user to be removed from the team by polling until they're gone
+		// or until we hit the timeout
+		timeout := time.After(5 * time.Second)
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		var tm *model.TeamMember
+		userRemoved := false
+		for !userRemoved {
+			select {
+			case <-timeout:
+				require.Fail(t, "Timed out waiting for user to be removed from team")
+				return
+			case <-ticker.C:
+				// Check if the user is still a member
+				tm, r, err = th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, th.BasicUser2.Id, "")
+				if err == nil && r.StatusCode == http.StatusOK && tm.DeleteAt != 0 {
+					// User has been removed, we can continue the test
+					userRemoved = true
+				}
+			}
+		}
+
+		tm, r, err = th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+		require.Equal(t, tm.UserId, th.BasicUser2.Id)
+		require.NotEqual(t, tm.DeleteAt, int64(0))
+	})
+
+	t.Run("GroupConstrained flag changed from true to false and non group members are not removed", func(t *testing.T) {
+		var appErr *model.AppError
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			appErr = th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+		th.LoginTeamAdmin()
+		team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen, AllowOpenInvite: false}
+		team2, _, _ = th.Client.CreateTeam(context.Background(), team2)
+
+		// Create a test group
+		group := th.CreateGroup()
+
+		// Create a group user
+		groupUser := th.CreateUser()
+		th.LinkUserToTeam(groupUser, th.BasicTeam)
+
+		// Create a group member
+		_, appErr = th.App.UpsertGroupMember(group.Id, groupUser.Id)
+		require.Nil(t, appErr)
+
+		// Associate the group with the team
+		autoAdd := true
+		schemeAdmin := true
+		_, r, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), group.Id, team2.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{AutoAdd: &autoAdd, SchemeAdmin: &schemeAdmin})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, r)
+
+		patch := &model.TeamPatch{}
+		patch.GroupConstrained = model.NewPointer(true)
+		_, r, err = th.SystemAdminClient.PatchTeam(context.Background(), team2.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+
+		patch.GroupConstrained = model.NewPointer(false)
+		_, r, err = th.SystemAdminClient.PatchTeam(context.Background(), team2.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+
+		// Unlink the group
+		r, err = th.SystemAdminClient.UnlinkGroupSyncable(context.Background(), group.Id, team2.Id, model.GroupSyncableTypeTeam)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+
+		// Wait for a reasonable amount of time to ensure the user is not removed because the team is no longer group constrained
+		timeout := time.After(2 * time.Second)
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		var tm *model.TeamMember
+		userStillPresent := true
+		for userStillPresent {
+			select {
+			case <-timeout:
+				// If we reach the timeout, the user is still present, which is what we want
+				// Verify the user is still a member of the team
+				tm, r, err = th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, groupUser.Id, "")
+				require.NoError(t, err)
+				CheckOKStatus(t, r)
+				require.Equal(t, tm.DeleteAt, int64(0))
+				return
+			case <-ticker.C:
+				// Check if the user is still a member
+				tm, r, err = th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, groupUser.Id, "")
+				if err == nil && r.StatusCode == http.StatusOK && tm.DeleteAt != 0 {
+					// User has been removed, which is not what we want
+					require.Fail(t, "User was incorrectly removed from the team")
+					userStillPresent = false
+				}
+			}
+		}
 	})
 }
 
