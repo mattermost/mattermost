@@ -10458,5 +10458,41 @@
   {
     "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
     "translation": "Kanalbannerns infotext är för lång. Maximal tillåten längd är {{.maxLength}} tecken."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Ditt konto är låst på grund av för många misslyckade lösenordsförsök. Vänligen kontakta din systemadministratör."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Autentiseringstjänsten måste vara LDAP eller e-post."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Du har inte behörighet att uppdatera denna resurs."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_conversion_error",
+    "translation": "Det går inte att konvertera egenskapsfältet till ett attributfält för anpassad profil"
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Ogiltigt policy-id."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Misslyckades med att hämta användare."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "ogiltig förändring av attributfält för anpassad profil"
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Misslyckades med att återställa inloggningsförsök."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Funktionen är inte tillgänglig med den aktuella licensen"
   }
 ]
