@@ -419,6 +419,12 @@ func TestWriteFileVideoMimeTypes(t *testing.T) {
 
 	// Test video types
 	testContent := []byte("test-video-content")
+	videoTypes := map[string]string{
+		".avi":  "video/avi",
+		".mpeg": "video/mpeg",
+		".mp4":  "video/mp4",
+	}
+
 	for ext, mimeType := range videoTypes {
 		t.Run(strings.TrimPrefix(ext, "."), func(t *testing.T) {
 			path := "test" + ext
