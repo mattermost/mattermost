@@ -23,14 +23,26 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         {
             name: 'Department',
             value: 'Engineering',
+            type: 'text',
         },
         {
             name: 'Location',
-            value: 'Remote',
+            type: 'select',
+            options: [
+                {name: 'Remote', color: '#00FFFF'},
+                {name: 'Office', color: '#FF00FF'},
+                {name: 'Hybrid', color: '#FFFF00'},
+            ],
         },
         {
-            name: 'Title',
-            value: 'Software Engineer',
+            name: 'Skills',
+            type: 'multiselect',
+            options: [
+                {name: 'JavaScript', color: '#F0DB4F'},
+                {name: 'React', color: '#61DAFB'},
+                {name: 'Node.js', color: '#68A063'},
+                {name: 'Python', color: '#3776AB'},
+            ],
         },
     ];
 
@@ -59,6 +71,9 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
     beforeEach(() => {
         // Login as the test user
         cy.apiLogin(testUser);
+
+        // Set up initial values for custom profile attributes
+        setupCustomProfileAttributeValues(customAttributes, attributeFieldsMap);
 
         // Visit the test channel
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
@@ -89,12 +104,30 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         // # Save the changes
         cy.uiSave();
 
-        // # Edit the Location attribute - first scroll to it to ensure it's visible
+        // # Edit the Location attribute (select field) - first scroll to it to ensure it's visible
         cy.contains('Location').scrollIntoView();
         cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Location') + 'Edit').scrollIntoView().should('be.visible').click();
 
-        // # Type a new value
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Location')).scrollIntoView().should('be.visible').clear().type('Office');
+        // # Get the Location field ID
+        const locationFieldId = getFieldIdByName(attributeFieldsMap, 'Location');
+
+        // # Select the Office option using the ReactSelect component
+        cy.get(`#customProfileAttribute_${locationFieldId}`).scrollIntoView().should('be.visible').click();
+        cy.get('#react-select-2-option-0').click(); // Office is the second option (index 1)
+        // # Save the changes
+        cy.uiSave();
+
+        // # Edit the Skills attribute (multiselect field) - first scroll to it to ensure it's visible
+        cy.contains('Skills').scrollIntoView();
+        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Skills') + 'Edit').scrollIntoView().should('be.visible').click();
+
+        // # Get the Skills field ID
+        const skillsFieldId = getFieldIdByName(attributeFieldsMap, 'Skills');
+
+        cy.get(`#customProfileAttribute_${skillsFieldId}`).scrollIntoView().should('be.visible').click();
+        cy.get('#react-select-3-option-3').click(); // Python is the fourth option (index 3)
+        cy.get(`#customProfileAttribute_${skillsFieldId}`).scrollIntoView().should('be.visible').click();
+        cy.get('#react-select-3-option-2').click(); // Node.js is the third option (index 2)
 
         // # Save the changes
         cy.uiSave();
@@ -105,7 +138,7 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         // # Post a message to make the user visible in the channel
         cy.postMessage('Hello from the test user');
 
-        // // # Login as the other user to view the profile popover
+        // # Login as the other user to view the profile popover
         cy.apiLogin(otherUser);
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
@@ -115,16 +148,12 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         });
 
         // * Verify the profile popover is visible and wait for content to load
-        cy.get('.user-profile-popover_container').should('be.visible').find('.user-popover__subtitle').should('exist');
+        cy.get('.user-profile-popover_container').should('be.visible').find('.user-popover__custom_attributes').should('exist');
 
         // * Verify the updated custom attributes are displayed correctly
         cy.get('.user-profile-popover_container *').then(($elements) => {
             // Find elements containing the Department attribute name and value
-            const departmentElements = $elements.filter((_, el) => {
-                console.log(el.fieldID);
-                console.log(el.textContent);
-                return el.textContent.includes('Department');
-            });
+            const departmentElements = $elements.filter((_, el) => el.textContent.includes('Department'));
             const productElements = $elements.filter((_, el) => el.textContent.includes('Product'));
 
             // If we found matching elements, scroll them into view and verify they're visible
@@ -140,9 +169,9 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
                 throw new Error('Could not find value "Product" in the profile popover');
             }
 
-            // Find elements containing the Location attribute name and value
+            // Find elements containing the Location attribute name and value (select field)
             const locationElements = $elements.filter((_, el) => el.textContent.includes('Location'));
-            const officeElements = $elements.filter((_, el) => el.textContent.includes('Office'));
+            const officeElements = $elements.filter((_, el) => el.textContent.includes('Remote'));
 
             // If we found matching elements, scroll them into view and verify they're visible
             if (locationElements.length > 0) {
@@ -155,6 +184,30 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
                 cy.wrap(officeElements[0]).scrollIntoView().should('be.visible');
             } else {
                 throw new Error('Could not find value "Office" in the profile popover');
+            }
+
+            // Find elements containing the Skills attribute name and values (multiselect field)
+            const skillsElements = $elements.filter((_, el) => el.textContent.includes('Skills'));
+            const pythonElements = $elements.filter((_, el) => el.textContent.includes('Python'));
+            const nodeElements = $elements.filter((_, el) => el.textContent.includes('Node.js'));
+
+            // If we found matching elements, scroll them into view and verify they're visible
+            if (skillsElements.length > 0) {
+                cy.wrap(skillsElements[0]).scrollIntoView().should('be.visible');
+            } else {
+                throw new Error('Could not find attribute "Skills" in the profile popover');
+            }
+
+            if (pythonElements.length > 0) {
+                cy.wrap(pythonElements[0]).scrollIntoView().should('be.visible');
+            } else {
+                throw new Error('Could not find value "Python" in the profile popover');
+            }
+
+            if (nodeElements.length > 0) {
+                cy.wrap(nodeElements[0]).scrollIntoView().should('be.visible');
+            } else {
+                throw new Error('Could not find value "Node.js" in the profile popover');
             }
         });
 
@@ -169,12 +222,12 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         // # Open profile settings modal
         cy.uiOpenProfileModal('Profile Settings');
 
-        // # Edit the Title attribute - first scroll to it to ensure it's visible
-        cy.contains('Title').scrollIntoView();
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Title') + 'Edit').scrollIntoView().should('be.visible').click();
+        // # Edit the Department attribute - first scroll to it to ensure it's visible
+        cy.contains('Department').scrollIntoView();
+        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Department') + 'Edit').scrollIntoView().should('be.visible').click();
 
         // # Clear the value
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Title')).scrollIntoView().should('be.visible').clear();
+        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Department')).scrollIntoView().should('be.visible').clear();
 
         // # Save the changes
         cy.uiSave();
@@ -197,21 +250,17 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         // * Verify the profile popover is visible and wait for content to load
         cy.get('.user-profile-popover_container').should('be.visible').find('.user-popover__subtitle').should('exist');
 
-        // * Verify the Title attribute is not displayed (since it has visibility 'when_set' by default)
+        // * Verify the Department attribute is not displayed (since it has visibility 'when_set' by default)
         cy.get('.user-profile-popover_container *').then(($elements) => {
-            // Find elements containing the Title attribute name
-            const titleElements = $elements.filter((_, el) => el.textContent.includes('Title'));
-            const valueElements = $elements.filter((_, el) => el.textContent.includes('Software Engineer'));
+            // Find elements containing the Department attribute name
+            const departmentElements = $elements.filter((_, el) => el.textContent.includes('Department'));
 
             // If we found matching elements, the test should fail
-            if (titleElements.length > 0) {
-                throw new Error('Found attribute "Title" when it should not be displayed');
-            }
-
-            if (valueElements.length > 0) {
-                throw new Error('Found value "Software Engineer" when it should not be displayed');
+            if (departmentElements.length > 0) {
+                throw new Error('Found attribute "Department" when it should not be displayed');
             }
         });
+
         // # Close the profile popover
         cy.get('body').click();
 
@@ -238,7 +287,7 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Department') + 'Edit').scrollIntoView().should('be.visible').click();
 
         // * Verify the value is still the original value
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Department')).scrollIntoView().should('be.visible').should('have.value', 'Product');
+        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Department')).scrollIntoView().should('be.visible').should('have.value', 'Engineering');
 
         // # Close the edit view
         cy.uiCancel();
@@ -273,13 +322,22 @@ function setupCustomProfileAttributeFields(attributes) {
     const fieldsMap = new Map();
 
     // Create the attribute fields array
-    const attributeFields = attributes.map((attr, index) => ({
-        name: attr.name,
-        type: 'text',
-        attrs: {
-            sort_order: index,
-        },
-    }));
+    const attributeFields = attributes.map((attr, index) => {
+        const field = {
+            name: attr.name,
+            type: attr.type || 'text',
+            attrs: {
+                sort_order: index,
+            },
+        };
+
+        // Add options for select and multiselect fields
+        if ((attr.type === 'select' || attr.type === 'multiselect') && attr.options) {
+            field.attrs.options = attr.options;
+        }
+
+        return field;
+    });
 
     // Check if fields already exist
     return cy.request({
@@ -316,7 +374,9 @@ function setupCustomProfileAttributeFields(attributes) {
                 if (fieldResponse.status !== 201) {
                     throw new Error(`Failed to create field ${attributeFields[index].name}: ${fieldResponse.status}`);
                 }
-                fieldsMap.set(fieldResponse.body.id, fieldResponse.body);
+                const createdField = fieldResponse.body;
+                fieldsMap.set(createdField.id, createdField);
+
                 return createFields(index + 1); // Create next field
             });
         };
@@ -330,7 +390,6 @@ function setupCustomProfileAttributeFields(attributes) {
  * @param {Array} attributes - Array of attribute objects with name and value
  * @param {Map} fields - Map of field IDs to field objects
  * @returns {Cypress.Chainable} - A Cypress chainable for chaining commands
- * @eslint-disable-next-line no-unused-vars
  */
 function setupCustomProfileAttributeValues(attributes, fields) {
     // Create a map of attribute values by field ID
