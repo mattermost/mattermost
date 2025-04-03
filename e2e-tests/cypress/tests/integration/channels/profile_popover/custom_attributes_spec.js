@@ -10,6 +10,17 @@
 // Stage: @prod
 // Group: @channels @profile_popover @custom_attributes
 
+// Constants for test data
+const TEST_PHONE = '555-123-4567';
+const TEST_URL = 'https://example.com';
+const TEST_DEPARTMENT = 'Engineering';
+const TEST_LOCATION = 'Remote';
+const TEST_TITLE = 'Software Engineer';
+const TEST_UPDATED_DEPARTMENT = 'Product';
+const TEST_UPDATED_LOCATION = 'Office';
+const TEST_MESSAGE = 'Hello from the test user';
+const TEST_MESSAGE_OTHER = 'Hello from the other user';
+
 describe('Profile Popover - Custom Attributes', () => {
     let testTeam;
     let testUser;
@@ -22,22 +33,22 @@ describe('Profile Popover - Custom Attributes', () => {
     const customAttributes = [
         {
             name: 'Department',
-            value: 'Engineering',
+            value: TEST_DEPARTMENT,
             type: 'text',
         },
         {
             name: 'Location',
-            value: 'Remote',
+            value: TEST_LOCATION,
             type: 'text',
         },
         {
             name: 'Title',
-            value: 'Software Engineer',
+            value: TEST_TITLE,
             type: 'text',
         },
         {
             name: 'Phone',
-            value: '555-123-4567',
+            value: TEST_PHONE,
             type: 'text',
             attrs: {
                 value_type: 'phone',
@@ -45,7 +56,7 @@ describe('Profile Popover - Custom Attributes', () => {
         },
         {
             name: 'Website',
-            value: 'https://example.com',
+            value: TEST_URL,
             type: 'text',
             attrs: {
                 value_type: 'url',
@@ -95,10 +106,10 @@ describe('Profile Popover - Custom Attributes', () => {
         // Post a message as the other user to make them visible in the channel
         cy.postMessageAs({
             sender: otherUser,
-            message: 'Hello from the other user',
+            message: TEST_MESSAGE_OTHER,
             channelId: testChannel.id,
         });
-        cy.uiWaitUntilMessagePostedIncludes('Hello from the other user');
+        cy.uiWaitUntilMessagePostedIncludes(TEST_MESSAGE_OTHER);
 
         // Login as the test user
         cy.apiLogin(testUser);
@@ -118,7 +129,7 @@ describe('Profile Popover - Custom Attributes', () => {
     it('MM-T2 Should not display custom profile attributes if none exist', () => {
         cy.postMessageAs({
             sender: testUser,
-            message: 'Hello from the test user',
+            message: TEST_MESSAGE,
             channelId: testChannel.id,
         });
 
@@ -171,11 +182,11 @@ describe('Profile Popover - Custom Attributes', () => {
         const updatedAttributes = [
             {
                 name: 'Department',
-                value: 'Product',
+                value: TEST_UPDATED_DEPARTMENT,
             },
             {
                 name: 'Location',
-                value: 'Office',
+                value: TEST_UPDATED_LOCATION,
             },
         ];
         setupCustomProfileAttributeValues(updatedAttributes, attributeFieldsMap);

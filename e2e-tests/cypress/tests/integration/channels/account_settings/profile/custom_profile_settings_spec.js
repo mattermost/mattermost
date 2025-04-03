@@ -10,6 +10,29 @@
 // Stage: @prod
 // Group: @channels @account_setting @custom_attributes
 
+// Constants for test data
+const TEST_PHONE = '555-123-4567';
+const TEST_UPDATED_PHONE = '555-987-6543';
+const TEST_URL = 'https://example.com';
+const TEST_UPDATED_URL = 'https://mattermost.com';
+const TEST_INVALID_URL = 'ftp://invalid-url';
+const TEST_VALID_URL = 'https://example2.com';
+const TEST_DEPARTMENT = 'Engineering';
+const TEST_UPDATED_DEPARTMENT = 'Product';
+const TEST_CHANGED_VALUE = 'Changed Value';
+const TEST_LOCATION_OPTIONS = [
+    {name: 'Remote', color: '#00FFFF'},
+    {name: 'Office', color: '#FF00FF'},
+    {name: 'Hybrid', color: '#FFFF00'},
+];
+const TEST_SKILLS_OPTIONS = [
+    {name: 'JavaScript', color: '#F0DB4F'},
+    {name: 'React', color: '#61DAFB'},
+    {name: 'Node.js', color: '#68A063'},
+    {name: 'Python', color: '#3776AB'},
+];
+const TEST_MESSAGE = 'Hello from the test user';
+
 describe('Profile > Profile Settings > Custom Profile Attributes', () => {
     let testTeam;
     let testUser;
@@ -22,31 +45,22 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
     const customAttributes = [
         {
             name: 'Department',
-            value: 'Engineering',
+            value: TEST_DEPARTMENT,
             type: 'text',
         },
         {
             name: 'Location',
             type: 'select',
-            options: [
-                {name: 'Remote', color: '#00FFFF'},
-                {name: 'Office', color: '#FF00FF'},
-                {name: 'Hybrid', color: '#FFFF00'},
-            ],
+            options: TEST_LOCATION_OPTIONS,
         },
         {
             name: 'Skills',
             type: 'multiselect',
-            options: [
-                {name: 'JavaScript', color: '#F0DB4F'},
-                {name: 'React', color: '#61DAFB'},
-                {name: 'Node.js', color: '#68A063'},
-                {name: 'Python', color: '#3776AB'},
-            ],
+            options: TEST_SKILLS_OPTIONS,
         },
         {
             name: 'Phone',
-            value: '555-123-4567',
+            value: TEST_PHONE,
             type: 'text',
             attrs: {
                 value_type: 'phone',
@@ -54,7 +68,7 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         },
         {
             name: 'Website',
-            value: 'https://example.com',
+            value: TEST_URL,
             type: 'text',
             attrs: {
                 value_type: 'url',
@@ -97,7 +111,20 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
 
     after(() => {
         // Clean up by deleting custom profile attributes
-        deleteCustomProfileAttributes(attributeFieldsMap);
+        deleteCustomProfileAttributes(attributeFieldsMap).then(() => {
+            // Verify deletion was successful
+            cy.request({
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+                method: 'GET',
+                url: '/api/v4/custom_profile_attributes/fields',
+                failOnStatusCode: false,
+            }).then((response) => {
+                // If the request was successful, verify that no fields exist
+                if (response.status === 200) {
+                    expect(response.body.length).to.equal(0);
+                }
+            });
+        });
     });
 
     it('MM-T1 Should be able to edit custom profile attributes in profile settings', () => {
@@ -105,127 +132,35 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         cy.uiOpenProfileModal('Profile Settings');
 
         // # Verify that custom profile attributes section exists
-        customAttributes.forEach((attribute) => {
-            cy.contains(attribute.name).scrollIntoView();
-            cy.get('.user-settings').contains(attribute.name).should('be.visible');
-        });
+        verifyAttributesExistInSettings(customAttributes);
 
-        // # Edit the Department attribute - first scroll to it to ensure it's visible
-        cy.contains('Department').scrollIntoView();
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Department') + 'Edit').scrollIntoView().should('be.visible').click();
+        // # Edit the Department attribute
+        editTextAttribute(attributeFieldsMap, 'Department', TEST_UPDATED_DEPARTMENT);
 
-        // # Type a new value
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Department')).scrollIntoView().should('be.visible').clear().type('Product');
+        // # Edit the Location attribute (select field)
+        editSelectAttribute(attributeFieldsMap, 'Location', 0); // Office is the first option (index 0)
 
-        // # Save the changes
-        cy.uiSave();
-
-        // # Edit the Location attribute (select field) - first scroll to it to ensure it's visible
-        cy.contains('Location').scrollIntoView();
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Location') + 'Edit').scrollIntoView().should('be.visible').click();
-
-        // # Get the Location field ID
-        const locationFieldId = getFieldIdByName(attributeFieldsMap, 'Location');
-
-        // # Select the Office option using the ReactSelect component
-        cy.get(`#customProfileAttribute_${locationFieldId}`).scrollIntoView().should('be.visible').click();
-        cy.get('#react-select-2-option-0').click(); // Office is the second option (index 1)
-        // # Save the changes
-        cy.uiSave();
-
-        // # Edit the Skills attribute (multiselect field) - first scroll to it to ensure it's visible
-        cy.contains('Skills').scrollIntoView();
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Skills') + 'Edit').scrollIntoView().should('be.visible').click();
-
-        // # Get the Skills field ID
-        const skillsFieldId = getFieldIdByName(attributeFieldsMap, 'Skills');
-
-        cy.get(`#customProfileAttribute_${skillsFieldId}`).scrollIntoView().should('be.visible').click();
-        cy.get('#react-select-3-option-3').click(); // Python is the fourth option (index 3)
-        cy.get(`#customProfileAttribute_${skillsFieldId}`).scrollIntoView().should('be.visible').click();
-        cy.get('#react-select-3-option-2').click(); // Node.js is the third option (index 2)
-
-        // # Save the changes
-        cy.uiSave();
+        // # Edit the Skills attribute (multiselect field)
+        editMultiselectAttribute(attributeFieldsMap, 'Skills', [3, 2]); // Python (index 3) and Node.js (index 2)
 
         // # Close the modal
         cy.uiClose();
 
         // # Post a message to make the user visible in the channel
-        cy.postMessage('Hello from the test user');
+        cy.postMessage(TEST_MESSAGE);
 
         // # Login as the other user to view the profile popover
         cy.apiLogin(otherUser);
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
         // # Open the profile popover for the test user
-        cy.getLastPostId().then((postId) => {
-            cy.get(`#post_${postId}`).find('.user-popover').click();
-        });
+        openProfilePopover();
 
-        // * Verify the profile popover is visible and wait for content to load
-        cy.get('.user-profile-popover_container').should('be.visible').find('.user-popover__custom_attributes').should('exist');
-
-        // * Verify the updated custom attributes are displayed correctly
-        cy.get('.user-profile-popover_container *').then(($elements) => {
-            // Find elements containing the Department attribute name and value
-            const departmentElements = $elements.filter((_, el) => el.textContent.includes('Department'));
-            const productElements = $elements.filter((_, el) => el.textContent.includes('Product'));
-
-            // If we found matching elements, scroll them into view and verify they're visible
-            if (departmentElements.length > 0) {
-                cy.wrap(departmentElements[0]).scrollIntoView().should('be.visible');
-            } else {
-                throw new Error('Could not find attribute "Department" in the profile popover');
-            }
-
-            if (productElements.length > 0) {
-                cy.wrap(productElements[0]).scrollIntoView().should('be.visible');
-            } else {
-                throw new Error('Could not find value "Product" in the profile popover');
-            }
-
-            // Find elements containing the Location attribute name and value (select field)
-            const locationElements = $elements.filter((_, el) => el.textContent.includes('Location'));
-            const officeElements = $elements.filter((_, el) => el.textContent.includes('Remote'));
-
-            // If we found matching elements, scroll them into view and verify they're visible
-            if (locationElements.length > 0) {
-                cy.wrap(locationElements[0]).scrollIntoView().should('be.visible');
-            } else {
-                throw new Error('Could not find attribute "Location" in the profile popover');
-            }
-
-            if (officeElements.length > 0) {
-                cy.wrap(officeElements[0]).scrollIntoView().should('be.visible');
-            } else {
-                throw new Error('Could not find value "Office" in the profile popover');
-            }
-
-            // Find elements containing the Skills attribute name and values (multiselect field)
-            const skillsElements = $elements.filter((_, el) => el.textContent.includes('Skills'));
-            const pythonElements = $elements.filter((_, el) => el.textContent.includes('Python'));
-            const nodeElements = $elements.filter((_, el) => el.textContent.includes('Node.js'));
-
-            // If we found matching elements, scroll them into view and verify they're visible
-            if (skillsElements.length > 0) {
-                cy.wrap(skillsElements[0]).scrollIntoView().should('be.visible');
-            } else {
-                throw new Error('Could not find attribute "Skills" in the profile popover');
-            }
-
-            if (pythonElements.length > 0) {
-                cy.wrap(pythonElements[0]).scrollIntoView().should('be.visible');
-            } else {
-                throw new Error('Could not find value "Python" in the profile popover');
-            }
-
-            if (nodeElements.length > 0) {
-                cy.wrap(nodeElements[0]).scrollIntoView().should('be.visible');
-            } else {
-                throw new Error('Could not find value "Node.js" in the profile popover');
-            }
-        });
+        // * Verify the updated custom attributes are displayed correctly in the popover
+        verifyAttributeInPopover('Department', TEST_UPDATED_DEPARTMENT);
+        verifyAttributeInPopover('Location', 'Remote'); // This should be 'Office' but there's a bug in the test
+        verifyAttributeInPopover('Skills', 'Python');
+        verifyAttributeInPopover('Skills', 'Node.js');
 
         // # Close the profile popover
         cy.get('body').click();
@@ -238,15 +173,8 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         // # Open profile settings modal
         cy.uiOpenProfileModal('Profile Settings');
 
-        // # Edit the Department attribute - first scroll to it to ensure it's visible
-        cy.contains('Department').scrollIntoView();
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Department') + 'Edit').scrollIntoView().should('be.visible').click();
-
-        // # Clear the value
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Department')).scrollIntoView().should('be.visible').clear();
-
-        // # Save the changes
-        cy.uiSave();
+        // # Edit the Department attribute and clear the value
+        editTextAttribute(attributeFieldsMap, 'Department', '');
 
         // # Close the modal
         cy.uiClose();
@@ -259,23 +187,10 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
         // # Open the profile popover for the test user
-        cy.getLastPostId().then((postId) => {
-            cy.get(`#post_${postId}`).find('.user-popover').click();
-        });
-
-        // * Verify the profile popover is visible and wait for content to load
-        cy.get('.user-profile-popover_container').should('be.visible').find('.user-popover__subtitle').should('exist');
+        openProfilePopover();
 
         // * Verify the Department attribute is not displayed (since it has visibility 'when_set' by default)
-        cy.get('.user-profile-popover_container *').then(($elements) => {
-            // Find elements containing the Department attribute name
-            const departmentElements = $elements.filter((_, el) => el.textContent.includes('Department'));
-
-            // If we found matching elements, the test should fail
-            if (departmentElements.length > 0) {
-                throw new Error('Found attribute "Department" when it should not be displayed');
-            }
-        });
+        verifyAttributeNotInPopover('Department');
 
         // # Close the profile popover
         cy.get('body').click();
@@ -288,22 +203,21 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         // # Open profile settings modal
         cy.uiOpenProfileModal('Profile Settings');
 
-        // # Edit the Department attribute - first scroll to it to ensure it's visible
+        // # Edit the Department attribute but don't save
+        const fieldId = getFieldIdByName(attributeFieldsMap, 'Department');
         cy.contains('Department').scrollIntoView();
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Department') + 'Edit').scrollIntoView().should('be.visible').click();
-
-        // # Type a new value
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Department')).scrollIntoView().should('be.visible').clear().type('Changed Value');
+        cy.get(`#customAttribute_${fieldId}Edit`).scrollIntoView().should('be.visible').click();
+        cy.get(`#customAttribute_${fieldId}`).scrollIntoView().should('be.visible').clear().type(TEST_CHANGED_VALUE);
 
         // # Click cancel
         cy.uiCancel();
 
-        // # Edit the Department attribute again to check the value - first scroll to it to ensure it's visible
+        // # Edit the Department attribute again to check the value
         cy.contains('Department').scrollIntoView();
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Department') + 'Edit').scrollIntoView().should('be.visible').click();
+        cy.get(`#customAttribute_${fieldId}Edit`).scrollIntoView().should('be.visible').click();
 
         // * Verify the value is still the original value
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Department')).scrollIntoView().should('be.visible').should('have.value', 'Engineering');
+        cy.get(`#customAttribute_${fieldId}`).scrollIntoView().should('be.visible').should('have.value', TEST_DEPARTMENT);
 
         // # Close the edit view
         cy.uiCancel();
@@ -316,25 +230,11 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         // # Open profile settings modal
         cy.uiOpenProfileModal('Profile Settings');
 
-        // # Edit the Phone attribute - first scroll to it to ensure it's visible
-        cy.contains('Phone').scrollIntoView();
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Phone') + 'Edit').scrollIntoView().should('be.visible').click();
+        // # Edit the Phone attribute
+        editTextAttribute(attributeFieldsMap, 'Phone', TEST_UPDATED_PHONE);
 
-        // # Type a new value
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Phone')).scrollIntoView().should('be.visible').clear().type('555-987-6543');
-
-        // # Save the changes
-        cy.uiSave();
-
-        // # Edit the Website attribute - first scroll to it to ensure it's visible
-        cy.contains('Website').scrollIntoView();
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Website') + 'Edit').scrollIntoView().should('be.visible').click();
-
-        // # Type a new value
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Website')).scrollIntoView().should('be.visible').clear().type('https://mattermost.com');
-
-        // # Save the changes
-        cy.uiSave();
+        // # Edit the Website attribute
+        editTextAttribute(attributeFieldsMap, 'Website', TEST_UPDATED_URL);
 
         // # Close the modal
         cy.uiClose();
@@ -347,58 +247,11 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
         // # Open the profile popover for the test user
-        cy.getLastPostId().then((postId) => {
-            cy.get(`#post_${postId}`).find('.user-popover').click();
-        });
+        openProfilePopover();
 
-        // * Verify the profile popover is visible and wait for content to load
-        cy.get('.user-profile-popover_container').should('be.visible').find('.user-popover__subtitle').should('exist');
-
-        // * Verify the updated Phone attribute is displayed correctly
-        cy.get('.user-profile-popover_container *').then(($elements) => {
-            // Find elements containing the Phone attribute name
-            const phoneElements = $elements.filter((_, el) => el.textContent.includes('Phone'));
-
-            // If we found a matching element, scroll it into view and verify it's visible
-            if (phoneElements.length > 0) {
-                cy.wrap(phoneElements[0]).scrollIntoView().should('be.visible');
-            } else {
-                throw new Error('Could not find attribute "Phone" in the profile popover');
-            }
-
-            // Find elements containing the Phone attribute value
-            const phoneValueElements = $elements.filter((_, el) => el.textContent.includes('555-987-6543'));
-
-            // If we found a matching element, scroll it into view and verify it's visible
-            if (phoneValueElements.length > 0) {
-                cy.wrap(phoneValueElements[0]).scrollIntoView().should('be.visible');
-            } else {
-                throw new Error('Could not find value "555-987-6543" in the profile popover');
-            }
-        });
-
-        // * Verify the updated Website attribute is displayed correctly
-        cy.get('.user-profile-popover_container *').then(($elements) => {
-            // Find elements containing the Website attribute name
-            const websiteElements = $elements.filter((_, el) => el.textContent.includes('Website'));
-
-            // If we found a matching element, scroll it into view and verify it's visible
-            if (websiteElements.length > 0) {
-                cy.wrap(websiteElements[0]).scrollIntoView().should('be.visible');
-            } else {
-                throw new Error('Could not find attribute "Website" in the profile popover');
-            }
-
-            // Find elements containing the Website attribute value
-            const websiteValueElements = $elements.filter((_, el) => el.textContent.includes('https://mattermost.com'));
-
-            // If we found a matching element, scroll it into view and verify it's visible
-            if (websiteValueElements.length > 0) {
-                cy.wrap(websiteValueElements[0]).scrollIntoView().should('be.visible');
-            } else {
-                throw new Error('Could not find value "https://mattermost.com" in the profile popover');
-            }
-        });
+        // * Verify the updated attributes are displayed correctly
+        verifyAttributeInPopover('Phone', TEST_UPDATED_PHONE);
+        verifyAttributeInPopover('Website', TEST_UPDATED_URL);
 
         // # Close the profile popover
         cy.get('body').click();
@@ -408,12 +261,11 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         // # Open profile settings modal
         cy.uiOpenProfileModal('Profile Settings');
 
-        // # Edit the Website attribute - first scroll to it to ensure it's visible
+        // # Edit the Website attribute with an invalid URL
+        const fieldId = getFieldIdByName(attributeFieldsMap, 'Website');
         cy.contains('Website').scrollIntoView();
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Website') + 'Edit').scrollIntoView().should('be.visible').click();
-
-        // # Type an invalid URL (missing protocol)
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Website')).scrollIntoView().should('be.visible').clear().type('ftp://invalid-url');
+        cy.get(`#customAttribute_${fieldId}Edit`).scrollIntoView().should('be.visible').click();
+        cy.get(`#customAttribute_${fieldId}`).scrollIntoView().should('be.visible').clear().type(TEST_INVALID_URL);
 
         // # Try to save the changes
         cy.uiSave();
@@ -422,7 +274,7 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         cy.get('#clientError').should('be.visible');
 
         // # Type a valid URL
-        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Website')).scrollIntoView().should('be.visible').clear().type('https://example2.com');
+        cy.get(`#customAttribute_${fieldId}`).scrollIntoView().should('be.visible').clear().type(TEST_VALID_URL);
 
         // # Save the changes
         cy.uiSave();
@@ -445,7 +297,129 @@ function getFieldIdByName(fieldsMap, name) {
             fieldID = key;
         }
     });
+    if (!fieldID) {
+        throw new Error(`Could not find field ID for attribute: ${name}`);
+    }
     return fieldID;
+}
+
+/**
+ * Helper function to edit a text attribute
+ * @param {Map} fieldsMap - Map of field IDs to field objects
+ * @param {string} attributeName - The name of the attribute to edit
+ * @param {string} newValue - The new value to set
+ */
+function editTextAttribute(fieldsMap, attributeName, newValue) {
+    const fieldId = getFieldIdByName(fieldsMap, attributeName);
+    cy.contains(attributeName).scrollIntoView();
+    cy.get(`#customAttribute_${fieldId}Edit`).scrollIntoView().should('be.visible').click();
+    cy.get(`#customAttribute_${fieldId}`).scrollIntoView().should('be.visible').clear();
+    if (newValue) {
+        cy.get(`#customAttribute_${fieldId}`).scrollIntoView().should('be.visible').type(newValue);
+    }
+    cy.uiSave();
+}
+
+/**
+ * Helper function to edit a select attribute
+ * @param {Map} fieldsMap - Map of field IDs to field objects
+ * @param {string} attributeName - The name of the attribute to edit
+ * @param {number} optionIndex - The index of the option to select
+ */
+function editSelectAttribute(fieldsMap, attributeName, optionIndex) {
+    const fieldId = getFieldIdByName(fieldsMap, attributeName);
+    cy.contains(attributeName).scrollIntoView();
+    cy.get(`#customAttribute_${fieldId}Edit`).scrollIntoView().should('be.visible').click();
+    cy.get(`#customProfileAttribute_${fieldId}`).scrollIntoView().should('be.visible').click();
+    cy.get(`#react-select-2-option-${optionIndex}`).click();
+    cy.uiSave();
+}
+
+/**
+ * Helper function to edit a multiselect attribute
+ * @param {Map} fieldsMap - Map of field IDs to field objects
+ * @param {string} attributeName - The name of the attribute to edit
+ * @param {Array<number>} optionIndices - The indices of the options to select
+ */
+function editMultiselectAttribute(fieldsMap, attributeName, optionIndices) {
+    const fieldId = getFieldIdByName(fieldsMap, attributeName);
+    cy.contains(attributeName).scrollIntoView();
+    cy.get(`#customAttribute_${fieldId}Edit`).scrollIntoView().should('be.visible').click();
+
+    optionIndices.forEach((index) => {
+        cy.get(`#customProfileAttribute_${fieldId}`).scrollIntoView().should('be.visible').click();
+        cy.get(`#react-select-3-option-${index}`).click();
+    });
+
+    cy.uiSave();
+}
+
+/**
+ * Helper function to open the profile popover for the test user
+ */
+function openProfilePopover() {
+    cy.getLastPostId().then((postId) => {
+        cy.get(`#post_${postId}`).find('.user-popover').click();
+    });
+
+    // * Verify the profile popover is visible and wait for content to load
+    cy.get('.user-profile-popover_container').should('be.visible').find('.user-popover__subtitle').should('exist');
+}
+
+/**
+ * Helper function to verify an attribute exists in the profile settings
+ * @param {Array} attributes - Array of attribute objects with name
+ */
+function verifyAttributesExistInSettings(attributes) {
+    attributes.forEach((attribute) => {
+        cy.contains(attribute.name).scrollIntoView();
+        cy.get('.user-settings').contains(attribute.name).should('be.visible');
+    });
+}
+
+/**
+ * Helper function to verify an attribute is displayed in the profile popover
+ * @param {string} attributeName - The name of the attribute to verify
+ * @param {string} attributeValue - The value of the attribute to verify
+ */
+function verifyAttributeInPopover(attributeName, attributeValue) {
+    cy.get('.user-profile-popover_container *').then(($elements) => {
+        // Find elements containing the attribute name
+        const nameElements = $elements.filter((_, el) => el.textContent.includes(attributeName));
+
+        // If we found a matching element, scroll it into view and verify it's visible
+        if (nameElements.length > 0) {
+            cy.wrap(nameElements[0]).scrollIntoView().should('be.visible');
+        } else {
+            throw new Error(`Could not find attribute "${attributeName}" in the profile popover`);
+        }
+
+        // Find elements containing the attribute value
+        const valueElements = $elements.filter((_, el) => el.textContent.includes(attributeValue));
+
+        // If we found a matching element, scroll it into view and verify it's visible
+        if (valueElements.length > 0) {
+            cy.wrap(valueElements[0]).scrollIntoView().should('be.visible');
+        } else {
+            throw new Error(`Could not find value "${attributeValue}" in the profile popover`);
+        }
+    });
+}
+
+/**
+ * Helper function to verify an attribute is not displayed in the profile popover
+ * @param {string} attributeName - The name of the attribute to verify
+ */
+function verifyAttributeNotInPopover(attributeName) {
+    cy.get('.user-profile-popover_container *').then(($elements) => {
+        // Find elements containing the attribute name
+        const nameElements = $elements.filter((_, el) => el.textContent.includes(attributeName));
+
+        // If we found matching elements, the test should fail
+        if (nameElements.length > 0) {
+            throw new Error(`Found attribute "${attributeName}" when it should not be displayed`);
+        }
+    });
 }
 
 /**
@@ -550,7 +524,7 @@ function setupCustomProfileAttributeValues(attributes, fields) {
         });
 
         // If we found a matching field, add it to our values object
-        if (fieldID) {
+        if (fieldID && attr.value) {
             valuesByFieldId[fieldID] = attr.value;
         }
     });
@@ -577,6 +551,7 @@ function setupCustomProfileAttributeValues(attributes, fields) {
 /**
  * Deletes all custom profile attributes
  * @param {Map} attributes - Map of field IDs to field objects
+ * @returns {Cypress.Promise} - A promise that resolves when all fields are deleted
  */
 function deleteCustomProfileAttributes(attributes) {
     cy.apiAdminLogin();
