@@ -80,7 +80,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = false
-	f.CustomProfileAttributes = false
+	f.CustomProfileAttributes = true
 }
 
 // ToMap returns the feature flags as a map[string]string
