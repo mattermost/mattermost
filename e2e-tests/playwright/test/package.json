@@ -1,6 +1,5 @@
 {
     "name": "@mattermost/playwright-test",
-    "version": "0.0.1",
     "scripts": {
         "test": "cross-env PW_SNAPSHOT_ENABLE=true playwright test",
         "test:ci": "cross-env PW_SNAPSHOT_ENABLE=true playwright test --project=chrome",
