@@ -294,7 +294,10 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         }
 
         return (
-            <div className='FeatureDiscovery'>
+            <div
+                className='FeatureDiscovery'
+                data-testid='featureDiscovery'
+            >
                 <div className='FeatureDiscovery_copyWrapper'>
                     <div
                         className='FeatureDiscovery_title'

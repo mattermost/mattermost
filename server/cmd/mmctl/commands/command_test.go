@@ -741,7 +741,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
-		s.EqualError(err, "unable to modify command '"+mockCommand.DisplayName+"'. "+mockError.Error())
+		s.EqualError(err, "unable to modify command '"+mockCommand.DisplayName+"': "+mockError.Error())
 	})
 }
 
@@ -900,7 +900,7 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 
 		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArg, commandArg})
 		s.Require().NotNil(err)
-		s.Require().EqualError(err, "unable to move command '"+commandArg+"'. "+mockError.Error())
+		s.Require().EqualError(err, "unable to move command '"+commandArg+"': "+mockError.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})

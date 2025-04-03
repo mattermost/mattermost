@@ -159,3 +159,7 @@ export const getCustomProfileAttributes: (state: GlobalState) => UserPropertyFie
         return Object.values(fields).sort((a, b) => (a.attrs?.sort_order ?? 0) - (b.attrs?.sort_order ?? 0));
     },
 );
+
+export function getIsCrossTeamSearchEnabled(state: GlobalState): boolean {
+    return state.entities.general.config.EnableCrossTeamSearch === 'true';
+}

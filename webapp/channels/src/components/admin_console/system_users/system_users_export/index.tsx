@@ -20,13 +20,15 @@ import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admi
 
 import WithTooltip from 'components/with_tooltip';
 
-import {LicenseSkus, ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
+import {isMinimumProfessionalLicense} from 'utils/license_utils';
 
 import {ExportErrorModal} from './export_error_modal';
 import {ExportUserDataModal} from './export_user_data_modal';
 import {UpgradeExportDataModal} from './upgrade_export_data_modal';
 
 import {convertTableOptionsToUserReportOptions} from '../utils';
+
 import './system_users_export.scss';
 
 interface Props {
@@ -47,7 +49,7 @@ export function SystemUsersExport(props: Props) {
     }
 
     const license = useSelector(getLicense);
-    const isLicensed = license.IsLicensed === 'true' && (license.SkuShortName === LicenseSkus.Professional || license.SkuShortName === LicenseSkus.Enterprise);
+    const isLicensed = license.IsLicensed === 'true' && isMinimumProfessionalLicense(license);
 
     async function doExport(checked?: boolean) {
         const {error} = await dispatch(startUsersBatchExport(tableOptionsToUserReport));

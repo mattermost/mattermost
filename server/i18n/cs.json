@@ -10498,5 +10498,17 @@
   {
     "id": "app.user.reset_password_failed_attempts.app_error",
     "translation": "Nepodařilo se zresetovat pokusy o přihlášení uživatele."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_conversion_error",
+    "translation": "Nelze převést pole vlastnosti na pole vlastního atributu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Nelze převést pole vlastnosti na pole vlastního atributu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Neplatné atributy hodnoty vlastnosti: {{.AttributeName}} ({{.Reason}})."
   }
 ]

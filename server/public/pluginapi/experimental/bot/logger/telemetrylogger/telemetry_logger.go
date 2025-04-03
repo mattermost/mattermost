@@ -37,7 +37,7 @@ func NewFromAPI(api common.LogAPI, logLevel logger.LogLevel, tracker telemetry.T
 	return New(logger.New(api), logLevel, tracker)
 }
 
-func (l *telemetryLogger) Debugf(format string, args ...interface{}) {
+func (l *telemetryLogger) Debugf(format string, args ...any) {
 	l.Logger.Debugf(format, args...)
 	message := fmt.Sprintf(format, args...)
 	if logger.Level(l.logLevel) >= 4 {
@@ -45,7 +45,7 @@ func (l *telemetryLogger) Debugf(format string, args ...interface{}) {
 	}
 }
 
-func (l *telemetryLogger) Errorf(format string, args ...interface{}) {
+func (l *telemetryLogger) Errorf(format string, args ...any) {
 	l.Logger.Errorf(format, args...)
 	message := fmt.Sprintf(format, args...)
 	if logger.Level(l.logLevel) >= 1 {
@@ -53,7 +53,7 @@ func (l *telemetryLogger) Errorf(format string, args ...interface{}) {
 	}
 }
 
-func (l *telemetryLogger) Infof(format string, args ...interface{}) {
+func (l *telemetryLogger) Infof(format string, args ...any) {
 	l.Logger.Infof(format, args...)
 	message := fmt.Sprintf(format, args...)
 	if logger.Level(l.logLevel) >= 3 {
@@ -61,7 +61,7 @@ func (l *telemetryLogger) Infof(format string, args ...interface{}) {
 	}
 }
 
-func (l *telemetryLogger) Warnf(format string, args ...interface{}) {
+func (l *telemetryLogger) Warnf(format string, args ...any) {
 	l.Logger.Warnf(format, args...)
 	message := fmt.Sprintf(format, args...)
 	if logger.Level(l.logLevel) >= 2 {
@@ -70,7 +70,7 @@ func (l *telemetryLogger) Warnf(format string, args ...interface{}) {
 }
 
 func (l *telemetryLogger) logToTelemetry(level, message string) {
-	properties := map[string]interface{}{}
+	properties := map[string]any{}
 	properties["message"] = message
 	for k, v := range l.Context() {
 		properties["context_"+k] = fmt.Sprintf("%v", v)

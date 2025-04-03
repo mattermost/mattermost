@@ -27,7 +27,7 @@ func (api *API) InitCustomProfileAttributes() {
 }
 
 func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("Api4.listCPAFields", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -49,7 +49,7 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("Api4.createCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -61,7 +61,7 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pf.SanitizeInput()
+	pf.Name = strings.TrimSpace(pf.Name)
 
 	auditRec := c.MakeAuditRecord("createCPAField", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -89,7 +89,7 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("Api4.patchCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -106,7 +106,17 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	patch.SanitizeInput()
+	if patch.Name != nil {
+		*patch.Name = strings.TrimSpace(*patch.Name)
+	}
+	if err := patch.IsValid(); err != nil {
+		if appErr, ok := err.(*model.AppError); ok {
+			c.Err = appErr
+		} else {
+			c.Err = model.NewAppError("createCPAField", "api.custom_profile_attributes.invalid_field_patch", nil, "", http.StatusBadRequest)
+		}
+		return
+	}
 
 	auditRec := c.MakeAuditRecord("patchCPAField", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -141,7 +151,7 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("Api4.deleteCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -245,7 +255,7 @@ func sanitizePropertyValue(cpaField *model.CPAField, rawValue json.RawMessage) (
 }
 
 func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("Api4.patchCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -317,7 +327,7 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("Api4.listCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}

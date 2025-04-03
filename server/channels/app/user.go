@@ -882,14 +882,18 @@ func (a *App) SetProfileImageFromMultiPartFile(c request.CTX, userID string, fil
 	return a.SetProfileImageFromFile(c, userID, file)
 }
 
-func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
+func (a *App) AdjustImage(rctx request.CTX, file io.ReadSeeker) (*bytes.Buffer, *model.AppError) {
 	// Decode image into Image object
-	img, _, err := a.ch.imgDecoder.Decode(file)
+	img, format, err := a.ch.imgDecoder.Decode(file)
 	if err != nil {
 		return nil, model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	orientation, _ := imaging.GetImageOrientation(file)
+	orientation, err := imaging.GetImageOrientation(file, format)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get image orientation", mlog.Err(err))
+	}
+
 	img = imaging.MakeImageUpright(img, orientation)
 
 	// Scale profile image
@@ -904,8 +908,8 @@ func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 	return buf, nil
 }
 
-func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.Reader) *model.AppError {
-	buf, err := a.AdjustImage(file)
+func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.ReadSeeker) *model.AppError {
+	buf, err := a.AdjustImage(c, file)
 	if err != nil {
 		return err
 	}
@@ -1040,6 +1044,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		}
 	}
 	ruser := userUpdate.New
+	a.InvalidateCacheForUser(user.Id)
 
 	if !active {
 		if err := a.RevokeAllSessions(c, ruser.Id); err != nil {
@@ -1053,8 +1058,6 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 	if appErr := a.invalidateUserChannelMembersCaches(c, user.Id); appErr != nil {
 		c.Logger().Warn("Error while invalidating user channel members caches", mlog.Err(appErr))
 	}
-	a.InvalidateCacheForUser(user.Id)
-
 	a.sendUpdatedUserEvent(ruser)
 
 	if !active && user.DeleteAt != 0 {
@@ -1363,7 +1366,6 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 
 func (a *App) UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError {
 	user, err := a.GetUser(userID)
-
 	if err != nil {
 		return err
 	}
@@ -1671,7 +1673,6 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 
 func (a *App) GetTokenById(token string) (*model.Token, *model.AppError) {
 	rtoken, err := a.Srv().Store().Token().GetByToken(token)
-
 	if err != nil {
 		var status int
 
@@ -2043,7 +2044,6 @@ func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
 	a.InvalidateCacheForUser(userID)
 
 	user, err := a.GetUser(userID)
-
 	if err != nil {
 		return err
 	}
@@ -2788,7 +2788,6 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil, "")
 	userThread, err := a.Srv().Store().Thread().GetThreadForUser(tm, true, a.IsPostPriorityEnabled())
-
 	if err != nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {

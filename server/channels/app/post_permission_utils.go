@@ -55,16 +55,14 @@ func postPriorityCheck(
 	}
 
 	if ack := priority.RequestedAck; ack != nil && *ack {
-		licenseErr := model.MinimumProfessionalProvidedLicense(license)
-		if licenseErr != nil {
-			return licenseErr
+		if !model.MinimumProfessionalLicense(license) {
+			return model.NewAppError("", "license_error.feature_unavailable", nil, "feature is not available for the current license", http.StatusNotImplemented)
 		}
 	}
 
 	if notification := priority.PersistentNotifications; notification != nil && *notification {
-		licenseErr := model.MinimumProfessionalProvidedLicense(license)
-		if licenseErr != nil {
-			return licenseErr
+		if !model.MinimumProfessionalLicense(license) {
+			return model.NewAppError("", "license_error.feature_unavailable", nil, "feature is not available for the current license", http.StatusNotImplemented)
 		}
 		if !isPersistentNotificationsEnabled {
 			return priorityForbiddenErr
