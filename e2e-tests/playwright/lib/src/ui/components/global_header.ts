@@ -9,6 +9,7 @@ export default class GlobalHeader {
     readonly channelsPage: ChannelsPage;
     readonly container: Locator;
 
+    readonly accountMenuButton;
     readonly productSwitchMenu;
     readonly recentMentionsButton;
     readonly settingsButton;
@@ -18,6 +19,7 @@ export default class GlobalHeader {
         this.channelsPage = channelsPage;
         this.container = container;
 
+        this.accountMenuButton = container.getByRole('button', {name: "'s account menu"});
         this.productSwitchMenu = container.getByRole('button', {name: 'Product switch menu'});
         this.recentMentionsButton = container.getByRole('button', {name: 'Recent mentions'});
         this.settingsButton = container.getByRole('button', {name: 'Settings'});
