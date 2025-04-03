@@ -101,7 +101,7 @@ describe('Channels', () => {
         cy.get('#channelHeaderTitle').should('contain', testChannel.display_name).click();
 
         // * Verify that the menu is opened
-        cy.get('.Menu__content').should('be.visible').within(() => {
+        cy.get('#channelHeaderDropdownMenu').should('be.visible').within(() => {
             // # Archive the channel
             cy.findByText('Archive Channel').should('be.visible').click();
         });

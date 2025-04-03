@@ -60,3 +60,32 @@ export function focusElement(
         }, 0);
     }
 }
+
+/**
+ * Returns the first focusable child within a given container element,
+ * or null if none is found.
+ *
+ * Focusable elements generally include:
+ *  - <a href="...">
+ *  - <button>, <input>, <select>, <textarea> (unless disabled)
+ *  - Elements with a non-negative tabindex.
+ */
+export function getFirstFocusableChild(container: HTMLElement): HTMLElement | null {
+    if (!container) {
+        return null;
+    }
+
+    // Common selectors for focusable elements:
+    const focusableSelectors = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])',
+    ];
+
+    // Use querySelector to find the first match
+    const focusable = container.querySelector(focusableSelectors.join(', ')) as HTMLElement | null;
+    return focusable || null;
+}

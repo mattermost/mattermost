@@ -40,7 +40,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.PR_BUILDS_BUCKET_AWS_SECRET_ACCESS_KEY }}
 
       - name: cd/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
@@ -77,7 +77,7 @@ jobs:
       TAG: ${{ steps.set_tag.outputs.TAG }}
     steps:
       - name: cd/docker-login
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           username: mattermostdev
           password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
@@ -88,7 +88,7 @@ jobs:
           cosign-release: v${{ env.COSIGN_VERSION }}
 
       - name: cd/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}

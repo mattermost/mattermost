@@ -1455,7 +1455,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 	}
 
 	if len(postsForCreateList) > 0 {
-		postsCreated, _, err := a.Srv().Store().Post().SaveMultiple(postsForCreateList)
+		postsCreated, _, err := a.Srv().Store().Post().SaveMultiple(rctx, postsForCreateList)
 		if err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
@@ -1478,7 +1478,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		}
 	}
 
-	if _, _, nErr := a.Srv().Store().Post().OverwriteMultiple(postsForOverwriteList); nErr != nil {
+	if _, _, nErr := a.Srv().Store().Post().OverwriteMultiple(rctx, postsForOverwriteList); nErr != nil {
 		return model.NewAppError("importReplies", "app.post.overwrite.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
@@ -1892,7 +1892,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 	}
 
 	if len(postsForCreateList) > 0 {
-		_, idx, nErr := a.Srv().Store().Post().SaveMultiple(postsForCreateList)
+		_, idx, nErr := a.Srv().Store().Post().SaveMultiple(rctx, postsForCreateList)
 		if nErr != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
@@ -1946,7 +1946,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		}
 	}
 
-	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(postsForOverwriteList); err != nil {
+	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(rctx, postsForOverwriteList); err != nil {
 		if idx != -1 && idx < len(postsForOverwriteList) {
 			post := postsForOverwriteList[idx]
 			if lineNumber, ok := postsForOverwriteMap[getPostStrID(post)]; ok {
@@ -2411,7 +2411,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 	}
 
 	if len(postsForCreateList) > 0 {
-		if _, idx, err := a.Srv().Store().Post().SaveMultiple(postsForCreateList); err != nil {
+		if _, idx, err := a.Srv().Store().Post().SaveMultiple(rctx, postsForCreateList); err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
 			var retErr *model.AppError
@@ -2459,7 +2459,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		}
 	}
 
-	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(postsForOverwriteList); err != nil {
+	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(rctx, postsForOverwriteList); err != nil {
 		if idx != -1 && idx < len(postsForOverwriteList) {
 			post := postsForOverwriteList[idx]
 			if lineNumber, ok := postsForOverwriteMap[getPostStrID(post)]; ok {

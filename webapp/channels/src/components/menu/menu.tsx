@@ -228,6 +228,7 @@ export function Menu(props: Props) {
                     title={props.menuButtonTooltip.text}
                     isVertical={props.menuButtonTooltip?.isVertical ?? true}
                     disabled={isMenuOpen || props.menuButton?.disabled}
+                    className={props.menuButtonTooltip.class}
                 >
                     {triggerElement}
                 </WithTooltip>
