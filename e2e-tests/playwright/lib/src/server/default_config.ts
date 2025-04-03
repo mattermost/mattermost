@@ -82,7 +82,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v10.5 server
+// Based on v10.7 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -200,6 +200,8 @@ const defaultServerConfig: AdminConfig = {
         MaximumPayloadSizeBytes: 300000,
         MaximumURLLength: 2048,
         ScheduledPosts: true,
+        EnableWebHubChannelIteration: false,
+        FrameAncestors: '',
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -470,11 +472,11 @@ const defaultServerConfig: AdminConfig = {
         EnableSync: false,
         LdapServer: '',
         LdapPort: 389,
-        MaximumLoginAttempts: 10,
         ConnectionSecurity: '',
         BaseDN: '',
         BindUsername: '',
         BindPassword: '',
+        MaximumLoginAttempts: 10,
         UserFilter: '',
         GroupFilter: '',
         GuestFilter: '',
@@ -556,12 +558,16 @@ const defaultServerConfig: AdminConfig = {
         AndroidAppDownloadLink: 'https://mattermost.com/pl/android-app/',
         IosAppDownloadLink: 'https://mattermost.com/pl/ios-app/',
         MobileExternalBrowser: false,
+        MobileEnableBiometrics: false,
+        MobilePreventScreenCapture: false,
+        MobileJailbreakProtection: false,
     },
     CacheSettings: {
         CacheType: 'lru',
         RedisAddress: '',
         RedisPassword: '',
         RedisDB: -1,
+        RedisCachePrefix: '',
         DisableClientCache: false,
     },
     ClusterSettings: {
@@ -583,6 +589,7 @@ const defaultServerConfig: AdminConfig = {
         ListenAddress: ':8067',
         EnableClientMetrics: true,
         EnableNotificationMetrics: true,
+        ClientSideUserIds: [],
     },
     ExperimentalSettings: {
         ClientSideCertEnable: false,
