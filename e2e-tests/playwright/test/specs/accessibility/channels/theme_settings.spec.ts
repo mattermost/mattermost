@@ -103,7 +103,7 @@ test('Theme settings should be keyboard accessible', async ({axe, pw}) => {
     await expect(sidebarStyles).toHaveAttribute('aria-expanded', 'true');
 
     // # Wait for the expanding animation to be open
-    await expect(page.getByLabel('Sidebar BG', {exact: true})).toBeVisible();
+    await expect(page.getByLabel('Sidebar Styles')).toHaveCSS('overflow-y', 'visible');
 
     // * Check that we can tab through color pickers
     await page.keyboard.press('Tab');
