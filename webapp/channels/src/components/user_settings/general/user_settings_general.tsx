@@ -1453,60 +1453,59 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     if (this.props.isMobileView) {
                         attributeLabel = '';
                     }
-                }
 
-                if (attribute.type === 'select' || attribute.type === 'multiselect') {
-                    const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
-                    const opts = attribOptions.map((o) => {
-                        return {label: o.name, value: o.id} as SelectOption;
-                    });
-                    inputs.push(
-                        <ReactSelect
-                            isMulti={attribute.type === 'multiselect' ? true : undefined}
-                            key={sectionName}
-                            id={'customProfileAttribute_' + attribute.id}
-                            inputId={'customProfileAttribute_' + attribute.id + '_input'}
-                            className='react-select inlineSelect'
-                            classNamePrefix='react-select'
-                            options={opts}
-                            isClearable={true}
-                            isSearchable={false}
-                            isDisabled={false}
-                            placeholder={formatMessage({
-                                id: 'user.settings.general.select',
-                                defaultMessage: 'Select',
-                            })}
-                            components={{IndicatorSeparator: null}}
-                            styles={selectStyles}
-                            value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as SelectOption}
-                            onChange={(v, a) => this.updateSelectAttribute(v, a, attribute.id)}
-                        />,
-                    );
-                } else {
-                    const inputType = attribute.type as string;
-                    inputs.push(
-                        <div
-                            key={sectionName}
-                            className='form-group'
-                        >
-                            <label className='col-sm-5 control-label'>{attributeLabel}</label>
-                            <div className='col-sm-7'>
-                                <input
-                                    id={sectionName}
-                                    autoFocus={true}
-                                    className='form-control'
-                                    type={inputType}
-                                    onChange={this.updateAttribute}
-                                    value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as string}
-                                    maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
-                                    autoCapitalize='off'
-                                    onFocus={Utils.moveCursorToEnd}
-                                    aria-label={attribute.name}
-                                />
-                            </div>
-                        </div>,
-                    );
-
+                    if (attribute.type === 'select' || attribute.type === 'multiselect') {
+                        const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
+                        const opts = attribOptions.map((o) => {
+                            return {label: o.name, value: o.id} as SelectOption;
+                        });
+                        inputs.push(
+                            <ReactSelect
+                                isMulti={attribute.type === 'multiselect' ? true : undefined}
+                                key={sectionName}
+                                id={'customProfileAttribute_' + attribute.id}
+                                inputId={'customProfileAttribute_' + attribute.id + '_input'}
+                                className='react-select inlineSelect'
+                                classNamePrefix='react-select'
+                                options={opts}
+                                isClearable={true}
+                                isSearchable={false}
+                                isDisabled={false}
+                                placeholder={formatMessage({
+                                    id: 'user.settings.general.select',
+                                    defaultMessage: 'Select',
+                                })}
+                                components={{IndicatorSeparator: null}}
+                                styles={selectStyles}
+                                value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as SelectOption}
+                                onChange={(v, a) => this.updateSelectAttribute(v, a, attribute.id)}
+                            />,
+                        );
+                    } else {
+                        const inputType = attribute.type as string;
+                        inputs.push(
+                            <div
+                                key={sectionName}
+                                className='form-group'
+                            >
+                                <label className='col-sm-5 control-label'>{attributeLabel}</label>
+                                <div className='col-sm-7'>
+                                    <input
+                                        id={sectionName}
+                                        autoFocus={true}
+                                        className='form-control'
+                                        type={inputType}
+                                        onChange={this.updateAttribute}
+                                        value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as string}
+                                        maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                                        autoCapitalize='off'
+                                        onFocus={Utils.moveCursorToEnd}
+                                        aria-label={attribute.name}
+                                    />
+                                </div>
+                            </div>,
+                        );
+                    }
                     extraInfo = (
                         <span>
                             <FormattedMessage
