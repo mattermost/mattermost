@@ -95,7 +95,7 @@ describe('Profile Popover - Custom Attributes', () => {
         // Post a message as the other user to make them visible in the channel
         cy.postMessageAs({
             sender: otherUser,
-            message: 'Hello from the other user - test 1',
+            message: 'Hello from the other user',
             channelId: testChannel.id,
         });
         cy.uiWaitUntilMessagePostedIncludes('Hello from the other user');
@@ -118,13 +118,9 @@ describe('Profile Popover - Custom Attributes', () => {
     it('MM-T2 Should not display custom profile attributes if none exist', () => {
         cy.postMessageAs({
             sender: testUser,
-            message: 'Hello from the test user - test 2',
+            message: 'Hello from the test user',
             channelId: testChannel.id,
         });
-        cy.uiWaitUntilMessagePostedIncludes('Hello from the test user');
-
-        // Login as the test user
-        cy.apiLogin(testUser);
 
         // # Open the profile popover for the test user
         cy.getLastPostId().then((postId) => {
@@ -153,13 +149,9 @@ describe('Profile Popover - Custom Attributes', () => {
         // # Post a message as the other user
         cy.postMessageAs({
             sender: otherUser,
-            message: 'Hello from the other user - test 3',
+            message: 'Hello once more from the other user',
             channelId: testChannel.id,
         });
-        cy.uiWaitUntilMessagePostedIncludes('Hello from the other user');
-
-        // Login as the test user
-        cy.apiLogin(testUser);
 
         // # Open the profile popover to get the user profile state set correctly
         cy.getLastPostId().then((postId) => {
@@ -175,9 +167,6 @@ describe('Profile Popover - Custom Attributes', () => {
         // # Close the profile popover
         cy.get('body').click();
 
-        // Login as the other user
-        cy.apiLogin(otherUser);
-
         // # Update custom profile attributes for "otherUser"
         const updatedAttributes = [
             {
@@ -190,9 +179,6 @@ describe('Profile Popover - Custom Attributes', () => {
             },
         ];
         setupCustomProfileAttributeValues(updatedAttributes, attributeFieldsMap);
-
-        // Login as the test user
-        cy.apiLogin(testUser);
 
         // # Open the profile popover again
         cy.getLastPostId().then((postId) => {
@@ -230,13 +216,12 @@ describe('Profile Popover - Custom Attributes', () => {
     });
 
     it('MM-T4 Should not display custom profile attributes with visibility set to hidden', () => {
-        // # Post a message as the other user
+        // # Post a message from the test user
         cy.postMessageAs({
             sender: testUser,
-            message: 'Hello from the test user - test 4',
+            message: 'Hello testing hidden visibility from the test user',
             channelId: testChannel.id,
         });
-        cy.uiWaitUntilMessagePostedIncludes('Hello from the test user');
 
         // # Update the visibility of the Department attribute to hidden
         updateCustomProfileAttributeVisibility(attributeFieldsMap, 'Department', 'hidden').then(() => {
@@ -283,25 +268,24 @@ describe('Profile Popover - Custom Attributes', () => {
     });
 
     it('MM-T5 Should always display custom profile attributes with visibility set to always', () => {
-        // # Post a message as the test user
+        // # Post a message from the test user
         cy.postMessageAs({
             sender: testUser,
-            message: 'Hello from the test user - test 5',
+            message: 'Hello testing always visibility from the test user',
             channelId: testChannel.id,
         });
-        cy.uiWaitUntilMessagePostedIncludes('Hello from the test user');
 
         // # Update the visibility of the Title attribute to always
         updateCustomProfileAttributeVisibility(attributeFieldsMap, 'Title', 'always').then(() => {
             // # Clear the value for the Title attribute
             clearCustomProfileAttributeValue(attributeFieldsMap, 'Title');
 
+            // # Post a message as the other user
             cy.postMessageAs({
                 sender: otherUser,
-                message: 'Hello from the other user - test 5',
+                message: 'Testing visibility always',
                 channelId: testChannel.id,
             });
-            cy.uiWaitUntilMessagePostedIncludes('Hello from the other user');
 
             // # Login as the test user
             cy.apiLogin(testUser);
@@ -334,18 +318,16 @@ describe('Profile Popover - Custom Attributes', () => {
         // # Post a message as the test user
         cy.postMessageAs({
             sender: testUser,
-            message: 'Hello from the test user - test 6',
+            message: 'Testing phone and URL attributes - testUser',
             channelId: testChannel.id,
         });
-        cy.uiWaitUntilMessagePostedIncludes('Hello from the test user');
 
         // # Post a message as the other user
         cy.postMessageAs({
             sender: otherUser,
-            message: 'Hello from the other user - test 6',
+            message: 'Testing phone and URL attributes',
             channelId: testChannel.id,
         });
-        cy.uiWaitUntilMessagePostedIncludes('Hello from the other user');
 
         // # Login as the test user
         cy.apiLogin(testUser);
@@ -402,6 +384,42 @@ describe('Profile Popover - Custom Attributes', () => {
             } else {
                 throw new Error('Could not find value "https://example.com" in the profile popover');
             }
+        });
+    });
+
+    it('MM-T7 Should have clickable phone and URL attributes in profile popover', () => {
+        // # Post a message as the test user
+        cy.postMessageAs({
+            sender: testUser,
+            message: 'Testing clickable phone and URL attributes- testUser',
+            channelId: testChannel.id,
+        });
+
+        // # Post a message as the other user
+        cy.postMessageAs({
+            sender: otherUser,
+            message: 'Testing clickable phone and URL attributes',
+            channelId: testChannel.id,
+        });
+
+        // # Login as the test user
+        cy.apiLogin(testUser);
+
+        // # Open the profile popover for the other user
+        cy.getLastPostId().then((postId) => {
+            cy.get(`#post_${postId}`).find('.user-popover').click();
+        });
+
+        // * Verify the profile popover is visible and wait for content to load
+        cy.get('.user-profile-popover_container').should('be.visible').find('.user-popover__subtitle').should('exist');
+
+        // * Verify the Phone attribute has a clickable link with tel: protocol
+        cy.get('.user-profile-popover_container').within(() => {
+            // Find the phone link
+            cy.contains('555-123-4567').should('have.attr', 'href').and('include', 'tel:');
+
+            // Find the URL link
+            cy.contains('https://example.com').should('have.attr', 'href').and('include', 'https:');
         });
     });
 });
