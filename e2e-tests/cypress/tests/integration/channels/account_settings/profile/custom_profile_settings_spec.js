@@ -44,6 +44,22 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
                 {name: 'Python', color: '#3776AB'},
             ],
         },
+        {
+            name: 'Phone',
+            value: '555-123-4567',
+            type: 'text',
+            attrs: {
+                value_type: 'phone',
+            },
+        },
+        {
+            name: 'Website',
+            value: 'https://example.com',
+            type: 'text',
+            attrs: {
+                value_type: 'url',
+            },
+        },
     ];
 
     before(() => {
@@ -295,6 +311,125 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         // # Close the modal
         cy.uiClose();
     });
+
+    it('MM-T4 Should be able to edit phone and URL type attributes in profile settings', () => {
+        // # Open profile settings modal
+        cy.uiOpenProfileModal('Profile Settings');
+
+        // # Edit the Phone attribute - first scroll to it to ensure it's visible
+        cy.contains('Phone').scrollIntoView();
+        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Phone') + 'Edit').scrollIntoView().should('be.visible').click();
+
+        // # Type a new value
+        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Phone')).scrollIntoView().should('be.visible').clear().type('555-987-6543');
+
+        // # Save the changes
+        cy.uiSave();
+
+        // # Edit the Website attribute - first scroll to it to ensure it's visible
+        cy.contains('Website').scrollIntoView();
+        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Website') + 'Edit').scrollIntoView().should('be.visible').click();
+
+        // # Type a new value
+        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Website')).scrollIntoView().should('be.visible').clear().type('https://mattermost.com');
+
+        // # Save the changes
+        cy.uiSave();
+
+        // # Close the modal
+        cy.uiClose();
+
+        // # Post a message to make the user visible in the channel
+        cy.postMessage('Testing phone and URL attributes');
+
+        // # Login as the other user to view the profile popover
+        cy.apiLogin(otherUser);
+        cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
+
+        // # Open the profile popover for the test user
+        cy.getLastPostId().then((postId) => {
+            cy.get(`#post_${postId}`).find('.user-popover').click();
+        });
+
+        // * Verify the profile popover is visible and wait for content to load
+        cy.get('.user-profile-popover_container').should('be.visible').find('.user-popover__subtitle').should('exist');
+
+        // * Verify the updated Phone attribute is displayed correctly
+        cy.get('.user-profile-popover_container *').then(($elements) => {
+            // Find elements containing the Phone attribute name
+            const phoneElements = $elements.filter((_, el) => el.textContent.includes('Phone'));
+
+            // If we found a matching element, scroll it into view and verify it's visible
+            if (phoneElements.length > 0) {
+                cy.wrap(phoneElements[0]).scrollIntoView().should('be.visible');
+            } else {
+                throw new Error('Could not find attribute "Phone" in the profile popover');
+            }
+
+            // Find elements containing the Phone attribute value
+            const phoneValueElements = $elements.filter((_, el) => el.textContent.includes('555-987-6543'));
+
+            // If we found a matching element, scroll it into view and verify it's visible
+            if (phoneValueElements.length > 0) {
+                cy.wrap(phoneValueElements[0]).scrollIntoView().should('be.visible');
+            } else {
+                throw new Error('Could not find value "555-987-6543" in the profile popover');
+            }
+        });
+
+        // * Verify the updated Website attribute is displayed correctly
+        cy.get('.user-profile-popover_container *').then(($elements) => {
+            // Find elements containing the Website attribute name
+            const websiteElements = $elements.filter((_, el) => el.textContent.includes('Website'));
+
+            // If we found a matching element, scroll it into view and verify it's visible
+            if (websiteElements.length > 0) {
+                cy.wrap(websiteElements[0]).scrollIntoView().should('be.visible');
+            } else {
+                throw new Error('Could not find attribute "Website" in the profile popover');
+            }
+
+            // Find elements containing the Website attribute value
+            const websiteValueElements = $elements.filter((_, el) => el.textContent.includes('https://mattermost.com'));
+
+            // If we found a matching element, scroll it into view and verify it's visible
+            if (websiteValueElements.length > 0) {
+                cy.wrap(websiteValueElements[0]).scrollIntoView().should('be.visible');
+            } else {
+                throw new Error('Could not find value "https://mattermost.com" in the profile popover');
+            }
+        });
+
+        // # Close the profile popover
+        cy.get('body').click();
+    });
+
+    it('MM-T5 Should validate URL format when entered', () => {
+        // # Open profile settings modal
+        cy.uiOpenProfileModal('Profile Settings');
+
+        // # Edit the Website attribute - first scroll to it to ensure it's visible
+        cy.contains('Website').scrollIntoView();
+        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Website') + 'Edit').scrollIntoView().should('be.visible').click();
+
+        // # Type an invalid URL (missing protocol)
+        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Website')).scrollIntoView().should('be.visible').clear().type('ftp://invalid-url');
+
+        // # Try to save the changes
+        cy.uiSave();
+
+        // * Verify error message is displayed for invalid URL format
+        cy.get('#clientError').should('be.visible');
+
+        // # Type a valid URL
+        cy.get('#customAttribute_' + getFieldIdByName(attributeFieldsMap, 'Website')).scrollIntoView().should('be.visible').clear().type('https://example2.com');
+
+        // # Save the changes
+        cy.uiSave();
+
+        // # Close the modal
+        cy.uiClose();
+    });
 });
 
 /**
@@ -323,6 +458,7 @@ function setupCustomProfileAttributeFields(attributes) {
 
     // Create the attribute fields array
     const attributeFields = attributes.map((attr, index) => {
+        // Start with basic field properties
         const field = {
             name: attr.name,
             type: attr.type || 'text',
@@ -334,6 +470,14 @@ function setupCustomProfileAttributeFields(attributes) {
         // Add options for select and multiselect fields
         if ((attr.type === 'select' || attr.type === 'multiselect') && attr.options) {
             field.attrs.options = attr.options;
+        }
+
+        // Add any additional attributes if provided
+        if (attr.attrs) {
+            field.attrs = {
+                ...field.attrs,
+                ...attr.attrs,
+            };
         }
 
         return field;
