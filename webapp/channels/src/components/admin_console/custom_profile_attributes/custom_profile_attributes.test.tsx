@@ -35,7 +35,12 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
         ...baseField,
         id,
         name,
-        attrs,
+        attrs: {
+            ...attrs,
+            sort_order: 0,
+            visibility: 'when_set',
+            value_type: '',
+        },
     });
 
     const attr1 = createAttribute('attr1', 'Department', {ldap: 'department'});
