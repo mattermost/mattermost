@@ -112,6 +112,9 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
                 type: 'text',
                 attrs: {
                     ldap: 'new-department',
+                    sort_order: 0,
+                    value_type: '',
+                    visibility: 'when_set',
                 },
             });
         });
@@ -167,6 +170,9 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
                 type: 'text',
                 attrs: {
                     saml: 'new-title',
+                    sort_order: 0,
+                    value_type: '',
+                    visibility: 'when_set',
                 },
             });
         });
