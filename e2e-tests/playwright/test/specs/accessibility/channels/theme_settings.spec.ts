@@ -1,18 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect} from '@playwright/test';
+import {expect, test} from '@mattermost/playwright-lib';
 
-import {test} from '@mattermost/playwright-lib';
-
-test('Theme settings should be keyboard accessible', async ({pw}) => {
+test('Theme settings should be keyboard accessible', async ({axe, pw}) => {
     const {user} = await pw.initSetup();
 
     // # Log in as a user in new browser context
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
     // # Initialize Axe
-    // const ab = axe.builder(page, {disableColorContrast: true});
+    const ab = axe.builder(page).disableRules([
+        'color-contrast',
+
+        // Known issue: These fail due to the way we've grouped plugin setting tabs together in the LHS
+        'aria-required-children',
+        'aria-required-parent',
+    ]);
 
     // # Visit default channel page
     await channelsPage.goto();
@@ -22,8 +26,8 @@ test('Theme settings should be keyboard accessible', async ({pw}) => {
     const settingsModal = await channelsPage.globalHeader.openSettings();
 
     // * The settings modal should have no accessibility violations
-    // let accessibilityScanResults = await ab.analyze()
-    // expect(accessibilityScanResults.violations).toHaveLength(0);
+    let accessibilityScanResults = await ab.analyze()
+    expect(accessibilityScanResults.violations).toHaveLength(0);
 
     // # Open display tab
     await settingsModal.container.focus();
@@ -37,8 +41,8 @@ test('Theme settings should be keyboard accessible', async ({pw}) => {
     await displaySettings.toBeVisible();
 
     // * The display tab should have no accessibility violations
-    // accessibilityScanResults = await ab.analyze()
-    // expect(accessibilityScanResults.violations).toHaveLength(0);
+    accessibilityScanResults = await ab.analyze()
+    expect(accessibilityScanResults.violations).toHaveLength(0);
 
     // # Open the theme section
     await page.keyboard.press('Tab');
@@ -51,8 +55,8 @@ test('Theme settings should be keyboard accessible', async ({pw}) => {
     await expect(page.getByLabel('Premade Themes')).toBeFocused();
 
     // * The theme section for premade themes should have no accessibility violations
-    // accessibilityScanResults = await ab.analyze()
-    // expect(accessibilityScanResults.violations).toHaveLength(0);
+    accessibilityScanResults = await ab.analyze()
+    expect(accessibilityScanResults.violations).toHaveLength(0);
 
     // * Should be able to tab through the options
     await page.keyboard.press('Tab');
@@ -110,6 +114,6 @@ test('Theme settings should be keyboard accessible', async ({pw}) => {
     await expect(page.getByLabel('Sidebar Header BG')).toBeFocused();
 
     // * The theme section for custom themes should have no accessibility violations
-    // accessibilityScanResults = await ab.analyze()
-    // expect(accessibilityScanResults.violations).toHaveLength(0);
+    accessibilityScanResults = await ab.analyze();
+    expect(accessibilityScanResults.violations).toHaveLength(0);
 });

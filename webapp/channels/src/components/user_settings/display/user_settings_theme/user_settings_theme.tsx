@@ -195,7 +195,6 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                                 name='theme'
                                 checked={!displayCustom}
                                 onChange={this.updateType.bind(this, 'premade')}
-                                aria-controls='premadeThemesSection'
                             />
                             <FormattedMessage
                                 id='user.settings.display.theme.premadeThemes'
@@ -219,7 +218,6 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                                 name='theme'
                                 checked={displayCustom}
                                 onChange={this.updateType.bind(this, 'custom')}
-                                aria-controls='customThemesSection'
                             />
                             <FormattedMessage
                                 id='user.settings.display.theme.customTheme'
