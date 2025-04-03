@@ -36,6 +36,7 @@ export type PropertyValue<T> = {
 
 export type UserPropertyFieldType = 'text' | 'select' | 'multiselect';
 export type UserPropertyFieldGroupID = 'custom_profile_attributes';
+export type UserPropertyValueType = 'phone' | 'url' | '';
 
 export type FieldVisibility = 'always' | 'hidden' | 'when_set';
 export type FieldValueType =
