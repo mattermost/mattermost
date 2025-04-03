@@ -86,7 +86,7 @@ describe('components/channel_banner', () => {
             general: {
                 license: {
                     IsLicensed: 'true',
-                    SkuShortName: LicenseSkus.Enterprise,
+                    SkuShortName: LicenseSkus.Premium,
                 },
             },
             channels: {
@@ -111,8 +111,6 @@ describe('components/channel_banner', () => {
     };
 
     test('should not render when license is professional', () => {
-        // TODO: add a test for premium and enterprise license SKU as well once they are added
-
         const nonEnterpriseLicenseState = {
             ...baseState,
             entities: {
@@ -121,6 +119,27 @@ describe('components/channel_banner', () => {
                     license: {
                         IsLicensed: 'true',
                         SkuShortName: LicenseSkus.Professional,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <ChannelBanner channelId={'channel_id_1'}/>,
+            nonEnterpriseLicenseState,
+        );
+        expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+    });
+
+    test('should not render when license is enterprise', () => {
+        const nonEnterpriseLicenseState = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                general: {
+                    license: {
+                        IsLicensed: 'true',
+                        SkuShortName: LicenseSkus.Enterprise,
                     },
                 },
             },
