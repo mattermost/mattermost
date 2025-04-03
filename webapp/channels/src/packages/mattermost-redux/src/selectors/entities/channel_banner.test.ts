@@ -17,7 +17,7 @@ describe('Selectors.ChannelBanner', () => {
         entities: {
             general: {
                 license: {
-                    SkuShortName: General.SKUEnterprise,
+                    SkuShortName: General.SKUPremium,
                 },
             },
             channels: {
@@ -45,6 +45,38 @@ describe('Selectors.ChannelBanner', () => {
                 general: {
                     license: {
                         SkuShortName: 'starter',
+                    },
+                },
+            },
+        };
+
+        expect(selectShowChannelBanner(state as GlobalState, channelId)).toBe(false);
+    });
+
+    test('should return false when license is professional', () => {
+        const state: DeepPartial<GlobalState> = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                general: {
+                    license: {
+                        SkuShortName: 'professional',
+                    },
+                },
+            },
+        };
+
+        expect(selectShowChannelBanner(state as GlobalState, channelId)).toBe(false);
+    });
+
+    test('should return false when license is enterprise', () => {
+        const state: DeepPartial<GlobalState> = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                general: {
+                    license: {
+                        SkuShortName: 'enterprise',
                     },
                 },
             },
