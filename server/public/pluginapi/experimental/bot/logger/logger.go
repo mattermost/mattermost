@@ -24,7 +24,7 @@ const (
 )
 
 // LogContext defines the context for the logs.
-type LogContext map[string]interface{}
+type LogContext map[string]any
 
 // Logger defines an object able to log messages.
 type Logger interface {
@@ -37,13 +37,13 @@ type Logger interface {
 	// Timed add a timed log context.
 	Timed() Logger
 	// Debugf logs a formatted string as a debug message.
-	Debugf(format string, args ...interface{})
+	Debugf(format string, args ...any)
 	// Errorf logs a formatted string as an error message.
-	Errorf(format string, args ...interface{})
+	Errorf(format string, args ...any)
 	// Infof logs a formatted string as an info message.
-	Infof(format string, args ...interface{})
+	Infof(format string, args ...any)
 	// Warnf logs a formatted string as an warning message.
-	Warnf(format string, args ...interface{})
+	Warnf(format string, args ...any)
 }
 
 func measure(lc LogContext) {
@@ -70,7 +70,7 @@ func Level(l LogLevel) int {
 	return 0
 }
 
-func toKeyValuePairs(in map[string]interface{}) (out []interface{}) {
+func toKeyValuePairs(in map[string]any) (out []any) {
 	for k, v := range in {
 		out = append(out, k, v)
 	}
