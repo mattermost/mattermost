@@ -8,6 +8,11 @@ import (
 	"errors"
 )
 
+type NameIntegrityCheckData struct {
+	RelName string   `json:"rel_name"`
+	Names   []string `json:"names"`
+}
+
 type OrphanedRecord struct {
 	ParentId *string `json:"parent_id"`
 	ChildId  *string `json:"child_id"`
@@ -32,24 +37,43 @@ func (r *IntegrityCheckResult) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	if d, ok := data["data"]; ok && d != nil {
-		var rdata RelationalIntegrityCheckData
 		m := d.(map[string]any)
-		rdata.ParentName = m["parent_name"].(string)
-		rdata.ChildName = m["child_name"].(string)
-		rdata.ParentIdAttr = m["parent_id_attr"].(string)
-		rdata.ChildIdAttr = m["child_id_attr"].(string)
-		for _, recData := range m["records"].([]any) {
-			var record OrphanedRecord
-			m := recData.(map[string]any)
-			if val := m["parent_id"]; val != nil {
-				record.ParentId = NewPointer(val.(string))
+
+		if records, ok := m["records"].([]any); ok { // data is RelationalIntegrityCheckData
+			var rdata RelationalIntegrityCheckData
+			if _, ok := m["parent_name"]; ok {
+				rdata.ParentName = m["parent_name"].(string)
 			}
-			if val := m["child_id"]; val != nil {
-				record.ChildId = NewPointer(val.(string))
+			if _, ok := m["child_name"]; ok {
+				rdata.ChildName = m["child_name"].(string)
 			}
-			rdata.Records = append(rdata.Records, record)
+			if _, ok := m["parent_id_attr"]; ok {
+				rdata.ParentIdAttr = m["parent_id_attr"].(string)
+			}
+			if _, ok := m["child_id_attr"]; ok {
+				rdata.ChildIdAttr = m["child_id_attr"].(string)
+			}
+			for _, recData := range records {
+				var record OrphanedRecord
+				m := recData.(map[string]any)
+				if val := m["parent_id"]; val != nil {
+					record.ParentId = NewPointer(val.(string))
+				}
+				if val := m["child_id"]; val != nil {
+					record.ChildId = NewPointer(val.(string))
+				}
+				rdata.Records = append(rdata.Records, record)
+			}
+
+			r.Data = rdata
+		} else if names, ok := m["names"].([]string); ok { // data is NameIntegrityCheckData
+			var ndata NameIntegrityCheckData
+			ndata.RelName = m["rel_name"].(string)
+			for _, name := range names {
+				ndata.Names = append(ndata.Names, name)
+			}
+			r.Data = ndata
 		}
-		r.Data = rdata
 	}
 	if err, ok := data["err"]; ok && err != nil {
 		r.Err = errors.New(data["err"].(string))
