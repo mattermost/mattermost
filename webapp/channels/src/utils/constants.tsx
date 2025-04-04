@@ -1159,12 +1159,14 @@ export const DocLinks = {
     SETUP_PERFORMANCE_MONITORING: 'https://mattermost.com/pl/setup-performance-monitoring',
     SETUP_PUSH_NOTIFICATIONS: 'https://mattermost.com/pl/setup-push-notifications',
     SETUP_SAML: 'https://docs.mattermost.com/pl/setup-saml',
+    SETUP_SSO_SAML: 'http://docs.mattermost.com/deployment/sso-saml.html',
     SHARE_LINKS_TO_MESSAGES: 'https://mattermost.com/pl/share-links-to-messages',
     SITE_URL: 'https://mattermost.com/pl/configure-site-url',
     SSL_CERTIFICATE: 'https://mattermost.com/pl/setup-ssl-client-certificate',
     TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
     TRUSTED_CONNECTION: 'https://mattermost.com/pl/default-allow-untrusted-internal-connections',
     UPGRADE_SERVER: 'https://mattermost.com/pl/upgrade-mattermost',
+    LDAP_ID_MIGRATE: 'https://docs.mattermost.com/manage/command-line-tools.html#mattermost-ldap-idmigrate',
 };
 
 export const DeveloperLinks = {
