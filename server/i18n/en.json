@@ -8474,7 +8474,7 @@
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
-    "translation": "Invalid policyy id."
+    "translation": "Invalid policy id."
   },
   {
     "id": "model.access_policy.is_valid.imports.app_error",
