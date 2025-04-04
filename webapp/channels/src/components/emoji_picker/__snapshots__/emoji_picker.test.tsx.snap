@@ -36,6 +36,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
     </div>
     <div
       class="emoji-picker__categories"
+      data-testid="emojiPickerCategories"
       id="emojiPickerCategories"
     >
       <button
