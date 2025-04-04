@@ -732,7 +732,7 @@ describe('Messaging', () => {
             cy.get('#edit_textbox').should('be.visible');
 
             // * Update the post message and type ENTER
-            cy.get('#edit_textbox', {timeout: TIMEOUTS.FIVE_SEC}).invoke('val', '').type(message2).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+            cy.get('#edit_textbox', {timeout: TIMEOUTS.FIVE_SEC}).invoke('val', '').type(message2).wait(TIMEOUTS.HALF_SEC).type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
             // * Post appears in RHS search results, displays Pinned badge
             cy.get(`#searchResult_${postId}`).findByText('Edited').should('exist');

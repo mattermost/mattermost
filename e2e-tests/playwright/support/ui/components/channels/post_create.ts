@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {expect, Locator} from '@playwright/test';
+import path from 'node:path';
+import {waitUntil} from '@e2e-support/test_action';
 
 export default class ChannelsPostCreate {
     readonly container: Locator;
@@ -95,8 +97,24 @@ export default class ChannelsPostCreate {
     /**
      * Composes and sends a message
      */
-    async postMessage(message: string) {
+    async postMessage(message: string, files?: string[]) {
         await this.writeMessage(message);
+
+        if (files) {
+            const filePaths = files.map((file) => path.join(path.resolve(__dirname), '../../../asset', file));
+            this.container.page().once('filechooser', async (fileChooser) => {
+                await fileChooser.setFiles(filePaths);
+            });
+
+            await this.attachmentButton.click();
+
+            // wait for all files to be uploaded
+            await waitUntil(async () => {
+                const attachment = await this.container.locator('.file-preview').count();
+                return attachment === files.length;
+            });
+        }
+
         await this.sendMessage();
     }
 
