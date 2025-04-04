@@ -420,7 +420,7 @@ func TestWriteFileVideoMimeTypes(t *testing.T) {
 	// Test video types
 	testContent := []byte("test-video-content")
 	videoTypes := map[string]string{
-		".avi":  "video/avi",
+		".avi":  "video/vnd.avi",
 		".mpeg": "video/mpeg",
 		".mp4":  "video/mp4",
 	}
