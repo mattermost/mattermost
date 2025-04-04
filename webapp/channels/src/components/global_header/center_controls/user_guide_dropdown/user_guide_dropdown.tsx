@@ -14,11 +14,10 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import WithTooltip from 'components/with_tooltip';
 
-import {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers, DocLinks} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
 
-const mattermostUserGuideLink = 'https://docs.mattermost.com/guides/use-mattermost.html';
 const trainingResourcesLink = 'https://academy.mattermost.com/';
 const askTheCommunityUrl = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 
@@ -81,7 +80,7 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                 <Menu.ItemExternalLink
                     id='mattermostUserGuideLink'
                     iconClassName='icon-file-text-outline'
-                    url={mattermostUserGuideLink}
+                    url={DocLinks.USER_GUIDE}
                     text={intl.formatMessage({id: 'userGuideHelp.mattermostUserGuide', defaultMessage: 'Mattermost user guide'})}
                 />
                 {this.props.helpLink && (

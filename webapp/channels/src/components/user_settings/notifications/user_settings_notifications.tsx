@@ -24,7 +24,7 @@ import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus, UserSettingsNotificationSections} from 'utils/constants';
+import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus, UserSettingsNotificationSections, DocLinks} from 'utils/constants';
 import {notificationSoundKeys, stopTryNotificationRing} from 'utils/notification_sounds';
 import {a11yFocus} from 'utils/utils';
 
@@ -1037,7 +1037,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                     a: (chunks: string) => ((
                                         <ExternalLink
                                             location='user_settings_notifications'
-                                            href='https://mattermost.com/pl/about-notifications'
+                                            href={DocLinks.ABOUT_NOTIFICATIONS}
                                             className='btn btn-link'
                                         >
                                             <LightbulbOutlineIcon className='circular-border'/>

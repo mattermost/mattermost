@@ -9,6 +9,8 @@ import {sendTestNotification} from 'actions/notification_actions';
 import {useExternalLink} from 'components/common/hooks/use_external_link';
 import SectionNotice from 'components/section_notice';
 
+import {DocLinks} from 'utils/constants';
+
 const sectionNoticeContainerStyle: React.CSSProperties = {marginTop: 20};
 
 const TIME_TO_SENDING = 500;
@@ -28,7 +30,7 @@ const SendTestNotificationNotice = ({
     const [buttonState, setButtonState] = useState<ButtonState>('idle');
     const isSending = useRef(false);
     const timeout = useRef<NodeJS.Timeout>();
-    const [externalLink] = useExternalLink('https://mattermost.com/pl/troubleshoot-notifications');
+    const [externalLink] = useExternalLink(DocLinks.TROUBLESHOOT_NOTIFICATIONS);
 
     const onGoToNotificationDocumentation = useCallback(() => {
         window.open(externalLink);

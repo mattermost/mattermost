@@ -80,6 +80,7 @@ export type ClientConfig = {
     EnableInlineLatex: string;
     EnableLdap: string;
     EnableLinkPreviews: string;
+    EnableLocalDocs: 'true' | 'false';
     EnableMarketplace: string;
     EnableMetrics: string;
     EnableMobileFileDownload: string;

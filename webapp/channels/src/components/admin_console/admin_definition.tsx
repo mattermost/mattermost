@@ -856,6 +856,13 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
                         {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableLocalDocs',
+                            label: defineMessage({id: 'admin.service.enableLocalDocs', defaultMessage: 'Enable local docs:'}),
+                            help_text: defineMessage({id: 'admin.service.enableLocalDocsDescription', defaultMessage: 'Enable the local access to Mattermost documentation.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                        },
+                        {
                             type: 'button',
                             action: reloadConfig,
                             key: 'ReloadConfigButton',

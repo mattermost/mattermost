@@ -121,6 +121,10 @@ func staticFilesHandler(handler http.Handler) http.Handler {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Referrer-Policy", "no-referrer")
 
+		mlog.Debug("Serving static file", mlog.String("uri", r.RequestURI), mlog.String("path", r.URL.Path))
+		if strings.HasPrefix(r.URL.Path, "/static/docs/") {
+			handler.ServeHTTP(w, r)
+		}
 		if strings.HasSuffix(r.URL.Path, "/") {
 			http.NotFound(w, r)
 			return
