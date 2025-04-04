@@ -2028,7 +2028,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 link: (msg: string) => (
                                     <ExternalLink
                                         location='admin_console'
-                                        href='https://mattermost.com/pl/default-allow-untrusted-internal-connections'
+                                        href={DocLinks.TRUSTED_CONNECTION}
                                     >
                                         {msg}
                                     </ExternalLink>
@@ -2812,7 +2812,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 link: (msg: string) => (
                                     <ExternalLink
                                         location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
+                                        href={DocLinks.MESSAGE_PRIORITY}
                                     >
                                         {msg}
                                     </ExternalLink>
@@ -2830,7 +2830,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 link: (msg: string) => (
                                     <ExternalLink
                                         location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
+                                        href={DocLinks.MESSAGE_PRIORITY}
                                     >
                                         {msg}
                                     </ExternalLink>
@@ -2858,7 +2858,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 link: (msg: string) => (
                                     <ExternalLink
                                         location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
+                                        href={DocLinks.MESSAGE_PRIORITY}
                                     >
                                         {msg}
                                     </ExternalLink>
@@ -2880,7 +2880,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 link: (msg: string) => (
                                     <ExternalLink
                                         location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
+                                        href={DocLinks.MESSAGE_PRIORITY}
                                     >
                                         {msg}
                                     </ExternalLink>
@@ -2903,7 +2903,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 link: (msg: string) => (
                                     <ExternalLink
                                         location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
+                                        href={DocLinks.MESSAGE_PRIORITY}
                                     >
                                         {msg}
                                     </ExternalLink>
@@ -2925,7 +2925,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 link: (msg: string) => (
                                     <ExternalLink
                                         location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
+                                        href={DocLinks.MESSAGE_PRIORITY}
                                     >
                                         {msg}
                                     </ExternalLink>
@@ -3778,7 +3778,7 @@ const AdminDefinition: AdminDefinitionType = {
                                         link: (msg: string) => (
                                             <ExternalLink
                                                 location='admin_console'
-                                                href='https://docs.mattermost.com/manage/command-line-tools.html#mattermost-ldap-idmigrate'
+                                                href={DocLinks.LDAP_ID_MIGRATE}
                                             >
                                                 {msg}
                                             </ExternalLink>
@@ -4220,7 +4220,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 link: (msg: string) => (
                                     <ExternalLink
                                         location='admin_console'
-                                        href='http://docs.mattermost.com/deployment/sso-saml.html'
+                                        href={DocLinks.SETUP_SSO_SAML}
                                     >
                                         {msg}
                                     </ExternalLink>
@@ -5668,7 +5668,7 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.service.outgoingOAuthConnectionsDesc', defaultMessage: 'When true, outgoing webhooks and slash commands will use set up oauth connections to authenticate with third party services. See <link>documentation</link> to learn more.'}),
                             help_text_values: {
                                 link: (text: string) => (
-                                    <a href='https://mattermost.com/pl/outgoing-oauth-connections'>{text}</a>
+                                    <a href={DocLinks.OUTGOING_OAUTH_CONNECTIONS}>{text}</a>
                                 ),
                             },
                             help_text_markdown: false,
@@ -5810,7 +5810,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 linkDocumentation: (msg: string) => (
                                     <ExternalLink
                                         location='admin_console'
-                                        href='https://mattermost.com/pl/default-bot-accounts'
+                                        href={DocLinks.DEFAULT_BOT_ACCOUNTS}
                                     >
                                         {msg}
                                     </ExternalLink>

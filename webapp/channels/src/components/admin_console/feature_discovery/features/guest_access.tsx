@@ -23,7 +23,7 @@ const GuestAccessFeatureDiscovery: React.FC = () => {
                 id: 'admin.guest_access_feature_discovery.copy',
                 defaultMessage: 'Collaborate with users outside of your organization while tightly controlling their access channels and team members.',
             })}
-            learnMoreURL={DocLinks.GUEST_ACCOUNTS}
+            learnMoreURL={DocLinks.GUEST_ACCOUNTS_DEPLOYMENT}
             featureDiscoveryImage={<GuestAccessSVG/>}
         />
     );
