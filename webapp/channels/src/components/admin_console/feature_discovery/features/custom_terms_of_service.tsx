@@ -23,7 +23,7 @@ const CustomTermsOfServiceFeatureDiscovery: React.FC = () => {
                 id: 'admin.custom_terms_of_service_feature_discovery.copy',
                 defaultMessage: 'Create your own terms of service that new users must accept before accessing your Mattermost instance on desktop, web, or mobile.',
             })}
-            learnMoreURL='https://docs.mattermost.com/cloud/cloud-administration/custom-terms-of-service.html'
+            learnMoreURL={DocLinks.CUSTOM_TERMS_OF_SERVICE}
             featureDiscoveryImage={
                 <CustomTermsOfServiceSVG
                     width={289}

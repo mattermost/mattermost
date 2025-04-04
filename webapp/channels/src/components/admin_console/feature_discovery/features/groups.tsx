@@ -23,7 +23,7 @@ const GroupsFeatureDiscovery: React.FC = () => {
                 id: 'admin.groups_feature_discovery.copy',
                 defaultMessage: 'Use AD/LDAP groups to organize and apply actions to multiple users at once. Manage team and channel memberships, permissions, and more.',
             })}
-            learnMoreURL='https://docs.mattermost.com/deployment/ldap-group-sync.html'
+            learnMoreURL={DocLinks.LDAP_GROUP_SYNC}
             featureDiscoveryImage={
                 <GroupsSVG
                     width={276}
