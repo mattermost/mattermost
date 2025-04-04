@@ -381,13 +381,13 @@ func (db *dbRPCClient) RowsNext(rowsID string, dest []driver.Value) error {
 
 	buffer, ok := db.rowsBuffer[rowsID]
 	if !ok || len(buffer) == 0 {
-		// No buffered rows, fetch a batch starting with size 1 and doubling each time
-		batchSize := 1
+		// No buffered rows, fetch a batch starting with size 16 and doubling each time
+		batchSize := 16
 		if ok {
 			// If we've fetched before but exhausted the buffer, double the batch size
 			batchSize = len(buffer) * 2
-			if batchSize <= 0 {
-				batchSize = 64 // In case of overflow or initial empty buffer
+			if batchSize <= 0 || batchSize > 4096 {
+				batchSize = 4096 // Cap at 4096 rows per batch
 			}
 		}
 
