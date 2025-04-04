@@ -16,7 +16,7 @@ type PolicyAdministrationPointInterface struct {
 }
 
 // CheckExpression provides a mock function with given fields: rctx, expression
-func (_m *PolicyAdministrationPointInterface) CheckExpression(rctx request.CTX, expression string) ([]model.CELExpressionError, error) {
+func (_m *PolicyAdministrationPointInterface) CheckExpression(rctx request.CTX, expression string) ([]model.CELExpressionError, *model.AppError) {
 	ret := _m.Called(rctx, expression)
 
 	if len(ret) == 0 {
@@ -24,8 +24,8 @@ func (_m *PolicyAdministrationPointInterface) CheckExpression(rctx request.CTX, 
 	}
 
 	var r0 []model.CELExpressionError
-	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]model.CELExpressionError, error)); ok {
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]model.CELExpressionError, *model.AppError)); ok {
 		return rf(rctx, expression)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) []model.CELExpressionError); ok {
@@ -36,35 +36,39 @@ func (_m *PolicyAdministrationPointInterface) CheckExpression(rctx request.CTX, 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
 		r1 = rf(rctx, expression)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
 	}
 
 	return r0, r1
 }
 
 // DeletePolicy provides a mock function with given fields: rctx, id
-func (_m *PolicyAdministrationPointInterface) DeletePolicy(rctx request.CTX, id string) error {
+func (_m *PolicyAdministrationPointInterface) DeletePolicy(rctx request.CTX, id string) *model.AppError {
 	ret := _m.Called(rctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeletePolicy")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.AppError); ok {
 		r0 = rf(rctx, id)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
 	}
 
 	return r0
 }
 
 // ExtractAttributeFields provides a mock function with given fields: rctx, targetType, expression
-func (_m *PolicyAdministrationPointInterface) ExtractAttributeFields(rctx request.CTX, targetType string, expression string) ([]string, error) {
+func (_m *PolicyAdministrationPointInterface) ExtractAttributeFields(rctx request.CTX, targetType string, expression string) ([]string, *model.AppError) {
 	ret := _m.Called(rctx, targetType, expression)
 
 	if len(ret) == 0 {
@@ -72,8 +76,8 @@ func (_m *PolicyAdministrationPointInterface) ExtractAttributeFields(rctx reques
 	}
 
 	var r0 []string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) ([]string, error)); ok {
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) ([]string, *model.AppError)); ok {
 		return rf(rctx, targetType, expression)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) []string); ok {
@@ -84,17 +88,19 @@ func (_m *PolicyAdministrationPointInterface) ExtractAttributeFields(rctx reques
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
 		r1 = rf(rctx, targetType, expression)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
 	}
 
 	return r0, r1
 }
 
 // GetBasicAutocomplete provides a mock function with given fields: rctx, targetType
-func (_m *PolicyAdministrationPointInterface) GetBasicAutocomplete(rctx request.CTX, targetType string) (map[string]interface{}, error) {
+func (_m *PolicyAdministrationPointInterface) GetBasicAutocomplete(rctx request.CTX, targetType string) (map[string]interface{}, *model.AppError) {
 	ret := _m.Called(rctx, targetType)
 
 	if len(ret) == 0 {
@@ -102,8 +108,8 @@ func (_m *PolicyAdministrationPointInterface) GetBasicAutocomplete(rctx request.
 	}
 
 	var r0 map[string]interface{}
-	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string) (map[string]interface{}, error)); ok {
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (map[string]interface{}, *model.AppError)); ok {
 		return rf(rctx, targetType)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) map[string]interface{}); ok {
@@ -114,17 +120,19 @@ func (_m *PolicyAdministrationPointInterface) GetBasicAutocomplete(rctx request.
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
 		r1 = rf(rctx, targetType)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
 	}
 
 	return r0, r1
 }
 
 // GetPolicy provides a mock function with given fields: rctx, id
-func (_m *PolicyAdministrationPointInterface) GetPolicy(rctx request.CTX, id string) (*model.AccessControlPolicy, error) {
+func (_m *PolicyAdministrationPointInterface) GetPolicy(rctx request.CTX, id string) (*model.AccessControlPolicy, *model.AppError) {
 	ret := _m.Called(rctx, id)
 
 	if len(ret) == 0 {
@@ -132,8 +140,8 @@ func (_m *PolicyAdministrationPointInterface) GetPolicy(rctx request.CTX, id str
 	}
 
 	var r0 *model.AccessControlPolicy
-	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.AccessControlPolicy, error)); ok {
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.AccessControlPolicy, *model.AppError)); ok {
 		return rf(rctx, id)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.AccessControlPolicy); ok {
@@ -144,35 +152,39 @@ func (_m *PolicyAdministrationPointInterface) GetPolicy(rctx request.CTX, id str
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
 		r1 = rf(rctx, id)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
 	}
 
 	return r0, r1
 }
 
 // Init provides a mock function with given fields: rctx
-func (_m *PolicyAdministrationPointInterface) Init(rctx request.CTX) error {
+func (_m *PolicyAdministrationPointInterface) Init(rctx request.CTX) *model.AppError {
 	ret := _m.Called(rctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Init")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(request.CTX) error); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX) *model.AppError); ok {
 		r0 = rf(rctx)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
 	}
 
 	return r0
 }
 
 // SavePolicy provides a mock function with given fields: rctx, policy
-func (_m *PolicyAdministrationPointInterface) SavePolicy(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
+func (_m *PolicyAdministrationPointInterface) SavePolicy(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
 	ret := _m.Called(rctx, policy)
 
 	if len(ret) == 0 {
@@ -180,8 +192,8 @@ func (_m *PolicyAdministrationPointInterface) SavePolicy(rctx request.CTX, polic
 	}
 
 	var r0 *model.AccessControlPolicy
-	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.AccessControlPolicy) (*model.AccessControlPolicy, error)); ok {
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)); ok {
 		return rf(rctx, policy)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.AccessControlPolicy) *model.AccessControlPolicy); ok {
@@ -192,10 +204,12 @@ func (_m *PolicyAdministrationPointInterface) SavePolicy(rctx request.CTX, polic
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.AccessControlPolicy) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.AccessControlPolicy) *model.AppError); ok {
 		r1 = rf(rctx, policy)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
 	}
 
 	return r0, r1
