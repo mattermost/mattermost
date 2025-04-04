@@ -264,6 +264,36 @@ func (_m *Driver) RowsNext(rowsID string, dest []driver.Value) error {
 	return r0
 }
 
+// RowsNextBatch provides a mock function with given fields: rowsID, batchSize
+func (_m *Driver) RowsNextBatch(rowsID string, batchSize int) ([][]driver.Value, error) {
+	ret := _m.Called(rowsID, batchSize)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RowsNextBatch")
+	}
+
+	var r0 [][]driver.Value
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int) ([][]driver.Value, error)); ok {
+		return rf(rowsID, batchSize)
+	}
+	if rf, ok := ret.Get(0).(func(string, int) [][]driver.Value); ok {
+		r0 = rf(rowsID, batchSize)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([][]driver.Value)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int) error); ok {
+		r1 = rf(rowsID, batchSize)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RowsNextResultSet provides a mock function with given fields: rowsID
 func (_m *Driver) RowsNextResultSet(rowsID string) error {
 	ret := _m.Called(rowsID)
