@@ -20,6 +20,7 @@ import {
     createRandomPost,
     createRandomTeam,
     createRandomUser,
+    ensurePluginsLoaded,
     getAdminClient,
     initSetup,
 } from './server';
@@ -71,6 +72,7 @@ export class PlaywrightExtended {
     readonly getFileFromAsset;
 
     // ./server
+    readonly ensurePluginsLoaded;
     readonly getAdminClient;
     readonly initSetup;
 
@@ -119,6 +121,7 @@ export class PlaywrightExtended {
         this.getFileFromAsset = getFileFromAsset;
 
         // ./server
+        this.ensurePluginsLoaded = ensurePluginsLoaded;
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
 

@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
 import {Page} from '@playwright/test';
+
+import {expect, test} from '@mattermost/playwright-lib';
 
 test('MM-T5654_1 should be able to add attachments while editing a post', async ({pw}) => {
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';

@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Page} from '@playwright/test';
+
 import {expect, PlaywrightExtended, test} from '@mattermost/playwright-lib';
 import type {ChannelsPage, ScheduledDraftPage} from '@mattermost/playwright-lib';
-import type {Page} from '@playwright/test';
 
 test.skip('MM-T5643_1 should create a scheduled message from a channel', async ({pw}) => {
     test.setTimeout(pw.duration.four_min);

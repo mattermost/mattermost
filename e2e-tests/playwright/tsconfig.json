@@ -17,5 +17,5 @@
         "baseUrl": "."
     },
     "include": ["./**/*"],
-    "exclude": ["node_modules", "playwright-report"]
+    "exclude": ["node_modules", "playwright-report", "lib"]
 }
