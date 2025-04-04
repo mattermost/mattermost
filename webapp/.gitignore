@@ -12,3 +12,4 @@ platform/*/dist
 platform/*/lib
 
 config.override.mk
+build
