@@ -185,7 +185,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
             if (this.props.allowCustomThemes) {
                 inputs.push(
                     <div
-                        className='radio'
+                        className='radio radio-inline'
                         key='premadeThemeColorLabel'
                     >
                         <label>
@@ -195,14 +195,12 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                                 name='theme'
                                 checked={!displayCustom}
                                 onChange={this.updateType.bind(this, 'premade')}
-                                aria-controls='premadeThemesSection'
                             />
                             <FormattedMessage
-                                id='user.settings.display.theme.themeColors'
-                                defaultMessage='Theme Colors'
+                                id='user.settings.display.theme.premadeThemes'
+                                defaultMessage='Premade Themes'
                             />
                         </label>
-                        <br/>
                     </div>,
                 );
             }
@@ -210,7 +208,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
             if (this.props.allowCustomThemes) {
                 inputs.push(
                     <div
-                        className='radio'
+                        className='radio radio-inline'
                         key='customThemeColorLabel'
                     >
                         <label>
@@ -220,7 +218,6 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                                 name='theme'
                                 checked={displayCustom}
                                 onChange={this.updateType.bind(this, 'custom')}
-                                aria-controls='customThemesSection'
                             />
                             <FormattedMessage
                                 id='user.settings.display.theme.customTheme'
@@ -271,6 +268,12 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
             themeUI = (
                 <SettingItemMax
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.theme.title'
+                            defaultMessage='Theme'
+                        />
+                    }
                     inputs={
                         <fieldset>
                             <legend className='hidden-label'>
