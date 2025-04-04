@@ -4546,7 +4546,7 @@ func (s *OpenTracingLayerGroupStore) GetByRemoteID(remoteID string, groupSource 
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetByUser(userID string) ([]*model.Group, error) {
+func (s *OpenTracingLayerGroupStore) GetByUser(userID string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetByUser")
 	s.Root.Store.SetContext(newCtx)
@@ -4555,7 +4555,7 @@ func (s *OpenTracingLayerGroupStore) GetByUser(userID string) ([]*model.Group, e
 	}()
 
 	defer span.Finish()
-	result, err := s.GroupStore.GetByUser(userID)
+	result, err := s.GroupStore.GetByUser(userID, opts)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
