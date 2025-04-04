@@ -48,6 +48,12 @@ type AccessControlPolicyRule struct {
 	Expression string   `json:"expression"`
 }
 
+type CELExpressionError struct {
+	Line    int    `json:"line"`
+	Column  int    `json:"column"`
+	Message string `json:"message"`
+}
+
 func (p *AccessControlPolicy) IsValid() *AppError {
 	switch p.Version {
 	case AccessControlPolicyVersionV0_1:
