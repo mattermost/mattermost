@@ -18,9 +18,8 @@
         display: flex;
         overflow: auto;
         width: 100%;
-        height: 100%;
+        height: calc(100% - 56px);
         flex-flow: column nowrap;
-        padding: 24px;
     }
 
     display: grid;
@@ -72,6 +71,7 @@
 
             .DraftList.Drafts__main {
                 top: 0;
+                height: calc(100%);
             }
         }
     }
@@ -79,6 +79,14 @@
     span.MuiBadge-badge {
         position: relative;
         top: -2px;
+    }
+
+    .virtualizedVariableListRowWrapper {
+        padding: 0 24px 16px 24px;
+
+        &.firstRow {
+            padding-top: 24px;
+        }
     }
 
     @media screen and (max-width: 768px) {
@@ -92,4 +100,11 @@
             border-top: var(--border-default);
         }
     }
+
+    .Panel {
+        .post--editing__wrapper {
+            margin: 16px;
+        }
+    }
+
 }
