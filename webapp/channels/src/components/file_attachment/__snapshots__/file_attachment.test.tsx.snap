@@ -45,6 +45,7 @@ exports[`FileAttachment should match snapshot when file is deleted 1`] = `
       >
         <a
           aria-label="download"
+          class="btn btn-icon btn-sm"
           download="test.pdf"
           href="/api/v4/files/thumbnail_id?download=1"
           location="filename_overlay"
@@ -106,6 +107,7 @@ exports[`FileAttachment should match snapshot with thumbnail disabled 1`] = `
       >
         <a
           aria-label="download"
+          class="btn btn-icon btn-sm"
           download="test.pdf"
           href="/api/v4/files/thumbnail_id?download=1"
           location="filename_overlay"
@@ -168,6 +170,7 @@ exports[`FileAttachment should match snapshot, after change from file to image 1
       >
         <a
           aria-label="download"
+          class="btn btn-icon btn-sm"
           download="test.png"
           href="/api/v4/files/thumbnail_id?download=1"
           location="filename_overlay"
@@ -229,6 +232,7 @@ exports[`FileAttachment should match snapshot, regular file 1`] = `
       >
         <a
           aria-label="download"
+          class="btn btn-icon btn-sm"
           download="test.pdf"
           href="/api/v4/files/thumbnail_id?download=1"
           location="filename_overlay"
@@ -290,6 +294,7 @@ exports[`FileAttachment should match snapshot, regular image 1`] = `
       >
         <a
           aria-label="download"
+          class="btn btn-icon btn-sm"
           download="test.png"
           href="/api/v4/files/thumbnail_id?download=1"
           location="filename_overlay"
@@ -351,6 +356,7 @@ exports[`FileAttachment should match snapshot, small image 1`] = `
       >
         <a
           aria-label="download"
+          class="btn btn-icon btn-sm"
           download="test.png"
           href="/api/v4/files/thumbnail_id?download=1"
           location="filename_overlay"
@@ -412,6 +418,7 @@ exports[`FileAttachment should match snapshot, svg image 1`] = `
       >
         <a
           aria-label="download"
+          class="btn btn-icon btn-sm"
           download="test.svg"
           href="/api/v4/files/thumbnail_id?download=1"
           location="filename_overlay"
@@ -473,6 +480,7 @@ exports[`FileAttachment should match snapshot, when file is not loaded 1`] = `
       >
         <a
           aria-label="download"
+          class="btn btn-icon btn-sm"
           download="test.pdf"
           href="/api/v4/files/noLoad?download=1"
           location="filename_overlay"
@@ -498,7 +506,7 @@ exports[`FileAttachment should match snapshot, with compact display 1`] = `
       class="post-image__details"
     >
       <a
-        class="post-image__name"
+        class="post-image__name btn btn-icon btn-sm"
         href="#"
         rel="noopener noreferrer"
       >
@@ -633,6 +641,7 @@ exports[`FileAttachment should not render menu items when disable actions is set
       >
         <a
           aria-label="download"
+          class="btn btn-icon btn-sm"
           download="test.pdf"
           href="/api/v4/files/thumbnail_id?download=1"
           location="filename_overlay"
