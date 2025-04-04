@@ -1377,6 +1377,7 @@
   "password_send.title": "Salasanan nollaus",
   "pending_post_actions.retry": "Yritä uudestaan",
   "permalink.error.title": "Viestiä ei löydy",
+  "persist_notification.confirm": "Lähetä",
   "post.ariaLabel.reaction": ", 1 reaktio",
   "post.ariaLabel.reactionMultiple": ", {reactionCount} reaktiota",
   "post_body.check_for_out_of_channel_mentions.link.private": "lisää heidät tähän yksityiskanavaan",

@@ -10498,5 +10498,17 @@
   {
     "id": "license_error.feature_unavailable",
     "translation": "Funkcja nie jest dostępna dla bieżącej licencji"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Nie można przekonwertować pola właściwości na niestandardowe pole atrybutu profilu"
+  },
+  {
+    "id": "api.custom_profile_attributes.field_conversion_error",
+    "translation": "Nie można przekonwertować pola właściwości na niestandardowe pole atrybutu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Nieprawidłowe atrybuty wartości właściwości: {{.AttributeName}} ({{.Reason}})."
   }
 ]
