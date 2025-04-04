@@ -187,6 +187,15 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 		// If there's an error returned from the GetChannel call the code should continue to cascade and since there
 		// are no session level permissions in this test case, the permission should be denied.
 		assert.False(t, th.App.SessionHasPermissionToChannel(th.Context, session, th.BasicUser.Id, model.PermissionAddReaction))
+
+		// MM-63624, check with TeamSettings.ExperimentalViewArchivedChannels off
+		th.App.Srv().SetStore(mainHelper.GetStore())
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
+		})
+
+		th.App.Srv().SetStore(&mockStore)
+		assert.False(t, th.App.SessionHasPermissionToChannel(th.Context, session, th.BasicUser.Id, model.PermissionAddReaction))
 	})
 }
 
@@ -326,6 +335,14 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 		session := model.Session{
 			UserId: th.BasicUser.Id,
 		}
+		assert.False(t, th.App.SessionHasPermissionToChannels(th.Context, session, allChannels, model.PermissionReadChannel))
+
+		// MM-63624, check with TeamSettings.ExperimentalViewArchivedChannels off
+		th.App.Srv().SetStore(mainHelper.GetStore())
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
+		})
+		th.App.Srv().SetStore(&mockStore)
 		assert.False(t, th.App.SessionHasPermissionToChannels(th.Context, session, allChannels, model.PermissionReadChannel))
 	})
 }
