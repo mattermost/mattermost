@@ -316,6 +316,19 @@ func (d *DriverImpl) RowsNext(rowsID string, dest []driver.Value) error {
 	return rows.Next(dest)
 }
 
+func (d *DriverImpl) RowsNextBatch(rowsID string, batchSize int) ([][]driver.Value, error) {
+	// This is a stub implementation since the server won't be calling this method
+	// It's only needed to satisfy the interface
+	batch := make([][]driver.Value, 0, batchSize)
+	
+	d.rowsMut.RLock()
+	rows := d.rowsMap[rowsID]
+	d.rowsMut.RUnlock()
+	
+	// Just return an empty batch - this won't be called by the server
+	return batch, nil
+}
+
 func (d *DriverImpl) RowsHasNextResultSet(rowsID string) bool {
 	d.rowsMut.RLock()
 	defer d.rowsMut.RUnlock()
