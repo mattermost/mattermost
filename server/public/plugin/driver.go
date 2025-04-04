@@ -46,6 +46,7 @@ type Driver interface {
 	RowsColumns(rowsID string) []string
 	RowsClose(rowsID string) error
 	RowsNext(rowsID string, dest []driver.Value) error
+	RowsNextBatch(rowsID string, batchSize int) ([][]driver.Value, error)
 	RowsHasNextResultSet(rowsID string) bool
 	RowsNextResultSet(rowsID string) error
 	RowsColumnTypeDatabaseTypeName(rowsID string, index int) string

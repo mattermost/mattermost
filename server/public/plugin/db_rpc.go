@@ -14,6 +14,8 @@ import (
 // new methods to be added very frequently.
 type dbRPCClient struct {
 	client *rpc.Client
+	// Buffer for batched rows, keyed by rowsID
+	rowsBuffer map[string][][]driver.Value
 }
 
 // dbRPCServer is the server-side component which is responsible for calling
@@ -23,6 +25,14 @@ type dbRPCServer struct {
 }
 
 var _ Driver = &dbRPCClient{}
+
+// newDBRPCClient creates a new dbRPCClient with initialized buffers
+func newDBRPCClient(client *rpc.Client) *dbRPCClient {
+	return &dbRPCClient{
+		client:     client,
+		rowsBuffer: make(map[string][][]driver.Value),
+	}
+}
 
 type Z_DbStrErrReturn struct {
 	A string
@@ -331,6 +341,11 @@ func (db *dbRPCServer) RowsColumns(rowsID string, ret *Z_DbStrSliceReturn) error
 }
 
 func (db *dbRPCClient) RowsClose(resID string) error {
+	// Clean up any buffered rows for this result set
+	if db.rowsBuffer != nil {
+		delete(db.rowsBuffer, resID)
+	}
+	
 	ret := &Z_DbErrReturn{}
 	err := db.client.Call("Plugin.RowsClose", resID, ret)
 	if err != nil {
@@ -356,19 +371,83 @@ type Z_DbRowScanArg struct {
 	B []driver.Value
 }
 
+type Z_DbRowScanBatchArg struct {
+	A string
+	B int
+}
+
+type Z_DbRowScanBatchReturn struct {
+	A error
+	B [][]driver.Value
+}
+
 func (db *dbRPCClient) RowsNext(rowsID string, dest []driver.Value) error {
-	args := &Z_DbRowScanArg{
-		A: rowsID,
-		B: dest,
+	// Check if we have buffered rows for this rowsID
+	if db.rowsBuffer == nil {
+		db.rowsBuffer = make(map[string][][]driver.Value)
 	}
-	ret := &Z_DbRowScanReturn{}
-	err := db.client.Call("Plugin.RowsNext", args, ret)
+	
+	buffer, ok := db.rowsBuffer[rowsID]
+	if !ok || len(buffer) == 0 {
+		// No buffered rows, fetch a batch starting with size 1 and doubling each time
+		batchSize := 1
+		if ok {
+			// If we've fetched before but exhausted the buffer, double the batch size
+			batchSize = len(buffer) * 2
+			if batchSize <= 0 {
+				batchSize = 64 // In case of overflow or initial empty buffer
+			}
+		}
+		
+		// Fetch a new batch
+		batch, err := db.RowsNextBatch(rowsID, batchSize)
+		if err != nil {
+			return err
+		}
+		
+		// Store the batch in the buffer
+		db.rowsBuffer[rowsID] = batch
+		buffer = batch
+		
+		// If batch is empty, return io.EOF (or whatever the underlying driver returns for end of rows)
+		if len(buffer) == 0 {
+			args := &Z_DbRowScanArg{
+				A: rowsID,
+				B: dest,
+			}
+			ret := &Z_DbRowScanReturn{}
+			err := db.client.Call("Plugin.RowsNext", args, ret)
+			if err != nil {
+				log.Printf("error during Plugin.RowsNext: %v", err)
+			}
+			ret.A = decodableError(ret.A)
+			return ret.A
+		}
+	}
+	
+	// Get the first row from the buffer
+	row := buffer[0]
+	// Remove the first row from the buffer
+	db.rowsBuffer[rowsID] = buffer[1:]
+	
+	// Copy the values to the destination
+	copy(dest, row)
+	
+	return nil
+}
+
+func (db *dbRPCClient) RowsNextBatch(rowsID string, batchSize int) ([][]driver.Value, error) {
+	args := &Z_DbRowScanBatchArg{
+		A: rowsID,
+		B: batchSize,
+	}
+	ret := &Z_DbRowScanBatchReturn{}
+	err := db.client.Call("Plugin.RowsNextBatch", args, ret)
 	if err != nil {
-		log.Printf("error during Plugin.RowsNext: %v", err)
+		log.Printf("error during Plugin.RowsNextBatch: %v", err)
 	}
 	ret.A = decodableError(ret.A)
-	copy(dest, ret.B)
-	return ret.A
+	return ret.B, ret.A
 }
 
 func (db *dbRPCServer) RowsNext(args *Z_DbRowScanArg, ret *Z_DbRowScanReturn) error {
@@ -378,6 +457,38 @@ func (db *dbRPCServer) RowsNext(args *Z_DbRowScanArg, ret *Z_DbRowScanReturn) er
 	// pointer type args. So the only way to pass values is via args, and only way
 	// to return values is via the return struct.
 	ret.B = args.B
+	return nil
+}
+
+func (db *dbRPCServer) RowsNextBatch(args *Z_DbRowScanBatchArg, ret *Z_DbRowScanBatchReturn) error {
+	// Initialize the batch result
+	batch := make([][]driver.Value, 0, args.B)
+	
+	// Fetch up to batchSize rows
+	for i := 0; i < args.B; i++ {
+		// Create a destination slice for the current row
+		dest := make([]driver.Value, len(db.dbImpl.RowsColumns(args.A)))
+		
+		// Fetch the next row
+		err := db.dbImpl.RowsNext(args.A, dest)
+		if err != nil {
+			// If we hit an error (like EOF), stop fetching and return what we have so far
+			ret.A = encodableError(err)
+			// Only return the error if we didn't get any rows
+			if i == 0 {
+				ret.B = batch
+				return nil
+			}
+			// Otherwise, return the rows we got so far without an error
+			ret.A = nil
+			break
+		}
+		
+		// Add the row to the batch
+		batch = append(batch, dest)
+	}
+	
+	ret.B = batch
 	return nil
 }
 
