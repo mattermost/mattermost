@@ -52,6 +52,15 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 		return nil, err
 	}
 
+	restrictDM, err := a.CheckIfChannelIsRestrictedDM(c, channel)
+	if err != nil {
+		return nil, err
+	}
+
+	if restrictDM {
+		return nil, model.NewAppError("createPost", "api.post.create_post.can_not_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
+	}
+
 	rp, err := a.CreatePost(c, post, channel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: setOnline})
 	if err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
@@ -726,6 +735,16 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, updateP
 		return nil, model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
 	}
 
+	restrictDM, err := a.CheckIfChannelIsRestrictedDM(c, channel)
+	if err != nil {
+		return nil, err
+	}
+
+	if restrictDM {
+		err := model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	newPost := oldPost.Clone()
 
 	if newPost.Message != receivedUpdatedPost.Message {
@@ -961,6 +980,15 @@ func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch, pa
 	if channel.DeleteAt != 0 {
 		err = model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
 		return nil, err
+	}
+
+	restrictDM, err := a.CheckIfChannelIsRestrictedDM(c, channel)
+	if err != nil {
+		return nil, err
+	}
+
+	if restrictDM {
+		return nil, model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 	}
 
 	if !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseChannelMentions) {
@@ -1443,6 +1471,16 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 
 	if channel.DeleteAt != 0 {
 		return nil, model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
+	}
+
+	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if restrictDM {
+		err := model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_from_restricted_dm.error", nil, "", http.StatusBadRequest)
+		return nil, err
 	}
 
 	err = a.Srv().Store().Post().Delete(rctx, postID, model.GetMillis(), deleteByID)
