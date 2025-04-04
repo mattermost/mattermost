@@ -18,7 +18,7 @@ import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 
 import {appsPluginID} from 'utils/apps';
-import {DeveloperLinks} from 'utils/constants';
+import {DeveloperLinks, DocLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import BooleanSetting from '../boolean_setting';
@@ -1196,7 +1196,7 @@ class PluginManagement extends OLDAdminSettings<Props, State> {
                                             values={{
                                                 link: (msg: React.ReactNode) => (
                                                     <ExternalLink
-                                                        href='https://mattermost.com/pl/default-mattermost-marketplace.html'
+                                                        href={DocLinks.DEFAULT_MATTERMOST_MARKETPLACE}
                                                         location='plugin_management'
                                                     >
                                                         {msg}

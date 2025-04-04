@@ -15,7 +15,7 @@ import {getExternalBotAccounts} from 'mattermost-redux/selectors/entities/bots';
 import ConfirmModalRedux from 'components/confirm_modal_redux';
 import ExternalLink from 'components/external_link';
 
-import Constants from 'utils/constants';
+import Constants, {DocLinks} from 'utils/constants';
 
 type Props = {
     user: UserProfile;
@@ -117,7 +117,7 @@ export default function DeactivateMemberModal({user, onExited, onSuccess, onErro
                                         ),
                                         linkDocumentation: (msg: React.ReactNode) => (
                                             <ExternalLink
-                                                href='https://mattermost.com/pl/default-bot-accounts'
+                                                href={DocLinks.DEFAULT_BOT_ACCOUNTS}
                                                 location='system_users_dropdown'
                                             >
                                                 {msg}

@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
+import {DocLinks} from 'utils/constants';
 import Toggle from 'components/toggle';
 
 type Props = {
@@ -29,7 +30,7 @@ const EnableSectionContent: React.FC<Props> = ({filterToggle, setFilterToggle}) 
                             values={{
                                 learnmore: (msg) => (
                                     <ExternalLink
-                                        href='https://mattermost.com/pl/cloud-ip-filtering'
+                                        href={DocLinks.CLOUD_IP_FILTERING}
                                         location={'ip_filtering_enable_section'}
                                     >
                                         {msg}

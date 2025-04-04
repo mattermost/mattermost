@@ -9,6 +9,7 @@ import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {AllowedIPRange} from '@mattermost/types/config';
 
 import ExternalLink from 'components/external_link';
+import {DocLinks} from 'utils/constants';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import Input from 'components/widgets/inputs/input/input';
 
@@ -111,7 +112,7 @@ export default function IPFilteringAddOrEditModal({onExited, onSave, existingRan
                                 values={{
                                     link: (msg) => (
                                         <ExternalLink
-                                            href='https://mattermost.com/pl/cloud-ip-filtering'
+                                            href={DocLinks.CLOUD_IP_FILTERING}
                                             location={'ip_filtering_add_edit_rule_modal'}
                                         >
                                             {msg}

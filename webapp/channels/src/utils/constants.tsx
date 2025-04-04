@@ -1181,6 +1181,13 @@ export const DocLinks = {
     TRUSTED_CONNECTION: 'https://mattermost.com/pl/default-allow-untrusted-internal-connections',
     UPGRADE_SERVER: 'https://mattermost.com/pl/upgrade-mattermost',
     LDAP_ID_MIGRATE: 'https://docs.mattermost.com/manage/command-line-tools.html#mattermost-ldap-idmigrate',
+    MOBILE_APP_IOS: 'https://mattermost.com/pl/ios-app/',
+    MOBILE_APP_ANDROID: 'https://mattermost.com/pl/android-app/',
+    DEFAULT_BOT_ACCOUNTS: 'https://mattermost.com/pl/default-bot-accounts',
+    DEFAULT_LDAP_GROUP_CONSTRAINED: 'https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html',
+    CLOUD_IP_FILTERING: 'https://mattermost.com/pl/cloud-ip-filtering',
+    DEFAULT_MATTERMOST_MARKETPLACE: 'https://mattermost.com/pl/default-mattermost-marketplace.html',
+    USER_STATS_LEARN_MORE: 'https://mattermost.com/pl/user-stats-learn-more',
 };
 
 export const DeveloperLinks = {

@@ -6,6 +6,7 @@ import {FormattedMessage, defineMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
+import {DocLinks} from 'utils/constants';
 
 import LineSwitch from '../../line_switch';
 
@@ -45,7 +46,7 @@ const SyncGroupsToggle: React.SFC<Props> = (props: Props): JSX.Element => {
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
-                                href='https://www.mattermost.com/pl/default-ldap-group-constrained-team-channel.html'
+                                href={DocLinks.DEFAULT_LDAP_GROUP_CONSTRAINED}
                                 location='channel_modes'
                             >
                                 {msg}

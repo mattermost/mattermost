@@ -194,7 +194,7 @@ class PushSettings extends OLDAdminSettings<Props, State> {
                     values={{
                         linkIOS: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/pl/ios-app/'
+                                href={DocLinks.MOBILE_APP_IOS}
                                 location='push_settings'
                             >
                                 {msg}
@@ -202,7 +202,7 @@ class PushSettings extends OLDAdminSettings<Props, State> {
                         ),
                         linkAndroid: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/pl/android-app/'
+                                href={DocLinks.MOBILE_APP_ANDROID}
                                 location='push_settings'
                             >
                                 {msg}
