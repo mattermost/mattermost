@@ -93,7 +93,7 @@ type Actions struct {
 	DoUploadFile           func(time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)
 	GenerateThumbnailImage func(request.CTX, image.Image, string, string)
 	GeneratePreviewImage   func(request.CTX, image.Image, string, string)
-	InvalidateAllCaches    func()
+	InvalidateAllCaches    func() *model.AppError
 	MaxPostSize            func() int
 	PrepareImage           func(fileData []byte) (image.Image, string, func(), error)
 }
