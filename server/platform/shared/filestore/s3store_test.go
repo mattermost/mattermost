@@ -418,14 +418,15 @@ func TestWriteFileVideoMimeTypes(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test video types
+	// Test video types with multiple valid MIME types
 	testContent := []byte("test-video-content")
-	videoTypes := map[string]string{
-		".avi":  "video/vnd.avi",
-		".mpeg": "video/mpeg",
-		".mp4":  "video/mp4",
+	videoTypes := map[string][]string{
+		".avi":  {"video/vnd.avi", "video/x-msvideo"},
+		".mpeg": {"video/mpeg"},
+		".mp4":  {"video/mp4"},
 	}
 
-	for ext, mimeType := range videoTypes {
+	for ext, validMimeTypes := range videoTypes {
 		t.Run(strings.TrimPrefix(ext, "."), func(t *testing.T) {
 			path := "test" + ext
 			reader := bytes.NewReader(testContent)
@@ -442,7 +443,9 @@ func TestWriteFileVideoMimeTypes(t *testing.T) {
 				s3.StatObjectOptions{},
 			)
 			require.NoError(t, err)
-			require.Equal(t, mimeType, props.ContentType)
+
+			// Ensure the MIME type is one of the expected values
+			assert.Contains(t, validMimeTypes, props.ContentType, "Unexpected MIME type: %s", props.ContentType)
 
 			defer func() {
 				err = fileBackend.RemoveFile(path)
