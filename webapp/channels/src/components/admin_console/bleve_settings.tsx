@@ -11,7 +11,7 @@ import {blevePurgeIndexes} from 'actions/admin_actions.jsx';
 
 import ExternalLink from 'components/external_link';
 
-import {JobStatuses, JobTypes} from 'utils/constants';
+import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
 
 import BooleanSetting from './boolean_setting';
 import JobsTable from './jobs';
@@ -142,7 +142,7 @@ export default class BleveSettings extends OLDAdminSettings<Props, State> {
                             values={{
                                 link: (chunks) => (
                                     <ExternalLink
-                                        href='https://docs.mattermost.com/deploy/bleve-search.html'
+                                        href={DocLinks.BLEVE_SEARCH}
                                         location='bleve_settings'
                                     >
                                         {chunks}

@@ -14,7 +14,7 @@ import AboutBuildModal from 'components/about_build_modal';
 import CommercialSupportModal from 'components/commercial_support_modal';
 import Menu from 'components/widgets/menu/menu';
 
-import {ModalIdentifiers} from 'utils/constants';
+import {DocLinks, ModalIdentifiers} from 'utils/constants';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
 import MenuItemBlockableLink from './menu_item_blockable_link';
@@ -95,9 +95,9 @@ class AdminNavbarDropdown extends React.PureComponent<Props> {
             );
         }
 
-        let adminGuideLink = 'https://docs.mattermost.com/guides/administration.html';
+        let adminGuideLink = DocLinks.ADMIN_GUIDE;
         if (isCloud) {
-            adminGuideLink = 'https://docs.mattermost.com/guides/administration.html#cloud-workspace-management';
+            adminGuideLink = DocLinks.ADMIN_GUIDE_CLOUD;
         }
 
         return (

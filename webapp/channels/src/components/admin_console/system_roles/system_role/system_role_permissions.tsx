@@ -11,7 +11,7 @@ import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import ExternalLink from 'components/external_link';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
-import Constants from 'utils/constants';
+import Constants, {DocLinks} from 'utils/constants';
 
 import SystemRolePermission from './system_role_permission';
 import type {PermissionsToUpdate, PermissionToUpdate, SystemSection} from './types';
@@ -215,7 +215,7 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
                             values={{
                                 a: (chunks: string) => (
                                     <ExternalLink
-                                        href='https://docs.mattermost.com/welcome/manage-custom-groups.html'
+                                        href={DocLinks.MANAGE_CUSTOM_GROUPS}
                                         location='adminConsoleSystemRoles'
                                     >
                                         {chunks}
