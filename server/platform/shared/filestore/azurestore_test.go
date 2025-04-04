@@ -28,7 +28,7 @@ func TestAzureFileBackendTestSuite(t *testing.T) {
 		t.Skip("TEST_AZURE_STORAGE_ACCOUNT not set")
 	}
 
-	accountKey := os.Getenv("TEST_AZURE_STORAGE_KEY") 
+	accountKey := os.Getenv("TEST_AZURE_STORAGE_KEY")
 	if accountKey == "" {
 		t.Skip("TEST_AZURE_STORAGE_KEY not set")
 	}
@@ -70,7 +70,9 @@ func (s *AzureFileBackendTestSuite) TestReadWriteFile() {
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
 	s.Nil(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
-	defer s.backend.RemoveFile(path)
+	defer func() {
+		_ = s.backend.RemoveFile(path)
+	}()
 
 	read, err := s.backend.ReadFile(path)
 	s.Nil(err)
@@ -86,7 +88,9 @@ func (s *AzureFileBackendTestSuite) TestReadWriteFileImage() {
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
 	s.Nil(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
-	defer s.backend.RemoveFile(path)
+	defer func() {
+		_ = s.backend.RemoveFile(path)
+	}()
 
 	read, err := s.backend.ReadFile(path)
 	s.Nil(err)
@@ -101,7 +105,9 @@ func (s *AzureFileBackendTestSuite) TestFileExists() {
 
 	_, err := s.backend.WriteFile(bytes.NewReader(b), path)
 	s.Nil(err)
-	defer s.backend.RemoveFile(path)
+	defer func() {
+		_ = s.backend.RemoveFile(path)
+	}()
 
 	res, err := s.backend.FileExists(path)
 	s.Nil(err)
@@ -120,11 +126,15 @@ func (s *AzureFileBackendTestSuite) TestCopyFile() {
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
 	s.Nil(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
-	defer s.backend.RemoveFile(path1)
+	defer func() {
+		_ = s.backend.RemoveFile(path1)
+	}()
 
 	err = s.backend.CopyFile(path1, path2)
 	s.Nil(err)
-	defer s.backend.RemoveFile(path2)
+	defer func() {
+		_ = s.backend.RemoveFile(path2)
+	}()
 
 	data1, err := s.backend.ReadFile(path1)
 	s.Nil(err)
@@ -144,10 +154,14 @@ func (s *AzureFileBackendTestSuite) TestMoveFile() {
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
 	s.Nil(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
-	defer s.backend.RemoveFile(path1)
+	defer func() {
+		_ = s.backend.RemoveFile(path1)
+	}()
 
 	s.Nil(s.backend.MoveFile(path1, path2))
-	defer s.backend.RemoveFile(path2)
+	defer func() {
+		_ = s.backend.RemoveFile(path2)
+	}()
 
 	_, err = s.backend.ReadFile(path1)
 	s.Error(err)
@@ -226,8 +240,8 @@ func (s *AzureFileBackendTestSuite) TestListDirectory() {
 	s.True(found1)
 	s.True(found2)
 
-	s.backend.RemoveFile(path1)
-	s.backend.RemoveFile(path2)
+	_ = s.backend.RemoveFile(path1)
+	_ = s.backend.RemoveFile(path2)
 }
 
 func (s *AzureFileBackendTestSuite) TestListDirectoryRecursively() {
@@ -271,6 +285,6 @@ func (s *AzureFileBackendTestSuite) TestListDirectoryRecursively() {
 	s.True(found1)
 	s.True(found2)
 
-	s.backend.RemoveFile(path1)
-	s.backend.RemoveFile(path2)
+	_ = s.backend.RemoveFile(path1)
+	_ = s.backend.RemoveFile(path2)
 }

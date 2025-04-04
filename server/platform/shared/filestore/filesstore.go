@@ -82,7 +82,7 @@ func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableCo
 			Directory:  *fileSettings.Directory,
 		}
 	}
-	
+
 	if *fileSettings.DriverName == driverAzure {
 		return FileBackendSettings{
 			DriverName:                      *fileSettings.DriverName,
@@ -96,7 +96,7 @@ func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableCo
 			SkipVerify:                      skipVerify,
 		}
 	}
-	
+
 	return FileBackendSettings{
 		DriverName:                         *fileSettings.DriverName,
 		AmazonS3AccessKeyId:                *fileSettings.AmazonS3AccessKeyId,
@@ -123,7 +123,7 @@ func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, en
 			Directory:  *fileSettings.ExportDirectory,
 		}
 	}
-	
+
 	if *fileSettings.ExportDriverName == driverAzure {
 		return FileBackendSettings{
 			DriverName:                      *fileSettings.ExportDriverName,
@@ -137,7 +137,7 @@ func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, en
 			SkipVerify:                      skipVerify,
 		}
 	}
-	
+
 	return FileBackendSettings{
 		DriverName:                         *fileSettings.ExportDriverName,
 		AmazonS3AccessKeyId:                *fileSettings.ExportAmazonS3AccessKeyId,

@@ -6,12 +6,12 @@ package filestore
 import (
 	"archive/zip"
 	"bytes"
-	"context" 
+	"context"
 	"fmt"
 	"io"
 	"net/url"
-	"strconv"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -59,7 +59,7 @@ func (b *AzureFileBackend) Reader(path string) (ReadCloseSeeker, error) {
 		return nil, errors.Wrap(err, "failed to read response body")
 	}
 	body.Close()
-	
+
 	return &seekableReader{
 		reader: bytes.NewReader(data),
 		data:   data,
@@ -327,7 +327,7 @@ func (b *AzureFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 	}
 
 	path = filepath.Join(b.pathPrefix, path)
-	
+
 	pr, pw := io.Pipe()
 
 	go func() {
@@ -342,14 +342,8 @@ func (b *AzureFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 		// Try to check if this is a single file
 		blobURL := b.containerURL.NewBlockBlobURL(path)
 		props, err := blobURL.GetProperties(ctx, azblob.BlobAccessConditions{}, azblob.ClientProvidedKeyOptions{})
-		
-		if err == nil {
-			// Found a file, add it directly 
-			stripPath := filepath.Dir(path)
-			if stripPath != "" {
-				stripPath += "/"
-			}
 
+		if err == nil {
 			// Create zip header for the file
 			header := &zip.FileHeader{
 				Name:     filepath.Base(path),
@@ -358,21 +352,21 @@ func (b *AzureFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 			}
 			header.SetMode(0644) // rw-r--r-- permissions
 
-			writer, err := zipWriter.CreateHeader(header)
-			if err != nil {
-				pw.CloseWithError(errors.Wrapf(err, "unable to create zip entry for %s", path))
+			writer, err2 := zipWriter.CreateHeader(header)
+			if err2 != nil {
+				pw.CloseWithError(errors.Wrapf(err2, "unable to create zip entry for %s", path))
 				return
 			}
 
-			data, err := b.ReadFile(strings.TrimPrefix(path, b.pathPrefix))
-			if err != nil {
-				pw.CloseWithError(errors.Wrapf(err, "unable to read file %s", path))
+			data, err2 := b.ReadFile(strings.TrimPrefix(path, b.pathPrefix))
+			if err2 != nil {
+				pw.CloseWithError(errors.Wrapf(err2, "unable to read file %s", path))
 				return
 			}
 
-			_, err = writer.Write(data)
-			if err != nil {
-				pw.CloseWithError(errors.Wrapf(err, "unable to write data for %s", path))
+			_, err2 = writer.Write(data)
+			if err2 != nil {
+				pw.CloseWithError(errors.Wrapf(err2, "unable to write data for %s", path))
 				return
 			}
 			return
@@ -403,8 +397,8 @@ func (b *AzureFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 
 			// Add the file to the zip
 			header := &zip.FileHeader{
-				Name:     relPath,
-				Method:   deflateMethod,
+				Name:   relPath,
+				Method: deflateMethod,
 			}
 			header.SetMode(0644) // rw-r--r-- permissions
 
