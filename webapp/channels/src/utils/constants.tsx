@@ -1132,8 +1132,11 @@ export const HostedCustomerLinks = {
 
 export const DocLinks = {
     ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
+    ADMIN_GUIDE: 'https://docs.mattermost.com/guides/administration.html',
+    ADMIN_GUIDE_CLOUD: 'https://docs.mattermost.com/guides/administration.html#cloud-workspace-management',
     ADVANCED_LOGGING: 'https://mattermost.com/pl/advanced-logging',
     ANNOUNCEMENT_BANNER: 'https://docs.mattermost.com/administration/announcement-banner.html',
+    BLEVE_SEARCH: 'https://docs.mattermost.com/deploy/bleve-search.html',
     CONFIGURE_DOCUMENT_CONTENT_SEARCH: 'https://mattermost.com/pl/configure-document-content-search',
     CONFIGURE_AD_LDAP_QUERY_TIMEOUT: 'https://mattermost.com/pl/configure-ad-ldap-query-timeout',
     CONFIGURE_OVERRIDE_SAML_BIND_DATA_WITH_LDAP: 'https://mattermost.com/pl/configure-override-saml-bind-data-with-ldap',
@@ -1155,6 +1158,7 @@ export const DocLinks = {
     IN_PRODUCT_NOTICES: 'https://mattermost.com/pl/in-product-notices',
     LDAP_SETUP: 'https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=product-feature-discovery&utm_content=adldap',
     LDAP_GROUP_SYNC: 'https://docs.mattermost.com/deployment/ldap-group-sync.html',
+    MANAGE_CUSTOM_GROUPS: 'https://docs.mattermost.com/welcome/manage-custom-groups.html',
     MOBILE_SECURITY: 'https://docs.mattermost.com/configure/environment-configuration-settings.html#mobile-security',
     MULTI_FACTOR_AUTH: 'https://mattermost.com/pl/multi-factor-authentication',
     ONBOARD_ADVANCED_PERMISSIONS: 'https://mattermost.com/pl/advanced-permissions',
