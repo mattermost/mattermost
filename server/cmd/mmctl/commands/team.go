@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands/utils"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/spf13/cobra"
@@ -302,6 +303,14 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	config, err := utils.GetConfig(cmd.Context(), c)
+	if err != nil {
+		return err
+	}
+	deleteEnabled := config.ServiceSettings.EnableAPITeamDeletion
+	if deleteEnabled == nil || !*deleteEnabled {
+		return errors.New("ServiceSettings.EnableAPITeamDeletion must be set to true to use this command. See " + ConfigDocumentationUrl + " for more information")
+	}
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
 		if err := getConfirmation("Are you sure you want to delete the teams specified?  All data will be permanently deleted?", true); err != nil {
