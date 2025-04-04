@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -208,4 +209,75 @@ func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
 		PropertyField: *pf,
 		Attrs:         attrs,
 	}, nil
+}
+
+// SanitizeAndValidatePropertyValue validates and sanitizes the given property value based on the field type
+func SanitizeAndValidatePropertyValue(cpaField *CPAField, rawValue json.RawMessage) (json.RawMessage, error) {
+	fieldType := cpaField.Type
+
+	// build a list of existing options so we can check later if the values exist
+	optionsMap := map[string]struct{}{}
+	for _, v := range cpaField.Attrs.Options {
+		optionsMap[v.ID] = struct{}{}
+	}
+
+	switch fieldType {
+	case PropertyFieldTypeText, PropertyFieldTypeDate, PropertyFieldTypeSelect, PropertyFieldTypeUser:
+		var value string
+		if err := json.Unmarshal(rawValue, &value); err != nil {
+			return nil, err
+		}
+		value = strings.TrimSpace(value)
+
+		if fieldType == PropertyFieldTypeText {
+			if cpaField.Attrs.ValueType == CustomProfileAttributesValueTypeEmail && !IsValidEmail(value) {
+				return nil, fmt.Errorf("invalid email")
+			}
+
+			if cpaField.Attrs.ValueType == CustomProfileAttributesValueTypeURL {
+				_, err := url.Parse(value)
+				if err != nil {
+					return nil, fmt.Errorf("invalid url: %w", err)
+				}
+			}
+		}
+
+		if fieldType == PropertyFieldTypeSelect && value != "" {
+			if _, ok := optionsMap[value]; !ok {
+				return nil, fmt.Errorf("option \"%s\" does not exist", value)
+			}
+		}
+
+		if fieldType == PropertyFieldTypeUser && value != "" && !IsValidId(value) {
+			return nil, fmt.Errorf("invalid user id")
+		}
+		return json.Marshal(value)
+
+	case PropertyFieldTypeMultiselect, PropertyFieldTypeMultiuser:
+		var values []string
+		if err := json.Unmarshal(rawValue, &values); err != nil {
+			return nil, err
+		}
+		filteredValues := make([]string, 0, len(values))
+		for _, v := range values {
+			trimmed := strings.TrimSpace(v)
+			if trimmed == "" {
+				continue
+			}
+			if fieldType == PropertyFieldTypeMultiselect {
+				if _, ok := optionsMap[v]; !ok {
+					return nil, fmt.Errorf("option \"%s\" does not exist", v)
+				}
+			}
+
+			if fieldType == PropertyFieldTypeMultiuser && !IsValidId(trimmed) {
+				return nil, fmt.Errorf("invalid user id: %s", trimmed)
+			}
+			filteredValues = append(filteredValues, trimmed)
+		}
+		return json.Marshal(filteredValues)
+
+	default:
+		return nil, fmt.Errorf("unknown field type: %s", fieldType)
+	}
 }
