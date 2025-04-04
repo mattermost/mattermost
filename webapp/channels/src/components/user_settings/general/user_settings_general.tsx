@@ -1433,81 +1433,97 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             if (active) {
                 const inputs = [];
+                let extraInfo: JSX.Element|string;
+                let submit = null;
 
-                let attributeLabel: JSX.Element | string = (
-                    attribute.name
-                );
-                if (this.props.isMobileView) {
-                    attributeLabel = '';
-                }
-
-                if (attribute.type === 'select' || attribute.type === 'multiselect') {
-                    const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
-                    const opts = attribOptions.map((o) => {
-                        return {label: o.name, value: o.id} as SelectOption;
-                    });
-                    inputs.push(
-                        <ReactSelect
-                            isMulti={attribute.type === 'multiselect' ? true : undefined}
-                            key={sectionName}
-                            id={'customProfileAttribute_' + attribute.id}
-                            inputId={'customProfileAttribute_' + attribute.id + '_input'}
-                            className='react-select inlineSelect'
-                            classNamePrefix='react-select'
-                            options={opts}
-                            isClearable={true}
-                            isSearchable={false}
-                            isDisabled={false}
-                            placeholder={formatMessage({
-                                id: 'user.settings.general.select',
-                                defaultMessage: 'Select',
-                            })}
-                            components={{IndicatorSeparator: null}}
-                            styles={selectStyles}
-                            value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as SelectOption}
-                            onChange={(v, a) => this.updateSelectAttribute(v, a, attribute.id)}
-                        />,
+                if ((this.props.user.auth_service === Constants.LDAP_SERVICE && attribute.attrs?.ldap) ||
+                    (this.props.user.auth_service === Constants.SAML_SERVICE && attribute.attrs?.saml)) {
+                    extraInfo = (
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.general.field_handled_externally'
+                                defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                            />
+                        </span>
                     );
                 } else {
-                    const inputType = attribute.type as string;
-                    inputs.push(
-                        <div
-                            key={sectionName}
-                            className='form-group'
-                        >
-                            <label className='col-sm-5 control-label'>{attributeLabel}</label>
-                            <div className='col-sm-7'>
-                                <input
-                                    id={sectionName}
-                                    autoFocus={true}
-                                    className='form-control'
-                                    type={inputType}
-                                    onChange={this.updateAttribute}
-                                    value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as string}
-                                    maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
-                                    autoCapitalize='off'
-                                    onFocus={Utils.moveCursorToEnd}
-                                    aria-label={attribute.name}
-                                />
-                            </div>
-                        </div>,
+                    let attributeLabel: JSX.Element | string = (
+                        attribute.name
                     );
+                    if (this.props.isMobileView) {
+                        attributeLabel = '';
+                    }
+
+                    if (attribute.type === 'select' || attribute.type === 'multiselect') {
+                        const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
+                        const opts = attribOptions.map((o) => {
+                            return {label: o.name, value: o.id} as SelectOption;
+                        });
+                        inputs.push(
+                            <ReactSelect
+                                isMulti={attribute.type === 'multiselect' ? true : undefined}
+                                key={sectionName}
+                                id={'customProfileAttribute_' + attribute.id}
+                                inputId={'customProfileAttribute_' + attribute.id + '_input'}
+                                className='react-select inlineSelect'
+                                classNamePrefix='react-select'
+                                options={opts}
+                                isClearable={true}
+                                isSearchable={false}
+                                isDisabled={false}
+                                placeholder={formatMessage({
+                                    id: 'user.settings.general.select',
+                                    defaultMessage: 'Select',
+                                })}
+                                components={{IndicatorSeparator: null}}
+                                styles={selectStyles}
+                                value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as SelectOption}
+                                onChange={(v, a) => this.updateSelectAttribute(v, a, attribute.id)}
+                            />,
+                        );
+                    } else {
+                        const inputType = attribute.type as string;
+                        inputs.push(
+                            <div
+                                key={sectionName}
+                                className='form-group'
+                            >
+                                <label className='col-sm-5 control-label'>{attributeLabel}</label>
+                                <div className='col-sm-7'>
+                                    <input
+                                        id={sectionName}
+                                        autoFocus={true}
+                                        className='form-control'
+                                        type={inputType}
+                                        onChange={this.updateAttribute}
+                                        value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as string}
+                                        maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                                        autoCapitalize='off'
+                                        onFocus={Utils.moveCursorToEnd}
+                                        aria-label={attribute.name}
+                                    />
+                                </div>
+                            </div>,
+                        );
+                    }
+                    extraInfo = (
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.general.attributeExtra'
+                                defaultMessage='This will be shown in your profile popover.'
+                            />
+                        </span>
+                    );
+
+                    submit = this.submitAttribute.bind(this, [attribute.id]);
                 }
-                const extraInfo = (
-                    <span>
-                        <FormattedMessage
-                            id='user.settings.general.attributeExtra'
-                            defaultMessage='This will be shown in your profile popover.'
-                        />
-                    </span>
-                );
 
                 max = (
                     <SettingItemMax
                         key={'settingItemMax_' + attribute.id}
                         title={attribute.name}
                         inputs={inputs}
-                        submit={this.submitAttribute.bind(this, [attribute.id])}
+                        submit={submit}
                         saving={this.state.sectionIsSaving}
                         serverError={this.state.serverError}
                         clientError={this.state.clientError}
