@@ -311,7 +311,7 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 		connRes.ActiveQueue = aq
 		connRes.ReuseCount = queues.ReuseCount
 
-		// parse the dq, wc.addToDeadQ()
+		// parse the deadq
 		if queues.DeadQ != nil {
 			dq, dqPtr, err := ps.UnmarshalDQ(queues.DeadQ)
 			if err != nil {
@@ -322,7 +322,9 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 				return nil
 			}
 
-			if dqPtr > 0 {
+			// We check if atleast one item has been written.
+			// Length of dq is always guaranteed to be deadQueueSize.
+			if dq[0] != nil {
 				connRes.DeadQueue = dq
 				connRes.DeadQueuePointer = dqPtr
 			}

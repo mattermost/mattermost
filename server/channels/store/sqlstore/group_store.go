@@ -301,7 +301,7 @@ func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.
 	return groups, nil
 }
 
-func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, error) {
+func (s *SqlGroupStore) GetByUser(userID string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 	groups := []*model.Group{}
 
 	builder := s.getQueryBuilder().
@@ -310,11 +310,15 @@ func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, error) {
 		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
 		Where(sq.Eq{
 			"GroupMembers.DeleteAt": 0,
-			"UserId":                userId,
+			"UserId":                userID,
 		})
 
+	if opts.FilterAllowReference {
+		builder = builder.Where("UserGroups.AllowReference = true")
+	}
+
 	if err := s.GetReplica().SelectBuilder(&groups, builder); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Groups with userId=%s", userId)
+		return nil, errors.Wrapf(err, "failed to find Groups with userId=%s", userID)
 	}
 
 	return groups, nil
@@ -1620,6 +1624,18 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 
 	if opts.Source != "" {
 		groupsQuery = groupsQuery.Where("g.Source = ?", opts.Source)
+	} else if opts.OnlySyncableSources {
+		sources := model.GetSyncableGroupSources()
+		sourcePrefixes := model.GetSyncableGroupSourcePrefixes()
+
+		orClauses := sq.Or{}
+		if len(sources) > 0 {
+			orClauses = append(orClauses, sq.Eq{"g.Source": sources})
+		}
+		for _, prefix := range sourcePrefixes {
+			orClauses = append(orClauses, sq.Like{"g.Source": string(prefix) + "%"})
+		}
+		groupsQuery = groupsQuery.Where(orClauses)
 	}
 
 	queryString, args, err := groupsQuery.ToSql()
