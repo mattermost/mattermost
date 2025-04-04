@@ -1418,7 +1418,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                             isHidden: it.any(
                                 it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false)
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
                             ),
                         },
                         {
@@ -1433,7 +1433,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                             isHidden: it.any(
                                 it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false)
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
                             ),
                         },
                         {
@@ -1448,7 +1448,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                             isHidden: it.any(
                                 it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false)
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
                             ),
                         },
                         {
@@ -1463,7 +1463,7 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                             isHidden: it.any(
                                 it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false)
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
                             ),
                         },
                         {
