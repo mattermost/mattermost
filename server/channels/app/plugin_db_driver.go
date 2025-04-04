@@ -321,10 +321,6 @@ func (d *DriverImpl) RowsNextBatch(rowsID string, batchSize int) ([][]driver.Val
 	// It's only needed to satisfy the interface
 	batch := make([][]driver.Value, 0, batchSize)
 	
-	d.rowsMut.RLock()
-	rows := d.rowsMap[rowsID]
-	d.rowsMut.RUnlock()
-	
 	// Just return an empty batch - this won't be called by the server
 	return batch, nil
 }
