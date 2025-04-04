@@ -26,14 +26,6 @@ type dbRPCServer struct {
 
 var _ Driver = &dbRPCClient{}
 
-// newDBRPCClient creates a new dbRPCClient with initialized buffers
-func newDBRPCClient(client *rpc.Client) *dbRPCClient {
-	return &dbRPCClient{
-		client:     client,
-		rowsBuffer: make(map[string][][]driver.Value),
-	}
-}
-
 type Z_DbStrErrReturn struct {
 	A string
 	B error
@@ -345,7 +337,7 @@ func (db *dbRPCClient) RowsClose(resID string) error {
 	if db.rowsBuffer != nil {
 		delete(db.rowsBuffer, resID)
 	}
-	
+
 	ret := &Z_DbErrReturn{}
 	err := db.client.Call("Plugin.RowsClose", resID, ret)
 	if err != nil {
@@ -386,7 +378,7 @@ func (db *dbRPCClient) RowsNext(rowsID string, dest []driver.Value) error {
 	if db.rowsBuffer == nil {
 		db.rowsBuffer = make(map[string][][]driver.Value)
 	}
-	
+
 	buffer, ok := db.rowsBuffer[rowsID]
 	if !ok || len(buffer) == 0 {
 		// No buffered rows, fetch a batch starting with size 1 and doubling each time
@@ -398,17 +390,17 @@ func (db *dbRPCClient) RowsNext(rowsID string, dest []driver.Value) error {
 				batchSize = 64 // In case of overflow or initial empty buffer
 			}
 		}
-		
+
 		// Fetch a new batch
 		batch, err := db.RowsNextBatch(rowsID, batchSize)
 		if err != nil {
 			return err
 		}
-		
+
 		// Store the batch in the buffer
 		db.rowsBuffer[rowsID] = batch
 		buffer = batch
-		
+
 		// If batch is empty, return io.EOF (or whatever the underlying driver returns for end of rows)
 		if len(buffer) == 0 {
 			args := &Z_DbRowScanArg{
@@ -424,15 +416,15 @@ func (db *dbRPCClient) RowsNext(rowsID string, dest []driver.Value) error {
 			return ret.A
 		}
 	}
-	
+
 	// Get the first row from the buffer
 	row := buffer[0]
 	// Remove the first row from the buffer
 	db.rowsBuffer[rowsID] = buffer[1:]
-	
+
 	// Copy the values to the destination
 	copy(dest, row)
-	
+
 	return nil
 }
 
@@ -463,12 +455,12 @@ func (db *dbRPCServer) RowsNext(args *Z_DbRowScanArg, ret *Z_DbRowScanReturn) er
 func (db *dbRPCServer) RowsNextBatch(args *Z_DbRowScanBatchArg, ret *Z_DbRowScanBatchReturn) error {
 	// Initialize the batch result
 	batch := make([][]driver.Value, 0, args.B)
-	
+
 	// Fetch up to batchSize rows
 	for i := 0; i < args.B; i++ {
 		// Create a destination slice for the current row
 		dest := make([]driver.Value, len(db.dbImpl.RowsColumns(args.A)))
-		
+
 		// Fetch the next row
 		err := db.dbImpl.RowsNext(args.A, dest)
 		if err != nil {
@@ -483,11 +475,11 @@ func (db *dbRPCServer) RowsNextBatch(args *Z_DbRowScanBatchArg, ret *Z_DbRowScan
 			ret.A = nil
 			break
 		}
-		
+
 		// Add the row to the batch
 		batch = append(batch, dest)
 	}
-	
+
 	ret.B = batch
 	return nil
 }

@@ -320,7 +320,7 @@ func (d *DriverImpl) RowsNextBatch(rowsID string, batchSize int) ([][]driver.Val
 	// This is a stub implementation since the server won't be calling this method
 	// It's only needed to satisfy the interface
 	batch := make([][]driver.Value, 0, batchSize)
-	
+
 	// Just return an empty batch - this won't be called by the server
 	return batch, nil
 }
