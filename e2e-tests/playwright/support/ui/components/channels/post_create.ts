@@ -3,6 +3,7 @@
 
 import {expect, Locator} from '@playwright/test';
 import path from 'node:path';
+import {waitUntil} from '@e2e-support/test_action';
 
 export default class ChannelsPostCreate {
     readonly container: Locator;
@@ -106,6 +107,12 @@ export default class ChannelsPostCreate {
             });
 
             await this.attachmentButton.click();
+
+            // wait for all files to be uploaded
+            await waitUntil(async () => {
+                const attachment = await this.container.locator('.file-preview').count();
+                return attachment === files.length;
+            });
         }
 
         await this.sendMessage();
