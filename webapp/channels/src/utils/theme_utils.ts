@@ -35,8 +35,7 @@ export function initializeSystemThemeDetection(): void {
             // Modern browsers
             darkModeMediaQuery.addEventListener('change', applySystemThemeIfNeeded);
         } catch (e) {
-            // Fallback for older browsers
-            darkModeMediaQuery.addListener(applySystemThemeIfNeeded);
+            console.error('Error adding listener for system theme changes', e);
         }
 
         isListenerInitialized = true;
