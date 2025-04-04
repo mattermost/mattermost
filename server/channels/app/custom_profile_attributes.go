@@ -226,7 +226,7 @@ func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMes
 	}
 
 	valuesToUpdate := []*model.PropertyValue{}
-	for fieldID, value := range fieldValueMap {
+	for fieldID, rawValue := range fieldValueMap {
 		// make sure field exists in this group
 		existingField, appErr := a.GetCPAField(fieldID)
 		if appErr != nil {
@@ -235,12 +235,22 @@ func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMes
 			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
 		}
 
+		cpaField, fErr := model.NewCPAFieldFromPropertyField(existingField)
+		if fErr != nil {
+			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.field_conversion_error", nil, "", http.StatusInternalServerError).Wrap(fErr)
+		}
+
+		sanitizedValue, sErr := model.SanitizeAndValidatePropertyValue(cpaField, rawValue)
+		if sErr != nil {
+			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.sanitize_value.app_error", nil, "", http.StatusBadRequest).Wrap(sErr)
+		}
+
 		value := &model.PropertyValue{
 			GroupID:    groupID,
 			TargetType: "user",
 			TargetID:   userID,
 			FieldID:    fieldID,
-			Value:      value,
+			Value:      sanitizedValue,
 		}
 		valuesToUpdate = append(valuesToUpdate, value)
 	}
