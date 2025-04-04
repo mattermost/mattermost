@@ -22,7 +22,9 @@ func (ps *PlatformService) CreateSession(c request.CTX, session *model.Session) 
 		return nil, err
 	}
 
-	ps.AddSessionToCache(session)
+	if err := ps.AddSessionToCache(session); err != nil {
+		ps.Logger().Error("Failed to add session to cache", mlog.Err(err))
+	}
 
 	return session, nil
 }
@@ -39,10 +41,12 @@ func (ps *PlatformService) GetLRUSessions(c request.CTX, userID string, limit ui
 	return ps.Store.Session().GetLRUSessions(c, userID, limit, offset)
 }
 
-func (ps *PlatformService) AddSessionToCache(session *model.Session) {
+func (ps *PlatformService) AddSessionToCache(session *model.Session) error {
 	if err := ps.sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*ps.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute); err != nil {
 		ps.Logger().Error("Failed to add session to cache", mlog.Err(err))
+		return err
 	}
+	return nil
 }
 
 func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
@@ -92,10 +96,12 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 	}
 }
 
-func (ps *PlatformService) ClearAllUsersSessionCacheLocal() {
+func (ps *PlatformService) ClearAllUsersSessionCacheLocal() error {
 	if err := ps.sessionCache.Purge(); err != nil {
 		ps.Logger().Error("Failed to purge session cache", mlog.Err(err))
+		return err
 	}
+	return nil
 }
 
 func (ps *PlatformService) ClearUserSessionCache(userID string) {
@@ -112,7 +118,9 @@ func (ps *PlatformService) ClearUserSessionCache(userID string) {
 }
 
 func (ps *PlatformService) ClearAllUsersSessionCache() {
-	ps.ClearAllUsersSessionCacheLocal()
+	if err := ps.ClearAllUsersSessionCacheLocal(); err != nil {
+		ps.Logger().Error("Failed to purge session cache", mlog.Err(err))
+	}
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
@@ -242,7 +250,9 @@ func (ps *PlatformService) ExtendSessionExpiry(session *model.Session, newExpiry
 	// ensures each node will get an extended expiry within the next 10 minutes.
 	// Worst case is another node may generate a redundant expiry update.
 	session.ExpiresAt = newExpiry
-	ps.AddSessionToCache(session)
+	if err := ps.AddSessionToCache(session); err != nil {
+		ps.Logger().Error("Failed to update session cache", mlog.Err(err))
+	}
 
 	return nil
 }
@@ -265,7 +275,9 @@ func (ps *PlatformService) UpdateSessionsIsGuest(c request.CTX, user *model.User
 			c.Logger().Warn("Unable to update isGuest session", mlog.Err(err))
 			continue
 		}
-		ps.AddSessionToCache(session)
+		if err := ps.AddSessionToCache(session); err != nil {
+			ps.Logger().Error("Failed to update session cache", mlog.Err(err))
+		}
 	}
 	return nil
 }

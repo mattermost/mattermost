@@ -96,7 +96,9 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 
 		if !session.IsExpired() {
-			a.ch.srv.platform.AddSessionToCache(session)
+			if err := a.ch.srv.platform.AddSessionToCache(session); err != nil {
+				c.Logger().Error("Error while adding session to cache", mlog.Err(err))
+			}
 		}
 	}
 
@@ -205,7 +207,9 @@ func (a *App) RevokeAllSessions(c request.CTX, userID string) *model.AppError {
 }
 
 func (a *App) AddSessionToCache(session *model.Session) {
-	a.ch.srv.platform.AddSessionToCache(session)
+	if appErr := a.ch.srv.platform.AddSessionToCache(session); appErr != nil {
+		a.Srv().Platform().Log().Error("Failed to add session to cache", mlog.Err(appErr))
+	}
 }
 
 // RevokeSessionsFromAllUsers will go through all the sessions active
@@ -490,7 +494,9 @@ func (a *App) createSessionForUserAccessToken(c request.CTX, tokenString string)
 		}
 	}
 
-	a.ch.srv.platform.AddSessionToCache(session)
+	if appErr := a.ch.srv.platform.AddSessionToCache(session); appErr != nil {
+		a.ch.srv.Log().Error("Failed to add session to cache", mlog.String("session_id", session.Id), mlog.Err(appErr))
+	}
 
 	return session, nil
 }
