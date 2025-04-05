@@ -3020,7 +3020,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'number',
                             key: 'DisplaySettings.MaxMarkdownNodes',
                             label: defineMessage({id: 'admin.customization.maxMarkdownNodesTitle', defaultMessage: 'Max Markdown Nodes:'}),
-                            help_text: defineMessage({id: 'admin.customization.maxMarkdownNodesDesc', defaultMessage: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.'}),
+                            help_text: defineMessage({id: 'admin.customization.maxMarkdownNodesDesc', defaultMessage: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (e.g. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                         },
                         {
