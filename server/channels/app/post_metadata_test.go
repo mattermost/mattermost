@@ -1727,12 +1727,27 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 			ExpectedFirstLink: "",
 			ExpectedImages:    []string{},
 		},
+		"http link in angle brackets": {
+			Input:             "this is a <http://example.com>",
+			ExpectedFirstLink: "http://example.com",
+			ExpectedImages:    []string{},
+		},
+		"http link with only opening angle bracket": {
+			Input:             "this is a <http://example.com",
+			ExpectedFirstLink: "http://example.com",
+			ExpectedImages:    []string{},
+		},
+		"http link with only closing angle bracket": {
+			Input:             "this is a http://example.com>",
+			ExpectedFirstLink: "http://example.com",
+			ExpectedImages:    []string{},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			firstLink, images := th.App.getFirstLinkAndImages(th.Context, testCase.Input)
 
-			assert.Equal(t, firstLink, testCase.ExpectedFirstLink)
-			assert.Equal(t, images, testCase.ExpectedImages)
+			assert.Equal(t, testCase.ExpectedFirstLink, firstLink)
+			assert.Equal(t, testCase.ExpectedImages, images)
 		})
 	}
 
