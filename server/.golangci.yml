@@ -115,7 +115,6 @@ issues:
         channels/app/upload.go|\
         channels/app/webhook_test.go|\
         channels/jobs/batch_worker_test.go|\
-        channels/jobs/helper_test.go|\
         channels/jobs/hosted_purchase_screening/worker.go|\
         channels/jobs/jobs.go|\
         channels/manualtesting/manual_testing.go|\
