@@ -128,13 +128,13 @@ func (s *ScheduledPost) ToPost() (*Post, error) {
 	return post, nil
 }
 
-func (s *ScheduledPost) Auditable() map[string]interface{} {
+func (s *ScheduledPost) Auditable() map[string]any {
 	var metaData map[string]any
 	if s.Metadata != nil {
 		metaData = s.Metadata.Auditable()
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"id":         s.Id,
 		"create_at":  s.CreateAt,
 		"update_at":  s.UpdateAt,

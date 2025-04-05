@@ -59,8 +59,8 @@ type FileInfo struct {
 	Archived        bool    `json:"archived"`
 }
 
-func (fi *FileInfo) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (fi *FileInfo) Auditable() map[string]any {
+	return map[string]any{
 		"id":         fi.Id,
 		"creator_id": fi.CreatorId,
 		"post_id":    fi.PostId,

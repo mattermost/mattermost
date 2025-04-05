@@ -5062,12 +5062,12 @@ func testGetPostReminders(t *testing.T, rctx request.CTX, ss store.Store, s SqlS
 		require.NoError(t, ss.Post().SetPostReminder(reminder))
 	}
 
-	reminders, err := ss.Post().GetPostReminders(102)
+	reminders, err := ss.Post().GetPostReminders(101)
 	require.NoError(t, err)
 	require.Len(t, reminders, 2)
 
 	// assert one reminder is left
-	reminders, err = ss.Post().GetPostReminders(103)
+	reminders, err = ss.Post().GetPostReminders(102)
 	require.NoError(t, err)
 	require.Len(t, reminders, 1)
 
