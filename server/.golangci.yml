@@ -168,7 +168,6 @@ issues:
         channels/web/oauth_test.go|\
         channels/web/saml.go|\
         channels/web/web_test.go|\
-        channels/web/webhook.go|\
         cmd/mattermost/commands/cmdtestlib.go|\
         cmd/mattermost/commands/db.go|\
         cmd/mattermost/commands/export.go|\
