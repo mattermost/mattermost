@@ -286,8 +286,8 @@ describe('formatWithRenderer | LinkOnlyRenderer', () => {
         {
             description: 'link: link with a full-length punctuation',
             inputText: 'Do you like https://mattermost.com/，這是第二個網址。?',
-            outputText: 'Do you like <a class="theme markdown__link" href="https://mattermost.com/" target="_blank">' +
-                'https://mattermost.com/</a>，這是第二個網址。?',
+            outputText: 'Do you like <a class="theme markdown__link" href="https://mattermost.com/，這是第二個網址。" target="_blank">' +
+                'https://mattermost.com/，這是第二個網址。</a>?',
         },
     ];
 

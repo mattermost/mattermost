@@ -17,7 +17,7 @@ import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetSubscription from 'components/common/hooks/useGetSubscription';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 
 import {
     AnnouncementBarTypes,
@@ -42,7 +42,7 @@ const CloudTrialEndAnnouncementBar: React.FC = () => {
     );
     const subscriptionProduct = useSelector((state: GlobalState) => getSubscriptionProduct(state));
 
-    const openPricingModal = useOpenPricingModal();
+    const openPricingDetails = useOpenPricingDetails();
 
     const shouldShowBanner = () => {
         if (!subscription || !subscriptionProduct) {
@@ -106,7 +106,7 @@ const CloudTrialEndAnnouncementBar: React.FC = () => {
         <AnnouncementBar
             type={AnnouncementBarTypes.CRITICAL}
             showCloseButton={true}
-            onButtonClick={() => openPricingModal({trackingLocation: 'cloud_trial_ended_announcement_bar'})}
+            onButtonClick={() => openPricingDetails({trackingLocation: 'cloud_trial_ended_announcement_bar'})}
             modalButtonText={messages.moreDetails}
             message={<FormattedMessage {...messages.downgraded}/>}
             showLinkAsButton={true}

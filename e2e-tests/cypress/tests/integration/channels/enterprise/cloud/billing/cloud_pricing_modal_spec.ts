@@ -110,7 +110,7 @@ function simulateSubscription(subscription, withLimits = true) {
     }
 }
 
-describe('Pricing modal', () => {
+describe('View plans button', () => {
     let urlL;
     let nonAdminUser;
 
@@ -132,7 +132,7 @@ describe('Pricing modal', () => {
         cy.get('#UpgradeButton').should('not.exist');
     });
 
-    it('should check for ability to request upgrades for non admin users on free plans', () => {
+    it('should check for ability for non-admin users to view plans on free plans', () => {
         cy.apiLogout();
         const subscription = {
             id: 'sub_test1',
@@ -158,22 +158,20 @@ describe('Pricing modal', () => {
         cy.visit(urlL);
 
         cy.get('#product_switch_menu').click();
-        cy.get('#view_plans_cta').should('be.visible').click();
+        cy.get('#view_plans_cta').should('be.visible');
+        
+        // * Spy on window.open and click the button
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen');
+        });
 
-        // * Pricing modal should be open
-        cy.get('#pricingModal').should('exist');
-        cy.get('#pricingModal').find('.PricingModal__header').contains('Select a plan');
+        cy.get('#view_plans_cta').click();
 
-        // * Check that on professsional card there a button for non admin user to request upgrade
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#professional > .bottom > .bottom_container').find('#professional_action').should('be.enabled').should('have.text', 'Request admin to upgrade');
-
-        // * Check that on enterprise card there a button for non admin user to request upgrade
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#enterprise > .bottom > .bottom_container').find('#enterprise_action').should('be.enabled').should('have.text', 'Request admin to upgrade');
+        // * Verify it tried to open the pricing page
+        cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
     });
 
-    it('should check for ability to request upgrades to enterprise for non admin users on professional monthly plans', () => {
+    it('should check for ability for non-admin users to view plans on professional monthly plans', () => {
         cy.apiLogout();
         const subscription = {
             id: 'sub_test1',
@@ -199,23 +197,20 @@ describe('Pricing modal', () => {
         cy.visit(urlL);
 
         cy.get('#product_switch_menu').click();
-        cy.get('#view_plans_cta').should('be.visible').click();
+        cy.get('#view_plans_cta').should('be.visible');
+        
+        // * Spy on window.open and click the button
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen');
+        });
 
-        // * Pricing modal should be open
-        cy.get('#pricingModal').should('exist');
-        cy.get('#pricingModal').find('.PricingModal__header').contains('Select a plan');
+        cy.get('#view_plans_cta').click();
 
-        // * Check that on professsional card there a button for non admin user to request upgrade and it's disabled
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('.planLabel').should('have.text', 'CURRENT PLAN');
-        cy.get('#professional > .bottom > .bottom_container').find('#professional_action').should('have.text', 'Request admin to upgrade').should('be.not.enabled');
-
-        // * Check that on enterprise card there a button for non admin user to request upgrade
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#enterprise > .bottom > .bottom_container').find('#enterprise_action').should('be.enabled').should('have.text', 'Request admin to upgrade');
+        // * Verify it tried to open the pricing page
+        cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
     });
 
-    it('should not allow any requests for upgrades when on enterprise', () => {
+    it('should check for ability for non-admin users to view plans on enterprise', () => {
         cy.apiLogout();
         const subscription = {
             id: 'sub_test1',
@@ -241,20 +236,18 @@ describe('Pricing modal', () => {
         cy.visit(urlL);
 
         cy.get('#product_switch_menu').click();
-        cy.get('#view_plans_cta').should('be.visible').click();
+        cy.get('#view_plans_cta').should('be.visible');
+        
+        // * Spy on window.open and click the button
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen');
+        });
 
-        // * Pricing modal should be open
-        cy.get('#pricingModal').should('exist');
-        cy.get('#pricingModal').find('.PricingModal__header').contains('Select a plan');
+        cy.get('#view_plans_cta').click();
 
-        // * Check that on professsional card there a button for non admin user to request upgrade and it's disabled
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#professional > .bottom > .bottom_container').find('#professional_action').should('have.text', 'Request admin to upgrade').should('be.not.enabled');
-
-        // * Check that on enterprise card there a button for non admin user to request upgrade
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('.planLabel').should('have.text', 'CURRENT PLAN');
-        cy.get('#enterprise > .bottom > .bottom_container').find('#enterprise_action').should('have.text', 'Request admin to upgrade').should('be.not.enabled');
+        // * Verify it tried to open the pricing page
+        cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
+        
     });
 
     it('should show Upgrade button in global header for admin users and free sku', () => {
@@ -292,7 +285,7 @@ describe('Pricing modal', () => {
         cy.get('#UpgradeButton').should('exist');
     });
 
-    it('should open pricing modal when Upgrade button clicked while in free sku', () => {
+    it('should open pricing page when View plans button clicked while in free sku', () => {
         const subscription = {
             id: 'sub_test1',
             product_id: 'prod_1',
@@ -303,41 +296,22 @@ describe('Pricing modal', () => {
         cy.apiAdminLogin();
         cy.visit(urlL);
 
-        // # Open the pricing modal
-        cy.get('#UpgradeButton').should('exist').click();
+        // * Check that the view plans button exists
+        cy.get('#UpgradeButton').should('exist');
 
-        // * Pricing modal should be open
-        cy.get('#pricingModal').should('exist');
-        cy.get('#pricingModal').find('.PricingModal__header').contains('Select a plan');
+        // * Spy on window.open and click the button
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen');
+        });
 
-        // * Check that free card Downgrade button is disabled
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#free > .bottom > .bottom_container').should('be.visible');
-        cy.get('#free_action').should('be.disabled').contains('Downgrade');
+        cy.get('#UpgradeButton').click();
 
-        // * Check that professsional card Upgrade button opens purchase modal
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#professional > .bottom > .bottom_container').find('#professional_action').should('be.enabled').should('have.text', 'Upgrade').click();
-        cy.get('.PurchaseModal').should('exist');
-
-        // * Check that the upgrade button tooltip does not exist on the purchase modal
-        cy.get('#upgrade_button_tooltip').should('not.exist');
-
-        // * Close PurchaseModal
-        cy.get('#closeIcon').click();
-
-        // # Open pricing modal again
-        cy.get('#UpgradeButton').should('exist').click();
-
-        // * Check for contact sales CTA
-        cy.get('#contact_sales_quote').contains('Contact Sales');
-
-        // * Check that enterprise card action button shows Try free for 30 days
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#start_cloud_trial_btn').contains('Start trial');
+        // * Verify it tried to open the pricing page
+        cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
+        
     });
 
-    it('should open pricing modal when Upgrade button clicked while in enterprise trial sku', () => {
+    it('should open pricing page when View plans button clicked while in enterprise trial sku', () => {
         const subscription = {
             id: 'sub_test1',
             product_id: 'prod_3',
@@ -348,29 +322,22 @@ describe('Pricing modal', () => {
         cy.apiAdminLogin();
         cy.visit(urlL);
 
-        // # Open the pricing modal
-        cy.get('#UpgradeButton').should('exist').click();
+        // * Check that the view plans button exists
+        cy.get('#UpgradeButton').should('exist');
 
-        // * Pricing modal should be open
-        cy.get('#pricingModal').should('exist').should('be.visible');
-        cy.get('.PricingModal__header').contains('Select a plan');
+        // * Spy on window.open and click the button
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen');
+        });
 
-        // * Check that free Downgrade card  button exists
-        cy.get('#free > .bottom > .bottom_container').should('be.visible');
-        cy.get('#free_action').contains('Downgrade');
+        cy.get('#UpgradeButton').click();
 
-        // * Check that professsional card Upgrade button is not disabled while on enterprise trial
-        cy.get('#professional > .bottom > .bottom_container').should('be.visible');
-        cy.get('#professional_action').should('not.be.disabled');
-
-        // * Check that enterprise card action button is disabled
-        cy.get('#enterprise > .bottom > .bottom_container').should('be.visible');
-        cy.get('#start_cloud_trial_btn').contains('Start trial');
-        cy.get('#enterprise > .bottom > .bottom_container').should('be.visible');
-        cy.get('#start_cloud_trial_btn').should('be.disabled');
+        // * Verify it tried to open the pricing page
+        cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
+        
     });
 
-    it('should open pricing modal when Upgrade button clicked while in post trial free sku', () => {
+    it('should open pricing page when View plans button clicked while in post trial free sku', () => {
         const subscription = {
             id: 'sub_test1',
             product_id: 'prod_1',
@@ -382,35 +349,22 @@ describe('Pricing modal', () => {
         cy.apiAdminLogin();
         cy.visit(urlL);
 
-        // # Open the pricing modal
-        cy.get('#UpgradeButton').should('exist').click();
+        // * Check that the view plans button exists
+        cy.get('#UpgradeButton').should('exist');
 
-        // * Pricing modal should be open
-        cy.get('#pricingModal').should('exist').should('be.visible');
-        cy.get('.PricingModal__header').contains('Select a plan');
+        // * Spy on window.open and click the button
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen');
+        });
 
-        // * Check that free card Downgrade button is disabled
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#free > .bottom > .bottom_container').should('be.visible');
-        cy.get('#free_action').should('be.disabled').contains('Downgrade');
+        cy.get('#UpgradeButton').click();
 
-        // * Check that professsional card Upgrade button opens purchase modal
-        cy.get('#professional > .bottom > .bottom_container').should('be.visible');
-        cy.get('#professional_action').click();
-        cy.get('.PricingModal__body').should('exist');
-
-        // * Close PurchaseModal
-        cy.get('button.close-x').click();
-
-        // * Contact Sales button shows and Contact sales for quote CTA should not show
-        cy.get('#UpgradeButton').should('exist').click();
-        cy.get('#contact_sales_quote').should('not.exist');
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('#enterprise > .bottom > .bottom_container').should('be.visible');
-        cy.get('#enterprise_action').contains('Contact Sales');
+        // * Verify it tried to open the pricing page
+        cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
+        
     });
 
-    it('should open pricing modal when Switch to Yearly is button clicked while in monthly professional', () => {
+    it('should open pricing page when View plans button clicked while in monthly professional', () => {
         const subscription = {
             id: 'sub_test1',
             product_id: 'prod_2', //professional monthly
@@ -419,19 +373,24 @@ describe('Pricing modal', () => {
         cy.simulateSubscription(subscription);
         cy.apiLogout();
         cy.apiAdminLogin();
-        cy.visit('/admin_console/billing/subscription?action=show_pricing_modal');
+        cy.visit('/admin_console/billing/subscription');
 
-        // * Pricing modal should be open
-        cy.get('#pricingModal').should('exist').should('be.visible');
+        // * Check that the view plans button exists in the admin console
+        cy.get('[data-testid="billing-view-plans-button"]').should('exist');
 
-        // * Check that professsional card Switch to Yearly button opens purchase modal
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('.planLabel').should('have.text', 'CURRENTLY ON MONTHLY BILLING');
-        cy.get('#professional > .bottom > .bottom_container').find('#professional_action').should('be.enabled').should('have.text', 'Switch to annual billing').click();
-        cy.get('.PurchaseModal').should('exist');
+        // * Spy on window.open and click the button
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen');
+        });
+
+        cy.get('[data-testid="billing-view-plans-button"]').click();
+
+        // * Verify it tried to open the pricing page
+        cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
+        
     });
 
-    it('should have Upgrade button disabled while in yearly professional', () => {
+    it('should show View plans button when in yearly professional', () => {
         const subscription = {
             id: 'sub_test1',
             product_id: 'prod_4', //professional yearly
@@ -440,15 +399,21 @@ describe('Pricing modal', () => {
         simulateSubscription(subscription);
         cy.apiLogout();
         cy.apiAdminLogin();
-        cy.visit('/admin_console/billing/subscription?action=show_pricing_modal');
+        cy.visit('/admin_console/billing/subscription');
 
-        // * Pricing modal should be open
-        cy.get('#pricingModal').should('exist').should('be.visible');
+        // * Check that the view plans button exists in the admin console
+        cy.get('[data-testid="billing-view-plans-button"]').should('exist');
 
-        // * Check that professsional card Switch to Yearly button opens purchase modal
-        cy.get('#pricingModal').should('be.visible');
-        cy.get('.planLabel').should('have.text', 'CURRENT PLAN');
-        cy.get('#professional > .bottom > .bottom_container').find('#professional_action').should('not.be.enabled').should('have.text', 'Upgrade');
+        // * Spy on window.open and click the button
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen');
+        });
+
+        cy.get('[data-testid="billing-view-plans-button"]').click();
+
+        // * Verify it tried to open the pricing page
+        cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
+        
     });
 
     it('should open cloud limits modal when free disclaimer CTA is clicked', () => {

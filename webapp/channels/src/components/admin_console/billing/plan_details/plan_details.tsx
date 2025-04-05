@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 import Tag from 'components/widgets/tag/tag';
 
 import {CloudProducts} from 'utils/constants';
@@ -27,7 +27,7 @@ export const PlanDetailsTopElements = ({
     isYearly,
 }: Props) => {
     let productName;
-    const openPricingModal = useOpenPricingModal();
+    const openPricingDetails = useOpenPricingDetails();
     const {formatMessage} = useIntl();
 
     const userCountDisplay = (
@@ -125,7 +125,7 @@ export const PlanDetailsTopElements = ({
 
     const viewPlansButton = (
         <button
-            onClick={() => openPricingModal({trackingLocation: 'billing_plan_details_view_plans'})}
+            onClick={() => openPricingDetails({trackingLocation: 'billing_plan_details_view_plans'})}
             className='btn btn-secondary PlanDetails__viewPlansButton'
         >
             {formatMessage({
