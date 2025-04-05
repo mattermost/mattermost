@@ -5,9 +5,6 @@
 
     li.custom-emoji-tab:not(.active) {
         a {
-            width: max-content;
-            padding-top: 7px !important;
-
             svg,
             div {
                 color: rgba(var(--center-channel-color-rgb), 0.64);
@@ -26,9 +23,6 @@
 
     li.custom-emoji-tab.active {
         a {
-            width: max-content;
-            padding-top: 7px !important;
-
             svg,
             div {
                 color: var(--button-bg);
@@ -44,11 +38,6 @@
             }
         }
     }
-
-    .nav.nav-tabs {
-        width: fit-content;
-        width: -moz-fit-content;
-    }
 }
 
 .emoji-picker-overlay {
@@ -63,10 +52,25 @@
     justify-content: flex-start;
 }
 
-.custom-emoji-tab {
-    display: flex;
-}
-
 .custom-emoji-tab__icon {
     margin-right: 7px;
+}
+
+#emoji-picker-tabs {
+    display: flex;
+    min-height: 0; // This is needed to prevent this element from overflowing its parent's height
+    flex: 1;
+    flex-direction: column;
+
+    .tab-content {
+        display: flex;
+        min-height: 0; // This is needed to prevent this element from overflowing its parent's height
+        flex: 1;
+
+        .tab-pane {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+        }
+    }
 }

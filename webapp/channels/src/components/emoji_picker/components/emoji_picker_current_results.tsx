@@ -3,14 +3,17 @@
 
 import throttle from 'lodash/throttle';
 import React, {forwardRef, memo, useCallback} from 'react';
+import {useSelector} from 'react-redux';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import {FixedSizeList} from 'react-window';
+import {VariableSizeList} from 'react-window';
 import type {ListItemKeySelector, ListOnScrollProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
 import type {Emoji, EmojiCategory, CustomEmoji, SystemEmoji} from '@mattermost/types/emojis';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import {getIsMobileView} from 'selectors/views/browser';
 
 import EmojiPickerCategoryOrEmojiRow from 'components/emoji_picker/components/emoji_picker_category_or_emoji_row';
 import {ITEM_HEIGHT, EMOJI_ROWS_OVERSCAN_COUNT, EMOJI_CONTAINER_HEIGHT, CUSTOM_EMOJIS_PER_PAGE, EMOJI_SCROLL_THROTTLE_DELAY, CATEGORIES_CONTAINER_HEIGHT} from 'components/emoji_picker/constants';
@@ -33,6 +36,8 @@ interface Props {
 }
 
 const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOrEmojisRows, isFiltering, activeCategory, cursorRowIndex, cursorEmojiId, customEmojisEnabled, customEmojiPage, setActiveCategory, onEmojiClick, onEmojiMouseOver, getCustomEmojis, incrementEmojiPickerPage}: Props, ref) => {
+    const isMobileView = useSelector(getIsMobileView);
+
     // Function to create unique key for each row
     const getItemKey = (index: Parameters<ListItemKeySelector>[0], rowsData: Parameters<ListItemKeySelector<CategoryOrEmojiRow[]>>[1]) => {
         const data = rowsData[index];
@@ -45,6 +50,21 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
         const emojisRow = data.items;
         const emojiNamesArray = emojisRow.map((emoji) => `${emoji.categoryIndex}-${emoji.emojiId}`);
         return emojiNamesArray.join('--');
+    };
+
+    const getItemSize = (index: number) => {
+        if (isCategoryHeaderRow(categoryOrEmojisRows[index])) {
+            // These values correspond to the height, margins, and padding of .emoji-picker__category-header
+            const textHeight = isMobileView ? 20 : 17;
+            const verticalPadding = isMobileView ? 8 : 3;
+            const verticalMargin = 6;
+
+            return textHeight + verticalPadding + verticalMargin;
+        }
+
+        const itemHeight = isMobileView ? 40 : ITEM_HEIGHT;
+
+        return itemHeight;
     };
 
     const handleScroll = (scrollOffset: ListOnScrollProps['scrollOffset'], activeCategory: EmojiCategory, isFiltering: boolean, categoryOrEmojisRows: CategoryOrEmojiRow[]) => {
@@ -105,7 +125,7 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
                             loadMoreItems={handleLoadMoreItems}
                         >
                             {({onItemsRendered, ref}) => (
-                                <FixedSizeList
+                                <VariableSizeList
                                     ref={ref}
                                     onItemsRendered={onItemsRendered}
                                     height={height}
@@ -115,7 +135,7 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
                                     itemCount={categoryOrEmojisRows.length}
                                     itemData={categoryOrEmojisRows}
                                     itemKey={getItemKey}
-                                    itemSize={ITEM_HEIGHT}
+                                    itemSize={getItemSize}
                                     onScroll={throttledScroll}
                                 >
                                     {({index, style, data}) => (
@@ -129,7 +149,7 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
                                             onEmojiMouseOver={onEmojiMouseOver}
                                         />
                                     )}
-                                </FixedSizeList>
+                                </VariableSizeList>
                             )}
                         </InfiniteLoader>
                     )}

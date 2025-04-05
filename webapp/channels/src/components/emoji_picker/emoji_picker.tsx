@@ -378,10 +378,7 @@ const EmojiPicker = ({
     const areSearchResultsEmpty = filter.length !== 0 && categoryOrEmojisRows.length === 1 && categoryOrEmojisRows?.[0]?.items?.[0]?.categoryName === SEARCH_RESULTS;
 
     return (
-        <div
-            className='emoji-picker__inner'
-            role='application'
-        >
+        <>
             <div
                 aria-live='assertive'
                 className='sr-only'
@@ -456,7 +453,7 @@ const EmojiPicker = ({
                     onClick={onAddCustomEmojiClickInner}
                 />
             </div>
-        </div>
+        </>
     );
 };
 
