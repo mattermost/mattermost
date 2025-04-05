@@ -36,15 +36,28 @@ describe('components/custom_status/date_time_input', () => {
     });
 
     it.each([
-        ['2024-03-02T02:00:00+0100', 48],
-        ['2024-03-31T02:00:00+0100', 46],
-        ['2024-10-07T02:00:00+0100', 48],
-        ['2024-10-27T02:00:00+0100', 48],
-        ['2025-01-01T03:00:00+0200', 48],
+        ['2024-03-02T02:00:00+0100', 96],
+        ['2024-03-31T02:00:00+0100', 92],
+        ['2024-10-07T02:00:00+0100', 96],
+        ['2024-10-27T02:00:00+0100', 96],
+        ['2025-01-01T03:00:00+0200', 96],
     ])('should not infinitely loop on DST', (time, expected) => {
         const timezone = 'Europe/Paris';
 
         const intervals = getTimeInIntervals(moment.tz(time, timezone).startOf('day'));
         expect(intervals).toHaveLength(expected);
+    });
+
+    it('should generate 15-minute intervals correctly', () => {
+        const timezone = 'Australia/Sydney';
+        const startTime = moment.tz('2024-04-01T00:00:00', timezone);
+
+        const intervals = getTimeInIntervals(startTime, 15);
+
+        expect(intervals.length).toBe(96);
+        expect(intervals[0].getMinutes()).toBe(0);
+        expect(intervals[1].getMinutes()).toBe(15);
+        expect(intervals[2].getMinutes()).toBe(30);
+        expect(intervals[3].getMinutes()).toBe(45);
     });
 });
