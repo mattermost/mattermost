@@ -109,7 +109,6 @@ issues:
         channels/app/slashcommands/auto_environment.go|\
         channels/app/slashcommands/command_test.go|\
         channels/app/slashcommands/helper_test.go|\
-        channels/app/support_packet_test.go|\
         channels/app/team.go|\
         channels/app/team_test.go|\
         channels/app/upload.go|\
