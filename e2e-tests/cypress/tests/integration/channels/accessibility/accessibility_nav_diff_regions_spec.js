@@ -66,7 +66,7 @@ describe('Verify Quick Navigation support across different regions in the app', 
         cy.uiGetPostTextBox().focus().tab().tab({shift: true});
 
         // * Verify post input region reads out correctly
-        verifyNavSupport('#advancedTextEditorCell', 'message input complimentary region', '2');
+        verifyNavSupport('#advancedTextEditorCell', 'message input complementary region', '2');
     });
 
     it('MM-T1460_3 Verify Navigation Support in RHS Post List & RHS Post Input', () => {
@@ -83,14 +83,14 @@ describe('Verify Quick Navigation support across different regions in the app', 
             cy.uiGetReplyTextBox().focus().tab({shift: true}).type('{uparrow}');
 
             // * Verify post region on RHS reads out correctly
-            verifyNavSupport('.post-right__content', 'message details complimentary region', '3');
+            verifyNavSupport('.post-right__content', 'message details complementary region', '3');
 
             // # Shift the focus to the RHS input
             cy.uiGetReplyTextBox().focus().tab().tab({shift: true});
 
             // * Verify post input on RHS reads out correctly
             cy.get('#advancedTextEditorCell').
-                should('have.attr', 'aria-label', 'message input complimentary region').
+                should('have.attr', 'aria-label', 'message input complementary region').
                 and('have.attr', 'data-a11y-sort-order', '2').
                 and('have.class', 'a11y__region');
             cy.uiGetReplyTextBox().
@@ -136,6 +136,6 @@ describe('Verify Quick Navigation support across different regions in the app', 
         cy.get('body').type('{downarrow}{uparrow}');
 
         // * Verify nav support in Search Results Container
-        verifyNavSupport('#search-items-container', 'Search Results complimentary region', '3');
+        verifyNavSupport('#search-items-container', 'Search Results complementary region', '3');
     });
 });
