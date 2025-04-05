@@ -5547,6 +5547,14 @@
     "translation": "Unable to read the version of the data import file."
   },
   {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "Failed to open the image file."
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "Failed to read profile image data."
+  },
+  {
     "id": "app.import.validate_bot_import_data.owner_missing.error",
     "translation": "Bot owner is missing"
   },
