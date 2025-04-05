@@ -57,7 +57,7 @@ const baseStyles = {
         ...provided,
         zIndex: 99999999,
     }),
-} satisfies StylesConfig<OptionType, boolean>;
+} as StylesConfig<OptionType, boolean>;
 
 const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerProps<T>) => (
     <div className='DropdownInput__indicatorsContainer'>
@@ -131,14 +131,14 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
         }
     }, [focused, inputFocused]);
 
-    const getMenuStyles = () =>
+    const getMenuStyles = <T1 extends OptionType>() =>
         (showInput ? {
             menu: (provided) => ({
                 ...provided,
                 width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '0px',
                 left: inputRef.current ? `-${inputRef.current.offsetWidth}px` : '0px',
             }),
-        } satisfies StylesConfig<OptionType, boolean> : {});
+        } as StylesConfig<T1, boolean> : {});
 
     const onInputBlur = () => setInputFocused(false);
 
@@ -239,7 +239,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                         className={classNames('Input', className, {Input__focus: showLegend})}
                         classNamePrefix={dropdownClassNamePrefix}
                         onChange={onValueChange}
-                        styles={{...baseStyles, ...getMenuStyles()}}
+                        styles={({...baseStyles, ...getMenuStyles<T>()} as StylesConfig<T, false>)}
                         value={value}
                         hideSelectedOptions={true}
                         isSearchable={false}
