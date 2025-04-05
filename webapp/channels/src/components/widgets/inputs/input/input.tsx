@@ -80,6 +80,9 @@ const Input = React.forwardRef((
     const [focused, setFocused] = useState(false);
     const [customInputLabel, setCustomInputLabel] = useState<CustomMessageInputType>(null);
 
+    const errorId = `error_${name || ''}`;
+    const inputId = `input_${name || ''}`;
+
     useEffect(() => {
         if (customMessage === undefined || customMessage === null) {
             if (customInputLabel !== null) {
@@ -136,7 +139,8 @@ const Input = React.forwardRef((
     };
 
     const showLegend = Boolean(focused || value);
-    const error = customInputLabel?.type === 'error';
+    const error = customInputLabel?.type === ItemStatus.ERROR;
+    const warning = customInputLabel?.type === ItemStatus.WARNING;
     const limitExceeded = limit && value && !Array.isArray(value) ? value.toString().length - limit : 0;
 
     const clearButton = value && clearable ? (
@@ -161,11 +165,13 @@ const Input = React.forwardRef((
             return (
                 <textarea
                     ref={ref as React.RefObject<HTMLTextAreaElement>}
-                    id={`input_${name || ''}`}
+                    id={inputId}
                     className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
                     value={value}
                     placeholder={placeholderValue}
                     aria-label={ariaLabel}
+                    aria-describedby={error ? errorId : undefined}
+                    aria-invalid={error || hasError || limitExceeded > 0}
                     rows={3}
                     name={name}
                     disabled={disabled}
@@ -179,11 +185,13 @@ const Input = React.forwardRef((
         return (
             <input
                 ref={ref as React.RefObject<HTMLInputElement>}
-                id={`input_${name || ''}`}
+                id={inputId}
                 className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
                 value={value}
                 placeholder={placeholderValue}
                 aria-label={ariaLabel}
+                aria-describedby={error ? errorId : undefined}
+                aria-invalid={error || hasError || limitExceeded > 0}
                 name={name}
                 disabled={disabled}
                 {...otherProps}
@@ -223,7 +231,11 @@ const Input = React.forwardRef((
                 {addon}
             </fieldset>
             {customInputLabel && (
-                <div className={`Input___customMessage Input___${customInputLabel.type}`}>
+                <div
+                    id={errorId}
+                    className={`Input___customMessage Input___${customInputLabel.type}`}
+                    role={error || warning ? 'alert' : undefined}
+                >
                     {customInputLabel.type && (
                         <i
                             className={classNames(`icon ${customInputLabel.type}`, {
@@ -232,6 +244,7 @@ const Input = React.forwardRef((
                                 'icon-information-outline': customInputLabel.type === ItemStatus.INFO,
                                 'icon-check': customInputLabel.type === ItemStatus.SUCCESS,
                             })}
+                            aria-hidden='true'
                         />)}
                     <span>{customInputLabel.value}</span>
                 </div>
