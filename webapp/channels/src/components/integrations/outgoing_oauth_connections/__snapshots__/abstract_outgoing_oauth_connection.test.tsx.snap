@@ -498,21 +498,13 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             title="Save Outgoing OAuth Connection"
           >
             <GenericModal
-              autoCloseOnCancelButton={true}
-              autoCloseOnConfirmButton={true}
-              bodyPadding={true}
               className="ConfirmModal a11y__modal "
               compassDesign={true}
-              enforceFocus={true}
               id="confirmModal"
-              keyboardEscape={true}
               modalHeaderText="Save Outgoing OAuth Connection"
-              modalLocation="center"
               onExited={[Function]}
               onHide={[Function]}
               show={false}
-              showCloseButton={true}
-              showHeader={true}
             >
               <Modal
                 animation={true}
@@ -1101,21 +1093,13 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             title="Save Outgoing OAuth Connection"
           >
             <GenericModal
-              autoCloseOnCancelButton={true}
-              autoCloseOnConfirmButton={true}
-              bodyPadding={true}
               className="ConfirmModal a11y__modal "
               compassDesign={true}
-              enforceFocus={true}
               id="confirmModal"
-              keyboardEscape={true}
               modalHeaderText="Save Outgoing OAuth Connection"
-              modalLocation="center"
               onExited={[Function]}
               onHide={[Function]}
               show={false}
-              showCloseButton={true}
-              showHeader={true}
             >
               <Modal
                 animation={true}

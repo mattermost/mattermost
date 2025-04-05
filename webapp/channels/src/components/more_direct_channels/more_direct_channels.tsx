@@ -296,6 +296,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 bodyPadding={false}
                 onEntered={this.loadModalData}
                 modalLocation={'top'}
+                focusTrapDelay={500}
             >
                 <div role='application'>
                     {body}
