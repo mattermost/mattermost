@@ -257,16 +257,25 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if oldTeam, err := c.App.GetTeam(c.Params.TeamId); err == nil {
+	oldTeam, err := c.App.GetTeam(c.Params.TeamId)
+	if err == nil {
 		auditRec.AddEventPriorState(oldTeam)
 		auditRec.AddEventObjectType("team")
 	}
 
 	patchedTeam, err := c.App.PatchTeam(c.Params.TeamId, &team)
-
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	// If the team is now group constrained but wasn't previously, delete members that aren't part of the team's groups
+	if patchedTeam.GroupConstrained != nil && *patchedTeam.GroupConstrained && (oldTeam.GroupConstrained == nil || !*oldTeam.GroupConstrained) {
+		c.App.Srv().Go(func() {
+			if err := c.App.DeleteGroupConstrainedTeamMemberships(c.AppContext, &c.Params.TeamId); err != nil {
+				c.Logger.Warn("Error deleting group-constrained team memberships", mlog.Err(err))
+			}
+		})
 	}
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), patchedTeam)
@@ -1655,7 +1664,6 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	team, err := c.App.GetTeam(c.Params.TeamId)
-
 	if err != nil {
 		c.Err = err
 		return
@@ -1733,7 +1741,7 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	imageData := imageArray[0]
 
-	if err := c.App.SetTeamIcon(c.Params.TeamId, imageData); err != nil {
+	if err := c.App.SetTeamIcon(c.AppContext, c.Params.TeamId, imageData); err != nil {
 		c.Err = err
 		return
 	}

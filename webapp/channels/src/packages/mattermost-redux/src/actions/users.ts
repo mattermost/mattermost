@@ -988,10 +988,10 @@ export function updateMe(user: Partial<UserProfile>): ActionFuncAsync<UserProfil
     };
 }
 
-export function saveCustomProfileAttribute(userID: string, attributeID: string, attributeValue: string): ActionFuncAsync<Record<string, string>> {
+export function saveCustomProfileAttribute(userID: string, attributeID: string, attributeValue: string | string[]): ActionFuncAsync<Record<string, string | string[]>> {
     return async (dispatch) => {
         try {
-            const values = {[attributeID]: attributeValue.trim()};
+            const values = {[attributeID]: attributeValue || ''};
             const data = await Client4.updateCustomProfileAttributeValues(values);
             return {data};
         } catch (error) {
