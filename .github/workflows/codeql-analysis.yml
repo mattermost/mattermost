@@ -34,6 +34,7 @@ jobs:
           languages: ${{ matrix.language }}
           debug: false
           config-file: ./.github/codeql/codeql-config.yml
+          queries: ./.github/codeql/queries/ # Specify the directory for the custom query file
 
       - name: Build JavaScript
         uses: github/codeql-action/autobuild@1b549b9259bda1cb5ddde3b41741a82a2d15a841 # v3.28.13
