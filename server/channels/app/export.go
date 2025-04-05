@@ -146,8 +146,22 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		}
 	}
 
-	ctx.Logger().Info("Bulk export: exporting teams")
-	teamNames, appErr := a.exportAllTeams(ctx, job, writer)
+	var teamNames map[string]bool
+	var appErr *model.AppError
+	teamId := ""
+	if opts.TeamName == "" {
+		ctx.Logger().Info("Bulk export: exporting all teams")
+		teamNames, appErr = a.exportAllTeams(ctx, job, writer)
+	} else {
+		ctx.Logger().Info("Bulk export: exporting a single team", mlog.String("team_id", teamId))
+		var team *model.Team
+		team, err := a.Srv().Store().Team().GetByName(opts.TeamName)
+		if err != nil {
+			return model.NewAppError("BulkExport", "app.team.get.app_error", nil, "team="+opts.TeamName, http.StatusInternalServerError).Wrap(err)
+		}
+		teamId = team.Id
+		teamNames, appErr = a.exportSingleTeam(ctx, job, writer, teamId)
+	}
 	if appErr != nil {
 		return appErr
 	}
@@ -170,8 +184,12 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 	profilePictures = append(profilePictures, botPPs...)
 
-	ctx.Logger().Info("Bulk export: exporting posts")
-	attachments, appErr := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
+	if opts.TeamName == "" {
+		ctx.Logger().Info("Bulk export: exporting all posts")
+	} else {
+		ctx.Logger().Info("Bulk export: exporting posts from selected team", mlog.String("team_name", opts.TeamName))
+	}
+	attachments, appErr := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels, teamId)
 	if appErr != nil {
 		return appErr
 	}
@@ -182,15 +200,20 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		return appErr
 	}
 
-	ctx.Logger().Info("Bulk export: exporting direct channels")
-	if appErr = a.exportAllDirectChannels(ctx, job, writer, opts.IncludeArchivedChannels); appErr != nil {
-		return appErr
-	}
+	var directAttachments []imports.AttachmentImportData
+	if teamId == "" {
+		ctx.Logger().Info("Bulk export: exporting direct channels")
+		if appErr = a.exportAllDirectChannels(ctx, job, writer, opts.IncludeArchivedChannels); appErr != nil {
+			return appErr
+		}
 
-	ctx.Logger().Info("Bulk export: exporting direct posts")
-	directAttachments, appErr := a.exportAllDirectPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
-	if appErr != nil {
-		return appErr
+		ctx.Logger().Info("Bulk export: exporting direct posts")
+		directAttachments, appErr = a.exportAllDirectPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
+		if appErr != nil {
+			return appErr
+		}
+	} else {
+		ctx.Logger().Info("Bulk export: not exporting direct channels or direct posts as export is restricted to a team", mlog.String("team_id", teamId))
 	}
 
 	if opts.IncludeAttachments {
@@ -200,12 +223,14 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 			return appErr
 		}
 
-		ctx.Logger().Info("Bulk export: exporting direct file attachments")
-		newWarnings, appErr := a.exportAttachments(ctx, directAttachments, outPath, zipWr)
-		if appErr != nil {
-			return appErr
+		if teamId == "" {
+			ctx.Logger().Info("Bulk export: exporting direct file attachments")
+			newWarnings, appErr := a.exportAttachments(ctx, directAttachments, outPath, zipWr)
+			if appErr != nil {
+				return appErr
+			}
+			warnings = append(warnings, newWarnings...)
 		}
-		warnings = append(warnings, newWarnings...)
 
 		totalExportedEmojis := 0
 		emojisLen := len(emojiPaths)
@@ -429,6 +454,29 @@ func (a *App) exportAllTeams(ctx request.CTX, job *model.Job, writer io.Writer) 
 				return nil, err
 			}
 		}
+	}
+
+	return teamNames, nil
+}
+
+func (a *App) exportSingleTeam(ctx request.CTX, job *model.Job, writer io.Writer, teamId string) (map[string]bool, *model.AppError) {
+	teamNames := make(map[string]bool)
+	team, err := a.Srv().Store().Team().GetForExport(teamId)
+	if err != nil {
+		return nil, model.NewAppError("exportSingleTeam", "app.team.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if team.DeleteAt != 0 {
+		return nil, model.NewAppError("exportSingleTeam", "app.team.get.deleted.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "teams_exported", 1)
+
+	teamNames[team.Name] = true
+
+	teamLine := importLineFromTeam(team)
+	if err := a.exportWriteLine(writer, teamLine); err != nil {
+		return nil, err
 	}
 
 	return teamNames, nil
@@ -704,7 +752,7 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *imports.UserNot
 	}
 }
 
-func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool, includeArchivedChannels bool) ([]imports.AttachmentImportData, *model.AppError) {
+func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool, includeArchivedChannels bool, teamId string) ([]imports.AttachmentImportData, *model.AppError) {
 	var attachments []imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	var postProcessCount uint64
@@ -717,7 +765,7 @@ func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, 
 			logCheckpoint = time.Now()
 		}
 
-		posts, nErr := a.Srv().Store().Post().GetParentsForExportAfter(1000, afterId, includeArchivedChannels)
+		posts, nErr := a.Srv().Store().Post().GetParentsForExportAfter(1000, afterId, includeArchivedChannels, teamId)
 		if nErr != nil {
 			return nil, model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
