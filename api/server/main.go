@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os"
+	"strings"
 	"text/template"
 
 	"go/ast"
@@ -148,7 +150,10 @@ func applyExample(tmpl *template.Template, fileSet *token.FileSet, exampleFuncs 
 		log.Fatal(err)
 	}
 
-	// Inject the resulting code sample
+	// Create JavaScript example for the same endpoint
+	jsExample := createJavaScriptExample(operation.OperationId, operation)
+
+	// Inject the resulting code samples
 	operation.Extensions["x-codeSamples"] = []struct {
 		Lang   string
 		Source string
@@ -156,6 +161,10 @@ func applyExample(tmpl *template.Template, fileSet *token.FileSet, exampleFuncs 
 		{
 			Lang:   "Go",
 			Source: string(example),
+		},
+		{
+			Lang:   "JavaScript",
+			Source: jsExample,
 		},
 	}
 }
@@ -185,4 +194,74 @@ func getModelFuncs() (*token.FileSet, []modelFunc, error) {
 	}
 
 	return fileSet, examples, nil
+}
+
+// createJavaScriptExample generates JavaScript code samples for API endpoints
+func createJavaScriptExample(operationId string, operation *v3high.Operation) string {
+	// For JavaScript examples, we'll just use the operationId
+	// to determine the likely method based on naming conventions
+	method := "get"
+	if strings.HasPrefix(operationId, "create") || 
+	   strings.HasPrefix(operationId, "add") || 
+	   strings.HasPrefix(operationId, "post") ||
+	   strings.HasPrefix(operationId, "upload") {
+		method = "post"
+	} else if strings.HasPrefix(operationId, "update") || 
+	   strings.HasPrefix(operationId, "set") ||
+	   strings.HasPrefix(operationId, "put") {
+		method = "put"
+	} else if strings.HasPrefix(operationId, "delete") || 
+	   strings.HasPrefix(operationId, "remove") {
+		method = "delete"
+	} else if strings.HasPrefix(operationId, "patch") {
+		method = "patch"
+	}
+
+	// Start constructing the JS example
+	var jsCode bytes.Buffer
+	jsCode.WriteString("// First, initialize the client\n")
+	jsCode.WriteString("import {Client4} from '@mattermost/client';\n\n")
+	jsCode.WriteString("// Initialize client\n")
+	jsCode.WriteString("const client = new Client4();\n")
+	jsCode.WriteString("client.setUrl('https://your-mattermost-url.com');\n")
+	jsCode.WriteString("client.setToken('<YOUR_TOKEN>');\n\n")
+	
+	jsCode.WriteString("// Make API call\n")
+	
+	// Different template based on method
+	switch method {
+	case "get":
+		jsCode.WriteString("async function example() {\n")
+		jsCode.WriteString("  try {\n")
+		jsCode.WriteString(fmt.Sprintf("    const response = await client.%s();\n", operationId))
+		jsCode.WriteString("    console.log(response);\n")
+		jsCode.WriteString("  } catch (error) {\n")
+		jsCode.WriteString("    console.error(error);\n")
+		jsCode.WriteString("  }\n")
+		jsCode.WriteString("}\n")
+	case "post", "put", "patch":
+		jsCode.WriteString("async function example() {\n")
+		jsCode.WriteString("  try {\n")
+		jsCode.WriteString("    // Request payload\n")
+		jsCode.WriteString("    const payload = {\n")
+		jsCode.WriteString("      // Add required fields here\n")
+		jsCode.WriteString("    };\n\n")
+		jsCode.WriteString(fmt.Sprintf("    const response = await client.%s(payload);\n", operationId))
+		jsCode.WriteString("    console.log(response);\n")
+		jsCode.WriteString("  } catch (error) {\n")
+		jsCode.WriteString("    console.error(error);\n")
+		jsCode.WriteString("  }\n")
+		jsCode.WriteString("}\n")
+	case "delete":
+		jsCode.WriteString("async function example() {\n")
+		jsCode.WriteString("  try {\n")
+		jsCode.WriteString(fmt.Sprintf("    const response = await client.%s();\n", operationId))
+		jsCode.WriteString("    console.log('Resource deleted successfully');\n")
+		jsCode.WriteString("  } catch (error) {\n")
+		jsCode.WriteString("    console.error(error);\n")
+		jsCode.WriteString("  }\n")
+		jsCode.WriteString("}\n")
+	}
+
+	return jsCode.String()
 }
