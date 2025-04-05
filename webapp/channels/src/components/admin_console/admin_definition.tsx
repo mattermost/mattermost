@@ -6262,7 +6262,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'dropdown',
                             key: 'ExperimentalSettings.ClientSideCertCheck',
                             label: defineMessage({id: 'admin.experimental.clientSideCertCheck.title', defaultMessage: 'Client-Side Certification Login Method:'}),
-                            help_text: defineMessage({id: 'admin.experimental.clientSideCertCheck.desc', defaultMessage: 'When **primary**, after the client side certificate is verified, user’s email is retrieved from the certificate and is used to log in without a password. When **secondary**, after the client side certificate is verified, user’s email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials.'}),
+                            help_text: defineMessage({id: 'admin.experimental.clientSideCertCheck.desc', defaultMessage: "When **primary**, after the client side certificate is verified, user's email is retrieved from the certificate and is used to log in without a password. When **secondary**, after the client side certificate is verified, user's email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials."}),
                             help_text_markdown: true,
                             options: [
                                 {
@@ -6462,7 +6462,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'number',
                             key: 'TeamSettings.UserStatusAwayTimeout',
                             label: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.title', defaultMessage: 'User Status Away Timeout:'}),
-                            help_text: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.desc', defaultMessage: 'This setting defines the number of seconds after which the user’s status indicator changes to "Away", when they are away from Mattermost.'}),
+                            help_text: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.desc', defaultMessage: 'This setting defines the number of seconds after which the user\'s status indicator changes to "Away", when they are away from Mattermost.'}),
                             help_text_markdown: false,
                             placeholder: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.example', defaultMessage: 'E.g.: "300"'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
