@@ -54,6 +54,7 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("dnd status timed restore after time interval", func(t *testing.T) {
+		t.Skip("https://mattermost.atlassian.net/browse/MM-63533")
 		task := model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses From Test", th.App.UpdateDNDStatusOfUsers, 1*time.Second)
 		defer task.Cancel()
 		th.App.SetStatusOnline(th.BasicUser.Id, true)

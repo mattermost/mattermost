@@ -6,9 +6,9 @@ import isEmpty from 'lodash/isEmpty';
 import {useMemo} from 'react';
 
 import type {ClientError} from '@mattermost/client';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {FieldValueType, FieldVisibility, UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldPatch} from '@mattermost/types/properties';
 import {collectionAddItem, collectionFromArray, collectionRemoveItem, collectionReplaceItem, collectionToArray} from '@mattermost/types/utilities';
-import type {PartialExcept, IDMappedCollection, IDMappedObjects} from '@mattermost/types/utilities';
+import type {IDMappedCollection, IDMappedObjects} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
 import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
@@ -56,6 +56,7 @@ export const useUserPropertyFields = () => {
                     break;
                 case item !== prevCollection.data[item.id]:
                     ops.edit.push(item);
+                    break;
                 }
 
                 return ops;
@@ -85,8 +86,17 @@ export const useUserPropertyFields = () => {
             // update
             await Promise.all(process.edit.map(async (pendingItem) => {
                 const {id, name, type, attrs} = pendingItem;
+                let patch = {name, type, attrs};
 
-                return Client4.patchCustomProfileAttributeField(id, {name, type, attrs}).
+                // clear options if not select/multiselect
+                if (type !== 'select' && type !== 'multiselect') {
+                    const attrs = {...patch.attrs};
+                    Reflect.deleteProperty(attrs, 'options');
+
+                    patch = {...patch, attrs};
+                }
+
+                return Client4.patchCustomProfileAttributeField(id, patch).
                     then((nextItem) => {
                         // data:updated
                         next.data[id] = nextItem;
@@ -153,6 +163,13 @@ export const useUserPropertyFields = () => {
                     }
                 }
 
+                if (field.type === 'select' || field.type === 'multiselect') {
+                    const options = field.attrs?.options;
+                    if (!options?.length) {
+                        acc[field.id] = {attrs: ValidationWarningOptionsRequired};
+                    }
+                }
+
                 return acc;
             }, {});
 
@@ -178,7 +195,7 @@ export const useUserPropertyFields = () => {
             pendingIO.apply((pending) => {
                 const nextOrder = Object.values(pending.data).filter((x) => !isDeletePending(x)).length;
                 const name = getIncrementedName('Text', pending);
-                const field = newPendingField({name, type: 'text', attrs: {sort_order: nextOrder}});
+                const field = newPendingField({name, type: 'text', attrs: {sort_order: nextOrder, visibility: 'when_set', value_type: ''}});
                 return collectionAddItem(pending, field);
             });
         },
@@ -195,7 +212,7 @@ export const useUserPropertyFields = () => {
                     const itemNextOrder = nextOrder.indexOf(item.id);
 
                     if (itemNextOrder !== itemCurrentOrder) {
-                        changedItems.push({...item, attrs: {sort_order: itemNextOrder}});
+                        changedItems.push({...item, attrs: {...item.attrs, sort_order: itemNextOrder}});
                     }
 
                     return changedItems;
@@ -224,6 +241,7 @@ export const useUserPropertyFields = () => {
 export const ValidationWarningNameRequired = 'user_properties.validation.name_required';
 export const ValidationWarningNameUnique = 'user_properties.validation.name_unique';
 export const ValidationWarningNameTaken = 'user_properties.validation.name_taken';
+export const ValidationWarningOptionsRequired = 'user_properties.validation.options_required';
 
 const getIncrementedName = (desiredName: string, collection: UserPropertyFields) => {
     const names = new Set(Object.values(collection.data).map(({name}) => name));
@@ -249,14 +267,21 @@ export const isDeletePending = <T extends {delete_at: number; create_at: number}
 
 export const newPendingId = () => `${PENDING}${generateId()}`;
 
-export const newPendingField = (patch: PartialExcept<UserPropertyField, 'name'>): UserPropertyField => {
+export const newPendingField = (patch: UserPropertyFieldPatch & Pick<UserPropertyField, 'name'>): UserPropertyField => {
     return {
         ...patch,
         type: 'text',
-        group_id: 'custom_profile_attributes',
+        group_id: 'custom_profile_attributes' satisfies UserPropertyFieldGroupID,
         id: newPendingId(),
         create_at: 0,
         delete_at: 0,
         update_at: 0,
+        attrs: {
+            visibility: 'when_set' satisfies FieldVisibility,
+            sort_order: 0,
+            value_type: '' satisfies FieldValueType,
+            ...patch.attrs,
+        },
+
     };
 };

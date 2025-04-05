@@ -9,7 +9,7 @@ import type {ClientLicense} from '@mattermost/types/config';
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
 import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
 
-import {isEnterpriseOrE20License} from 'utils/license_utils';
+import {isEnterpriseLicense} from 'utils/license_utils';
 
 export interface EnterpriseEditionProps {
     isTrialLicense: boolean;
@@ -29,7 +29,7 @@ const EnterpriseEditionRightPanel = ({
         'And more...',
     ];
 
-    const isEnterpriseOrE20 = isEnterpriseOrE20License(license);
+    const isEnterpriseOrE20 = isEnterpriseLicense(license);
 
     const contactSalesBtn = (
         <div className='purchase-card'>

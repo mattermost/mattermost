@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeaderMobile from './channel_header_mobile';
@@ -14,86 +14,91 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         removeEventListener: jest.fn(),
     });
 
-    const baseProps = {
-        user: TestHelper.getUserMock({
-            id: 'user_id',
-        }),
-        channel: TestHelper.getChannelMock({
-            type: 'O',
-            id: 'channel_id',
-            display_name: 'display_name',
-            team_id: 'team_id',
-        }),
-        member: TestHelper.getChannelMembershipMock({
-            channel_id: 'channel_id',
-            user_id: 'user_id',
-        }),
-        teamDisplayName: 'team_display_name',
-        isPinnedPosts: true,
-        actions: {
-            closeLhs: jest.fn(),
-            closeRhs: jest.fn(),
-            closeRhsMenu: jest.fn(),
-        },
-        isLicensed: true,
-        isMobileView: false,
-        isFavoriteChannel: false,
+    const user = TestHelper.getUserMock({
+        id: 'user_id',
+    });
+    const channel = TestHelper.getChannelMock({
+        type: 'O',
+        id: 'channel_id',
+        display_name: 'display_name',
+        team_id: 'team_id',
+    });
+    const actions = {
+        closeLhs: jest.fn(),
+        closeRhs: jest.fn(),
+        closeRhsMenu: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <ChannelHeaderMobile {...baseProps}/>,
-        );
+    describe('components/ChannelHeaderMenu/MenuItem/ChannelHeaderMobile', () => {
+        test('renders the component correctly', () => {
+            renderWithContext(
+                <div
+                    className='inner-wrap'
+                    data-testid='wrapper'
+                >
+                    <ChannelHeaderMobile
+                        channel={channel}
+                        isMobileView={false}
+                        user={user}
+                        actions={actions}
+                    />
+                </div>,
+            );
 
-        expect(wrapper).toMatchSnapshot();
-    });
+            let menuItem = screen.getByText('Toggle sidebar');
+            expect(menuItem).toBeInTheDocument();
 
-    test('should match snapshot, for default channel', () => {
-        const props = {
-            ...baseProps,
-            channel: TestHelper.getChannelMock({
-                type: 'O',
-                id: '123',
-                name: 'town-square',
-                display_name: 'Town Square',
-                team_id: 'team_id',
-            }),
-        };
-        const wrapper = shallow(
-            <ChannelHeaderMobile {...props}/>,
-        );
+            menuItem = screen.getByLabelText('Info');
+            expect(menuItem).toBeInTheDocument();
 
-        expect(wrapper).toMatchSnapshot();
-    });
+            menuItem = screen.getByLabelText('Search');
+            expect(menuItem).toBeInTheDocument();
 
-    test('should match snapshot, if DM channel', () => {
-        const props = {
-            ...baseProps,
-            channel: TestHelper.getChannelMock({
-                type: 'D',
-                id: 'channel_id',
-                name: 'user_id_1__user_id_2',
-                display_name: 'display_name',
-                team_id: 'team_id',
-            }),
-        };
-        const wrapper = shallow(<ChannelHeaderMobile {...props}/>);
+            menuItem = screen.getByText('Toggle right sidebar');
+            expect(menuItem).toBeInTheDocument();
 
-        expect(wrapper).toMatchSnapshot();
-    });
+            const wrapper = screen.getByTestId('wrapper');
+            expect(wrapper).toBeInTheDocument();
+        });
 
-    test('should match snapshot, for private channel', () => {
-        const props = {
-            ...baseProps,
-            channel: TestHelper.getChannelMock({
-                type: 'P',
-                id: 'channel_id',
-                display_name: 'display_name',
-                team_id: 'team_id',
-            }),
-        };
-        const wrapper = shallow(<ChannelHeaderMobile {...props}/>);
+        test('renders the component correctly, global threads', () => {
+            renderWithContext(
+                <div
+                    className='inner-wrap'
+                    data-testid='wrapper'
+                >
+                    <ChannelHeaderMobile
+                        channel={channel}
+                        isMobileView={false}
+                        inGlobalThreads={true}
+                        user={user}
+                        actions={actions}
+                    />
+                </div>,
+            );
 
-        expect(wrapper).toMatchSnapshot();
+            const menuItem = screen.getByText('Followed threads');
+            expect(menuItem).toBeInTheDocument();
+        });
+
+        test('renders the component correctly, in drafts', () => {
+            renderWithContext(
+                <div
+                    className='inner-wrap'
+                    data-testid='wrapper'
+                >
+                    <ChannelHeaderMobile
+                        channel={channel}
+                        isMobileView={false}
+                        inDrafts={true}
+                        user={user}
+                        actions={actions}
+                    />
+                </div>,
+            );
+
+            const menuItem = screen.getByText('Drafts');
+            expect(menuItem).toBeInTheDocument();
+        });
     });
 });
