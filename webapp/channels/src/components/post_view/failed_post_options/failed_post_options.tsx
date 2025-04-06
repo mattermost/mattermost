@@ -57,7 +57,7 @@ const FailedPostOptions = ({
                 }
             >
                 <button
-                    className={classNames('btn', 'btn-tertiary', 'btn-sm', {'btn-icon': isRHS})}
+                    className={classNames('btn', 'btn-tertiary', 'btn-sm')}
                     onClick={retryPost}
                     aria-label='Retry'
                 >
@@ -66,10 +66,12 @@ const FailedPostOptions = ({
                         color='currentColor'
                     />
                     {!isRHS && (
-                        <FormattedMessage
-                            id='pending_post_actions.retry'
-                            defaultMessage='Retry'
-                        />
+                        <span className='btn__label'>
+                            <FormattedMessage
+                                id='pending_post_actions.retry'
+                                defaultMessage='Retry'
+                            />
+                        </span>
                     )}
                 </button>
             </WithTooltip>
@@ -91,10 +93,12 @@ const FailedPostOptions = ({
                         color='currentColor'
                     />
                     {!isRHS && (
-                        <FormattedMessage
-                            id='pending_post_actions.cancel'
-                            defaultMessage='Cancel'
-                        />
+                        <span className='btn__label'>
+                            <FormattedMessage
+                                id='pending_post_actions.cancel'
+                                defaultMessage='Cancel'
+                            />
+                        </span>
                     )}
                 </button>
             </WithTooltip>

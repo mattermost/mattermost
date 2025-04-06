@@ -593,8 +593,7 @@ function PostComponent(props: Props) {
                                     />
                                 }
                                 {post.failed && (
-                                <div className='failed-post-message'>
-                                    {isRHS ? (
+                                    <div className='failed-post-message'>
                                         <WithTooltip
                                             title={
                                                 <FormattedMessage
@@ -603,20 +602,15 @@ function PostComponent(props: Props) {
                                                 />
                                             }
                                         >
-                                            <div style={{display: 'inline-flex'}}>
-                                                <AlertOutlineIcon className='icon icon-alert'/>
-                                            </div>
+                                            <span className='failed-post-message__icon'><AlertOutlineIcon className='icon icon-alert'/></span>
                                         </WithTooltip>
-                                    ) : (
-                                        <>
-                                            <AlertOutlineIcon className='icon icon-alert'/>
+                                        <span className='failed-post-message__label'>
                                             <FormattedMessage
                                                 id='create_post.failed_post_message.error'
                                                 defaultMessage="Couldn't be sent"
                                             />
-                                        </>
-                                    )}
-                                </div>
+                                        </span>
+                                    </div>
                                 )}
                                 {priority}
                                 {post.props && post.props.card &&

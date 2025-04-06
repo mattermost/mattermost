@@ -550,7 +550,9 @@
     padding: 8px 0.5em 0 1.5em; // If this needs to be changed then .post-row__padding needs to be adjusted accordingly
     transition: height 200ms, background-color 200ms;
     word-wrap: break-word;
-
+    container-name: post;
+    container-type: inline-size;
+    
     &:not(.post--editing):not(.post--editing):hover {
         background-color: rgba(functions.v(center-channel-color-rgb), 0.04);
 
@@ -1776,6 +1778,8 @@
         gap: 4px;
     
         .icon-alert {
+            position: relative;
+            top: 3px;
             width: 14px;
             height: 14px;
             fill: var(--error-text);
@@ -1805,6 +1809,25 @@
         }
     }
     
+    @container post (max-width: 600px) {
+        .failed-post-buttons {
+            .btn {
+                padding: 4px 4px;
+                width: 28px;
+                height: 28px;
+
+                .btn__label {
+                    display: none; //hide labels
+                }
+            }
+        }
+
+        .failed-post-message {
+            .failed-post-message__label {
+                display: none; //hide labels
+            }
+        }
+    }
 
     .web-embed-data {
         overflow: hidden;
@@ -2309,7 +2332,7 @@
         }
     }
     &:has(.failed-post-buttons) {
-        background-color: rgba(var(--error-text-color-rgb), 0.08);
+        background-color: rgba(var(--error-text-color-rgb), 0.12);
 
         &:hover {
             background-color: rgba(var(--error-text-color-rgb), 0.16);

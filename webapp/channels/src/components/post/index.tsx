@@ -73,7 +73,7 @@ function isConsecutivePost(state: GlobalState, ownProps: OwnProps) {
 
     let consecutivePost = false;
 
-    if (previousPost && post && !post.metadata?.priority?.priority) {
+    if (previousPost && post && !post.metadata?.priority?.priority && !post.failed) {
         consecutivePost = areConsecutivePostsBySameUser(post, previousPost);
     }
     return consecutivePost;
