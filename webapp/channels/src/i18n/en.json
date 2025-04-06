@@ -3212,6 +3212,7 @@
   "change_url.shorter": "URLs must have maximum 64 characters.",
   "change_url.startAndEndWithLetter": "URLs must start and end with a lowercase letter or number.",
   "change_url.startWithLetter": "URLs must start with a lowercase letter or number.",
+  "channel_banner.aria_label": "Channel banner text",
   "channel_bookmarks.addBookmark": "Add a bookmark",
   "channel_bookmarks.addBookmarkLimitReached": "Cannot add more than {limit} bookmarks",
   "channel_bookmarks.addLink": "Add a link",
