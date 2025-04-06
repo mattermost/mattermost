@@ -57,7 +57,7 @@ const FailedPostOptions = ({
                 }
             >
                 <button
-                    className={classNames('btn', 'btn-tertiary', 'btn-sm')}
+                    className={classNames('btn', 'btn-tertiary', 'btn-sm', 'post-retry-button')}
                     onClick={retryPost}
                     aria-label='Retry'
                 >
@@ -84,7 +84,7 @@ const FailedPostOptions = ({
                 }
             >
                 <button
-                    className={classNames('btn', 'btn-tertiary', 'btn-danger', 'btn-sm', {'btn-icon': isRHS})}
+                    className={classNames('btn', 'btn-tertiary', 'btn-danger', 'btn-sm', 'post-cancel-button')}
                     onClick={cancelPost}
                     aria-label='Cancel'
                 >
