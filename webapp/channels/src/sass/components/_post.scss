@@ -547,11 +547,11 @@
     position: relative;
     overflow: hidden;
     max-width: 100%;
-    padding: 8px 0.5em 0 1.5em; // If this needs to be changed then .post-row__padding needs to be adjusted accordingly
-    transition: height 200ms, background-color 200ms;
-    word-wrap: break-word;
+    padding: 8px 0.5em 0 1.5em;
     container-name: post;
     container-type: inline-size;
+    transition: height 200ms, background-color 200ms;
+    word-wrap: break-word;
     
     &:not(.post--editing):not(.post--editing):hover {
         background-color: rgba(functions.v(center-channel-color-rgb), 0.04);
@@ -1770,13 +1770,13 @@
     }
 
     .failed-post-message {
-        color: var(--error-text);
-        font-size: 0.9em;
-        margin-left: 8px;
         display: inline-flex;
         align-items: center;
+        margin-left: 8px;
+        color: var(--error-text);
+        font-size: 0.9em;
         gap: 4px;
-    
+
         .icon-alert {
             position: relative;
             top: 3px;
@@ -1787,15 +1787,21 @@
     }
     
     .failed-post-buttons {
-        display: flex;
-        padding: 4px 12px;
         position: absolute;
+        z-index: 5;
         top: 0;
         right: 0;
-        z-index: 5;
+        display: flex;
+        padding: 4px 12px;
 
         .btn {
+            width: 28px;
             height: 28px;
+            padding: 4px;
+
+            .btn__label {
+                display: none;
+            }
         }
 
         .btn-tertiary.btn-danger {
@@ -1812,19 +1818,19 @@
     @container post (max-width: 600px) {
         .failed-post-buttons {
             .btn {
-                padding: 4px 4px;
                 width: 28px;
                 height: 28px;
+                padding: 4px 4px;
 
                 .btn__label {
-                    display: none; //hide labels
+                    display: none;
                 }
             }
         }
 
         .failed-post-message {
             .failed-post-message__label {
-                display: none; //hide labels
+                display: none;
             }
         }
     }
@@ -2173,7 +2179,9 @@
     }
 
     .edit-post-history__icon__button {
+        position: relative;
         height: fit-content;
+        padding: 0;
         color: rgba(var(--center-channel-color-rgb), 0.75);
 
         &:hover {
@@ -2228,13 +2236,19 @@
     margin-top: 8px;
 
     .edit-post-history__header__username {
+        display: flex;
         margin-left: 8px;
+        font-size: 14px;
         font-weight: 600;
         text-overflow: ellipsis;
     }
 }
 
 .edit-post-history__current__indicator {
+    position: relative;
+    z-index: 1;
+    top: 0;
+    right: 0;
     display: flex;
     width: fit-content;
     padding: 1px 5px 2px;
@@ -2281,6 +2295,48 @@
 
 .post__header-set-custom-status {
     display: none;
+    width: fit-content;
+    padding: 0 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+
+    &-icon > svg {
+        width: 12px;
+        height: 12px;
+        margin-right: 4px;
+        background: inherit;
+        fill: rgba(var(--center-channel-color-rgb), 0.64);
+        vertical-align: middle;
+    }
+
+    &-text {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        font-weight: normal;
+    }
+
+    &:hover {
+        &-icon > svg {
+            fill: rgba(var(--center-channel-color-rgb), 0.8);
+        }
+
+        &-text {
+            color: rgba(var(--center-channel-color-rgb), 0.8);
+        }
+    }
+
+    &:active {
+        background: rgba(var(--button-bg-rgb), 0.08);
+
+        &-icon > svg {
+            fill: var(--button-bg);
+        }
+
+        &-text {
+            color: var(--button-bg);
+        }
+    }
 }
 
 .post.current--user {

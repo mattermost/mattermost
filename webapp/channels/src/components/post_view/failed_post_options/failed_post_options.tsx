@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {memo, useCallback} from 'react';
 import type {MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
-import classNames from 'classnames';
 
+import {RefreshIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
 import type {ExtendedPost} from 'mattermost-redux/actions/posts';
 
-import {RefreshIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import WithTooltip from 'components/with_tooltip';
 
 import {Locations} from 'utils/constants';
-import WithTooltip from 'components/with_tooltip';
 
 type Props = {
     post: Post;
