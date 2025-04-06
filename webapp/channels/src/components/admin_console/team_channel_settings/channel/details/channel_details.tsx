@@ -5,7 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch, ChannelType} from '@mattermost/types/channels';
+import type {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch} from '@mattermost/types/channels';
 import {SyncableType} from '@mattermost/types/groups';
 import type {SyncablePatch, Group} from '@mattermost/types/groups';
 import type {Scheme} from '@mattermost/types/schemes';
@@ -424,6 +424,11 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             return;
         }
 
+        let privacyChangePromise;
+        if (isPrivacyChanging) {
+            privacyChangePromise = actions.updateChannelPrivacy(channel.id, isPublic ? Constants.OPEN_CHANNEL : Constants.PRIVATE_CHANNEL);
+        }
+
         const patchChannelSyncable = groups.
             filter((g) => {
                 return origGroups.some((group) => group.id === g.id && group.scheme_admin !== g.scheme_admin);
@@ -438,7 +443,9 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
         // First execute link operations
         const promisesToExecute = [...patchChannelSyncable, ...link];
-
+        if (privacyChangePromise) {
+            promisesToExecute.push(privacyChangePromise);
+        }
         const linkResult = await Promise.all(promisesToExecute);
         let resultWithError = linkResult.find((r) => 'error' in r);
         if (resultWithError && 'error' in resultWithError) {
@@ -449,7 +456,6 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         const patchResult = await actions.patchChannel(channel.id, {
             ...channel,
             group_constrained: isSynced,
-            type: (isPublic ? Constants.OPEN_CHANNEL : Constants.PRIVATE_CHANNEL) as ChannelType,
         });
 
         if ('error' in patchResult) {

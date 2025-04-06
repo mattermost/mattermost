@@ -362,10 +362,6 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 		o.Purpose = *patch.Purpose
 	}
 
-	if patch.Type != "" {
-		o.Type = patch.Type
-	}
-
 	if patch.GroupConstrained != nil {
 		o.GroupConstrained = patch.GroupConstrained
 	}
