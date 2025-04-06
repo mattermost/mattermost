@@ -38,6 +38,7 @@ import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
+import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
 import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
@@ -591,6 +592,32 @@ function PostComponent(props: Props) {
                                         timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
                                     />
                                 }
+                                {post.failed && (
+                                <div className='failed-post-message'>
+                                    {isRHS ? (
+                                        <WithTooltip
+                                            title={
+                                                <FormattedMessage
+                                                    id='create_post.failed_post_message.error'
+                                                    defaultMessage="Couldn't be sent"
+                                                />
+                                            }
+                                        >
+                                            <div style={{display: 'inline-flex'}}>
+                                                <AlertOutlineIcon className='icon icon-alert'/>
+                                            </div>
+                                        </WithTooltip>
+                                    ) : (
+                                        <>
+                                            <AlertOutlineIcon className='icon icon-alert'/>
+                                            <FormattedMessage
+                                                id='create_post.failed_post_message.error'
+                                                defaultMessage="Couldn't be sent"
+                                            />
+                                        </>
+                                    )}
+                                </div>
+                                )}
                                 {priority}
                                 {post.props && post.props.card &&
                                     <WithTooltip
@@ -635,7 +662,7 @@ function PostComponent(props: Props) {
                             className={postClass}
                             id={isRHS ? undefined : `${post.id}_message`}
                         >
-                            {post.failed && <FailedPostOptions post={post}/>}
+                            {post.failed && <FailedPostOptions post={post} location={props.location}/>}
                             <AutoHeightSwitcher
                                 showSlot={slotBasedOnEditOrMessageView}
                                 shouldScrollIntoView={props.isPostBeingEdited}

@@ -3553,6 +3553,7 @@
   "create_post_button.option.send_now": "Send Now",
   "create_post.dm_or_gm_remote": "Direct Messages and Group Messages with remote users are not supported.",
   "create_post.error_message": "Your message is too long. Character count: {length}/{limit}",
+  "create_post.failed_post_message.error": "Couldn't be sent",
   "create_post.file_limit_sticky_banner.admin_message": "New uploads will automatically archive older files. To view them again, you can delete older files or <a>upgrade to a paid plan.</a>",
   "create_post.file_limit_sticky_banner.messageTitle": "Your free plan is limited to {storageGB} of files.",
   "create_post.file_limit_sticky_banner.non_admin_message": "New uploads will automatically archive older files. To view them again, <a>notify your admin to upgrade to a paid plan.</a>",

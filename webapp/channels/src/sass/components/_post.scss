@@ -1446,16 +1446,6 @@
             }
         }
 
-        ul + p,
-        ol + p {
-            margin-top: 0.6em;
-        }
-
-        p + ul,
-        p + ol {
-            margin-top: 0.6em;
-        }
-
         .pending-post-actions {
             position: absolute;
             z-index: 100;
@@ -1776,6 +1766,45 @@
             fill: var(--center-channel-color);
         }
     }
+
+    .failed-post-message {
+        color: var(--error-text);
+        font-size: 0.9em;
+        margin-left: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    
+        .icon-alert {
+            width: 14px;
+            height: 14px;
+            fill: var(--error-text);
+        }
+    }
+    
+    .failed-post-buttons {
+        display: flex;
+        padding: 4px 12px;
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 5;
+
+        .btn {
+            height: 28px;
+        }
+
+        .btn-tertiary.btn-danger {
+            color: var(--error-text);
+
+            &:hover,
+            &:active,
+            &:focus {
+                color: var(--error-text);
+            }
+        }
+    }
+    
 
     .web-embed-data {
         overflow: hidden;
@@ -2277,6 +2306,13 @@
                     color: var(--button-bg);
                 }
             }
+        }
+    }
+    &:has(.failed-post-buttons) {
+        background-color: rgba(var(--error-text-color-rgb), 0.08);
+
+        &:hover {
+            background-color: rgba(var(--error-text-color-rgb), 0.16);
         }
     }
 }

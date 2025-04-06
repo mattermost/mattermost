@@ -4,14 +4,21 @@
 import React, {memo, useCallback} from 'react';
 import type {MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
+import classNames from 'classnames';
 
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
 import type {ExtendedPost} from 'mattermost-redux/actions/posts';
 
+import {RefreshIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+
+import {Locations} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
+
 type Props = {
     post: Post;
+    location: keyof typeof Locations;
     actions: {
         createPost: (post: Post, files: FileInfo[]) => void;
         removePost: (post: ExtendedPost) => void;
@@ -20,6 +27,7 @@ type Props = {
 
 const FailedPostOptions = ({
     post,
+    location,
     actions,
 }: Props) => {
     const retryPost = useCallback((e: MouseEvent): void => {
@@ -36,30 +44,61 @@ const FailedPostOptions = ({
         actions.removePost(post);
     }, [actions, post]);
 
+    const isRHS = location === Locations.RHS_ROOT || location === Locations.RHS_COMMENT;
+
     return (
-        <span className='pending-post-actions'>
-            <a
-                className='post-retry'
-                href='#'
-                onClick={retryPost}
+        <div className='failed-post-buttons'>
+            <WithTooltip
+                title={
+                    <FormattedMessage
+                        id='pending_post_actions.retry'
+                        defaultMessage='Retry'
+                    />
+                }
             >
-                <FormattedMessage
-                    id='pending_post_actions.retry'
-                    defaultMessage='Retry'
-                />
-            </a>
-            {' - '}
-            <a
-                className='post-cancel'
-                href='#'
-                onClick={cancelPost}
+                <button
+                    className={classNames('btn', 'btn-tertiary', 'btn-sm', {'btn-icon': isRHS})}
+                    onClick={retryPost}
+                    aria-label='Retry'
+                >
+                    <RefreshIcon
+                        size={14}
+                        color='currentColor'
+                    />
+                    {!isRHS && (
+                        <FormattedMessage
+                            id='pending_post_actions.retry'
+                            defaultMessage='Retry'
+                        />
+                    )}
+                </button>
+            </WithTooltip>
+            <WithTooltip
+                title={
+                    <FormattedMessage
+                        id='pending_post_actions.cancel'
+                        defaultMessage='Cancel'
+                    />
+                }
             >
-                <FormattedMessage
-                    id='pending_post_actions.cancel'
-                    defaultMessage='Cancel'
-                />
-            </a>
-        </span>
+                <button
+                    className={classNames('btn', 'btn-tertiary', 'btn-danger', 'btn-sm', {'btn-icon': isRHS})}
+                    onClick={cancelPost}
+                    aria-label='Cancel'
+                >
+                    <TrashCanOutlineIcon
+                        size={14}
+                        color='currentColor'
+                    />
+                    {!isRHS && (
+                        <FormattedMessage
+                            id='pending_post_actions.cancel'
+                            defaultMessage='Cancel'
+                        />
+                    )}
+                </button>
+            </WithTooltip>
+        </div>
     );
 };
 
