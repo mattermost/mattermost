@@ -82,6 +82,9 @@ const Input = React.forwardRef((
     const [focused, setFocused] = useState(false);
     const [customInputLabel, setCustomInputLabel] = useState<CustomMessageInputType>(null);
 
+    const errorId = `error_${name || ''}`;
+    const inputId = `input_${name || ''}`;
+
     useEffect(() => {
         if (customMessage === undefined || customMessage === null) {
             if (customInputLabel !== null) {
@@ -155,6 +158,8 @@ const Input = React.forwardRef((
     };
 
     const showLegend = Boolean(focused || value);
+    const error = customInputLabel?.type === ItemStatus.ERROR;
+    const warning = customInputLabel?.type === ItemStatus.WARNING;
     const limitExceeded = limit && value && !Array.isArray(value) ? value.toString().length - limit : 0;
     const minLengthNotMet = minLength && value !== undefined && !Array.isArray(value) ? minLength - value.toString().length : (minLength || 0);
 
@@ -198,11 +203,13 @@ const Input = React.forwardRef((
             return (
                 <textarea
                     ref={ref as React.RefObject<HTMLTextAreaElement>}
-                    id={`input_${name || ''}`}
+                    id={inputId}
                     className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
                     value={value}
                     placeholder={placeholderValue}
                     aria-label={ariaLabel}
+                    aria-describedby={error ? errorId : undefined}
+                    aria-invalid={error || hasError || limitExceeded > 0}
                     rows={3}
                     name={name}
                     disabled={disabled}
@@ -216,11 +223,13 @@ const Input = React.forwardRef((
         return (
             <input
                 ref={ref as React.RefObject<HTMLInputElement>}
-                id={`input_${name || ''}`}
+                id={inputId}
                 className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
                 value={value}
                 placeholder={placeholderValue}
                 aria-label={ariaLabel}
+                aria-describedby={error ? errorId : undefined}
+                aria-invalid={error || hasError || limitExceeded > 0}
                 name={name}
                 disabled={disabled}
                 {...otherProps}
@@ -266,7 +275,11 @@ const Input = React.forwardRef((
             </fieldset>
             {/* Display custom or derived error messages */}
             {(customInputLabel || derivedErrorMessage) && (
-                <div className={`Input___customMessage Input___${customInputLabel?.type || 'error'}`}>
+                <div
+                    className={`Input___customMessage Input___${customInputLabel?.type || 'error'}`}
+                    id={errorId}
+                    role={error || warning ? 'alert' : undefined}
+                >
                     <i
                         className={classNames(`icon ${customInputLabel?.type || 'error'}`, {
                             'icon-alert-outline': (customInputLabel?.type || 'error') === ItemStatus.WARNING,

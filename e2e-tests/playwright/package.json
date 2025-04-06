@@ -9,7 +9,7 @@
     "postinstall": "npm run build",
     "build": "npm run build --workspaces --if-present",
     "build:watch": "npm run build:watch --workspaces --if-present",
-    "clean": "rm -rf node_modules logs results test-results && npm run clean --workspaces --if-present",
+    "clean": "rm -rf node_modules package-lock.json logs results test-results && npm run clean --workspaces --if-present",
     "tsc": "npm run tsc --workspaces --if-present",
     "lint": "eslint .",
     "prettier": "prettier . --check",
@@ -23,12 +23,12 @@
     "@playwright/test": "1.51.1"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "8.28.0",
+    "@typescript-eslint/eslint-plugin": "8.29.0",
     "eslint": "9.23.0",
-    "eslint-import-resolver-typescript": "4.2.7",
+    "eslint-import-resolver-typescript": "4.3.1",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.31.0",
     "prettier": "3.5.3",
-    "typescript": "5.7.3"
+    "typescript": "5.8.2"
   }
 }
