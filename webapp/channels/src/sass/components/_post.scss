@@ -1795,13 +1795,8 @@
         padding: 4px 12px;
 
         .btn {
-            width: 28px;
             height: 28px;
-            padding: 4px;
-
-            .btn__label {
-                display: none;
-            }
+            padding: 0 12px;
         }
 
         .btn-tertiary.btn-danger {

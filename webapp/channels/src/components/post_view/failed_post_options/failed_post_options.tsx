@@ -65,14 +65,12 @@ const FailedPostOptions = ({
                         size={14}
                         color='currentColor'
                     />
-                    {!isRHS && (
-                        <span className='btn__label'>
-                            <FormattedMessage
-                                id='pending_post_actions.retry'
-                                defaultMessage='Retry'
-                            />
-                        </span>
-                    )}
+                    <span className='btn__label'>
+                        <FormattedMessage
+                            id='pending_post_actions.retry'
+                            defaultMessage='Retry'
+                        />
+                    </span>
                 </button>
             </WithTooltip>
             <WithTooltip
@@ -92,14 +90,12 @@ const FailedPostOptions = ({
                         size={14}
                         color='currentColor'
                     />
-                    {!isRHS && (
-                        <span className='btn__label'>
-                            <FormattedMessage
-                                id='pending_post_actions.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </span>
-                    )}
+                    <span className='btn__label'>
+                        <FormattedMessage
+                            id='pending_post_actions.cancel'
+                            defaultMessage='Cancel'
+                        />
+                    </span>
                 </button>
             </WithTooltip>
         </div>
