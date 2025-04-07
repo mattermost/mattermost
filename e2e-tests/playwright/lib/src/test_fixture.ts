@@ -8,6 +8,8 @@ import {AxeBuilder} from '@axe-core/playwright';
 import {TestBrowser} from './browser_context';
 import {
     ensureLicense,
+    ensurePluginsLoaded,
+    ensureServerDeployment,
     shouldHaveCallsEnabled,
     shouldHaveFeatureFlag,
     shouldRunInLinux,
@@ -20,7 +22,6 @@ import {
     createRandomPost,
     createRandomTeam,
     createRandomUser,
-    ensurePluginsLoaded,
     getAdminClient,
     initSetup,
 } from './server';
@@ -64,6 +65,7 @@ export class PlaywrightExtended {
     readonly shouldHaveFeatureFlag;
     readonly shouldRunInLinux;
     readonly ensureLicense;
+    readonly ensureServerDeployment;
     readonly skipIfNoLicense;
     readonly skipIfFeatureFlagNotSet;
 
@@ -113,6 +115,7 @@ export class PlaywrightExtended {
         this.shouldHaveFeatureFlag = shouldHaveFeatureFlag;
         this.shouldRunInLinux = shouldRunInLinux;
         this.ensureLicense = ensureLicense;
+        this.ensureServerDeployment = ensureServerDeployment;
         this.skipIfNoLicense = skipIfNoLicense;
         this.skipIfFeatureFlagNotSet = skipIfFeatureFlagNotSet;
 

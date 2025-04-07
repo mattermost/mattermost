@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect} from '@playwright/test';
 import {Client4} from '@mattermost/client';
 import {UserProfile} from '@mattermost/types/users';
 import {PluginManifest} from '@mattermost/types/plugins';
 import {PreferenceType} from '@mattermost/types/preferences';
 
 import {defaultTeam} from './util';
-import {createRandomTeam, ensurePluginsLoaded, getAdminClient, getDefaultAdminUser, makeClient} from './server';
+import {createRandomTeam, getAdminClient, getDefaultAdminUser, makeClient} from './server';
 import {testConfig} from './test_config';
 
 export async function baseGlobalSetup() {
@@ -66,14 +65,8 @@ async function sysadminSetup(client: Client4, user: UserProfile | null) {
     // Set default preferences
     await savePreferences(client, user?.id ?? '');
 
-    // Ensure all products as plugin are installed and active.
-    await ensurePluginsLoaded(client);
-
     // Log plugin details
     await printPluginDetails(client);
-
-    // Ensure server deployment type is as expected
-    await ensureServerDeployment(client);
 }
 
 async function printLicenseInfo(client: Client4) {
@@ -133,37 +126,6 @@ async function printPluginDetails(client: Client4) {
 
     // eslint-disable-next-line no-console
     console.log('');
-}
-
-async function ensureServerDeployment(client: Client4) {
-    if (testConfig.haClusterEnabled) {
-        const {haClusterNodeCount, haClusterName} = testConfig;
-
-        const {Enable, ClusterName} = (await client.getConfig()).ClusterSettings;
-        expect(Enable, Enable ? '' : 'Should have cluster enabled').toBe(true);
-
-        const sameClusterName = ClusterName === haClusterName;
-        expect(
-            sameClusterName,
-            sameClusterName
-                ? ''
-                : `Should have cluster name set and as expected. Got "${ClusterName}" but expected "${haClusterName}"`,
-        ).toBe(true);
-
-        const clusterInfo = await client.getClusterStatus();
-        const sameCount = clusterInfo?.length === haClusterNodeCount;
-        expect(
-            sameCount,
-            sameCount
-                ? ''
-                : `Should match number of nodes in a cluster as expected. Got "${clusterInfo?.length}" but expected "${haClusterNodeCount}"`,
-        ).toBe(true);
-
-        clusterInfo.forEach((info) =>
-            // eslint-disable-next-line no-console
-            console.log(`hostname: ${info.hostname}, version: ${info.version}, config_hash: ${info.config_hash}`),
-        );
-    }
 }
 
 async function savePreferences(client: Client4, userId: UserProfile['id']) {
