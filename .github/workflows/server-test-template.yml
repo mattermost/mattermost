@@ -15,24 +15,22 @@ on:
         required: true
         type: string
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   test:
     name: ${{ inputs.name }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     env:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Calculate Golang Version
-        id: go
-        working-directory: ./server
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
-      - name: Setup Go
-        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
+      - uses: chainguard-dev/setup-chainctl@main
         with:
-          go-version: ${{ steps.go.outputs.GO_VERSION }}
-          cache-dependency-path: server/go.sum
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
+      - name: Checkout mattermost project
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2        
       - name: Store required variables for publishing results
         run: |
           echo "${{ inputs.name }}" > server/test-name
