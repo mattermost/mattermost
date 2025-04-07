@@ -24,17 +24,15 @@ function ModalHeader({id, title, subtitle, handleClose}: Props) {
             </h1>
             <div className='mm-modal-header__vertical-divider'/>
             <p className='mm-modal-header__subtitle'>{subtitle}</p>
-            <div
-                className='mm-modal-header__ctr'
-                onClick={handleClose}
-            >
+            {handleClose && <div className='mm-modal-header__ctr'>
                 <button
                     className='btn btn-icon'
+                    onClick={handleClose}
                     aria-label={intl.formatMessage({id: 'modal.header_close', defaultMessage: 'Close'})}
                 >
                     <i className='icon icon-close'/>
                 </button>
-            </div>
+            </div>}
         </header>
     );
 }

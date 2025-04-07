@@ -392,9 +392,9 @@ func (si *SlackImporter) slackAddPosts(rctx request.CTX, teamId string, channel 
 			}
 
 			props := make(model.StringInterface)
-			props["override_username"] = sPost.BotUsername
+			props[model.PostPropsOverrideUsername] = sPost.BotUsername
 			if len(sPost.Attachments) > 0 {
-				props["attachments"] = sPost.Attachments
+				props[model.PostPropsAttachments] = sPost.Attachments
 			}
 
 			post := &model.Post{
@@ -817,19 +817,19 @@ func (si *SlackImporter) oldImportIncomingWebhookPost(rctx request.CTX, post *mo
 	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 	post.Message = linkWithTextRegex.ReplaceAllString(post.Message, "[${2}](${1})")
 
-	post.AddProp("from_webhook", "true")
+	post.AddProp(model.PostPropsFromWebhook, "true")
 
-	if _, ok := props["override_username"]; !ok {
-		post.AddProp("override_username", model.DefaultWebhookUsername)
+	if _, ok := props[model.PostPropsOverrideUsername]; !ok {
+		post.AddProp(model.PostPropsOverrideUsername, model.DefaultWebhookUsername)
 	}
 
 	if len(props) > 0 {
 		for key, val := range props {
-			if key == "attachments" {
+			if key == model.PostPropsAttachments {
 				if attachments, success := val.([]*model.SlackAttachment); success {
 					model.ParseSlackAttachment(post, attachments)
 				}
-			} else if key != "from_webhook" {
+			} else if key != model.PostPropsFromWebhook {
 				post.AddProp(key, val)
 			}
 		}

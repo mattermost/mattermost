@@ -115,7 +115,7 @@ export default function InviteAs(props: Props) {
                 clickCallback={closeInviteModal}
                 tooltipMessage={hasPriorTrial ? formatMessage({id: 'free.professional_feature.upgrade', defaultMessage: 'Upgrade'}) : undefined}
 
-                // the secondary back button first closes the restridted feature modal and then opens back the invitation modal
+                // the secondary back button first closes the restricted feature modal and then opens back the invitation modal
                 customSecondaryButtonInModal={hasPriorTrial ? undefined : {
                     msg: formatMessage({id: 'free.professional_feature.back', defaultMessage: 'Back'}),
                     action: () => {
