@@ -34,7 +34,6 @@ export default class WebSocketClient {
     private config: WebSocketClientConfig;
 
     private conn: WebSocket | null;
-    private connectionUrl: string | null;
 
     // responseSequence is the number to track a response sent
     // via the websocket. A response will always have the same sequence number
@@ -90,11 +89,14 @@ export default class WebSocketClient {
 
     private pingInterval: ReturnType<typeof setInterval> | null;
 
+    // reconnectTimeout is used for automatic reconnect after socket close
     private reconnectTimeout: ReturnType<typeof setTimeout> | null;
+
+    // Network event handlers
+    private onlineHandler: (() => void) | null = null;
 
     constructor(config?: Partial<WebSocketClientConfig>) {
         this.conn = null;
-        this.connectionUrl = null;
         this.responseSequence = 1;
         this.serverSequence = 0;
         this.connectFailCount = 0;
@@ -110,7 +112,7 @@ export default class WebSocketClient {
     // on connect, only send auth cookie and blank state.
     // on hello, get the connectionID and store it.
     // on reconnect, send cookie, connectionID, sequence number.
-    initialize(connectionUrl = this.connectionUrl, token?: string, postedAck?: boolean) {
+    initialize(connectionUrl: string, token?: string, postedAck?: boolean) {
         if (this.conn) {
             return;
         }
@@ -135,6 +137,35 @@ export default class WebSocketClient {
             this.postedAck = postedAck;
         }
 
+        // Setup network event listener
+        if (typeof window !== 'undefined') {
+            // Remove existing listeners if any
+            if (this.onlineHandler) {
+                window.removeEventListener('online', this.onlineHandler);
+            }
+
+            this.onlineHandler = () => {
+                // If we're already connected, don't need to do anything
+                if (this.conn && this.conn.readyState === WebSocket.OPEN) {
+                    return;
+                }
+
+                console.log('network online event received, scheduling reconnect'); // eslint-disable-line no-console
+
+                // Set a timer to reconnect after a delay to avoid rapid connection attempts
+                this.clearReconnectTimeout();
+                this.reconnectTimeout = setTimeout(
+                    () => {
+                        this.reconnectTimeout = null;
+                        this.initialize(connectionUrl, token, this.postedAck);
+                    },
+                    this.config.minWebSocketRetryTime,
+                );
+            };
+
+            window.addEventListener('online', this.onlineHandler);
+        }
+
         // Add connection id, and last_sequence_number to the query param.
         // We cannot use a cookie because it will bleed across tabs.
         // We cannot also send it as part of the auth_challenge, because the session cookie is already sent with the request.
@@ -144,7 +175,6 @@ export default class WebSocketClient {
         } else {
             this.conn = new WebSocket(websocketUrl);
         }
-        this.connectionUrl = connectionUrl;
 
         this.conn.onopen = () => {
             if (token) {
@@ -231,7 +261,7 @@ export default class WebSocketClient {
             this.reconnectTimeout = setTimeout(
                 () => {
                     this.reconnectTimeout = null;
-                    this.initialize(this.connectionUrl, token, this.postedAck);
+                    this.initialize(connectionUrl, token, this.postedAck);
                 },
                 retryTime,
             );
@@ -430,19 +460,35 @@ export default class WebSocketClient {
         this.closeListeners.delete(listener);
     }
 
-    close() {
+    closeConnection() {
         this.connectFailCount = 0;
         this.responseSequence = 1;
-        if (this.reconnectTimeout) {
-            clearTimeout(this.reconnectTimeout);
-            this.reconnectTimeout = null;
-        }
+        this.clearReconnectTimeout();
         this.stopPingInterval();
+
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
             this.conn.onclose = () => {};
             this.conn.close();
             this.conn = null;
             console.log('websocket closed'); //eslint-disable-line no-console
+        }
+    }
+
+    close() {
+        this.closeConnection();
+
+        if (typeof window !== 'undefined') {
+            if (this.onlineHandler) {
+                window.removeEventListener('online', this.onlineHandler);
+                this.onlineHandler = null;
+            }
+        }
+    }
+
+    clearReconnectTimeout() {
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
         }
     }
 
