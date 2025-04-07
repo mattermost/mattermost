@@ -29,6 +29,7 @@ linters:
     - makezero
     - whitespace
     - errcheck
+    - bidichk
 
 issues:
   exclude-rules:
