@@ -113,7 +113,7 @@ describe('custom plugin sections and settings', () => {
                                         settings: [
                                             {
                                                 key: 'customsection1numbersetting',
-                                                display_name: 'Custom Section Number Setting',
+                                                label: 'Custom Section Number Setting',
                                                 type: 'number' as const,
                                                 help_text: 'Custom Section Number Setting Help Text',
                                             },
@@ -126,7 +126,7 @@ describe('custom plugin sections and settings', () => {
                                         settings: [
                                             {
                                                 key: 'customsection2numbersetting',
-                                                display_name: 'Custom Section Number Setting',
+                                                label: 'Custom Section Number Setting',
                                                 type: 'number' as const,
                                                 help_text: 'Custom Section Number Setting Help Text',
                                             },
@@ -184,8 +184,8 @@ describe('custom plugin sections and settings', () => {
                                         settings: [
                                             {
                                                 key: 'customsection1numbersetting',
-                                                display_name: 'Custom Section Number Setting',
-                                                type: 'number',
+                                                label: 'Custom Section Number Setting',
+                                                type: 'number' as const,
                                                 help_text: 'Custom Section Number Setting Help Text',
                                             },
                                         ],
@@ -198,14 +198,14 @@ describe('custom plugin sections and settings', () => {
                                         settings: [
                                             {
                                                 key: 'customsection2numbersetting',
-                                                display_name: 'Custom Section Bool Setting',
-                                                type: 'bool',
+                                                label: 'Custom Section Bool Setting',
+                                                type: 'bool' as const,
                                                 help_text: 'Custom Section Bool Setting Help Text',
                                             },
                                             {
                                                 key: 'customsection2customsetting',
-                                                display_name: 'Custom Section Custom Setting',
-                                                type: 'custom',
+                                                label: 'Custom Section Custom Setting',
+                                                type: 'custom' as const,
                                                 help_text: 'Custom Section Custom Setting Help Text',
                                             },
                                         ],
@@ -279,8 +279,8 @@ describe('custom plugin sections and settings', () => {
                                         settings: [
                                             {
                                                 key: 'customsection1numbersetting',
-                                                display_name: 'Custom Section Number Setting',
-                                                type: 'number',
+                                                label: 'Custom Section Number Setting',
+                                                type: 'number' as const,
                                                 help_text: 'Custom Section Number Setting Help Text',
                                             },
                                         ],
@@ -292,8 +292,8 @@ describe('custom plugin sections and settings', () => {
                                         settings: [
                                             {
                                                 key: 'customsection2numbersetting',
-                                                display_name: 'Custom Section Number Setting',
-                                                type: 'number',
+                                                label: 'Custom Section Number Setting',
+                                                type: 'number' as const,
                                                 help_text: 'Custom Section Number Setting Help Text',
                                             },
                                         ],

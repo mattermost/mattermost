@@ -59,7 +59,7 @@ describe('components/app_bar/app_bar', () => {
         },
         plugins: {
             components: {
-                ChannelHeaderButton: channelHeaderComponents,
+                AppBar: channelHeaderComponents,
                 RightHandSidebarComponent: rhsComponents,
                 Product: [],
             },

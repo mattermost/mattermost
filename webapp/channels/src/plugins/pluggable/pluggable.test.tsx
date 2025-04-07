@@ -30,7 +30,6 @@ describe('plugins/Pluggable', () => {
                         component: ProfilePopoverPlugin,
                         id: 'some id',
                         pluginId: 'some plugin id',
-                        title: 'some title',
                     }],
                 },
             },

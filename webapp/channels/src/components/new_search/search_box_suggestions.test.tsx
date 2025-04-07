@@ -90,7 +90,7 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         renderWithContext(
             <SearchBoxSuggestions {...props}/>,
             {
-                plugins: {components: {SearchSuggestions: [{id: 'test-id', component: TestPluginProviderComponent, pluginId: 'test-id'}]}},
+                plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},
                 entities: {general: {license: {IsLicensed: 'false'}}},
             },
         );
@@ -103,7 +103,7 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         renderWithContext(
             <SearchBoxSuggestions {...props}/>,
             {
-                plugins: {components: {SearchSuggestions: [{id: 'test-id', component: TestPluginProviderComponent, pluginId: 'test-id'}]}},
+                plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},
                 entities: {general: {license: {IsLicensed: 'true'}}},
             },
         );
@@ -116,7 +116,7 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         renderWithContext(
             <SearchBoxSuggestions {...props}/>,
             {
-                plugins: {components: {SearchSuggestions: [{id: 'test-id', component: TestPluginProviderComponent, pluginId: 'test-id'}]}},
+                plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},
                 entities: {general: {license: {IsLicensed: 'true'}}},
             },
         );
@@ -129,7 +129,7 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         renderWithContext(
             <SearchBoxSuggestions {...props}/>,
             {
-                plugins: {components: {SearchSuggestions: [{id: 'test-id', component: TestPluginProviderComponent, pluginId: 'test-id'}]}},
+                plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},
                 entities: {general: {license: {IsLicensed: 'true'}}},
             },
         );
