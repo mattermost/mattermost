@@ -24,7 +24,7 @@ describe('PluginLinkTooltip', () => {
                     {
                         id: 'test',
                         pluginId: 'example.test',
-                        component: TestLinkTooltip,
+                        component: TestLinkTooltip as any,
                     },
                 ],
             },
