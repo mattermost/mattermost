@@ -661,13 +661,13 @@ func TestPatchCPAValue(t *testing.T) {
 	})
 }
 
-func TestDeleteCPAValuesForUser(t *testing.T) {
+func TestDeleteCPAValues(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroupID, cErr := th.App.cpaGroupID()
+	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
 
 	userID := model.NewId()
@@ -698,7 +698,7 @@ func TestDeleteCPAValuesForUser(t *testing.T) {
 
 	// Test deleting values for user
 	t.Run("should delete all values for a user", func(t *testing.T) {
-		appErr := th.App.DeleteCPAValuesForUser(userID)
+		appErr := th.App.DeleteCPAValues(userID)
 		require.Nil(t, appErr)
 
 		// Verify values are gone
@@ -708,7 +708,7 @@ func TestDeleteCPAValuesForUser(t *testing.T) {
 	})
 
 	t.Run("should handle deleting values for a user with no values", func(t *testing.T) {
-		appErr := th.App.DeleteCPAValuesForUser(otherUserID)
+		appErr := th.App.DeleteCPAValues(otherUserID)
 		require.Nil(t, appErr)
 	})
 
@@ -721,7 +721,7 @@ func TestDeleteCPAValuesForUser(t *testing.T) {
 		}
 
 		// Delete values for original user
-		appErr := th.App.DeleteCPAValuesForUser(userID)
+		appErr := th.App.DeleteCPAValues(userID)
 		require.Nil(t, appErr)
 
 		// Verify other user's values still exist

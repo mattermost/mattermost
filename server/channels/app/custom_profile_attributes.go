@@ -263,14 +263,14 @@ func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMes
 	return updatedValues, nil
 }
 
-func (a *App) DeleteCPAValuesForUser(userID string) *model.AppError {
-	groupID, err := a.cpaGroupID()
+func (a *App) DeleteCPAValues(userID string) *model.AppError {
+	groupID, err := a.CpaGroupID()
 	if err != nil {
-		return model.NewAppError("DeleteCPAValuesForUser", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("DeleteCPAValues", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if err := a.Srv().propertyService.DeletePropertyValuesForTarget(groupID, "user", userID); err != nil {
-		return model.NewAppError("DeleteCPAValuesForUser", "app.custom_profile_attributes.delete_property_values_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("DeleteCPAValues", "app.custom_profile_attributes.delete_property_values_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", "", nil, "")
