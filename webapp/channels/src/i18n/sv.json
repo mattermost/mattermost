@@ -3511,6 +3511,7 @@
   "confirm_modal.cancel": "Avbryt",
   "confirm_reset_failed_attempts_modal.cancel": "Nej",
   "confirm_reset_failed_attempts_modal.create": "Ja",
+  "confirm_reset_failed_attempts_modal.desc": "Du är på väg att nollställa misslyckade inloggningsförsök för {username} och låsa upp dennes konto. Är du säker på att du vill fortsätta?",
   "confirm_switch_to_yearly_modal.confirm": "Bekräfta",
   "confirm_switch_to_yearly_modal.contact_sales": "Kontakta försäljning",
   "confirm_switch_to_yearly_modal.subtitle": "Byte till årlig fakturering går inte att ångra. Är du säker på att du vill byta från månadsvis fakturering till årsvis fakturering?",
