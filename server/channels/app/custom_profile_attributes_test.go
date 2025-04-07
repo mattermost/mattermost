@@ -681,8 +681,9 @@ func TestDeleteCPAValues(t *testing.T) {
 			Name:    fmt.Sprintf("Field %d", i),
 			Type:    model.PropertyFieldTypeText,
 		})
-		createdField, err := th.App.CreateCPAField(field)
-		require.Nil(t, err)
+		require.NoError(t, err)
+		createdField, appErr := th.App.CreateCPAField(field)
+		require.Nil(t, appErr)
 		createdFields = append(createdFields, createdField)
 
 		// Create a value for this field
