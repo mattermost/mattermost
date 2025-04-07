@@ -10494,5 +10494,17 @@
   {
     "id": "license_error.feature_unavailable",
     "translation": "Funktion ist für die aktuelle Lizenz nicht verfügbar"
+  },
+  {
+    "id": "api.custom_profile_attributes.field_conversion_error",
+    "translation": "Das Eigenschaftsfeld kann nicht in ein benutzerdefiniertes Profilattributfeld umgewandelt werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Das Eigenschaftsfeld kann nicht in ein benutzerdefiniertes Profilattributfeld umgewandelt werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Ungültige Eigenschaftswertattribute : {{.AttributeName}} ({{.Reason}})."
   }
 ]
