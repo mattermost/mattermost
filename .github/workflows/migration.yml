@@ -1,10 +1,15 @@
 name: Database Migration Test
 on:
   workflow_call:
+
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   test:
     name: MySQL -> Postgres Migration
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     env:
       COMPOSE_PROJECT_NAME: ghactions
       TEST_IMAGE: migration-test-image
@@ -12,12 +17,11 @@ jobs:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        with:
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f         
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Calculate Golang Version
-        id: go
-        working-directory: ./server
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Run docker compose
         run: |
           cd build
@@ -33,7 +37,7 @@ jobs:
           docker restart ${COMPOSE_PROJECT_NAME}-mysql-1 && sleep 10
       - name: Build test image
         env:
-          BUILD_IMAGE: golang:${{ steps.go.outputs.GO_VERSION }}-bookworm
+          BUILD_IMAGE: golang:1.22-bookworm
           PGLOADER_IMAGE: mattermost/mattermost-pgloader:v3.6.9
         run: |
           docker build -t $TEST_IMAGE - <<EOF
