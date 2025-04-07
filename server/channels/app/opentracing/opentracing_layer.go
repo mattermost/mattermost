@@ -7334,7 +7334,7 @@ func (a *OpenTracingAppLayer) GetGroupsByTeam(teamID string, opts model.GroupSea
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) GetGroupsByUserId(userID string) ([]*model.Group, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroupsByUserId(userID string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupsByUserId")
 
@@ -7346,7 +7346,7 @@ func (a *OpenTracingAppLayer) GetGroupsByUserId(userID string) ([]*model.Group, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetGroupsByUserId(userID)
+	resultVar0, resultVar1 := a.app.GetGroupsByUserId(userID, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
