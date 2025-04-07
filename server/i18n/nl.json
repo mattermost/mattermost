@@ -10518,5 +10518,41 @@
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
     "translation": "Ongeldige eigenschap waarde attributen : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Ongeldige patch voor aangepaste profieleigenschappen"
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Beleid moet of regels importeren of definiëren."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Ongeldig beleidstype."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Versie is niet geldig voor dit toegangscontrolebeleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Regel(s) is/zijn niet geldig."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Ongeldig policyy id."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Ongeldige invoer voor het beleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Ongeldige naam voor het beleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Ongeldige beleidsherziening."
   }
 ]
