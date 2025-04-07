@@ -20,9 +20,6 @@ exports[`components/app_bar/app_bar should match snapshot on mount 1`] = `
           fallback_component
         </div>
       </div>
-      <hr
-        class="app-bar__divider"
-      />
       <div
         aria-label="Create Subscription"
         class="app-bar__icon"
@@ -59,9 +56,6 @@ exports[`components/app_bar/app_bar should match snapshot on mount when App Bar 
           fallback_component
         </div>
       </div>
-      <hr
-        class="app-bar__divider"
-      />
       <div
         aria-label="Create Subscription"
         class="app-bar__icon"

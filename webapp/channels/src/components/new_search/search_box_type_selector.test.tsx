@@ -32,7 +32,7 @@ describe('components/new_search/SearchBoxTypeSelector', () => {
         renderWithContext(
             <SearchBoxTypeSelector {...baseProps}/>,
             {
-                plugins: {components: {SearchButtons: [{component: (() => <pre>{'test'}</pre>) as React.ComponentType, pluginId: 'test-id'}]}},
+                plugins: {components: {SearchButtons: [{id: 'test-id', action: jest.fn(), component: (() => <pre>{'test'}</pre>), pluginId: 'test-id'}]}},
                 entities: {general: {license: {IsLicensed: 'false'}}},
             },
         );
@@ -43,7 +43,7 @@ describe('components/new_search/SearchBoxTypeSelector', () => {
         renderWithContext(
             <SearchBoxTypeSelector {...baseProps}/>,
             {
-                plugins: {components: {SearchButtons: [{component: (() => <pre>{'test'}</pre>) as React.ComponentType, pluginId: 'test-id'}]}},
+                plugins: {components: {SearchButtons: [{id: 'test-id', action: jest.fn(), component: (() => <pre>{'test'}</pre>), pluginId: 'test-id'}]}},
                 entities: {general: {license: {IsLicensed: 'true'}}},
             },
         );
@@ -54,7 +54,7 @@ describe('components/new_search/SearchBoxTypeSelector', () => {
         renderWithContext(
             <SearchBoxTypeSelector {...baseProps}/>,
             {
-                plugins: {components: {SearchButtons: [{component: (() => <pre>{'test'}</pre>) as React.ComponentType, pluginId: 'test-id'}]}},
+                plugins: {components: {SearchButtons: [{id: 'test-id', action: jest.fn(), component: (() => <pre>{'test'}</pre>), pluginId: 'test-id'}]}},
                 entities: {general: {license: {IsLicensed: 'true'}}},
             },
         );
