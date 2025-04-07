@@ -5,26 +5,23 @@ name: Server CI Template
 on:
   workflow_call:
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   check-mocks:
     name: Check mocks
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        with:
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Calculate Golang Version
-        id: go
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
-      - name: Setup Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
-        with:
-          go-version: ${{ steps.go.outputs.GO_VERSION }}
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Generate mocks
@@ -33,23 +30,16 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
   check-go-mod-tidy:
     name: Check go mod tidy
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        with:
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Calculate Golang Version
-        id: go
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
-      - name: Setup Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
-        with:
-          go-version: ${{ steps.go.outputs.GO_VERSION }}
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run go mod tidy
@@ -58,46 +48,32 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
   golangci:
     name: golangci-lint
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        with:
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Calculate Golang Version
-        id: go
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
-      - name: Setup Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
-        with:
-          go-version: ${{ steps.go.outputs.GO_VERSION }}
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run golangci
         run: make golangci-lint
   check-gen-serialized:
     name: Check serialization methods for hot structs
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        with:
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Calculate Golang Version
-        id: go
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
-      - name: Setup Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
-        with:
-          go-version: ${{ steps.go.outputs.GO_VERSION }}
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run make-gen-serialized
@@ -106,23 +82,16 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
   check-mattermost-vet:
     name: Check style
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        with:
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Calculate Golang Version
-        id: go
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
-      - name: Setup Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
-        with:
-          go-version: ${{ steps.go.outputs.GO_VERSION }}
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Reset config
@@ -133,34 +102,30 @@ jobs:
         run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}' MM_NO_ENTERPRISE_LINT=true
   check-mattermost-vet-api:
     name: Vet API
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        with:
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Calculate Golang Version
-        id: go
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
-      - name: Setup Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
-        with:
-          go-version: ${{ steps.go.outputs.GO_VERSION }}
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run mattermost-vet-api
         run: make vet-api
   check-migrations:
     name: Check migration files
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        with:
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Extract migrations files
@@ -169,7 +134,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
   check-email-templates:
     name: Generate email templates
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
@@ -184,48 +149,52 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
   check-store-layers:
     name: Check store layers
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        with:
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Calculate Golang Version
-        id: go
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
-      - name: Setup Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
-        with:
-          go-version: ${{ steps.go.outputs.GO_VERSION }}
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
-  check-mmctl-docs:
-    name: Check mmctl docs
-    runs-on: ubuntu-22.04
+  check-app-layers:
+    name: Check app layers
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        with:
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
+      - name: Checkout mattermost project
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Run setup-go-work
+        run: make setup-go-work
+      - name: Generate app layers
+        run: make app-layers
+      - name: Check generated code
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
+  check-mmctl-docs:
+    name: Check mmctl docs
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        with:
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost-server
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Calculate Golang Version
-        id: go
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
-      - name: Setup Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
-        with:
-          go-version: ${{ steps.go.outputs.GO_VERSION }}
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Check docs
@@ -276,24 +245,17 @@ jobs:
       logsartifact: mmctl-test-logs
   build-mattermost-server:
     name: Build mattermost server app
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     needs: check-mattermost-vet
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        with:
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Calculate Golang Version
-        id: go
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
-      - name: Setup Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
-        with:
-          go-version: ${{ steps.go.outputs.GO_VERSION }}
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
       - name: ci/setup-node
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         id: setup_node
