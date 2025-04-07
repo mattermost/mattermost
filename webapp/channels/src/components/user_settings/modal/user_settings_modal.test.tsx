@@ -122,6 +122,9 @@ describe('tabs are properly rendered', () => {
                                 settings: [
                                     {
                                         name: 'plugin A setting',
+                                        type: 'radio',
+                                        options: [],
+                                        default: 'on',
                                     },
                                 ],
                             },
@@ -136,6 +139,9 @@ describe('tabs are properly rendered', () => {
                                 settings: [
                                     {
                                         name: 'plugin B setting',
+                                        type: 'radio',
+                                        options: [],
+                                        default: 'on',
                                     },
                                 ],
                             },

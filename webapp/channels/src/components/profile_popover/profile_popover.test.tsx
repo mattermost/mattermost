@@ -137,7 +137,13 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
         },
         plugins: {
             components: {
-                CallButton: [{}],
+                CallButton: [{
+                    id: 'call',
+                    pluginId: 'test',
+                    action: jest.fn(),
+                    button: () => 'button',
+                    dropdownButton: () => 'dropdownButton',
+                }],
             },
             plugins: {
                 'com.mattermost.calls': {
@@ -218,7 +224,7 @@ describe('components/ProfilePopover', () => {
             return (<span>{`${status} ${user.id}`}</span>);
         };
 
-        initialState.plugins!.components!.PopoverUserAttributes = [{component: mockPluginComponent as any}];
+        initialState.plugins!.components!.PopoverUserAttributes = [{id: 'test', pluginId: 'test', component: mockPluginComponent as any}];
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         expect(props.hide).toHaveBeenCalled();
@@ -240,7 +246,7 @@ describe('components/ProfilePopover', () => {
             return (<span>{`${status} ${user.id}`}</span>);
         };
 
-        initialState.plugins!.components!.PopoverUserActions = [{component: mockPluginComponent as any}];
+        initialState.plugins!.components!.PopoverUserActions = [{id: 'test', pluginId: 'test', component: mockPluginComponent as any}];
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         expect(props.hide).toHaveBeenCalled();

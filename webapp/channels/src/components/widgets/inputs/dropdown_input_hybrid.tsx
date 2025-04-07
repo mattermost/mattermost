@@ -228,7 +228,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                         width: showInput ? `${width}px` : '100%',
                     }}
                 >
-                    <ReactSelect<T>
+                    <ReactSelect<T, false>
                         id={`DropdownInput_${name}`}
                         placeholder={focused ? '' : placeholder}
                         components={{

@@ -64,8 +64,8 @@ export type PluginSetting = {
     type: string;
     help_text: string | MessageDescriptor;
     regenerate_help_text?: string;
-    placeholder: string;
-    default: any;
+    placeholder?: string;
+    default?: any;
     options?: PluginSettingOption[];
     hosting?: 'on-prem' | 'cloud';
 };
