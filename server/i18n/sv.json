@@ -10494,5 +10494,53 @@
   {
     "id": "license_error.feature_unavailable",
     "translation": "Funktionen är inte tillgänglig med den aktuella licensen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Det går inte att konvertera egenskapsfältet till ett attributfält för anpassad profil"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Ogiltiga attribut på egenskap : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "LDAP-licens krävs."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Ogiltig import enligt policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Ogiltigt namn enligt policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Ogiltig revidering av policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Regel är ogiltig."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Policy måste antingen importera eller definiera regler."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Ogiltig policy-typ."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Ogiltig version för denna åtkomst-policy."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Ogiltigt värde för ldap-attributet max antal inloggningsförsök. Måste vara ett positivt värde."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Kunde inte radera användarens utkast."
   }
 ]
