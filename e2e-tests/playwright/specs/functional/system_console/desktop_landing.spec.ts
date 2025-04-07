@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
 import {Page} from '@playwright/test';
+
+import {expect, test} from '@mattermost/playwright-lib';
 
 // Helper function to intercept API request and modify the response
 async function interceptConfigWithLandingPage(page: Page, enabled: boolean) {
