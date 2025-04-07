@@ -1011,6 +1011,17 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	canViewArchivedChannel := *c.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+	if !canViewArchivedChannel {
+		if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementChannels) {
+			canViewArchivedChannel = true
+		}
+	}
+
+	if c.Params.IncludeDeleted && !canViewArchivedChannel {
+		c.SetPermissionError(model.PermissionManageTeam)
+	}
+
 	query := r.URL.Query()
 	lastDeleteAt, nErr := strconv.Atoi(query.Get("last_delete_at"))
 	if nErr != nil {
