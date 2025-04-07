@@ -237,12 +237,12 @@ func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMes
 
 		cpaField, fErr := model.NewCPAFieldFromPropertyField(existingField)
 		if fErr != nil {
-			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.field_conversion_error", nil, "", http.StatusInternalServerError).Wrap(fErr)
+			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(fErr)
 		}
 
 		sanitizedValue, sErr := model.SanitizeAndValidatePropertyValue(cpaField, rawValue)
 		if sErr != nil {
-			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.sanitize_value.app_error", nil, "", http.StatusBadRequest).Wrap(sErr)
+			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.validate_value.app_error", nil, "", http.StatusBadRequest).Wrap(sErr)
 		}
 
 		value := &model.PropertyValue{

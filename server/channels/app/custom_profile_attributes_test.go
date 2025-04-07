@@ -680,21 +680,21 @@ func TestPatchCPAValue(t *testing.T) {
 			invalidValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(invalidOptionJSON))
 			require.NotNil(t, appErr)
 			require.Nil(t, invalidValue)
-			require.Equal(t, "app.custom_profile_attributes.sanitize_value.app_error", appErr.Id)
+			require.Equal(t, "app.custom_profile_attributes.validate_value.app_error", appErr.Id)
 
 			// Test with completely invalid JSON format
 			invalidJSON := `[not valid json]`
 			invalidValue, appErr = th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(invalidJSON))
 			require.NotNil(t, appErr)
 			require.Nil(t, invalidValue)
-			require.Equal(t, "app.custom_profile_attributes.sanitize_value.app_error", appErr.Id)
+			require.Equal(t, "app.custom_profile_attributes.validate_value.app_error", appErr.Id)
 
 			// Test with wrong data type (sending string instead of array)
 			wrongTypeJSON := `"not an array"`
 			invalidValue, appErr = th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(wrongTypeJSON))
 			require.NotNil(t, appErr)
 			require.Nil(t, invalidValue)
-			require.Equal(t, "app.custom_profile_attributes.sanitize_value.app_error", appErr.Id)
+			require.Equal(t, "app.custom_profile_attributes.validate_value.app_error", appErr.Id)
 		})
 	})
 }
