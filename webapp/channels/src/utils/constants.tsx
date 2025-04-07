@@ -471,6 +471,7 @@ export const ModalIdentifiers = {
     SECURE_CONNECTION_ACCEPT_INVITE: 'secure_connection_accept_invite',
     SHARED_CHANNEL_REMOTE_INVITE: 'shared_channel_remote_invite',
     SHARED_CHANNEL_REMOTE_UNINVITE: 'shared_channel_remote_uninvite',
+    CONFIRM_RESET_FAILED_ATTEMPTS_MODAL: 'confirm_reset_failed_attempts_modal',
     USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
 };
 
@@ -542,6 +543,20 @@ export enum LicenseSkus {
     Starter = 'starter',
     Professional = 'professional',
     Enterprise = 'enterprise',
+    Premium = 'premium',
+}
+
+export function getLicenseTier(licenseSku: string): number {
+    switch (licenseSku) {
+    case LicenseSkus.Professional:
+        return 10;
+    case LicenseSkus.Enterprise:
+        return 20;
+    case LicenseSkus.Premium:
+        return 30;
+    default:
+        return 0;
+    }
 }
 
 export const CloudProductToSku = {

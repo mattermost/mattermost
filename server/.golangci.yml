@@ -4,6 +4,9 @@ run:
 linters-settings:
   gofmt:
     simplify: true
+    rewrite-rules:
+      - pattern: 'interface{}'
+        replacement: 'any'
   govet:
     enable-all: true
     disable:
@@ -26,6 +29,7 @@ linters:
     - makezero
     - whitespace
     - errcheck
+    - bidichk
 
 issues:
   exclude-rules:
@@ -53,6 +57,10 @@ issues:
     - linters:
       - staticcheck
       text: SA1019
+
+    - linters:
+      - gofmt
+      path: "mock.*"
 
     - linters:
         - errcheck
@@ -89,7 +97,6 @@ issues:
         channels/app/helper_test.go|\
         channels/app/import_functions.go|\
         channels/app/integration_action.go|\
-        channels/app/permissions.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\

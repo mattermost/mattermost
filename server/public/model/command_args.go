@@ -21,8 +21,8 @@ type CommandArgs struct {
 	ChannelMentions ChannelMentionMap  `json:"-"`
 }
 
-func (o *CommandArgs) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *CommandArgs) Auditable() map[string]any {
+	return map[string]any{
 		"user_id":    o.UserId,
 		"channel_id": o.ChannelId,
 		"team_id":    o.TeamId,

@@ -100,7 +100,8 @@ describe('Settings > Sidebar > General', () => {
             cy.uiClose();
 
             // # Open channel menu and click 'Add Members'
-            cy.uiOpenChannelMenu('Add Members');
+            cy.uiOpenChannelMenu('Members');
+            cy.uiGetButton('Add').click();
 
             // * Verify that the modal is open
             cy.get('#addUsersToChannelModal').should('be.visible').findByText(`Add people to ${channel.display_name}`);
