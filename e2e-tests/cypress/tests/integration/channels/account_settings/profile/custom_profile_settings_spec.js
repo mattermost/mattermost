@@ -33,6 +33,7 @@ const TEST_SKILLS_OPTIONS = [
     {name: 'Python', color: '#3776AB'},
 ];
 const TEST_MESSAGE = 'Hello from the test user';
+const TEST_MESSAGE_OTHER = 'Hello from the other user';
 
 describe('Profile > Profile Settings > Custom Profile Attributes', () => {
     let testTeam;
@@ -165,12 +166,16 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
 
         // # Close the profile popover
         cy.get('body').click();
-
-        // # Post a message so header is displayed in next test
-        cy.postMessage('Completed test');
     });
 
     it('MM-T2 Should be able to clear custom profile attributes in profile settings', () => {
+        cy.postMessageAs({
+            sender: otherUser,
+            message: TEST_MESSAGE_OTHER,
+            channelId: testChannel.id,
+        });
+        cy.uiWaitUntilMessagePostedIncludes(TEST_MESSAGE_OTHER);
+
         // # Open profile settings modal
         cy.uiOpenProfileModal('Profile Settings');
 
@@ -195,9 +200,6 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
 
         // # Close the profile popover
         cy.get('body').click();
-
-        // # Post a message so header is displayed in next test
-        cy.postMessage('Completed test');
     });
 
     it('MM-T3 Should cancel changes when clicking cancel button', () => {
@@ -228,6 +230,13 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
     });
 
     it('MM-T4 Should be able to edit phone and URL type attributes in profile settings', () => {
+        cy.postMessageAs({
+            sender: otherUser,
+            message: TEST_MESSAGE_OTHER,
+            channelId: testChannel.id,
+        });
+        cy.uiWaitUntilMessagePostedIncludes(TEST_MESSAGE_OTHER);
+
         // # Open profile settings modal
         cy.uiOpenProfileModal('Profile Settings');
 
