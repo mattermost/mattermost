@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useSelector} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {Draft} from 'selectors/drafts';
+import {getDraftRemotes, type Draft} from 'selectors/drafts';
 
 import EmptyDraftList from './empty_draft_list';
 import VirtualizedDraftList from './virtualized_draft_list';
@@ -15,10 +16,11 @@ type Props = {
     currentUser: UserProfile;
     userDisplayName: string;
     userStatus: string;
-    draftRemotes: Record<string, boolean>;
 }
 
 export default function DraftList(props: Props) {
+    const draftRemotes = useSelector(getDraftRemotes);
+
     if (props.drafts?.length === 0) {
         return <EmptyDraftList/>;
     }
@@ -29,7 +31,7 @@ export default function DraftList(props: Props) {
             currentUser={props.currentUser}
             userDisplayName={props.userDisplayName}
             userStatus={props.userStatus}
-            draftRemotes={props.draftRemotes}
+            draftRemotes={draftRemotes}
         />
     );
 }

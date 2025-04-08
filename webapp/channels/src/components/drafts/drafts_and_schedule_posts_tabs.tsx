@@ -7,13 +7,12 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {useHistory, useLocation} from 'react-router-dom';
 
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {makeGetScheduledPostsByTeam} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import {getDraftRemotes, type Draft} from 'selectors/drafts';
+import {type Draft} from 'selectors/drafts';
 
 import DraftList from 'components/drafts/draft_list';
 import ScheduledPostList from 'components/drafts/scheduled_post_list';
@@ -31,6 +30,9 @@ const TAB_KEYS = {
 
 type Props = {
     drafts: Draft[];
+    currentUser: UserProfile;
+    userDisplayName: string;
+    userStatus: string;
 }
 
 export default function DraftsAndSchedulePostsTabs(props: Props) {
@@ -43,16 +45,8 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
     const currentTeamName = currentTeam?.name ?? '';
     const currentTeamId = currentTeam?.id ?? '';
 
-    const currentUser = useSelector(getCurrentUser);
-    const userStatus = useSelector((state: GlobalState) => getStatusForUserId(state, currentUser.id));
-
-    const teammateNameDisplaySetting = useSelector(getTeammateNameDisplaySetting);
-    const userDisplayName = useMemo(() => displayUsername(currentUser, teammateNameDisplaySetting), [currentUser, teammateNameDisplaySetting]);
-
     const getScheduledPostsByTeam = useMemo(() => makeGetScheduledPostsByTeam(), []);
     const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId, true));
-
-    const draftRemotes = useSelector(getDraftRemotes);
 
     const handleSwitchTabs = useCallback((key) => {
         if (key === TAB_KEYS.DRAFTS) {
@@ -122,10 +116,9 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
             >
                 <DraftList
                     drafts={props.drafts}
-                    currentUser={currentUser}
-                    userDisplayName={userDisplayName}
-                    userStatus={userStatus}
-                    draftRemotes={draftRemotes}
+                    currentUser={props.currentUser}
+                    userDisplayName={props.userDisplayName}
+                    userStatus={props.userStatus}
                 />
             </Tab>
             <Tab
@@ -136,9 +129,9 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
             >
                 <ScheduledPostList
                     scheduledPosts={scheduledPosts}
-                    currentUser={currentUser}
-                    userDisplayName={userDisplayName}
-                    userStatus={userStatus}
+                    currentUser={props.currentUser}
+                    userDisplayName={props.userDisplayName}
+                    userStatus={props.userStatus}
                 />
             </Tab>
         </Tabs>

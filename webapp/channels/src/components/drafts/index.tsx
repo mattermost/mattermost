@@ -4,7 +4,11 @@
 import React, {memo, useEffect, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
+import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
@@ -12,6 +16,7 @@ import {makeGetDrafts} from 'selectors/drafts';
 
 import DraftList from 'components/drafts/draft_list';
 
+import type {GlobalState} from 'types/store';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import DraftsAndSchedulePostsPageHeader from './drafts_and_schedule_posts_page_header';
@@ -28,6 +33,12 @@ function Drafts() {
     const getDrafts = useMemo(() => makeGetDrafts(), []);
     const drafts = useSelector(getDrafts);
 
+    const currentUser = useSelector(getCurrentUser);
+    const userStatus = useSelector((state: GlobalState) => getStatusForUserId(state, currentUser.id));
+
+    const teammateNameDisplaySetting = useSelector(getTeammateNameDisplaySetting);
+    const userDisplayName = useMemo(() => displayUsername(currentUser, teammateNameDisplaySetting), [currentUser, teammateNameDisplaySetting]);
+
     // When Drafts component mounts, select Drafts in the LHS
     // and suppress the RHS and restore RHS when component unmounts
     useEffect(() => {
@@ -39,17 +50,27 @@ function Drafts() {
         };
     }, [dispatch]);
 
-    if (scheduledPostsEnabled) {
+    if (!scheduledPostsEnabled) {
         return (
             <DraftsAndSchedulePostsPageHeader>
-                <DraftsAndSchedulePostsTabs drafts={drafts}/>
+                <DraftsAndSchedulePostsTabs
+                    drafts={drafts}
+                    currentUser={currentUser}
+                    userDisplayName={userDisplayName}
+                    userStatus={userStatus}
+                />
             </DraftsAndSchedulePostsPageHeader>
         );
     }
 
     return (
         <DraftsAndSchedulePostsPageHeader>
-            <DraftList drafts={drafts}/>
+            <DraftList
+                drafts={drafts}
+                currentUser={currentUser}
+                userDisplayName={userDisplayName}
+                userStatus={userStatus}
+            />
         </DraftsAndSchedulePostsPageHeader>
     );
 }
