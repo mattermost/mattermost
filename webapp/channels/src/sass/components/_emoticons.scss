@@ -249,7 +249,7 @@
 
     .skin-tones-animation {
         &-enter {
-            transform: translateX(100%);
+            transform: translateX(calc(100% - 32px));
         }
 
         &-enter-active {
@@ -257,30 +257,34 @@
             transition: transform 200ms ease-in-out;
         }
 
+        &-enter-done {
+            transform: translateX(0%);
+        }
+
         &-exit {
-            position: absolute;
-            width: 100%;
             transform: translateX(0%);
         }
 
         &-exit-active {
-            transform: translateX(90%);
+            transform: translateX(calc(100% - 32px));
             transition: transform 200ms ease-in-out;
         }
     }
 
     .skin-tones {
+        position: absolute;
         z-index: 10;
+        right: 0;
+        bottom: 0;
         display: flex;
         height: 100%;
         align-items: center;
         background: var(--center-channel-bg);
-        margin-inline-start: 8px;
 
         &--active {
             position: absolute;
-            width: 100%;
-            justify-content: space-around;
+            width: fit-content;
+            justify-content: flex-start;
 
             .skin-tones__close,
             .skin-tones__icons {
@@ -329,12 +333,14 @@
     }
 
     .emoji-picker__text-container {
-        position: relative;
-        z-index: 5;
-        width: 100%;
         height: 32px;
+        flex: 1;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
         border-radius: 4px;
+
+        &:not(.gif-picker__text-container) {
+            margin-right: 40px;
+        }
 
         &:focus-within {
             border: 2px solid functions.v(button-bg);
@@ -437,8 +443,8 @@
     }
 
     .gif-attribution {
-        padding: 5px 0 5px 5px;
         margin-inline-start: 8px;
+        padding-inline-start: 5px;
 
         & > img {
             width: 100%;
