@@ -10546,5 +10546,13 @@
   {
     "id": "model.access_policy.is_valid.rules_imports.app_error",
     "translation": "Polityka musi importować lub definiować reguły."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix nie może być pusty, jeśli ustawiony jest GlobalSearchPrefix."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} powinien być prefiksem IndexPrefix {{.IndexPrefix}}."
   }
 ]
