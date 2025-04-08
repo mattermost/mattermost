@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {useHistory, useLocation} from 'react-router-dom';
 
-import type {UserProfile} from '@mattermost/types/users';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {makeGetScheduledPostsByTeam} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -32,7 +32,7 @@ type Props = {
     drafts: Draft[];
     currentUser: UserProfile;
     userDisplayName: string;
-    userStatus: string;
+    userStatus: UserStatus['status'];
 }
 
 export default function DraftsAndSchedulePostsTabs(props: Props) {

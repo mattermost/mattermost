@@ -4,7 +4,7 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
-import type {UserProfile} from '@mattermost/types/users';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getDraftRemotes, type Draft} from 'selectors/drafts';
 
@@ -15,7 +15,7 @@ type Props = {
     drafts?: Draft[];
     currentUser: UserProfile;
     userDisplayName: string;
-    userStatus: string;
+    userStatus: UserStatus['status'];
 }
 
 export default function DraftList(props: Props) {

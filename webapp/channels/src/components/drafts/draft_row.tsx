@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import noop from 'lodash/noop';
-import type {CSSProperties} from 'react';
 import React, {memo, useCallback, useMemo, useEffect, useState, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -58,7 +57,7 @@ type Props = {
     item: PostDraft | ScheduledPost;
     isRemote?: boolean;
     scrollIntoView?: boolean;
-    containerStyle?: CSSProperties;
+    containerClassName?: string;
 }
 
 const mockLastBlurAt = {current: 0};
@@ -70,7 +69,7 @@ function DraftRow({
     displayName,
     isRemote,
     scrollIntoView,
-    containerStyle,
+    containerClassName,
 }: Props) {
     const [isEditing, setIsEditing] = useState(false);
 
@@ -367,7 +366,7 @@ function DraftRow({
             hasError={Boolean(postError)}
             innerRef={scrollIntoView ? alertRef : undefined}
             isHighlighted={scrollIntoView}
-            style={containerStyle}
+            className={containerClassName}
         >
             {({hover}) => (
                 <>

@@ -9,11 +9,11 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 import {VariableSizeList} from 'react-window';
 
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
-import type {UserProfile} from '@mattermost/types/users';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
+
+import DraftRow from 'components/drafts/draft_row';
 
 import {useQuery} from 'utils/http_utils';
-
-import DraftRow from '../draft_row';
 
 const TARGET_ID_QUERY_PARAM = 'target_id';
 const OVERSCAN_ROW_COUNT = 10; // no. of rows
@@ -26,7 +26,7 @@ type Props = {
     scheduledPosts: ScheduledPost[];
     currentUser: UserProfile;
     userDisplayName: string;
-    userStatus: string;
+    userStatus: UserStatus['status'];
 }
 
 export default function ScheduledPostList(props: Props) {

@@ -50,7 +50,7 @@ function Drafts() {
         };
     }, [dispatch]);
 
-    if (!scheduledPostsEnabled) {
+    if (scheduledPostsEnabled) {
         return (
             <DraftsAndSchedulePostsPageHeader>
                 <DraftsAndSchedulePostsTabs

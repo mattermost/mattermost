@@ -5,7 +5,7 @@ import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
-import type {UserProfile} from '@mattermost/types/users';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {fetchMissingChannels} from 'mattermost-redux/actions/channels';
 import {hasScheduledPostError} from 'mattermost-redux/selectors/entities/scheduled_posts';
@@ -14,8 +14,8 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import type {GlobalState} from 'types/store';
 
 import EmptyScheduledPostList from './empty_scheduled_post_list';
+import NonVirtualizedScheduledPostList from './non_virtualized_scheduled_post_list';
 import ScheduledPostError from './scheduled_post_error';
-import VirtualizedScheduledPostList from './virtualized_scheduled_post_list';
 
 import './scheduled_post_list.scss';
 
@@ -23,7 +23,7 @@ type Props = {
     scheduledPosts: ScheduledPost[];
     currentUser: UserProfile;
     userDisplayName: string;
-    userStatus: string;
+    userStatus: UserStatus['status'];
 };
 
 export default function ScheduledPostList(props: Props) {
@@ -44,9 +44,9 @@ export default function ScheduledPostList(props: Props) {
     }
 
     return (
-        <div className='ScheduledPostList'>
+        <div className='ScheduledPostList nonVirtualizedScheduledPostList'>
             {scheduledPostsHasError && (<ScheduledPostError/>)}
-            <VirtualizedScheduledPostList
+            <NonVirtualizedScheduledPostList
                 scheduledPosts={props.scheduledPosts}
                 currentUser={props.currentUser}
                 userDisplayName={props.userDisplayName}

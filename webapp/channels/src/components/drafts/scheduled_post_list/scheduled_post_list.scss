@@ -4,6 +4,19 @@
 .ScheduledPostList {
     height: 100%;
 
+    &.nonVirtualizedScheduledPostList {
+        position: absolute;
+        overflow-y: auto;
+    }
+
+    .nonVirtualizedScheduledPostRow {
+        margin: 0 24px 16px 24px;
+
+        &.firstRow {
+            margin-top: 24px;
+        }
+    }
+
     .scheduledPostListErrorIndicator {
         display: flex;
         flex-direction: row;

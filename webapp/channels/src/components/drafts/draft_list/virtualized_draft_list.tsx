@@ -8,7 +8,7 @@ import React, {useMemo, useRef, useCallback, useEffect} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {VariableSizeList} from 'react-window';
 
-import type {UserProfile} from '@mattermost/types/users';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import type {Draft} from 'selectors/drafts';
 
@@ -24,7 +24,7 @@ type Props = {
     drafts: Draft[];
     currentUser: UserProfile;
     userDisplayName: string;
-    userStatus: string;
+    userStatus: UserStatus['status'];
     draftRemotes: Record<string, boolean>;
 }
 
