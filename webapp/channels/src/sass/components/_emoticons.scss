@@ -125,11 +125,11 @@
             }
 
             a {
-                height: 40px;
                 padding: 7px 12px;
                 border: none !important;
                 border-bottom: 2px solid transparent !important;
                 margin-right: 5px;
+                margin-bottom: 0;
                 margin-left: 5px;
                 background: transparent;
                 outline: none;
@@ -143,8 +143,6 @@
 
             &.active {
                 a {
-                    height: 34px;
-                    padding-top: 9px;
                     border-radius: 0;
                     margin-right: 5px;
                     margin-left: 5px;
@@ -216,13 +214,11 @@
     }
 }
 
-.emoji-picker__header,
-.modal-body .emoji-picker .emoji-picker__header {
+.emoji-picker__header {
     top: 0;
     display: none; // only visible < 480px width screen
     width: 100%;
     padding: 13px 10px 13px 15px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     background: var(--sidebar-header-bg);
     color: var(--sidebar-header-text-color);
 
@@ -241,12 +237,6 @@
         &:hover {
             background: rgba(variables.$black, 0.1);
         }
-    }
-}
-
-.modal-body .emoji-picker .emoji-picker__header {
-    .emoji-picker__header-title {
-        margin-top: 0;
     }
 }
 
