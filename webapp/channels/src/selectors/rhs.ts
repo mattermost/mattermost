@@ -113,8 +113,10 @@ export const getCurrentSearchForSearchTeam: (state: GlobalState) => Record<strin
     'getCurrentSearchForSearchTeam',
     (state: GlobalState) => state.entities.search.current,
     getSearchTeam,
-    (current, teamId) => {
-        return current[teamId || 'ALL_TEAMS'];
+    (state: GlobalState) => state.views.rhs.rhsState === 'mention',
+    (current, teamId, isMentionSearch) => {
+        const team = isMentionSearch ? 'ALL_TEAMS' : teamId || 'ALL_TEAMS';
+        return current[team];
     },
 );
 
