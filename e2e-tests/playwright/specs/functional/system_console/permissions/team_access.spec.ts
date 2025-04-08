@@ -46,7 +46,6 @@ const setupDefaultSystemManagerRole = async (
     if (isShowVisible) {
         // Need to expand
         await showSubsectionsLink.click();
-        await adminConsolePage.page.waitForTimeout(500);
     }
 
     // Get the whole row
@@ -63,9 +62,6 @@ const setupDefaultSystemManagerRole = async (
 
     // Click the button to open the dropdown menu
     await dropdownButton.click();
-
-    // Wait for the dropdown to appear
-    await adminConsolePage.page.waitForTimeout(500);
 
     // Click on the desired option in the dropdown
     const permissionOption = subsectionTeamStatistics.locator('.dropdown-menu').getByText(permissionText).first();
