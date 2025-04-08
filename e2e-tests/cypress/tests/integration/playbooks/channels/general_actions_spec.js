@@ -56,6 +56,9 @@ describe('channels > general actions', {testIsolation: true}, () => {
 
             // # Open Channel Header and the Channel Actions modal
             cy.get('#channelHeaderTitle').click();
+
+            // * More actions menu option should be visible
+            cy.findByText('More actions').should('be.visible').trigger('mouseover');
             cy.findByText('Channel Actions').click();
 
             // # Enable the categorization action and set the name
@@ -87,6 +90,9 @@ describe('channels > general actions', {testIsolation: true}, () => {
 
             // # Open Channel Header and the Channel Actions modal
             cy.get('#channelHeaderTitle').click();
+
+            // * More actions menu option should be visible
+            cy.findByText('More actions').should('be.visible').trigger('mouseover');
             cy.findByText('Channel Actions').click();
 
             // # Toggle on and set the welcome message
@@ -136,6 +142,9 @@ describe('channels > general actions', {testIsolation: true}, () => {
 
                 // # Open Channel Header and the Channel Actions modal
                 cy.get('#channelHeaderTitle').click();
+
+                // * More actions menu option should be visible
+                cy.findByText('More actions').should('be.visible').trigger('mouseover');
                 cy.findByText('Channel Actions').click();
 
                 // # Set a keyword, enable the playbook trigger,
@@ -196,6 +205,9 @@ describe('channels > general actions', {testIsolation: true}, () => {
 
                 // # Open Channel Header and the Channel Actions modal
                 cy.get('#channelHeaderTitle').click();
+
+                // * More actions menu option should be visible
+                cy.findByText('More actions').should('be.visible').trigger('mouseover');
                 cy.findByText('Channel Actions').click();
 
                 // # Set a keyword, enable the playbook trigger,
@@ -272,6 +284,9 @@ describe('channels > general actions', {testIsolation: true}, () => {
 
                 // # Open Channel Header and the Channel Actions modal
                 cy.get('#channelHeaderTitle').click();
+
+                // * More actions menu option should be visible
+                cy.findByText('More actions').should('be.visible').trigger('mouseover');
                 cy.findByText('Channel Actions').click();
 
                 // # Set a keyword, enable the playbook trigger,
@@ -311,6 +326,9 @@ describe('channels > general actions', {testIsolation: true}, () => {
 
         // # Open Channel Header and the Channel Actions modal
         cy.get('#channelHeaderTitle').click();
+
+        // * More actions menu option should be visible
+        cy.findByText('More actions').should('be.visible').trigger('mouseover');
         cy.findByText('Channel Actions').click();
 
         // * Verify the toggles are disabled
@@ -333,6 +351,9 @@ describe('channels > general actions', {testIsolation: true}, () => {
 
             // # Open Channel Header and the Channel Actions modal
             cy.get('#channelHeaderTitle').click();
+
+            // * More actions menu option should be visible
+            cy.findByText('More actions').should('be.visible').trigger('mouseover');
             cy.findByText('Channel Actions').click();
 
             // # Enable the categorization action and set the name
@@ -353,6 +374,9 @@ describe('channels > general actions', {testIsolation: true}, () => {
 
             // # Open Channel Header and the Channel Actions modal
             cy.get('#channelHeaderTitle').click();
+
+            // * More actions menu option should be visible
+            cy.findByText('More actions').should('be.visible').trigger('mouseover');
             cy.findByText('Channel Actions').click();
 
             // * Verify that the categorization action is disabled

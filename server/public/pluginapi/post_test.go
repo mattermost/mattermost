@@ -660,7 +660,7 @@ func TestShouldProcessMessage(t *testing.T) {
 
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
-			&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "true"}},
+			&model.Post{ChannelId: channelID, Props: model.StringInterface{model.PostPropsFromWebhook: "true"}},
 			pluginapi.AllowBots(),
 		)
 
@@ -677,7 +677,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
-			&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "true"}},
+			&model.Post{ChannelId: channelID, Props: model.StringInterface{model.PostPropsFromWebhook: "true"}},
 			pluginapi.AllowBots(),
 			pluginapi.AllowWebhook(),
 		)
@@ -712,7 +712,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		shouldProcessMessage, err := client.Post.ShouldProcessMessage(
-			&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "false"}},
+			&model.Post{ChannelId: channelID, Props: model.StringInterface{model.PostPropsFromWebhook: "false"}},
 			pluginapi.AllowBots(),
 		)
 

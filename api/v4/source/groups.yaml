@@ -8,9 +8,6 @@
         team.
 
 
-        `not_associated_to_team` **OR** `not_associated_to_channel` is required.
-
-
         If you use `not_associated_to_team`, you must be a team admin for that particular team (permission to manage that team).
 
 
@@ -49,14 +46,12 @@
           in: query
           description: Team GUID which is used to return all the groups not associated to
             this team
-          required: true
           schema:
             type: string
         - name: not_associated_to_channel
           in: query
           description: Group GUID which is used to return all the groups not associated to
             this channel
-          required: true
           schema:
             type: string
         - name: since
