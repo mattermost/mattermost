@@ -373,27 +373,15 @@
     }
 
     .emoji-picker {
+        display: flex;
         width: 100vw;
         height: 100vh;
+        flex-direction: column;
         border-radius: 0;
         margin-right: 0;
 
         .search-grid-container {
             height: calc(100vh - 170px);
-        }
-    }
-
-    .emoji-picker__inner {
-        display: flex;
-        height: calc(100vh - 100px);
-        flex-direction: column;
-
-        .emoji-picker--single & {
-            height: calc(100vh - 55px);
-        }
-
-        >* {
-            flex-grow: 0;
         }
     }
 
@@ -408,16 +396,8 @@
         }
     }
 
-    .emoji-picker__search-container {
-        height: 40px;
-
-        .emoji-picker__text-container {
-            width: 95%;
-        }
-    }
-
     .emoji-picker__items {
-        flex-grow: 1;
+        flex: 1;
 
         .emoji-picker__category-header {
             padding-top: 8px;
