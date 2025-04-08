@@ -626,6 +626,7 @@ const defaultServerConfig: AdminConfig = {
         AggregatePostsAfterDays: 365,
         PostsAggregatorJobStartTime: '03:00',
         IndexPrefix: '',
+        GlobalSearchPrefix: '',
         LiveIndexingBatchSize: 10,
         BatchSize: 10000,
         RequestTimeoutSeconds: 30,
