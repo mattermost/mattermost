@@ -70,7 +70,7 @@ textCustomAttribute: Custom Value for Test User 4
 dateCustomAttribute: 20240217150000Z
 selectCustomAttribute: option1
 multiSelectCustomAttribute: choice4
-multiSelectCustomAttribute: choice1
+multiSelectCustomAttribute: choice2
 userReferenceCustomAttribute: uid=test.five,ou=testusers,dc=mm,dc=test,dc=com
 multiUserReferenceCustomAttribute: uid=dev-ops.one,ou=testusers,dc=mm,dc=test,dc=com
 multiUserReferenceCustomAttribute: uid=dev.one,ou=testusers,dc=mm,dc=test,dc=com
