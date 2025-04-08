@@ -846,6 +846,7 @@ export type ElasticsearchSettings = {
     AggregatePostsAfterDays: number;
     PostsAggregatorJobStartTime: string;
     IndexPrefix: string;
+    GlobalSearchPrefix: string;
     LiveIndexingBatchSize: number;
     BatchSize: number;
     RequestTimeoutSeconds: number;

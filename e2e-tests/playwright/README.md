@@ -34,7 +34,7 @@ npm run test -- login --project=chrome
 npm run test
 ```
 
-#### 3. Inspect test results at `/test-results` folder when something fails unexpectedly.
+#### 3. Inspect test results at `/results/output` folder when something fails unexpectedly.
 
 ## Updating screenshots is done strictly via Playwright's docker container for consistency
 
@@ -51,22 +51,22 @@ docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwr
 ```
 export PW_BASE_URL=http://host.docker.internal:8065
 export PW_HEADLESS=true
-cd mattermost
+cd mattermost/e2e-tests/playwright
 
 # Install npm packages. Use "npm ci" to match the automated environment
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci
 
 # Run specific test. See https://playwright.dev/docs/test-cli.
-npm run test -- -- login --project=chrome
+npm run test -- login --project=chrome
 
 # Or run all tests
 npm run test
 
 # Run visual tests
-npm run test -- -- visual
+npm run test -- visual
 
 # Update snapshots of visual tests
-npm run test -- -- visual --update-snapshots
+npm run test -- visual --update-snapshots
 ```
 
 ## Page/Component Object Model
