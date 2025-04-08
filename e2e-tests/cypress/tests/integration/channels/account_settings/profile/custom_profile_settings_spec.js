@@ -142,6 +142,8 @@ describe('Profile > Profile Settings > Custom Profile Attributes', () => {
         // # Edit the Location attribute (select field)
         editSelectAttribute(attributeFieldsMap, 'Location', 0); // Office is the first option (index 0)
 
+        cy.wait(TIMEOUTS.HALF_SEC);
+
         // # Edit the Skills attribute (multiselect field)
         editMultiselectAttribute(attributeFieldsMap, 'Skills', [3, 2]); // Python (index 3) and Node.js (index 2)
 
