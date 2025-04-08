@@ -79,11 +79,6 @@ const setupDefaultSystemManagerRole = async (
     await adminConsolePage.page.waitForLoadState('networkidle');
 };
 
-/**
- * Test case for MM-63378:
- * User with role `System Manager` but no access to Teams
- * can view all the details of Teams
- */
 test('MM-63378 System Manager without team access permissions cannot view team details', async ({pw}) => {
     const {adminUser, adminClient, user: systemManagerUser, userClient: systemManagerClient} = await pw.initSetup();
 
