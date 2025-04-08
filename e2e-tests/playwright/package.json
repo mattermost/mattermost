@@ -1,34 +1,41 @@
 {
   "name": "mattermost-playwright",
-  "private": true,
-  "workspaces": [
-    "lib",
-    "test"
-  ],
+  "workspaces": ["lib"],
   "scripts": {
-    "postinstall": "npm run build",
-    "build": "npm run build --workspaces --if-present",
-    "build:watch": "npm run build:watch --workspaces --if-present",
-    "clean": "rm -rf node_modules package-lock.json logs results test-results && npm run clean --workspaces --if-present",
-    "tsc": "npm run tsc --workspaces --if-present",
+    "postinstall": "script/post_install.sh && npm run build",
+    "build": "npm run build --workspaces",
+    "build:watch": "npm run build:watch --workspaces",
+    "tsc": "tsc -b && npm run tsc --workspaces",
     "lint": "eslint .",
     "prettier": "prettier . --check",
     "prettier:fix": "prettier --write .",
     "check": "npm run lint && npm run prettier && npm run tsc",
-    "test": "npm run test --workspace=test",
-    "test:ci": "npm run test:ci --workspace=test"
+    "test": "cross-env PW_SNAPSHOT_ENABLE=true playwright test",
+    "test:ci": "cross-env PW_SNAPSHOT_ENABLE=true playwright test --project=chrome",
+    "test:update-snapshots": "cross-env PW_SNAPSHOT_ENABLE=true playwright test --update-snapshots",
+    "test:slomo": "cross-env PW_SNAPSHOT_ENABLE=true PW_SLOWMO=1000 playwright test",
+    "percy": "cross-env PERCY_TOKEN=$PERCY_TOKEN PW_PERCY_ENABLE=true percy exec -- playwright test --project=chrome --project=ipad",
+    "codegen": "cross-env playwright codegen $PW_BASE_URL",
+    "playwright-ui": "cross-env playwright test --ui",
+    "show-report": "npx playwright show-report results/reporter",
+    "clean": "rm -rf dist node_modules package-lock.json *.tsbuildinfo logs results storage_state test-results && npm run clean --workspaces"
   },
   "dependencies": {
+    "@mattermost/client": "file:../../webapp/platform/client",
+    "@mattermost/playwright-lib": "*",
+    "@mattermost/types": "file:../../webapp/platform/types",
+    "@playwright/test": "1.51.1",
+    "cross-env": "7.0.3",
     "dayjs": "1.11.13",
-    "@playwright/test": "1.51.1"
+    "zod": "3.24.2"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "8.29.0",
-    "eslint": "9.23.0",
-    "eslint-import-resolver-typescript": "4.3.1",
+    "eslint": "9.24.0",
+    "eslint-import-resolver-typescript": "4.3.2",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.31.0",
     "prettier": "3.5.3",
-    "typescript": "5.8.2"
+    "typescript": "5.8.3"
   }
 }
