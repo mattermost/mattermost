@@ -9,6 +9,7 @@
 
 // Stage: @prod
 // Group: @channels @account_setting @custom_attributes
+import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 // Constants for test data
 const TEST_PHONE = '555-123-4567';
@@ -352,6 +353,7 @@ function editMultiselectAttribute(fieldsMap, attributeName, optionIndices) {
     });
 
     cy.uiSave();
+    cy.wait(TIMEOUTS.HALF_SEC);
 }
 
 /**
