@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands/utils"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -613,7 +612,7 @@ func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, error
 }
 
 func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	config, err := utils.GetConfig(cmd.Context(), c)
+	config, _, err := c.GetConfig(cmd.Context())
 	if err != nil {
 		return err
 	}
