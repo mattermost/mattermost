@@ -98,6 +98,18 @@ func RegisterIPFilteringInterface(f func(*App) einterfaces.IPFilteringInterface)
 	ipFilteringInterface = f
 }
 
+var pdpInterface func(*App) einterfaces.PolicyDecisionPointInterface
+
+func RegisterPDPInterface(f func(*App) einterfaces.PolicyDecisionPointInterface) {
+	pdpInterface = f
+}
+
+var papInterface func(*App) einterfaces.PolicyAdministrationPointInterface
+
+func RegisterPAPInterface(f func(*App) einterfaces.PolicyAdministrationPointInterface) {
+	papInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if cloudInterface != nil {
 		s.Cloud = cloudInterface(s)
