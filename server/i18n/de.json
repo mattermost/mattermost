@@ -10506,5 +10506,41 @@
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
     "translation": "Ungültige Eigenschaftswertattribute : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Ungültiger Name für die Richtlinie."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Ungültige Richtlinienänderung."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Regel(n) ist nicht gültig."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Die Richtlinie muss entweder Regeln importieren oder definieren."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Ungültiger Richtlinientyp."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Version ist für diese Zugriffskontrollrichtlinie nicht gültig."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Ungültige Policy ID."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Ungültige Importe für die Richtlinie."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Ungültiger Patch für benutzerdefiniertes Profilattributfeld"
   }
 ]
