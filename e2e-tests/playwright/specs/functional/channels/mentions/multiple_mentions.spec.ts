@@ -16,7 +16,7 @@ test('Multiple user mentions test', async ({pw}) => {
 
     // # Create a second user to be mentioned
     const {adminClient} = await pw.getAdminClient();
-    let mentionedUser = pw.random.user('mentioned');
+    const mentionedUser = pw.random.user('mentioned');
     const {id: mentionedUserID} = await adminClient.createUser(mentionedUser, '', '');
 
     await adminClient.addToTeam(team.id, mentionedUserID);
