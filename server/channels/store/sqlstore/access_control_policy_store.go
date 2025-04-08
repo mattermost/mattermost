@@ -446,7 +446,7 @@ func (s *SqlAccessControlPolicyStore) GetAllSubjects(rctxc request.CTX) ([]*mode
 			return nil, errors.Wrap(err, "failed to scan subject row")
 		}
 
-		if err := json.Unmarshal(properties, &subject.Properties); err != nil {
+		if err := json.Unmarshal(properties, &subject.Attributes); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal properties")
 		}
 
