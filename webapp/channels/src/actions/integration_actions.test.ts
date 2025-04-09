@@ -156,6 +156,9 @@ describe('actions/integration_actions', () => {
                 submission: {
                     name: 'value',
                 },
+                user_id: 'current_user_id',
+                team_id: 'team_id1',
+                cancelled: false,
             };
 
             const expectedSubmission = {
@@ -187,6 +190,9 @@ describe('actions/integration_actions', () => {
                 submission: {
                     name: 'value',
                 },
+                user_id: 'current_user_id',
+                team_id: 'team_id1',
+                cancelled: false,
             };
 
             const expectedSubmission = {
