@@ -27,11 +27,11 @@ import * as PostUtils from 'utils/post_utils';
 
 import type {ModalData} from 'types/actions';
 import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
-import type {PluginComponent} from 'types/store/plugins';
-
-import './actions_menu.scss';
+import type {PostDropdownMenuAction, PostDropdownMenuItemComponent} from 'types/store/plugins';
 
 import {ActionsMenuIcon} from './actions_menu_icon';
+
+import './actions_menu.scss';
 
 const MENU_BOTTOM_MARGIN = 80;
 
@@ -44,7 +44,7 @@ export type Props = {
     isMenuOpen?: boolean;
     isSysAdmin: boolean;
     location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | 'SEARCH' | string;
-    pluginMenuItems?: PluginComponent[];
+    pluginMenuItems?: PostDropdownMenuAction[];
     post: Post;
     teamId: string;
     canOpenMarketplace: boolean;
@@ -52,9 +52,7 @@ export type Props = {
     /**
      * Components for overriding provided by plugins
      */
-    components: {
-        [componentName: string]: PluginComponent[];
-    };
+    pluginMenuItemComponents: PostDropdownMenuItemComponent[];
 
     actions: {
 
@@ -346,7 +344,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
 
         let menuItems;
         const hasApps = Boolean(appBindings.length);
-        const hasPluggables = Boolean(this.props.components[PLUGGABLE_COMPONENT]?.length);
+        const hasPluggables = Boolean(this.props.pluginMenuItemComponents?.length);
         const hasPluginItems = Boolean(pluginItems?.length);
 
         const hasPluginMenuItems = hasPluginItems || hasApps || hasPluggables;

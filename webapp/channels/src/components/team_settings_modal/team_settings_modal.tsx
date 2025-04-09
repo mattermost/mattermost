@@ -69,7 +69,10 @@ const TeamSettingsModal = ({onExited, canInviteUsers}: Props) => {
                 id='teamSettingsModalLabel'
                 closeButton={true}
             >
-                <Modal.Title componentClass='h1'>
+                <Modal.Title
+                    componentClass='h2'
+                    className='modal-header__title'
+                >
                     {formatMessage({id: 'team_settings_modal.title', defaultMessage: 'Team Settings'})}
                 </Modal.Title>
             </Modal.Header>

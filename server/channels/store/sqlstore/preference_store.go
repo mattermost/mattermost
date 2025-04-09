@@ -14,10 +14,16 @@ import (
 
 type SqlPreferenceStore struct {
 	*SqlStore
+	preferenceSelectQuery sq.SelectBuilder
 }
 
 func newSqlPreferenceStore(sqlStore *SqlStore) store.PreferenceStore {
-	s := &SqlPreferenceStore{sqlStore}
+	s := &SqlPreferenceStore{SqlStore: sqlStore}
+
+	s.preferenceSelectQuery = s.getQueryBuilder().
+		Select("UserId", "Category", "Name", "Value").
+		From("Preferences")
+
 	return s
 }
 
@@ -121,18 +127,12 @@ func (s SqlPreferenceStore) saveTx(transaction *sqlxTxWrapper, preference *model
 
 func (s SqlPreferenceStore) Get(userId string, category string, name string) (*model.Preference, error) {
 	var preference model.Preference
-	query, args, err := s.getQueryBuilder().
-		Select("*").
-		From("Preferences").
+	query := s.preferenceSelectQuery.
 		Where(sq.Eq{"UserId": userId}).
 		Where(sq.Eq{"Category": category}).
-		Where(sq.Eq{"Name": name}).
-		ToSql()
+		Where(sq.Eq{"Name": name})
 
-	if err != nil {
-		return nil, errors.Wrap(err, "could not build sql query to get preference")
-	}
-	if err = s.GetReplica().Get(&preference, query, args...); err != nil {
+	if err := s.GetReplica().GetBuilder(&preference, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Preference with userId=%s, category=%s, name=%s", userId, category, name)
 	}
 
@@ -141,50 +141,35 @@ func (s SqlPreferenceStore) Get(userId string, category string, name string) (*m
 
 func (s SqlPreferenceStore) GetCategoryAndName(category string, name string) (model.Preferences, error) {
 	var preferences model.Preferences
-	query, args, err := s.getQueryBuilder().
-		Select("*").
-		From("Preferences").
+	query := s.preferenceSelectQuery.
 		Where(sq.Eq{"Category": category}).
-		Where(sq.Eq{"Name": name}).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "could not build sql query to get preference")
-	}
-	if err = s.GetReplica().Select(&preferences, query, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Preference with category=%s, name=%s", category, name)
+		Where(sq.Eq{"Name": name})
+
+	if err := s.GetReplica().SelectBuilder(&preferences, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Preferences with category=%s, name=%s", category, name)
 	}
 	return preferences, nil
 }
 
 func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.Preferences, error) {
 	var preferences model.Preferences
-	query, args, err := s.getQueryBuilder().
-		Select("*").
-		From("Preferences").
+	query := s.preferenceSelectQuery.
 		Where(sq.Eq{"UserId": userId}).
-		Where(sq.Eq{"Category": category}).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "could not build sql query to get preference")
-	}
-	if err = s.GetReplica().Select(&preferences, query, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Preference with userId=%s, category=%s", userId, category)
+		Where(sq.Eq{"Category": category})
+
+	if err := s.GetReplica().SelectBuilder(&preferences, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Preferences with userId=%s, category=%s", userId, category)
 	}
 	return preferences, nil
 }
 
 func (s SqlPreferenceStore) GetAll(userId string) (model.Preferences, error) {
 	var preferences model.Preferences
-	query, args, err := s.getQueryBuilder().
-		Select("*").
-		From("Preferences").
-		Where(sq.Eq{"UserId": userId}).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "could not build sql query to get preference")
-	}
-	if err = s.GetReplica().Select(&preferences, query, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Preference with userId=%s", userId)
+	query := s.preferenceSelectQuery.
+		Where(sq.Eq{"UserId": userId})
+
+	if err := s.GetReplica().SelectBuilder(&preferences, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Preferences with userId=%s", userId)
 	}
 	return preferences, nil
 }
@@ -208,7 +193,6 @@ func (s SqlPreferenceStore) Delete(userId, category, name string) error {
 		Where(sq.Eq{"UserId": userId}).
 		Where(sq.Eq{"Category": category}).
 		Where(sq.Eq{"Name": name}).ToSql()
-
 	if err != nil {
 		return errors.Wrap(err, "could not build sql query to get delete preference")
 	}
@@ -225,7 +209,6 @@ func (s SqlPreferenceStore) DeleteCategory(userId string, category string) error
 		Delete("Preferences").
 		Where(sq.Eq{"UserId": userId}).
 		Where(sq.Eq{"Category": category}).ToSql()
-
 	if err != nil {
 		return errors.Wrap(err, "could not build sql query to get delete preference by category")
 	}
@@ -242,7 +225,6 @@ func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) 
 		Delete("Preferences").
 		Where(sq.Eq{"Name": name}).
 		Where(sq.Eq{"Category": category}).ToSql()
-
 	if err != nil {
 		return errors.Wrap(err, "could not build sql query to get delete preference by category and name")
 	}
@@ -299,7 +281,6 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 		Where(sq.Eq{"Category": model.PreferenceCategoryFlaggedPost}).
 		Where(sq.Expr("name IN ("+nameInQ+")", nameInArgs...)).
 		ToSql()
-
 	if err != nil {
 		return int64(0), errors.Wrap(err, "could not build sql query to delete preference")
 	}

@@ -231,7 +231,7 @@ describe('Verify Accessibility Support in different input fields', () => {
 
         cy.get('#rhsContainer').within(() => {
             // * Verify Accessibility Support in RHS input
-            cy.uiGetReplyTextBox().should('have.attr', 'placeholder', 'Reply to this thread...').and('have.attr', 'role', 'textbox').focus().type('test').tab({shift: true}).tab().tab();
+            cy.uiGetReplyTextBox().should('have.attr', 'placeholder', 'Reply to this thread...').and('have.attr', 'role', 'textbox').focus().type('test').tab();
 
             // * Verify if the focus is on the preview button
             cy.get('#PreviewInputTextButton').should('be.focused').and('have.attr', 'aria-label', 'preview').tab();
@@ -246,7 +246,7 @@ describe('Verify Accessibility Support in different input fields', () => {
             cy.get('#FormattingControl_strike').should('be.focused').and('have.attr', 'aria-label', 'strike through').tab();
 
             // * Verify if the focus is on the hidden controls button
-            cy.get('#HiddenControlsButtonRHS_COMMENT').should('be.focused').and('have.attr', 'aria-label', 'show hidden formatting options').tab();
+            cy.get('#HiddenControlsButtonRHS_COMMENT').should('be.focused').and('have.attr', 'aria-label', 'show hidden formatting options').click().tab();
 
             // * Verify if the focus is on the hidden heading button
             cy.get('#FormattingControl_heading').should('be.focused').and('have.attr', 'aria-label', 'heading').tab();

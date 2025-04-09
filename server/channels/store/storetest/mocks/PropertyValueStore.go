@@ -44,17 +44,17 @@ func (_m *PropertyValueStore) Create(value *model.PropertyValue) (*model.Propert
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: id
-func (_m *PropertyValueStore) Delete(id string) error {
-	ret := _m.Called(id)
+// Delete provides a mock function with given fields: groupID, id
+func (_m *PropertyValueStore) Delete(groupID string, id string) error {
+	ret := _m.Called(groupID, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(groupID, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -80,9 +80,9 @@ func (_m *PropertyValueStore) DeleteForField(id string) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: id
-func (_m *PropertyValueStore) Get(id string) (*model.PropertyValue, error) {
-	ret := _m.Called(id)
+// Get provides a mock function with given fields: groupID, id
+func (_m *PropertyValueStore) Get(groupID string, id string) (*model.PropertyValue, error) {
+	ret := _m.Called(groupID, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -90,19 +90,19 @@ func (_m *PropertyValueStore) Get(id string) (*model.PropertyValue, error) {
 
 	var r0 *model.PropertyValue
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*model.PropertyValue, error)); ok {
-		return rf(id)
+	if rf, ok := ret.Get(0).(func(string, string) (*model.PropertyValue, error)); ok {
+		return rf(groupID, id)
 	}
-	if rf, ok := ret.Get(0).(func(string) *model.PropertyValue); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(string, string) *model.PropertyValue); ok {
+		r0 = rf(groupID, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PropertyValue)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(id)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(groupID, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -110,9 +110,9 @@ func (_m *PropertyValueStore) Get(id string) (*model.PropertyValue, error) {
 	return r0, r1
 }
 
-// GetMany provides a mock function with given fields: ids
-func (_m *PropertyValueStore) GetMany(ids []string) ([]*model.PropertyValue, error) {
-	ret := _m.Called(ids)
+// GetMany provides a mock function with given fields: groupID, ids
+func (_m *PropertyValueStore) GetMany(groupID string, ids []string) ([]*model.PropertyValue, error) {
+	ret := _m.Called(groupID, ids)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMany")
@@ -120,19 +120,19 @@ func (_m *PropertyValueStore) GetMany(ids []string) ([]*model.PropertyValue, err
 
 	var r0 []*model.PropertyValue
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]string) ([]*model.PropertyValue, error)); ok {
-		return rf(ids)
+	if rf, ok := ret.Get(0).(func(string, []string) ([]*model.PropertyValue, error)); ok {
+		return rf(groupID, ids)
 	}
-	if rf, ok := ret.Get(0).(func([]string) []*model.PropertyValue); ok {
-		r0 = rf(ids)
+	if rf, ok := ret.Get(0).(func(string, []string) []*model.PropertyValue); ok {
+		r0 = rf(groupID, ids)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PropertyValue)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]string) error); ok {
-		r1 = rf(ids)
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
+		r1 = rf(groupID, ids)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -170,9 +170,9 @@ func (_m *PropertyValueStore) SearchPropertyValues(opts model.PropertyValueSearc
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: field
-func (_m *PropertyValueStore) Update(field []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	ret := _m.Called(field)
+// Update provides a mock function with given fields: groupID, values
+func (_m *PropertyValueStore) Update(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	ret := _m.Called(groupID, values)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
@@ -180,11 +180,41 @@ func (_m *PropertyValueStore) Update(field []*model.PropertyValue) ([]*model.Pro
 
 	var r0 []*model.PropertyValue
 	var r1 error
+	if rf, ok := ret.Get(0).(func(string, []*model.PropertyValue) ([]*model.PropertyValue, error)); ok {
+		return rf(groupID, values)
+	}
+	if rf, ok := ret.Get(0).(func(string, []*model.PropertyValue) []*model.PropertyValue); ok {
+		r0 = rf(groupID, values)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyValue)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []*model.PropertyValue) error); ok {
+		r1 = rf(groupID, values)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Upsert provides a mock function with given fields: values
+func (_m *PropertyValueStore) Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	ret := _m.Called(values)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Upsert")
+	}
+
+	var r0 []*model.PropertyValue
+	var r1 error
 	if rf, ok := ret.Get(0).(func([]*model.PropertyValue) ([]*model.PropertyValue, error)); ok {
-		return rf(field)
+		return rf(values)
 	}
 	if rf, ok := ret.Get(0).(func([]*model.PropertyValue) []*model.PropertyValue); ok {
-		r0 = rf(field)
+		r0 = rf(values)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PropertyValue)
@@ -192,7 +222,7 @@ func (_m *PropertyValueStore) Update(field []*model.PropertyValue) ([]*model.Pro
 	}
 
 	if rf, ok := ret.Get(1).(func([]*model.PropertyValue) error); ok {
-		r1 = rf(field)
+		r1 = rf(values)
 	} else {
 		r1 = ret.Error(1)
 	}

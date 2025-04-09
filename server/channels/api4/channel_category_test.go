@@ -106,11 +106,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 	})
 
 	t.Run("should publish expected WS payload", func(t *testing.T) {
-		t.Skip("MM-42652")
-		userWSClient, err := th.CreateWebSocketClient()
-		require.NoError(t, err)
-		defer userWSClient.Close()
-		userWSClient.Listen()
+		userWSClient := th.CreateConnectedWebSocketClient(t)
 
 		category := &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{

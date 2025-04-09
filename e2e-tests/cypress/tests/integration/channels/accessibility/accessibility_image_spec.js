@@ -26,9 +26,9 @@ describe('Verify Accessibility Support in Different Images', () => {
 
     it('MM-T1508 Accessibility support in different images', () => {
         // * Verify image alt in profile image
-        cy.uiGetProfileHeader().
-            find('.Avatar').
-            should('have.attr', 'alt', 'user profile image');
+        cy.get('#userAccountMenuButton').within(() => {
+            cy.findByAltText('user profile image').should('be.visible');
+        });
 
         // # Upload an image in the post
         cy.get('#fileUploadInput').attachFile('small-image.png');

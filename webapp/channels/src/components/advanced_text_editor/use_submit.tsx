@@ -8,9 +8,11 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {ServerError} from '@mattermost/types/errors';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
+import {FileTypes} from 'mattermost-redux/action_types';
 import {getChannelTimezones} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, getAllChannelStats} from 'mattermost-redux/selectors/entities/channels';
+import {getFilesIdsForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -56,7 +58,7 @@ const useSubmit = (
     draft: PostDraft,
     postError: React.ReactNode,
     channelId: string,
-    postId: string,
+    rootId: string,
     serverError: (ServerError & { submittedMessage?: string }) | null,
     lastBlurAt: React.MutableRefObject<number>,
     focusTextbox: (forceFocust?: boolean) => void,
@@ -68,6 +70,7 @@ const useSubmit = (
     afterSubmit?: (response: SubmitPostReturnType) => void,
     skipCommands?: boolean,
     isInEditMode?: boolean,
+    postId?: string,
 ): [
         (submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => void,
         string | null,
@@ -75,6 +78,8 @@ const useSubmit = (
     const getGroupMentions = useGroups(channelId, draft.message);
 
     const dispatch = useDispatch();
+
+    const postFileIds = useSelector((state: GlobalState) => getFilesIdsForPost(state, postId || ''));
 
     const isDraftSubmitting = useRef(false);
     const [errorClass, setErrorClass] = useState<string | null>(null);
@@ -91,10 +96,10 @@ const useSubmit = (
     });
 
     const isRootDeleted = useSelector((state: GlobalState) => {
-        if (!postId) {
+        if (!rootId) {
             return false;
         }
-        const post = getPost(state, postId);
+        const post = getPost(state, rootId);
         if (!post || post.delete_at || post.state === 'DELETED') {
             return true;
         }
@@ -174,6 +179,7 @@ const useSubmit = (
             let response;
             if (isInEditMode) {
                 response = await dispatch(editPost(submittingDraft));
+                handleFileChange(submittingDraft);
             } else {
                 response = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
             }
@@ -189,7 +195,7 @@ const useSubmit = (
                 createAt: 0,
                 updateAt: 0,
                 channelId,
-                rootId: postId,
+                rootId,
             }, {instant: true});
         } catch (err: unknown) {
             if (isServerError(err)) {
@@ -207,7 +213,7 @@ const useSubmit = (
             return;
         }
 
-        if (!postId && !schedulingInfo) {
+        if (!rootId && !schedulingInfo) {
             dispatch(scrollPostListToBottom());
         }
 
@@ -228,17 +234,37 @@ const useSubmit = (
         skipCommands,
         afterSubmit,
         afterOptimisticSubmit,
-        postId,
+        rootId,
         showPostDeletedModal,
         handleDraftChange,
         channelId,
         isInEditMode,
     ]);
 
+    const handleFileChange = useCallback((submittingDraft: PostDraft) => {
+        // sets the updated data for file IDs by post ID part
+        dispatch({
+            type: FileTypes.RECEIVED_FILES_FOR_POST,
+            data: submittingDraft.fileInfos,
+            postId,
+        });
+
+        // removes the data for the deleted files from store
+        const deletedFileIds = postFileIds.filter((id: string) => !submittingDraft.fileInfos.find((file) => file.id === id));
+        if (deletedFileIds) {
+            dispatch({
+                type: FileTypes.REMOVED_FILE,
+                data: {
+                    fileIds: deletedFileIds,
+                },
+            });
+        }
+    }, [dispatch, postFileIds, postId]);
+
     const setUpdatedFileIds = useCallback((draft: PostDraft) => {
         // new object creation is needed here to support sending a draft with files.
         // In case of draft, the PostDraft object is fetched from the redux store, which is immutable.
-        // When user clicks 'Send Now' in drafts list, it will otherwise try to seta  field on an immutable object.
+        // When user clicks 'Send Now' in drafts list, it will otherwise try to set a field on an immutable object.
         // Hence, creating a new object here.
         return {
             ...draft,

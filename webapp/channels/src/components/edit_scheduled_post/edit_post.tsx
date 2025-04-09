@@ -20,9 +20,8 @@ import {openModal} from 'actions/views/modals';
 import {getConnectionId} from 'selectors/general';
 
 import DeletePostModal from 'components/delete_post_modal';
-import DeleteScheduledPostModal
-    from 'components/drafts/draft_actions/schedule_post_actions/delete_scheduled_post_modal';
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
+import DeleteScheduledPostModal from 'components/drafts/draft_actions/schedule_post_actions/delete_scheduled_post_modal';
+import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
 import Textbox from 'components/textbox';
 import type {TextboxClass, TextboxElement} from 'components/textbox';
 
@@ -102,9 +101,6 @@ export type State = {
 
 const {KeyCodes} = Constants;
 
-const TOP_OFFSET = 0;
-const RIGHT_OFFSET = 10;
-
 const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, scheduledPost, afterSave, onCancel, onDeleteScheduledPost, ...rest}: Props): JSX.Element | null => {
     const connectionId = useSelector(getConnectionId);
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
@@ -123,7 +119,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const [showMentionHelper, setShowMentionHelper] = useState<boolean>(false);
 
     const textboxRef = useRef<TextboxClass>(null);
-    const emojiButtonRef = useRef<HTMLButtonElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
     // using a ref here makes sure that the unmounting callback (saveDraft) is fired with the correct value.
@@ -503,11 +498,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
     };
 
-    const hideEmojiPicker = () => {
-        setShowEmojiPicker(false);
-        textboxRef.current?.focus();
-    };
-
     const handleEmojiClick = (emoji?: Emoji) => {
         if (!emoji) {
             return;
@@ -570,35 +560,37 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
     };
 
-    const getEmojiTargetRef = useCallback(() => emojiButtonRef.current, [emojiButtonRef]);
+    const {
+        emojiPicker,
+        getReferenceProps,
+        setReference,
+    } = useEmojiPicker({
+        showEmojiPicker,
+        setShowEmojiPicker,
 
-    let emojiPicker = null;
+        enableGifPicker: config.EnableGifPicker === 'true',
+        onGifClick: handleGifClick,
+        onEmojiClick: handleEmojiClick,
+    });
 
+    let emojiPickerControls = null;
     if (config.EnableEmojiPicker === 'true') {
-        emojiPicker = (
+        emojiPickerControls = (
             <>
-                <EmojiPickerOverlay
-                    show={showEmojiPicker}
-                    target={getEmojiTargetRef}
-                    onHide={hideEmojiPicker}
-                    onEmojiClick={handleEmojiClick}
-                    onGifClick={handleGifClick}
-                    enableGifPicker={config.EnableGifPicker === 'true'}
-                    topOffset={TOP_OFFSET}
-                    rightOffset={RIGHT_OFFSET}
-                />
                 <button
                     aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                     id='editPostEmoji'
-                    ref={emojiButtonRef}
+                    ref={setReference}
                     className='style--none post-action'
                     onClick={toggleEmojiPicker}
+                    {...getReferenceProps()}
                 >
                     <EmoticonPlusOutlineIcon
                         size={18}
                         color='currentColor'
                     />
                 </button>
+                {emojiPicker}
             </>
         );
     }
@@ -637,7 +629,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 useChannelMentions={rest.useChannelMentions}
             />
             <div className='post-body__actions'>
-                {emojiPicker}
+                {emojiPickerControls}
             </div>
             { showMentionHelper ? (
                 <div className='post-body__info'>

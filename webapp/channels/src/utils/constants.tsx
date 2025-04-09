@@ -7,13 +7,13 @@ import solarizedDarkCSS from 'highlight.js/styles/base16/solarized-dark.css';
 import solarizedLightCSS from 'highlight.js/styles/base16/solarized-light.css';
 import githubCSS from 'highlight.js/styles/github.css';
 import monokaiCSS from 'highlight.js/styles/monokai.css';
-import keyMirror from 'key-mirror';
 import {defineMessage, defineMessages} from 'react-intl';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {Preferences as ReduxPreferences} from 'mattermost-redux/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
+import keyMirror from 'mattermost-redux/utils/key_mirror';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
 import audioIcon from 'images/icons/audio.svg';
@@ -250,8 +250,6 @@ export const ActionTypes = keyMirror({
     INCREMENT_EMOJI_PICKER_PAGE: null,
     SET_RECENT_SKIN: null,
 
-    STATUS_DROPDOWN_TOGGLE: null,
-    ADD_CHANNEL_DROPDOWN_TOGGLE: null,
     ADD_CHANNEL_CTA_DROPDOWN_TOGGLE: null,
 
     SHOW_ONBOARDING_TASK_COMPLETION: null,
@@ -469,6 +467,8 @@ export const ModalIdentifiers = {
     SECURE_CONNECTION_ACCEPT_INVITE: 'secure_connection_accept_invite',
     SHARED_CHANNEL_REMOTE_INVITE: 'shared_channel_remote_invite',
     SHARED_CHANNEL_REMOTE_UNINVITE: 'shared_channel_remote_uninvite',
+    CONFIRM_RESET_FAILED_ATTEMPTS_MODAL: 'confirm_reset_failed_attempts_modal',
+    USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
 };
 
 export const UserStatuses = {
@@ -539,6 +539,20 @@ export enum LicenseSkus {
     Starter = 'starter',
     Professional = 'professional',
     Enterprise = 'enterprise',
+    Premium = 'premium',
+}
+
+export function getLicenseTier(licenseSku: string): number {
+    switch (licenseSku) {
+    case LicenseSkus.Professional:
+        return 10;
+    case LicenseSkus.Enterprise:
+        return 20;
+    case LicenseSkus.Premium:
+        return 30;
+    default:
+        return 0;
+    }
 }
 
 export const CloudProductToSku = {
@@ -665,6 +679,10 @@ export const SocketEvents = {
     SCHEDULED_POST_DELETED: 'scheduled_post_deleted',
     PERSISTENT_NOTIFICATION_TRIGGERED: 'persistent_notification_triggered',
     HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED: 'hosted_customer_signup_progress_updated',
+    CPA_FIELD_CREATED: 'custom_profile_attributes_field_created',
+    CPA_FIELD_UPDATED: 'custom_profile_attributes_field_updated',
+    CPA_FIELD_DELETED: 'custom_profile_attributes_field_deleted',
+    CPA_VALUES_UPDATED: 'custom_profile_attributes_values_updated',
 };
 
 export const TutorialSteps = {
@@ -752,6 +770,14 @@ export const AdvancedTextEditor = {
     EDIT: 'edit',
 };
 
+export const AdvancedTextEditorTextboxIds = {
+    InCenter: 'post_textbox',
+    InRHSComment: 'reply_textbox',
+    InModal: 'modal_textbox',
+    InEditMode: 'edit_textbox',
+    Default: 'textbox',
+};
+
 export const TELEMETRY_CATEGORIES = {
     CLOUD_PURCHASING: 'cloud_purchasing',
     CLOUD_PRICING: 'cloud_pricing',
@@ -825,8 +851,6 @@ export const StatTypes = keyMirror({
     TOTAL_PRIVATE_GROUPS: null,
     TOTAL_POSTS: null,
     TOTAL_TEAMS: null,
-    TOTAL_FILE_POSTS: null,
-    TOTAL_HASHTAG_POSTS: null,
     TOTAL_IHOOKS: null,
     TOTAL_OHOOKS: null,
     TOTAL_COMMANDS: null,
@@ -841,6 +865,8 @@ export const StatTypes = keyMirror({
     TOTAL_READ_DB_CONNECTIONS: null,
     DAILY_ACTIVE_USERS: null,
     MONTHLY_ACTIVE_USERS: null,
+    TOTAL_FILE_COUNT: null,
+    TOTAL_FILE_SIZE: null,
 });
 
 export const SearchTypes = keyMirror({
@@ -1658,10 +1684,6 @@ export const Constants = {
     OPEN_TEAM: 'O',
     THREADS: 'threads',
     MAX_POST_LEN: 4000,
-    EMOJI_SIZE: 16,
-    DEFAULT_EMOJI_PICKER_LEFT_OFFSET: 87,
-    DEFAULT_EMOJI_PICKER_RIGHT_OFFSET: 15,
-    EMOJI_PICKER_WIDTH_OFFSET: 295,
     SIDEBAR_MINIMUM_WIDTH: 640,
     THEME_ELEMENTS: [
         {
@@ -2020,6 +2042,9 @@ export const Constants = {
     MAX_CHANNELNAME_LENGTH: 64,
     DEFAULT_CHANNELURL_SHORTEN_LENGTH: 52,
     MAX_CHANNELPURPOSE_LENGTH: 250,
+    MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH: 40,
+    MAX_CUSTOM_ATTRIBUTES: 20,
+    MAX_CUSTOM_ATTRIBUTE_LENGTH: 64,
     MAX_FIRSTNAME_LENGTH: 64,
     MAX_LASTNAME_LENGTH: 64,
     MAX_EMAIL_LENGTH: 128,
@@ -2211,7 +2236,7 @@ export enum ClaimErrors {
 export const DataSearchTypes = {
     FILES_SEARCH_TYPE: 'files',
     MESSAGES_SEARCH_TYPE: 'messages',
-};
+} as const;
 
 export const OverActiveUserLimits = {
     MIN: 0.05,

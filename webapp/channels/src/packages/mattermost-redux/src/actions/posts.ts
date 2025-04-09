@@ -35,9 +35,10 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
-import {logError} from './errors';
+import {logError, LogErrorBarMode} from './errors';
 
 // receivedPost should be dispatched after a single post from the server. This typically happens when an existing post
 // is updated.
@@ -164,7 +165,6 @@ export function getPost(postId: string): ActionFuncAsync<Post> {
         }
 
         dispatch(receivedPost(post, crtEnabled));
-        dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 
         return {data: post};
     };
@@ -1035,6 +1035,25 @@ export function getPostsByIds(ids: string[]): ActionFuncAsync {
     };
 }
 
+export function getPostsByIdsBatched(postIds: string[]): ActionFuncAsync<true> {
+    const maxBatchSize = 100;
+    const wait = 100;
+
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.postsByIdsLoader) {
+            loaders.postsByIdsLoader = new DelayedDataLoader<Post['id']>({
+                fetchBatch: (postIds) => dispatch(getPostsByIds(postIds)),
+                maxBatchSize,
+                wait,
+            });
+        }
+
+        loaders.postsByIdsLoader.queue(postIds);
+
+        return {data: true};
+    };
+}
+
 export function getPostEditHistory(postId: string) {
     return bindClientFunc({
         clientFunc: Client4.getPostEditHistory,
@@ -1325,7 +1344,7 @@ export function restorePostVersion(postId: string, restoreVersionId: string, con
         } catch (error) {
             // Send to error bar if it's an edit post error about time limit.
             if (error.server_error_id === 'api.post.update_post.permissions_time_limit.app_error') {
-                dispatch(logError({type: 'announcement', message: error.message}, true));
+                dispatch(logError({type: 'announcement', message: error.message}, {errorBarMode: LogErrorBarMode.Always}));
             } else {
                 dispatch(logError(error));
             }

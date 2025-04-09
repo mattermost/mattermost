@@ -31,7 +31,7 @@ var apiClient *model.Client4
 var URL string
 
 type TestHelper struct {
-	App     app.AppIface
+	App     *app.App
 	Context request.CTX
 	Server  *app.Server
 	Web     *Web

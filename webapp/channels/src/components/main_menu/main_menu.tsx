@@ -33,7 +33,7 @@ import {makeUrlSafe} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 
 import type {ModalData} from 'types/actions';
-import type {PluginComponent} from 'types/store/plugins';
+import type {MainMenuAction} from 'types/store/plugins';
 
 import LearnAboutTeamsLink from './learn_about_teams_link';
 import './main_menu.scss';
@@ -56,7 +56,7 @@ export type Props = {
     helpLink?: string;
     reportAProblemLink?: string;
     moreTeamsToJoin: boolean;
-    pluginMenuItems?: PluginComponent[];
+    pluginMenuItems?: MainMenuAction[];
     isMentionSearch?: boolean;
     teamIsGroupConstrained: boolean;
     isLicensedForLDAPGroups?: boolean;
@@ -94,7 +94,7 @@ export class MainMenu extends React.PureComponent<Props> {
     handleKeyDown = (e: KeyboardEvent): void => {
         if (cmdOrCtrlPressed(e) && e.shiftKey && isKeyPressed(e, Constants.KeyCodes.A)) {
             e.preventDefault();
-            this.props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true}});
+            this.props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true, focusOriginElement: 'userAccountMenuButton'}});
         }
     };
 
@@ -174,6 +174,7 @@ export class MainMenu extends React.PureComponent<Props> {
                     })}
                     icon={this.props.mobile && <i className='fa fa-user-plus'/>}
                     onClick={() => trackEvent('ui', 'click_sidebar_team_dropdown_invite_people')}
+                    dialogProps={{focusOriginElement: 'sidebarDropdownMenuButton'}}
                 />
             );
         }
@@ -220,7 +221,7 @@ export class MainMenu extends React.PureComponent<Props> {
                         id='profileSettings'
                         modalId={ModalIdentifiers.USER_SETTINGS}
                         dialogType={UserSettingsModal}
-                        dialogProps={{isContentProductSettings: false}}
+                        dialogProps={{isContentProductSettings: false, focusOriginElement: 'userAccountMenuButton2'}}
                         text={formatMessage({id: 'navbar_dropdown.profileSettings', defaultMessage: 'Profile'})}
                         icon={<i className='fa fa-user'/>}
                     />
@@ -228,7 +229,7 @@ export class MainMenu extends React.PureComponent<Props> {
                         id='accountSettings'
                         modalId={ModalIdentifiers.USER_SETTINGS}
                         dialogType={UserSettingsModal}
-                        dialogProps={{isContentProductSettings: true}}
+                        dialogProps={{isContentProductSettings: true, focusOriginElement: 'userAccountMenuButton3'}}
                         text={formatMessage({id: 'navbar_dropdown.accountSettings', defaultMessage: 'Settings'})}
                         icon={<i className='fa fa-cog'/>}
                     />

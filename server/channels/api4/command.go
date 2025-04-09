@@ -335,6 +335,11 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("createPost", "api.command.execute_command.deleted.error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup {
 		// if this isn't a DM or GM, the team id is implicitly taken from the channel so that slash commands created on
 		// some other team can't be run against this one

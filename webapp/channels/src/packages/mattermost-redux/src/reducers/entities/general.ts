@@ -4,6 +4,8 @@
 import {combineReducers} from 'redux';
 
 import type {ClientLicense, ClientConfig} from '@mattermost/types/config';
+import type {UserPropertyField} from '@mattermost/types/properties';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -32,6 +34,36 @@ function license(state: ClientLicense = {}, action: MMReduxAction) {
     case GeneralTypes.CLIENT_LICENSE_RESET:
     case UserTypes.LOGOUT_SUCCESS:
         return {};
+    default:
+        return state;
+    }
+}
+
+function customProfileAttributes(state: IDMappedObjects<UserPropertyField> = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED: {
+        const data: UserPropertyField[] = action.data;
+        return data.reduce<IDMappedObjects<UserPropertyField>>((acc, field) => {
+            acc[field.id] = field;
+            return acc;
+        }, {});
+    }
+    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED: {
+        const nextState = {...state};
+        const fieldId = action.data;
+        if (Object.hasOwn(nextState, fieldId)) {
+            Reflect.deleteProperty(nextState, fieldId);
+            return nextState;
+        }
+        return state;
+    }
+    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED:
+    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED: {
+        return {
+            ...state,
+            [action.data.id]: action.data,
+        };
+    }
     default:
         return state;
     }
@@ -71,6 +103,7 @@ function firstAdminCompleteSetup(state = false, action: MMReduxAction) {
 export default combineReducers({
     config,
     license,
+    customProfileAttributes,
     serverVersion,
     firstAdminVisitMarketplaceStatus,
     firstAdminCompleteSetup,

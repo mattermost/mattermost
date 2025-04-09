@@ -99,6 +99,7 @@ type TrackSKU string
 const (
 	TrackProfessionalSKU TrackSKU = "professional"
 	TrackEnterpriseSKU   TrackSKU = "enterprise"
+	TrackPremiumSKU      TrackSKU = "premium"
 )
 
 type TrackFeature string
@@ -526,6 +527,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_channel_viewed_messages":                          *cfg.ServiceSettings.EnableChannelViewedMessages,
 		"time_between_user_typing_updates_milliseconds":           *cfg.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds,
 		"cluster_log_timeout_milliseconds":                        *cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
+		"enable_cross_team_search":                                *cfg.ServiceSettings.EnableCrossTeamSearch,
 		"enable_post_search":                                      *cfg.ServiceSettings.EnablePostSearch,
 		"minimum_hashtag_length":                                  *cfg.ServiceSettings.MinimumHashtagLength,
 		"enable_user_statuses":                                    *cfg.ServiceSettings.EnableUserStatuses,
@@ -549,7 +551,6 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_svgs":                                             *cfg.ServiceSettings.EnableSVGs,
 		"enable_latex":                                            *cfg.ServiceSettings.EnableLatex,
 		"enable_inline_latex":                                     *cfg.ServiceSettings.EnableInlineLatex,
-		"enable_opentracing":                                      *cfg.ServiceSettings.EnableOpenTracing,
 		"enable_local_mode":                                       *cfg.ServiceSettings.EnableLocalMode,
 		"managed_resource_paths":                                  isDefault(*cfg.ServiceSettings.ManagedResourcePaths, ""),
 		"thread_auto_follow":                                      *cfg.ServiceSettings.ThreadAutoFollow,

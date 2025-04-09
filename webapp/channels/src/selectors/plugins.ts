@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AppBinding} from '@mattermost/types/apps';
-
 import {Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {appBarEnabled, getAppBarAppBindings} from 'mattermost-redux/selectors/entities/apps';
@@ -11,7 +9,6 @@ import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
 
 import type {GlobalState} from 'types/store';
-import type {FileDropdownPluginComponent, PluginComponent} from 'types/store/plugins';
 
 export const getPluginUserSettings = createSelector(
     'getPluginUserSettings',
@@ -25,7 +22,7 @@ export const getFilesDropdownPluginMenuItems = createSelector(
     'getFilesDropdownPluginMenuItems',
     (state: GlobalState) => state.plugins.components.FilesDropdown,
     (components) => {
-        return (components || []) as unknown as FileDropdownPluginComponent[];
+        return (components || []);
     },
 );
 
@@ -44,7 +41,7 @@ export const getChannelHeaderPluginComponents = createSelector(
     (state: GlobalState) => state.plugins.components.AppBar,
     (enabled, channelHeaderComponents = [], appBarComponents = []) => {
         if (!enabled || !appBarComponents.length) {
-            return channelHeaderComponents as unknown as PluginComponent[];
+            return channelHeaderComponents;
         }
 
         // Remove channel header icons for plugins that have also registered an app bar component
@@ -77,6 +74,14 @@ export const getChannelHeaderMenuPluginComponents = createShallowSelector(
     },
 );
 
+export const getChannelMobileHeaderPluginButtons = createSelector(
+    'getChannelMobileHeaderPluginButtons',
+    (state: GlobalState) => state.plugins.components.MobileChannelHeaderButton,
+    (components = []) => {
+        return components;
+    },
+);
+
 export const getChannelIntroPluginButtons = createSelector(
     'getChannelIntroPluginButtons',
     (state: GlobalState) => state.plugins.components.ChannelIntroButton,
@@ -99,7 +104,7 @@ export const shouldShowAppBar = createSelector(
     getAppBarAppBindings,
     getAppBarPluginComponents,
     getChannelHeaderPluginComponents,
-    (enabled: boolean, bindings: AppBinding[], appBarComponents: PluginComponent[], channelHeaderComponents) => {
+    (enabled, bindings, appBarComponents, channelHeaderComponents) => {
         return enabled && Boolean(bindings.length || appBarComponents.length || channelHeaderComponents.length);
     },
 );

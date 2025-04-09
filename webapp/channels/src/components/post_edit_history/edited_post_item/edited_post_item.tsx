@@ -13,6 +13,7 @@ import {getPostEditHistory, restorePostVersion} from 'mattermost-redux/actions/p
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
+import {removeDraft} from 'actions/views/drafts';
 import {getConnectionId} from 'selectors/general';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
@@ -25,7 +26,7 @@ import UserProfileComponent from 'components/user_profile';
 import Avatar from 'components/widgets/users/avatar';
 import WithTooltip from 'components/with_tooltip';
 
-import {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import {imageURLForUser} from 'utils/utils';
 
 import RestorePostModal from '../restore_post_modal';
@@ -123,6 +124,9 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
             actions.closeRightHandSide();
             showInfoTooltip();
         }
+
+        const key = StoragePrefixes.EDIT_DRAFT + post.original_id;
+        dispatch(removeDraft(key, post.channel_id, post.root_id));
     };
 
     const handleUndo = async () => {

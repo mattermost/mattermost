@@ -404,6 +404,69 @@ components:
           type: string
         metadata:
           $ref: "#/components/schemas/PostMetadata"
+    PropertyField:
+      type: object
+      properties:
+        id:
+          type: string
+        group_id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        attrs:
+          type: object
+        target_id:
+          type: string
+        target_type:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        update_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
+    PropertyFieldPatch:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        attrs:
+          type: object
+        target_id:
+          type: string
+        target_type:
+          type: string
+    PropertyValue:
+      type: object
+      properties:
+        id:
+          type: string
+        target_id:
+          type: string
+        target_type:
+          type: string
+        group_id:
+          type: string
+        field_id:
+          type: string
+        value:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        update_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
     FileInfoList:
       type: object
       properties:

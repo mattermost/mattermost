@@ -108,6 +108,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             },
             Object {
               "disabled": true,
+              "hasDescription": true,
               "name": "user_management_system_roles",
             },
           ],
@@ -170,6 +171,9 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             },
             Object {
               "name": "environment_developer",
+            },
+            Object {
+              "name": "environment_mobile_security",
             },
           ],
         }
@@ -483,6 +487,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             },
             Object {
               "disabled": true,
+              "hasDescription": true,
               "name": "user_management_system_roles",
             },
           ],

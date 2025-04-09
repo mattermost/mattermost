@@ -5,10 +5,12 @@ package platform
 
 import (
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"hash/maphash"
 	"net/http"
 	"runtime"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -88,6 +90,8 @@ type PlatformService struct {
 	searchConfigListenerId  string
 	searchLicenseListenerId string
 
+	ldapDiagnostic einterfaces.LdapDiagnosticInterface
+
 	Jobs *jobs.JobServer
 
 	hubs     []*Hub
@@ -107,6 +111,8 @@ type PlatformService struct {
 	// This is a test mode setting used to enable Redis
 	// without a license.
 	forceEnableRedis bool
+
+	pdpService einterfaces.PolicyDecisionPointInterface
 }
 
 type HookRunner interface {
@@ -164,10 +170,11 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
 		ps.cacheProvider, err = cache.NewRedisProvider(
 			&cache.RedisOptions{
-				RedisAddr:     *cacheConfig.RedisAddress,
-				RedisPassword: *cacheConfig.RedisPassword,
-				RedisDB:       *cacheConfig.RedisDB,
-				DisableCache:  *cacheConfig.DisableClientCache,
+				RedisAddr:        *cacheConfig.RedisAddress,
+				RedisPassword:    *cacheConfig.RedisPassword,
+				RedisDB:          *cacheConfig.RedisDB,
+				RedisCachePrefix: *cacheConfig.RedisCachePrefix,
+				DisableCache:     *cacheConfig.DisableClientCache,
 			},
 		)
 	}
@@ -356,9 +363,12 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	ps.Busy = NewBusy(ps.clusterIFace)
 
-	// Enable developer settings if this is a "dev" build
+	// Enable developer settings and mmctl local mode if this is a "dev" build
 	if model.BuildNumber == "dev" {
-		ps.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+		ps.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = true
+			*cfg.ServiceSettings.EnableLocalMode = true
+		})
 	}
 
 	ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
@@ -459,8 +469,16 @@ func (ps *PlatformService) initEnterprise() {
 		ps.SearchEngine.RegisterElasticsearchEngine(elasticsearchInterface(ps))
 	}
 
+	if ldapDiagnosticInterface != nil {
+		ps.ldapDiagnostic = ldapDiagnosticInterface(ps)
+	}
+
 	if licenseInterface != nil {
 		ps.licenseManager = licenseInterface(ps)
+	}
+
+	if pdpInterface != nil {
+		ps.pdpService = pdpInterface(ps)
 	}
 }
 
@@ -547,10 +565,47 @@ func (ps *PlatformService) GetPluginStatuses() (model.PluginStatuses, *model.App
 	return pluginStatuses, nil
 }
 
+func (ps *PlatformService) getPluginManifests() ([]*model.Manifest, error) {
+	if ps.pluginEnv == nil {
+		return nil, errors.New("plugin environment not initialized")
+	}
+
+	pluginsEnvironment := ps.pluginEnv.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil, model.NewAppError("getPluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	plugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get list of available plugins: %w", err)
+	}
+
+	manifests := make([]*model.Manifest, len(plugins))
+	for i := range plugins {
+		manifests[i] = plugins[i].Manifest
+	}
+
+	return manifests, nil
+}
+
 func (ps *PlatformService) FileBackend() filestore.FileBackend {
 	return ps.filestore
 }
 
 func (ps *PlatformService) ExportFileBackend() filestore.FileBackend {
 	return ps.exportFilestore
+}
+
+func (ps *PlatformService) LdapDiagnostic() einterfaces.LdapDiagnosticInterface {
+	return ps.ldapDiagnostic
+}
+
+// DatabaseTypeAndSchemaVersion returns the Database type (postgres or mysql) and current version of the schema
+func (ps *PlatformService) DatabaseTypeAndSchemaVersion() (string, string, error) {
+	schemaVersion, err := ps.Store.GetDBSchemaVersion()
+	if err != nil {
+		return "", "", err
+	}
+
+	return model.SafeDereference(ps.Config().SqlSettings.DriverName), strconv.Itoa(schemaVersion), nil
 }

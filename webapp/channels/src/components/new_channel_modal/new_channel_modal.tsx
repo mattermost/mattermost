@@ -74,8 +74,7 @@ const NewChannelModal = () => {
     const [channelInputError, setChannelInputError] = useState(false);
 
     // create a board along with the channel
-    const pluginsComponentsList = useSelector((state: GlobalState) => state.plugins.components);
-    const createBoardFromChannelPlugin = pluginsComponentsList?.CreateBoardFromTemplate;
+    const createBoardFromChannelPlugin = useSelector((state: GlobalState) => state.plugins.components.CreateBoardFromTemplate);
     const newChannelWithBoardPulsatingDotState = useSelector((state: GlobalState) => getPreference(state, Preferences.APP_BAR, Preferences.NEW_CHANNEL_WITH_BOARD_TOUR_SHOWED, ''));
 
     const [canCreateFromPluggable, setCanCreateFromPluggable] = useState(true);

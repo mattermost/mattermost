@@ -13,12 +13,12 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import * as GlobalActions from 'actions/global_actions';
+import type {CreatePostOptions} from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
@@ -53,6 +53,7 @@ import Constants, {
     AdvancedTextEditor as AdvancedTextEditorConst,
     UserStatuses,
     ModalIdentifiers,
+    AdvancedTextEditorTextboxIds,
 } from 'utils/constants';
 import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
@@ -75,7 +76,7 @@ import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar';
-import useEmojiPicker from './use_emoji_picker';
+import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
 import useOrientationHandler from './use_orientation_handler';
 import usePluginItems from './use_plugin_items';
@@ -95,7 +96,8 @@ export type Props = {
      */
     location: string;
     channelId: string;
-    postId: string;
+    rootId: string;
+    postId?: string;
     isThreadView?: boolean;
     placeholder?: string;
     isInEditMode?: boolean;
@@ -115,6 +117,7 @@ export type Props = {
 const AdvancedTextEditor = ({
     location,
     channelId,
+    rootId,
     postId,
     isThreadView = false,
     placeholder,
@@ -130,7 +133,20 @@ const AdvancedTextEditor = ({
     const getDraftSelector = useMemo(makeGetDraft, []);
     const getDisplayName = useMemo(makeGetDisplayName, []);
 
-    const isRHS = Boolean(postId && !isThreadView);
+    let textboxId: string;
+    if (isInEditMode) {
+        textboxId = AdvancedTextEditorTextboxIds.InEditMode;
+    } else if (location === Locations.CENTER) {
+        textboxId = AdvancedTextEditorTextboxIds.InCenter;
+    } else if (location === Locations.RHS_COMMENT) {
+        textboxId = AdvancedTextEditorTextboxIds.InRHSComment;
+    } else if (location === Locations.MODAL) {
+        textboxId = AdvancedTextEditorTextboxIds.InModal;
+    } else {
+        textboxId = AdvancedTextEditorTextboxIds.Default;
+    }
+
+    const isRHS = isThreadView ? false : Boolean(rootId) || location === Locations.RHS_COMMENT;
 
     const getFormattingBarPreferenceName = () => {
         let name: string;
@@ -143,13 +159,12 @@ const AdvancedTextEditor = ({
         return name;
     };
 
-    const post = useSelector((state: GlobalState) => getPost(state, postId));
     const currentUserId = useSelector(getCurrentUserId);
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
     const channelDisplayName = channel?.display_name || '';
     const channelType = channel?.type || '';
     const isChannelShared = channel?.shared;
-    const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, postId, storageKey));
+    const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, rootId, storageKey));
     const badConnection = useSelector((state: GlobalState) => connectionErrorCount(state) > 1);
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
     const canUploadFiles = useSelector((state: GlobalState) => canUploadFilesAccordingToConfig(getConfig(state)));
@@ -173,7 +188,7 @@ const AdvancedTextEditor = ({
     });
     const showSendTutorialTip = useSelector((state: GlobalState) => {
         // We don't show the tutorial tip neither on RHS nor Thread view
-        if (postId) {
+        if (rootId) {
             return false;
         }
         const config = getConfig(state);
@@ -196,6 +211,7 @@ const AdvancedTextEditor = ({
     const draftRef = useRef(draftFromStore);
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
+    const messageStatusRef = useRef<HTMLDivElement | null>(null);
 
     const [draft, setDraft] = useState(draftFromStore);
     const [caretPosition, setCaretPosition] = useState(draft.message.length);
@@ -218,8 +234,8 @@ const AdvancedTextEditor = ({
     }, []);
 
     const emitTypingEvent = useCallback(() => {
-        GlobalActions.emitLocalUserTypingEvent(channelId, postId);
-    }, [channelId, postId]);
+        GlobalActions.emitLocalUserTypingEvent(channelId, rootId);
+    }, [channelId, rootId]);
 
     const handleDraftChange = useCallback((draftToChange: PostDraft, options: {instant?: boolean; show?: boolean} = {instant: false, show: false}) => {
         if (saveDraftFrame.current) {
@@ -290,12 +306,12 @@ const AdvancedTextEditor = ({
         }]));
     }, [dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
 
-    useOrientationHandler(textboxRef, postId);
+    useOrientationHandler(textboxRef, rootId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
         draft,
-        postId,
+        rootId,
         channelId,
         isThreadView,
         storedDrafts,
@@ -307,12 +323,20 @@ const AdvancedTextEditor = ({
         isInEditMode,
     );
 
-    const emojiPickerOffset = isInEditMode ? {right: 40} : undefined;
     const {
         emojiPicker,
         enableEmojiPicker,
         toggleEmojiPicker,
-    } = useEmojiPicker(isDisabled, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox, emojiPickerOffset);
+    } = useEditorEmojiPicker(
+        textboxId,
+        isDisabled,
+        draft,
+        caretPosition,
+        setCaretPosition,
+        handleDraftChange,
+        showPreview,
+        focusTextbox,
+    );
     const {
         labels: priorityLabels,
         additionalControl: priorityAdditionalControl,
@@ -323,7 +347,7 @@ const AdvancedTextEditor = ({
         draft,
         postError,
         channelId,
-        postId,
+        rootId,
         serverError,
         lastBlurAt,
         focusTextbox,
@@ -335,15 +359,34 @@ const AdvancedTextEditor = ({
         afterSubmit,
         undefined,
         isInEditMode,
+        postId,
     );
 
+    const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
+        handleSubmit(submittingDraft, schedulingInfo, options);
+        if (!errorClass) {
+            const messageStatusElement = messageStatusRef.current;
+            const messageStatusInnerText = messageStatusElement?.textContent;
+            if (messageStatusInnerText === 'Message Sent') {
+                messageStatusElement!.textContent = 'Message Sent &nbsp;';
+            } else {
+                messageStatusElement!.textContent = 'Message Sent';
+            }
+        }
+    }, [errorClass, handleSubmit]);
+
     const handleCancel = useCallback(() => {
-        // This resets the draft to the post's original content
         handleDraftChange({
-            ...draft,
-            message: post?.message || '',
+            message: '',
+            fileInfos: [],
+            uploadsInProgress: [],
+            createAt: 0,
+            updateAt: 0,
+            channelId,
+            rootId,
+            metadata: {},
         });
-    }, [handleDraftChange, draft, post]);
+    }, [handleDraftChange, channelId, rootId]);
 
     const handleSubmitWrapper = useCallback(() => {
         const isEmptyPost = isPostDraftEmpty(draft);
@@ -362,13 +405,13 @@ const AdvancedTextEditor = ({
             return;
         }
 
-        handleSubmit();
-    }, [dispatch, draft, handleSubmit, isInEditMode, isRHS]);
+        handleSubmitWithErrorHandling();
+    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS]);
 
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
-        postId,
+        rootId,
         caretPosition,
         isValidPersistentNotifications,
         location,
@@ -388,8 +431,8 @@ const AdvancedTextEditor = ({
 
     const handleSubmitWithEvent = useCallback((e: React.FormEvent) => {
         e.preventDefault();
-        handleSubmit();
-    }, [handleSubmit]);
+        handleSubmitWithErrorHandling();
+    }, [handleSubmitWithErrorHandling]);
 
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
@@ -516,11 +559,11 @@ const AdvancedTextEditor = ({
     useEffect(() => {
         setShowPreview(false);
         setServerError(null);
-    }, [channelId, postId]);
+    }, [channelId, rootId]);
 
     // Remove uploads in progress on mount
     useEffect(() => {
-        dispatch(actionOnGlobalItemsWithPrefix(postId ? StoragePrefixes.COMMENT_DRAFT : StoragePrefixes.DRAFT, (_key: string, draft: PostDraft) => {
+        dispatch(actionOnGlobalItemsWithPrefix(rootId ? StoragePrefixes.COMMENT_DRAFT : StoragePrefixes.DRAFT, (_key: string, draft: PostDraft) => {
             if (!draft || !draft.uploadsInProgress || draft.uploadsInProgress.length === 0) {
                 return draft;
             }
@@ -543,7 +586,9 @@ const AdvancedTextEditor = ({
         draftRef.current = draft;
     }, [draft]);
 
-    const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => handleSubmit(undefined, schedulingInfo), [handleSubmit]);
+    const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => {
+        handleSubmitWithErrorHandling(undefined, schedulingInfo);
+    }, [handleSubmitWithErrorHandling]);
 
     // Set the draft from store when changing post or channels, and store the previous one
     useEffect(() => {
@@ -557,7 +602,7 @@ const AdvancedTextEditor = ({
                 handleDraftChange(draftRef.current, {instant: true, show: true});
             }
         };
-    }, [channelId, postId]);
+    }, [channelId, rootId]);
 
     const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
@@ -578,7 +623,7 @@ const AdvancedTextEditor = ({
     let createMessage;
     if (placeholder) {
         createMessage = placeholder;
-    } else if (!postId && !isDisabled) {
+    } else if (!rootId && !isDisabled) {
         createMessage = formatMessage(
             {
                 id: 'create_post.write',
@@ -605,24 +650,6 @@ const AdvancedTextEditor = ({
     }
 
     const messageValue = isDisabled ? '' : draft.message_source || draft.message;
-
-    let textboxId = 'textbox';
-
-    switch (location) {
-    case Locations.CENTER:
-        textboxId = 'post_textbox';
-        break;
-    case Locations.RHS_COMMENT:
-        textboxId = 'reply_textbox';
-        break;
-    case Locations.MODAL:
-        textboxId = 'modal_textbox';
-        break;
-    }
-
-    if (isInEditMode) {
-        textboxId = 'edit_textbox';
-    }
 
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
 
@@ -699,9 +726,9 @@ const AdvancedTextEditor = ({
 
     return (
         <form
-            id={postId ? undefined : 'create_post'}
-            data-testid={postId ? undefined : 'create-post'}
-            className={(!postId && !fullWidthTextBox) ? 'center' : undefined}
+            id={rootId ? undefined : 'create_post'}
+            data-testid={rootId ? undefined : 'create-post'}
+            className={(!rootId && !fullWidthTextBox) ? 'center' : undefined}
             onSubmit={handleSubmitWithEvent}
         >
             {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
@@ -713,7 +740,7 @@ const AdvancedTextEditor = ({
                     channelId={channelId}
                     teammateDisplayName={teammateDisplayName}
                     location={location}
-                    postId={postId}
+                    postId={rootId}
                 />
             )}
             <div
@@ -773,7 +800,7 @@ const AdvancedTextEditor = ({
                             preview={showPreview}
                             badConnection={badConnection}
                             useChannelMentions={useChannelMentions}
-                            rootId={postId}
+                            rootId={rootId}
                             onWidthChange={handleWidthChange}
                             isInEditMode={isInEditMode}
                         />
@@ -825,7 +852,7 @@ const AdvancedTextEditor = ({
                 errorClass={errorClass}
                 serverError={serverError}
                 channelId={channelId}
-                postId={postId}
+                rootId={rootId}
                 noArgumentHandleSubmit={handleSubmitWrapper}
                 isInEditMode={isInEditMode}
             />
@@ -835,6 +862,11 @@ const AdvancedTextEditor = ({
                     onCancel={handleCancel}
                 />
             )}
+            <div
+                ref={messageStatusRef}
+                aria-live='assertive'
+                className='sr-only'
+            />
         </form>
     );
 };

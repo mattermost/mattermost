@@ -150,10 +150,14 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 
 		for _, attachment := range attachments {
 			var r io.ReadCloser
-			r, nErr := p.FileAttachmentBackend.Reader(attachment.Path)
-			if nErr != nil {
-				missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessage+" - Post: "+*post.PostId+" - "+attachment.Path)
-				rctx.Logger().Warn(shared.MissingFileMessage, mlog.String("post_id", *post.PostId), mlog.String("filename", attachment.Path))
+			r, err = p.FileAttachmentBackend.Reader(attachment.Path)
+			if err != nil {
+				missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessageDuringBackendRead+" - Post: "+*post.PostId+" - "+attachment.Path)
+				rctx.Logger().Warn(shared.MissingFileMessageDuringBackendRead,
+					mlog.String("post_id", *post.PostId),
+					mlog.String("filename", attachment.Path),
+					mlog.Err(err),
+				)
 				continue
 			}
 
@@ -173,7 +177,16 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 
 				return nil
 			}(); err != nil {
-				return results, fmt.Errorf("unable to copy the attachment into the zip file: %w", err)
+				// s3 only errors _here_ if the object key wasn't found. So to handle that: if there is a read
+				// error (even for local), let's add a warning instead of failing the export.
+				// Failing the export would fail the entire export run, and every future run would also fail on
+				// this non-existent file -- not good.
+				missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessageDuringCopy+" - Post: "+*post.PostId+" - "+attachment.Path)
+				rctx.Logger().Warn(shared.MissingFileMessageDuringCopy,
+					mlog.String("post_id", *post.PostId),
+					mlog.String("filename", attachment.Path),
+					mlog.Err(err),
+				)
 			}
 		}
 	}

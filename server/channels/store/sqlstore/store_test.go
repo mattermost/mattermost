@@ -457,13 +457,13 @@ func TestEnsureMinimumDBVersion(t *testing.T) {
 	}{
 		{
 			driver: model.DatabaseDriverPostgres,
-			ver:    "100001",
+			ver:    "110001",
 			ok:     false,
 			err:    "",
 		},
 		{
 			driver: model.DatabaseDriverPostgres,
-			ver:    "110001",
+			ver:    "130001",
 			ok:     true,
 			err:    "",
 		},
@@ -522,7 +522,7 @@ func TestEnsureMinimumDBVersion(t *testing.T) {
 			store.settings = mySettings
 		}
 		ok, err := store.ensureMinimumDBVersion(tc.ver)
-		assert.Equal(t, tc.ok, ok)
+		assert.Equal(t, tc.ok, ok, "driver: %s, version: %s", tc.driver, tc.ver)
 		if tc.err != "" {
 			assert.Contains(t, err.Error(), tc.err)
 		}
@@ -791,6 +791,50 @@ func TestReplicaLagQuery(t *testing.T) {
 			err = store.ReplicaLagTime()
 			require.NoError(t, err)
 			mockMetrics.AssertExpectations(t)
+		})
+	}
+}
+
+func TestInvalidReplicaLagDataSource(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	testDrivers := []string{
+		model.DatabaseDriverPostgres,
+		model.DatabaseDriverMysql,
+	}
+
+	for _, driver := range testDrivers {
+		t.Run(driver, func(t *testing.T) {
+			settings, err := makeSqlSettings(driver)
+			if err != nil {
+				t.Skip(err)
+			}
+
+			// Set an invalid DataSource that will fail to connect
+			settings.ReplicaLagSettings = []*model.ReplicaLagSettings{{
+				DataSource:       model.NewPointer("invalid://connection/string"),
+				QueryAbsoluteLag: model.NewPointer("SELECT 1"),
+				QueryTimeLag:     model.NewPointer("SELECT 1"),
+			}}
+
+			mockMetrics := &mocks.MetricsInterface{}
+			mockMetrics.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
+
+			store := &SqlStore{
+				rrCounter:   0,
+				srCounter:   0,
+				settings:    settings,
+				metrics:     mockMetrics,
+				logger:      logger,
+				quitMonitor: make(chan struct{}),
+				wgMonitor:   &sync.WaitGroup{},
+			}
+
+			require.NoError(t, store.initConnection())
+			defer store.Close()
+
+			// Verify no replica lag handles were added despite having ReplicaLagSettings
+			assert.Equal(t, 0, len(store.replicaLagHandles))
 		})
 	}
 }

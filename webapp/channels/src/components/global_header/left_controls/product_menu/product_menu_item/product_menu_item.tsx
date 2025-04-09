@@ -61,6 +61,7 @@ const ProductMenuItem = ({icon, destination, text, active, onClick, tourTip, id}
             to={destination}
             onClick={onClick}
             id={id}
+            role='menuitem'
         >
             <ProductIcon
                 size={24}

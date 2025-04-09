@@ -74,7 +74,7 @@ describe('FormattingBar', () => {
             </form>,
         );
 
-        expect(screen.queryByLabelText('heading')).not.toBeVisible();
+        expect(screen.queryByLabelText('heading')).toBe(null);
 
         userEvent.click(screen.getByLabelText('show hidden formatting options'));
 

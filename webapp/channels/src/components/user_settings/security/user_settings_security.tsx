@@ -1002,7 +1002,11 @@ export class SecurityTab extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div>
+            <div
+                id='securitySettings'
+                aria-labelledby='securityButton'
+                role='tabpanel'
+            >
                 <SettingMobileHeader
                     closeModal={this.props.closeModal}
                     collapseModal={this.props.collapseModal}
@@ -1050,6 +1054,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                 id: 'user.settings.security.viewHistory.icon',
                                 defaultMessage: 'Access History Icon',
                             })}
+                            aria-hidden='true'
                         />
                         <FormattedMessage
                             id='user.settings.security.viewHistory'
@@ -1068,6 +1073,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                 id: 'user.settings.security.logoutActiveSessions.icon',
                                 defaultMessage: 'Active Sessions Icon',
                             })}
+                            aria-hidden='true'
                         />
                         <FormattedMessage
                             id='user.settings.security.logoutActiveSessions'

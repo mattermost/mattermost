@@ -906,7 +906,7 @@ func TestWriteExportWarnings(t *testing.T) {
 	warnings := string(data)
 
 	expectedWarnings := fmt.Sprintf("Warning:%[1]s - Post: post-id-1 - test1\nWarning:%[1]s - Post: post-id-3 - test2\n",
-		shared.MissingFileMessage)
+		shared.MissingFileMessageDuringBackendRead)
 
 	assert.Equal(t, expectedWarnings, warnings)
 }

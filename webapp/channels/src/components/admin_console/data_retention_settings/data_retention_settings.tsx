@@ -5,6 +5,7 @@ import React, {createRef} from 'react';
 import type {RefObject} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
+import type {SelectInstance} from 'react-select';
 import ReactSelect from 'react-select';
 
 import type {AdminConfig} from '@mattermost/types/config';
@@ -81,7 +82,7 @@ export const searchableStrings = [
 ];
 
 class DataRetentionSettings extends React.PureComponent<Props, State> {
-    inputRef: RefObject<ReactSelect<OptionType>>;
+    inputRef: RefObject<SelectInstance<OptionType>>;
     constructor(props: Props) {
         super(props);
         this.inputRef = createRef();

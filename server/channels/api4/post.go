@@ -790,6 +790,10 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		includeDeletedChannels = *params.IncludeDeletedChannels
 	}
 
+	auditRec := c.MakeAuditRecord("searchPosts", audit.Fail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelAPI)
+	audit.AddEventParameterAuditable(auditRec, "search_params", params)
+
 	startTime := time.Now()
 
 	results, err := c.App.SearchPostsForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
@@ -814,6 +818,8 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 	}
 
 	results = model.MakePostSearchResults(clientPostList, results.Matches)
+	audit.AddEventParameterAuditable(auditRec, "search_results", results)
+	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if err := results.EncodeJSON(w); err != nil {
@@ -1077,11 +1083,11 @@ func unpinPost(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// license check
-	permissionErr := minimumProfessionalLicense(c)
-	if permissionErr != nil {
-		c.Err = permissionErr
+	if !model.MinimumProfessionalLicense(c.App.Srv().License()) {
+		c.Err = model.NewAppError("", model.NoTranslation, nil, "feature is not available for the current license", http.StatusNotImplemented)
 		return
 	}
+
 	c.RequirePostId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -1116,11 +1122,11 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// license check
-	permissionErr := minimumProfessionalLicense(c)
-	if permissionErr != nil {
-		c.Err = permissionErr
+	if !model.MinimumProfessionalLicense(c.App.Srv().License()) {
+		c.Err = model.NewAppError("", "license_error.feature_unavailable", nil, "feature is not available for the current license", http.StatusNotImplemented)
 		return
 	}
+
 	c.RequirePostId().RequireUserId()
 	if c.Err != nil {
 		return

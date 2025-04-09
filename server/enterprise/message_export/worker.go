@@ -142,13 +142,12 @@ func (w *MessageExportWorker) DoJob(job *model.Job) {
 	logger.Debug("Worker: Received a new candidate job.")
 	defer w.jobServer.HandleJobPanic(logger, job)
 
-	claimed, appErr := w.jobServer.ClaimJob(job)
+	var appErr *model.AppError
+	job, appErr = w.jobServer.ClaimJob(job)
 	if appErr != nil {
-		logger.Info("Worker: Error occurred while trying to claim job", mlog.Err(appErr))
+		logger.Warn("Worker: Error occurred while trying to claim job", mlog.Err(appErr))
 		return
-	}
-
-	if !claimed {
+	} else if job == nil {
 		return
 	}
 
@@ -251,7 +250,7 @@ func (w *MessageExportWorker) finishExport(rctx request.CTX, logger *mlog.Logger
 	// we've exported everything up to the current time
 	logger.Debug("FormatExport complete")
 
-	job.Data[shared.JobDataIsDownloadable] = "false"
+	job.Data[shared.JobDataIsDownloadable] = "true"
 
 	if totalWarningCount > 0 {
 		w.setJobWarning(logger, job)
@@ -327,6 +326,12 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 		if previousJob.Data == nil {
 			previousJob.Data = make(map[string]string)
 		}
+
+		// Backwards compatibility for <10.5:
+		if batchStartTimestamp, prevExists := previousJob.Data["batch_start_timestamp"]; prevExists {
+			previousJob.Data[shared.JobDataBatchStartTime] = batchStartTimestamp
+		}
+
 		if _, prevExists := previousJob.Data[shared.JobDataBatchStartTime]; !prevExists {
 			exportFromTimestamp := strconv.FormatInt(*w.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10)
 			logger.Info("Worker: Previously successful job lacks job data, falling back to configured MessageExportSettings.ExportFromTimestamp", mlog.String("export_from_timestamp", exportFromTimestamp))

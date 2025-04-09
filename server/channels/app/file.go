@@ -124,22 +124,57 @@ func fileReader(backend filestore.FileBackend, path string) (filestore.ReadClose
 	return result, nil
 }
 
+func zipReader(backend filestore.FileBackend, path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	result, err := backend.ZipReader(path, deflate)
+	if err != nil {
+		return nil, model.NewAppError("ZipReader", "api.file.zip_file_reader.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
+}
+
 func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return fileReader(s.FileBackend(), path)
+}
+
+func (s *Server) zipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	return zipReader(s.FileBackend(), path, deflate)
 }
 
 func (s *Server) exportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return fileReader(s.ExportFileBackend(), path)
 }
 
-// Caller must close the first return value
+func (s *Server) exportZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	return zipReader(s.ExportFileBackend(), path, deflate)
+}
+
+// FileReader returns a ReadCloseSeeker for path from the FileBackend.
+//
+// The caller is responsible for closing the returned ReadCloseSeeker.
 func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return a.Srv().fileReader(path)
 }
 
-// Caller must close the first return value
+// ZipReader returns a ReadCloser for path. If deflate is true, the zip will use compression.
+//
+// The caller is responsible for closing the returned ReadCloser.
+func (a *App) ZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	return a.Srv().zipReader(path, deflate)
+}
+
+// ExportFileReader returns a ReadCloseSeeker for path from the ExportFileBackend.
+//
+// The caller is responsible for closing the returned ReadCloseSeeker.
 func (a *App) ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return a.Srv().exportFileReader(path)
+}
+
+// ExportZipReader returns a ReadCloser for path from the ExportFileBackend.
+// If deflate is true, the zip will use compression.
+//
+// The caller is responsible for closing the returned ReadCloser.
+func (a *App) ExportZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	return a.Srv().exportZipReader(path, deflate)
 }
 
 func (a *App) FileExists(path string) (bool, *model.AppError) {
@@ -424,7 +459,7 @@ func parseOldFilenames(rctx request.CTX, filenames []string, channelID, userID s
 	return parsed
 }
 
-// Creates and stores FileInfos for a post created before the FileInfos table existed.
+// MigrateFilenamesToFileInfos creates and stores FileInfos for a post created before the FileInfos table existed.
 func (a *App) MigrateFilenamesToFileInfos(rctx request.CTX, post *model.Post) []*model.FileInfo {
 	if len(post.Filenames) == 0 {
 		rctx.Logger().Warn("Unable to migrate post to use FileInfos with an empty Filenames field", mlog.String("post_id", post.Id))
@@ -735,11 +770,8 @@ func (t *UploadFileTask) init(a *App) {
 // upload, returning a rejection error. In this case FileInfo would have
 // contained the last "good" FileInfo before the execution of that plugin.
 func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader,
-	opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
-	c = c.WithLogger(c.Logger().With(
-		mlog.String("file_name", name),
-	))
-
+	opts ...func(*UploadFileTask),
+) (*model.FileInfo, *model.AppError) {
 	t := &UploadFileTask{
 		Logger:         c.Logger(),
 		ChannelId:      filepath.Base(channelID),
@@ -754,6 +786,12 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 	for _, o := range opts {
 		o(t)
 	}
+
+	c = c.WithLogger(c.Logger().With(
+		mlog.String("file_name", name),
+		mlog.String("channel_id", channelID),
+		mlog.String("user_id", t.UserId),
+	))
 
 	if *a.Config().FileSettings.DriverName == "" {
 		return nil, t.newAppError("api.file.upload_file.storage.app_error", http.StatusNotImplemented)
@@ -845,15 +883,15 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	}
 
 	// If we fail to decode, return "as is".
-	w, h, err := imaging.GetDimensions(t.teeInput)
+	cfg, format, err := t.imgDecoder.DecodeConfig(t.teeInput)
 	if err != nil {
 		return nil
 	}
-	t.fileinfo.Width = w
-	t.fileinfo.Height = h
+	t.fileinfo.Width = cfg.Width
+	t.fileinfo.Height = cfg.Height
 
-	if err = checkImageResolutionLimit(w, h, t.maxImageRes); err != nil {
-		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest)
+	if err = checkImageResolutionLimit(cfg.Width, cfg.Height, t.maxImageRes); err != nil {
+		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest).Wrap(err)
 	}
 
 	t.fileinfo.HasPreviewImage = true
@@ -864,12 +902,14 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// check the image orientation with goexif; consume the bytes we
 	// already have first, then keep Tee-ing from input.
 	// TODO: try to reuse exif's .Raw buffer rather than Tee-ing
-	if t.imageOrientation, err = imaging.GetImageOrientation(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput)); err == nil &&
+	if t.imageOrientation, err = imaging.GetImageOrientation(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput), format); err == nil &&
 		(t.imageOrientation == imaging.RotatedCWMirrored ||
 			t.imageOrientation == imaging.RotatedCCW ||
 			t.imageOrientation == imaging.RotatedCCWMirrored ||
 			t.imageOrientation == imaging.RotatedCW) {
 		t.fileinfo.Width, t.fileinfo.Height = t.fileinfo.Height, t.fileinfo.Width
+	} else if err != nil {
+		t.Logger.Warn("Failed to get image orientation", mlog.Err(err))
 	}
 
 	// For animated GIFs disable the preview; since we have to Decode gifs
@@ -1010,12 +1050,14 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 		return nil, data, err
 	}
 
-	if orientation, err := imaging.GetImageOrientation(bytes.NewReader(data)); err == nil &&
+	if orientation, err := imaging.GetImageOrientation(bytes.NewReader(data), info.MimeType); err == nil &&
 		(orientation == imaging.RotatedCWMirrored ||
 			orientation == imaging.RotatedCCW ||
 			orientation == imaging.RotatedCCWMirrored ||
 			orientation == imaging.RotatedCW) {
 		info.Width, info.Height = info.Height, info.Width
+	} else if err != nil {
+		c.Logger().Warn("Failed to get image orientation", mlog.Err(err))
 	}
 
 	info.Id = model.NewId()
@@ -1126,7 +1168,7 @@ func prepareImage(rctx request.CTX, imgDecoder *imaging.Decoder, imgData io.Read
 	imgData.Seek(0, io.SeekStart)
 
 	// Flip the image to be upright
-	orientation, err := imaging.GetImageOrientation(imgData)
+	orientation, err := imaging.GetImageOrientation(imgData, imgType)
 	if err != nil {
 		rctx.Logger().Debug("GetImageOrientation failed", mlog.Err(err))
 	}

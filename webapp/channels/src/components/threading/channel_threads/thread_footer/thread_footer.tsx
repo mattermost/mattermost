@@ -10,6 +10,7 @@ import type {UserThread} from '@mattermost/types/threads';
 import {threadIsSynthetic} from '@mattermost/types/threads';
 
 import {setThreadFollow, getThread as fetchThread} from 'mattermost-redux/actions/threads';
+import {Posts} from 'mattermost-redux/constants';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
@@ -78,6 +79,10 @@ function ThreadFooter({
         e.stopPropagation();
         dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
     }, [isFollowing]);
+
+    if (post.delete_at > 0 || post.state === Posts.POST_DELETED) {
+        return null;
+    }
 
     return (
         <div className='ThreadFooter'>
