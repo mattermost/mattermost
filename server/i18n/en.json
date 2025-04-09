@@ -8294,7 +8294,7 @@
   },
   {
     "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Failed to retrieve CPA fields"
+    "translation": "Failed to retrieve CPA field(s)"
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
