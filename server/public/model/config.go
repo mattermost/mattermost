@@ -4370,7 +4370,7 @@ func (s *ServiceSettings) isValid() *AppError {
 		parent := filepath.Dir(*s.LocalModeSocketLocation)
 		_, err := os.Stat(parent)
 		if err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.app_error", nil, err.Error(), http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
 		}
 	}
 
