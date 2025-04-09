@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"image"
 	"mime/multipart"
-	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -40,10 +39,7 @@ func (a *App) SlackImport(c request.CTX, fileData multipart.File, fileSize int64
 		GenerateThumbnailImage: a.generateThumbnailImage,
 		GeneratePreviewImage:   a.generatePreviewImage,
 		InvalidateAllCaches: func() *model.AppError {
-			if err := a.ch.srv.InvalidateAllCaches(); err != nil {
-				return model.NewAppError("SlackImport", "app.slack.invalidate_cache.error", nil, err.Error(), http.StatusInternalServerError)
-			}
-			return nil
+			return a.ch.srv.platform.InvalidateAllCaches()
 		},
 		MaxPostSize: func() int { return a.ch.srv.platform.MaxPostSize() },
 		PrepareImage: func(fileData []byte) (image.Image, string, func(), error) {

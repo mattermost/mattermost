@@ -210,7 +210,9 @@ func (si *SlackImporter) SlackImport(rctx request.CTX, fileData multipart.File, 
 		si.deactivateSlackBotUser(rctx, botUser)
 	}
 
-	si.actions.InvalidateAllCaches()
+	if err := si.actions.InvalidateAllCaches(); err != nil {
+		return err, log
+	}
 
 	log.WriteString(i18n.T("api.slackimport.slack_import.notes"))
 	log.WriteString("=======\r\n\r\n")
