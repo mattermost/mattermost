@@ -1583,7 +1583,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemAccessControl,
-			Name:      "access_control_engine_init_duration_seconds",
+			Name:      "engine_init_duration_seconds",
 			Help:      "Duration of the time taken to initialize the access control engine (seconds)",
 		})
 	m.Registry.MustRegister(m.AccessControlEngineInitDuration)
@@ -1592,7 +1592,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemAccessControl,
-			Name:      "access_control_evaluate_duration_seconds",
+			Name:      "evaluate_duration_seconds",
 			Help:      "Duration of the time taken to evaluate the access control engine (seconds)",
 		})
 	m.Registry.MustRegister(m.AccessControlEvaluateDuration)
@@ -1601,7 +1601,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemAccessControl,
-			Name:      "access_control_expression_compile_duration_seconds",
+			Name:      "expression_compile_duration_seconds",
 			Help:      "Duration of the time taken to compile the access control engine expression (seconds)",
 		})
 	m.Registry.MustRegister(m.AccessControlExpressionCompileDuration)
@@ -1610,7 +1610,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		prometheus.CounterOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemAccessControl,
-			Name:      "access_control_cache_invalidation_total",
+			Name:      "cache_invalidation_total",
 			Help:      "Total number of cache invalidations",
 		})
 	m.Registry.MustRegister(m.AccessControlCacheInvalidation)
