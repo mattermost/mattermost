@@ -10546,5 +10546,13 @@
   {
     "id": "api.custom_profile_attributes.invalid_field_patch",
     "translation": "недійсний патч поля атрибута спеціального профілю"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix не може бути порожнім, якщо встановлено GlobalSearchPrefix."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} має бути префіксом IndexPrefix {{.IndexPrefix}}."
   }
 ]
