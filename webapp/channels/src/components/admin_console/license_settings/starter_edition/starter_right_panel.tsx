@@ -5,7 +5,7 @@ import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
+import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
 
 const StarterRightPanel = () => {
     const upgradeAdvantages = [
@@ -19,9 +19,9 @@ const StarterRightPanel = () => {
     return (
         <div className='StarterEditionRightPannel'>
             <div className='svg-image'>
-                <WomanUpArrowsAndCloudsSvg
-                    width={200}
-                    height={200}
+                <SetupSystemSvg
+                    width={197}
+                    height={120}
                 />
             </div>
             <div className='upgrade-title'>

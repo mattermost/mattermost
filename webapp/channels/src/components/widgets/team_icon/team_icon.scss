@@ -1,6 +1,5 @@
-@charset 'UTF-8';
-
-@import 'utils/module';
+@use 'utils/mixins';
+@use 'utils/variables';
 
 .TeamIcon__content {
     display: flex;
@@ -108,11 +107,11 @@
     }
 
     .TeamIcon__image {
-        @include clearfix;
+        @include mixins.clearfix;
 
         width: 100%;
         height: 100%;
-        background-color: $white;
+        background-color: variables.$white;
         background-repeat: unset;
         background-size: 100% 100%;
     }

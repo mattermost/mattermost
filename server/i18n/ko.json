@@ -2288,10 +2288,6 @@
     "translation": "Either trigger_words or channel_id must be set"
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Could not decode the multipart payload of incoming webhook."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "팀들간의 웹훅을 업데이트 할 수 없습니다."
   },
@@ -2992,60 +2988,8 @@
     "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Unknown output format {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Unable to add attachment to the CSV export."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Unable to create temporary CSV export file."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Unable to add header to the CSV export."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Unable to add metadata file to the zip file."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Unable to convert metadata to json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Unable to export a post."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Unable to create the zip export file."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Unable to open the temporary export file."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Unable to re-read the Global Relay temporary export file."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "준법 감시 기능을 활성화 하려면 엔터프라이즈 라이선스가 필요합니다. 시스템 관리자에게 업그레이드를 문의해보세요."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Unable to load export templates. Please try again."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3106,10 +3050,6 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Elasticsearch 색인을 삭제하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3226,58 +3166,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "error retrieving groups for user"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Unable to add attachment to the Global Relay export."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close the zip file."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Unable to create the eml file."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Unable to generate eml file data."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Unable to deliver the email to Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Unable to set the email From address."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Unable to set the email message."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Unable to write the email message."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Unable to read the email information."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Unable to set the email To address."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Unable to get the information of the export temporary file"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Unable to get the an email from the temporary file"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Unable to open the export temporary file"
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -4304,10 +4192,6 @@
     "translation": "잘못된 ID"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Invalid message"
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Invalid original id"
   },
@@ -4994,14 +4878,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "채널에 대한 Elasticsearch 템플릿을 만들지 못했습니다."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "eml 파일을 생성할 수 없습니다."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "eml 파일을 생성할 수 없습니다."
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -5980,10 +5856,6 @@
     "translation": "개인 혹은 단체 메시지 채널을 삭제할 수 없습니다"
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "지정된 기간 동안의 채널 사용자들을 가져오지 못했습니다."
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "이모지를 저장할 수 없음."
   },
@@ -6374,10 +6246,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " 파일을 첨부했습니다."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "XML형식으로 변환하여 내보낼 수 없습니다."
   },
   {
     "id": "app.job.update.app_error",
@@ -7608,20 +7476,8 @@
     "translation": "내보낼 파일을 찾을 수 없습니다."
   },
   {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "글로벌 릴레이 파일을 쓸 수 없습니다."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "CSV 파일을 쓸 수 없습니다."
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "JSON 요청을 마샬링하는 동안 오류가 발생했습니다"
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "파일 내보내기를 할 수 없습니다."
   },
   {
     "id": "bleveengine.stop_file_index.error",

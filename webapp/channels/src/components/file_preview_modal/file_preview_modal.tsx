@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
@@ -365,12 +366,16 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 }
             } else {
                 // display a progress indicator when the preview for an image is still loading
-                const loading = Utils.localizeMessage('view_image.loading', 'Loading');
                 const progress = Math.floor(this.state.progress[this.state.imageIndex]);
 
                 content = (
                     <LoadingImagePreview
-                        loading={loading}
+                        loading={
+                            <FormattedMessage
+                                id='view_image.loading'
+                                defaultMessage='Loading'
+                            />
+                        }
                         progress={progress}
                     />
                 );
@@ -401,7 +406,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 dialogClassName={dialogClassName}
                 animation={true}
                 backdrop={false}
-                role='dialog'
+                role='none'
                 style={{paddingLeft: 0}}
                 aria-labelledby='viewImageModalLabel'
             >

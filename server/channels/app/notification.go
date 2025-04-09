@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 func (a *App) canSendPushNotifications() bool {
@@ -208,7 +209,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		for _, profile := range profileMap {
 			if (profile.NotifyProps[model.PushNotifyProp] == model.UserNotifyAll ||
 				channelMemberNotifyPropsMap[profile.Id][model.PushNotifyProp] == model.ChannelNotifyAll) &&
-				(post.UserId != profile.Id || post.GetProp("from_webhook") == "true") &&
+				(post.UserId != profile.Id || post.GetProp(model.PostPropsFromWebhook) == "true") &&
 				!post.IsSystemMessage() &&
 				!(a.IsCRTEnabledForUser(c, profile.Id) && post.RootId != "") {
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
@@ -227,8 +228,10 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		var rootMentions *MentionResults
 		if parentPostList != nil {
 			rootPost := parentPostList.Posts[parentPostList.Order[0]]
-			if rootPost.GetProp("from_webhook") != "true" {
-				threadParticipants[rootPost.UserId] = true
+			if rootPost.GetProp(model.PostPropsFromWebhook) != "true" {
+				if _, ok := profileMap[rootPost.UserId]; ok {
+					threadParticipants[rootPost.UserId] = true
+				}
 			}
 			if channel.Type != model.ChannelTypeDirect {
 				rootMentions = getExplicitMentions(rootPost, keywords)
@@ -355,7 +358,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				continue
 			}
 
-			if post.GetProp("from_webhook") != "true" && uid == post.UserId {
+			if post.GetProp(model.PostPropsFromWebhook) != "true" && uid == post.UserId {
 				continue
 			}
 
@@ -394,7 +397,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				continue
 			}
 
-			//If email verification is required and user email is not verified don't send email.
+			// If email verification is required and user email is not verified don't send email.
 			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
 				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeEmail, model.NotificationReasonEmailNotVerified, model.NotificationNoPlatform)
 				a.NotificationsLog().Debug("Email not verified",
@@ -618,7 +621,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				status = &model.Status{UserId: id, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
-			if statusReason := DoesStatusAllowPushNotification(profileMap[id].NotifyProps, status, post.ChannelId, true); statusReason == "" {
+			if statusReason := doesStatusAllowPushNotification(profileMap[id].NotifyProps, status, post.ChannelId, true); statusReason == "" {
 				a.sendPushNotification(
 					notification,
 					profileMap[id],
@@ -695,14 +698,14 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		userNotificationLevel := profile.NotifyProps[model.DesktopNotifyProp]
 		channelNotificationLevel := channelMemberNotifyPropsMap[id][model.DesktopNotifyProp]
 
-		if ShouldAckWebsocketNotification(channel.Type, userNotificationLevel, channelNotificationLevel) {
+		if shouldAckWebsocketNotification(channel.Type, userNotificationLevel, channelNotificationLevel) {
 			usersToAck = append(usersToAck, id)
 		}
 	}
 	usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
 
-	published, err := a.publishWebsocketEventForPermalinkPost(c, post, message)
-	if err != nil {
+	appErr := a.publishWebsocketEventForPost(c, post, message)
+	if appErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Couldn't send websocket notification for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
@@ -710,28 +713,9 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			mlog.String("status", model.NotificationStatusError),
 			mlog.String("reason", model.NotificationReasonFetchError),
 			mlog.String("sender_id", sender.Id),
-			mlog.Err(err),
+			mlog.Err(appErr),
 		)
-		return nil, err
-	}
-	if !published {
-		removePermalinkMetadataFromPost(post)
-		postJSON, jsonErr := post.ToJSON()
-		if jsonErr != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonParseError, model.NotificationNoPlatform)
-			a.NotificationsLog().Error("JSON parse error",
-				mlog.String("type", model.NotificationTypeWebsocket),
-				mlog.String("post_id", post.Id),
-				mlog.String("status", model.NotificationStatusError),
-				mlog.String("reason", model.NotificationReasonParseError),
-				mlog.String("sender_id", sender.Id),
-				mlog.Err(err),
-			)
-			return nil, errors.Wrapf(jsonErr, "failed to encode post to JSON")
-		}
-		message.Add("post", postJSON)
-
-		a.Publish(message)
+		return nil, appErr
 	}
 
 	// If this is a reply in a thread, notify participants
@@ -877,6 +861,33 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		mlog.String("post_id", post.Id),
 	)
 
+	for id, reason := range mentions.Mentions {
+		user, ok := profileMap[id]
+		if !ok {
+			continue
+		}
+		if user.IsGuest() {
+			if reason == KeywordMention {
+				a.Srv().telemetryService.SendTelemetryForFeature(
+					telemetry.TrackGuestFeature,
+					"post_mentioned_guest",
+					map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id},
+				)
+			} else if reason == DMMention {
+				a.Srv().telemetryService.SendTelemetryForFeature(
+					telemetry.TrackGuestFeature,
+					"direct_message_to_guest",
+					map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id},
+				)
+			}
+		}
+		if user.IsRemote() {
+			a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackSharedChannelsFeature, "mentioned_remote_user", map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id})
+		}
+	}
+	for groupId := range mentions.GroupMentions {
+		a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackGroupsFeature, "post_mentioned_custom_group", map[string]any{telemetry.TrackPropertyUser: sender.Id, telemetry.TrackPropertyGroup: groupId, "group_size": groups[groupId].MemberCount})
+	}
 	return mentionedUsersList, nil
 }
 
@@ -1027,15 +1038,29 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 	var keywords MentionKeywords
 
 	if channel.Type == model.ChannelTypeDirect {
-		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
+		isWebhook := post.GetProp(model.PostPropsFromWebhook) == "true"
 
-		_, ok := profileMap[otherUserId]
-		if ok {
-			mentions.addMention(otherUserId, DMMention)
+		// A bot can post in a DM where it doesn't belong to.
+		// Therefore, we cannot "guess" who is the other user,
+		// so we add the mention to any user that is not the
+		// poster unless the post comes from a webhook.
+		user1, user2 := channel.GetBothUsersForDM()
+		if (post.UserId != user1) || isWebhook {
+			if _, ok := profileMap[user1]; ok {
+				mentions.addMention(user1, DMMention)
+			} else {
+				a.Log().Debug("missing profile: DM user not in profiles", mlog.String("userId", user1), mlog.String("channelId", channel.Id))
+			}
 		}
 
-		if post.GetProp("from_webhook") == "true" {
-			mentions.addMention(post.UserId, DMMention)
+		if user2 != "" {
+			if (post.UserId != user2) || isWebhook {
+				if _, ok := profileMap[user2]; ok {
+					mentions.addMention(user2, DMMention)
+				} else {
+					a.Log().Debug("missing profile: DM user not in profiles", mlog.String("userId", user2), mlog.String("channelId", channel.Id))
+				}
+			}
 		}
 	} else {
 		allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
@@ -1046,16 +1071,23 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 		// Add a GM mention to all members of a GM channel
 		if channel.Type == model.ChannelTypeGroup {
 			for id := range channelMemberNotifyPropsMap {
-				mentions.addMention(id, GMMention)
+				if _, ok := profileMap[id]; ok {
+					mentions.addMention(id, GMMention)
+				} else {
+					a.Log().Debug("missing profile: GM user not in profiles", mlog.String("userId", id), mlog.String("channelId", channel.Id))
+				}
 			}
 		}
 
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
 		if post.Type == model.PostTypeAddToChannel {
-			addedUserId, ok := post.GetProp(model.PostPropsAddedUserId).(string)
-			if ok {
-				mentions.addMention(addedUserId, KeywordMention)
+			if addedUserId, ok := post.GetProp(model.PostPropsAddedUserId).(string); ok {
+				if _, ok := profileMap[addedUserId]; ok {
+					mentions.addMention(addedUserId, KeywordMention)
+				} else {
+					a.Log().Debug("missing profile: user added to channel not in profiles", mlog.String("userId", addedUserId), mlog.String("channelId", channel.Id))
+				}
 			}
 		}
 
@@ -1064,6 +1096,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 			for _, threadPost := range parentPostList.Posts {
 				profile := profileMap[threadPost.UserId]
 				if profile == nil {
+					// Not logging missing profile since this is relatively expected
 					continue
 				}
 
@@ -1086,19 +1119,12 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 		}
 
 		// Prevent the user from mentioning themselves
-		if post.GetProp("from_webhook") != "true" {
+		if post.GetProp(model.PostPropsFromWebhook) != "true" {
 			mentions.removeMention(post.UserId)
 		}
 	}
 
 	return mentions, keywords
-}
-
-func max(a, b int64) int64 {
-	if a < b {
-		return b
-	}
-	return a
 }
 
 func (a *App) userAllowsEmail(c request.CTX, user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
@@ -1410,6 +1436,12 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 		if attachment.Text != "" {
 			ret = append(ret, attachment.Text)
 		}
+
+		for _, field := range attachment.Fields {
+			if valueString, ok := field.Value.(string); ok && valueString != "" {
+				ret = append(ret, valueString)
+			}
+		}
 	}
 	return ret
 }
@@ -1433,7 +1465,7 @@ func (a *App) allowChannelMentions(c request.CTX, post *model.Post, numProfiles 
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
 func (a *App) allowGroupMentions(c request.CTX, post *model.Post) bool {
-	if license := a.Srv().License(); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
+	if !model.MinimumProfessionalLicense(a.Srv().License()) {
 		return false
 	}
 
@@ -1552,6 +1584,13 @@ func (a *App) insertGroupMentions(senderID string, group *model.Group, channel *
 	for _, user := range outOfChannelGroupMembers {
 		potentialGroupMembersMentioned = append(potentialGroupMembersMentioned, user.Username)
 	}
+	if len(potentialGroupMembersMentioned) != 0 {
+		a.Srv().telemetryService.SendTelemetryForFeature(
+			telemetry.TrackGroupsFeature,
+			"invite_group_to_channel__post",
+			map[string]any{telemetry.TrackPropertyUser: senderID, telemetry.TrackPropertyGroup: group.Id},
+		)
+	}
 	if mentions.OtherPotentialMentions == nil {
 		mentions.OtherPotentialMentions = potentialGroupMembersMentioned
 	} else {
@@ -1600,7 +1639,7 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 	}
 
 	if overridesAllowed && n.Channel.Type != model.ChannelTypeDirect {
-		if value := n.Post.GetProps()["override_username"]; value != nil && n.Post.GetProp("from_webhook") == "true" {
+		if value := n.Post.GetProp(model.PostPropsOverrideUsername); value != nil && n.Post.GetProp(model.PostPropsFromWebhook) == "true" {
 			if s, ok := value.(string); ok {
 				return s
 			}
@@ -1718,7 +1757,7 @@ func shouldChannelMemberNotifyCRT(userNotifyProps model.StringMap, channelMember
 	return
 }
 
-func ShouldAckWebsocketNotification(channelType model.ChannelType, userNotificationLevel, channelNotificationLevel string) bool {
+func shouldAckWebsocketNotification(channelType model.ChannelType, userNotificationLevel, channelNotificationLevel string) bool {
 	if channelNotificationLevel == model.ChannelNotifyAll {
 		// Should ACK on if we notify for all messages in the channel
 		return true

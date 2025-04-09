@@ -135,9 +135,11 @@ export type IntegrationsState = {
     systemCommands: IDMappedObjects<Command>;
     commands: IDMappedObjects<Command>;
     dialogArguments?: CommandArgs;
+    dialogTriggerId: string;
     dialog?: {
         url: string;
         dialog: Dialog;
+        trigger_id: string;
     };
 };
 

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot 1`] = `
-<Connect(SidebarChannelLink)
+<Connect(injectIntl(SidebarChannelLink))
   ariaLabelPrefix="public channel"
   channel={
     Object {
@@ -24,8 +24,8 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
   }
   channelLeaveHandler={[Function]}
   icon={
-    <i
-      className="icon icon-globe"
+    <SidebarBaseChannelIcon
+      channelType="O"
     />
   }
   label="channel_display_name"
@@ -34,7 +34,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot when private channel 1`] = `
-<Connect(SidebarChannelLink)
+<Connect(injectIntl(SidebarChannelLink))
   ariaLabelPrefix="private channel"
   channel={
     Object {
@@ -57,8 +57,8 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
   }
   channelLeaveHandler={[Function]}
   icon={
-    <i
-      className="icon icon-lock-outline"
+    <SidebarBaseChannelIcon
+      channelType="P"
     />
   }
   label="channel_display_name"
@@ -67,7 +67,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot when shared channel 1`] = `
-<Connect(SidebarChannelLink)
+<Connect(injectIntl(SidebarChannelLink))
   ariaLabelPrefix="public channel"
   channel={
     Object {
@@ -91,19 +91,18 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
   }
   channelLeaveHandler={[Function]}
   icon={
-    <SharedChannelIndicator
+    <SidebarBaseChannelIcon
       channelType="O"
-      className="icon"
-      withTooltip={true}
     />
   }
+  isSharedChannel={true}
   label="channel_display_name"
   link="/team_name/channels/"
 />
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot when shared private channel 1`] = `
-<Connect(SidebarChannelLink)
+<Connect(injectIntl(SidebarChannelLink))
   ariaLabelPrefix="private channel"
   channel={
     Object {
@@ -127,12 +126,11 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
   }
   channelLeaveHandler={[Function]}
   icon={
-    <SharedChannelIndicator
+    <SidebarBaseChannelIcon
       channelType="P"
-      className="icon"
-      withTooltip={true}
     />
   }
+  isSharedChannel={true}
   label="channel_display_name"
   link="/team_name/channels/"
 />

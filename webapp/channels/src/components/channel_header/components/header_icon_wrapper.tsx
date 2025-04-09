@@ -5,7 +5,7 @@ import React from 'react';
 
 import NewChannelWithBoardTourTip from 'components/app_bar/new_channel_with_board_tour_tip';
 import WithTooltip from 'components/with_tooltip';
-import type {ShortcutDefinition} from 'components/with_tooltip/shortcut';
+import type {ShortcutDefinition} from 'components/with_tooltip/tooltip_shortcut';
 
 import {suitePluginIds} from 'utils/constants';
 
@@ -19,7 +19,7 @@ type Props = {
 
     buttonClass?: string;
     buttonId: string;
-    iconComponent: React.ReactNode;
+    children: React.ReactNode;
     onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
     tooltip: string;
     tooltipShortcut?: ShortcutDefinition;
@@ -32,7 +32,7 @@ const HeaderIconWrapper = (props: Props) => {
         ariaLabelOverride,
         buttonClass,
         buttonId,
-        iconComponent,
+        children,
         onClick,
         tooltip: tooltipText,
         tooltipShortcut,
@@ -47,8 +47,6 @@ const HeaderIconWrapper = (props: Props) => {
     return (
         <>
             <WithTooltip
-                id={buttonId + '-tooltip'}
-                placement='bottom'
                 title={isRhsOpen ? '' : tooltipText}
                 shortcut={tooltipShortcut}
             >
@@ -58,7 +56,7 @@ const HeaderIconWrapper = (props: Props) => {
                     className={buttonClass || 'channel-header__icon'}
                     onClick={onClick}
                 >
-                    {iconComponent}
+                    {children}
                 </button>
             </WithTooltip>
             {boardsEnabled &&

@@ -9,8 +9,6 @@ import {General} from 'mattermost-redux/constants';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import Constants from 'utils/constants';
 
 type Props = {
@@ -65,7 +63,7 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='convertChannelModalLabel'
             >
                 <Modal.Header closeButton={true}>
@@ -84,26 +82,22 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                 </Modal.Header>
                 <Modal.Body>
                     <p>
-                        <FormattedMarkdownMessage
-                            id='convert_channel.question1'
-                            defaultMessage='When you convert **{display_name}** to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.'
+                        <FormattedMessage
+                            id='convertChannel.question1'
+                            defaultMessage='When you convert <b>{display_name}</b> to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.'
                             values={{
                                 display_name: channelDisplayName,
+                                b: (chunks: string) => <b>{chunks}</b>,
                             }}
                         />
                     </p>
                     <p>
                         <FormattedMessage
-                            id='convert_channel.question2'
-                            defaultMessage='The change is permanent and cannot be undone.'
-                        />
-                    </p>
-                    <p>
-                        <FormattedMarkdownMessage
-                            id='convert_channel.question3'
-                            defaultMessage='Are you sure you want to convert **{display_name}** to a private channel?'
+                            id='convertChannel.question3'
+                            defaultMessage='Are you sure you want to convert <b>{display_name}</b> to a private channel?'
                             values={{
                                 display_name: channelDisplayName,
+                                b: (chunks: string) => <b>{chunks}</b>,
                             }}
                         />
                     </p>
@@ -113,6 +107,7 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                         type='button'
                         className='btn btn-tertiary'
                         onClick={this.onHide}
+                        data-testid='convertChannelCancel'
                     >
                         <FormattedMessage
                             id='convert_channel.cancel'

@@ -124,7 +124,9 @@ func (a *App) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.Ap
 
 	savedBot, nErr := a.Srv().Store().Bot().Save(bot)
 	if nErr != nil {
-		a.Srv().Store().User().PermanentDelete(rctx, bot.UserId)
+		if err := a.Srv().Store().User().PermanentDelete(rctx, bot.UserId); err != nil {
+			rctx.Logger().Error("Failed to permanently delete the user after bot save failure", mlog.Err(err))
+		}
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
@@ -227,7 +229,9 @@ func (a *App) getOrCreateBot(rctx request.CTX, botDef *model.Bot) (*model.Bot, *
 		//save the bot
 		savedBot, nErr := a.Srv().Store().Bot().Save(botDef)
 		if nErr != nil {
-			a.Srv().Store().User().PermanentDelete(rctx, savedBot.UserId)
+			if err := a.Srv().Store().User().PermanentDelete(rctx, savedBot.UserId); err != nil {
+				rctx.Logger().Error("Failed to permanently delete the user after bot save failure", mlog.Err(err))
+			}
 			var nAppErr *model.AppError
 			switch {
 			case errors.As(nErr, &nAppErr): // in case we haven't converted to plain error.
@@ -304,7 +308,7 @@ func (a *App) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPa
 	a.InvalidateCacheForUser(user.Id)
 
 	ruser := userUpdate.New
-	a.sendUpdatedUserEvent(*ruser)
+	a.sendUpdatedUserEvent(ruser)
 
 	bot, nErr = a.Srv().Store().Bot().Update(bot)
 	if nErr != nil {
@@ -561,7 +565,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(rctx request.CTX, userID string
 			Type:      model.PostTypeSystemGeneric,
 		}
 
-		_, appErr = a.CreatePost(rctx, post, channel, false, true)
+		_, appErr = a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true})
 		if appErr != nil {
 			return appErr
 		}
@@ -610,5 +614,10 @@ func (a *App) ConvertUserToBot(rctx request.CTX, user *model.User) (*model.Bot, 
 			return nil, model.NewAppError("CreateBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+	if err := a.RevokeAllSessions(rctx, user.Id); err != nil {
+		return nil, err
+	}
+	a.InvalidateCacheForUser(user.Id)
+
 	return bot, nil
 }

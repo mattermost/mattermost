@@ -17,12 +17,6 @@ type State = {
     reactedClass: 'Reaction--reacted' | 'Reaction--reacting' | 'Reaction--unreacted' | 'Reaction--unreacting';
 };
 
-declare module 'react-bootstrap/lib/OverlayTrigger' {
-    interface OverlayTriggerProps {
-        shouldUpdatePosition?: boolean;
-    }
-}
-
 type Props = {
 
     /*
@@ -202,9 +196,9 @@ export default class Reaction extends React.PureComponent<Props, State> {
         const readOnlyClass = (canAddReactions && canRemoveReactions) ? '' : 'Reaction--read-only';
 
         const emojiNameWithSpaces = this.props.emojiName.replace(/_/g, ' ');
-        let ariaLabelEmoji = `${Utils.localizeMessage('reaction.reactWidth.ariaLabel', 'react with')} ${emojiNameWithSpaces}`;
+        let ariaLabelEmoji = `${Utils.localizeMessage({id: 'reaction.reactWidth.ariaLabel', defaultMessage: 'react with'})} ${emojiNameWithSpaces}`;
         if (currentUserReacted && canRemoveReactions) {
-            ariaLabelEmoji = `${Utils.localizeMessage('reaction.removeReact.ariaLabel', 'remove reaction')} ${emojiNameWithSpaces}`;
+            ariaLabelEmoji = `${Utils.localizeMessage({id: 'reaction.removeReact.ariaLabel', defaultMessage: 'remove reaction'})} ${emojiNameWithSpaces}`;
         }
 
         const emojiIcon = (
@@ -216,7 +210,6 @@ export default class Reaction extends React.PureComponent<Props, State> {
 
         return (
             <ReactionTooltip
-                id={`${this.props.post.id}-${this.props.emojiName}-reaction`}
                 canAddReactions={canAddReactions}
                 canRemoveReactions={canRemoveReactions}
                 currentUserReacted={currentUserReacted}

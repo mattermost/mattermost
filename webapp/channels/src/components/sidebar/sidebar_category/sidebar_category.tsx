@@ -19,8 +19,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -109,6 +108,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
     handleA11yKeyDown = (e: KeyboardEvent<HTMLButtonElement>['nativeEvent']) => {
         if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {
+            e.preventDefault();
             this.handleCollapse();
         }
     };
@@ -174,7 +174,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         }
 
         return (
-            <React.Fragment>
+            <>
                 <Draggable
                     draggableId={`NEW_CHANNEL_SPACER__${category.id}`}
                     isDragDisabled={true}
@@ -189,7 +189,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                 draggable='false'
                                 className={'SidebarChannel noFloat newChannelSpacer'}
                                 {...provided.draggableProps}
-                                role='listitem'
                                 tabIndex={-1}
                             />
                         );
@@ -213,7 +212,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         </span>
                     </div>
                 </div>
-            </React.Fragment>
+            </>
         );
     };
 
@@ -254,7 +253,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
         let categoryMenu: JSX.Element;
         let newLabel: JSX.Element;
-        let directMessagesModalButton: JSX.Element;
+        const directMessagesModalButton: JSX.Element | null = null;
         let isCollapsible = true;
         if (isNewCategory) {
             newLabel = (
@@ -268,42 +267,36 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
             categoryMenu = <SidebarCategoryMenu category={category}/>;
         } else if (category.type === CategoryTypes.DIRECT_MESSAGES) {
-            const addHelpLabel = localizeMessage('sidebar.createDirectMessage', 'Create new direct message');
-
-            const addTooltip = (
-                <Tooltip
-                    id='new-group-tooltip'
-                    className='hidden-xs'
-                >
-                    {addHelpLabel}
-                    <KeyboardShortcutSequence
-                        shortcut={KEYBOARD_SHORTCUTS.navDMMenu}
-                        hideDescription={true}
-                        isInsideTooltip={true}
-                    />
-                </Tooltip>
-            );
+            const addHelpLabel = localizeMessage({id: 'sidebar.createDirectMessage', defaultMessage: 'Create new direct message'});
 
             categoryMenu = (
-                <React.Fragment>
+                <>
                     <SidebarCategorySortingMenu
                         category={category}
                         handleOpenDirectMessagesModal={this.handleOpenDirectMessagesModal}
                     />
-                    <OverlayTrigger
-                        delayShow={500}
-                        placement='top'
-                        overlay={addTooltip}
+                    <WithTooltip
+                        title={
+                            <>
+                                {addHelpLabel}
+                                <KeyboardShortcutSequence
+                                    shortcut={KEYBOARD_SHORTCUTS.navDMMenu}
+                                    hideDescription={true}
+                                    isInsideTooltip={true}
+                                />
+                            </>
+                        }
                     >
                         <button
+                            id='newDirectMessageButton'
                             className='SidebarChannelGroupHeader_addButton'
                             onClick={this.handleOpenDirectMessagesModal}
                             aria-label={addHelpLabel}
                         >
                             <i className='icon-plus'/>
                         </button>
-                    </OverlayTrigger>
-                </React.Fragment>
+                    </WithTooltip>
+                </>
             );
 
             if (!channelIds || !channelIds.length) {
@@ -316,7 +309,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         let displayName = category.display_name;
         if (category.type !== CategoryTypes.CUSTOM) {
             const message = categoryNames[category.type as keyof typeof categoryNames];
-            displayName = localizeMessage(message.id, message.defaultMessage);
+            displayName = localizeMessage({id: message.id, defaultMessage: message.defaultMessage});
         }
 
         return (
@@ -387,7 +380,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                                 className={classNames('SidebarChannelGroup_content')}
                                             >
                                                 <ul
-                                                    role='list'
                                                     className='NavGroupContent'
                                                 >
                                                     {this.renderNewDropBox(droppableSnapshot.isDraggingOver)}

@@ -3,6 +3,9 @@
 
 import React from 'react';
 
+const TYPE_MODAL = 'modal';
+const TYPE_BACKSTAGE = 'backstage';
+
 // accepts either a single error or an array of errors
 type Props = {
     type?: React.ReactNode;
@@ -11,71 +14,71 @@ type Props = {
     iconClassName?: string;
     margin?: boolean;
     errors?: React.ReactNode[];
-}
+};
 
-export default class FormError extends React.PureComponent<Props> {
-    public static defaultProps = {
-        error: null,
-        errors: [],
-    };
-    public render() {
-        const {error = null, errors = [], iconClassName, margin, textClassName, type} = this.props;
+const EMPTY_ERROR_LIST: React.ReactNode[] = [];
 
-        if (!error && errors.length === 0) {
-            return null;
-        }
+const FormError: React.FC<Props> = ({
+    error = null,
+    errors = EMPTY_ERROR_LIST,
+    iconClassName,
+    margin,
+    textClassName,
+    type,
+}) => {
+    if (!error && errors.length === 0) {
+        return null;
+    }
 
-        // look for the first truthy error to display
-        let message = error;
+    // look for the first truthy error to display
+    let message = error;
 
-        if (!message) {
-            for (const err of errors) {
-                if (err) {
-                    message = err;
-                }
+    if (!message) {
+        for (const err of errors) {
+            if (err) {
+                message = err;
             }
         }
+    }
 
-        if (!message) {
-            return null;
-        }
+    if (!message) {
+        return null;
+    }
 
-        if (type === 'modal') {
-            return (
-                <div className='form-group'>
-                    <label className='col-sm-12 has-error'>
-                        {message}
-                    </label>
-                </div>
-            );
-        }
-
-        if (type === 'backstage') {
-            return (
-                <div className='pull-left has-error'>
-                    <label className='control-label'>
-                        {message}
-                    </label>
-                </div>
-            );
-        }
-
-        if (margin) {
-            return (
-                <div className='form-group has-error'>
-                    <label className='control-label'>
-                        {message}
-                    </label>
-                </div>
-            );
-        }
-
+    if (type === TYPE_MODAL) {
         return (
-            <div className={`col-sm-12 ${textClassName || 'has-error'}`}>
-                <label className='control-label'>
-                    <i className={`fa ${iconClassName || 'fa-exclamation-circle'}`}/> {message}
-                </label>
+            <div className='form-group'>
+                <label className='col-sm-12 has-error'>{message}</label>
             </div>
         );
     }
-}
+
+    if (type === TYPE_BACKSTAGE) {
+        return (
+            <div className='pull-left has-error'>
+                <label className='control-label'>{message}</label>
+            </div>
+        );
+    }
+
+    if (margin) {
+        return (
+            <div className='form-group has-error'>
+                <label className='control-label'>{message}</label>
+            </div>
+        );
+    }
+
+    return (
+        <div className={`col-sm-12 ${textClassName || 'has-error'}`}>
+            <label className='control-label'>
+                <i
+                    className={`fa ${iconClassName || 'fa-exclamation-circle'}`}
+                />{' '}
+                {message}
+            </label>
+        </div>
+    );
+};
+
+export default React.memo(FormError);

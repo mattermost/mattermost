@@ -7,12 +7,11 @@ import {useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
 import FeatureRestrictedModal from 'components/feature_restricted_modal/feature_restricted_modal';
-import OverlayTrigger from 'components/overlay_trigger';
 import ToggleModalButton from 'components/toggle_modal_button';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
-import {Constants, LicenseSkus, ModalIdentifiers} from 'utils/constants';
+import {LicenseSkus, ModalIdentifiers} from 'utils/constants';
 
 import './restricted_indicator.scss';
 
@@ -88,14 +87,9 @@ const RestrictedIndicator = ({
 
     return (
         <span className='RestrictedIndicator__icon-tooltip-container'>
-            <OverlayTrigger
-                delayShow={Constants.OVERLAY_TIME_DELAY}
-                placement='right'
-                overlay={(
-                    <Tooltip
-                        id={`${feature}-tooltip`}
-                        className='RestrictedIndicator__icon-tooltip'
-                    >
+            <WithTooltip
+                title={
+                    <div className='RestrictedIndicator__icon-tooltip'>
                         <span className='title'>
                             {tooltipTitle || formatMessage({id: 'restricted_indicator.tooltip.title', defaultMessage: '{minimumPlanRequiredForFeature} feature'}, {minimumPlanRequiredForFeature: capitalizeFirstLetter(minimumPlanRequiredForFeature!)})}
                         </span>
@@ -106,8 +100,8 @@ const RestrictedIndicator = ({
                                 tooltipMessage || formatMessage({id: 'restricted_indicator.tooltip.mesage', defaultMessage: 'During your trial you are able to use this feature.'})
                             )}
                         </span>
-                    </Tooltip>
-                )}
+                    </div>
+                }
             >
                 {useModal && blocked ? (
                     <span>
@@ -139,7 +133,7 @@ const RestrictedIndicator = ({
                         {ctaExtraContent}
                     </div>
                 )}
-            </OverlayTrigger>
+            </WithTooltip>
         </span>
     );
 };

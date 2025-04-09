@@ -32,7 +32,7 @@ func (s *SqlPostAcknowledgementStore) Get(postID, userID string) (*model.PostAck
 		})
 
 	var acknowledgement model.PostAcknowledgement
-	err := s.GetReplicaX().GetBuilder(&acknowledgement, query)
+	err := s.GetReplica().GetBuilder(&acknowledgement, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("PostAcknowledgement", postID)
@@ -59,7 +59,7 @@ func (s *SqlPostAcknowledgementStore) Save(postID, userID string, acknowledgedAt
 		return nil, err
 	}
 
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -95,7 +95,7 @@ func (s *SqlPostAcknowledgementStore) Save(postID, userID string, acknowledgedAt
 }
 
 func (s *SqlPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -138,7 +138,7 @@ func (s *SqlPostAcknowledgementStore) GetForPost(postID string) ([]*model.PostAc
 			sq.Eq{"PostId": postID},
 		})
 
-	err := s.GetReplicaX().SelectBuilder(&acknowledgements, query)
+	err := s.GetReplica().SelectBuilder(&acknowledgements, query)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get PostAcknowledgements for postID=%s", postID)
 	}
@@ -165,7 +165,7 @@ func (s *SqlPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.Po
 			})
 
 		var acknowledgementsBatch []*model.PostAcknowledgement
-		err := s.GetReplicaX().SelectBuilder(&acknowledgementsBatch, query)
+		err := s.GetReplica().SelectBuilder(&acknowledgementsBatch, query)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get PostAcknowledgements for post list")
 		}

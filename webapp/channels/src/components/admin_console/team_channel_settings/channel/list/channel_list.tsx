@@ -106,11 +106,11 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
         this.setState({page, loading: false});
     };
 
-    searchChannels = async (page = 0, term = '', filters = {}) => {
+    searchChannels = async (page = 0, term = '', filters: ChannelSearchOpts = {}) => {
         let channels = [];
         let total = 0;
         let searchErrored = true;
-        const response = await this.props.actions.searchAllChannels(term, {...filters, page, per_page: PAGE_SIZE, include_deleted: true, include_search_by_id: true});
+        const response = await this.props.actions.searchAllChannels(term, {...filters, page, per_page: PAGE_SIZE, include_deleted: filters.deleted ?? true, include_search_by_id: true});
         if (response?.data) {
             channels = page > 0 ? this.state.channels.concat(response.data.channels) : response.data.channels;
             total = response.data.total_count;
@@ -203,14 +203,12 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                 );
             }
 
-            if (channel.shared) {
-                iconToDisplay = (
-                    <SharedChannelIndicator
-                        className='channel-icon'
-                        channelType={channel.type}
-                    />
-                );
-            }
+            const sharedChannelIcon = channel.shared ? (
+                <SharedChannelIndicator
+                    className='channel-icon'
+                    withTooltip={true}
+                />
+            ) : null;
 
             return {
                 cells: {
@@ -224,6 +222,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                             <span className='TeamList_channelDisplayName'>
                                 {channel.display_name}
                             </span>
+                            {sharedChannelIcon}
                         </span>
                     ),
                     team: (

@@ -4,7 +4,6 @@
 package platform
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"net"
@@ -12,7 +11,6 @@ import (
 	"net/http/pprof"
 	"path"
 	"runtime"
-	rpprof "runtime/pprof"
 	"strings"
 	"sync"
 	"text/template"
@@ -25,7 +23,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -165,7 +162,9 @@ func (pm *platformMetrics) initMetricsRouter() error {
 	}
 
 	rootHandler := func(w http.ResponseWriter, r *http.Request) {
-		metricsPageTmpl.Execute(w, pm.metricsImpl != nil)
+		if err := metricsPageTmpl.Execute(w, pm.metricsImpl != nil); err != nil {
+			pm.logger.Error("Failed to execute template", mlog.Err(err))
+		}
 	}
 
 	pm.router.HandleFunc("/", rootHandler)
@@ -204,7 +203,9 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 		mlog.Error(appErr.Error())
 		w.WriteHeader(appErr.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(appErr.ToJSON()))
+		if _, writeErr := w.Write([]byte(appErr.ToJSON())); writeErr != nil {
+			mlog.Error("Failed to write error response", mlog.Err(writeErr))
+		}
 		return
 	}
 
@@ -225,7 +226,9 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 		mlog.Error(appErr.Error())
 		w.WriteHeader(appErr.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(appErr.ToJSON()))
+		if _, writeErr := w.Write([]byte(appErr.ToJSON())); writeErr != nil {
+			mlog.Error("Failed to write error response", mlog.Err(writeErr))
+		}
 		return
 	}
 
@@ -252,53 +255,4 @@ func (ps *PlatformService) Metrics() einterfaces.MetricsInterface {
 	}
 
 	return ps.metricsIFace
-}
-
-func (ps *PlatformService) CreateCPUProfile(_ request.CTX) (*model.FileData, error) {
-	var b bytes.Buffer
-
-	err := rpprof.StartCPUProfile(&b)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to start CPU profile")
-	}
-
-	time.Sleep(cpuProfileDuration)
-
-	rpprof.StopCPUProfile()
-
-	fileData := &model.FileData{
-		Filename: "cpu.prof",
-		Body:     b.Bytes(),
-	}
-	return fileData, nil
-}
-
-func (ps *PlatformService) CreateHeapProfile(_ request.CTX) (*model.FileData, error) {
-	var b bytes.Buffer
-
-	err := rpprof.Lookup("heap").WriteTo(&b, 0)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to lookup heap profile")
-	}
-
-	fileData := &model.FileData{
-		Filename: "heap.prof",
-		Body:     b.Bytes(),
-	}
-	return fileData, nil
-}
-
-func (ps *PlatformService) CreateGoroutineProfile(_ request.CTX) (*model.FileData, error) {
-	var b bytes.Buffer
-
-	err := rpprof.Lookup("goroutine").WriteTo(&b, 2)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to lookup goroutine profile")
-	}
-
-	fileData := &model.FileData{
-		Filename: "goroutines",
-		Body:     b.Bytes(),
-	}
-	return fileData, nil
 }

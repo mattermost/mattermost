@@ -17,7 +17,7 @@ import type {ResultsCallback} from './provider';
 import {SuggestionContainer} from './suggestion';
 import type {SuggestionProps} from './suggestion';
 
-const SearchUserSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<UserProfile>>((props, ref) => {
+export const SearchUserSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<UserProfile>>((props, ref) => {
     const {item} = props;
 
     const username = item.username;
@@ -35,7 +35,6 @@ const SearchUserSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Us
     if (item.remote_id) {
         sharedIcon = (
             <SharedUserIndicator
-                id={`sharedUserIndicator-${item.id}`}
                 className='mention__shared-user-icon'
             />
         );
@@ -65,21 +64,21 @@ const SearchUserSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Us
 SearchUserSuggestion.displayName = 'SearchUserSuggestion';
 
 export default class SearchUserProvider extends Provider {
-    private autocompleteUsersInTeam: (username: string) => Promise<UserAutocomplete>;
-    constructor(userSearchFunc: (username: string) => Promise<UserAutocomplete>) {
+    private autocompleteUsersInTeam: (username: string, teamId: string) => Promise<UserAutocomplete>;
+    constructor(userSearchFunc: (username: string, teamId: string) => Promise<UserAutocomplete>) {
         super();
         this.autocompleteUsersInTeam = userSearchFunc;
     }
 
-    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<UserProfile>) {
+    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<UserProfile>, teamId: string) {
         const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext.toLowerCase());
 
-        this.doAutocomplete(captured, resultsCallback);
+        this.doAutocomplete(captured, teamId, resultsCallback);
 
         return Boolean(captured);
     }
 
-    async doAutocomplete(captured: RegExpExecArray | null, resultsCallback: ResultsCallback<UserProfile>) {
+    async doAutocomplete(captured: RegExpExecArray | null, teamId: string, resultsCallback: ResultsCallback<UserProfile>) {
         if (!captured) {
             return;
         }
@@ -88,7 +87,7 @@ export default class SearchUserProvider extends Provider {
 
         this.startNewRequest(usernamePrefix);
 
-        const data = await this.autocompleteUsersInTeam(usernamePrefix);
+        const data = await this.autocompleteUsersInTeam(usernamePrefix, teamId);
 
         if (this.shouldCancelDispatch(usernamePrefix)) {
             return;

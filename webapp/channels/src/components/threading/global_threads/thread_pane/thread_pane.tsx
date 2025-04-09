@@ -54,7 +54,7 @@ const ThreadPane = ({
         },
     } = thread;
 
-    const channel = useSelector((state: GlobalState) => getChannel(state, {id: channelId}));
+    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const post = useSelector((state: GlobalState) => getPost(state, thread.id));
     const postsInThread = useSelector((state: GlobalState) => getPostsForThread(state, post.id));
     const selectHandler = useCallback(() => select(), []);
@@ -72,7 +72,7 @@ const ThreadPane = ({
 
     const followHandler = useCallback(() => {
         dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
-    }, [currentUserId, currentTeamId, threadId, isFollowing, setThreadFollow]);
+    }, [dispatch, currentUserId, currentTeamId, threadId, isFollowing]);
 
     return (
         <div
@@ -120,12 +120,10 @@ const ThreadPane = ({
                             unreadTimestamp={unreadTimestamp}
                         >
                             <WithTooltip
-                                id='threadActionMenu'
                                 title={formatMessage({
                                     id: 'threading.threadHeader.menu',
                                     defaultMessage: 'More Actions',
                                 })}
-                                placement={'top'}
                             >
                                 <Button className='Button___icon Button___large'>
                                     <DotsVerticalIcon size={18}/>

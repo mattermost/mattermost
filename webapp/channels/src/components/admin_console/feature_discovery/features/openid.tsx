@@ -6,7 +6,7 @@ import {defineMessage} from 'react-intl';
 
 import {LicenseSkus} from 'utils/constants';
 
-import SamlSVG from './images/saml_svg';
+import GroupsSVG from './images/groups_svg';
 
 import FeatureDiscovery from '../index';
 
@@ -21,10 +21,14 @@ const OpenIDFeatureDiscovery: React.FC = () => {
             })}
             copy={defineMessage({
                 id: 'admin.openid_feature_discovery.copy',
-                defaultMessage: 'Use OpenID Connect for authentication and single sign-on (SSO) with any service that supports the OIDC specification such as Google, Office 365, Apple, Okta, OneLogin, and more.',
+                defaultMessage: 'Use OpenID Connect for authentication and single sign-on (SSO) with any service that supports the OIDC specification such as Google, Entra ID, Apple, Okta, OneLogin, and more.',
             })}
             learnMoreURL='https://docs.mattermost.com/cloud/cloud-administration/sso-openid-connect.html'
-            featureDiscoveryImage={<SamlSVG/>}
+            featureDiscoveryImage={
+                <GroupsSVG
+                    width={276}
+                    height={170}
+                />}
         />
     );
 };

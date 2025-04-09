@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -21,7 +22,7 @@ func (ps *PlatformService) AddStatusCacheSkipClusterSend(status *model.Status) {
 func (ps *PlatformService) AddStatusCache(status *model.Status) {
 	ps.AddStatusCacheSkipClusterSend(status)
 
-	if ps.Cluster() != nil && *ps.Config().CacheSettings.CacheType == model.CacheTypeLRU {
+	if ps.Cluster() != nil {
 		statusJSON, err := json.Marshal(status)
 		if err != nil {
 			ps.logger.Warn("Failed to encode status to JSON", mlog.Err(err))
@@ -46,11 +47,7 @@ func (ps *PlatformService) GetAllStatuses() map[string]*model.Status {
 			return nil
 		}
 
-		toPass := make([]any, 0, len(keys))
-		for i := 0; i < len(keys); i++ {
-			var status *model.Status
-			toPass = append(toPass, &status)
-		}
+		toPass := allocateCacheTargets[*model.Status](len(keys))
 		errs := ps.statusCache.GetMulti(keys, toPass)
 		for i, err := range errs {
 			if err != nil {
@@ -84,11 +81,7 @@ func (ps *PlatformService) GetStatusesByIds(userIDs []string) (map[string]any, *
 	metrics := ps.Metrics()
 	missingUserIds := []string{}
 
-	toPass := make([]any, 0, len(userIDs))
-	for i := 0; i < len(userIDs); i++ {
-		var status *model.Status
-		toPass = append(toPass, &status)
-	}
+	toPass := allocateCacheTargets[*model.Status](len(userIDs))
 	// First, we do a GetMulti to get all the status objects.
 	errs := ps.statusCache.GetMulti(userIDs, toPass)
 	for i, err := range errs {
@@ -147,11 +140,7 @@ func (ps *PlatformService) GetUserStatusesByIds(userIDs []string) ([]*model.Stat
 	metrics := ps.Metrics()
 
 	missingUserIds := []string{}
-	toPass := make([]any, 0, len(userIDs))
-	for i := 0; i < len(userIDs); i++ {
-		var status *model.Status
-		toPass = append(toPass, &status)
-	}
+	toPass := allocateCacheTargets[*model.Status](len(userIDs))
 	// First, we do a GetMulti to get all the status objects.
 	errs := ps.statusCache.GetMulti(userIDs, toPass)
 	for i, err := range errs {
@@ -279,6 +268,9 @@ func (ps *PlatformService) SetStatusLastActivityAt(userID string, activityAt int
 
 	ps.AddStatusCacheSkipClusterSend(status)
 	ps.SetStatusAwayIfNeeded(userID, false)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
@@ -346,6 +338,9 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 				mlog.Error("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
 			}
 		}
+		if ps.sharedChannelService != nil {
+			ps.sharedChannelService.NotifyUserStatusChanged(status)
+		}
 	}
 
 	if broadcast {
@@ -366,6 +361,9 @@ func (ps *PlatformService) SetStatusOffline(userID string, manual bool) {
 	status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 
 	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
@@ -398,28 +396,47 @@ func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 	status.ActiveChannel = ""
 
 	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 // SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
 // and sets status of given userId to dnd which will be restored back after endtime
-func (ps *PlatformService) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
+func (ps *PlatformService) SetStatusDoNotDisturbTimed(userID string, endtime int64) {
 	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
-	status, err := ps.GetStatus(userId)
+	status, err := ps.GetStatus(userID)
 
 	if err != nil {
-		status = &model.Status{UserId: userId, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+		status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	}
 
 	status.PrevStatus = status.Status
 	status.Status = model.StatusDnd
 	status.Manual = true
 
-	status.DNDEndTime = endtime
+	status.DNDEndTime = truncateDNDEndTime(endtime)
 
 	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
+}
+
+// truncateDNDEndTime takes a user-provided timestamp (in seconds) for when their DND expiry should end and truncates
+// it to line up with the DND expiry job so that the user's DND time doesn't expire late by an interval. The job to
+// expire statuses runs every minute currently, so this trims the seconds and milliseconds off the given timestamp.
+//
+// This will result in statuses expiring slightly earlier than specified in the UI, but the status will expire at
+// the correct time on the wall clock. For example, if the time is currently 13:04:29 and the user sets the expiry to
+// 5 minutes, truncating will make the status will expire at 13:09:00 instead of at 13:10:00.
+//
+// Note that the timestamps used by this are in seconds, not milliseconds. This matches UserStatus.DNDEndTime.
+func truncateDNDEndTime(endtime int64) int64 {
+	return time.Unix(endtime, 0).Truncate(model.DNDExpiryInterval).Unix()
 }
 
 func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {
@@ -437,6 +454,9 @@ func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {
 	status.Manual = true
 
 	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
@@ -454,6 +474,9 @@ func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
 	status.Manual = true
 
 	ps.SaveAndBroadcastStatus(status)
+	if ps.sharedChannelService != nil {
+		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
 }
 
 func (ps *PlatformService) isUserAway(lastActivityAt int64) bool {

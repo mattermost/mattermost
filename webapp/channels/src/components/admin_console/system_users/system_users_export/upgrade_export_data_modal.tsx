@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
+import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
 import ConfirmModalRedux from 'components/confirm_modal_redux';
 
 import './upgrade_export_data_modal.scss';
@@ -35,7 +35,7 @@ export function UpgradeExportDataModal({onExited}: Props) {
                 defaultMessage='Export detailed data reports with ease and analyse user statistics conveniently. Upgrade to the Professional plan to gain access to data export.'
             />
             <div className='upgrade-export-data-modal__svg-image'>
-                <WomanUpArrowsAndCloudsSvg
+                <SetupSystemSvg
                     width={250}
                     height={188}
                 />

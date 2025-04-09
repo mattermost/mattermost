@@ -24,6 +24,26 @@ type Store struct {
 	mock.Mock
 }
 
+// AccessControlPolicy provides a mock function with given fields:
+func (_m *Store) AccessControlPolicy() store.AccessControlPolicyStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for AccessControlPolicy")
+	}
+
+	var r0 store.AccessControlPolicyStore
+	if rf, ok := ret.Get(0).(func() store.AccessControlPolicyStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.AccessControlPolicyStore)
+		}
+	}
+
+	return r0
+}
+
 // Audit provides a mock function with given fields:
 func (_m *Store) Audit() store.AuditStore {
 	ret := _m.Called()
@@ -798,6 +818,66 @@ func (_m *Store) ProductNotices() store.ProductNoticesStore {
 	return r0
 }
 
+// PropertyField provides a mock function with given fields:
+func (_m *Store) PropertyField() store.PropertyFieldStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for PropertyField")
+	}
+
+	var r0 store.PropertyFieldStore
+	if rf, ok := ret.Get(0).(func() store.PropertyFieldStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PropertyFieldStore)
+		}
+	}
+
+	return r0
+}
+
+// PropertyGroup provides a mock function with given fields:
+func (_m *Store) PropertyGroup() store.PropertyGroupStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for PropertyGroup")
+	}
+
+	var r0 store.PropertyGroupStore
+	if rf, ok := ret.Get(0).(func() store.PropertyGroupStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PropertyGroupStore)
+		}
+	}
+
+	return r0
+}
+
+// PropertyValue provides a mock function with given fields:
+func (_m *Store) PropertyValue() store.PropertyValueStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for PropertyValue")
+	}
+
+	var r0 store.PropertyValueStore
+	if rf, ok := ret.Get(0).(func() store.PropertyValueStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PropertyValueStore)
+		}
+	}
+
+	return r0
+}
+
 // Reaction provides a mock function with given fields:
 func (_m *Store) Reaction() store.ReactionStore {
 	ret := _m.Called()
@@ -913,6 +993,26 @@ func (_m *Store) Role() store.RoleStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.RoleStore)
+		}
+	}
+
+	return r0
+}
+
+// ScheduledPost provides a mock function with given fields:
+func (_m *Store) ScheduledPost() store.ScheduledPostStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ScheduledPost")
+	}
+
+	var r0 store.ScheduledPostStore
+	if rf, ok := ret.Get(0).(func() store.ScheduledPostStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ScheduledPostStore)
 		}
 	}
 

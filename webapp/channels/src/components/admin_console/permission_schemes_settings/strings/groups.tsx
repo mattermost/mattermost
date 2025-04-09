@@ -208,11 +208,21 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
     convert_public_channel_to_private: defineMessages({
         name: {
             id: 'admin.permissions.group.convert_public_channel_to_private.name',
-            defaultMessage: 'Convert Channels',
+            defaultMessage: 'Convert to private',
         },
         description: {
             id: 'admin.permissions.group.convert_public_channel_to_private.description',
             defaultMessage: 'Convert public channels to private',
+        },
+    }),
+    convert_private_channel_to_public: defineMessages({
+        name: {
+            id: 'admin.permissions.group.convert_private_channel_to_public.name',
+            defaultMessage: 'Convert to public',
+        },
+        description: {
+            id: 'admin.permissions.group.convert_private_channel_to_public.description',
+            defaultMessage: 'Convert private channels to public',
         },
     }),
     manage_shared_channels: defineMessages({

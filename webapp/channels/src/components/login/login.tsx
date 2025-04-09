@@ -28,7 +28,6 @@ import LocalStorageStore from 'stores/local_storage_store';
 import AlertBanner from 'components/alert_banner';
 import type {ModeType, AlertBannerProps} from 'components/alert_banner';
 import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
-import WomanWithChatsSVG from 'components/common/svg_images_components/woman_with_chats_svg';
 import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLink from 'components/external_link';
 import ExternalLoginButton from 'components/external_login_button/external_login_button';
@@ -39,10 +38,10 @@ import type {CustomizeHeaderType} from 'components/header_footer_route/header_fo
 import LoadingScreen from 'components/loading_screen';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
+import EntraIdIcon from 'components/widgets/icons/entra_id_icon';
 import LockIcon from 'components/widgets/icons/lock_icon';
 import LoginGitlabIcon from 'components/widgets/icons/login_gitlab_icon';
 import LoginGoogleIcon from 'components/widgets/icons/login_google_icon';
-import LoginOffice365Icon from 'components/widgets/icons/login_office_365_icon';
 import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
@@ -185,8 +184,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             externalLoginOptions.push({
                 id: 'office365',
                 url,
-                icon: <LoginOffice365Icon/>,
-                label: formatMessage({id: 'login.office365', defaultMessage: 'Office 365'}),
+                icon: <EntraIdIcon/>,
+                label: formatMessage({id: 'login.office365', defaultMessage: 'Entra ID'}),
                 onClick: desktopExternalAuth(url),
             });
         }
@@ -819,7 +818,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     {enableCustomBrand && !brandImageError ? (
                         <img
                             className={classNames('login-body-custom-branding-image')}
-                            alt='brand image'
+                            alt='brand'
                             src={Client4.getBrandImageUrl('0')}
                             onError={handleBrandImageError}
                         />
@@ -829,11 +828,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                         </h1>
                     )}
                     {getMessageSubtitle()}
-                    {!enableCustomBrand && (
-                        <div className='login-body-message-svg'>
-                            <WomanWithChatsSVG width={270}/>
-                        </div>
-                    )}
                 </div>
                 <div className='login-body-action'>
                     {!isMobileView && getAlternateLink()}

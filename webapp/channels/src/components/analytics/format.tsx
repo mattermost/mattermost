@@ -6,8 +6,8 @@ import * as Utils from 'utils/utils';
 export function formatChannelDoughtnutData(totalPublic: any, totalPrivate: any) {
     const channelTypeData = {
         labels: [
-            Utils.localizeMessage('analytics.system.publicChannels', 'Public Channels'),
-            Utils.localizeMessage('analytics.system.privateGroups', 'Private Channels'),
+            Utils.localizeMessage({id: 'analytics.system.publicChannels', defaultMessage: 'Public Channels'}),
+            Utils.localizeMessage({id: 'analytics.system.privateGroups', defaultMessage: 'Private Channels'}),
         ],
         datasets: [{
             data: [totalPublic, totalPrivate],
@@ -17,23 +17,6 @@ export function formatChannelDoughtnutData(totalPublic: any, totalPrivate: any) 
     };
 
     return channelTypeData;
-}
-
-export function formatPostDoughtnutData(filePosts: any, hashtagPosts: any, totalPosts: any) {
-    const postTypeData = {
-        labels: [
-            Utils.localizeMessage('analytics.system.totalFilePosts', 'Posts with Files'),
-            Utils.localizeMessage('analytics.system.totalHashtagPosts', 'Posts with Hashtags'),
-            Utils.localizeMessage('analytics.system.textPosts', 'Posts with Text-only'),
-        ],
-        datasets: [{
-            data: [filePosts, hashtagPosts, (totalPosts - filePosts - hashtagPosts)],
-            backgroundColor: ['#46BFBD', '#F7464A', '#FDB45C'],
-            hoverBackgroundColor: ['#5AD3D1', '#FF5A5E', '#FFC870'],
-        }],
-    };
-
-    return postTypeData;
 }
 
 export function formatPostsPerDayData(labels: string[], data: any) {

@@ -10,14 +10,11 @@
 // Stage: @prod
 // Group: @channels @multi_team_and_dm
 
-import {getAdminAccount} from '../../../support/env';
-
 describe('Multi Team and DM', () => {
     let testChannel;
     let testTeam;
     let testUser;
     let otherUser;
-    const sysadmin = getAdminAccount();
 
     before(() => {
         // # Setup with the new team, channel and user
@@ -55,7 +52,7 @@ describe('Multi Team and DM', () => {
         cy.findByLabelText('off-topic public channel').click();
 
         // # Add second user to team in external session
-        cy.externalRequest({user: sysadmin, method: 'post', path: `teams/${testTeam.id}/members`, data: {team_id: testTeam.id, user_id: otherUser.id}});
+        cy.externalAddUserToTeam(otherUser.id, testTeam.id);
 
         // * Assert that Town Square is still marked as read after second user added to team
         cy.findByLabelText('town square public channel').should('be.visible');

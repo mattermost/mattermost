@@ -80,32 +80,7 @@ exports[`components/channel_members_dropdown should match snapshot for dropdown 
 </MenuWrapper>
 `;
 
-exports[`components/channel_members_dropdown should match snapshot for dropdown with shared user 1`] = `
-<div
-  className="more-modal__shared-actions"
->
-  <WithTooltip
-    id="sharedTooltip"
-    placement="bottom"
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="From trusted organizations"
-        id="shared_user_indicator.tooltip"
-      />
-    }
-  >
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Shared Member"
-        id="channel_members_dropdown.shared_member"
-      />
-      <i
-        className="shared-user-icon icon-circle-multiple-outline"
-      />
-    </span>
-  </WithTooltip>
-</div>
-`;
+exports[`components/channel_members_dropdown should match snapshot for dropdown with shared user 1`] = `<Fragment />`;
 
 exports[`components/channel_members_dropdown should match snapshot for group_constrained channel 1`] = `
 <div>

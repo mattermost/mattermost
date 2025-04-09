@@ -417,6 +417,21 @@ func (mr *MockClientMockRecorder) DeleteOutgoingWebhook(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOutgoingWebhook", reflect.TypeOf((*MockClient)(nil).DeleteOutgoingWebhook), arg0, arg1)
 }
 
+// DeletePost mocks base method.
+func (m *MockClient) DeletePost(arg0 context.Context, arg1 string) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePost", arg0, arg1)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeletePost indicates an expected call of DeletePost.
+func (mr *MockClientMockRecorder) DeletePost(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePost", reflect.TypeOf((*MockClient)(nil).DeletePost), arg0, arg1)
+}
+
 // DeletePreferences mocks base method.
 func (m *MockClient) DeletePreferences(arg0 context.Context, arg1 string, arg2 model.Preferences) (*model.Response, error) {
 	m.ctrl.T.Helper()
@@ -557,13 +572,14 @@ func (mr *MockClientMockRecorder) GeneratePresignedURL(arg0, arg1 interface{}) *
 }
 
 // GenerateSupportPacket mocks base method.
-func (m *MockClient) GenerateSupportPacket(arg0 context.Context) ([]byte, *model.Response, error) {
+func (m *MockClient) GenerateSupportPacket(arg0 context.Context) (io.ReadCloser, string, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenerateSupportPacket", arg0)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(*model.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(io.ReadCloser)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(*model.Response)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // GenerateSupportPacket indicates an expected call of GenerateSupportPacket.
@@ -746,6 +762,22 @@ func (m *MockClient) GetConfig(arg0 context.Context) (*model.Config, *model.Resp
 func (mr *MockClientMockRecorder) GetConfig(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfig", reflect.TypeOf((*MockClient)(nil).GetConfig), arg0)
+}
+
+// GetConfigWithOptions mocks base method.
+func (m *MockClient) GetConfigWithOptions(arg0 context.Context, arg1 model.GetConfigOptions) (map[string]interface{}, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetConfigWithOptions", arg0, arg1)
+	ret0, _ := ret[0].(map[string]interface{})
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetConfigWithOptions indicates an expected call of GetConfigWithOptions.
+func (mr *MockClientMockRecorder) GetConfigWithOptions(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfigWithOptions", reflect.TypeOf((*MockClient)(nil).GetConfigWithOptions), arg0, arg1)
 }
 
 // GetDeletedChannelsForTeam mocks base method.
@@ -1748,6 +1780,21 @@ func (m *MockClient) PermanentDeleteChannel(arg0 context.Context, arg1 string) (
 func (mr *MockClientMockRecorder) PermanentDeleteChannel(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PermanentDeleteChannel", reflect.TypeOf((*MockClient)(nil).PermanentDeleteChannel), arg0, arg1)
+}
+
+// PermanentDeletePost mocks base method.
+func (m *MockClient) PermanentDeletePost(arg0 context.Context, arg1 string) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PermanentDeletePost", arg0, arg1)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PermanentDeletePost indicates an expected call of PermanentDeletePost.
+func (mr *MockClientMockRecorder) PermanentDeletePost(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PermanentDeletePost", reflect.TypeOf((*MockClient)(nil).PermanentDeletePost), arg0, arg1)
 }
 
 // PermanentDeleteTeam mocks base method.

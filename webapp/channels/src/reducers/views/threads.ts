@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import findKey from 'lodash/findKey';
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {PostTypes, UserTypes} from 'mattermost-redux/action_types';
 
 import {Threads, ActionTypes} from 'utils/constants';
 
+import type {MMAction} from 'types/store';
 import type {ViewsState} from 'types/store/views';
 
-export const selectedThreadIdInTeam = (state: ViewsState['threads']['selectedThreadIdInTeam'] = {}, action: AnyAction) => {
+export const selectedThreadIdInTeam = (state: ViewsState['threads']['selectedThreadIdInTeam'] = {}, action: MMAction) => {
     switch (action.type) {
     case PostTypes.POST_REMOVED: {
         const key = findKey(state, (id) => id === action.data.id);
@@ -36,7 +36,7 @@ export const selectedThreadIdInTeam = (state: ViewsState['threads']['selectedThr
     }
 };
 
-export const lastViewedAt = (state: ViewsState['threads']['lastViewedAt'] = {}, action: AnyAction) => {
+export const lastViewedAt = (state: ViewsState['threads']['lastViewedAt'] = {}, action: MMAction) => {
     switch (action.type) {
     case Threads.CHANGED_LAST_VIEWED_AT:
         return {
@@ -51,7 +51,7 @@ export const lastViewedAt = (state: ViewsState['threads']['lastViewedAt'] = {}, 
     }
 };
 
-export function manuallyUnread(state: ViewsState['threads']['manuallyUnread'] = {}, action: AnyAction) {
+export function manuallyUnread(state: ViewsState['threads']['manuallyUnread'] = {}, action: MMAction) {
     switch (action.type) {
     case Threads.CHANGED_LAST_VIEWED_AT:
         return {
@@ -71,7 +71,7 @@ export function manuallyUnread(state: ViewsState['threads']['manuallyUnread'] = 
     }
 }
 
-export function toastStatus(state: ViewsState['threads']['toastStatus'] = false, action: AnyAction) {
+export function toastStatus(state: ViewsState['threads']['toastStatus'] = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_POST:
         return false;

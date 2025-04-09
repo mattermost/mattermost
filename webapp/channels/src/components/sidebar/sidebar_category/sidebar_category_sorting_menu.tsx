@@ -14,6 +14,7 @@ import {
     AccountPlusOutlineIcon,
     DotsVerticalIcon,
     ChevronRightIcon,
+    CheckIcon,
 } from '@mattermost/compass-icons/components';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
@@ -95,6 +96,7 @@ const SidebarCategorySortingMenu = ({
                     />
                 )}
                 onClick={() => handleSortDirectMessages(CategorySorting.Alphabetical)}
+                trailingElements={category.sorting === CategorySorting.Alphabetical ? <CheckIcon size={16}/> : null}
             />
             <Menu.Item
                 id={`sortByMostRecent-${category.id}`}
@@ -105,6 +107,7 @@ const SidebarCategorySortingMenu = ({
                     />
                 )}
                 onClick={() => handleSortDirectMessages(CategorySorting.Recency)}
+                trailingElements={category.sorting === CategorySorting.Recency ? <CheckIcon size={16}/> : null}
             />
         </Menu.SubMenu>
 
@@ -153,6 +156,7 @@ const SidebarCategorySortingMenu = ({
                     key={`showDmCount-${category.id}-${dmGmShowCount}`}
                     labels={<span>{dmGmShowCount}</span>}
                     onClick={() => handlelimitVisibleDMsGMs(dmGmShowCount)}
+                    trailingElements={selectedDmNumber === dmGmShowCount ? <CheckIcon size={16}/> : null}
                 />
             ))}
         </Menu.SubMenu>
@@ -189,13 +193,12 @@ const SidebarCategorySortingMenu = ({
             <Menu.Container
                 menuButton={{
                     id: `SidebarCategorySortingMenu-Button-${category.id}`,
-                    'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}),
+                    'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}, {name: category.display_name}),
                     class: 'SidebarMenu_menuButton sortingMenu',
                     children: <DotsVerticalIcon size={16}/>,
                 }}
                 menuButtonTooltip={{
-                    id: `SidebarCategorySortingMenu-ButtonTooltip-${category.id}`,
-                    text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}),
+                    text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}, {name: category.display_name}),
                     class: 'hidden-xs',
                 }}
                 menu={{

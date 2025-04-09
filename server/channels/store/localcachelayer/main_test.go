@@ -64,6 +64,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockFileInfoStore := mocks.FileInfoStore{}
 	mockFileInfoStore.On("GetForPost", "123", true, true, false).Return([]*model.FileInfo{&fakeFileInfo}, nil)
 	mockFileInfoStore.On("GetForPost", "123", true, true, true).Return([]*model.FileInfo{&fakeFileInfo}, nil)
+	mockFileInfoStore.On("GetByIds", []string{"123"}, true, false).Return([]*model.FileInfo{&fakeFileInfo}, nil)
 	mockStore.On("FileInfo").Return(&mockFileInfoStore)
 
 	fakeWebhook := model.IncomingWebhook{Id: "123"}
@@ -104,6 +105,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockChannelStore.On("Get", channelId, true).Return(&fakeChannel1, nil)
 	mockChannelStore.On("Get", channelId, false).Return(&fakeChannel1, nil)
 	mockChannelStore.On("GetMany", []string{channelId}, true).Return(model.ChannelList{&fakeChannel1}, nil)
+	mockChannelStore.On("GetMany", []string{channelId}, false).Return(model.ChannelList{&fakeChannel1}, nil)
 	mockChannelStore.On("GetMany", []string{fakeChannel2.Id}, true).Return(model.ChannelList{&fakeChannel2}, nil)
 	mockChannelStore.On("GetByNames", "team1", []string{fakeChannel1.Name}, true).Return([]*model.Channel{&fakeChannel1}, nil)
 	mockChannelStore.On("GetByNames", "team1", []string{fakeChannel2.Name}, true).Return([]*model.Channel{&fakeChannel2}, nil)

@@ -10,15 +10,16 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getSearchFilesResults} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getSearchMatches, getSearchResults} from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentSearchForCurrentTeam} from 'mattermost-redux/selectors/entities/search';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {
     getSearchResultsTerms,
+    getSearchResultsType,
     getIsSearchingTerm,
     getIsSearchingFlaggedPost,
     getIsSearchingPinnedPost,
     getIsSearchGettingMore,
+    getCurrentSearchForSearchTeam,
 } from 'selectors/rhs';
 
 import type {GlobalState} from 'types/store';
@@ -76,7 +77,7 @@ function makeMapStateToProps() {
 
         // this is basically a hack to make ts compiler happy
         // add correct type when it is known what exactly is returned from the function
-        const currentSearch = getCurrentSearchForCurrentTeam(state) as unknown as Record<string, any> || {};
+        const currentSearch = (getCurrentSearchForSearchTeam(state) as unknown as Record<string, any>) || {};
         const currentTeamName = getCurrentTeam(state)?.name ?? '';
 
         return {
@@ -84,6 +85,7 @@ function makeMapStateToProps() {
             fileResults: files,
             matches: getSearchMatches(state),
             searchTerms: getSearchResultsTerms(state),
+            searchSelectedType: getSearchResultsType(state),
             isSearchingTerm: getIsSearchingTerm(state),
             isSearchingFlaggedPost: getIsSearchingFlaggedPost(state),
             isSearchingPinnedPost: getIsSearchingPinnedPost(state),

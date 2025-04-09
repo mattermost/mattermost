@@ -23,52 +23,62 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
     }
     selectRow={[MockFunction]}
   >
-    <span
-      className="permission-description"
-      onClick={[Function]}
-      onMouseOut={[Function]}
-      onMouseOver={[Function]}
+    <WithTooltip
+      disabled={false}
+      title={
+        <span
+          className="inherit-link-wrapper"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Inherited from <link>{name}</link>."
+            id="admin.permissions.inherited_from"
+            values={
+              Object {
+                "link": [Function],
+                "name": "All Members",
+              }
+            }
+          />
+        </span>
+      }
     >
       <span
-        className="inherit-link-wrapper"
+        className="permission-description"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseMove={[Function]}
+        onPointerDown={[Function]}
+        onPointerEnter={[Function]}
       >
-        <FormattedMessage
-          defaultMessage="Inherited from <link>{name}</link>."
-          id="admin.permissions.inherited_from"
-          values={
-            Object {
-              "link": [Function],
-              "name": "All Members",
-            }
-          }
+        <span
+          className="inherit-link-wrapper"
         >
-          <span>
-            Inherited from 
-            <a
-              key=".$.1"
-            >
-              All Members
-            </a>
-            .
-          </span>
-        </FormattedMessage>
+          <FormattedMessage
+            defaultMessage="Inherited from <link>{name}</link>."
+            id="admin.permissions.inherited_from"
+            values={
+              Object {
+                "link": [Function],
+                "name": "All Members",
+              }
+            }
+          >
+            <span>
+              Inherited from 
+              <a
+                key=".$.1"
+              >
+                All Members
+              </a>
+              .
+            </span>
+          </FormattedMessage>
+        </span>
       </span>
-      <Overlay
-        animation={[Function]}
-        placement="top"
-        rootClose={false}
-        show={false}
-        target={null}
-      >
-        <Overlay
-          placement="top"
-          rootClose={false}
-          show={false}
-          target={null}
-          transition={[Function]}
-        />
-      </Overlay>
-    </span>
+    </WithTooltip>
   </PermissionDescription>
 </Provider>
 `;
@@ -119,49 +129,35 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
 `;
 
 exports[`components/admin_console/permission_schemes_settings/permission_description should match snapshot with clickable link 1`] = `
-<span
-  className="permission-description"
-  onClick={[Function]}
-  onMouseOut={[Function]}
-  onMouseOver={[Function]}
+<WithTooltip
+  disabled={false}
+  title={
+    <span>
+      This is a clickable description
+    </span>
+  }
 >
-  <span>
-    This is a clickable description
-  </span>
-  <Overlay
-    animation={[Function]}
-    placement="top"
-    rootClose={false}
-    show={false}
-    target={null}
+  <span
+    className="permission-description"
+    onClick={[Function]}
   >
-    <Tooltip>
-      <span>
-        This is a clickable description
-      </span>
-    </Tooltip>
-  </Overlay>
-</span>
+    <span>
+      This is a clickable description
+    </span>
+  </span>
+</WithTooltip>
 `;
 
 exports[`components/admin_console/permission_schemes_settings/permission_description should match snapshot with default Props 1`] = `
-<span
-  className="permission-description"
-  onClick={[Function]}
-  onMouseOut={[Function]}
-  onMouseOver={[Function]}
+<WithTooltip
+  disabled={false}
+  title="This is the description"
 >
-  This is the description
-  <Overlay
-    animation={[Function]}
-    placement="top"
-    rootClose={false}
-    show={false}
-    target={null}
+  <span
+    className="permission-description"
+    onClick={[Function]}
   >
-    <Tooltip>
-      This is the description
-    </Tooltip>
-  </Overlay>
-</span>
+    This is the description
+  </span>
+</WithTooltip>
 `;

@@ -1,4 +1,4 @@
-@charset "utf-8";
+@use "utils/functions";
 
 .app__body {
     .suggestion--selected {
@@ -62,9 +62,10 @@
     max-width: 100%;
     max-height: 292px;
     padding-bottom: 12px;
+    padding-left: 0;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
-    background-color: v(center-channel-bg);
+    background-color: functions.v(center-channel-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     -webkit-overflow-scrolling: touch;
     overflow-x: auto;
@@ -76,7 +77,7 @@
     }
 
     &::-webkit-scrollbar-thumb {
-        border: 1px solid v(center-channel-bg);
+        border: 1px solid functions.v(center-channel-bg);
         border-radius: 4px;
         background-color: rgba(var(--center-channel-color-rgb), 0.24) !important;
     }
@@ -226,7 +227,6 @@
 
         > span:nth-child(2) {
             overflow: hidden;
-            width: 100%;
             text-overflow: ellipsis;
         }
     }
@@ -275,7 +275,7 @@
         flex: 0 0 1.6rem;
         align-items: center;
         justify-content: center;
-        fill: v(center-channel-color);
+        fill: functions.v(center-channel-color);
         opacity: 0.73;
 
         &--standard {

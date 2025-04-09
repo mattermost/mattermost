@@ -28,7 +28,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -66,6 +66,24 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         ariaLabelRenderer={[Function]}
         backButtonClass="btn-tertiary tertiary-button"
         backButtonClick={[Function]}
+        backButtonText={
+          Object {
+            "defaultMessage": "Cancel",
+            "id": "multiselect.cancel",
+          }
+        }
+        buttonSubmitLoadingText={
+          Object {
+            "defaultMessage": "Adding...",
+            "id": "multiselect.adding",
+          }
+        }
+        buttonSubmitText={
+          Object {
+            "defaultMessage": "Add",
+            "id": "multiselect.add",
+          }
+        }
         customNoOptionsMessage={null}
         focusOnLoad={true}
         handleAdd={[Function]}
@@ -117,6 +135,12 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         optionRenderer={[Function]}
         options={Array []}
         perPage={50}
+        placeholderText={
+          Object {
+            "defaultMessage": "Search for people or groups",
+            "id": "multiselect.placeholder.peopleOrGroups",
+          }
+        }
         saveButtonPosition="bottom"
         saving={false}
         savingEnabled={true}
@@ -166,7 +190,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -204,6 +228,24 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         ariaLabelRenderer={[Function]}
         backButtonClass="btn-tertiary tertiary-button"
         backButtonClick={[Function]}
+        backButtonText={
+          Object {
+            "defaultMessage": "Cancel",
+            "id": "multiselect.cancel",
+          }
+        }
+        buttonSubmitLoadingText={
+          Object {
+            "defaultMessage": "Adding...",
+            "id": "multiselect.adding",
+          }
+        }
+        buttonSubmitText={
+          Object {
+            "defaultMessage": "Add",
+            "id": "multiselect.add",
+          }
+        }
         customNoOptionsMessage={null}
         focusOnLoad={true}
         handleAdd={[Function]}
@@ -255,6 +297,12 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         optionRenderer={[Function]}
         options={Array []}
         perPage={50}
+        placeholderText={
+          Object {
+            "defaultMessage": "Search for people or groups",
+            "id": "multiselect.placeholder.peopleOrGroups",
+          }
+        }
         saveButtonPosition="bottom"
         saving={false}
         savingEnabled={true}
@@ -326,7 +374,7 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -364,6 +412,24 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
         ariaLabelRenderer={[Function]}
         backButtonClass="btn-tertiary tertiary-button"
         backButtonClick={[Function]}
+        backButtonText={
+          Object {
+            "defaultMessage": "Cancel",
+            "id": "multiselect.cancel",
+          }
+        }
+        buttonSubmitLoadingText={
+          Object {
+            "defaultMessage": "Adding...",
+            "id": "multiselect.adding",
+          }
+        }
+        buttonSubmitText={
+          Object {
+            "defaultMessage": "Add",
+            "id": "multiselect.add",
+          }
+        }
         customNoOptionsMessage={null}
         focusOnLoad={true}
         handleAdd={[Function]}
@@ -415,6 +481,12 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
         optionRenderer={[Function]}
         options={Array []}
         perPage={50}
+        placeholderText={
+          Object {
+            "defaultMessage": "Search for people or groups",
+            "id": "multiselect.placeholder.peopleOrGroups",
+          }
+        }
         saveButtonPosition="bottom"
         saving={false}
         savingEnabled={true}

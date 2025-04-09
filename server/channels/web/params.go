@@ -99,7 +99,11 @@ type Params struct {
 	CreatorId                 string
 	OnlyConfirmed             bool
 	OnlyPlugins               bool
+	IncludeUnconfirmed        bool
+	ExcludeConfirmed          bool
 	ExcludePlugins            bool
+	ExcludeHome               bool
+	ExcludeRemote             bool
 
 	//Bookmarks
 	ChannelBookmarkId string
@@ -107,6 +111,9 @@ type Params struct {
 
 	// Cloud
 	InvoiceId string
+
+	// Custom Profile Attributes
+	FieldId string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -168,8 +175,13 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.CreatorId = query.Get("creator_id")
 	params.OnlyConfirmed, _ = strconv.ParseBool(query.Get("only_confirmed"))
 	params.OnlyPlugins, _ = strconv.ParseBool(query.Get("only_plugins"))
+	params.IncludeUnconfirmed, _ = strconv.ParseBool(query.Get("include_unconfirmed"))
+	params.ExcludeConfirmed, _ = strconv.ParseBool(query.Get("exclude_confirmed"))
 	params.ExcludePlugins, _ = strconv.ParseBool(query.Get("exclude_plugins"))
+	params.ExcludeHome, _ = strconv.ParseBool(query.Get("exclude_home"))
+	params.ExcludeRemote, _ = strconv.ParseBool(query.Get("exclude_remote"))
 	params.ChannelBookmarkId = props["bookmark_id"]
+	params.FieldId = props["field_id"]
 	params.Scope = query.Get("scope")
 
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {

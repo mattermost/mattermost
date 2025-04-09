@@ -31,7 +31,6 @@ import type {GlobalState} from 'types/store';
 
 import VirtualizedThreadList from './virtualized_thread_list';
 
-import BalloonIllustration from '../../common/balloon_illustration';
 import Button from '../../common/button';
 import {useThreadRouting} from '../../hooks';
 import MarkAllThreadsAsReadModal from '../mark_all_threads_as_read_modal';
@@ -232,12 +231,10 @@ const ThreadList = ({
                 right={(
                     <div className='right-anchor'>
                         <WithTooltip
-                            id='threadListMarkRead'
                             title={formatMessage({
                                 id: 'threading.threadList.markRead',
                                 defaultMessage: 'Mark all as read',
                             })}
-                            placement={'top'}
                         >
                             <Button
                                 id={'threads-list__mark-all-as-read'}
@@ -270,10 +267,13 @@ const ThreadList = ({
                 {unread && !someUnread && isEmpty(unreadIds) ? (
                     <NoResultsIndicator
                         expanded={true}
-                        iconGraphic={BalloonIllustration}
                         title={formatMessage({
                             id: 'globalThreads.threadList.noUnreadThreads',
                             defaultMessage: 'No unread threads',
+                        })}
+                        subtitle={formatMessage({
+                            id: 'globalThreads.threadList.noUnreadThreads.subtitle',
+                            defaultMessage: 'You\'re all caught up',
                         })}
                     />
                 ) : null}

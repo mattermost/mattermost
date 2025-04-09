@@ -1,7 +1,7 @@
 .modal .StatusModal.GenericModal .StatusModal__clear-container.input-clear {
     position: absolute;
     top: 16px;
-    right: 20px;
+    right: 18px;
     color: rgba(var(--center-channel-color-rgb), 0.64);
     opacity: 1;
 }
@@ -328,8 +328,13 @@ span.emoticon[style]:hover {
 
         &-icon {
             position: absolute;
-            top: 11.3px;
+            top: 9.5px;
             left: 15px;
+        }
+
+        .dateTime__input {
+            display: flex;
+            align-items: center;
         }
     }
 

@@ -5,16 +5,19 @@ import type React from 'react';
 import {useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
+
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
-import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {emitShortcutReactToLastPostFrom, unsetEditingPost} from 'actions/post_actions';
 import {editLatestPost} from 'actions/views/create_comment';
 import {replyToLatestPostInChannel} from 'actions/views/rhs';
+import {getIsRhsExpanded} from 'selectors/rhs';
 
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
 
-import Constants, {Locations, Preferences} from 'utils/constants';
+import Constants, {A11yClassNames, Locations, Preferences} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {type ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {pasteHandler} from 'utils/paste';
@@ -35,14 +38,17 @@ const useKeyHandler = (
     isValidPersistentNotifications: boolean,
     location: string,
     textboxRef: React.RefObject<TextboxClass>,
+    showFormattingBar: boolean,
     focusTextbox: (forceFocus?: boolean) => void,
     applyMarkdown: (params: ApplyMarkdownOptions) => void,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
-    handleSubmit: (e: React.FormEvent, submittingDraft?: PostDraft) => void,
+    handleSubmit: (submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo) => void,
     emitTypingEvent: () => void,
     toggleShowPreview: () => void,
     toggleAdvanceTextEditor: () => void,
     toggleEmojiPicker: () => void,
+    isInEditMode?: boolean,
+    onCancel?: () => void,
 ): [
         (e: React.KeyboardEvent<TextboxElement>) => void,
         (e: React.KeyboardEvent<TextboxElement>) => void,
@@ -52,6 +58,7 @@ const useKeyHandler = (
     const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
     const codeBlockOnCtrlEnter = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
     const messageHistory = useSelector((state: GlobalState) => state.entities.posts.messagesHistory.messages);
+    const rhsExpanded = useSelector(getIsRhsExpanded);
 
     const timeoutId = useRef<number>();
     const messageHistoryIndex = useRef(messageHistory.length);
@@ -122,19 +129,9 @@ const useKeyHandler = (
         }
 
         if (allowSending && isValidPersistentNotifications) {
-            e.persist?.();
-
-            // textboxRef.current?.blur();
-
-            if (withClosedCodeBlock && message) {
-                handleSubmit(e, {...draft, message});
-            } else {
-                handleSubmit(e);
-            }
-
-            // setTimeout(() => {
-            //     focusTextbox();
-            // });
+            e.preventDefault();
+            const updatedDraft = (withClosedCodeBlock && message) ? {...draft, message} : undefined;
+            handleSubmit(updatedDraft);
         }
 
         emitTypingEvent();
@@ -177,6 +174,10 @@ const useKeyHandler = (
 
         if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
             textboxRef.current?.blur();
+            if (isInEditMode) {
+                onCancel?.();
+                dispatch(unsetEditingPost());
+            }
         }
 
         const upKeyOnly = !ctrlOrMetaKeyPressed && !e.altKey && !e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.UP);
@@ -263,7 +264,7 @@ const useKeyHandler = (
                 e.stopPropagation();
                 e.preventDefault();
                 toggleAdvanceTextEditor();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length && !UserAgent.isMac()) {
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length && !UserAgent.isMac() && showFormattingBar) {
                 e.stopPropagation();
                 e.preventDefault();
                 toggleShowPreview();
@@ -317,9 +318,15 @@ const useKeyHandler = (
 
         const lastMessageReactionKeyCombo = ctrlShiftCombo && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
         if (lastMessageReactionKeyCombo) {
+            // we need to stop propagating and prevent default even if a
+            // post is being edited so the document level event handler doesn't trigger
             e.stopPropagation();
             e.preventDefault();
-            dispatch(emitShortcutReactToLastPostFrom(postId ? Locations.RHS_ROOT : Locations.CENTER));
+
+            if (!isInEditMode) {
+                // don't show the reaction dialog if a post is being edited
+                dispatch(emitShortcutReactToLastPostFrom(postId ? Locations.RHS_ROOT : Locations.CENTER));
+            }
         }
 
         if (!postId) {
@@ -361,6 +368,41 @@ const useKeyHandler = (
         };
     }, [location, draft.message, caretPosition]);
 
+    const reactToLastMessage = useCallback((e: KeyboardEvent) => {
+        e.preventDefault();
+
+        const noModalsAreOpen = document.getElementsByClassName(A11yClassNames.MODAL).length === 0;
+        const noPopupsDropdownsAreOpen = document.getElementsByClassName(A11yClassNames.POPUP).length === 0;
+
+        // Block keyboard shortcut react to last message when :
+        // - RHS is completely expanded
+        // - Any dropdown/popups are open
+        // - Any modals are open
+        if (!rhsExpanded && noModalsAreOpen && noPopupsDropdownsAreOpen) {
+            dispatch(emitShortcutReactToLastPostFrom(Locations.CENTER));
+        }
+    }, [dispatch, rhsExpanded]);
+
+    useEffect(() => {
+        const documentKeyHandler = (e: KeyboardEvent) => {
+            const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
+            const lastMessageReactionKeyCombo = ctrlOrMetaKeyPressed && e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
+            if (lastMessageReactionKeyCombo) {
+                reactToLastMessage(e);
+            }
+        };
+
+        if (!postId) {
+            document.addEventListener('keydown', documentKeyHandler);
+        }
+
+        return () => {
+            if (!postId) {
+                document.removeEventListener('keydown', documentKeyHandler);
+            }
+        };
+    }, [postId, reactToLastMessage]);
+
     // Reset history index
     useEffect(() => {
         if (messageHistoryIndex.current === messageHistory.length) {
@@ -370,6 +412,10 @@ const useKeyHandler = (
             messageHistoryIndex.current = messageHistory.length;
         }
     }, [draft.message]);
+
+    useEffect(() => {
+        messageHistoryIndex.current = messageHistory.length;
+    }, [messageHistory]);
 
     // Update last channel switch at
     useEffect(() => {

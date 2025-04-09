@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Overlay} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {Link} from 'react-router-dom';
@@ -31,9 +30,9 @@ import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_
 import FormError from 'components/form_error';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
-import Tooltip from 'components/tooltip';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
+import WithTooltip from 'components/with_tooltip';
 
 import * as I18n from 'i18n/i18n.jsx';
 import Constants from 'utils/constants';
@@ -67,7 +66,6 @@ type State = {
     saveNeeded: false | 'both' | 'permissions' | 'config';
     saving: boolean;
     serverError: null;
-    errorTooltip: boolean;
     customComponentWrapperClass: string;
     confirmNeededId: string;
     showConfirmId: string;
@@ -99,7 +97,6 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
     private isPlugin: boolean;
     private saveActions: Array<() => Promise<{error?: {message?: string}}>>;
     private buildSettingFunctions: {[x: string]: (setting: any) => JSX.Element};
-    private errorMessageRef: React.RefObject<HTMLDivElement>;
 
     constructor(props: Props) {
         super(props);
@@ -130,13 +127,11 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             saveNeeded: false,
             saving: false,
             serverError: null,
-            errorTooltip: false,
             customComponentWrapperClass: '',
             confirmNeededId: '',
             showConfirmId: '',
             clientWarning: '',
         };
-        this.errorMessageRef = React.createRef();
     }
 
     static getDerivedStateFromProps(props: Props, state: State) {
@@ -146,7 +141,6 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 saveNeeded: false,
                 saving: false,
                 serverError: null,
-                errorTooltip: false,
                 ...SchemaAdminSettings.getStateFromConfig(props.config, props.schema, props.roles),
             };
         }
@@ -671,7 +665,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         });
 
         if (setting.multiple) {
-            const noResultText = typeof setting.no_result === 'object' ? (
+            const noOptionsMessage = typeof setting.no_result === 'object' ? (
                 <FormattedMessage {...setting.no_result}/>
             ) : setting.no_result;
             return (
@@ -685,7 +679,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                     disabled={this.isDisabled(setting)}
                     setByEnv={this.isSetByEnv(setting.key)}
                     onChange={this.handleChange}
-                    noResultText={noResultText}
+                    noOptionsMessage={noOptionsMessage}
                 />
             );
         }
@@ -727,7 +721,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                     disabled={this.isDisabled(setting)}
                     setByEnv={this.isSetByEnv(setting.key)}
                     onChange={(changedId, value) => this.handleChange(changedId, value.join(','))}
-                    noResultText={descriptorOrStringToString(setting.no_result, this.props.intl)}
+                    noOptionsMessage={descriptorOrStringToString(setting.no_result, this.props.intl)}
                 />
             );
         }
@@ -1155,19 +1149,6 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         return null;
     };
 
-    closeTooltip = () => {
-        this.setState({errorTooltip: false});
-    };
-
-    openTooltip = (e: React.MouseEvent<HTMLDivElement>) => {
-        const elm = e.currentTarget.querySelector<HTMLLabelElement>('.control-label');
-        if (!elm) {
-            return;
-        }
-        const isElipsis = elm.offsetWidth < elm.scrollWidth;
-        this.setState({errorTooltip: isElipsis});
-    };
-
     doSubmit = async (getStateFromConfig: (config: Partial<AdminConfig>, schema: AdminDefinitionSubSectionSchema, roles?: Record<string, Role>) => Partial<State>) => {
         if (!this.props.schema) {
             return;
@@ -1347,7 +1328,10 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div className={'wrapper--fixed ' + this.state.customComponentWrapperClass}>
+            <div
+                className={'wrapper--fixed ' + this.state.customComponentWrapperClass}
+                data-testid={`sysconsole_section_${this.props.schema.id}`}
+            >
                 {this.renderTitle()}
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
@@ -1368,30 +1352,22 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                         onClick={this.handleSubmit}
                         savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                     />
-                    <div
-                        className='error-message'
-                        data-testid='errorMessage'
-                        ref={this.errorMessageRef}
-                        onMouseOver={this.openTooltip}
-                        onMouseOut={this.closeTooltip}
+                    <WithTooltip
+                        title={this.state?.serverError ?? ''}
                     >
-                        <FormError
-                            iconClassName='fa-exclamation-triangle'
-                            textClassName='has-warning'
-                            error={this.state.clientWarning}
-                        />
+                        <div
+                            className='error-message'
+                            data-testid='errorMessage'
+                        >
+                            <FormError
+                                iconClassName='fa-exclamation-triangle'
+                                textClassName='has-warning'
+                                error={this.state.clientWarning}
+                            />
 
-                        <FormError error={this.state.serverError}/>
-                    </div>
-                    <Overlay
-                        show={this.state.errorTooltip}
-                        placement='top'
-                        target={this.errorMessageRef.current!}
-                    >
-                        <Tooltip id='error-tooltip' >
-                            {this.state.serverError}
-                        </Tooltip>
-                    </Overlay>
+                            <FormError error={this.state.serverError}/>
+                        </div>
+                    </WithTooltip>
                 </div>
             </div>
         );

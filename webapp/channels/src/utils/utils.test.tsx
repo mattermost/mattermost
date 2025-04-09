@@ -9,7 +9,7 @@ import store from 'stores/redux_store';
 
 import * as lineBreakHelpers from 'tests/helpers/line_break_helpers';
 import * as ua from 'tests/helpers/user_agent_mocks';
-import Constants, {ValidationErrors} from 'utils/constants';
+import Constants, {ValidationErrors, AdvancedTextEditorTextboxIds} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 describe('Utils.getDisplayNameByUser', () => {
@@ -172,19 +172,22 @@ describe('Utils.localizeMessage', () => {
                         },
                     },
                 },
-            });
+            } as any);
         });
 
         test('with translations', () => {
-            expect(Utils.localizeMessage('test.hello_world', 'Hello, World!')).toEqual('Bonjour tout le monde!');
+            const messageId = 'test.hello_world';
+            expect(Utils.localizeMessage({id: messageId, defaultMessage: 'Hello, World!'})).toEqual('Bonjour tout le monde!');
         });
 
         test('with missing string in translations', () => {
-            expect(Utils.localizeMessage('test.hello_world2', 'Hello, World 2!')).toEqual('Hello, World 2!');
+            const messageId = 'test.hello_world2';
+            expect(Utils.localizeMessage({id: messageId, defaultMessage: 'Hello, World 2!'})).toEqual('Hello, World 2!');
         });
 
         test('with missing string in translations and no default', () => {
-            expect(Utils.localizeMessage('test.hello_world2')).toEqual('test.hello_world2');
+            const messageId = 'test.hello_world2';
+            expect(Utils.localizeMessage({id: messageId})).toEqual('test.hello_world2');
         });
     });
 
@@ -197,15 +200,17 @@ describe('Utils.localizeMessage', () => {
                         translations: {},
                     },
                 },
-            });
+            } as any);
         });
 
         test('without translations', () => {
-            expect(Utils.localizeMessage('test.hello_world', 'Hello, World!')).toEqual('Hello, World!');
+            const messageId = 'test.hello_world';
+            expect(Utils.localizeMessage({id: messageId, defaultMessage: 'Hello, World!'})).toEqual('Hello, World!');
         });
 
         test('without translations and no default', () => {
-            expect(Utils.localizeMessage('test.hello_world')).toEqual('test.hello_world');
+            const messageId = 'test.hello_world';
+            expect(Utils.localizeMessage({id: messageId})).toEqual('test.hello_world');
         });
     });
 });
@@ -491,5 +496,79 @@ describe('Utils.numberToFixedDynamic', () => {
             const actual = Utils.numberToFixedDynamic(testCase.num, testCase.places);
             expect(actual).toBe(testCase.expected);
         });
+    });
+});
+
+describe('isTextSelectedInPostOrReply', () => {
+    function createKeyboardEvent(target: Partial<HTMLTextAreaElement>) {
+        return {
+            target: {
+                selectionStart: 0,
+                selectionEnd: 0,
+                id: AdvancedTextEditorTextboxIds.Default,
+                ...target,
+            },
+        } as unknown as KeyboardEvent;
+    }
+
+    test('returns false when not typing in a textbox', () => {
+        const event = createKeyboardEvent({
+            id: 'not_a_textbox',
+        });
+        expect(Utils.isTextSelectedInPostOrReply(event)).toBe(false);
+    });
+
+    test('returns false when no text is selected in center textbox', () => {
+        const event = createKeyboardEvent({
+            id: AdvancedTextEditorTextboxIds.InCenter,
+            selectionStart: 5,
+            selectionEnd: 5,
+        });
+        expect(Utils.isTextSelectedInPostOrReply(event)).toBe(false);
+    });
+
+    test('returns true when text is selected in center textbox', () => {
+        const event = createKeyboardEvent({
+            id: AdvancedTextEditorTextboxIds.InCenter,
+            selectionStart: 0,
+            selectionEnd: 5,
+        });
+        expect(Utils.isTextSelectedInPostOrReply(event)).toBe(true);
+    });
+
+    test('returns false when no text is selected in RHS comment textbox', () => {
+        const event = createKeyboardEvent({
+            id: AdvancedTextEditorTextboxIds.InRHSComment,
+            selectionStart: 3,
+            selectionEnd: 3,
+        });
+        expect(Utils.isTextSelectedInPostOrReply(event)).toBe(false);
+    });
+
+    test('returns true when text is selected in RHS comment textbox', () => {
+        const event = createKeyboardEvent({
+            id: AdvancedTextEditorTextboxIds.InRHSComment,
+            selectionStart: 0,
+            selectionEnd: 3,
+        });
+        expect(Utils.isTextSelectedInPostOrReply(event)).toBe(true);
+    });
+
+    test('returns false when no text is selected in edit mode textbox', () => {
+        const event = createKeyboardEvent({
+            id: AdvancedTextEditorTextboxIds.InEditMode,
+            selectionStart: 7,
+            selectionEnd: 7,
+        });
+        expect(Utils.isTextSelectedInPostOrReply(event)).toBe(false);
+    });
+
+    test('returns true when text is selected in edit mode textbox', () => {
+        const event = createKeyboardEvent({
+            id: AdvancedTextEditorTextboxIds.InEditMode,
+            selectionStart: 0,
+            selectionEnd: 7,
+        });
+        expect(Utils.isTextSelectedInPostOrReply(event)).toBe(true);
     });
 });

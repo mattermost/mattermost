@@ -11,12 +11,22 @@ exports[`components/global/product_switcher should have an active button state w
       onClick={[Function]}
     >
       <ProductMenuButton
-        active={true}
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
-      />
-      <ProductBranding />
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
+      >
+        <ProductsIcon
+          color="rgba(var(--sidebar-text-rgb), 0.56)"
+          size={20}
+        />
+        <ProductBranding />
+      </ProductMenuButton>
     </ProductMenuContainer>
     <Menu
       ariaLabel="switcherOpen"
@@ -75,12 +85,22 @@ exports[`components/global/product_switcher should match snapshot 1`] = `
       onClick={[Function]}
     >
       <ProductMenuButton
-        active={true}
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
-      />
-      <ProductBranding />
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
+      >
+        <ProductsIcon
+          color="rgba(var(--sidebar-text-rgb), 0.56)"
+          size={20}
+        />
+        <ProductBranding />
+      </ProductMenuButton>
     </ProductMenuContainer>
     <Menu
       ariaLabel="switcherOpen"
@@ -139,12 +159,22 @@ exports[`components/global/product_switcher should match snapshot with product s
       onClick={[Function]}
     >
       <ProductMenuButton
-        active={true}
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
-      />
-      <ProductBranding />
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
+      >
+        <ProductsIcon
+          color="rgba(var(--sidebar-text-rgb), 0.56)"
+          size={20}
+        />
+        <ProductBranding />
+      </ProductMenuButton>
     </ProductMenuContainer>
     <Menu
       ariaLabel="switcherOpen"
@@ -203,12 +233,22 @@ exports[`components/global/product_switcher should match snapshot without licens
       onClick={[Function]}
     >
       <ProductMenuButton
-        active={true}
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
-      />
-      <ProductBrandingTeamEdition />
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
+      >
+        <ProductsIcon
+          color="rgba(var(--sidebar-text-rgb), 0.56)"
+          size={20}
+        />
+        <ProductBrandingTeamEdition />
+      </ProductMenuButton>
     </ProductMenuContainer>
     <Menu
       ariaLabel="switcherOpen"
@@ -267,12 +307,22 @@ exports[`components/global/product_switcher should render once when there are no
       onClick={[Function]}
     >
       <ProductMenuButton
-        active={true}
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
-      />
-      <ProductBranding />
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
+      >
+        <ProductsIcon
+          color="rgba(var(--sidebar-text-rgb), 0.56)"
+          size={20}
+        />
+        <ProductBranding />
+      </ProductMenuButton>
     </ProductMenuContainer>
     <Menu
       ariaLabel="switcherOpen"
@@ -331,12 +381,22 @@ exports[`components/global/product_switcher should render the correct amount of 
       onClick={[Function]}
     >
       <ProductMenuButton
-        active={true}
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
-      />
-      <ProductBranding />
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
+      >
+        <ProductsIcon
+          color="rgba(var(--sidebar-text-rgb), 0.56)"
+          size={20}
+        />
+        <ProductBranding />
+      </ProductMenuButton>
     </ProductMenuContainer>
     <Menu
       ariaLabel="switcherOpen"

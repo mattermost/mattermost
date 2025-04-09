@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, useRef} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 import AutoSizer from 'react-virtualized-auto-sizer';
@@ -197,9 +197,7 @@ const GroupMemberList = (props: Props) => {
                     </ProfilePopover>
                     <DMContainer className='group-member-list_dm-button'>
                         <WithTooltip
-                            id={`name-${user.id}`}
                             title={formatMessage({id: 'group_member_list.sendMessageTooltip', defaultMessage: 'Send message'})}
-                            placement='top'
                         >
                             <DMButton
                                 className='btn btn-icon btn-xs'
@@ -239,7 +237,12 @@ const GroupMemberList = (props: Props) => {
         } else if (searchState === Load.FAILED) {
             return (
                 <LoadFailedItem>
-                    <span>{Utils.localizeMessage('group_member_list.searchError', 'There was a problem getting results. Clear your search term and try again.')}</span>
+                    <span>
+                        <FormattedMessage
+                            id='group_member_list.searchError'
+                            defaultMessage='There was a problem getting results. Clear your search term and try again.'
+                        />
+                    </span>
                 </LoadFailedItem>
             );
         } else if (isSearching && members.length === 0) {
@@ -255,12 +258,18 @@ const GroupMemberList = (props: Props) => {
             return (
                 <LoadFailedItem>
                     <span>
-                        {Utils.localizeMessage('group_member_list.loadError', 'Oops! Something went wrong while loading this group.')}
+                        <FormattedMessage
+                            id='group_member_list.loadError'
+                            defaultMessage='Oops! Something went wrong while loading this group.'
+                        />
                         {' '}
                         <RetryButton
                             onClick={loadMoreItems}
                         >
-                            {Utils.localizeMessage('group_member_list.retryLoadButton', 'Retry')}
+                            <FormattedMessage
+                                id='group_member_list.retryLoadButton'
+                                defaultMessage='Retry'
+                            />
                         </RetryButton>
                     </span>
                 </LoadFailedItem>

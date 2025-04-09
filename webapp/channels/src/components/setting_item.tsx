@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import type {ReactNode} from 'react';
-import React, {useEffect, useRef} from 'react';
+import React, {useRef} from 'react';
 
 import type SettingItemMinComponent from 'components/setting_item_min';
 import SettingItemMin from 'components/setting_item_min';
+
+import useDidUpdate from './common/hooks/useDidUpdate';
 
 type Props = {
 
@@ -54,7 +56,7 @@ const SettingItem = ({
 }: Props) => {
     const minRef = useRef<SettingItemMinComponent>(null);
 
-    useEffect(() => {
+    useDidUpdate(() => {
         // We want to bring back focus to the edit button when the section is opened and then closed along with all sections are closed
 
         if (!active && areAllSectionsInactive) {

@@ -14,11 +14,12 @@ import ExternalLink from 'components/external_link';
 
 import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
 
-import AdminSettings from './admin_settings';
-import type {BaseProps, BaseState} from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import JobsTable from './jobs';
+import OLDAdminSettings from './old_admin_settings';
+import type {BaseProps, BaseState} from './old_admin_settings';
 import RequestButton from './request_button/request_button';
+import SettingSet from './setting_set';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
@@ -98,7 +99,7 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
     messages.enableSearchingDescription,
 ];
 
-export default class ElasticsearchSettings extends AdminSettings<Props, State> {
+export default class ElasticsearchSettings extends OLDAdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.ElasticsearchSettings.ConnectionURL = this.state.connectionUrl;
         config.ElasticsearchSettings.Backend = this.state.backend;
@@ -419,27 +420,24 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                     })}
                     disabled={!this.state.enableIndexing}
                 />
-                <div className='form-group'>
-                    <label className='control-label col-sm-4'>
-                        <FormattedMessage {...messages.bulkIndexingTitle}/>
-                    </label>
-                    <div className='col-sm-8'>
-                        <div className='job-table-setting'>
-                            <JobsTable
-                                jobType={JobTypes.ELASTICSEARCH_POST_INDEXING as JobType}
-                                disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
-                                createJobButtonText={
-                                    <FormattedMessage
-                                        id='admin.elasticsearch.createJob.title'
-                                        defaultMessage='Index Now'
-                                    />
-                                }
-                                createJobHelpText={<FormattedMessage {...messages.help}/>}
-                                getExtraInfoText={this.getExtraInfo}
-                            />
-                        </div>
+                <SettingSet
+                    label={<FormattedMessage {...messages.bulkIndexingTitle}/>}
+                >
+                    <div className='job-table-setting'>
+                        <JobsTable
+                            jobType={JobTypes.ELASTICSEARCH_POST_INDEXING as JobType}
+                            disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
+                            createJobButtonText={
+                                <FormattedMessage
+                                    id='admin.elasticsearch.createJob.title'
+                                    defaultMessage='Index Now'
+                                />
+                            }
+                            createJobHelpText={<FormattedMessage {...messages.help}/>}
+                            getExtraInfoText={this.getExtraInfo}
+                        />
                     </div>
-                </div>
+                </SettingSet>
                 <RequestButton
                     id='rebuildChannelsIndexButton'
                     requestAction={rebuildChannelsIndex}

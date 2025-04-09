@@ -1,4 +1,4 @@
-@charset "UTF-8";
+@use "utils/variables";
 
 /* Height durations for height and opacity of sidebar channels needs to be different for optimum fps see PR #9732 */
 $sidebarHeightTransitionDuration: 0.18s;
@@ -161,7 +161,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &.desktop {
             display: block;
 
-            .AddChannelDropdown_dropdownButton,
             .SidebarFilters_filterButton,
             .SidebarChannelNavigator_backButton,
             .SidebarChannelNavigator_inviteUsers,
@@ -178,7 +177,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &.webapp {
             display: flex;
 
-            .AddChannelDropdown_dropdownButton,
             .SidebarChannelNavigator_inviteUsers,
             .SidebarChannelNavigator_jumpToButton,
             .SidebarFilters_filterButton {
@@ -213,7 +211,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
             &--untouched {
                 color: var(--sidebar-unread-text);
-                font-weight: $font-weight--semibold;
+                font-weight: variables.$font-weight--semibold;
             }
         }
 
@@ -228,7 +226,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
             }
         }
 
-        .AddChannelDropdown_dropdownButton,
         .SidebarChannelNavigator_inviteUsers,
         .SidebarChannelNavigator_jumpToButton,
         .SidebarFilters_filterButtontton,
@@ -331,35 +328,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         color: var(--sidebar-bg);
     }
 
-    .AddChannelDropdown {
-        height: 30px;
-
-        .dropdown-menu {
-            min-width: 250px;
-            margin-top: 0;
-            line-height: 19px;
-
-            span {
-                color: rgba(var(--center-channel-color-rgb), 0.9);
-
-                &:not(.MenuItem__help-text) {
-                    white-space: nowrap;
-                }
-            }
-
-            button {
-                padding: 1px 16px;
-            }
-
-            i {
-                color: rgba(var(--center-channel-color-rgb), 0.64);
-                font-size: 16px;
-                line-height: 16px;
-            }
-        }
-    }
-
-    .AddChannelDropdown_dropdownButton,
     .SidebarChannelNavigator_inviteUsers {
         z-index: 1;
         width: 28px;
@@ -370,18 +338,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         background: transparent;
         color: rgba(var(--sidebar-text-rgb), 0.8);
         font-size: 20px;
-    }
-
-    .AddChannelDropdown_dropdownButton:hover,
-    .AddChannelDropdown_dropdownButton:active,
-    .AddChannelDropdown_dropdownButton:focus {
-        background-color: rgba(var(--sidebar-text-rgb), 0.16);
-        color: var(--sidebar-text);
-        cursor: pointer;
-    }
-
-    .AddChannelDropdown_dropdownButton:focus {
-        outline-style: none;
     }
 
     .sidebar-header {
@@ -406,11 +362,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &.MenuWrapper--open {
             background-color: rgba(var(--sidebar-text-rgb), 0.16);
         }
-    }
-
-    .AddChannelDropdown_dropdownButton {
-        background-color: rgba(var(--sidebar-text-rgb), 0.08);
-        color: rgba(var(--sidebar-text-rgb), 0.64);
     }
 
     .SidebarMenu {
@@ -1398,7 +1349,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     &:hover {
         background: #489dfe;
-        color: $white;
+        color: variables.$white;
     }
 
     &:focus,

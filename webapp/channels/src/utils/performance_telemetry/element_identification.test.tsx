@@ -37,6 +37,11 @@ describe('identifyElementRegion', () => {
         const user = TestHelper.getUserMock({
             id: 'test-user-id',
             roles: 'system_admin system_user',
+            timezone: {
+                useAutomaticTimezone: 'true',
+                automaticTimezone: 'America/New_York',
+                manualTimezone: '',
+            },
         });
         const post = TestHelper.getPostMock({
             id: 'test-post-id',
@@ -79,6 +84,7 @@ describe('identifyElementRegion', () => {
                             [channel.id]: TestHelper.getChannelMembershipMock({
                                 channel_id: channel.id,
                                 user_id: user.id,
+                                roles: 'system_admin',
                             }),
                         },
                     },
@@ -131,7 +137,9 @@ describe('identifyElementRegion', () => {
             },
         );
 
-        expect(identifyElementRegion(screen.getAllByText(channel.display_name)[0])).toEqual('channel_sidebar');
+        await waitFor(() => {
+            expect(identifyElementRegion(screen.getAllByText(channel.display_name)[0])).toEqual('channel_sidebar');
+        });
 
         expect(identifyElementRegion(screen.getAllByText(channel.display_name)[1])).toEqual('channel_header');
         expect(identifyElementRegion(screen.getAllByText(channel.header)[0])).toEqual('channel_header');
@@ -140,6 +148,6 @@ describe('identifyElementRegion', () => {
             expect(identifyElementRegion(screen.getByText(post.message))).toEqual('post');
         });
 
-        expect(identifyElementRegion(screen.getByText('Write to ' + channel.display_name))).toEqual('post_textbox');
+        expect(identifyElementRegion(screen.getByPlaceholderText('Write to ' + channel.display_name))).toEqual('post_textbox');
     });
 });

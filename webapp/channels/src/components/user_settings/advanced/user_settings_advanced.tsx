@@ -738,7 +738,11 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         }
 
         return (
-            <div>
+            <div
+                id='advancedSettings'
+                aria-labelledby='advancedButton'
+                role='tabpanel'
+            >
                 <SettingMobileHeader
                     closeModal={this.props.closeModal}
                     collapseModal={this.props.collapseModal}

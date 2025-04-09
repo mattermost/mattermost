@@ -74,11 +74,28 @@ describe('FormattingBar', () => {
             </form>,
         );
 
-        expect(screen.queryByLabelText('heading')).not.toBeVisible();
+        expect(screen.queryByLabelText('heading')).toBe(null);
 
         userEvent.click(screen.getByLabelText('show hidden formatting options'));
 
         expect(screen.queryByLabelText('heading')).toBeVisible();
         expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    test('should disable tooltip when hidden controls are shown', () => {
+        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({wideMode: 'narrow', ...splitFormattingBarControls('narrow')});
+
+        const {container} = renderWithContext(
+            <FormattingBar {...baseProps}/>,
+        );
+
+        const hiddenControlsButton = screen.getByLabelText('show hidden formatting options');
+
+        // Click to show hidden controls
+        userEvent.click(hiddenControlsButton);
+
+        // Find the WithTooltip component and verify it has disabled prop
+        const tooltipWrapper = container.querySelector('.tooltipContainer');
+        expect(tooltipWrapper).toBeNull(); // Tooltip should not be visible when controls are shown
     });
 });

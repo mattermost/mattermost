@@ -1,4 +1,4 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 .ChannelsInput {
     &.empty {
@@ -215,6 +215,10 @@
         }
 
         .channel-name {
+            display: none;
+        }
+
+        .selected-hidden {
             display: none;
         }
     }

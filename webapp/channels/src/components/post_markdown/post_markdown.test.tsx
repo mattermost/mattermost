@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ComponentProps} from 'react';
 import React from 'react';
 
 import type {Post, PostType} from '@mattermost/types/posts';
@@ -10,12 +11,10 @@ import {Posts} from 'mattermost-redux/constants';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import type {PluginComponent} from 'types/store/plugins';
-
 import PostMarkdown from './post_markdown';
 
 describe('components/PostMarkdown', () => {
-    const baseProps = {
+    const baseProps: ComponentProps<typeof PostMarkdown> = {
         imageProps: {} as Record<string, unknown>,
         pluginHooks: [],
         message: 'message',
@@ -211,7 +210,7 @@ describe('components/PostMarkdown', () => {
     });
 
     test('plugin hooks can build upon other hook message updates', () => {
-        const props = {
+        const props: ComponentProps<typeof PostMarkdown> = {
             ...baseProps,
             message: 'world',
             post: TestHelper.getPostMock({
@@ -226,16 +225,20 @@ describe('components/PostMarkdown', () => {
             }),
             pluginHooks: [
                 {
+                    id: 'some id',
+                    pluginId: 'some plugin',
                     hook: (post: Post, updatedMessage: string) => {
                         return 'hello ' + updatedMessage;
                     },
                 },
                 {
+                    id: 'different id',
+                    pluginId: 'different plugin',
                     hook: (post: Post, updatedMessage: string) => {
                         return updatedMessage + '!';
                     },
                 },
-            ] as PluginComponent[],
+            ],
         };
         renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();
@@ -245,7 +248,7 @@ describe('components/PostMarkdown', () => {
     });
 
     test('plugin hooks can overwrite other hooks messages', () => {
-        const props = {
+        const props: ComponentProps<typeof PostMarkdown> = {
             ...baseProps,
             message: 'world',
             post: TestHelper.getPostMock({
@@ -260,16 +263,20 @@ describe('components/PostMarkdown', () => {
             }),
             pluginHooks: [
                 {
+                    id: 'some id',
+                    pluginId: 'some plugin',
                     hook: (post: Post) => {
                         return 'hello ' + post.message;
                     },
                 },
                 {
+                    id: 'different id',
+                    pluginId: 'different plugin',
                     hook: (post: Post) => {
                         return post.message + '!';
                     },
                 },
-            ] as PluginComponent[],
+            ],
         };
         renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();

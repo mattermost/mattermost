@@ -4,9 +4,10 @@
 import type {AnyAction} from 'redux';
 
 import type {Team} from '@mattermost/types/teams';
-import type {ThreadsState, UserThread} from '@mattermost/types/threads';
+import type {ThreadsState, UserThread, UserThreadWithPost} from '@mattermost/types/threads';
 import type {IDMappedObjects, RelationOneToMany} from '@mattermost/types/utilities';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ChannelTypes, PostTypes, TeamTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
 
 import type {ExtraData} from './types';
@@ -242,10 +243,11 @@ function handleSingleTeamThreadRead(state: ThreadsState['unreadThreadsInTeam'], 
     };
 }
 
-export const threadsInTeamReducer = (state: ThreadsState['threadsInTeam'] = {}, action: AnyAction, extra: ExtraData) => {
+export const threadsInTeamReducer = (state: ThreadsState['threadsInTeam'] = {}, action: MMReduxAction, extra: ExtraData) => {
     switch (action.type) {
     case ThreadTypes.RECEIVED_THREAD:
         return handleReceivedThread(state, action, extra);
+    case PostTypes.POST_DELETED:
     case PostTypes.POST_REMOVED:
         return handlePostRemoved(state, action);
     case ThreadTypes.RECEIVED_THREADS:
@@ -262,7 +264,7 @@ export const threadsInTeamReducer = (state: ThreadsState['threadsInTeam'] = {}, 
     return state;
 };
 
-export const unreadThreadsInTeamReducer = (state: ThreadsState['unreadThreadsInTeam'] = {}, action: AnyAction, extra: ExtraData) => {
+export const unreadThreadsInTeamReducer = (state: ThreadsState['unreadThreadsInTeam'] = {}, action: MMReduxAction, extra: ExtraData) => {
     switch (action.type) {
     case ThreadTypes.READ_CHANGED_THREAD: {
         const {teamId} = action.data;
@@ -283,6 +285,15 @@ export const unreadThreadsInTeamReducer = (state: ThreadsState['unreadThreadsInT
             return handleReceivedThread(state, action, extra);
         }
         return state;
+    case ThreadTypes.RECEIVED_THREADS:
+        return handleReceiveThreads(state, {
+            ...action,
+            data: {
+                ...action.data,
+                threads: action.data.threads.filter((thread: UserThreadWithPost) => thread.unread_replies > 0 || thread.unread_mentions > 0),
+            },
+        });
+    case PostTypes.POST_DELETED:
     case PostTypes.POST_REMOVED:
         return handlePostRemoved(state, action);
     case ThreadTypes.RECEIVED_UNREAD_THREADS:

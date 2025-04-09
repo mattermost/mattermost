@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import throttle from 'lodash/throttle';
 import React, {useState, useEffect, useRef, useCallback} from 'react';
 import type {FocusEvent} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {useLocation, useHistory, Route} from 'react-router-dom';
 
@@ -30,23 +30,20 @@ import {getGlobalItem} from 'selectors/storage';
 import AlertBanner from 'components/alert_banner';
 import type {ModeType, AlertBannerProps} from 'components/alert_banner';
 import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
-import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
-import ManWithLaptopSVG from 'components/common/svg_images_components/man_with_laptop_svg';
 import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLink from 'components/external_link';
 import ExternalLoginButton from 'components/external_login_button/external_login_button';
 import type {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
 import LoadingScreen from 'components/loading_screen';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
+import EntraIdIcon from 'components/widgets/icons/entra_id_icon';
 import LockIcon from 'components/widgets/icons/lock_icon';
 import LoginGitlabIcon from 'components/widgets/icons/login_gitlab_icon';
 import LoginGoogleIcon from 'components/widgets/icons/login_google_icon';
-import LoginOffice365Icon from 'components/widgets/icons/login_office_365_icon';
 import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import CheckInput from 'components/widgets/inputs/check';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
@@ -200,8 +197,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             externalLoginOptions.push({
                 id: 'office365',
                 url,
-                icon: <LoginOffice365Icon/>,
-                label: formatMessage({id: 'login.office365', defaultMessage: 'Office 365'}),
+                icon: <EntraIdIcon/>,
+                label: formatMessage({id: 'login.office365', defaultMessage: 'Entra ID'}),
                 onClick: desktopExternalAuth(url),
             });
         }
@@ -713,7 +710,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 <ColumnLayout
                     title={titleColumn}
                     message={formatMessage({id: 'signup_user_completed.invalid_invite.message', defaultMessage: 'Please speak with your Administrator to receive an invitation.'})}
-                    SVGElement={<LaptopAlertSVG/>}
                     extraContent={(
                         <div className='signup-body-content-button-container'>
                             <button
@@ -783,11 +779,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                         </h1>
                     )}
                     {getMessageSubtitle()}
-                    {!enableCustomBrand && (
-                        <div className='signup-body-message-svg'>
-                            <ManWithLaptopSVG/>
-                        </div>
-                    )}
                 </div>
                 <div className='signup-body-action'>
                     {!isMobileView && getAlternateLink()}
@@ -893,13 +884,27 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                             )}
                             {enableSignUpWithEmail && !serverError && (
                                 <p className='signup-body-card-agreement'>
-                                    <FormattedMarkdownMessage
-                                        id='create_team.agreement'
-                                        defaultMessage='By proceeding to create your account and use {siteName}, you agree to our [Terms of Use]({TermsOfServiceLink}) and [Privacy Policy]({PrivacyPolicyLink}). If you do not agree, you cannot use {siteName}.'
+                                    <FormattedMessage
+                                        id='signup.agreement'
+                                        defaultMessage='By proceeding to create your account and use {siteName}, you agree to our <termsOfUseLink>Terms of Use</termsOfUseLink> and <privacyPolicyLink>Privacy Policy</privacyPolicyLink>.  If you do not agree, you cannot use {siteName}.'
                                         values={{
                                             siteName: SiteName,
-                                            TermsOfServiceLink: `!${TermsOfServiceLink}`,
-                                            PrivacyPolicyLink: `!${PrivacyPolicyLink}`,
+                                            termsOfUseLink: (chunks: string) => (
+                                                <ExternalLink
+                                                    href={TermsOfServiceLink as string}
+                                                    location='signup-terms-of-use'
+                                                >
+                                                    {chunks}
+                                                </ExternalLink>
+                                            ),
+                                            privacyPolicyLink: (chunks: string) => (
+                                                <ExternalLink
+                                                    href={PrivacyPolicyLink as string}
+                                                    location='signup-privacy-policy'
+                                                >
+                                                    {chunks}
+                                                </ExternalLink>
+                                            ),
                                         }}
                                     />
                                 </p>

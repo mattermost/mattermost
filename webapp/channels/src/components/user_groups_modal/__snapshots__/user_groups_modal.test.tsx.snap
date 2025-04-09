@@ -28,7 +28,7 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <Connect(Component)
@@ -51,7 +51,12 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="Search Groups"
+        placeholder={
+          Object {
+            "defaultMessage": "Search Groups",
+            "id": "user_groups_modal.searchGroups",
+          }
+        }
         type="text"
         value=""
       />
@@ -149,7 +154,7 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <Connect(Component)
@@ -172,7 +177,12 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="Search Groups"
+        placeholder={
+          Object {
+            "defaultMessage": "Search Groups",
+            "id": "user_groups_modal.searchGroups",
+          }
+        }
         type="text"
         value=""
       />

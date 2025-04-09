@@ -251,16 +251,31 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if oldTeam, err := c.App.GetTeam(c.Params.TeamId); err == nil {
+	// if changing "AllowOpenInvite" or "AllowedDomains", user must have InviteUser permission
+	if (team.AllowOpenInvite != nil || team.AllowedDomains != nil) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteUser) {
+		c.SetPermissionError(model.PermissionInviteUser)
+		return
+	}
+
+	oldTeam, err := c.App.GetTeam(c.Params.TeamId)
+	if err == nil {
 		auditRec.AddEventPriorState(oldTeam)
 		auditRec.AddEventObjectType("team")
 	}
 
 	patchedTeam, err := c.App.PatchTeam(c.Params.TeamId, &team)
-
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	// If the team is now group constrained but wasn't previously, delete members that aren't part of the team's groups
+	if patchedTeam.GroupConstrained != nil && *patchedTeam.GroupConstrained && (oldTeam.GroupConstrained == nil || !*oldTeam.GroupConstrained) {
+		c.App.Srv().Go(func() {
+			if err := c.App.DeleteGroupConstrainedTeamMemberships(c.AppContext, &c.Params.TeamId); err != nil {
+				c.Logger.Warn("Error deleting group-constrained team memberships", mlog.Err(err))
+			}
+		})
 	}
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), patchedTeam)
@@ -415,10 +430,6 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), patchedTeam)
 
-	if !*c.App.Config().PrivacySettings.ShowEmailAddress && !c.IsSystemAdmin() {
-		patchedTeam.Email = ""
-	}
-
 	auditRec.Success()
 	auditRec.AddEventResultState(patchedTeam)
 	auditRec.AddEventObjectType("team")
@@ -486,19 +497,15 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeTeams(*c.AppContext.Session(), teams)
 
-	if !*c.App.Config().PrivacySettings.ShowEmailAddress && !c.IsSystemAdmin() {
-		for _, team := range teams {
-			team.Email = ""
-		}
-	}
-
 	js, err := json.Marshal(teams)
 	if err != nil {
 		c.Err = model.NewAppError("getTeamsForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -527,7 +534,9 @@ func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getTeamsUnreadForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -602,7 +611,9 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -639,7 +650,9 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -680,7 +693,9 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -689,7 +704,6 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err *model.AppError
 	var member model.TeamMember
 	if jsonErr := json.NewDecoder(r.Body).Decode(&member); jsonErr != nil {
 		c.Err = model.NewAppError("addTeamMember", "api.team.add_team_member.invalid_body.app_error", nil, "Error in model.TeamMemberFromJSON()", http.StatusBadRequest).Wrap(jsonErr)
@@ -711,7 +725,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if member.UserId == c.AppContext.Session().UserId {
 		var team *model.Team
-		team, err = c.App.GetTeam(member.TeamId)
+		team, err := c.App.GetTeam(member.TeamId)
 		if err != nil {
 			c.Err = err
 			return
@@ -729,6 +743,19 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), member.TeamId, model.PermissionAddUserToTeam) {
 			c.SetPermissionError(model.PermissionAddUserToTeam)
 			return
+		}
+
+		canInviteGuests := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteGuest)
+		if !canInviteGuests {
+			user, err := c.App.GetUser(member.UserId)
+			if err != nil {
+				c.Err = model.NewAppError("addTeamMembers", "api.team.user.missing_account", nil, "", http.StatusNotFound).Wrap(err)
+				return
+			}
+			if user.IsGuest() {
+				c.SetPermissionError(model.PermissionInviteGuest)
+				return
+			}
 		}
 	}
 
@@ -938,7 +965,9 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1171,7 +1200,9 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1235,7 +1266,9 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		payload = js
 	}
 
-	w.Write(payload)
+	if _, err := w.Write(payload); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1269,7 +1302,9 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := map[string]bool{"exists": exists}
-	w.Write([]byte(model.MapBoolToJSON(resp)))
+	if _, err := w.Write([]byte(model.MapBoolToJSON(resp))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1358,7 +1393,9 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write([]byte(model.MapToJSON(data)))
+	if _, err := w.Write([]byte(model.MapToJSON(data))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1460,7 +1497,9 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		w.Write(js)
+		if _, err := w.Write(js); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 	} else {
 		appErr := c.App.InviteNewUsersToTeam(c.AppContext, emailList, c.Params.TeamId, c.AppContext.Session().UserId)
 		if appErr != nil {
@@ -1551,7 +1590,9 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		w.Write(js)
+		if _, err := w.Write(js); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 	} else {
 		appErr := c.App.InviteGuestsToChannels(c.AppContext, c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
 		if appErr != nil {
@@ -1623,7 +1664,6 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	team, err := c.App.GetTeam(c.Params.TeamId)
-
 	if err != nil {
 		c.Err = err
 		return
@@ -1650,11 +1690,17 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "image/png")
 	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", model.DayInSeconds)) // 24 hrs
 	w.Header().Set(model.HeaderEtagServer, etag)
-	w.Write(img)
+	if _, err := w.Write(img); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(io.Discard, r.Body)
+	defer func() {
+		if _, err := io.Copy(io.Discard, r.Body); err != nil {
+			c.Logger.Warn("Error while reading request body", mlog.Err(err))
+		}
+	}()
 
 	c.RequireTeamId()
 	if c.Err != nil {
@@ -1695,7 +1741,7 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	imageData := imageArray[0]
 
-	if err := c.App.SetTeamIcon(c.Params.TeamId, imageData); err != nil {
+	if err := c.App.SetTeamIcon(c.AppContext, c.Params.TeamId, imageData); err != nil {
 		c.Err = err
 		return
 	}
@@ -1846,5 +1892,7 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

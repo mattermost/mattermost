@@ -24,7 +24,11 @@ const CustomTermsOfServiceFeatureDiscovery: React.FC = () => {
                 defaultMessage: 'Create your own terms of service that new users must accept before accessing your Mattermost instance on desktop, web, or mobile.',
             })}
             learnMoreURL='https://docs.mattermost.com/cloud/cloud-administration/custom-terms-of-service.html'
-            featureDiscoveryImage={<CustomTermsOfServiceSVG/>}
+            featureDiscoveryImage={
+                <CustomTermsOfServiceSVG
+                    width={289}
+                    height={166}
+                />}
         />
     );
 };

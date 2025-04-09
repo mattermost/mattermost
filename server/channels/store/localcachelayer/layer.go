@@ -152,7 +152,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		DefaultExpiry:          RoleCacheSec * time.Second,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForRoles,
 		Striped:                true,
-		StripedBuckets:         maxInt(runtime.NumCPU()-1, 1),
+		StripedBuckets:         max(runtime.NumCPU()-1, 1),
 	}); err != nil {
 		return
 	}
@@ -336,11 +336,12 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		DefaultExpiry:          UserProfileByIDSec * time.Second,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForProfileByIds,
 		Striped:                true,
-		StripedBuckets:         maxInt(runtime.NumCPU()-1, 1),
+		StripedBuckets:         max(runtime.NumCPU()-1, 1),
 	}); err != nil {
 		return
 	}
-	if localCacheStore.profilesInChannelCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+	// Hardcoding this to LRU because of the volume of SCAN calls in case of Redis.
+	if localCacheStore.profilesInChannelCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Size:                   ProfilesInChannelCacheSize,
 		Name:                   "ProfilesInChannel",
 		DefaultExpiry:          ProfilesInChannelCacheSec * time.Second,
@@ -391,13 +392,6 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForTeams, localCacheStore.team.handleClusterInvalidateTeam)
 	}
 	return
-}
-
-func maxInt(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }
 
 func (s LocalCacheStore) Reaction() store.ReactionStore {
@@ -454,7 +448,7 @@ func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string
 	if err != nil {
 		s.logger.Warn("Error while removing cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
 	}
-	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
+	if s.cluster != nil && cache.GetInvalidateClusterEvent() != model.ClusterEventNone {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.ClusterSendBestEffort,
@@ -472,7 +466,7 @@ func (s *LocalCacheStore) doMultiInvalidateCacheCluster(cache cache.Cache, keys 
 	if err != nil {
 		s.logger.Warn("Error while removing cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
 	}
-	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
+	if s.cluster != nil && cache.GetInvalidateClusterEvent() != model.ClusterEventNone {
 		for _, key := range keys {
 			msg := &model.ClusterMessage{
 				Event:    cache.GetInvalidateClusterEvent(),
@@ -525,9 +519,26 @@ func (s *LocalCacheStore) doMultiReadCache(cache cache.Cache, keys []string, val
 	return errs
 }
 
+func (s *LocalCacheStore) doIncrementCache(cache cache.ExternalCache, key string, val int) {
+	err := cache.Increment(key, val)
+	if err != nil {
+		s.logger.Warn("Error while incrementing cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
+}
+
+func (s *LocalCacheStore) doDecrementCache(cache cache.ExternalCache, key string, val int) {
+	err := cache.Decrement(key, val)
+	if err != nil {
+		s.logger.Warn("Error while decrementing cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
+}
+
 func (s *LocalCacheStore) doClearCacheCluster(cache cache.Cache) {
-	cache.Purge()
-	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
+	err := cache.Purge()
+	if err != nil {
+		s.logger.Warn("Error while purging cache", mlog.Err(err), mlog.String("cache_name", cache.Name()))
+	}
+	if s.cluster != nil && cache.GetInvalidateClusterEvent() != model.ClusterEventNone {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.ClusterSendBestEffort,
@@ -560,4 +571,14 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.profilesInChannelCache)
 	s.doClearCacheCluster(s.teamAllTeamIdsForUserCache)
 	s.doClearCacheCluster(s.rolePermissionsCache)
+}
+
+// allocateCacheTargets is used to fill target value types
+// for getting items from cache.
+func allocateCacheTargets[T any](l int) []any {
+	toPass := make([]any, 0, l)
+	for i := 0; i < l; i++ {
+		toPass = append(toPass, new(T))
+	}
+	return toPass
 }

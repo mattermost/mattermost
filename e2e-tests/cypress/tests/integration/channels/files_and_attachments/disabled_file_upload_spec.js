@@ -66,13 +66,13 @@ describe('Upload Files - Settings', () => {
         });
 
         // # Click on the search input
-        cy.uiGetSearchBox().click();
+        cy.uiGetSearchContainer().click();
 
         // * Verify search hint does not have File button
-        cy.get('#searchbar-help-popup').find('.search-hint__search-type-selector button > .icon-file-text-outline').should('not.exist');
+        cy.get('#searchHints').find('.search-hint__search-type-selector button > .icon-file-text-outline').should('not.exist');
 
         // # Search for posts
-        cy.get('#searchBox').type('sample').type('{enter}');
+        cy.uiGetSearchBox().first().type('sample').type('{enter}');
 
         // * Verify search results do not have File button
         cy.get('.files-tab').should('not.exist');

@@ -16,23 +16,13 @@ import (
 	"time"
 
 	"github.com/klauspost/compress/gzhttp"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
-	spanlog "github.com/opentracing/opentracing-go/log"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	app_opentracing "github.com/mattermost/mattermost/server/v8/channels/app/opentracing"
-	"github.com/mattermost/mattermost/server/v8/channels/store/opentracinglayer"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
-	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
-)
-
-const (
-	frameAncestors = "'self' teams.microsoft.com"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -164,7 +154,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	requestID := model.NewId()
-	var statusCode string
+	var rateLimitExceeded bool
 	defer func() {
 		responseLogFields := []mlog.Field{
 			mlog.String("method", r.Method),
@@ -175,11 +165,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if c.AppContext.Session() != nil {
 			responseLogFields = append(responseLogFields, mlog.String("user_id", c.AppContext.Session().UserId))
 		}
+
+		statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
+
 		// Websockets are returning status code 0 to requests after closing the socket
 		if statusCode != "0" {
 			responseLogFields = append(responseLogFields, mlog.String("status_code", statusCode))
 		}
 		mlog.Debug("Received HTTP request", responseLogFields...)
+
+		if !rateLimitExceeded {
+			h.recordMetrics(c, r, now, statusCode)
+		}
 	}()
 
 	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
@@ -201,32 +198,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		h.handleContextError(c, w, r)
 		return
-	}
-
-	if *c.App.Config().ServiceSettings.EnableOpenTracing {
-		span, ctx := tracing.StartRootSpanByContext(context.Background(), "web:ServeHTTP")
-		carrier := opentracing.HTTPHeadersCarrier(r.Header)
-		_ = opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, carrier)
-		ext.HTTPMethod.Set(span, r.Method)
-		ext.HTTPUrl.Set(span, c.AppContext.Path())
-		ext.PeerAddress.Set(span, c.AppContext.IPAddress())
-		span.SetTag("request_id", c.AppContext.RequestId())
-		span.SetTag("user_agent", c.AppContext.UserAgent())
-
-		defer func() {
-			if c.Err != nil {
-				span.LogFields(spanlog.Error(c.Err))
-				ext.HTTPStatusCode.Set(span, uint16(c.Err.StatusCode))
-				ext.Error.Set(span, true)
-			}
-			span.Finish()
-		}()
-		c.AppContext = c.AppContext.WithContext(ctx)
-
-		tmpSrv := *c.App.Srv()
-		tmpSrv.SetStore(opentracinglayer.New(c.App.Srv().Store(), ctx))
-		c.App.SetServer(&tmpSrv)
-		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
 	}
 
 	var maxBytes int64
@@ -267,8 +238,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors %s; script-src 'self' cdn.rudderlabs.com%s%s",
-			frameAncestors,
+			"frame-ancestors 'self' %s; script-src 'self' cdn.rudderlabs.com%s%s",
+			*c.App.Config().ServiceSettings.FrameAncestors,
 			h.cspShaDirective,
 			devCSP,
 		))
@@ -285,7 +256,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if token != "" && tokenLocation != app.TokenLocationCloudHeader && tokenLocation != app.TokenLocationRemoteClusterHeader {
 		session, err := c.App.GetSession(token)
-		defer c.App.ReturnSessionToPool(session)
 
 		if err != nil {
 			c.Logger.Info("Invalid session", mlog.Err(err))
@@ -302,8 +272,11 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Rate limit by UserID
-		if c.App.Srv().RateLimiter != nil && c.App.Srv().RateLimiter.UserIdRateLimit(c.AppContext.Session().UserId, w) {
-			return
+		if c.App.Srv().RateLimiter != nil {
+			rateLimitExceeded = c.App.Srv().RateLimiter.UserIdRateLimit(c.AppContext.Session().UserId, w)
+			if rateLimitExceeded {
+				return
+			}
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
@@ -382,8 +355,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleContextError(c, w, r)
 		return
 	}
+}
 
-	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
+func (h Handler) recordMetrics(c *Context, r *http.Request, now time.Time, statusCode string) {
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHTTPRequest()
 
@@ -439,7 +413,9 @@ func (h Handler) handleContextError(c *Context, w http.ResponseWriter, r *http.R
 	if IsAPICall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthAPICall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(c.Err.StatusCode)
-		w.Write([]byte(c.Err.ToJSON()))
+		if _, err := w.Write([]byte(c.Err.ToJSON())); err != nil {
+			c.Logger.Warn("Failed to write error response", mlog.Err(err))
+		}
 	} else {
 		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 	}

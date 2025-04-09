@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 
 import type {ServerError} from '@mattermost/types/errors';
-import type {UserReportOptions, UserReport, UserReportFilter, ReportDuration} from '@mattermost/types/reports';
+import type {UserReportOptions, UserReport, UserReportFilter} from '@mattermost/types/reports';
 
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
 
+import type {ActionFuncAsync} from 'types/store';
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
 export function setNeedsLoggedInLimitReachedCheck(data: boolean) {
@@ -67,10 +67,10 @@ export function getUserCountForReporting(filter = {} as UserReportFilter): Actio
     };
 }
 
-export function startUsersBatchExport(dateRange: ReportDuration): ActionFuncAsync {
+export function startUsersBatchExport(tableFilters = {} as UserReportOptions): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
-            await Client4.startUsersBatchExport(dateRange);
+            await Client4.startUsersBatchExport(tableFilters);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
