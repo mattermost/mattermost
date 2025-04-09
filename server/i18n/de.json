@@ -10542,5 +10542,13 @@
   {
     "id": "api.custom_profile_attributes.invalid_field_patch",
     "translation": "Ungültiger Patch für benutzerdefiniertes Profilattributfeld"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} sollte ein Präfix von IndexPrefix {{.IndexPrefix}} sein."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix kann nicht leer sein, wenn GlobalSearchPrefix gesetzt ist."
   }
 ]
