@@ -152,7 +152,6 @@
   "channel_header.directchannel.you": "{displayname} (तपाईं) ",
   "channel_header.groupMessageHasGuests": "यो समूह सन्देशसँग पाहुनाहरू छन्",
   "channel_header.leave": "च्यानल छोड्नुहोस्",
-  "channel_header.manageMembers": "सदस्यहरू प्रबन्ध गर्नुहोस्",
   "channel_header.search": "खोज्नुहोस्",
   "channel_header.unarchive": "अभिलेख हटाउने च्यानल",
   "channel_header.userHelpGuide": "मद्दत",

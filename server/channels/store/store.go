@@ -95,6 +95,7 @@ type Store interface {
 	PropertyGroup() PropertyGroupStore
 	PropertyField() PropertyFieldStore
 	PropertyValue() PropertyValueStore
+	AccessControlPolicy() AccessControlPolicyStore
 }
 
 type RetentionPolicyStore interface {
@@ -882,7 +883,7 @@ type GroupStore interface {
 	GetByIDs(groupIDs []string) ([]*model.Group, error)
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error)
 	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error)
-	GetByUser(userID string) ([]*model.Group, error)
+	GetByUser(userID string, opts model.GroupSearchOpts) ([]*model.Group, error)
 	Update(group *model.Group) (*model.Group, error)
 	Delete(groupID string) (*model.Group, error)
 	Restore(groupID string) (*model.Group, error)
@@ -1092,8 +1093,8 @@ type PropertyFieldStore interface {
 	GetMany(groupID string, ids []string) ([]*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
-	Update(fields []*model.PropertyField) ([]*model.PropertyField, error)
-	Delete(id string) error
+	Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
+	Delete(groupID string, id string) error
 }
 
 type PropertyValueStore interface {
@@ -1101,10 +1102,18 @@ type PropertyValueStore interface {
 	Get(groupID, id string) (*model.PropertyValue, error)
 	GetMany(groupID string, ids []string) ([]*model.PropertyValue, error)
 	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
-	Update(values []*model.PropertyValue) ([]*model.PropertyValue, error)
+	Update(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
-	Delete(id string) error
+	Delete(groupID string, id string) error
 	DeleteForField(id string) error
+}
+
+type AccessControlPolicyStore interface {
+	Save(c request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error)
+	Delete(c request.CTX, id string) error
+	SetActiveStatus(c request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
+	Get(c request.CTX, id string) (*model.AccessControlPolicy, error)
+	GetAll(rctxc request.CTX, opts GetPolicyOptions) ([]*model.AccessControlPolicy, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.
@@ -1198,4 +1207,12 @@ type ThreadMembershipImportData struct {
 	LastViewed int64
 	// UnreadMentions is the number of unread mentions to set the UnreadMentions field to.
 	UnreadMentions int64
+}
+
+// GetPolicyOptions contains options for filtering policy records.
+type GetPolicyOptions struct {
+	// ParentID will filter policy records where they inherit parent with PolicyID.
+	ParentID string
+	// Type will filter policy records where they are associated with the Type.
+	Type string
 }
