@@ -131,7 +131,6 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("Create posts without the USE_CHANNEL_MENTIONS Permission - returns ephemeral message with mentions and no ephemeral message without mentions", func(t *testing.T) {
-		t.Skip("MM-62764")
 		wsClient := th.CreateConnectedWebSocketClient(t)
 
 		defaultPerms := th.SaveDefaultRolePermissions()
@@ -188,7 +187,6 @@ func TestCreatePost(t *testing.T) {
 				}
 			case <-timeout:
 				require.Fail(t, fmt.Sprintf("Got %d ephemeral messages, expected: %d", gotEvents, expectedEvents))
-				break
 			}
 		}
 	})
@@ -1422,7 +1420,7 @@ func TestUpdatePost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + " update post 3",
 		}
-		up4.AddProp("attachments", []model.SlackAttachment{
+		up4.AddProp(model.PostPropsAttachments, []model.SlackAttachment{
 			{
 				Text: "Hello World",
 			},
@@ -1774,12 +1772,12 @@ func TestPatchPost(t *testing.T) {
 				Text: "Hello World",
 			},
 		}
-		patch2.Props = &model.StringInterface{"attachments": attachments}
+		patch2.Props = &model.StringInterface{model.PostPropsAttachments: attachments}
 
 		var rpost2 *model.Post
 		rpost2, _, err = client.PatchPost(context.Background(), post.Id, patch2)
 		require.NoError(t, err)
-		assert.NotEmpty(t, rpost2.GetProp("attachments"))
+		assert.NotEmpty(t, rpost2.GetProp(model.PostPropsAttachments))
 		assert.NotEqual(t, rpost.EditAt, rpost2.EditAt)
 	})
 
@@ -4684,7 +4682,7 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 		ChannelId: th.BasicChannel.Id,
 		Message:   "with slack attachment action",
 	}
-	post.AddProp("attachments", []*model.SlackAttachment{
+	post.AddProp(model.PostPropsAttachments, []*model.SlackAttachment{
 		{
 			Text: "Slack Attachment Text",
 			Fields: []*model.SlackAttachmentField{
@@ -4696,7 +4694,7 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 			},
 			Actions: []*model.PostAction{
 				{
-					Type: "button",
+					Type: model.PostActionTypeButton,
 					Name: "test-name",
 					Integration: &model.PostActionIntegration{
 						URL: "https://test.test/action",
@@ -4715,7 +4713,7 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 
 	actualPost, _, err := client.GetPost(context.Background(), rpost.Id, "")
 	require.NoError(t, err)
-	attachments, _ := actualPost.Props["attachments"].([]any)
+	attachments, _ := actualPost.Props[model.PostPropsAttachments].([]any)
 	require.Equal(t, 1, len(attachments))
 	att, _ := attachments[0].(map[string]any)
 	require.NotNil(t, att)

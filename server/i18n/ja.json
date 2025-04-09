@@ -3987,7 +3987,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "不正なIDです。"
+    "translation": "不正なID: {{.Id}}。"
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4599,11 +4599,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 130+"
+    "translation": "Version 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 130+"
+    "translation": "Version 132+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8567,7 +8567,7 @@
   },
   {
     "id": "app.post_reminder_dm",
-    "translation": "@{{.Username}}からのこのメッセージについてのリマインダーです: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+    "translation": "このメッセージ（@{{.Username}}により投稿された）についてのリマインダーです: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
     "id": "api.command_marketplace.unsupported.app_error",
@@ -10376,5 +10376,77 @@
   {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "ZIPファイルリーダーを取得できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "チャンネルブックマークを作成できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "チャンネルブックマークを削除できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "チャンネルブックマークを更新できませんでした。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "チャンネルブックマークのソート順を更新できませんでした。"
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "存在しないフィールドにパッチを当てようとしています"
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "アーカイブされたチャンネルのブックマークを取得できませんでした"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "全ファイル数を取得できませんでした。"
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "全ファイルのストレージ使用量を取得できませんでした。"
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "セッションが見つかりません。"
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "カスタムプロフィール属性グループのフィールド数をカウントできませんでした"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "カスタムプロフィール属性フィールドをupsertできませんでした"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "不正なクライアントサイドユーザーID: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "ClientSideUserIds {{.CurrentLength}} 内の要素数が上限値 {{.MaxLength}}を超えています。"
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "チャンネルバナーは公開チャンネルと非公開チャンネルでのみ設定可能です。"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "チャンネルバナーが有効な場合、チャンネルバナーの色は空にできません"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "チャンネルバナーは公開チャンネルと非公開チャンネルでのみ設定可能です"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "チャンネルバナーが有効な場合、チャンネルバナー情報テキストは空にできません"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "チャンネルバナー情報テキストが長すぎます。最大長は{{.maxLength}}文字です。"
   }
 ]

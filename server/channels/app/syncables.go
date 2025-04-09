@@ -142,12 +142,12 @@ func (a *App) CreateDefaultMemberships(rctx request.CTX, params model.CreateDefa
 // DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed
 // groups of all group-constrained teams and channels.
 func (a *App) DeleteGroupConstrainedMemberships(rctx request.CTX) error {
-	err := a.deleteGroupConstrainedChannelMemberships(rctx, nil)
+	err := a.DeleteGroupConstrainedChannelMemberships(rctx, nil)
 	if err != nil {
 		return err
 	}
 
-	err = a.deleteGroupConstrainedTeamMemberships(rctx, nil)
+	err = a.DeleteGroupConstrainedTeamMemberships(rctx, nil)
 	if err != nil {
 		return err
 	}
@@ -155,10 +155,10 @@ func (a *App) DeleteGroupConstrainedMemberships(rctx request.CTX) error {
 	return nil
 }
 
-// deleteGroupConstrainedTeamMemberships deletes team memberships of users who aren't members of the allowed
+// DeleteGroupConstrainedTeamMemberships deletes team memberships of users who aren't members of the allowed
 // groups of the given group-constrained team. If a teamID is given then the procedure is scoped to the given team,
 // if teamID is nil then the procedure affects all teams.
-func (a *App) deleteGroupConstrainedTeamMemberships(rctx request.CTX, teamID *string) error {
+func (a *App) DeleteGroupConstrainedTeamMemberships(rctx request.CTX, teamID *string) error {
 	teamMembers, appErr := a.TeamMembersToRemove(teamID)
 	if appErr != nil {
 		return appErr
@@ -183,10 +183,10 @@ func (a *App) deleteGroupConstrainedTeamMemberships(rctx request.CTX, teamID *st
 	return multiErr.ErrorOrNil()
 }
 
-// deleteGroupConstrainedChannelMemberships deletes channel memberships of users who aren't members of the allowed
+// DeleteGroupConstrainedChannelMemberships deletes channel memberships of users who aren't members of the allowed
 // groups of the given group-constrained channel. If a channelID is given then the procedure is scoped to the given team,
 // if channelID is nil then the procedure affects all teams.
-func (a *App) deleteGroupConstrainedChannelMemberships(rctx request.CTX, channelID *string) error {
+func (a *App) DeleteGroupConstrainedChannelMemberships(rctx request.CTX, channelID *string) error {
 	channelMembers, appErr := a.ChannelMembersToRemove(channelID)
 	if appErr != nil {
 		return appErr
@@ -270,16 +270,27 @@ func (a *App) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableTyp
 
 // SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 // syncable.
-func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
-	appErr := a.SyncSyncableRoles(rctx, syncableID, syncableType)
+func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, groupID string) {
+	group, appErr := a.GetGroup(groupID, nil, nil)
+	if appErr != nil {
+		rctx.Logger().Warn("Error getting group", mlog.Err(appErr))
+		return
+	}
+
+	appErr = a.SyncSyncableRoles(rctx, syncableID, syncableType)
 	if appErr != nil {
 		rctx.Logger().Warn("Error syncing syncable roles", mlog.Err(appErr))
 	}
 
-	lastJob, _ := a.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
 	var since int64
-	if lastJob != nil {
-		since = lastJob.StartAt
+	includeRemovedMembers := true
+	if group.Source == model.GroupSourceLdap {
+		lastJob, _ := a.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
+		if lastJob != nil {
+			since = lastJob.StartAt
+		}
+
+		includeRemovedMembers = false
 	}
 
 	params := model.CreateDefaultMembershipParams{Since: since, ReAddRemovedMembers: includeRemovedMembers}
@@ -290,16 +301,24 @@ func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncab
 		if err := a.createDefaultTeamMemberships(rctx, params); err != nil {
 			rctx.Logger().Warn("Error creating default team memberships", mlog.Err(err))
 		}
-		if err := a.deleteGroupConstrainedTeamMemberships(rctx, &syncableID); err != nil {
-			rctx.Logger().Warn("Error deleting group constrained team memberships", mlog.Err(err))
-		}
 	case model.GroupSyncableTypeChannel:
 		params.ScopedChannelID = &syncableID
 		if err := a.createDefaultChannelMemberships(rctx, params); err != nil {
 			rctx.Logger().Warn("Error creating default channel memberships", mlog.Err(err))
 		}
-		if err := a.deleteGroupConstrainedChannelMemberships(rctx, &syncableID); err != nil {
+	}
+}
+
+// This method should be called when a syncable is unlinked from a group
+func (a *App) RemoveMembershipsFromUnlinkedSyncable(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType) {
+	switch syncableType {
+	case model.GroupSyncableTypeTeam:
+		if err := a.DeleteGroupConstrainedTeamMemberships(rctx, &syncableID); err != nil {
 			rctx.Logger().Warn("Error deleting group constrained team memberships", mlog.Err(err))
+		}
+	case model.GroupSyncableTypeChannel:
+		if err := a.DeleteGroupConstrainedChannelMemberships(rctx, &syncableID); err != nil {
+			rctx.Logger().Warn("Error deleting group constrained channel memberships", mlog.Err(err))
 		}
 	}
 }

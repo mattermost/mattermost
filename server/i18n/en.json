@@ -516,6 +516,10 @@
     "translation": "{{.Username}} unarchived the channel."
   },
   {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Channel banner can only be configured on Public and Private channels."
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "The channel has been archived or deleted."
   },
@@ -1862,8 +1866,16 @@
     "translation": "remote_id must be blank for custom group"
   },
   {
+    "id": "api.custom_profile_attributes.field_conversion_error",
+    "translation": "Unable to convert the property field to a custom profile attribute field"
+  },
+  {
     "id": "api.custom_profile_attributes.field_not_found",
     "translation": "trying to patch a field that does not exist"
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "invalid custom profile attribute field patch"
   },
   {
     "id": "api.custom_profile_attributes.license_error",
@@ -3927,6 +3939,10 @@
     "translation": "Your account is locked because of too many failed password attempts. Please reset your password."
   },
   {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Your account is locked because of too many failed password attempts. Please contact your System Administrator."
+  },
+  {
     "id": "api.user.check_user_mfa.bad_code.app_error",
     "translation": "Invalid MFA token."
   },
@@ -4213,6 +4229,14 @@
   {
     "id": "api.user.reset_password.token_parse.error",
     "translation": "Unable to parse the reset password token"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "User auth service must be LDAP or Email."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "You do not have permission to update this resource."
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -5035,6 +5059,10 @@
     "translation": "Unable to get custom profile attribute values"
   },
   {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Unable to convert the property field to a custom profile attribute field"
+  },
+  {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",
     "translation": "Unable to delete Custom Profile Attribute field"
   },
@@ -5049,6 +5077,10 @@
   {
     "id": "app.custom_profile_attributes.property_value_upsert.app_error",
     "translation": "Unable to upsert Custom Profile Attribute fields"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Invalid property value attributes : {{.AttributeName}} ({{.Reason}})."
   },
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
@@ -5105,6 +5137,10 @@
   {
     "id": "app.draft.save.app_error",
     "translation": "Unable to save the Draft."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete drafts for user."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
@@ -5293,6 +5329,10 @@
   {
     "id": "app.group.id.app_error",
     "translation": "invalid id property for group."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "LDAP license required."
   },
   {
     "id": "app.group.no_rows",
@@ -7261,6 +7301,10 @@
     "translation": "Failed to update the user."
   },
   {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Failed to reset login attempts."
+  },
+  {
     "id": "app.user.save.app_error",
     "translation": "Unable to save the account."
   },
@@ -8045,6 +8089,10 @@
     "translation": "Error creating key pair"
   },
   {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Failed to get user."
+  },
+  {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "No LDAP users found, check your user filter and certificates."
   },
@@ -8353,6 +8401,10 @@
     "translation": "Failed to set job status to error"
   },
   {
+    "id": "license_error.feature_unavailable",
+    "translation": "Feature is not available for the current license"
+  },
+  {
     "id": "manaultesting.manual_test.parse.app_error",
     "translation": "Unable to parse URL."
   },
@@ -8419,6 +8471,38 @@
   {
     "id": "model.access.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Invalid policy id."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Invalid imports for the policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Invalid name for the policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Invalid policy revision."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Rule(s) is not valid."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Policy must either import or define rules."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Invalid policy type."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Version is not valid for this access control policy."
   },
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
@@ -8491,6 +8575,22 @@
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": "Name must be 1 or more lowercase alphanumeric character."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Channel banner color cannot be empty when channel banner is enabled"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Channel banner can only be configured on Public and Private channels"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Channel banner info text cannot be empty when channel banner is enabled"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Channel banner info text is too long. Max allowed length is {{.maxLength}} characters."
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
@@ -8853,6 +8953,10 @@
     "translation": "Search ConnectionUrl setting must be provided when indexing is enabled."
   },
   {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix cannot be empty if GlobalSearchPrefix is set."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
     "translation": "{{.EnableIndexing}} setting must be set to true when {{.Autocomplete}} is set to true"
   },
@@ -8863,6 +8967,10 @@
   {
     "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
     "translation": "Ignored indexes for purge should not start with dash."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} should be a prefix of IndexPrefix {{.IndexPrefix}}."
   },
   {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
@@ -8959,6 +9067,10 @@
   {
     "id": "model.config.is_valid.ldap_login_id",
     "translation": "AD/LDAP field \"Login ID Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Invalid maximum login attempts for ldap settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",

@@ -158,6 +158,7 @@ const (
 	LdapSettingsDefaultGroupDisplayNameAttribute = ""
 	LdapSettingsDefaultGroupIdAttribute          = ""
 	LdapSettingsDefaultPictureAttribute          = ""
+	LdapSettingsDefaultMaximumLoginAttempts      = 10
 
 	SamlSettingsDefaultIdAttribute        = ""
 	SamlSettingsDefaultGuestAttribute     = ""
@@ -391,6 +392,7 @@ type ServiceSettings struct {
 	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
 	PostEditTimeLimit                                 *int    `access:"user_management_permissions"`
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnableCrossTeamSearch                             *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnableFileSearch                                  *bool   `access:"write_restrictable"`
 	MinimumHashtagLength                              *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
@@ -440,6 +442,7 @@ type ServiceSettings struct {
 	MaximumURLLength                                  *int    `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	ScheduledPosts                                    *bool   `access:"site_posts"`
 	EnableWebHubChannelIteration                      *bool   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	FrameAncestors                                    *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 var MattermostGiphySdkKey string
@@ -616,6 +619,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.TimeBetweenUserTypingUpdatesMilliseconds == nil {
 		s.TimeBetweenUserTypingUpdatesMilliseconds = NewPointer(int64(5000))
+	}
+
+	if s.EnableCrossTeamSearch == nil {
+		s.EnableCrossTeamSearch = NewPointer(true)
 	}
 
 	if s.EnablePostSearch == nil {
@@ -967,6 +974,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableWebHubChannelIteration == nil {
 		s.EnableWebHubChannelIteration = NewPointer(false)
 	}
+
+	if s.FrameAncestors == nil {
+		s.FrameAncestors = NewPointer("")
+	}
 }
 
 type CacheSettings struct {
@@ -974,6 +985,7 @@ type CacheSettings struct {
 	RedisAddress       *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	RedisPassword      *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	RedisDB            *int    `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisCachePrefix   *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	DisableClientCache *bool   `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
@@ -992,6 +1004,10 @@ func (s *CacheSettings) SetDefaults() {
 
 	if s.RedisDB == nil {
 		s.RedisDB = NewPointer(-1)
+	}
+
+	if s.RedisCachePrefix == nil {
+		s.RedisCachePrefix = NewPointer("")
 	}
 
 	if s.DisableClientCache == nil {
@@ -1127,7 +1143,7 @@ type ExperimentalSettings struct {
 	ClientSideCertEnable                                  *bool   `access:"experimental_features,cloud_restrictable"`
 	ClientSideCertCheck                                   *string `access:"experimental_features,cloud_restrictable"`
 	LinkMetadataTimeoutMilliseconds                       *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	RestrictSystemAdmin                                   *bool   `access:"experimental_features,write_restrictable"`
+	RestrictSystemAdmin                                   *bool   `access:"*_read,write_restrictable"`
 	EnableSharedChannels                                  *bool   `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableSharedChannels`
 	EnableRemoteClusterService                            *bool   `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableRemoteClusterService`
 	DisableAppBar                                         *bool   `access:"experimental_features"`
@@ -2405,14 +2421,15 @@ type ClientRequirements struct {
 
 type LdapSettings struct {
 	// Basic
-	Enable             *bool   `access:"authentication_ldap"`
-	EnableSync         *bool   `access:"authentication_ldap"`
-	LdapServer         *string `access:"authentication_ldap"` // telemetry: none
-	LdapPort           *int    `access:"authentication_ldap"` // telemetry: none
-	ConnectionSecurity *string `access:"authentication_ldap"`
-	BaseDN             *string `access:"authentication_ldap"` // telemetry: none
-	BindUsername       *string `access:"authentication_ldap"` // telemetry: none
-	BindPassword       *string `access:"authentication_ldap"` // telemetry: none
+	Enable               *bool   `access:"authentication_ldap"`
+	EnableSync           *bool   `access:"authentication_ldap"`
+	LdapServer           *string `access:"authentication_ldap"` // telemetry: none
+	LdapPort             *int    `access:"authentication_ldap"` // telemetry: none
+	ConnectionSecurity   *string `access:"authentication_ldap"`
+	BaseDN               *string `access:"authentication_ldap"` // telemetry: none
+	BindUsername         *string `access:"authentication_ldap"` // telemetry: none
+	BindPassword         *string `access:"authentication_ldap"` // telemetry: none
+	MaximumLoginAttempts *int    `access:"authentication_ldap"` // telemetry: none
 
 	// Filtering
 	UserFilter        *string `access:"authentication_ldap"` // telemetry: none
@@ -2498,6 +2515,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.BindPassword == nil {
 		s.BindPassword = NewPointer("")
+	}
+
+	if s.MaximumLoginAttempts == nil {
+		s.MaximumLoginAttempts = NewPointer(LdapSettingsDefaultMaximumLoginAttempts)
 	}
 
 	if s.UserFilter == nil {
@@ -2833,11 +2854,14 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppCustomURLSchemes    []string `access:"site_customization,write_restrictable,cloud_restrictable"` // telemetry: none
-	AppDownloadLink        *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	AndroidAppDownloadLink *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	IosAppDownloadLink     *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	MobileExternalBrowser  *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
+	AppCustomURLSchemes        []string `access:"site_customization,write_restrictable,cloud_restrictable"` // telemetry: none
+	AppDownloadLink            *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	AndroidAppDownloadLink     *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	IosAppDownloadLink         *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileExternalBrowser      *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileEnableBiometrics     *bool    `access:"site_customization,write_restrictable"`
+	MobilePreventScreenCapture *bool    `access:"site_customization,write_restrictable"`
+	MobileJailbreakProtection  *bool    `access:"site_customization,write_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2860,6 +2884,18 @@ func (s *NativeAppSettings) SetDefaults() {
 	if s.MobileExternalBrowser == nil {
 		s.MobileExternalBrowser = NewPointer(false)
 	}
+
+	if s.MobileEnableBiometrics == nil {
+		s.MobileEnableBiometrics = NewPointer(false)
+	}
+
+	if s.MobilePreventScreenCapture == nil {
+		s.MobilePreventScreenCapture = NewPointer(false)
+	}
+
+	if s.MobileJailbreakProtection == nil {
+		s.MobileJailbreakProtection = NewPointer(false)
+	}
 }
 
 type ElasticsearchSettings struct {
@@ -2880,6 +2916,7 @@ type ElasticsearchSettings struct {
 	AggregatePostsAfterDays       *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 	PostsAggregatorJobStartTime   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 	IndexPrefix                   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	GlobalSearchPrefix            *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	LiveIndexingBatchSize         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	BulkIndexingTimeWindowSeconds *int    `json:",omitempty"` // telemetry: none
 	BatchSize                     *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
@@ -2971,6 +3008,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.IndexPrefix == nil {
 		s.IndexPrefix = NewPointer(ElasticsearchSettingsDefaultIndexPrefix)
+	}
+
+	if s.GlobalSearchPrefix == nil {
+		s.GlobalSearchPrefix = NewPointer("")
 	}
 
 	if s.LiveIndexingBatchSize == nil {
@@ -3614,9 +3655,11 @@ func (s *ExportSettings) SetDefaults() {
 
 type ConfigFunc func() *Config
 
-const ConfigAccessTagType = "access"
-const ConfigAccessTagWriteRestrictable = "write_restrictable"
-const ConfigAccessTagCloudRestrictable = "cloud_restrictable"
+const (
+	ConfigAccessTagType              = "access"
+	ConfigAccessTagWriteRestrictable = "write_restrictable"
+	ConfigAccessTagCloudRestrictable = "cloud_restrictable"
+)
 
 // Allows read access if any PermissionSysconsoleRead* is allowed
 const ConfigAccessTagAnySysConsoleRead = "*_read"
@@ -3703,8 +3746,8 @@ type Config struct {
 	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
 }
 
-func (o *Config) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *Config) Auditable() map[string]any {
+	return map[string]any{
 		// TODO
 	}
 }
@@ -4090,6 +4133,10 @@ func (s *LdapSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_server", nil, "", http.StatusBadRequest)
 		}
 
+		if *s.MaximumLoginAttempts <= 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_max_login_attempts.app_error", nil, "", http.StatusBadRequest)
+		}
+
 		if *s.BaseDN == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_basedn", nil, "", http.StatusBadRequest)
 		}
@@ -4323,7 +4370,7 @@ func (s *ServiceSettings) isValid() *AppError {
 		parent := filepath.Dir(*s.LocalModeSocketLocation)
 		_, err := os.Stat(parent)
 		if err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.app_error", nil, err.Error(), http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
 		}
 	}
 
@@ -4383,6 +4430,16 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 
 	if *s.Backend != ElasticsearchSettingsOSBackend && *s.Backend != ElasticsearchSettingsESBackend {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.invalid_backend.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.GlobalSearchPrefix != "" && *s.IndexPrefix == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.empty_index_prefix.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.GlobalSearchPrefix != "" && *s.IndexPrefix != "" {
+		if !strings.HasPrefix(*s.IndexPrefix, *s.GlobalSearchPrefix) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error", map[string]any{"IndexPrefix": *s.IndexPrefix, "GlobalSearchPrefix": *s.GlobalSearchPrefix}, "", http.StatusBadRequest)
+		}
 	}
 
 	return nil

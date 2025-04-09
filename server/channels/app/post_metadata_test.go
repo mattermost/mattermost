@@ -29,6 +29,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
@@ -223,7 +225,7 @@ func TestPreparePostForClient(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   ":" + emoji.Name + ": :taco:",
 			Props: map[string]any{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: ":" + emoji.Name + ":",
 					},
@@ -267,7 +269,7 @@ func TestPreparePostForClient(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   ":" + emoji3.Name + ": :taco:",
 			Props: map[string]any{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: ":" + emoji4.Name + ":",
 					},
@@ -531,7 +533,7 @@ func TestPreparePostForClient(t *testing.T) {
 						ChannelId: th.BasicChannel.Id,
 						Message:   `Bla bla bla: ` + fmt.Sprintf(tc.link, noAccessServer.URL),
 					}
-					prepost.AddProp(UnsafeLinksPostProp, "true")
+					prepost.AddProp(model.PostPropsUnsafeLinks, "true")
 
 					post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 					require.Nil(t, err)
@@ -569,7 +571,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Props: map[string]any{
-				"attachments": []any{
+				model.PostPropsAttachments: []any{
 					map[string]any{
 						"text": "![icon](" + server.URL + "/test-image1.png)",
 					},
@@ -1039,7 +1041,7 @@ func TestGetEmbedForPost(t *testing.T) {
 		t.Run("should return a message attachment when the post has one", func(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(th.Context, &model.Post{
 				Props: model.StringInterface{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "test",
 						},
@@ -1117,7 +1119,7 @@ func TestGetEmbedForPost(t *testing.T) {
 		t.Run("should return an embedded message attachment", func(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(th.Context, &model.Post{
 				Props: model.StringInterface{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "test",
 						},
@@ -1532,7 +1534,7 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 			Post: &model.Post{
 				Message: "this is a post",
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text:    ":emoji1:",
 							Pretext: ":emoji2:",
@@ -1560,7 +1562,7 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 			Post: &model.Post{
 				Message: "this is :emoji1",
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text:    ":emoji2:",
 							Pretext: ":emoji2:",
@@ -1616,7 +1618,7 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 		post := &model.Post{
 			Message: ":" + emojis[1].Name + ":",
 			Props: map[string]any{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Pretext: ":" + emojis[2].Name + ":",
 						Text:    ":" + emojis[3].Name + ":",
@@ -1642,7 +1644,7 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 		post := &model.Post{
 			Message: ":secret: :" + emojis[0].Name + ":",
 			Props: map[string]any{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: ":imaginary:",
 					},
@@ -1725,12 +1727,27 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 			ExpectedFirstLink: "",
 			ExpectedImages:    []string{},
 		},
+		"http link in angle brackets": {
+			Input:             "this is a <http://example.com>",
+			ExpectedFirstLink: "http://example.com",
+			ExpectedImages:    []string{},
+		},
+		"http link with only opening angle bracket": {
+			Input:             "this is a <http://example.com",
+			ExpectedFirstLink: "http://example.com",
+			ExpectedImages:    []string{},
+		},
+		"http link with only closing angle bracket": {
+			Input:             "this is a http://example.com>",
+			ExpectedFirstLink: "http://example.com",
+			ExpectedImages:    []string{},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			firstLink, images := th.App.getFirstLinkAndImages(th.Context, testCase.Input)
 
-			assert.Equal(t, firstLink, testCase.ExpectedFirstLink)
-			assert.Equal(t, images, testCase.ExpectedImages)
+			assert.Equal(t, testCase.ExpectedFirstLink, firstLink)
+			assert.Equal(t, testCase.ExpectedImages, images)
 		})
 	}
 
@@ -1838,7 +1855,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "empty attachments",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{},
+					model.PostPropsAttachments: []*model.SlackAttachment{},
 				},
 			},
 			Expected: []string{},
@@ -1847,7 +1864,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "attachment with no fields that can contain images",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Title: "This is the title",
 						},
@@ -1860,7 +1877,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in text",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "![logo](https://example.com/logo) and ![icon](https://example.com/icon)",
 						},
@@ -1873,7 +1890,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in pretext",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Pretext: "![logo](https://example.com/logo1) and ![icon](https://example.com/icon1)",
 						},
@@ -1886,7 +1903,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in fields",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Fields: []*model.SlackAttachmentField{
 								{
@@ -1903,7 +1920,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "image in author_icon",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							AuthorIcon: "https://example.com/icon2",
 						},
@@ -1916,7 +1933,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "image in image_url",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							ImageURL: "https://example.com/image",
 						},
@@ -1929,7 +1946,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "image in thumb_url",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							ThumbURL: "https://example.com/image",
 						},
@@ -1942,7 +1959,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "image in footer_icon",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							FooterIcon: "https://example.com/image",
 						},
@@ -1955,7 +1972,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in multiple fields",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Fields: []*model.SlackAttachmentField{
 								{
@@ -1975,7 +1992,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "non-string field",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Fields: []*model.SlackAttachmentField{
 								{
@@ -1992,7 +2009,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in multiple locations",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text:    "![text](https://example.com/text)",
 							Pretext: "![pretext](https://example.com/pretext)",
@@ -2014,7 +2031,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "multiple attachments",
 			Post: &model.Post{
 				Props: map[string]any{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "![logo](https://example.com/logo)",
 						},
@@ -2673,7 +2690,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	}
 
 	t.Run("image", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeImageReader(), "image/png")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, imageURL, makeImageReader(), "image/png")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2685,7 +2702,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("image with no content-type given", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeImageReader(), "")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, imageURL, makeImageReader(), "")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2697,7 +2714,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("malformed image", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeOpenGraphReader(), "image/png")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, imageURL, makeOpenGraphReader(), "image/png")
 		assert.Error(t, err)
 
 		assert.Nil(t, og)
@@ -2705,7 +2722,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("opengraph", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(ogURL, makeOpenGraphReader(), "text/html; charset=utf-8")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, ogURL, makeOpenGraphReader(), "text/html; charset=utf-8")
 		assert.NoError(t, err)
 
 		assert.NotNil(t, og)
@@ -2716,7 +2733,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("malformed opengraph", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(ogURL, makeImageReader(), "text/html; charset=utf-8")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, ogURL, makeImageReader(), "text/html; charset=utf-8")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2724,7 +2741,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("neither", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata("http://example.com/test.wad", strings.NewReader("garbage"), "application/x-doom")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/test.wad", strings.NewReader("garbage"), "application/x-doom")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2732,7 +2749,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("svg", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata("http://example.com/image.svg", nil, "image/svg+xml")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/image.svg", nil, "image/svg+xml")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2820,6 +2837,14 @@ func TestParseImages(t *testing.T) {
 				Format: "jpeg",
 			},
 		},
+		"jpg-9": {
+			FileName: "orientation_test_9.jpeg",
+			Expected: &model.PostImage{
+				Width:  4000,
+				Height: 2667,
+				Format: "jpeg",
+			},
+		},
 		"animated gif": {
 			FileName: "testgif.gif",
 			Expected: &model.PostImage{
@@ -2842,7 +2867,7 @@ func TestParseImages(t *testing.T) {
 			file, err := testutils.ReadTestFile(testCase.FileName)
 			require.NoError(t, err)
 
-			result, err := parseImages(bytes.NewReader(file))
+			result, err := parseImages(request.EmptyContext(mlog.CreateConsoleTestLogger(t)), "", bytes.NewReader(file))
 			if testCase.ExpectError {
 				assert.Error(t, err)
 			} else {

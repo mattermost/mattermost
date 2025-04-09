@@ -91,6 +91,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
 exports[`components/admin_console/SchemaAdminSettings should match snapshot with settings and plugin 1`] = `
 <div
   className="wrapper--fixed "
+  data-testid="sysconsole_section_Config"
 >
   <AdminHeader>
     config
@@ -422,7 +423,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             id="SecondSettings.settingj"
             key="Config_language_SecondSettings.settingj"
             label="label-j"
-            noResultText="no-result-j"
+            noOptionsMessage="no-result-j"
             onChange={[Function]}
             selected={Array []}
             setByEnv={false}
