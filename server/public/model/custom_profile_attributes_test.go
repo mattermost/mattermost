@@ -612,48 +612,57 @@ func TestSanitizeAndValidatePropertyValue(t *testing.T) {
 
 	t.Run("multiselect field type", func(t *testing.T) {
 		t.Run("valid options", func(t *testing.T) {
+			option1ID := NewId()
+			option2ID := NewId()
+			option3ID := NewId()
 			result, err := SanitizeAndValidatePropertyValue(&CPAField{
 				PropertyField: PropertyField{Type: PropertyFieldTypeMultiselect},
 				Attrs: CPAAttrs{
 					Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
-						{ID: "option1"},
-						{ID: "option2"},
-						{ID: "option3"},
+						{ID: option1ID},
+						{ID: option2ID},
+						{ID: option3ID},
 					},
-				}}, json.RawMessage(`["option1", "option2"]`))
+				}}, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, option1ID, option2ID)))
 			require.NoError(t, err)
 			var values []string
 			require.NoError(t, json.Unmarshal(result, &values))
-			require.Equal(t, []string{"option1", "option2"}, values)
+			require.Equal(t, []string{option1ID, option2ID}, values)
 		})
 
 		t.Run("empty array", func(t *testing.T) {
+			option1ID := NewId()
+			option2ID := NewId()
+			option3ID := NewId()
 			_, err := SanitizeAndValidatePropertyValue(&CPAField{
 				PropertyField: PropertyField{Type: PropertyFieldTypeMultiselect},
 				Attrs: CPAAttrs{
 					Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
-						{ID: "option1"},
-						{ID: "option2"},
-						{ID: "option3"},
+						{ID: option1ID},
+						{ID: option2ID},
+						{ID: option3ID},
 					},
 				}}, json.RawMessage(`[]`))
 			require.NoError(t, err)
 		})
 
 		t.Run("array with empty values should filter them out", func(t *testing.T) {
+			option1ID := NewId()
+			option2ID := NewId()
+			option3ID := NewId()
 			result, err := SanitizeAndValidatePropertyValue(&CPAField{
 				PropertyField: PropertyField{Type: PropertyFieldTypeMultiselect},
 				Attrs: CPAAttrs{
 					Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
-						{ID: "option1"},
-						{ID: "option2"},
-						{ID: "option3"},
+						{ID: option1ID},
+						{ID: option2ID},
+						{ID: option3ID},
 					},
-				}}, json.RawMessage(`["option1", "", "option2", "   ", "option3"]`))
+				}}, json.RawMessage(fmt.Sprintf(`["%s", "", "%s", "   ", "%s"]`, option1ID, option2ID, option3ID)))
 			require.NoError(t, err)
 			var values []string
 			require.NoError(t, json.Unmarshal(result, &values))
-			require.Equal(t, []string{"option1", "option2", "option3"}, values)
+			require.Equal(t, []string{option1ID, option2ID, option3ID}, values)
 		})
 	})
 
