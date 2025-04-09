@@ -60,6 +60,10 @@ describe('actions/integration_actions', () => {
                 threadsInTeam: {
                     team_id1: ['thread1'],
                 },
+            },
+        },
+        views: {
+            threads: {
                 selectedThreadIdInTeam: {
                     team_id1: 'thread1',
                 },
