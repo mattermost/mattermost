@@ -38,12 +38,15 @@ jobs:
 
       - name: Copy OpenAPI spec
         run: |
-          mkdir -p developer-docs/site/static
-          cp api/v4/html/static/mattermost-openapi-v4.yaml developer-docs/site/static/
+          mkdir -p ${{ github.workspace }}/developer-docs/site/static
+          cp v4/html/static/mattermost-openapi-v4.yaml ${{ github.workspace }}/developer-docs/site/static/
 
       - name: Commit and push changes
+        if: github.ref == 'refs/heads/master'
         run: |
-          cd developer-docs
+          cd ${{ github.workspace }}/developer-docs
+          git config --global user.name "API Documentation Bot"
+          git config --global user.email "apidocsbot@mattermost.com"
           git add site/static/mattermost-openapi-v4.yaml
           git commit -m "Update OpenAPI spec" || echo "No changes to commit"
           git push
