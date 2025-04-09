@@ -151,7 +151,7 @@ function InvitePeopleMenuItem(props: Menu.FirstMenuItemProps) {
                     />
                     <FormattedMessage
                         id='sidebarLeft.teamMenu.invitePeopleMenuItem.secondaryLabel'
-                        defaultMessage='Add or invite people to team'
+                        defaultMessage='Add or invite people to the team'
                     />
                 </>
             )}
