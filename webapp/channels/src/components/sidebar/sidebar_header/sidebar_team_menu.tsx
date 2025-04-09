@@ -55,6 +55,7 @@ export default function SidebarTeamMenu(props: Props) {
 
     const havePermissionToCreateTeam = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.CREATE_TEAM}));
     const havePermissionToManageTeam = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_TEAM));
+    const havePermissionToAddUserToTeam = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.ADD_USER_TO_TEAM));
     const isCloud = isCloudLicense(license);
     const isGuestAccessEnabled = config?.EnableGuestAccounts === 'true';
     const isTeamGroupConstrained = Boolean(props.currentTeam?.group_constrained);
@@ -86,29 +87,24 @@ export default function SidebarTeamMenu(props: Props) {
                 width: '225px',
             }}
         >
-            <InvitePeopleMenuItem
-                isGuestAccessEnabled={isGuestAccessEnabled}
-            />
-            <AddGroupsToTeamMenuItem
-                isTeamGroupConstrained={isTeamGroupConstrained}
-                isLicensedForLDAPGroups={isLicensedForLDAPGroups}
-                havePermissionToManageTeam={havePermissionToManageTeam}
-            />
-            <TeamSettingsMenuItem
-                havePermissionToManageTeam={havePermissionToManageTeam}
-            />
+            {(isGuestAccessEnabled || havePermissionToAddUserToTeam) && (
+                <InvitePeopleMenuItem/>
+            )}
+            {isTeamGroupConstrained && isLicensedForLDAPGroups && havePermissionToManageTeam && (
+                <AddGroupsToTeamMenuItem/>
+            )}
+            {havePermissionToManageTeam && (
+                <TeamSettingsMenuItem/>
+            )}
             <ManageViewMembersMenuItem/>
-            <ManageGroupsMenuItem
-                isTeamGroupConstrained={isTeamGroupConstrained}
-                isLicensedForLDAPGroups={isLicensedForLDAPGroups}
-                havePermissionToManageTeam={havePermissionToManageTeam}
-                teamID={props.currentTeam.id}
-            />
-            <LeaveTeamMenuItem
-                isTeamGroupConstrained={isTeamGroupConstrained}
-                teamName={props.currentTeam.name}
-                experimentalPrimaryTeam={experimentalPrimaryTeam}
-            />
+            {(isTeamGroupConstrained && isLicensedForLDAPGroups && havePermissionToManageTeam) && (
+                <ManageGroupsMenuItem
+                    teamID={props.currentTeam.id}
+                />
+            )}
+            {(!isTeamGroupConstrained && experimentalPrimaryTeam !== props.currentTeam.name) && (
+                <LeaveTeamMenuItem/>
+            )}
             {(canJoinAnotherTeam || havePermissionToCreateTeam) && <Menu.Separator/>}
             {canJoinAnotherTeam &&
                 <JoinAnotherTeamMenuItem/>
@@ -125,15 +121,8 @@ export default function SidebarTeamMenu(props: Props) {
     );
 }
 
-interface InvitePeopleMenuItemProps extends Menu.FirstMenuItemProps {
-    isGuestAccessEnabled: boolean;
-}
-
-function InvitePeopleMenuItem({isGuestAccessEnabled, ...restProps}: InvitePeopleMenuItemProps) {
+function InvitePeopleMenuItem(props: Menu.FirstMenuItemProps) {
     const dispatch = useDispatch();
-
-    const havePermissionToAddUserToTeam = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.ADD_USER_TO_TEAM));
-    const havePermissionToInviteGuest = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.INVITE_GUEST));
 
     const handleClick = useCallback(() => {
         dispatch(openModal({
@@ -145,44 +134,34 @@ function InvitePeopleMenuItem({isGuestAccessEnabled, ...restProps}: InvitePeople
         }));
     }, [dispatch]);
 
-    if (isGuestAccessEnabled && havePermissionToAddUserToTeam && havePermissionToInviteGuest) {
-        return (
-            <Menu.Item
-                onClick={handleClick}
-                leadingElement={(
-                    <AccountMultiplePlusOutlineIcon
-                        size={18}
-                        aria-hidden='true'
+    return (
+        <Menu.Item
+            onClick={handleClick}
+            leadingElement={(
+                <AccountMultiplePlusOutlineIcon
+                    size={18}
+                    aria-hidden='true'
+                />
+            )}
+            labels={(
+                <>
+                    <FormattedMessage
+                        id='sidebarLeft.teamMenu.invitePeopleMenuItem.primaryLabel'
+                        defaultMessage='Invite people'
                     />
-                )}
-                labels={(
-                    <>
-                        <FormattedMessage
-                            id='sidebarLeft.teamMenu.invitePeopleMenuItem.primaryLabel'
-                            defaultMessage='Invite people'
-                        />
-                        <FormattedMessage
-                            id='sidebarLeft.teamMenu.invitePeopleMenuItem.secondaryLabel'
-                            defaultMessage='Add or invite people to team'
-                        />
-                    </>
-                )}
-                aria-haspopup='dialog'
-                {...restProps}
-            />
-        );
-    }
-
-    return null;
+                    <FormattedMessage
+                        id='sidebarLeft.teamMenu.invitePeopleMenuItem.secondaryLabel'
+                        defaultMessage='Add or invite people to team'
+                    />
+                </>
+            )}
+            aria-haspopup='dialog'
+            {...props}
+        />
+    );
 }
 
-interface AddGroupsToTeamMenuItemProps extends Menu.FirstMenuItemProps {
-    isTeamGroupConstrained: boolean;
-    isLicensedForLDAPGroups: boolean;
-    havePermissionToManageTeam: boolean;
-}
-
-function AddGroupsToTeamMenuItem({isTeamGroupConstrained, isLicensedForLDAPGroups, havePermissionToManageTeam, ...restProps}: AddGroupsToTeamMenuItemProps) {
+function AddGroupsToTeamMenuItem(props: Menu.FirstMenuItemProps) {
     const dispatch = useDispatch();
 
     const handleClick = useCallback(() => {
@@ -195,36 +174,28 @@ function AddGroupsToTeamMenuItem({isTeamGroupConstrained, isLicensedForLDAPGroup
         }));
     }, [dispatch]);
 
-    if (isTeamGroupConstrained && isLicensedForLDAPGroups && havePermissionToManageTeam) {
-        return (
-            <Menu.Item
-                onClick={handleClick}
-                leadingElement={(
-                    <AccountPlusOutlineIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.teamMenu.addGroupsToTeamMenuItem.primaryLabel'
-                        defaultMessage='Add groups'
-                    />
-                )}
-                aria-haspopup='dialog'
-                {...restProps}
-            />
-        );
-    }
-
-    return null;
+    return (
+        <Menu.Item
+            onClick={handleClick}
+            leadingElement={(
+                <AccountPlusOutlineIcon
+                    size={18}
+                    aria-hidden='true'
+                />
+            )}
+            labels={(
+                <FormattedMessage
+                    id='sidebarLeft.teamMenu.addGroupsToTeamMenuItem.primaryLabel'
+                    defaultMessage='Add groups'
+                />
+            )}
+            aria-haspopup='dialog'
+            {...props}
+        />
+    );
 }
 
-interface TeamSettingsMenuItemProps extends Menu.FirstMenuItemProps {
-    havePermissionToManageTeam: boolean;
-}
-
-function TeamSettingsMenuItem({havePermissionToManageTeam, ...restProps}: TeamSettingsMenuItemProps) {
+function TeamSettingsMenuItem(props: Menu.FirstMenuItemProps) {
     const dispatch = useDispatch();
 
     const handleClick = useCallback(() => {
@@ -237,29 +208,25 @@ function TeamSettingsMenuItem({havePermissionToManageTeam, ...restProps}: TeamSe
         }));
     }, [dispatch]);
 
-    if (havePermissionToManageTeam) {
-        return (
-            <Menu.Item
-                leadingElement={(
-                    <SettingsOutlineIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                onClick={handleClick}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.teamMenu.teamSettingsMenuItem.primaryLabel'
-                        defaultMessage='Team settings'
-                    />
-                )}
-                aria-haspopup='dialog'
-                {...restProps}
-            />
-        );
-    }
-
-    return null;
+    return (
+        <Menu.Item
+            leadingElement={(
+                <SettingsOutlineIcon
+                    size={18}
+                    aria-hidden='true'
+                />
+            )}
+            onClick={handleClick}
+            labels={(
+                <FormattedMessage
+                    id='sidebarLeft.teamMenu.teamSettingsMenuItem.primaryLabel'
+                    defaultMessage='Team settings'
+                />
+            )}
+            aria-haspopup='dialog'
+            {...props}
+        />
+    );
 }
 
 function ManageViewMembersMenuItem(props: Menu.FirstMenuItemProps) {
@@ -310,13 +277,10 @@ function ManageViewMembersMenuItem(props: Menu.FirstMenuItemProps) {
 }
 
 interface ManageGroupsMenuItemProps {
-    isTeamGroupConstrained: boolean;
-    isLicensedForLDAPGroups: boolean;
-    havePermissionToManageTeam: boolean;
     teamID: Team['id'];
 }
 
-function ManageGroupsMenuItem({isTeamGroupConstrained, isLicensedForLDAPGroups, havePermissionToManageTeam, teamID}: ManageGroupsMenuItemProps) {
+function ManageGroupsMenuItem({teamID}: ManageGroupsMenuItemProps) {
     const dispatch = useDispatch();
 
     const handleClick = useCallback(() => {
@@ -329,37 +293,27 @@ function ManageGroupsMenuItem({isTeamGroupConstrained, isLicensedForLDAPGroups, 
         }));
     }, [dispatch, teamID]);
 
-    if (isTeamGroupConstrained && isLicensedForLDAPGroups && havePermissionToManageTeam) {
-        return (
-            <Menu.Item
-                leadingElement={(
-                    <MonitorAccountIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                onClick={handleClick}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.teamMenu.manageGroupsMenuItem.primaryLabel'
-                        defaultMessage='Manage groups'
-                    />
-                )}
-                aria-haspopup='dialog'
-            />
-        );
-    }
-
-    return null;
+    return (
+        <Menu.Item
+            leadingElement={(
+                <MonitorAccountIcon
+                    size={18}
+                    aria-hidden='true'
+                />
+            )}
+            onClick={handleClick}
+            labels={(
+                <FormattedMessage
+                    id='sidebarLeft.teamMenu.manageGroupsMenuItem.primaryLabel'
+                    defaultMessage='Manage groups'
+                />
+            )}
+            aria-haspopup='dialog'
+        />
+    );
 }
 
-interface LeaveTeamMenuItemProps {
-    isTeamGroupConstrained: boolean;
-    teamName: Team['name'];
-    experimentalPrimaryTeam?: string;
-}
-
-function LeaveTeamMenuItem({isTeamGroupConstrained, teamName, experimentalPrimaryTeam}: LeaveTeamMenuItemProps) {
+function LeaveTeamMenuItem() {
     const dispatch = useDispatch();
 
     const handleClick = useCallback(() => {
@@ -369,29 +323,25 @@ function LeaveTeamMenuItem({isTeamGroupConstrained, teamName, experimentalPrimar
         }));
     }, [dispatch]);
 
-    if (!isTeamGroupConstrained && experimentalPrimaryTeam !== teamName) {
-        return (
-            <Menu.Item
-                leadingElement={(
-                    <ExitToAppIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                onClick={handleClick}
-                isDestructive={true}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.teamMenu.leaveTeamMenuItem.primaryLabel'
-                        defaultMessage='Leave team'
-                    />
-                )}
-                aria-haspopup='dialog'
-            />
-        );
-    }
-
-    return null;
+    return (
+        <Menu.Item
+            leadingElement={(
+                <ExitToAppIcon
+                    size={18}
+                    aria-hidden='true'
+                />
+            )}
+            onClick={handleClick}
+            isDestructive={true}
+            labels={(
+                <FormattedMessage
+                    id='sidebarLeft.teamMenu.leaveTeamMenuItem.primaryLabel'
+                    defaultMessage='Leave team'
+                />
+            )}
+            aria-haspopup='dialog'
+        />
+    );
 }
 
 function JoinAnotherTeamMenuItem() {
