@@ -92,7 +92,7 @@ info:
 
       If successful, the response will contain a `Token` header and a user object in the body.
 
-      ```
+      ```http
       HTTP/1.1 200 OK
       Content-Type: application/json
       Permissions-Policy:
@@ -138,7 +138,7 @@ info:
       Whenever you make an HTTP request to the Mattermost API you might notice
       the following headers included in the response:
 
-      ```
+      ```http
       X-Ratelimit-Limit: 10
       X-Ratelimit-Remaining: 9
       X-Ratelimit-Reset: 1441983590
@@ -156,7 +156,7 @@ info:
 
       If you exceed your rate limit for a window you will receive the following error in the body of the response:
 
-      ```
+      ```http
       HTTP/1.1 429 Too Many Requests
       Date: Tue, 10 Sep 2015 11:20:28 GMT
       X-RateLimit-Limit: 10
@@ -471,5 +471,5 @@ servers:
   - url: "{your-mattermost-url}"
     variables:
       your-mattermost-url:
-        default: https://community.mattermost.com
+        default: http://localhost:8065
 paths:
