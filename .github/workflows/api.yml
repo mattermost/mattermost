@@ -29,7 +29,21 @@ jobs:
       - name: Run build
         run: make build
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - name: Checkout developer documentation repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          name: mattermost-api-reference
-          path: api/v4/html
+          repository: mattermost/mattermost-developer-documentation
+          token: ${{ secrets.DEV_DOCS_TOKEN }}
+          path: developer-docs
+
+      - name: Copy OpenAPI spec
+        run: |
+          mkdir -p developer-docs/site/static
+          cp api/v4/html/static/mattermost-openapi-v4.yaml developer-docs/site/static/
+
+      - name: Commit and push changes
+        run: |
+          cd developer-docs
+          git add site/static/mattermost-openapi-v4.yaml
+          git commit -m "Update OpenAPI spec" || echo "No changes to commit"
+          git push
