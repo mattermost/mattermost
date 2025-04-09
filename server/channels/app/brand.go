@@ -52,7 +52,7 @@ func (a *App) SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) 
 
 	fileExists, fileErr := a.FileExists(oldPath)
 	if fileErr != nil {
-		rctx.Logger().Warn("Failed to check if brand image exists before backup", mlog.Err(fileErr))
+		rctx.Logger().Warn("Failed to check if brand image exists before backup", mlog.String("path", oldPath), mlog.Err(fileErr))
 	}
 
 	if fileExists {
