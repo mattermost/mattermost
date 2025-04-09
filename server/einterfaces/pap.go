@@ -14,20 +14,17 @@ import (
 type PolicyAdministrationPointInterface interface {
 	// Init initializes the policy administration point and intiates the CEL engine.
 	// It is an idempotent operation, meaning that it can be called multiple times.
-	Init(rctx request.CTX) error
-	// BasicAutocomplete returns a map of basic autocomplete values for the given target type.
-	GetBasicAutocomplete(rctx request.CTX, targetType string) (map[string]any, error)
+	Init(rctx request.CTX) *model.AppError
+	// GetBasicAutocompleteFields returns a map of basic autocomplete values.
+	GetBasicAutocompleteFields() (map[string]any, *model.AppError)
 	// CheckExpression checks the validity of the given expression using the CEL engine.
 	// It returns a list of CELExpressionError if the expression is invalid.
 	// If the expression is valid, it returns an empty list.
-	CheckExpression(rctx request.CTX, expression string) ([]model.CELExpressionError, error)
-	// ExtractAttributeFields extracts the attribute fields from the given expression.
-	// Achieves this by parsing the expression into AST and returning a list of attribute fields.
-	ExtractAttributeFields(rctx request.CTX, targetType, expression string) ([]string, error)
+	CheckExpression(rctx request.CTX, expression string) ([]model.CELExpressionError, *model.AppError)
 	// SavePolicy saves the given access control policy.
-	SavePolicy(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error)
+	SavePolicy(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)
 	// GetPolicy retrieves the access control policy with the given ID.
-	GetPolicy(rctx request.CTX, id string) (*model.AccessControlPolicy, error)
+	GetPolicy(rctx request.CTX, id string) (*model.AccessControlPolicy, *model.AppError)
 	// DeletePolicy deletes the access control policy with the given ID.
-	DeletePolicy(rctx request.CTX, id string) error
+	DeletePolicy(rctx request.CTX, id string) *model.AppError
 }
