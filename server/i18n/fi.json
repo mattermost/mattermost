@@ -4476,7 +4476,7 @@
   },
   {
     "id": "api.command_away.success",
-    "translation": "Olet nyt poissa"
+    "translation": "Olet nyt poissaoleva"
   },
   {
     "id": "api.command_away.name",
@@ -4492,11 +4492,11 @@
   },
   {
     "id": "api.command.invite_people.sent",
-    "translation": "Sähköpostikutsut lähetettiin"
+    "translation": "Sähköpostikutsut lähetetty"
   },
   {
     "id": "api.command.invite_people.no_email",
-    "translation": "Anna yksi tai useampi oikeellinen sähköpostiosoite"
+    "translation": "Määritä yksi tai useampi kelvollinen sähköpostiosoite"
   },
   {
     "id": "api.command.invite_people.name",
@@ -4504,15 +4504,15 @@
   },
   {
     "id": "api.command.invite_people.invite_off",
-    "translation": "Käyttäjien luonti on poistettu käytöstä, kutsuja ei lähetetty"
+    "translation": "Käyttäjien luominen on poistettu käytöstä tällä palvelimella, kutsuja ei lähetetty"
   },
   {
     "id": "api.command.invite_people.hint",
-    "translation": "[nimi@osoite.com ...]"
+    "translation": "[nimi@toimialue.com ...]"
   },
   {
     "id": "api.command.invite_people.fail",
-    "translation": "Kutsuja lähetettäessä tapahtui virhe"
+    "translation": "Virhe lähetettäessä sähköpostikutsuja"
   },
   {
     "id": "api.command.invite_people.email_off",
@@ -4520,11 +4520,11 @@
   },
   {
     "id": "api.command.invite_people.email_invitations_off",
-    "translation": "Sähköpostikutsut kytketty pois, kutsuja ei lähetetty"
+    "translation": "Sähköpostikutsut on poistettu käytöstä. kutsuja ei lähetetty"
   },
   {
     "id": "api.command.invite_people.desc",
-    "translation": "Kutsu käyttäjiä Mattermost-ryhmääsi"
+    "translation": "Lähetä sähköpostikutsu Mattermost-joukkueellesi"
   },
   {
     "id": "api.command.execute_command.start.app_error",
@@ -4532,7 +4532,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Komentoa '{{.Trigger}}' ei löytynyt. Lähettääksesi viestin \"/\" -merkillä, lisää tyhjä välilyönti viestin alkuun."
+    "translation": "Komentoa, jonka laukaisin on '{{.Trigger}}', ei löydy. Jotta \"/\":lla alkaavan viestin voidaan lähettää, yritä lisätä tyhjä väli viestin alkuun."
   },
   {
     "id": "api.command.execute_command.failed_resp.app_error",
@@ -4548,7 +4548,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "Komento '{{.Trigger}}' ei postannut vastausta. Ota yhteys järjestelmänvalvojaan."
+    "translation": "Komento '{{.Trigger}}' epäonnistui toimittamaan vastausta. Ota yhteyttä järjestelmänvalvojaan."
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
@@ -4556,31 +4556,31 @@
   },
   {
     "id": "api.command.disabled.app_error",
-    "translation": "Pääkäyttäjä on estänyt komentojen käyttämisen."
+    "translation": "Järjestelmänvalvoja on poistanut komennot käytöstä."
   },
   {
     "id": "api.command.command_post.forbidden.app_error",
-    "translation": "Valittu käyttäjä ei ole valitun kanavan jäsen."
+    "translation": "Määritetty käyttäjä ei ole määritetyn kanavan jäsen."
   },
   {
     "id": "api.command.admin_only.app_error",
-    "translation": "Vain pääkäyttäjät voivat luoda rajapintaintegraatioita."
+    "translation": "Integraatiot on rajoitettu vain järjestelmänvalvojille."
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "Järjestely hallinnoi annettua roolia eikä sitä siksi voida antaa suoraan tiimin jäsenelle."
+    "translation": "Ilmoitettua roolia hallinnoi järjestelmä, eikä sitä siksi voida soveltaa suoraan joukkueen jäseneen."
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
-    "translation": "Järjestelyä ei voida asettaa kanavalle koska annettu järjestely ei ole kanavajärjestely."
+    "translation": "Järjestelmää ei voida asettaa kanavalle, koska ilmoitettu järjestelmä ei ole kanavajärjestelmä."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
-    "translation": "Lisenssisi ei mahdollista kanavan järjestelyn muuttamista"
+    "translation": "Lisenssisi ei tue kanavan järjestelmän päivittämistä"
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "Järjestely hallinnoi annettua roolia eikä sitä siksi voida määrittää suoraan kanavan jäsenelle."
+    "translation": "ILmoitettua roolia hallinnoi järjestelmä, joten sitä ei voida soveltaa suoraan kanavan jäseneen."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -4916,15 +4916,15 @@
   },
   {
     "id": "api.cloud.request_error",
-    "translation": "Virhe CWS-pyynnön käsittelyssä."
+    "translation": "Virhe käsiteltäessä pyyntöä CWS:lle."
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
-    "translation": "Ylläpidolle on jo ilmoitettu"
+    "translation": "Ilmoitettu jo järjestelmänvalvojalle"
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
-    "translation": "Webhook tapahtumaa ei käsitelty. Se puuttuu tai on virheellinen."
+    "translation": "Webhook-tapahtumaa ei käsitelty. Se joko puuttuu tai ei kelpaa."
   },
   {
     "id": "api.cloud.app_error",
@@ -4936,7 +4936,7 @@
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
-    "translation": "Oletuskanavaa ei voi asettaa yksityiseksi."
+    "translation": "Oletuskanavaa ei voi tehdä yksityiseksi."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
@@ -4948,11 +4948,11 @@
   },
   {
     "id": "api.channel.update_channel.typechange.app_error",
-    "translation": "Tätä kanavatyyppiä ei voida päivittää."
+    "translation": "Kanavan tyyppiä ei voi päivittää."
   },
   {
     "id": "api.channel.restore_channel.unarchived",
-    "translation": "{{.Username}} poisti kanavan arkistoinnin."
+    "translation": "{{.Username}} kumosi kanavan arkistoinnin."
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",
