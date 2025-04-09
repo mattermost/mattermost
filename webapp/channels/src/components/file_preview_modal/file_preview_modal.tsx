@@ -80,6 +80,8 @@ type State = {
     content: string;
 }
 
+const PROXY_IMAGE_URL = '/api/v4/image?url=';
+
 export default class FilePreviewModal extends React.PureComponent<Props, State> {
     static defaultProps = {
         fileInfos: [],
@@ -164,6 +166,21 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         }
     };
 
+    isImageUrl = (url: string): boolean => {
+        // Check if the URL is a proxied image URL
+        if (url.includes(PROXY_IMAGE_URL)) {
+            return true;
+        }
+
+        // Check if the URL has a recognized image extension
+        const extension = url.split('.').pop()?.toLowerCase();
+        if (extension && Constants.IMAGE_TYPES.includes(extension)) {
+            return true;
+        }
+
+        return false;
+    };
+
     loadImage = (index: number) => {
         const fileInfo = this.props.fileInfos[index];
         if (isFileInfo(fileInfo) && fileInfo.archived) {
@@ -172,13 +189,22 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         }
         const fileType = Utils.getFileType(fileInfo.extension);
 
-        if (fileType === FileTypes.IMAGE && isFileInfo(fileInfo)) {
+        // Check if this is an image URL, even if the extension is not recognized
+        const isImage = fileType === FileTypes.IMAGE ||
+                       (!isFileInfo(fileInfo) && this.isImageUrl(fileInfo.link));
+
+        if (isImage) {
             let previewUrl;
-            if (fileInfo.has_preview_image) {
-                previewUrl = getFilePreviewUrl(fileInfo.id);
+            if (isFileInfo(fileInfo)) {
+                if (fileInfo.has_preview_image) {
+                    previewUrl = getFilePreviewUrl(fileInfo.id);
+                } else {
+                    // some images (eg animated gifs) just show the file itself and not a preview
+                    previewUrl = getFileUrl(fileInfo.id);
+                }
             } else {
-                // some images (eg animated gifs) just show the file itself and not a preview
-                previewUrl = getFileUrl(fileInfo.id);
+                // For LinkInfo, use the link directly
+                previewUrl = fileInfo.link;
             }
 
             Utils.loadImage(
@@ -306,7 +332,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
 
         if (!isFileInfo(fileInfo) || !fileInfo.archived) {
             if (this.state.loaded[this.state.imageIndex]) {
-                if (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG) {
+                if (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG ||
+                    (!isFileInfo(fileInfo) && this.isImageUrl(fileInfo.link))) {
                     content = (
                         <ImagePreview
                             fileInfo={fileInfo as FileInfo}
