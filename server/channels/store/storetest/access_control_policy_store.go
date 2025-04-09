@@ -326,4 +326,19 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		require.NotNil(t, policies)
 		require.Len(t, policies, 0)
 	})
+
+	t.Run("Paged query", func(t *testing.T) {
+		var page int
+		for {
+			policies, err := ss.AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{Page: page, PerPage: 1})
+			if len(policies) == 0 {
+				break
+			}
+			require.NoError(t, err)
+			require.NotNil(t, policies)
+			require.Len(t, policies, 1)
+			page++
+		}
+		require.Equal(t, 2, page)
+	})
 }

@@ -389,6 +389,10 @@ func (s *SqlAccessControlPolicyStore) getT(_ request.CTX, tx *sqlxTxWrapper, id 
 }
 
 func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts store.GetPolicyOptions) ([]*model.AccessControlPolicy, error) {
+	if opts.PerPage <= 0 {
+		opts.PerPage = 1000
+	}
+
 	p := []storeAccessControlPolicy{}
 	query := s.selectQueryBuilder
 
@@ -403,6 +407,9 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts store.GetPolicy
 	if opts.Type != "" {
 		query = query.Where(sq.Eq{"Type": opts.Type})
 	}
+
+	// append limit, offset
+	query = query.Limit(uint64(opts.PerPage)).Offset(uint64(opts.Page * opts.PerPage))
 
 	err := s.GetReplica().SelectBuilder(&p, query)
 	if err != nil {

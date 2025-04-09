@@ -1215,4 +1215,7 @@ type GetPolicyOptions struct {
 	ParentID string
 	// Type will filter policy records where they are associated with the Type.
 	Type string
+
+	Page    int
+	PerPage int
 }
