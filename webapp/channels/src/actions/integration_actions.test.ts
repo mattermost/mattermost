@@ -158,6 +158,7 @@ describe('actions/integration_actions', () => {
                 },
                 user_id: 'current_user_id',
                 team_id: 'team_id1',
+                channel_id: '',
                 cancelled: false,
             };
 
@@ -192,6 +193,7 @@ describe('actions/integration_actions', () => {
                 },
                 user_id: 'current_user_id',
                 team_id: 'team_id1',
+                channel_id: '',
                 cancelled: false,
             };
 
