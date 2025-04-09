@@ -10242,5 +10242,17 @@
   {
     "id": "app.group.license_error",
     "translation": "Требуется лицензия LDAP."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Патч для недействительного поля атрибута пользовательского профиля"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Ваша учётная запись заблокирована из-за слишком большого количества неудачных попыток ввода пароля. Обратитесь к своему системному администратору."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_conversion_error",
+    "translation": "Невозможно преобразовать поле свойства в поле атрибута пользовательского профиля"
   }
 ]
