@@ -15,7 +15,7 @@ import {getAdminAccount} from '../../../support/env';
 // Stage: @prod
 // Group: @channels @channel
 
-describe('Channel Type Conversion', () => {
+describe('Channel Type Conversion (Public to Private Only)', () => {
     let testUser: UserProfile;
     let testTeam: Team;
     const admin = getAdminAccount();
@@ -81,10 +81,6 @@ describe('Channel Type Conversion', () => {
     const setupPermissions = (config: {
         resetToDefault?: boolean;
         publicToPrivate?: boolean;
-        privateToPublic?: {
-            channelAdmin?: boolean;
-            teamAdmin?: boolean;
-        };
         removeFromTeamAdmin?: boolean;
     }) => {
         if (config.resetToDefault) {
@@ -96,21 +92,6 @@ describe('Channel Type Conversion', () => {
             enablePermission('all_users-public_channel-convert_public_channel_to_private-checkbox');
         } else if (config.publicToPrivate === false) {
             removePermission('all_users-public_channel-convert_public_channel_to_private-checkbox');
-        }
-
-        // Private to public conversion permissions - only available to channel admins, team admins, and system admins
-        if (config.privateToPublic) {
-            if (config.privateToPublic.channelAdmin) {
-                enablePermission('channel_admin-private_channel-convert_private_channel_to_public-checkbox');
-            } else if (config.privateToPublic.channelAdmin === false) {
-                removePermission('channel_admin-private_channel-convert_private_channel_to_public-checkbox');
-            }
-
-            if (config.privateToPublic.teamAdmin) {
-                enablePermission('team_admin-private_channel-convert_private_channel_to_public-checkbox');
-            } else if (config.privateToPublic.teamAdmin === false) {
-                removePermission('team_admin-private_channel-convert_private_channel_to_public-checkbox');
-            }
         }
 
         // Remove public to private conversion from team admin if specified
@@ -170,6 +151,8 @@ describe('Channel Type Conversion', () => {
         cy.get('#public-private-selector-button-P').should('have.class', 'selected');
     };
 
+    // Function kept for potential future use but not used in current tests
+    // since private to public conversion is no longer allowed
     const convertChannelToPublic = () => {
         cy.get('#public-private-selector-button-O').click();
         cy.get('#public-private-selector-button-O').should('have.class', 'selected');
@@ -180,6 +163,8 @@ describe('Channel Type Conversion', () => {
         cy.get('.SidebarChannel').contains(channelName).parent().find('.icon-lock-outline').should('exist');
     };
 
+    // Function kept for potential future use but not used in current tests
+    // since private to public conversion is no longer allowed
     const verifyChannelIsPublic = (channelName: string) => {
         cy.get('.SidebarChannel').contains(channelName).parent().find('.icon-lock-outline').should('not.exist');
     };
@@ -250,7 +235,7 @@ describe('Channel Type Conversion', () => {
     });
 
     describe('Role-Based Channel Type Conversion', () => {
-        it('MM-T3350-1 - System admin can convert a private channel to public', () => {
+        it('MM-T3350-1 - System admin cannot convert a private channel to public', () => {
             // # Reset permissions to default
             resetPermissionsToDefault();
 
@@ -258,41 +243,27 @@ describe('Channel Type Conversion', () => {
             cy.apiAdminLogin();
 
             // # Create and visit a private channel
-            createAndVisitPrivateChannel(testTeam.name, 'sysadmin-private-to-public', 'SysAdmin Private To Public').then((channel) => {
+            createAndVisitPrivateChannel(testTeam.name, 'sysadmin-private-stays-private', 'SysAdmin Private Channel').then(() => {
                 // # Open channel settings modal
                 openChannelSettingsModal();
 
-                // # Convert to public
-                convertChannelToPublic();
-
-                // # Save changes
-                saveChannelSettings();
-                verifySettingsSaved();
+                // * Verify conversion option to public is disabled
+                verifyConversionOptionDisabled(false);
 
                 // # Close the modal
                 closeChannelSettingsModal();
-
-                // * Verify channel is now public
-                verifyChannelIsPublic(channel.display_name);
             });
         });
 
-        it('MM-T3350-2 - Channel admin can convert a private channel to public when they have permission', () => {
-            // # Setup permissions - enable for channel admin
-            setupPermissions({
-                resetToDefault: true,
-                publicToPrivate: true,
-                privateToPublic: {
-                    channelAdmin: true,
-                    teamAdmin: false,
-                },
-            });
+        it('MM-T3350-2 - Channel admin cannot convert a private channel to public', () => {
+            // # Reset permissions to default
+            setupPermissions({resetToDefault: true});
 
             // # Login as regular user
             cy.apiLogin(testUser);
 
             // # Create and visit a private channel
-            createAndVisitPrivateChannel(testTeam.name, 'channel-admin-priv-pub', 'Channel Admin Private To Public').then((channel) => {
+            createAndVisitPrivateChannel(testTeam.name, 'channel-admin-private', 'Channel Admin Private').then((channel) => {
                 // # Make test user a channel admin
                 makeUserChannelAdmin(channel.id, testUser.id);
 
@@ -302,33 +273,17 @@ describe('Channel Type Conversion', () => {
                 // # Open channel settings modal
                 openChannelSettingsModal();
 
-                // * Verify conversion option is enabled
-                verifyConversionOptionEnabled(false);
-
-                // # Convert to public
-                convertChannelToPublic();
-
-                // # Save changes
-                saveChannelSettings();
-                verifySettingsSaved();
+                // * Verify conversion option to public is disabled
+                verifyConversionOptionDisabled(false);
 
                 // # Close the modal
                 closeChannelSettingsModal();
-
-                // * Verify channel is now public
-                verifyChannelIsPublic(channel.display_name);
             });
         });
 
-        it('MM-T3350-3 - Team admin can convert a private channel to public when they have permission', () => {
-            // # Setup permissions - enable for team admin
-            setupPermissions({
-                resetToDefault: true,
-                privateToPublic: {
-                    channelAdmin: false,
-                    teamAdmin: true,
-                },
-            });
+        it('MM-T3350-3 - Team admin cannot convert a private channel to public', () => {
+            // # Reset permissions to default
+            setupPermissions({resetToDefault: true});
 
             // # Make test user a team admin
             makeUserTeamAdmin(testTeam.id, testUser.id);
@@ -337,25 +292,15 @@ describe('Channel Type Conversion', () => {
             cy.apiLogin(testUser);
 
             // # Create and visit a private channel
-            createAndVisitPrivateChannel(testTeam.name, 'team-admin-priv-pub', 'Team Admin Private To Public').then((channel) => {
+            createAndVisitPrivateChannel(testTeam.name, 'team-admin-private', 'Team Admin Private').then(() => {
                 // # Open channel settings modal
                 openChannelSettingsModal();
 
-                // * Verify conversion option is enabled
-                verifyConversionOptionEnabled(false);
-
-                // # Convert to public
-                convertChannelToPublic();
-
-                // # Save changes
-                saveChannelSettings();
-                verifySettingsSaved();
+                // * Verify conversion option to public is disabled
+                verifyConversionOptionDisabled(false);
 
                 // # Close the modal
                 closeChannelSettingsModal();
-
-                // * Verify channel is now public
-                verifyChannelIsPublic(channel.display_name);
             });
         });
 
@@ -461,9 +406,6 @@ describe('Channel Type Conversion', () => {
             // # Setup permissions - remove permission from team admin
             setupPermissions({
                 resetToDefault: true,
-                privateToPublic: {
-                    teamAdmin: false,
-                },
                 removeFromTeamAdmin: true,
             });
 
@@ -495,9 +437,9 @@ describe('Channel Type Conversion', () => {
     });
 
     describe('Channel Admin Tests', () => {
-        it('MM-T3349-1 - Channel admin can convert public to private regardless of permissions', () => {
-            // # Setup permissions - remove public to private conversion permission
-            setupPermissions({resetToDefault: true, publicToPrivate: false});
+        it('MM-T3349-1 - Channel admin can convert public to private when permission is enabled', () => {
+            // # Setup permissions - enable public to private conversion permission
+            setupPermissions({resetToDefault: true, publicToPrivate: true});
 
             // # Create and visit a public channel
             createAndVisitPublicChannel(testTeam.name, 'channel-admin-pub', 'Channel Admin Public').then((channel) => {
@@ -510,7 +452,7 @@ describe('Channel Type Conversion', () => {
                 // # Open channel settings modal
                 openChannelSettingsModal();
 
-                // * Verify conversion option is enabled (channel admin can convert regardless of permissions)
+                // * Verify conversion option is enabled
                 verifyConversionOptionEnabled(true);
 
                 // # Convert to private
@@ -525,6 +467,29 @@ describe('Channel Type Conversion', () => {
 
                 // * Verify channel is now private
                 verifyChannelIsPrivate(channel.display_name);
+            });
+        });
+
+        it('MM-T3349-2 - Channel admin cannot convert public to private when permission is removed', () => {
+            // # Setup permissions - remove public to private conversion permission
+            setupPermissions({resetToDefault: true, publicToPrivate: false});
+
+            // # Create and visit a public channel
+            createAndVisitPublicChannel(testTeam.name, 'channel-admin-no-perm', 'Channel Admin No Permission').then((channel) => {
+                // # Make test user a channel admin
+                makeUserChannelAdmin(channel.id, testUser.id);
+
+                // # Visit the channel again after role change
+                visitChannel(testTeam.name, channel.name);
+
+                // # Open channel settings modal
+                openChannelSettingsModal();
+
+                // * Verify conversion option is disabled
+                verifyConversionOptionDisabled(true);
+
+                // # Close the modal
+                closeChannelSettingsModal();
             });
         });
     });

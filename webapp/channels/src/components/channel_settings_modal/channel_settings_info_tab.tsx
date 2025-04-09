@@ -8,7 +8,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
-import {patchChannel} from 'mattermost-redux/actions/channels';
+import {patchChannel, updateChannelPrivacy} from 'mattermost-redux/actions/channels';
+import {General} from 'mattermost-redux/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
@@ -21,6 +22,7 @@ import {
     showPreviewOnChannelSettingsPurposeModal,
 } from 'selectors/views/textbox';
 
+import ConvertConfirmModal from 'components/admin_console/team_channel_settings/convert_confirm_modal';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import type {TextboxElement} from 'components/textbox';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
@@ -70,6 +72,7 @@ function ChannelSettingsInfoTab({
     const [internalUrlError, setUrlError] = useState('');
     const [channelNameError, setChannelNameError] = useState('');
     const [characterLimitExceeded, setCharacterLimitExceeded] = useState(false);
+    const [showConvertConfirmModal, setShowConvertConfirmModal] = useState(false);
 
     // Removed switchingTabsWithUnsaved state as we now use the showTabSwitchError prop directly
 
@@ -131,13 +134,16 @@ function ChannelSettingsInfoTab({
     }, [dispatch, shouldShowPreviewHeader]);
 
     const handleChannelTypeChange = (type: ChannelType) => {
-        // Check if user has permission to convert the channel
-        if (type === Constants.PRIVATE_CHANNEL && !canConvertToPublic) {
+        // Never allow conversion from private to public, regardless of permissions
+        if (channel.type === Constants.PRIVATE_CHANNEL && type === Constants.OPEN_CHANNEL) {
             return;
         }
-        if (type === Constants.OPEN_CHANNEL && !canConvertToPrivate) {
+
+        // Check if user has permission to convert from public to private
+        if (channel.type === Constants.OPEN_CHANNEL && type === Constants.PRIVATE_CHANNEL && !canConvertToPrivate) {
             return;
         }
+
         setChannelType(type);
         setFormError('');
     };
@@ -187,7 +193,7 @@ function ChannelSettingsInfoTab({
     const handleServerError = (err: ServerError) => {
         const errorMsg = err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'});
         setFormError(errorMsg);
-        setUrlError(errorMsg);
+        setSaveChangesPanelState('error');
     };
 
     // Validate & Save - using useCallback to ensure it has the latest state values
@@ -204,6 +210,16 @@ function ChannelSettingsInfoTab({
             return false;
         }
 
+        // write the code to validate if the channel is changing from public to private
+        if (channel.type === Constants.OPEN_CHANNEL && channelType === Constants.PRIVATE_CHANNEL) {
+            const {error} = await dispatch(updateChannelPrivacy(channel.id, General.PRIVATE_CHANNEL));
+            if (error) {
+                handleServerError(error as ServerError);
+                return false;
+            }
+            return false;
+        }
+
         // Build updated channel object
         const updated: Channel = {
             ...channel,
@@ -211,7 +227,6 @@ function ChannelSettingsInfoTab({
             name: channelUrl.trim(),
             purpose: channelPurpose.trim(),
             header: channelHeader.trim(),
-            type: channelType as ChannelType,
         };
 
         const {error} = await dispatch(patchChannel(channel.id, updated));
@@ -225,16 +240,31 @@ function ChannelSettingsInfoTab({
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
+        // Check if privacy is changing from public to private
+        const isPrivacyChanging = channel.type === Constants.OPEN_CHANNEL &&
+                                 channelType === Constants.PRIVATE_CHANNEL;
+
+        // If privacy is changing, show confirmation modal
+        if (isPrivacyChanging) {
+            setShowConvertConfirmModal(true);
+            return;
+        }
+
+        // Otherwise proceed with normal save
         const success = await handleSave();
         if (!success) {
             setSaveChangesPanelState('error');
             return;
         }
         setSaveChangesPanelState('saved');
-    }, [handleSave]);
+    }, [channel, channelType, handleSave]);
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState(undefined);
+    }, []);
+
+    const hideConvertConfirmModal = useCallback(() => {
+        setShowConvertConfirmModal(false);
     }, []);
 
     const handleCancel = useCallback(() => {
@@ -282,6 +312,22 @@ function ChannelSettingsInfoTab({
 
     return (
         <div className='ChannelSettingsModal__infoTab'>
+            {/* ConvertConfirmModal for channel privacy changes */}
+            <ConvertConfirmModal
+                show={showConvertConfirmModal}
+                onCancel={hideConvertConfirmModal}
+                onConfirm={async () => {
+                    hideConvertConfirmModal();
+                    const success = await handleSave();
+                    if (!success) {
+                        setSaveChangesPanelState('error');
+                        return;
+                    }
+                    setSaveChangesPanelState('saved');
+                }}
+                displayName={channel?.display_name || ''}
+                toPublic={false} // Always false since we're only converting from public to private
+            />
 
             {/* Channel Name Section*/}
             <label
@@ -314,7 +360,9 @@ function ChannelSettingsInfoTab({
                 publicButtonProps={{
                     title: formatMessage({id: 'channel_modal.type.public.title', defaultMessage: 'Public Channel'}),
                     description: formatMessage({id: 'channel_modal.type.public.description', defaultMessage: 'Anyone can join'}),
-                    disabled: !canConvertToPublic,
+
+                    // Always disable public button if current channel is private, regardless of permissions
+                    disabled: channel.type === Constants.PRIVATE_CHANNEL || !canConvertToPublic,
                 }}
                 privateButtonProps={{
                     title: formatMessage({id: 'channel_modal.type.private.title', defaultMessage: 'Private Channel'}),

@@ -15,7 +15,24 @@ import ChannelSettingsInfoTab from './channel_settings_info_tab';
 // Mock the redux actions and selectors
 jest.mock('mattermost-redux/actions/channels', () => ({
     patchChannel: jest.fn(),
+    updateChannelPrivacy: jest.fn(),
 }));
+
+// Mock the ConvertConfirmModal component
+jest.mock('components/admin_console/team_channel_settings/convert_confirm_modal', () => {
+    return jest.fn().mockImplementation(({show, onCancel, onConfirm, displayName}) => {
+        if (!show) {
+            return null;
+        }
+        return (
+            <div data-testid='convert-confirm-modal'>
+                <div>{'Converting '}{displayName}{' to private'}</div>
+                <button onClick={onCancel}>{'Cancel'}</button>
+                <button onClick={onConfirm}>{'Yes, Convert Channel'}</button>
+            </div>
+        );
+    });
+});
 
 let mockChannelPropertiesPermission = true;
 let mockConvertToPublicPermission = true;
@@ -148,7 +165,7 @@ describe('ChannelSettingsInfoTab', () => {
         expect(screen.queryByRole('button', {name: 'Save'})).toBeInTheDocument();
     });
 
-    it('should call patchChannel with updated values when Save is clicked', async () => {
+    it('should call patchChannel with updated values when Save is clicked (non-privacy changes)', async () => {
         const {patchChannel} = require('mattermost-redux/actions/channels');
         patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
@@ -169,22 +186,18 @@ describe('ChannelSettingsInfoTab', () => {
         await userEvent.clear(headerInput);
         await userEvent.type(headerInput, 'Updated header');
 
-        // Change to a private channel.
-        await userEvent.click(screen.getByRole('button', {name: /Private Channel/}));
-
         // Click the Save button in the SaveChangesPanel.
         await act(async () => {
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
         });
 
-        // Verify patchChannel was called with the updated values.
+        // Verify patchChannel was called with the updated values (without type change).
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
             ...mockChannel,
             display_name: 'Updated Channel Name',
             name: 'updated-channel-name',
             purpose: 'Updated purpose',
             header: 'Updated header',
-            type: 'P',
         });
     });
 
@@ -330,13 +343,10 @@ describe('ChannelSettingsInfoTab', () => {
         expect(privateButton).toHaveClass('disabled');
     });
 
-    it('should allow channel type change when user has permission to convert to private', async () => {
+    it('should allow channel type change UI when user has permission to convert to private', async () => {
         // Set convert permission to true
         mockConvertToPrivatePermission = true;
         mockConvertToPublicPermission = true;
-
-        const {patchChannel} = require('mattermost-redux/actions/channels');
-        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
         renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
@@ -344,25 +354,16 @@ describe('ChannelSettingsInfoTab', () => {
         const privateButton = screen.getByRole('button', {name: /Private Channel/});
         expect(privateButton).not.toBeDisabled();
 
-        // Should be able to change to private
+        // Should be able to change to private in the UI
         await userEvent.click(privateButton);
 
-        // Click the Save button
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
-
-        // Verify patchChannel was called with the updated type
-        expect(patchChannel).toHaveBeenCalled();
+        // Verify the private button is now selected
+        expect(privateButton).toHaveClass('selected');
     });
 
-    it('should allow channel type change when user has permission to convert to public', async () => {
-        // Set convert permission to true
-        mockConvertToPrivatePermission = true;
+    it('should never allow conversion from private to public', async () => {
+        // Set convert permission to true (even with permission, it should be prevented)
         mockConvertToPublicPermission = true;
-
-        const {patchChannel} = require('mattermost-redux/actions/channels');
-        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
         // Start with a private channel
         const privateChannel = {
@@ -377,19 +378,111 @@ describe('ChannelSettingsInfoTab', () => {
             />,
         );
 
-        // Public channel button should not be disabled
+        // Public channel button should be disabled regardless of permissions
         const publicButton = screen.getByRole('button', {name: /Public Channel/});
-        expect(publicButton).not.toBeDisabled();
+        expect(publicButton).toHaveClass('disabled');
 
-        // Should be able to change to public
-        await userEvent.click(publicButton);
+        // Private button should be selected
+        const privateButton = screen.getByRole('button', {name: /Private Channel/});
+        expect(privateButton).toHaveClass('selected');
+    });
 
-        // Click the Save button
+    it('should show ConvertConfirmModal when converting from public to private', async () => {
+        mockConvertToPrivatePermission = true;
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        // Change to private channel
+        const privateButton = screen.getByRole('button', {name: /Private Channel/});
+        await userEvent.click(privateButton);
+
+        // Click Save button
         await act(async () => {
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
         });
 
-        // Verify patchChannel was called with the updated type
-        expect(patchChannel).toHaveBeenCalled();
+        // Verify the modal is shown
+        expect(screen.getByTestId('convert-confirm-modal')).toBeInTheDocument();
+    });
+
+    it('should convert channel when confirming in ConvertConfirmModal', async () => {
+        mockConvertToPrivatePermission = true;
+
+        const {updateChannelPrivacy} = require('mattermost-redux/actions/channels');
+        updateChannelPrivacy.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        // Change to private channel
+        const privateButton = screen.getByRole('button', {name: /Private Channel/});
+        await userEvent.click(privateButton);
+
+        // Click Save button to show modal
+        await act(async () => {
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        });
+
+        // Click confirm button in modal
+        await act(async () => {
+            await userEvent.click(screen.getByText(/Yes, Convert Channel/i));
+        });
+
+        // Verify updateChannelPrivacy was called
+        expect(updateChannelPrivacy).toHaveBeenCalledWith('channel1', 'P');
+    });
+
+    it('should not convert channel when canceling in ConvertConfirmModal', async () => {
+        mockConvertToPrivatePermission = true;
+
+        const {updateChannelPrivacy} = require('mattermost-redux/actions/channels');
+        updateChannelPrivacy.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        // Change to private channel
+        const privateButton = screen.getByRole('button', {name: /Private Channel/});
+        await userEvent.click(privateButton);
+
+        // Click Save button to show modal
+        await act(async () => {
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        });
+
+        // Click cancel button in modal
+        await act(async () => {
+            await userEvent.click(screen.getByText(/Cancel/i));
+        });
+
+        // Verify updateChannelPrivacy was not called
+        expect(updateChannelPrivacy).not.toHaveBeenCalled();
+    });
+
+    it('should handle errors when converting channel privacy', async () => {
+        mockConvertToPrivatePermission = true;
+
+        const {updateChannelPrivacy} = require('mattermost-redux/actions/channels');
+        updateChannelPrivacy.mockReturnValue({
+            type: 'MOCK_ACTION',
+            error: {message: 'Error changing privacy'},
+        });
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        // Change to private channel
+        const privateButton = screen.getByRole('button', {name: /Private Channel/});
+        await userEvent.click(privateButton);
+
+        // Click Save button to show modal
+        await act(async () => {
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        });
+
+        // Click confirm button in modal
+        await act(async () => {
+            await userEvent.click(screen.getByText(/Yes, Convert Channel/i));
+        });
+
+        // Verify error state is shown
+        expect(screen.getByText(/There are errors in the form above/)).toBeInTheDocument();
     });
 });

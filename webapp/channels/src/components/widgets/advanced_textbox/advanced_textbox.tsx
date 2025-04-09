@@ -117,7 +117,7 @@ const AdvancedTextbox = ({
                 useChannelMentions={useChannelMentions}
                 hasError={hasError}
             />
-            {!readOnly && (
+            {!readOnly && value.trim().length > 0 && (
                 <ShowFormat
                     onClick={togglePreview}
                     active={preview}
