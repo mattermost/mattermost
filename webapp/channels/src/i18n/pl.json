@@ -4530,7 +4530,7 @@
   "navbar_dropdown.userGroups.modal.titleAdminPreTrial": "Wypróbuj nieograniczoną liczbę grup użytkowników dzięki bezpłatnej wersji próbnej",
   "navbar_dropdown.userGroups.modal.titleEndUser": "Grupy użytkowników dostępne w planach płatnych",
   "navbar_dropdown.userGroups.tooltip.cloudFreeTrial": "Podczas okresu próbnego można tworzyć grupy użytkowników. Po zakończeniu okresu próbnego te grupy użytkowników zostaną zarchiwizowane.",
-  "navbar_dropdown.versionText": "To jest darmowa, <link>nieobsługiwana</link> wersja aplikacji Mattermost.",
+  "navbar_dropdown.versionText": "To jest darmowa, <link>niewspierana</link> wersja aplikacji Mattermost.",
   "navbar_dropdown.viewMembers": "Wyświetl Użytkowników",
   "newChannelWithBoard.tutorialTip.description": "Do utworzonej właśnie tablicy można szybko przejść, klikając ikonę Tablica na pasku aplikacji. W prawym pasku bocznym możesz przeglądać tablice powiązane z tym kanałem, a także otworzyć jedną w pełnym widoku.",
   "newChannelWithBoard.tutorialTip.title": "Dostęp do połączonych tablic z Paska Aplikacji",
