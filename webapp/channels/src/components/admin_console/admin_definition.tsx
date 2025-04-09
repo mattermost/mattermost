@@ -27,6 +27,7 @@ import {
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
+import CustomProfileAttributes from 'components/admin_console/custom_profile_attributes/custom_profile_attributes';
 import PluginManagement from 'components/admin_console/plugin_management';
 import SystemAnalytics from 'components/analytics/system_analytics';
 import {searchableStrings as systemAnalyticsSearchableStrings} from 'components/analytics/system_analytics/system_analytics';
@@ -3917,6 +3918,15 @@ const AdminDefinition: AdminDefinitionType = {
                                         ),
                                     ),
                                 },
+                                {
+                                    type: 'custom',
+                                    key: 'LdapSettings.CustomProfileAttributes',
+                                    component: CustomProfileAttributes,
+                                    isHidden: it.not(it.all(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
+                                    )),
+                                },
                             ],
                         },
                         {
@@ -4619,6 +4629,15 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
                                 it.stateIsFalse('SamlSettings.Enable'),
                             ),
+                        },
+                        {
+                            type: 'custom',
+                            key: 'SamlSettings.CustomProfileAttributes',
+                            component: CustomProfileAttributes,
+                            isHidden: it.not(it.all(
+                                it.licensedForSku(LicenseSkus.Enterprise),
+                                it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
+                            )),
                         },
                         {
                             type: 'text',
