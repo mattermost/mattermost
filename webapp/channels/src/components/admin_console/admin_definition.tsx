@@ -3922,6 +3922,10 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'custom',
                                     key: 'LdapSettings.CustomProfileAttributes',
                                     component: CustomProfileAttributes,
+                                    isHidden: it.not(it.all(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
+                                    )),
                                 },
                             ],
                         },
@@ -4630,6 +4634,10 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'custom',
                             key: 'SamlSettings.CustomProfileAttributes',
                             component: CustomProfileAttributes,
+                            isHidden: it.not(it.all(
+                                it.licensedForSku(LicenseSkus.Enterprise),
+                                it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
+                            )),
                         },
                         {
                             type: 'text',
