@@ -4,6 +4,7 @@
 import type {IncomingWebhook, OutgoingWebhook, Command, OAuthApp} from '@mattermost/types/integrations';
 
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
+import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 
 import * as Actions from 'actions/integration_actions';
 
@@ -12,6 +13,12 @@ import mockStore from 'tests/test_store';
 jest.mock('mattermost-redux/actions/users', () => ({
     getProfilesByIds: jest.fn(() => {
         return {type: ''};
+    }),
+}));
+
+jest.mock('mattermost-redux/actions/integrations', () => ({
+    submitInteractiveDialog: jest.fn(() => {
+        return {type: 'MOCK_SUBMIT_DIALOG', data: {errors: {}}};
     }),
 }));
 
@@ -36,6 +43,30 @@ describe('actions/integration_actions', () => {
             users: {
                 currentUserId: 'current_user_id',
                 profiles: {current_user_id: {id: 'current_user_id', username: 'current_user'}, user_id3: {id: 'user_id3', username: 'user3'}, user_id4: {id: 'user_id4', username: 'user4'}},
+            },
+            channels: {
+                currentChannelId: 'current_channel_id',
+            },
+            threads: {
+                threads: {
+                    thread1: {
+                        id: 'thread1',
+                        post: {
+                            id: 'thread_post_id',
+                            channel_id: 'thread_channel_id',
+                        },
+                    },
+                },
+                threadsInTeam: {
+                    team_id1: ['thread1'],
+                },
+            },
+        },
+        views: {
+            threads: {
+                selectedThreadIdInTeam: {
+                    team_id1: 'thread1',
+                },
             },
         },
     };
@@ -117,6 +148,67 @@ describe('actions/integration_actions', () => {
             const testStore = mockStore(initialState);
             testStore.dispatch(Actions.loadProfilesForOAuthApps([]));
             expect(getProfilesByIds).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('submitInteractiveDialog', () => {
+        test('submitInteractiveDialog with current channel', async () => {
+            const testStore = mockStore(initialState);
+            const submission = {
+                callback_id: 'callback_id',
+                state: 'state',
+                submission: {
+                    name: 'value',
+                },
+                user_id: 'current_user_id',
+                team_id: 'team_id1',
+                channel_id: '',
+                cancelled: false,
+            };
+
+            const expectedSubmission = {
+                ...submission,
+                channel_id: 'current_channel_id',
+            };
+
+            await testStore.dispatch(Actions.submitInteractiveDialog(submission));
+
+            expect(IntegrationActions.submitInteractiveDialog).toHaveBeenCalledWith(expectedSubmission);
+        });
+
+        test('submitInteractiveDialog with thread context', async () => {
+            // Set current channel to empty to simulate thread view
+            const threadState = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    channels: {
+                        currentChannelId: '',
+                    },
+                },
+            };
+            const testStore = mockStore(threadState);
+
+            const submission = {
+                callback_id: 'callback_id',
+                state: 'state',
+                submission: {
+                    name: 'value',
+                },
+                user_id: 'current_user_id',
+                team_id: 'team_id1',
+                channel_id: '',
+                cancelled: false,
+            };
+
+            const expectedSubmission = {
+                ...submission,
+                channel_id: 'thread_channel_id',
+            };
+
+            await testStore.dispatch(Actions.submitInteractiveDialog(submission));
+
+            expect(IntegrationActions.submitInteractiveDialog).toHaveBeenCalledWith(expectedSubmission);
         });
     });
 });
