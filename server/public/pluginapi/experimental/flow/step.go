@@ -50,7 +50,7 @@ type Button struct {
 	// Function that is called when the dialog box is submitted. It can return a
 	// general error, or field-specific errors. On success it returns the name
 	// of the next step, and the state updates to apply.
-	OnDialogSubmit func(f *Flow, submitted map[string]interface{}) (Name, State, map[string]string, error)
+	OnDialogSubmit func(f *Flow, submitted map[string]any) (Name, State, map[string]string, error)
 }
 
 func NewStep(name Name) Step {
@@ -145,7 +145,7 @@ func (s Step) render(f *Flow, done bool, selectedButton int) (*model.Post, bool,
 
 	buttons := processButtons(s.buttons, f.state.AppState)
 
-	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 	if !ok || len(attachments) != 1 {
 		return nil, false, errors.New("expected 1 slack attachment")
 	}
@@ -224,11 +224,12 @@ func processDialog(in *model.Dialog, state State) model.Dialog {
 
 func renderButton(b Button, stepName Name, i int, state State) *model.PostAction {
 	return &model.PostAction{
+		Type:     model.PostActionTypeButton,
 		Name:     formatState(b.Name, state),
 		Disabled: b.Disabled,
 		Style:    string(b.Color),
 		Integration: &model.PostActionIntegration{
-			Context: map[string]interface{}{
+			Context: map[string]any{
 				contextStepKey:   string(stepName),
 				contextButtonKey: strconv.Itoa(i),
 			},
