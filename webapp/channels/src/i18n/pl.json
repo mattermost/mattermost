@@ -341,7 +341,7 @@
   "admin.billing.subscription.cloudReverseTrial.lastDay": "To ostatni dzień okresu próbnego. Kup plan przed {userEndTrialHour} lub skontaktuj się z działem sprzedaży",
   "admin.billing.subscription.cloudReverseTrial.subscribeButton": "Przejrzyj dostępne opcje",
   "admin.billing.subscription.cloudTrial.daysLeft": "Twoja wersja testowa rozpoczęła! Pozostało jeszcze {daysLeftOnTrial} dni",
-  "admin.billing.subscription.cloudTrial.subscribeButton": "Uaktualnij Teraz",
+  "admin.billing.subscription.cloudTrial.subscribeButton": "Ulepsz Teraz",
   "admin.billing.subscription.cloudTrialBadge.daysLeftOnTrial": "{daysLeftOnTrial} pozostałych dni próbnych",
   "admin.billing.subscription.cloudYearlyBadge": "Roczny",
   "admin.billing.subscription.complianceScreenShippingSameAsBilling": "Mój adres do wysyłki jest taki sam jak adres do faktury",
