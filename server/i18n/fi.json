@@ -4448,11 +4448,11 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Virhe päivittäessä kanavaa."
+    "translation": "Virhe päivitettäessä kanavan ylätunnistetta."
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "Sinulla ei ole oikeuksia muokata kanavan otsikkoa."
+    "translation": "Sinulla ei ole tarvittavia oikeuksia kanavan ylätunnisteen muokkaamiseksi."
   },
   {
     "id": "api.command_channel_header.name",
@@ -4460,7 +4460,7 @@
   },
   {
     "id": "api.command_channel_header.message.app_error",
-    "translation": "Teksti pitää kirjoittaa /header komennolla."
+    "translation": "Teksti tulee toimittaa /header-komennolla."
   },
   {
     "id": "api.command_channel_header.hint",
@@ -4472,7 +4472,7 @@
   },
   {
     "id": "api.command_channel_header.channel.app_error",
-    "translation": "Virhe noudettaessa kanavaa."
+    "translation": "Virhe noudettaessa nykyistä kanavaa."
   },
   {
     "id": "api.command_away.success",
