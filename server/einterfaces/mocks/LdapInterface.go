@@ -15,26 +15,6 @@ type LdapInterface struct {
 	mock.Mock
 }
 
-// CheckPassword provides a mock function with given fields: c, id, password
-func (_m *LdapInterface) CheckPassword(c request.CTX, id string, password string) *model.AppError {
-	ret := _m.Called(c, id, password)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CheckPassword")
-	}
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.AppError); ok {
-		r0 = rf(c, id, password)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
-
 // CheckPasswordAuthData provides a mock function with given fields: c, authData, password
 func (_m *LdapInterface) CheckPasswordAuthData(c request.CTX, authData string, password string) *model.AppError {
 	ret := _m.Called(c, authData, password)
@@ -73,9 +53,9 @@ func (_m *LdapInterface) CheckProviderAttributes(c request.CTX, LS *model.LdapSe
 	return r0
 }
 
-// DoLogin provides a mock function with given fields: c, id, password
-func (_m *LdapInterface) DoLogin(c request.CTX, id string, password string) (*model.User, *model.AppError) {
-	ret := _m.Called(c, id, password)
+// DoLogin provides a mock function with given fields: c, id, password, test
+func (_m *LdapInterface) DoLogin(c request.CTX, id string, password string, test string) (*model.User, *model.AppError) {
+	ret := _m.Called(c, id, password, test)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DoLogin")
@@ -83,19 +63,19 @@ func (_m *LdapInterface) DoLogin(c request.CTX, id string, password string) (*mo
 
 	var r0 *model.User
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.User, *model.AppError)); ok {
-		return rf(c, id, password)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string) (*model.User, *model.AppError)); ok {
+		return rf(c, id, password, test)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.User); ok {
-		r0 = rf(c, id, password)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string) *model.User); ok {
+		r0 = rf(c, id, password, test)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
-		r1 = rf(c, id, password)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, string) *model.AppError); ok {
+		r1 = rf(c, id, password, test)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
