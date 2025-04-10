@@ -6175,6 +6175,34 @@
     "translation": "We encountered an error updating the app."
   },
   {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "Unable to delete access control policy."
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "Unable to retrieve the access control policy."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "Unable to initialize access control service."
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "Access control service is not ready."
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "An attribute is missing from the expression."
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "Unable to save access control policy."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Failed evaluate access control policy."
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },

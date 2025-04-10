@@ -98,16 +98,10 @@ func RegisterIPFilteringInterface(f func(*App) einterfaces.IPFilteringInterface)
 	ipFilteringInterface = f
 }
 
-var pdpInterface func(*App) einterfaces.PolicyDecisionPointInterface
+var accessControlServiceInterface func(*App) einterfaces.AccessControlServiceInterface
 
-func RegisterPDPInterface(f func(*App) einterfaces.PolicyDecisionPointInterface) {
-	pdpInterface = f
-}
-
-var papInterface func(*App) einterfaces.PolicyAdministrationPointInterface
-
-func RegisterPAPInterface(f func(*App) einterfaces.PolicyAdministrationPointInterface) {
-	papInterface = f
+func RegisterAccessControlServiceInterface(f func(*App) einterfaces.AccessControlServiceInterface) {
+	accessControlServiceInterface = f
 }
 
 func (s *Server) initEnterprise() {
