@@ -80,15 +80,16 @@ const setupDefaultSystemManagerRole = async (
 };
 
 test('MM-63378 System Manager without team access permissions cannot view team details', async ({pw}) => {
-    const {adminUser, adminClient, user: systemManagerUser, userClient: systemManagerClient} = await pw.initSetup();
+    const {
+        adminUser,
+        adminClient,
+        user: systemManagerUser,
+        userClient: systemManagerClient,
+        team,
+    } = await pw.initSetup();
 
-    // Create a user with the system_manager role
-    // const systemManagerUser = await adminClient.createUser(pw.random.user(), '', '');
+    // Update user with system_manager role
     await adminClient.updateUserRoles(systemManagerUser.id, 'system_user system_manager');
-
-    // Create a Team and add the user as a member
-    const team = await adminClient.createTeam(pw.random.team());
-    await adminClient.addToTeam(team.id, systemManagerUser.id);
 
     // Create another team of which the user is not a member.
     const otherTeam = await adminClient.createTeam(pw.random.team());
