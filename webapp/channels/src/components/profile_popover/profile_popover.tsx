@@ -79,7 +79,7 @@ const ProfilePopover = ({
     const status = useSelector((state: GlobalState) => getStatusForUserId(state, userId) || UserStatuses.OFFLINE);
     const currentUserTimezone = useSelector(getCurrentTimezone);
     const currentUserId = useSelector(getCurrentUserId);
-    const enableCustomProfileAttributes = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true');
+    const enableCustomProfileAttributes = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true' && !fromWebhook);
 
     const [loadingDMChannel, setLoadingDMChannel] = useState<string>();
 
@@ -192,9 +192,10 @@ const ProfilePopover = ({
                     />
                 </div>
 
-                {enableCustomProfileAttributes && (
+                {enableCustomProfileAttributes && !user.is_bot && (
                     <ProfilePopoverCustomAttributes
                         userID={userId}
+                        hideStatus={hideStatus}
                     />
                 )}
                 <ProfilePopoverTimezone

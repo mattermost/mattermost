@@ -1357,7 +1357,6 @@
   "channel_header.directchannel.you": "{displayname} (vostede) ",
   "channel_header.groupMessageHasGuests": "Esta mensaxe de grupo ten convidados",
   "channel_header.leave": "Abandonar a canle",
-  "channel_header.manageMembers": "Xestionar os afiliados",
   "channel_header.search": "Buscar",
   "channel_header.unarchive": "Canle sen arquivar",
   "channel_header.viewMembers": "Ver os afiliados",
