@@ -95,24 +95,24 @@ func TestGetCPAField(t *testing.T) {
 
 		// Test with allowSynced=false
 		userID := model.NewId()
-		
+
 		// Test LDAP field
 		_, appErr = th.App.PatchCPAValue(userID, createdLDAPField.ID, json.RawMessage(`"test value"`), false)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.custom_profile_attributes.property_field_is_synced.app_error", appErr.Id)
-		
+
 		// Test SAML field
 		_, appErr = th.App.PatchCPAValue(userID, createdSAMLField.ID, json.RawMessage(`"test value"`), false)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.custom_profile_attributes.property_field_is_synced.app_error", appErr.Id)
-		
+
 		// Test with allowSynced=true
 		// LDAP field should work
 		patchedValue, appErr := th.App.PatchCPAValue(userID, createdLDAPField.ID, json.RawMessage(`"test value"`), true)
 		require.Nil(t, appErr)
 		require.NotNil(t, patchedValue)
 		require.Equal(t, json.RawMessage(`"test value"`), patchedValue.Value)
-		
+
 		// SAML field should work
 		patchedValue, appErr = th.App.PatchCPAValue(userID, createdSAMLField.ID, json.RawMessage(`"test value"`), true)
 		require.Nil(t, appErr)
