@@ -128,6 +128,7 @@ export const CATEGORIES: Categories = Emoji.CategoryNames.
 export const EMOJI_PER_ROW = 9; // needs to match variable `$emoji-per-row` in _variables.scss
 export const ITEM_HEIGHT = 36; //as per .emoji-picker__item height in _emoticons.scss
 export const EMOJI_CONTAINER_HEIGHT = 290; // If this changes, the spaceRequiredAbove and spaceRequiredBelow props passed to the EmojiPickerOverlay must be updated
+export const CATEGORIES_CONTAINER_HEIGHT = 36; // height of categories container (28px) + margin (8px)
 
 export const CATEGORY_HEADER_ROW = 'categoryHeaderRow';
 export const EMOJIS_ROW = 'emojisRow';
