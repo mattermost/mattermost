@@ -353,9 +353,11 @@
                             white-space: nowrap;
                         }
 
-                        .premadeThemeButton{
+                        .premadeThemeButton {
+                            padding: 0;
                             border: none;
                             background: none;
+                            text-align: start;
                         }
 
                         label {
