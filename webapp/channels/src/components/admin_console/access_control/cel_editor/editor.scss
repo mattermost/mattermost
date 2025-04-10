@@ -9,6 +9,23 @@
         border-radius: 4px;
         background: var(--center-channel-bg);
         margin-bottom: 8px;
+        height: auto;
+        flex-direction: column;
+        overflow: auto;
+        overflow-y: auto;
+
+        .policy-editor-placeholder {
+            position: absolute;
+            white-space: pre-wrap;
+            top: 13px;
+            left: 46px;
+            font-size: 12px;
+            color: rgba(0,0,0, 0.40);
+            font-family: monospace;
+            pointer-events: none;
+            user-select: none;
+            z-index: 10;
+        }
     }
 
     &__cursor-position {
@@ -24,13 +41,18 @@
 
     &__input {
         width: 100%;
-        min-height: 120px;
         resize: vertical;
+        min-height: 120px;
+        max-height: 600px;
         border: 1px solid var(--button-bg);
         border-radius: 4px 4px 0 0;
         padding: 12px;
         font-family: monospace;
         transition: border-color 0.15s ease;
+        height: auto;
+        overflow: auto;
+        //overflow-y: auto;
+        flex-grow: 0;
 
         &:focus {
             outline: none;
@@ -38,6 +60,10 @@
 
         &::placeholder {
             color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+
+        .policyEditor {
+            outline: none;
         }
 
         .cel-editor__container[data-status-color='var(--error-text)'] & {
@@ -259,23 +285,6 @@
     }
 }
 
-.editor {
-    height: 400px;
-}
-
-.policyEditor {
-    outline: none;
-}
-
-.policyeditorPlaceholder {
-    position: absolute;
-    white-space: pre-wrap;
-    top: 13px;
-    left: 46px;
-    font-size: 12px;
-    color: rgba(0,0,0, 0.40);
-    font-family: monospace;
-    pointer-events: none;
-    user-select: none;
-    z-index: 10;
+.Card__body.expanded:has(.cel-editor) {
+    height: max-content !important;
 }

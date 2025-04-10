@@ -13,9 +13,7 @@ interface MonacoAutocompleteSuggestionProviderProps {
     schemas: SchemaMap;
 }
 
-const MonacoAutocompleteSuggestionProvider: React.FC<
-MonacoAutocompleteSuggestionProviderProps
-> = ({schemas}) => {
+const MonacoAutocompleteSuggestionProvider: React.FC<MonacoAutocompleteSuggestionProviderProps> = ({schemas}) => {
     useEffect(() => {
         // Create a custom language (only register once)
         if (
