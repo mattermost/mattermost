@@ -145,8 +145,9 @@ describe('Guest Account - Guest User Experience', () => {
             cy.uiGetLHSTeamMenu().findByText(option);
         });
 
-        // # Close the main menu
-        cy.uiGetLHSHeader().click();
+        // Close the main menu with Escape key
+        cy.get('body').type('{esc}')
+        cy.uiGetLHSTeamMenu().should('not.exist');
 
         // * Verify Options in LHS are changed
         cy.uiGetLHSAddChannelButton();
