@@ -1581,37 +1581,41 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 
 	m.AccessControlEngineInitDuration = prometheus.NewHistogram(
 		prometheus.HistogramOpts{
-			Namespace: MetricsNamespace,
-			Subsystem: MetricsSubsystemAccessControl,
-			Name:      "engine_init_duration_seconds",
-			Help:      "Duration of the time taken to initialize the access control engine (seconds)",
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAccessControl,
+			Name:        "engine_init_duration_seconds",
+			Help:        "Duration of the time taken to initialize the access control engine (seconds)",
+			ConstLabels: additionalLabels,
 		})
 	m.Registry.MustRegister(m.AccessControlEngineInitDuration)
 
 	m.AccessControlEvaluateDuration = prometheus.NewHistogram(
 		prometheus.HistogramOpts{
-			Namespace: MetricsNamespace,
-			Subsystem: MetricsSubsystemAccessControl,
-			Name:      "evaluate_duration_seconds",
-			Help:      "Duration of the time taken to evaluate the access control engine (seconds)",
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAccessControl,
+			Name:        "evaluate_duration_seconds",
+			Help:        "Duration of the time taken to evaluate the access control engine (seconds)",
+			ConstLabels: additionalLabels,
 		})
 	m.Registry.MustRegister(m.AccessControlEvaluateDuration)
 
 	m.AccessControlExpressionCompileDuration = prometheus.NewHistogram(
 		prometheus.HistogramOpts{
-			Namespace: MetricsNamespace,
-			Subsystem: MetricsSubsystemAccessControl,
-			Name:      "expression_compile_duration_seconds",
-			Help:      "Duration of the time taken to compile the access control engine expression (seconds)",
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAccessControl,
+			Name:        "expression_compile_duration_seconds",
+			Help:        "Duration of the time taken to compile the access control engine expression (seconds)",
+			ConstLabels: additionalLabels,
 		})
 	m.Registry.MustRegister(m.AccessControlExpressionCompileDuration)
 
 	m.AccessControlCacheInvalidation = prometheus.NewCounter(
 		prometheus.CounterOpts{
-			Namespace: MetricsNamespace,
-			Subsystem: MetricsSubsystemAccessControl,
-			Name:      "cache_invalidation_total",
-			Help:      "Total number of cache invalidations",
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAccessControl,
+			Name:        "cache_invalidation_total",
+			Help:        "Total number of cache invalidations",
+			ConstLabels: additionalLabels,
 		})
 	m.Registry.MustRegister(m.AccessControlCacheInvalidation)
 
