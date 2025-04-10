@@ -1693,7 +1693,7 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	require.Nil(t, appErr)
 	require.Equal(t, 0, i)
 
