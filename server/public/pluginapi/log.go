@@ -13,21 +13,21 @@ type LogService struct {
 }
 
 // Error logs an error message, optionally structured with alternating key, value parameters.
-func (l *LogService) Error(message string, keyValuePairs ...interface{}) {
+func (l *LogService) Error(message string, keyValuePairs ...any) {
 	l.api.LogError(message, keyValuePairs...)
 }
 
 // Warn logs an error message, optionally structured with alternating key, value parameters.
-func (l *LogService) Warn(message string, keyValuePairs ...interface{}) {
+func (l *LogService) Warn(message string, keyValuePairs ...any) {
 	l.api.LogWarn(message, keyValuePairs...)
 }
 
 // Info logs an error message, optionally structured with alternating key, value parameters.
-func (l *LogService) Info(message string, keyValuePairs ...interface{}) {
+func (l *LogService) Info(message string, keyValuePairs ...any) {
 	l.api.LogInfo(message, keyValuePairs...)
 }
 
 // Debug logs an error message, optionally structured with alternating key, value parameters.
-func (l *LogService) Debug(message string, keyValuePairs ...interface{}) {
+func (l *LogService) Debug(message string, keyValuePairs ...any) {
 	l.api.LogDebug(message, keyValuePairs...)
 }

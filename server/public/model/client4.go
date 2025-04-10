@@ -7940,8 +7940,8 @@ func (c *Client4) RestoreGroup(ctx context.Context, groupID string, etag string)
 	}
 	defer closeBody(r)
 	var p Group
-	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
-		return nil, nil, NewAppError("DeleteGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		return nil, nil, NewAppError("DeleteGroup", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &p, BuildResponse(r), nil
 }
@@ -9241,8 +9241,8 @@ func (c *Client4) AcknowledgePost(ctx context.Context, postId, userId string) (*
 	}
 	defer closeBody(r)
 	var ack *PostAcknowledgement
-	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
-		return nil, nil, NewAppError("AcknowledgePost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	if err := json.NewDecoder(r.Body).Decode(&ack); err != nil {
+		return nil, nil, NewAppError("AcknowledgePost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ack, BuildResponse(r), nil
 }

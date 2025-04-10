@@ -250,7 +250,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			paramsWithType := []string{}
 			for _, param := range params {
 				switch param.Type {
-				case "ChannelSearchOpts", "UserGetByIdsOpts", "ThreadMembershipOpts":
+				case "ChannelSearchOpts", "UserGetByIdsOpts", "ThreadMembershipOpts", "GetPolicyOptions":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
 				case "*UserGetByIdsOpts", "*SidebarCategorySearchOpts":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.%s", param.Name, strings.TrimPrefix(param.Type, "*")))
@@ -264,7 +264,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			paramsWithType := []string{}
 			for _, param := range params {
 				switch param.Type {
-				case "ChannelSearchOpts", "UserGetByIdsOpts", "ThreadMembershipOpts":
+				case "ChannelSearchOpts", "UserGetByIdsOpts", "ThreadMembershipOpts", "GetPolicyOptions":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
 				case "*UserGetByIdsOpts", "*SidebarCategorySearchOpts":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.%s", param.Name, strings.TrimPrefix(param.Type, "*")))

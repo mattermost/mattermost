@@ -26,8 +26,8 @@ const enterpriseKeyPrefix = "ent."
 const untranslatedKey = "<untranslated>"
 
 type Translation struct {
-	Id          string      `json:"id"`
-	Translation interface{} `json:"translation"`
+	Id          string `json:"id"`
+	Translation any    `json:"translation"`
 }
 
 type Item struct {
@@ -730,7 +730,7 @@ func removeEmptyTranslations(oldList []Item) ([]Item, int) {
 	return newList, count
 }
 
-func JSONMarshal(t interface{}) ([]byte, error) {
+func JSONMarshal(t any) ([]byte, error) {
 	buffer := &bytes.Buffer{}
 	encoder := json.NewEncoder(buffer)
 	encoder.SetEscapeHTML(false)

@@ -50,13 +50,17 @@
 
         svg {
             padding-top: 1px; // To align vertically
-            fill: rgba(var(--button-bg-rgb), 0.64);
+            fill: rgba(var(--button-color-rgb), 0.64);
             vertical-align: middle;
         }
 
         .close-btn {
             cursor: pointer;
             line-height: normal;
+            
+            &:hover {
+                fill: var(--button-color);
+            }
         }
     }
 }

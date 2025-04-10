@@ -58,7 +58,7 @@ func parseWWWAutolink(data string, position int) (Range, bool) {
 
 func isAllowedBeforeWWWLink(c byte) bool {
 	switch c {
-	case '*', '_', '~', ')':
+	case '*', '_', '~', ')', '<', '(', '>':
 		return true
 	}
 	return false
@@ -174,9 +174,9 @@ func trimTrailingCharactersFromLink(markdown string, start int, end int) int {
 	runes := []rune(markdown[start:end])
 	linkEnd := len(runes)
 
-	// Cut off the link before an open angle bracket if it contains one
+	// Cut off the link before an angle bracket if it contains one
 	for i, c := range runes {
-		if c == '<' {
+		if c == '<' || c == '>' {
 			linkEnd = i
 			break
 		}

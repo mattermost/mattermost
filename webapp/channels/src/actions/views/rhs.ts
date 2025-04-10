@@ -22,7 +22,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {
@@ -222,19 +222,11 @@ export function performSearch(terms: string, teamId: string, isMentionSearch?: b
         }
 
         if (isMentionSearch) {
-            // Username and FirstName should be quoted to allow specific search
-            // in case the name is made with multiple words splitted by dashes or other symbols.
-            const user = getCurrentUser(getState());
+            // For mentions, perform a specific search by quoting all terms.
+            // This ensures terms split by dashes or other symbols are treated as a single unit.
             const termsArr = searchTerms.split(' ').filter((t) => Boolean(t && t.trim()));
-            const atUsername = '@' + user.username;
             for (let i = 0; i < termsArr.length; i++) {
-                if (termsArr[i] === atUsername) {
-                    termsArr[i] = `"${atUsername}"`;
-                } else if (termsArr[i] === user.username) {
-                    termsArr[i] = `"${user.username}"`;
-                } else if (termsArr[i] === user.first_name) {
-                    termsArr[i] = `"${user.first_name}"`;
-                }
+                termsArr[i] = `"${termsArr[i]}"`;
             }
             searchTerms = termsArr.join(' ');
         }

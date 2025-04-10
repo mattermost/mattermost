@@ -9,8 +9,8 @@ type AllowedIPRange struct {
 	OwnerID     string `json:"owner_id"`
 }
 
-func (air *AllowedIPRanges) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (air *AllowedIPRanges) Auditable() map[string]any {
+	return map[string]any{
 		"AllowedIPRanges": air,
 	}
 }

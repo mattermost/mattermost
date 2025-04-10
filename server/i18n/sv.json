@@ -10458,5 +10458,89 @@
   {
     "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
     "translation": "Kanalbannerns infotext är för lång. Maximal tillåten längd är {{.maxLength}} tecken."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Ditt konto är låst på grund av för många misslyckade lösenordsförsök. Vänligen kontakta din systemadministratör."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Autentiseringstjänsten måste vara LDAP eller e-post."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Du har inte behörighet att uppdatera denna resurs."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_conversion_error",
+    "translation": "Det går inte att konvertera egenskapsfältet till ett attributfält för anpassad profil"
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Ogiltigt policy-id."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Misslyckades med att hämta användare."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "ogiltig förändring av attributfält för anpassad profil"
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Misslyckades med att återställa inloggningsförsök."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Funktionen är inte tillgänglig med den aktuella licensen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Det går inte att konvertera egenskapsfältet till ett attributfält för anpassad profil"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Ogiltiga attribut på egenskap : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "LDAP-licens krävs."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Ogiltig import enligt policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Ogiltigt namn enligt policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Ogiltig revidering av policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Regel är ogiltig."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Policy måste antingen importera eller definiera regler."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Ogiltig policy-typ."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Ogiltig version för denna åtkomst-policy."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Ogiltigt värde för ldap-attributet max antal inloggningsförsök. Måste vara ett positivt värde."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Kunde inte radera användarens utkast."
   }
 ]

@@ -99,6 +99,7 @@ type TrackSKU string
 const (
 	TrackProfessionalSKU TrackSKU = "professional"
 	TrackEnterpriseSKU   TrackSKU = "enterprise"
+	TrackPremiumSKU      TrackSKU = "premium"
 )
 
 type TrackFeature string

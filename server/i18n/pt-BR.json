@@ -10022,5 +10022,9 @@
   {
     "id": "app.file_info.undelete_for_post_ids.app_error",
     "translation": "Falha ao restaurar os anexos do arquivo de publicação."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Falha ao criar o marcador de canal."
   }
 ]

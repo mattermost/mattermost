@@ -34,16 +34,16 @@ npm run test -- login --project=chrome
 npm run test
 ```
 
-#### 3. Inspect test results at `/test-results` folder when something fails unexpectedly.
+#### 3. Inspect test results at `/results/output` folder when something fails unexpectedly.
 
 ## Updating screenshots is done strictly via Playwright's docker container for consistency
 
 #### 1. Run docker container using latest focal version
 
-Change to the root directory, then run the docker container. (See https://playwright.dev/docs/docker for reference.)
+Change to the `e2e-tests/playwright` directory, then run the docker container. (See https://playwright.dev/docs/docker for reference.)
 
 ```
-docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.49.1-noble /bin/bash
+docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.51.1-noble /bin/bash
 ```
 
 #### 2. Inside the docker container
@@ -62,12 +62,15 @@ npm run test -- login --project=chrome
 # Or run all tests
 npm run test
 
-# Update snapshots
-npm run test -- login --update-snapshots
+# Run visual tests
+npm run test -- visual
+
+# Update snapshots of visual tests
+npm run test -- visual --update-snapshots
 ```
 
 ## Page/Component Object Model
 
 See https://playwright.dev/docs/test-pom.
 
-Page and component abstractions are located at `./support/ui`. They should be established before writing a spec file so that any future changes in the DOM structure will be made in one place only. No static UI text or fixed locator should be written in the spec file.
+Page and component abstractions are in shared library located at `./lib/src/ui`. They should be established before writing a spec file so that any future changes in the DOM structure will be made in one place only. No static UI text or fixed locator should be written in the spec file.

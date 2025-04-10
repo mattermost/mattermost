@@ -86,9 +86,11 @@ else
 	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
 endif
 
-build: setup-go-work build-client build-linux build-windows build-osx
+# Only build linux by default. Other platforms can be built by specifying the platform.
+build: setup-go-work build-client build-linux
 
-build-cmd: setup-go-work build-client build-cmd-linux build-cmd-windows build-cmd-osx
+# Only build linux by default. Other platforms can be built by specifying the platform.
+build-cmd: setup-go-work build-client build-cmd-linux
 
 build-client:
 	@echo Building mattermost web app
@@ -218,6 +220,7 @@ package-windows: package-prep
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/windows
 
-package: package-linux package-osx
+# Only package linux by default. Other platforms can be packaged by specifying the platform.
+package: package-linux
 	rm -rf tmpprepackaged
 	rm -rf $(DIST_PATH)

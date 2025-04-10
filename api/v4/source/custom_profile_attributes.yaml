@@ -218,6 +218,35 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/api/v4/custom_profile_attributes/group":
+    get:
+      tags:
+        - custom profile attributes
+      summary: Get Custom Profile Attribute property group data
+      description: |
+        Get the property group used for Custom Profile Attributes.
+
+        __Minimum server version__: 10.8
+
+        ##### Permissions
+        Must be authenticated.
+      operationId: GetCPAGroup
+      responses:
+        "200":
+          description: Group fetch successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: The ID of the custom profile attributes group
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   "/api/v4/users/{user_id}/custom_profile_attributes":
     get:
       tags:

@@ -137,7 +137,7 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Ingen fil under \"sertifikat\" i forespørsel."
+    "translation": "Ingen fil under \"sertifikat\" i forespørslen."
   },
   {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
@@ -286,5 +286,33 @@
   {
     "id": "api.channel.remove.default.app_error",
     "translation": "Kan ikke fjerne brukeren fra standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Kan ikke fjerne kanalmedlemmet."
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "Vi kunne ikke fjerne de deaktiverte brukerne fra kanalen."
+  },
+  {
+    "id": "app.channel.restore.app_error",
+    "translation": "Kan ikke gjenopprette kanalen."
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s oppdaterte kanalens formål til: %s"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Lær mer"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Hva er Mattermost?"
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "Du ble invitert som gjest for å samarbeide med teamet"
   }
 ]
