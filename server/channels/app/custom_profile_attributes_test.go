@@ -632,31 +632,69 @@ func TestPatchCPAValue(t *testing.T) {
 	})
 
 	t.Run("should handle array values correctly", func(t *testing.T) {
+		optionsID := []string{model.NewId(), model.NewId(), model.NewId(), model.NewId()}
 		arrayField := &model.PropertyField{
 			GroupID: cpaGroupID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: model.StringInterface{
+				"options": []map[string]any{
+					{"id": optionsID[0], "name": "option1"},
+					{"id": optionsID[1], "name": "option2"},
+					{"id": optionsID[2], "name": "option3"},
+					{"id": optionsID[3], "name": "option4"},
+				},
+			},
 		}
 		createdField, err := th.App.Srv().propertyService.CreatePropertyField(arrayField)
 		require.NoError(t, err)
 
+		// Create a JSON array with option IDs (not names)
+		optionJSON := fmt.Sprintf(`["%s", "%s", "%s"]`, optionsID[0], optionsID[1], optionsID[2])
+
 		userID := model.NewId()
-		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`["option1", "option2", "option3"]`))
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(optionJSON))
 		require.Nil(t, appErr)
 		require.NotNil(t, patchedValue)
 		var arrayValues []string
 		require.NoError(t, json.Unmarshal(patchedValue.Value, &arrayValues))
-		require.Equal(t, []string{"option1", "option2", "option3"}, arrayValues)
+		require.Equal(t, []string{optionsID[0], optionsID[1], optionsID[2]}, arrayValues)
 		require.Equal(t, userID, patchedValue.TargetID)
 
-		// Update array values
-		updatedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`["newOption1", "newOption2"]`))
+		// Update array values with valid option IDs
+		updatedOptionJSON := fmt.Sprintf(`["%s", "%s"]`, optionsID[1], optionsID[3])
+		updatedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(updatedOptionJSON))
 		require.Nil(t, appErr)
 		require.NotNil(t, updatedValue)
 		require.Equal(t, patchedValue.ID, updatedValue.ID)
 		arrayValues = nil
 		require.NoError(t, json.Unmarshal(updatedValue.Value, &arrayValues))
-		require.Equal(t, []string{"newOption1", "newOption2"}, arrayValues)
+		require.Equal(t, []string{optionsID[1], optionsID[3]}, arrayValues)
 		require.Equal(t, userID, updatedValue.TargetID)
+
+		t.Run("should fail if it tries to set a value that not valid for a field", func(t *testing.T) {
+			// Try to use an ID that doesn't exist in the options
+			invalidID := model.NewId()
+			invalidOptionJSON := fmt.Sprintf(`["%s", "%s"]`, optionsID[0], invalidID)
+
+			invalidValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(invalidOptionJSON))
+			require.NotNil(t, appErr)
+			require.Nil(t, invalidValue)
+			require.Equal(t, "app.custom_profile_attributes.validate_value.app_error", appErr.Id)
+
+			// Test with completely invalid JSON format
+			invalidJSON := `[not valid json]`
+			invalidValue, appErr = th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(invalidJSON))
+			require.NotNil(t, appErr)
+			require.Nil(t, invalidValue)
+			require.Equal(t, "app.custom_profile_attributes.validate_value.app_error", appErr.Id)
+
+			// Test with wrong data type (sending string instead of array)
+			wrongTypeJSON := `"not an array"`
+			invalidValue, appErr = th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(wrongTypeJSON))
+			require.NotNil(t, appErr)
+			require.Nil(t, invalidValue)
+			require.Equal(t, "app.custom_profile_attributes.validate_value.app_error", appErr.Id)
+		})
 	})
 }
