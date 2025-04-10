@@ -8,12 +8,14 @@ import {RootHtmlPortalId} from 'utils/constants';
 
 import PluginLinkTooltip from '.';
 
-function TestLinkTooltip({href}: {href: string}) {
-    if (href.includes('tooltip')) {
-        return <div>{'This is a link tooltip'}</div>;
-    }
+class TestLinkTooltip extends React.PureComponent<{href: string}> {
+    render() {
+        if (this.props.href.includes('tooltip')) {
+            return <div>{'This is a link tooltip'}</div>;
+        }
 
-    return null;
+        return null;
+    }
 }
 
 describe('PluginLinkTooltip', () => {
@@ -24,7 +26,7 @@ describe('PluginLinkTooltip', () => {
                     {
                         id: 'test',
                         pluginId: 'example.test',
-                        component: TestLinkTooltip as any,
+                        component: TestLinkTooltip,
                     },
                 ],
             },
