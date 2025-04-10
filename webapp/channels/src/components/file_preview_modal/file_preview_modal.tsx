@@ -28,7 +28,7 @@ import FilePreviewModalFooter from './file_preview_modal_footer/file_preview_mod
 import FilePreviewModalHeader from './file_preview_modal_header/file_preview_modal_header';
 import ImagePreview from './image_preview';
 import PopoverBar from './popover_bar';
-import {isFileInfo} from './types';
+import {isFileInfo, isLinkInfo} from './types';
 import type {LinkInfo} from './types';
 
 import './file_preview_modal.scss';
@@ -79,8 +79,6 @@ type State = {
     scale: Record<number, number>;
     content: string;
 }
-
-const PROXY_IMAGE_URL = '/api/v4/image?url=';
 
 export default class FilePreviewModal extends React.PureComponent<Props, State> {
     static defaultProps = {
@@ -167,18 +165,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     };
 
     isImageUrl = (url: string): boolean => {
-        // Check if the URL is a proxied image URL
-        if (url.includes(PROXY_IMAGE_URL)) {
-            return true;
-        }
-
-        // Check if the URL has a recognized image extension
-        const extension = url.split('.').pop()?.toLowerCase();
-        if (extension && Constants.IMAGE_TYPES.includes(extension)) {
-            return true;
-        }
-
-        return false;
+        const fileType = Utils.getFileType(url);
+        return fileType === FileTypes.IMAGE || fileType === FileTypes.SVG;
     };
 
     loadImage = (index: number) => {
@@ -187,14 +175,23 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             this.handleImageLoaded(index);
             return;
         }
-        const fileType = Utils.getFileType(fileInfo.extension);
 
-        // Check if this is an image URL, even if the extension is not recognized
-        const isImage = fileType === FileTypes.IMAGE ||
-                       (!isFileInfo(fileInfo) && this.isImageUrl(fileInfo.link));
+        // Determine file type based on the object type
+        let fileType;
+        if (isFileInfo(fileInfo)) {
+            fileType = Utils.getFileType(fileInfo.extension);
+        } else if (isLinkInfo(fileInfo)) {
+            // For LinkInfo, pass the full URL to getFileType to leverage enhanced URL detection
+            fileType = Utils.getFileType(fileInfo.link);
+        } else {
+            fileType = Utils.getFileType('');
+        }
+
+        // Check if this is an image
+        const isImage = fileType === FileTypes.IMAGE;
 
         if (isImage) {
-            let previewUrl;
+            let previewUrl = '';
             if (isFileInfo(fileInfo)) {
                 if (fileInfo.has_preview_image) {
                     previewUrl = getFilePreviewUrl(fileInfo.id);
@@ -202,7 +199,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                     // some images (eg animated gifs) just show the file itself and not a preview
                     previewUrl = getFileUrl(fileInfo.id);
                 }
-            } else {
+            } else if (isLinkInfo(fileInfo)) {
                 // For LinkInfo, use the link directly
                 previewUrl = fileInfo.link;
             }
@@ -295,7 +292,17 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         }
 
         const fileInfo = this.props.fileInfos[this.state.imageIndex];
-        const fileType = Utils.getFileType(fileInfo.extension);
+
+        // Determine file type based on the object type
+        let fileType;
+        if (isFileInfo(fileInfo)) {
+            fileType = Utils.getFileType(fileInfo.extension);
+        } else if (isLinkInfo(fileInfo)) {
+            // For LinkInfo, pass the full URL to getFileType to leverage enhanced URL detection
+            fileType = Utils.getFileType(fileInfo.link);
+        } else {
+            fileType = Utils.getFileType('');
+        }
 
         let showPublicLink;
         let fileName;
@@ -332,8 +339,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
 
         if (!isFileInfo(fileInfo) || !fileInfo.archived) {
             if (this.state.loaded[this.state.imageIndex]) {
-                if (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG ||
-                    (!isFileInfo(fileInfo) && this.isImageUrl(fileInfo.link))) {
+                if (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG) {
                     content = (
                         <ImagePreview
                             fileInfo={fileInfo as FileInfo}

@@ -225,14 +225,31 @@ export const getFileType = (extin: string): typeof FileTypes[keyof typeof FileTy
     }
 
     // Check for image file extensions in the URL path
-    const urlPath = extin.split('?')[0]; // Remove query parameters
-    const pathParts = urlPath.split('/');
-    const lastPathPart = pathParts[pathParts.length - 1];
+    try {
+        // Try to parse as a URL - this will validate if it's a proper URL
+        const url = new URL(extin);
+        const pathname = url.pathname;
+        const pathParts = pathname.split('/');
+        const lastPathPart = pathParts[pathParts.length - 1];
 
-    if (lastPathPart && lastPathPart.includes('.')) {
-        const urlExtension = lastPathPart.split('.').pop()?.toLowerCase();
-        if (urlExtension && Constants.IMAGE_TYPES.indexOf(urlExtension) > -1) {
-            return FileTypes.IMAGE;
+        if (lastPathPart && lastPathPart.includes('.')) {
+            const urlExtension = lastPathPart.split('.').pop()?.toLowerCase();
+            if (urlExtension && Constants.IMAGE_TYPES.indexOf(urlExtension) > -1) {
+                return FileTypes.IMAGE;
+            }
+        }
+    } catch (e) {
+        // If it's not a valid URL, try a simpler approach
+        // This handles cases where extin might be a file path but not a valid URL
+        const urlPath = extin.split('?')[0]; // Remove query parameters
+        const pathParts = urlPath.split('/');
+        const lastPathPart = pathParts[pathParts.length - 1];
+
+        if (lastPathPart && lastPathPart.includes('.')) {
+            const urlExtension = lastPathPart.split('.').pop()?.toLowerCase();
+            if (urlExtension && Constants.IMAGE_TYPES.indexOf(urlExtension) > -1) {
+                return FileTypes.IMAGE;
+            }
         }
     }
 
