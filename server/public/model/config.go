@@ -3677,7 +3677,8 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 // The 'access' tag '*_read' checks for any Sysconsole read permission and grants access if any read permission is allowed.
 //
 // By default config values can be written with PermissionManageSystem, but if ExperimentalSettings.RestrictSystemAdmin is true
-// and the access tag contains the value 'write_restrictable', then even PermissionManageSystem, does not grant write access.
+// and the access tag contains the value 'write_restrictable', then even PermissionManageSystem, does not grant write access
+// unless the request is made using local mode.
 //
 // PermissionManageSystem always grants read access.
 //
@@ -4370,7 +4371,7 @@ func (s *ServiceSettings) isValid() *AppError {
 		parent := filepath.Dir(*s.LocalModeSocketLocation)
 		_, err := os.Stat(parent)
 		if err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.app_error", nil, err.Error(), http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
 		}
 	}
 
