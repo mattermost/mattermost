@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {defineConfig, devices} from '@playwright/test';
+
 import {duration, testConfig} from '@mattermost/playwright-lib';
 
 export default defineConfig({
@@ -41,6 +42,7 @@ export default defineConfig({
         actionTimeout: duration.half_min,
     },
     projects: [
+        {name: 'setup', testMatch: /test_setup\.ts/},
         {
             name: 'ipad',
             use: {
@@ -48,6 +50,7 @@ export default defineConfig({
                 ...devices['iPad Pro 11'],
                 permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
             },
+            dependencies: ['setup'],
         },
         {
             name: 'chrome',
@@ -56,6 +59,7 @@ export default defineConfig({
                 permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
                 viewport: {width: 1280, height: 1024},
             },
+            dependencies: ['setup'],
         },
         {
             name: 'firefox',
@@ -64,6 +68,7 @@ export default defineConfig({
                 permissions: ['notifications'],
                 viewport: {width: 1280, height: 1024},
             },
+            dependencies: ['setup'],
         },
     ],
     reporter: [
