@@ -706,6 +706,11 @@
     resize: none;
 }
 
+.user-settings__radio-group-inline {
+    // Counteract the margin-left added by Bootstrap's radio-inline class
+    margin-left: -20px;
+}
+
 .user-settings__submit-checkbox {
     padding-top: 0;
     padding-bottom: 20px;
