@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import * as monaco from 'monaco-editor';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
@@ -57,34 +57,34 @@ const CELEditor: React.FC<CELEditorProps> = ({
         setExpression(value);
     }, [value]);
 
-    const handleChange = (newValue: string) => {
+    const handleChange = useCallback((newValue: string) => {
         setExpression(newValue);
         onChange(newValue);
 
         // Reset status bar color and validation state when user types
         setStatusBarColor('var(--button-bg)'); // back to blue
         setValidationErrors([]);
-    };
+    }, [onChange]);
 
-    const handleKeyUp = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        const target = e.currentTarget;
-        const value = target.value;
-        const selectionStart = target.selectionStart;
-
-        // Handle Alt/Option + Enter for validation
-        if (e.altKey && e.key === 'Enter') {
-            e.preventDefault();
-            validateSyntax();
-            return;
-        }
-
-        const textBeforeCursor = value.substring(0, selectionStart);
-        const lines = textBeforeCursor.split('\n');
-        const currentLine = lines.length;
-        const currentColumn = lines[lines.length - 1].length + 1;
-
-        setCursorPosition({line: currentLine, column: currentColumn});
-    };
+    // const handleKeyUp = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    //     const target = e.currentTarget;
+    //     const value = target.value;
+    //     const selectionStart = target.selectionStart;
+    //
+    //     // Handle Alt/Option + Enter for validation
+    //     if (e.altKey && e.key === 'Enter') {
+    //         e.preventDefault();
+    //         validateSyntax();
+    //         return;
+    //     }
+    //
+    //     const textBeforeCursor = value.substring(0, selectionStart);
+    //     const lines = textBeforeCursor.split('\n');
+    //     const currentLine = lines.length;
+    //     const currentColumn = lines[lines.length - 1].length + 1;
+    //
+    //     setCursorPosition({line: currentLine, column: currentColumn});
+    // };
 
     const handleClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
         const target = e.currentTarget;
@@ -99,7 +99,7 @@ const CELEditor: React.FC<CELEditorProps> = ({
         setCursorPosition({line: currentLine, column: currentColumn});
     };
 
-    const validateSyntax = async () => {
+    const validateSyntax = useCallback(async () => {
         setIsValidating(true);
 
         try {
@@ -131,7 +131,7 @@ const CELEditor: React.FC<CELEditorProps> = ({
         } finally {
             setIsValidating(false);
         }
-    };
+    }, []);
 
     const testAccessRule = async () => {
         try {
@@ -274,30 +274,42 @@ const CELEditor: React.FC<CELEditorProps> = ({
             renderLineHighlight: 'none',
             lineNumbersMinChars: 1,
             occurrencesHighlight: 'off',
+            stickyScroll: {enabled: false},
         });
 
         // add on change event handler for monaco editor
-        // monacoRef.current.onDidChangeModelContent(() => {
-        //     const newValue = monacoRef.current?.getValue() || '';
-        //     handleChange(newValue);
-        // });
+        monacoRef.current.getModel()?.onDidChangeContent(() => {
+            const newValue = monacoRef.current?.getValue() || '';
+            handleChange(newValue);
+        });
 
-        // monacoRef.current.onDidChangeCursorPosition((e) => {
-        //     console.log({column: e.position.column, lineNumber: e.position.lineNumber});
-        // });
+        monacoRef.current.onDidChangeCursorPosition((e) => {
+            setCursorPosition({line: e.position.lineNumber, column: e.position.column});
+        });
 
-        // monaco.editor.addKeybindingRule({
-        //     keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF,
-        //     command: null,
-        // });
+        monaco.editor.addKeybindingRule({
+            keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF,
+            command: null,
+        });
+
+        monaco.editor.addCommand({
+            id: 'policyEditorValidateSyntaxCommand',
+            run: validateSyntax,
+        });
+
+        monaco.editor.addKeybindingRule({
+            keybinding: monaco.KeyMod.Alt | monaco.KeyCode.Enter,
+            command: 'policyEditorValidateSyntaxCommand',
+        });
 
         return () => {
             if (monacoRef.current) {
+                console.log('disposing');
                 monacoRef.current.dispose();
                 monacoRef.current = null;
             }
         };
-    }, [handleChange]);
+    }, [handleChange, validateSyntax]);
 
     // return (
     //     <div className='flex flex-col'>
@@ -309,6 +321,8 @@ const CELEditor: React.FC<CELEditorProps> = ({
     //         />
     //     </div>
     // );
+
+    const showPlaceholder = !expression;
 
     return (
         <div className={`cel-editor ${className}`}>
@@ -327,6 +341,13 @@ const CELEditor: React.FC<CELEditorProps> = ({
                 {/*    placeholder={placeholder}*/}
                 {/*    aria-label='CEL Expression Editor'*/}
                 {/*/>*/}
+
+                {
+                    showPlaceholder &&
+                    <div className='policyeditorPlaceholder'>
+                        {placeholder}
+                    </div>
+                }
                 <div
                     ref={editorRef}
                     className='cel-editor__input'
