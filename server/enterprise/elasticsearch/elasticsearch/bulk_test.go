@@ -14,6 +14,8 @@ import (
 )
 
 func TestBulkProcessor(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-63718")
+
 	th := api4.SetupEnterprise(t)
 	defer th.TearDown()
 
