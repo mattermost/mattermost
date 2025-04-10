@@ -146,7 +146,7 @@ describe('Guest Account - Guest User Experience', () => {
         });
 
         // Close the main menu with Escape key
-        cy.get('body').type('{esc}')
+        cy.get('body').type('{esc}');
         cy.uiGetLHSTeamMenu().should('not.exist');
 
         // * Verify Options in LHS are changed
