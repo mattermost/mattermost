@@ -5,6 +5,8 @@ import * as monaco from 'monaco-editor';
 import type React from 'react';
 import {useEffect} from 'react';
 
+const POLICY_LANGUAGE_NAME = 'expressionLanguage';
+
 // Enhanced schema interface to support different types of values
 interface SchemaValue {
     [key: string]: string[] | boolean | SchemaValue;
@@ -18,20 +20,18 @@ interface MonacoLanguageProviderProps {
     schemas: SchemaMap;
 }
 
-export const MonacoLanguageProvider: React.FC<MonacoLanguageProviderProps> = ({
-    schemas,
-}) => {
+export function MonacoLanguageProvider({schemas}: MonacoLanguageProviderProps) {
     useEffect(() => {
         // Register our custom expression language
         if (
             !monaco.languages.
                 getLanguages().
-                some((lang) => lang.id === 'expressionLanguage')
+                some((lang) => lang.id === POLICY_LANGUAGE_NAME)
         ) {
-            monaco.languages.register({id: 'expressionLanguage'});
+            monaco.languages.register({id: POLICY_LANGUAGE_NAME});
 
             // Define language tokenizer
-            monaco.languages.setMonarchTokensProvider('expressionLanguage', {
+            monaco.languages.setMonarchTokensProvider(POLICY_LANGUAGE_NAME, {
                 tokenizer: {
                     root: [
 
@@ -289,4 +289,4 @@ export const MonacoLanguageProvider: React.FC<MonacoLanguageProviderProps> = ({
     }, [schemas]);
 
     return null; // This component doesn't render anything
-};
+}
