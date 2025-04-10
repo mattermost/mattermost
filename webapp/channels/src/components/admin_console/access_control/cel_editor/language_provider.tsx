@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import * as monaco from 'monaco-editor';
-import type React from 'react';
 import {useEffect} from 'react';
 
 const POLICY_LANGUAGE_NAME = 'expressionLanguage';
@@ -74,22 +73,6 @@ export function MonacoLanguageProvider({schemas}: MonacoLanguageProviderProps) {
                     ],
                 },
             });
-
-            // Define theme rules for syntax highlighting
-            monaco.editor.defineTheme('expressionTheme', {
-                base: 'vs-dark',
-                inherit: true,
-                rules: [
-                    {token: 'variable', foreground: '4EC9B0'}, // Objects (teal)
-                    {token: 'property', foreground: '9CDCFE'}, // Properties (light blue)
-                    {token: 'operator', foreground: 'D4D4D4'}, // Operators (white)
-                    {token: 'delimiter', foreground: 'D4D4D4'}, // Dots (white)
-                    {token: 'comment', foreground: '6A9955'}, // Comments (green)
-                    {token: 'string', foreground: 'CE9178'}, // Strings (orange)
-                    {token: 'number', foreground: 'B5CEA8'}, // Numbers (light green)
-                ],
-                colors: {},
-            });
         }
 
         // Get properties from a schema path
@@ -130,7 +113,7 @@ export function MonacoLanguageProvider({schemas}: MonacoLanguageProviderProps) {
 
                 const schemaItem = schemas[parentPath];
 
-                if (!schemaItem || Array.isArray(schemaItem)) {
+                if (!schemaItem || Array.isArray(schemaItem) || typeof schemaItem === 'boolean') {
                     return null;
                 }
 
@@ -164,7 +147,7 @@ export function MonacoLanguageProvider({schemas}: MonacoLanguageProviderProps) {
                     const valueMatch = textBeforePosition.match(valueOperatorPattern);
 
                     if (valueMatch) {
-                        const [, fullPath, operator, currentValue] = valueMatch;
+                        const [, fullPath, , currentValue] = valueMatch;
 
                         // Get values for this full path
                         const allowedValues = getValuesForPath(fullPath);
