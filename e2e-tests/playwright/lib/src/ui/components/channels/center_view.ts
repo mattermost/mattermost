@@ -133,7 +133,7 @@ export default class ChannelsCenterView {
         const messageLocator = this.scheduledDraftChannelInfoMessage.first();
         try {
             await expect(messageLocator).toContainText('Message scheduled for');
-        } catch (error) {
+        } catch {
             // First assertion failed, trying fallback
             await expect(messageLocator).toContainText('You have one scheduled message.');
         }
