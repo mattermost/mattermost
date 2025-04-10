@@ -252,7 +252,7 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
         }
 
         let loadMetricComponent: JSX.Element | null = null;
-        if (this.state.loadMetric > 0) {
+        if (this.state.loadMetric !== null && this.state.loadMetric > 0) {
             loadMetricComponent = (
                 <div data-testid='aboutModalLoadMetric'>
                     <FormattedMessage
