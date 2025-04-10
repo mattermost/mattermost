@@ -82,7 +82,12 @@ const SelectType = (props: Props) => {
                 />,
             ]}
             {options.map((descriptor) => {
-                const {id, icon: Icon, label} = descriptor;
+                const {id, icon: Icon, label, disabled} = descriptor;
+
+                if (disabled) {
+                    return null;
+                }
+
                 return (
                     <Menu.Item
                         id={id}
@@ -120,7 +125,14 @@ const getTypeDescriptor = (field: UserPropertyField): TypeDescriptor => {
 
 type TypeID = 'text' | 'email' | 'phone' | 'url' | 'select' | 'multiselect';
 
-type TypeDescriptor = {id: TypeID; fieldType: FieldType; valueType: FieldValueType; icon: ComponentType<IconProps>; label: MessageDescriptor};
+type TypeDescriptor = {
+    id: TypeID;
+    fieldType: FieldType;
+    valueType: FieldValueType;
+    icon: ComponentType<IconProps>;
+    label: MessageDescriptor;
+    disabled?: boolean;
+};
 
 const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
     text: {
@@ -135,6 +147,7 @@ const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
     },
     email: {
         id: 'email',
+        disabled: true,
         fieldType: 'text',
         valueType: 'email',
         icon: EmailOutlineIcon,

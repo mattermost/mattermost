@@ -67,8 +67,8 @@ describe('UserPropertyTypeMenu', () => {
         // Open the menu
         fireEvent.click(screen.getByText('Text'));
 
-        // Click to select Email type
-        fireEvent.click(screen.getByText('Email'));
+        // Click to select Phone type
+        fireEvent.click(screen.getByText('Phone'));
 
         // Verify the field was updated with the new type
         expect(updateField).toHaveBeenCalledWith({
@@ -76,7 +76,7 @@ describe('UserPropertyTypeMenu', () => {
             type: 'text',
             attrs: {
                 ...baseField.attrs,
-                value_type: 'email',
+                value_type: 'phone',
             },
         });
     });

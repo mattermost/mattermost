@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
-import type {PropertyField, UserPropertyFieldType} from '@mattermost/types/properties';
+import type {UserPropertyField, UserPropertyFieldType} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
@@ -78,10 +78,10 @@ const getAttributeKey = (id?: string) => {
 
 const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | null => {
     const customProfileAttributeFields = useSelector((state: GlobalState) => getCustomProfileAttributes(state));
-    const [attributes, setAttributes] = useState<PropertyField[]>(
+    const [attributes, setAttributes] = useState<UserPropertyField[]>(
         Object.values(customProfileAttributeFields),
     );
-    const [originalAttributes] = useState<PropertyField[]>(attributes);
+    const [originalAttributes] = useState<UserPropertyField[]>(attributes);
     const attributeKey = getAttributeKey(props.id);
 
     useEffect(() => {
@@ -111,7 +111,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
 
         props.registerSaveAction(handleSave);
         return () => props.unRegisterSaveAction(handleSave);
-    }, [props.registerSaveAction, props.unRegisterSaveAction, attributes, originalAttributes]);
+    }, [props.registerSaveAction, props.unRegisterSaveAction, attributes, originalAttributes, attributeKey, props]);
 
     if (attributes.length === 0) {
         return null;
@@ -145,7 +145,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
             {attributes.map((attr) => (
                 <TextSetting
                     key={attr.id}
-                    id={`custom_profile_attribute-${attr.name}_input`}
+                    id={`custom_profile_attribute-${attr.name}`}
                     label={attr.name}
                     value={attr.attrs?.[attributeKey] as string || ''}
                     onChange={(id, newValue) => {
