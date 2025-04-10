@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -123,9 +124,12 @@ func TestEnsureInstallationDate(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 
-				data, err := th.App.Srv().Store().System().GetByName(model.SystemInstallationDateKey)
+				var data *model.System
+				data, err = th.App.Srv().Store().System().GetByName(model.SystemInstallationDateKey)
 				assert.NoError(t, err)
-				value, _ := strconv.ParseInt(data.Value, 10, 64)
+				var value int64
+				value, err = strconv.ParseInt(data.Value, 10, 64)
+				require.NoError(t, err)
 				assert.True(t, *tc.ExpectedInstallationDate <= value && *tc.ExpectedInstallationDate+1000 >= value)
 			}
 
