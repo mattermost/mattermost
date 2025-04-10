@@ -5059,6 +5059,10 @@
     "translation": "Unable to delete Custom Profile Attribute field"
   },
   {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Cannot update value for a synced Custom Profile Attribute field"
+  },
+  {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
     "translation": "Custom Profile Attribute field not found"
   },
