@@ -1866,12 +1866,8 @@
     "translation": "remote_id must be blank for custom group"
   },
   {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Unable to convert the property field to a custom profile attribute field"
-  },
-  {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "trying to patch a field that does not exist"
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "invalid custom profile attribute field patch"
   },
   {
     "id": "api.custom_profile_attributes.license_error",
@@ -5081,6 +5077,10 @@
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Unable to search Custom Profile Attribute fields"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Failed to validate property value"
   },
   {
     "id": "app.delete_scheduled_post.delete_error",
@@ -8297,6 +8297,10 @@
     "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator."
   },
   {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "Failed to retrieve CPA field(s)"
+  },
+  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "We received an empty response from the Identity Provider."
   },
@@ -8331,6 +8335,14 @@
   {
     "id": "ent.saml.service_disable.app_error",
     "translation": "SAML 2.0 is not configured or supported on this server."
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "SAML assertion attribute statement is invalid"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "Error(s) updating CPA values"
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
@@ -8475,6 +8487,38 @@
   {
     "id": "model.access.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Invalid policy id."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Invalid imports for the policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Invalid name for the policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Invalid policy revision."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Rule(s) is not valid."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Policy must either import or define rules."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Invalid policy type."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Version is not valid for this access control policy."
   },
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
@@ -8925,6 +8969,10 @@
     "translation": "Search ConnectionUrl setting must be provided when indexing is enabled."
   },
   {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix cannot be empty if GlobalSearchPrefix is set."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
     "translation": "{{.EnableIndexing}} setting must be set to true when {{.Autocomplete}} is set to true"
   },
@@ -8935,6 +8983,10 @@
   {
     "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
     "translation": "Ignored indexes for purge should not start with dash."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} should be a prefix of IndexPrefix {{.IndexPrefix}}."
   },
   {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",

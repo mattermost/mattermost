@@ -17,19 +17,19 @@ import (
 )
 
 func cleanupStoreState(t *testing.T, rctx request.CTX, ss store.Store) {
-	//remove existing users
+	// remove existing users
 	allUsers, err := ss.User().GetAll()
 	require.NoError(t, err, "error cleaning all test users", err)
 	for _, u := range allUsers {
 		err = ss.User().PermanentDelete(rctx, u.Id)
 		require.NoError(t, err, "failed cleaning up test user %s", u.Username)
 
-		//remove all posts by this user
+		// remove all posts by this user
 		nErr := ss.Post().PermanentDeleteByUser(rctx, u.Id)
 		require.NoError(t, nErr, "failed cleaning all posts of test user %s", u.Username)
 	}
 
-	//remove existing channels
+	// remove existing channels
 	allChannels, nErr := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.NoError(t, nErr, "error cleaning all test channels", nErr)
 	for _, channel := range allChannels {
@@ -37,7 +37,7 @@ func cleanupStoreState(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, nErr, "failed cleaning up test channel %s", channel.Id)
 	}
 
-	//remove existing teams
+	// remove existing teams
 	allTeams, nErr := ss.Team().GetAll()
 	require.NoError(t, nErr, "error cleaning all test teams", nErr)
 	for _, team := range allTeams {
@@ -72,8 +72,10 @@ func testComplianceStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
 
-	compliances, _ := ss.Compliance().GetAll(0, 1000)
+	compliances, err := ss.Compliance().GetAll(0, 1000)
+	require.NoError(t, err)
 
+	require.Len(t, compliances, 2)
 	require.Equal(t, model.ComplianceStatusRunning, compliances[0].Status)
 	require.Equal(t, compliance2.Id, compliances[0].Id)
 
@@ -81,20 +83,26 @@ func testComplianceStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Compliance().Update(compliance2)
 	require.NoError(t, err)
 
-	compliances, _ = ss.Compliance().GetAll(0, 1000)
+	compliances, err = ss.Compliance().GetAll(0, 1000)
+	require.NoError(t, err)
 
+	require.Len(t, compliances, 2)
 	require.Equal(t, model.ComplianceStatusFailed, compliances[0].Status)
 	require.Equal(t, compliance2.Id, compliances[0].Id)
 
-	compliances, _ = ss.Compliance().GetAll(0, 1)
+	compliances, err = ss.Compliance().GetAll(0, 1)
+	require.NoError(t, err)
 
 	require.Len(t, compliances, 1)
 
-	compliances, _ = ss.Compliance().GetAll(1, 1)
+	compliances, err = ss.Compliance().GetAll(1, 1)
+	require.NoError(t, err)
 
 	require.Len(t, compliances, 1)
 
-	rc2, _ := ss.Compliance().Get(compliance2.Id)
+	rc2, err := ss.Compliance().Get(compliance2.Id)
+	require.NoError(t, err)
+
 	require.Equal(t, compliance2.Status, rc2.Status)
 }
 
@@ -837,7 +845,7 @@ func testEditExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 	post1, err = ss.Post().Save(rctx, post1)
 	require.NoError(t, err)
 
-	//user 1 edits the previous post
+	// user 1 edits the previous post
 	post1e := post1.Clone()
 	post1e.Message = "edit " + post1.Message
 
@@ -948,7 +956,7 @@ func testEditAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store) 
 	assert.Equal(t, user1.Username, *v.Username)
 
 	postEditTime := post1.UpdateAt + 1
-	//user 1 edits the previous post
+	// user 1 edits the previous post
 	post1e := post1.Clone()
 	post1e.EditAt = postEditTime
 	post1e.Message = "edit " + post1.Message
@@ -1040,7 +1048,7 @@ func testDeleteExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 	post1, err = ss.Post().Save(rctx, post1)
 	require.NoError(t, err)
 
-	//user 1 deletes the previous post
+	// user 1 deletes the previous post
 	postDeleteTime := post1.UpdateAt + 1
 	err = ss.Post().Delete(rctx, post1.Id, postDeleteTime, user1.Id)
 	require.NoError(t, err)
@@ -1143,7 +1151,7 @@ func testDeleteAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store
 	assert.Equal(t, user1.Email, *v.UserEmail)
 	assert.Equal(t, user1.Username, *v.Username)
 
-	//user 1 deletes the previous post
+	// user 1 deletes the previous post
 	postDeleteTime := post1.UpdateAt + 1
 	err = ss.Post().Delete(rctx, post1.Id, postDeleteTime, user1.Id)
 	require.NoError(t, err)
