@@ -28,25 +28,3 @@ jobs:
 
       - name: Run build
         run: make build
-
-      - name: Checkout developer documentation repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          repository: mattermost/mattermost-developer-documentation
-          token: ${{ secrets.DEV_DOCS_TOKEN }}
-          path: developer-docs
-
-      - name: Copy OpenAPI spec
-        run: |
-          mkdir -p ${{ github.workspace }}/developer-docs/site/static
-          cp v4/html/static/mattermost-openapi-v4.yaml ${{ github.workspace }}/developer-docs/site/static/
-
-      - name: Commit and push changes
-        if: github.ref == 'refs/heads/master'
-        run: |
-          cd ${{ github.workspace }}/developer-docs
-          git config --global user.name "API Documentation Bot"
-          git config --global user.email "apidocsbot@mattermost.com"
-          git add site/static/mattermost-openapi-v4.yaml
-          git commit -m "Update OpenAPI spec" || echo "No changes to commit"
-          git push
