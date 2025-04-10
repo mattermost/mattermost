@@ -1,6 +1,6 @@
 .cel-editor {
     margin-bottom: 24px;
-    
+
     &__container {
         position: relative;
         display: flex;
@@ -9,8 +9,25 @@
         border-radius: 4px;
         background: var(--center-channel-bg);
         margin-bottom: 8px;
+        height: auto;
+        flex-direction: column;
+        overflow: auto;
+        overflow-y: auto;
+
+        .policy-editor-placeholder {
+            position: absolute;
+            white-space: pre-wrap;
+            top: 13px;
+            left: 30px;
+            font-size: 12px;
+            color: rgba(0,0,0, 0.40);
+            font-family: monospace;
+            pointer-events: none;
+            user-select: none;
+            z-index: 10;
+        }
     }
-    
+
     &__cursor-position {
         position: absolute;
         right: 8px;
@@ -21,23 +38,32 @@
         border-radius: 4px;
         pointer-events: none;
     }
-    
+
     &__input {
         width: 100%;
-        min-height: 120px;
         resize: vertical;
+        min-height: 120px;
+        max-height: 600px;
         border: 1px solid var(--button-bg);
         border-radius: 4px 4px 0 0;
         padding: 12px;
         font-family: monospace;
         transition: border-color 0.15s ease;
-        
+        height: auto;
+        overflow: auto;
+        //overflow-y: auto;
+        flex-grow: 0;
+
         &:focus {
             outline: none;
         }
-        
+
         &::placeholder {
             color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+
+        .policyEditor {
+            outline: none;
         }
 
         .cel-editor__container[data-status-color='var(--error-text)'] & {
@@ -52,19 +78,19 @@
             border-color: var(--button-bg);
         }
     }
-    
+
     &__footer {
         display: flex;
         justify-content: flex-end;
         align-items: center;
         margin-bottom: 16px;
     }
-    
+
     &__actions {
         display: flex;
         align-items: center;
     }
-    
+
     &__test-btn {
         display: flex;
         align-items: center;
@@ -76,36 +102,36 @@
         font-weight: 600;
         color: var(--button-bg);
         cursor: pointer;
-        
+
         i {
             font-size: 16px;
         }
-        
+
         &:hover {
             background: rgba(var(--button-bg-rgb), 0.08);
         }
-        
+
         &:disabled {
             border-color: rgba(var(--center-channel-color-rgb), 0.32);
             color: rgba(var(--center-channel-color-rgb), 0.32);
             cursor: not-allowed;
         }
     }
-    
+
     &__loading {
         display: flex;
         align-items: center;
-        
+
         i {
             margin-right: 8px;
         }
     }
-    
+
     &__help-text {
         font-size: 12px;
         line-height: 1.5;
         color: rgba(var(--center-channel-color-rgb), 0.64);
-        
+
         code {
             background: rgba(var(--center-channel-color-rgb), 0.08);
             padding: 2px 4px;
@@ -113,13 +139,13 @@
             font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
         }
     }
-    
+
     &__learn-more {
         display: block;
         margin-top: 4px;
         color: var(--button-bg);
         text-decoration: none;
-        
+
         &:hover {
             text-decoration: underline;
         }
@@ -141,7 +167,7 @@
     &__error-message {
         display: flex;
         align-items: center;
-        
+
         .icon {
             margin-right: 4px;
             font-size: 14px;
@@ -157,7 +183,7 @@
     &__status-message {
         display: flex;
         align-items: center;
-        
+
         .icon {
             margin-right: 4px;
             font-size: 14px;
@@ -179,11 +205,11 @@
         font-weight: 600;
         color: var(--button-color);
         cursor: pointer;
-        
+
         &:hover {
             text-decoration: underline;
         }
-        
+
         &:disabled {
             cursor: not-allowed;
             opacity: 0.6;
@@ -192,7 +218,7 @@
         .cel-editor__loading {
             display: flex;
             align-items: center;
-            
+
             i {
                 margin-right: 4px;
                 font-size: 12px;
@@ -256,4 +282,8 @@
             }
         }
     }
+}
+
+.Card__body.expanded:has(.cel-editor) {
+    height: max-content !important;
 }

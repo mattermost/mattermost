@@ -13,6 +13,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
 const WebpackPwaManifest = require('webpack-pwa-manifest');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const packageJson = require('./package.json');
 
@@ -266,6 +267,40 @@ var config = {
                 type: 'image/png',
                 sizes: '96x96',
             }],
+        }),
+        new MonacoWebpackPlugin({
+            languages: [],
+
+            // don't include features we disable. these generally correspond to the options
+            // passed to editor initialization in note-content-editor.tsx
+            // @see https://github.com/microsoft/monaco-editor/blob/main/webpack-plugin/README.md#options
+            features: [
+                '!bracketMatching',
+                '!codeAction',
+                '!codelens',
+                '!colorPicker',
+                '!comment',
+                '!diffEditor',
+                '!diffEditorBreadcrumbs',
+                '!folding',
+                '!gotoError',
+                '!gotoLine',
+                '!gotoSymbol',
+                '!gotoZoom',
+                '!inspectTokens',
+                '!multicursor',
+                '!parameterHints',
+                '!quickCommand',
+                '!quickHelp',
+                '!quickOutline',
+                '!referenceSearch',
+                '!rename',
+                '!snippet',
+                '!stickyScroll',
+                '!suggest',
+                '!toggleHighContrast',
+                '!unicodeHighlighter',
+            ],
         }),
     ],
 };
