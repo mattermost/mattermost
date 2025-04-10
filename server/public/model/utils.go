@@ -874,21 +874,21 @@ func SliceToMapKey(s ...string) map[string]any {
 }
 
 // LimitRunes limits the number of runes in a string to the given maximum.
-// It returns the original string if it is shorter than the maximum.
-func LimitRunes(s string, maxRunes int) string {
+// It returns the potentially truncated string and a boolean indicating whether truncation occurred.
+func LimitRunes(s string, maxRunes int) (string, bool) {
 	runes := []rune(s)
 	if len(runes) > maxRunes {
-		runes = runes[:maxRunes]
+		return string(runes[:maxRunes]), true
 	}
 
-	return string(runes)
+	return s, false
 }
 
 // LimitBytes limits the number of bytes in a string to the given maximum.
-// It returns the original string if it is shorter than the maximum.
-func LimitBytes(s string, maxBytes int) string {
+// It returns the potentially truncated string and a boolean indicating whether truncation occurred.
+func LimitBytes(s string, maxBytes int) (string, bool) {
 	if len(s) > maxBytes {
-		return s[:maxBytes]
+		return s[:maxBytes], true
 	}
-	return s
+	return s, false
 }
