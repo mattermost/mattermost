@@ -110,7 +110,7 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 
 	var searchAttachments []string
 
-	if attachments := post.GetProp("attachments"); attachments != nil {
+	if attachments := post.GetProp(model.PostPropsAttachments); attachments != nil {
 		attachmentsInterfaceArray, ok := attachments.([]any)
 		if ok {
 			for _, attachment := range attachmentsInterfaceArray {
@@ -263,6 +263,17 @@ func ESUserFromUserForIndexing(userForIndexing *model.UserForIndexing) *ESUser {
 	}
 
 	return ESUserFromUserAndTeams(user, userForIndexing.TeamsIds, userForIndexing.ChannelsIds)
+}
+
+// SearchIndexName returns the index pattern to search for a given index name.
+func SearchIndexName(settings model.ElasticsearchSettings, name string) string {
+	if *settings.GlobalSearchPrefix == "" {
+		return *settings.IndexPrefix + name
+	}
+
+	// GlobalSearchPrefix is a prefix of IndexPrefix itself. This is verified in the config.
+	// Therefore, we use * to search across all indices with the common search prefix.
+	return *settings.GlobalSearchPrefix + "*" + name
 }
 
 func BuildPostIndexName(aggregateAfterDays int, unaggregatedBase string, aggregatedBase string, now time.Time, createAt int64) string {
