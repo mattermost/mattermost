@@ -5,9 +5,9 @@ import * as monaco from 'monaco-editor';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Client4} from 'mattermost-redux/client';
+import type {AccessControlTestResult} from '@mattermost/types/admin';
 
-import './editor.scss';
+import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {MonacoLanguageProvider} from 'components/admin_console/access_control/cel_editor/language_provider';
@@ -15,9 +15,57 @@ import Markdown from 'components/markdown';
 
 import TestResultsModal from '../test_modal/test_modal';
 
-import type {AccessControlTestResult} from '@mattermost/types/admin';
+import './editor.scss';
 
-export const PolicyLanguage = 'expressionLanguage';
+export const POLICY_LANGUAGE = 'expressionLanguage';
+const VALIDATE_POLICY_SYNTAX_COMMAND_ID = 'policyEditorValidateSyntaxCommand';
+
+const MONACO_EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
+    extraEditorClassName: 'policyEditor',
+    language: POLICY_LANGUAGE,
+    automaticLayout: true,
+    minimap: {enabled: false},
+    lineNumbers: 'on',
+    scrollBeyondLastLine: false,
+    wordWrap: 'on',
+    renderLineHighlight: 'none',
+    lineNumbersMinChars: 1,
+    occurrencesHighlight: 'off',
+    stickyScroll: {enabled: false},
+    autoClosingBrackets: 'never',
+    autoClosingQuotes: 'never',
+    autoIndent: 'keep',
+    autoSurround: 'never',
+    codeLens: false,
+    folding: false,
+    fontFamily: 'monospace',
+    hideCursorInOverviewRuler: true,
+    fontSize: 12,
+    guides: {indentation: false},
+    links: true,
+    matchBrackets: 'never',
+    multiCursorLimit: 1,
+    overviewRulerBorder: false,
+    quickSuggestions: false,
+    renderControlCharacters: false,
+    renderWhitespace: 'none',
+    scrollbar: {
+        horizontal: 'hidden',
+        useShadows: false,
+    },
+    selectionHighlight: false,
+    showFoldingControls: 'never',
+    suggestOnTriggerCharacters: true,
+    unicodeHighlight: {
+        ambiguousCharacters: false,
+        invisibleCharacters: false,
+    },
+    unusualLineTerminators: 'auto',
+    wordWrapColumn: 400,
+    wrappingIndent: 'none',
+    wrappingStrategy: 'advanced',
+    contextmenu: false,
+};
 
 interface CELEditorProps {
     value: string;
@@ -27,9 +75,8 @@ interface CELEditorProps {
     className?: string;
 }
 
+// TODO: this is just a sample schema for the editor, we need to get the actual schema from the server
 const schemas = {
-
-    // Root objects
     user: ['attributes', 'profile', 'program'],
     channel: ['attributes'],
     'user.attributes': ['clearance', 'level', 'role'],
@@ -53,6 +100,10 @@ const CELEditor: React.FC<CELEditorProps> = ({
     const [statusBarColor, setStatusBarColor] = useState('var(--button-bg)'); // default color
     const [showTestResults, setShowTestResults] = useState(false);
     const [testResults, setTestResults] = useState<AccessControlTestResult | null>(null);
+
+    const editorRef = useRef(null);
+    const monacoRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+
     useEffect(() => {
         setExpression(value);
     }, [value]);
@@ -65,39 +116,6 @@ const CELEditor: React.FC<CELEditorProps> = ({
         setStatusBarColor('var(--button-bg)'); // back to blue
         setValidationErrors([]);
     }, [onChange]);
-
-    // const handleKeyUp = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    //     const target = e.currentTarget;
-    //     const value = target.value;
-    //     const selectionStart = target.selectionStart;
-    //
-    //     // Handle Alt/Option + Enter for validation
-    //     if (e.altKey && e.key === 'Enter') {
-    //         e.preventDefault();
-    //         validateSyntax();
-    //         return;
-    //     }
-    //
-    //     const textBeforeCursor = value.substring(0, selectionStart);
-    //     const lines = textBeforeCursor.split('\n');
-    //     const currentLine = lines.length;
-    //     const currentColumn = lines[lines.length - 1].length + 1;
-    //
-    //     setCursorPosition({line: currentLine, column: currentColumn});
-    // };
-
-    const handleClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
-        const target = e.currentTarget;
-        const value = target.value;
-        const selectionStart = target.selectionStart;
-
-        const textBeforeCursor = value.substring(0, selectionStart);
-        const lines = textBeforeCursor.split('\n');
-        const currentLine = lines.length;
-        const currentColumn = lines[lines.length - 1].length + 1;
-
-        setCursorPosition({line: currentLine, column: currentColumn});
-    };
 
     const validateSyntax = useCallback(async () => {
         setIsValidating(true);
@@ -131,9 +149,9 @@ const CELEditor: React.FC<CELEditorProps> = ({
         } finally {
             setIsValidating(false);
         }
-    }, []);
+    }, [expression, onValidate]);
 
-    const testAccessRule = async () => {
+    const testAccessRule = useCallback(async () => {
         try {
             const result = await Client4.testAccessControlExpression(expression);
             setTestResults({
@@ -144,140 +162,20 @@ const CELEditor: React.FC<CELEditorProps> = ({
         } catch (error) {
             console.error('Error testing access rule:', error);
         }
-    };
+    }, [expression]);
 
-    // return (
-    //     <div className={`cel-editor ${className}`}>
-    //         <div
-    //             className="cel-editor__container"
-    //             data-status-color={statusBarColor}
-    //         >
-    //             <textarea
-    //                 className="cel-editor__input"
-    //                 value={expression}
-    //                 onChange={handleChange}
-    //                 onKeyUp={handleKeyUp}
-    //                 onClick={handleClick}
-    //                 placeholder={placeholder}
-    //                 aria-label="CEL Expression Editor"
-    //             />
-    //             <div
-    //                 className="cel-editor__status-bar"
-    //                 style={{ backgroundColor: statusBarColor }}
-    //             >
-    //                 <div className="cel-editor__status-message">
-    //                     {validationErrors.length > 0 ? (
-    //                         <span className="cel-editor__error">
-    //                             <i
-    //                                 className="icon icon-refresh"
-    //                                 onClick={validateSyntax}
-    //                                 role="button"
-    //                                 aria-label="Retry validation"
-    //                             />
-    //                             {validationErrors[0]}
-    //                         </span>
-    //                     ) : isValid && statusBarColor === 'var(--online-indicator)' ? (
-    //                         <span className="cel-editor__valid">
-    //                             <i className="icon icon-check" />
-    //                             Valid
-    //                         </span>
-    //                     ) : (
-    //                         <button
-    //                             className="cel-editor__inline-validate-btn"
-    //                             onClick={validateSyntax}
-    //                             disabled={isValidating}
-    //                         >
-    //                             {isValidating ? (
-    //                                 <span className="cel-editor__loading">
-    //                                     <i className="fa fa-spinner fa-spin" />
-    //                                     <FormattedMessage
-    //                                         id="admin.access_control.cel.validating"
-    //                                         defaultMessage="Validating..."
-    //                                     />
-    //                                 </span>
-    //                             ) : (
-    //                                 <span className="cel-editor__loading">
-    //                                 <i className="icon icon-magnify" />
-    //                                 <FormattedMessage
-    //                                     id="admin.access_control.cel.validateSyntax"
-    //                                     defaultMessage="Validate syntax"
-    //                                 />
-    //                             </span>
-    //                             )}
-    //                         </button>
-    //                     )}
-    //                 </div>
-    //                 <div className="cel-editor__cursor-position">
-    //                     L{cursorPosition.line}:{cursorPosition.column}
-    //                 </div>
-    //             </div>
-    //         </div>
-    //
-    //         <div className="cel-editor__footer">
-    //             <button
-    //                 className="cel-editor__test-btn"
-    //                 onClick={testAccessRule}
-    //                 disabled={!isValid || isValidating}
-    //             >
-    //                 <i className="icon icon-lock-outline" />
-    //                 <FormattedMessage
-    //                     id="admin.access_control.cel.testAccessRule"
-    //                     defaultMessage="Test access rule"
-    //                 />
-    //             </button>
-    //         </div>
-    //
-    //         <div className="cel-editor__help-text">
-    //             <Markdown
-    //                 message={"Write rules like `user.<attribute> == <value>`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`."}
-    //                 options={{mentionHighlight: false}}
-    //             />
-    //             <a href="#" className="cel-editor__learn-more">
-    //                 <FormattedMessage
-    //                     id="admin.access_control.cel.learnMore"
-    //                     defaultMessage="Learn more about creating access expressions with examples."
-    //                 />
-    //             </a>
-    //         </div>
-    //         {showTestResults && (
-    //             <TestResultsModal
-    //                 testResults={testResults}
-    //                 onExited={() => setShowTestResults(false)}
-    //                 actions={{
-    //                     openModal: () => {},
-    //                     setModalSearchTerm: (term: string): ActionResult => ({data: term}),
-    //                 }}
-    //             />
-    //         )}
-    //     </div>
-    // );
-
-    const editorRef = useRef(null);
-    const monacoRef = useRef<monaco.editor.IStandaloneCodeEditor>(null);
-
+    // initialize monaco editor
     useEffect(() => {
         if (!editorRef.current || monacoRef.current) {
-            // returning no-op cleanup function to satisfy
-            // the useEffect cleanup type definition
+            // returning no-op cleanup function to satisfy typescript
+            // constraint of consistent return types. Since we're
+            // returning a cleanup function at the end,
+            // we also need to return a () => void function in every code path.
             return () => {};
         }
 
-        monacoRef.current = monaco.editor.create(editorRef.current, {
-            extraEditorClassName: 'policyEditor',
-            language: PolicyLanguage,
-            // theme: 'expressionTheme',
-            automaticLayout: true,
-            minimap: {enabled: false},
-            lineNumbers: 'on',
-            scrollBeyondLastLine: false,
-            wordWrap: 'on',
-            renderLineHighlight: 'none',
-            lineNumbersMinChars: 1,
-            occurrencesHighlight: 'off',
-            stickyScroll: {enabled: false},
-        });
+        monacoRef.current = monaco.editor.create(editorRef.current, MONACO_EDITOR_OPTIONS);
 
-        // add on change event handler for monaco editor
         monacoRef.current.getModel()?.onDidChangeContent(() => {
             const newValue = monacoRef.current?.getValue() || '';
             handleChange(newValue);
@@ -287,42 +185,29 @@ const CELEditor: React.FC<CELEditorProps> = ({
             setCursorPosition({line: e.position.lineNumber, column: e.position.column});
         });
 
+        // To disable monaco's default behavior of opening the find and replace widget
         monaco.editor.addKeybindingRule({
             keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF,
             command: null,
         });
 
         monaco.editor.addCommand({
-            id: 'policyEditorValidateSyntaxCommand',
+            id: VALIDATE_POLICY_SYNTAX_COMMAND_ID,
             run: validateSyntax,
         });
 
         monaco.editor.addKeybindingRule({
             keybinding: monaco.KeyMod.Alt | monaco.KeyCode.Enter,
-            command: 'policyEditorValidateSyntaxCommand',
+            command: VALIDATE_POLICY_SYNTAX_COMMAND_ID,
         });
 
         return () => {
             if (monacoRef.current) {
-                console.log('disposing');
                 monacoRef.current.dispose();
                 monacoRef.current = null;
             }
         };
-    }, [handleChange, validateSyntax]);
-
-    // return (
-    //     <div className='flex flex-col'>
-    //         <MonacoLanguageProvider schemas={schemas}/>
-    //
-    //         <div
-    //             ref={editorRef}
-    //             className="editor w-full h-96 border border-gray-300 rounded shadow-md"
-    //         />
-    //     </div>
-    // );
-
-    const showPlaceholder = !expression;
+    }, []);
 
     return (
         <div className={`cel-editor ${className}`}>
@@ -332,22 +217,16 @@ const CELEditor: React.FC<CELEditorProps> = ({
                 className='cel-editor__container'
                 data-status-color={statusBarColor}
             >
-                {/*<textarea*/}
-                {/*    className='cel-editor__input'*/}
-                {/*    value={expression}*/}
-                {/*    onChange={handleChange}*/}
-                {/*    onKeyUp={handleKeyUp}*/}
-                {/*    onClick={handleClick}*/}
-                {/*    placeholder={placeholder}*/}
-                {/*    aria-label='CEL Expression Editor'*/}
-                {/*/>*/}
-
                 {
-                    showPlaceholder &&
-                    <div className='policyeditorPlaceholder'>
+                    !expression &&
+                    <div
+                        className='policy-editor-placeholder'
+                        aria-label='CEL Expression Editor'
+                    >
                         {placeholder}
                     </div>
                 }
+
                 <div
                     ref={editorRef}
                     className='cel-editor__input'
@@ -370,7 +249,7 @@ const CELEditor: React.FC<CELEditorProps> = ({
                         ) : isValid && statusBarColor === 'var(--online-indicator)' ? (
                             <span className='cel-editor__valid'>
                                 <i className='icon icon-check'/>
-                                Valid
+                                {'Valid'}
                             </span>
                         ) : (
                             <button
@@ -399,7 +278,14 @@ const CELEditor: React.FC<CELEditorProps> = ({
                         )}
                     </div>
                     <div className='cel-editor__cursor-position'>
-                        L{cursorPosition.line}:{cursorPosition.column}
+                        <FormattedMessage
+                            id='admin.access_control.cel.line_and_column_number'
+                            defaultMessage='L{lineNumber}:{columnNumber}'
+                            values={{
+                                lineNumber: cursorPosition.line,
+                                columnNumber: cursorPosition.column,
+                            }}
+                        />
                     </div>
                 </div>
             </div>

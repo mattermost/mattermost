@@ -56,6 +56,7 @@
     "memoize-one": "6.0.0",
     "moment-timezone": "0.5.38",
     "monaco-editor": "0.52.2",
+    "monaco-editor-webpack-plugin": "7.1.0",
     "p-queue": "7.3.0",
     "pdfjs-dist": "4.4.168",
     "popper.js": "1.16.1",
