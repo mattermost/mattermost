@@ -47,6 +47,8 @@ type TestHelper struct {
 	IncludeCacheLayer bool
 
 	TestLogger *mlog.Logger
+
+	t *testing.TB
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
@@ -80,7 +82,8 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	*newConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 	*newConfig.LogSettings.ConsoleJson = false
 	*newConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
-	memoryStore.Set(newConfig)
+	_, _, err := memoryStore.Set(newConfig)
+	require.NoError(tb, err)
 	options = append(options, app.ConfigStore(memoryStore))
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
@@ -91,9 +94,9 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&newConfig.LogSettings, nil, config.GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
-		panic("failed to configure test logger: " + errCfg.Error())
-	}
+	errCfg := testLogger.ConfigureTargets(logCfg, nil)
+	require.NoError(tb, errCfg)
+
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
 	options = append(options, app.SetLogger(testLogger))
@@ -107,9 +110,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	prevListenAddress := *s.Config().ServiceSettings.ListenAddress
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = "localhost:0" })
 	serverErr := s.Start()
-	if serverErr != nil {
-		panic(serverErr)
-	}
+	require.NoError(tb, serverErr)
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
 	// Disable strict password requirements for test
@@ -138,6 +139,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 		Web:               web,
 		IncludeCacheLayer: includeCacheLayer,
 		TestLogger:        testLogger,
+		t:                 &tb,
 	}
 
 	return th
@@ -163,7 +165,8 @@ func (th *TestHelper) InitBasic() *TestHelper {
 
 	team, _ := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TeamOpen})
 
-	th.App.JoinUserToTeam(th.Context, team, user, "")
+	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
+	require.Nil(*th.t, err)
 
 	channel, _ := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id, CreatorId: user.Id}, true)
 
@@ -177,7 +180,8 @@ func (th *TestHelper) InitBasic() *TestHelper {
 func (th *TestHelper) TearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		th.App.Srv().InvalidateAllCaches()
+		err := th.App.Srv().InvalidateAllCaches()
+		require.Nil(*th.t, err)
 	}
 	th.Server.Shutdown()
 }
@@ -223,7 +227,7 @@ func TestStaticFilesRequest(t *testing.T) {
 
 	// Write the plugin.json manifest
 	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "webapp": {"bundle_path":"main.js"}, "settings_schema": {"settings": []}}`
-	os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(pluginManifest), 0600)
+	require.NoError(t, os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(pluginManifest), 0600))
 
 	// Activate the plugin
 	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
@@ -276,8 +280,14 @@ func TestPublicFilesRequest(t *testing.T) {
 	require.NoError(t, err)
 	webappPluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
-	defer os.RemoveAll(pluginDir)
-	defer os.RemoveAll(webappPluginDir)
+	defer func() {
+		err = os.RemoveAll(pluginDir)
+		require.NoError(t, err)
+	}()
+	defer func() {
+		err = os.RemoveAll(webappPluginDir)
+		require.NoError(t, err)
+	}()
 
 	env, err := plugin.NewEnvironment(th.NewPluginAPI, app.NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), nil)
 	require.NoError(t, err)
@@ -306,12 +316,13 @@ func TestPublicFilesRequest(t *testing.T) {
 
 	// Write the plugin.json manifest
 	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`
-	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+	require.NoError(t, os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600))
 
 	// Write the test public file
 	helloHTML := `Hello from the static files public folder for the com.mattermost.sample plugin!`
 	htmlFolderPath := filepath.Join(pluginDir, pluginID, "public")
-	os.MkdirAll(htmlFolderPath, os.ModePerm)
+	err = os.MkdirAll(htmlFolderPath, os.ModePerm)
+	require.NoError(t, err)
 	htmlFilePath := filepath.Join(htmlFolderPath, "hello.html")
 
 	htmlFileErr := os.WriteFile(htmlFilePath, []byte(helloHTML), 0600)
@@ -365,7 +376,8 @@ func TestStaticFilesCaching(t *testing.T) {
 	wd, _ := os.Getwd()
 	cmd := exec.Command("ls", path.Join(wd, "client", "plugins"))
 	cmd.Stdout = os.Stdout
-	cmd.Run()
+	err := cmd.Run()
+	require.NoError(t, err)
 
 	fakeMainBundleName := "main.1234ab.js"
 	fakeRootHTML := `<html>
@@ -376,7 +388,7 @@ func TestStaticFilesCaching(t *testing.T) {
 	fakeMainBundle := `module.exports = 'main';`
 	fakeRemoteEntry := `module.exports = 'remote';`
 
-	err := os.WriteFile("./client/root.html", []byte(fakeRootHTML), 0600)
+	err = os.WriteFile("./client/root.html", []byte(fakeRootHTML), 0600)
 	require.NoError(t, err)
 	err = os.WriteFile("./client/"+fakeMainBundleName, []byte(fakeMainBundle), 0600)
 	require.NoError(t, err)
