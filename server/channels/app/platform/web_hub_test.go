@@ -669,13 +669,9 @@ func BenchmarkHubConnIndex(b *testing.B) {
 	b.Run("Add", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			err := connIndex.Add(wc1)
-			if err != nil {
-				b.Error(err)
-			}
+			require.NoError(b, err)
 			err = connIndex.Add(wc2)
-			if err != nil {
-				b.Error(err)
-			}
+			require.NoError(b, err)
 
 			b.StopTimer()
 			connIndex.Remove(wc1)
@@ -688,13 +684,10 @@ func BenchmarkHubConnIndex(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			b.StopTimer()
 			err := connIndex.Add(wc1)
-			if err != nil {
-				b.Error(err)
-			}
+			require.NoError(b, err)
 			err = connIndex.Add(wc2)
-			if err != nil {
-				b.Error(err)
-			}
+			require.NoError(b, err)
+			b.Error(err)
 			b.StartTimer()
 
 			connIndex.Remove(wc1)
