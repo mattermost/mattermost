@@ -1,9 +1,6 @@
 openapi: 3.0.0
 info:
   description: >
-    ![](https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png)
-
-
     The Mattermost Web Services API enables Mattermost clients and third-party applications
     to interact with Mattermost servers.
 
