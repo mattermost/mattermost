@@ -174,11 +174,19 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
     }, [isMobileView, searchTerms]);
 
     const getMorePostsForSearch = useCallback(() => {
-        props.actions.getMorePostsForSearch(searchTeam);
-    }, [searchTeam, props.actions]);
+        let team = searchTeam;
+        if (props.isMentionSearch) {
+            team = '';
+        }
+        props.actions.getMorePostsForSearch(team);
+    }, [searchTeam, props.actions, props.isMentionSearch]);
 
     const getMoreFilesForSearch = useCallback(() => {
-        props.actions.getMoreFilesForSearch(searchTeam);
+        let team = searchTeam;
+        if (props.isMentionSearch) {
+            team = '';
+        }
+        props.actions.getMoreFilesForSearch(team);
     }, [searchTeam, props.actions]);
 
     // handle cloding of rhs-flyout
