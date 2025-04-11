@@ -169,6 +169,19 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         return fileType === FileTypes.IMAGE || fileType === FileTypes.SVG;
     };
 
+    private getFileTypeFromFileInfo = (fileInfo: FileInfo | LinkInfo): typeof FileTypes[keyof typeof FileTypes] => {
+        if (isFileInfo(fileInfo)) {
+            return Utils.getFileType(fileInfo.extension);
+        }
+
+        if (isLinkInfo(fileInfo)) {
+            // For LinkInfo, pass the full URL to getFileType to leverage enhanced URL detection
+            return Utils.getFileType(fileInfo.link);
+        }
+
+        return FileTypes.OTHER;
+    };
+
     loadImage = (index: number) => {
         const fileInfo = this.props.fileInfos[index];
         if (isFileInfo(fileInfo) && fileInfo.archived) {
@@ -176,16 +189,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             return;
         }
 
-        // Determine file type based on the object type
-        let fileType;
-        if (isFileInfo(fileInfo)) {
-            fileType = Utils.getFileType(fileInfo.extension);
-        } else if (isLinkInfo(fileInfo)) {
-            // For LinkInfo, pass the full URL to getFileType to leverage enhanced URL detection
-            fileType = Utils.getFileType(fileInfo.link);
-        } else {
-            fileType = Utils.getFileType('');
-        }
+        // Determine file type using helper method
+        const fileType = this.getFileTypeFromFileInfo(fileInfo);
 
         // Check if this is an image
         const isImage = fileType === FileTypes.IMAGE;
@@ -293,16 +298,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
 
         const fileInfo = this.props.fileInfos[this.state.imageIndex];
 
-        // Determine file type based on the object type
-        let fileType;
-        if (isFileInfo(fileInfo)) {
-            fileType = Utils.getFileType(fileInfo.extension);
-        } else if (isLinkInfo(fileInfo)) {
-            // For LinkInfo, pass the full URL to getFileType to leverage enhanced URL detection
-            fileType = Utils.getFileType(fileInfo.link);
-        } else {
-            fileType = Utils.getFileType('');
-        }
+        // Determine file type using helper method
+        const fileType = this.getFileTypeFromFileInfo(fileInfo);
 
         let showPublicLink;
         let fileName;

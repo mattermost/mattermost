@@ -239,15 +239,10 @@ export const getFileType = (extin: string): typeof FileTypes[keyof typeof FileTy
             }
         }
     } catch (e) {
-        // If it's not a valid URL, try a simpler approach
-        // This handles cases where extin might be a file path but not a valid URL
-        const urlPath = extin.split('?')[0]; // Remove query parameters
-        const pathParts = urlPath.split('/');
-        const lastPathPart = pathParts[pathParts.length - 1];
-
-        if (lastPathPart && lastPathPart.includes('.')) {
-            const urlExtension = lastPathPart.split('.').pop()?.toLowerCase();
-            if (urlExtension && Constants.IMAGE_TYPES.indexOf(urlExtension) > -1) {
+        // Not a valid URL, just check if the string itself has an extension
+        if (extin.includes('.')) {
+            const extension = extin.split('.').pop()?.toLowerCase();
+            if (extension && Constants.IMAGE_TYPES.indexOf(extension) > -1) {
                 return FileTypes.IMAGE;
             }
         }
