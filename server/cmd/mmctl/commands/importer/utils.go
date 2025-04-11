@@ -14,6 +14,7 @@ type ImportFileInfo struct {
 	FileName    string `json:"file_name,omitempty"`
 	CurrentLine uint64 `json:"current_line,omitempty"`
 	TotalLines  uint64 `json:"total_lines,omitempty"`
+	DataPath    string `json:"base_path,omitempty"`
 }
 
 type ImportValidationError struct { //nolint:govet
