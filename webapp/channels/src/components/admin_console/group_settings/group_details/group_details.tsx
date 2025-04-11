@@ -68,7 +68,7 @@ export type Props = {
             id: string,
             syncableID: string,
             syncableType: SyncableType,
-            patch: SyncablePatch
+            patch: Partial<SyncablePatch>
         ) => Promise<ActionResult>;
         patchGroup: (id: string, patch: GroupPatch) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => {
@@ -531,7 +531,7 @@ class GroupDetails extends React.PureComponent<Props, State> {
                             this.props.groupID,
                             syncableID,
                             syncableType,
-                            {scheme_admin: value, auto_add: false},
+                            {scheme_admin: value},
                         ),
                     );
                 }
