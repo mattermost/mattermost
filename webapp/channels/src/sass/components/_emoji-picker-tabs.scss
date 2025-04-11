@@ -1,3 +1,5 @@
+@use "utils/variables";
+
 .emoji-picker {
     pointer-events: auto;
 
@@ -47,6 +49,11 @@
         width: fit-content;
         width: -moz-fit-content;
     }
+}
+
+.emoji-picker-overlay {
+    z-index: variables.$z-index-popover;
+    pointer-events: none;
 }
 
 .custom-emoji-tab__icon__text {

@@ -5,9 +5,9 @@ import {createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable, t
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import styled, {css} from 'styled-components';
+import styled from 'styled-components';
 
-import {PlusIcon, TextBoxOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {PlusIcon} from '@mattermost/compass-icons/components';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
@@ -15,11 +15,13 @@ import LoadingScreen from 'components/loading_screen';
 
 import Constants from 'utils/constants';
 
-import {DangerText, FieldDeleteButton, FieldInput, LinkButton} from './controls';
+import {DangerText, BorderlessInput, LinkButton} from './controls';
 import type {SectionHook} from './section_utils';
-import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
+import DotMenu from './user_properties_dot_menu';
+import SelectType from './user_properties_type_menu';
 import type {UserPropertyFields} from './user_properties_utils';
 import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
+import UserPropertyValues from './user_properties_values';
 
 import {AdminConsoleListTable} from '../list_table';
 
@@ -30,6 +32,7 @@ type Props = {
 type FieldActions = {
     updateField: (field: UserPropertyField) => void;
     deleteField: (id: string) => void;
+    reorderField: (field: UserPropertyField, nextOrder: number) => void;
 }
 
 export const useUserPropertiesTable = (): SectionHook => {
@@ -53,6 +56,7 @@ export const useUserPropertiesTable = (): SectionHook => {
                 data={userPropertyFields}
                 updateField={itemOps.update}
                 deleteField={itemOps.delete}
+                reorderField={itemOps.reorder}
             />
             {nonDeletedCount < Constants.MAX_CUSTOM_ATTRIBUTES && (
                 <LinkButton onClick={itemOps.create}>
@@ -78,13 +82,14 @@ export const useUserPropertiesTable = (): SectionHook => {
     };
 };
 
-export function UserPropertiesTable({data: collection, updateField, deleteField}: Props & FieldActions) {
+export function UserPropertiesTable({data: collection, updateField, deleteField, reorderField}: Props & FieldActions) {
     const {formatMessage} = useIntl();
     const data = collectionToArray(collection);
     const col = createColumnHelper<UserPropertyField>();
     const columns = useMemo<Array<ColumnDef<UserPropertyField, any>>>(() => {
         return [
             col.accessor('name', {
+                size: 180,
                 header: () => {
                     return (
                         <ColHeaderLeft>
@@ -129,7 +134,7 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
 
                     return (
                         <>
-                            <EditableValue
+                            <EditCell
                                 strong={true}
                                 value={getValue()}
                                 label={formatMessage({id: 'admin.system_properties.user_properties.table.property_name.input.name', defaultMessage: 'Property Name'})}
@@ -150,6 +155,7 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                 enableSorting: false,
             }),
             col.accessor('type', {
+                size: 100,
                 header: () => {
                     return (
                         <ColHeaderLeft>
@@ -160,35 +166,42 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                         </ColHeaderLeft>
                     );
                 },
-                cell: ({getValue, row}) => {
-                    let type = getValue();
-
-                    if (type === 'text') {
-                        type = (
-                            <>
-                                <TextBoxOutlineIcon
-                                    size={18}
-                                    color={'rgba(var(--center-channel-color-rgb), 0.64)'}
-                                />
-                                <FormattedMessage
-                                    id='admin.system_properties.user_properties.table.type.text'
-                                    defaultMessage='Text'
-                                />
-                            </>
-                        );
-                    }
-
+                cell: ({row}) => {
                     return (
-                        <TypeCellWrapper $deleted={row.original.delete_at !== 0}>
-                            {type}
-                        </TypeCellWrapper>
+                        <SelectType
+                            field={row.original}
+                            updateField={updateField}
+                        />
                     );
                 },
                 enableHiding: false,
                 enableSorting: false,
             }),
             col.display({
+                id: 'options',
+                size: 300,
+                header: () => (
+                    <ColHeaderLeft>
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.table.values'
+                            defaultMessage='Values'
+                        />
+                    </ColHeaderLeft>
+                ),
+                cell: ({row}) => (
+                    <>
+                        <UserPropertyValues
+                            field={row.original}
+                            updateField={updateField}
+                        />
+                    </>
+                ),
+                enableHiding: false,
+                enableSorting: false,
+            }),
+            col.display({
                 id: 'actions',
+                size: 40,
                 header: () => {
                     return (
                         <ColHeaderRight>
@@ -200,11 +213,13 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                     );
                 },
                 cell: ({row}) => (
-                    <Actions
-                        field={row.original}
-                        updateField={updateField}
-                        deleteField={deleteField}
-                    />
+                    <ActionsRoot>
+                        <DotMenu
+                            field={row.original}
+                            updateField={updateField}
+                            deleteField={deleteField}
+                        />
+                    </ActionsRoot>
                 ),
                 enableHiding: false,
                 enableSorting: false,
@@ -215,9 +230,6 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
     const table = useReactTable({
         data,
         columns,
-        initialState: {
-            sorting: [],
-        },
         getCoreRowModel: getCoreRowModel<UserPropertyField>(),
         getSortedRowModel: getSortedRowModel<UserPropertyField>(),
         enableSortingRemoval: false,
@@ -226,6 +238,9 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
         meta: {
             tableId: 'userProperties',
             disablePaginationControls: true,
+            onReorder: (prev: number, next: number) => {
+                reorderField(collection.data[collection.order[prev]], next);
+            },
         },
         manualPagination: true,
     });
@@ -264,11 +279,19 @@ const TableWrapper = styled.div`
                 border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
                 border-bottom-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
                 td {
-                    padding-block-end: 4px;
-                    padding-block-start: 4px;
+                    padding-block-end: 0;
+                    padding-block-start: 0;
+
+                    &:not(:first-child):not(:last-child) {
+                        padding-inline-end: 0;
+                        padding-inline-start: 0;
+                    }
 
                     &:last-child {
                         padding-inline-end: 12px;
+                    }
+                    &.pinned {
+                        background: none;
                     }
                 }
             }
@@ -281,50 +304,6 @@ const TableWrapper = styled.div`
     .adminConsoleListTableContainer {
         padding: 2px 0px;
     }
-`;
-
-const Actions = ({field, deleteField}: {field: UserPropertyField} & FieldActions) => {
-    const {promptDelete} = useUserPropertyFieldDelete();
-    const {formatMessage} = useIntl();
-
-    const handleDelete = () => {
-        if (isCreatePending(field)) {
-            // skip prompt when field is pending creation
-            deleteField(field.id);
-        } else {
-            promptDelete(field).then(() => deleteField(field.id));
-        }
-    };
-
-    return (
-        <ActionsRoot>
-            {field.delete_at === 0 && (
-                <FieldDeleteButton
-                    onClick={handleDelete}
-                    aria-label={formatMessage({id: 'admin.system_properties.user_properties.table.actions.delete', defaultMessage: 'Delete'})}
-                >
-                    <TrashCanOutlineIcon
-                        size={18}
-                        color={'rgba(var(--center-channel-color-rgb), 0.64)'}
-                    />
-                </FieldDeleteButton>
-            )}
-        </ActionsRoot>
-    );
-};
-
-const TypeCellWrapper = styled.div<{$deleted?: boolean}>`
-    ${({$deleted}) => $deleted && css`
-        && {
-            color: #D24B4E;
-            text-decoration: line-through;
-        }
-    `};
-
-    vertical-align: middle;
-    display: inline-flex;
-    gap: 6px;
-    align-items: center;
 `;
 
 const ColHeaderLeft = styled.div`
@@ -341,7 +320,7 @@ const ActionsRoot = styled.div`
     text-align: right;
 `;
 
-type EditableValueProps = {
+type EditCellProps = {
     value: string;
     label?: string;
     testid?: string;
@@ -354,7 +333,7 @@ type EditableValueProps = {
     maxLength?: number;
     borderless?: boolean;
 };
-const EditableValue = (props: EditableValueProps) => {
+const EditCell = (props: EditCellProps) => {
     const [value, setValue] = useState(props.value);
 
     useEffect(() => {
@@ -363,14 +342,13 @@ const EditableValue = (props: EditableValueProps) => {
 
     return (
         <>
-            <FieldInput
+            <BorderlessInput
                 type='text'
                 aria-label={props.label}
                 data-testid={props.testid}
                 disabled={props.disabled ?? props.deleted}
                 $deleted={props.deleted}
                 $strong={props.strong}
-                $borderless={props.borderless}
                 maxLength={props.maxLength}
                 autoFocus={props.autoFocus}
                 onFocus={(e) => {

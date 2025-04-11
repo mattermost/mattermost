@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/dgryski/dgoogauth"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -3443,19 +3444,43 @@ func TestUpdateUserMfa(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
+	t.Run("Without enforcing", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
-	session, _ := th.App.GetSession(th.Client.AuthToken)
-	session.IsOAuth = true
-	th.App.AddSessionToCache(session)
+		session, _ := th.App.GetSession(th.Client.AuthToken)
+		session.IsOAuth = true
+		th.App.AddSessionToCache(session)
 
-	resp, err := th.Client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+		defer th.Server.Platform().ClearUserSessionCacheLocal(th.BasicUser.Id)
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, err = client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+		resp, err := th.Client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, err := client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+			require.NoError(t, err)
+		})
+	})
+
+	t.Run("Enforcing", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableMultifactorAuthentication = true
+			*cfg.ServiceSettings.EnforceMultifactorAuthentication = true
+		})
+
+		resp, err := th.Client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		resp, err = th.LocalClient.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		resp, err = th.SystemAdminClient.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.mfa_required.app_error")
 	})
 }
 
@@ -4211,6 +4236,14 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	time.Sleep(time.Millisecond)
 
 	_, err = th.SystemAdminClient.SetDefaultProfileImage(context.Background(), user.Id)
+	require.NoError(t, err)
+
+	// Check that a system admin can set the default profile image for another system admin
+	anotherAdmin := th.CreateUser()
+	_, appErr := th.App.UpdateUserRoles(th.Context, anotherAdmin.Id, model.SystemAdminRoleId+" "+model.SystemUserRoleId, false)
+	require.Nil(t, appErr)
+
+	_, err = th.SystemAdminClient.SetDefaultProfileImage(context.Background(), anotherAdmin.Id)
 	require.NoError(t, err)
 
 	ruser, appErr := th.App.GetUser(user.Id)
@@ -6311,9 +6344,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	user := th.BasicUser
-	_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, model.SystemGuestRoleId, false)
-	require.Nil(t, appErr)
+	user := th.CreateGuestUser(t)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		_, _, err := c.GetUser(context.Background(), user.Id, "")
@@ -6600,6 +6631,25 @@ func TestConvertUserToBot(t *testing.T) {
 		bot, _, err = client.GetBot(context.Background(), bot.UserId, "")
 		require.NoError(t, err)
 		require.NotNil(t, bot)
+	})
+
+	t.Run("user cannot login after being converted to bot", func(t *testing.T) {
+		// Create a new user
+		user := th.CreateUser()
+
+		// Login as the new user to verify login works initially
+		_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+
+		// Convert user to bot
+		_, _, err = th.SystemAdminClient.ConvertUserToBot(context.Background(), user.Id)
+		require.NoError(t, err)
+
+		// Try to login again - should fail
+		_, resp, err := th.Client.Login(context.Background(), user.Email, user.Password)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
+		CheckUnauthorizedStatus(t, resp)
 	})
 }
 
@@ -8922,6 +8972,221 @@ func TestRevokeAllSessionsForUser(t *testing.T) {
 	})
 }
 
+func TestResetPasswordFailedAttempts(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic()
+	defer th.TearDown()
+	th.SetupLdapConfig()
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	t.Run("Reset password failed attempts for regular user", func(t *testing.T) {
+		client := th.CreateClient()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.MaximumLoginAttempts = 10
+		})
+		maxAttempts := th.App.Config().ServiceSettings.MaximumLoginAttempts
+
+		user := th.CreateUser()
+
+		for i := 0; i < *maxAttempts; i++ {
+			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
+			require.Error(t, err)
+		}
+
+		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, *maxAttempts, user.FailedAttempts)
+
+		resp, err = th.SystemAdminClient.ResetFailedAttempts(context.Background(), user.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		user, resp, err = th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(0), user.FailedAttempts)
+	})
+
+	t.Run("Reset password failed attempts for ldap user", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.LdapSettings.MaximumLoginAttempts = 5
+		})
+
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockLdap := &mocks.LdapInterface{}
+
+		username := GenerateTestUsername()
+
+		ldapUser := &model.User{
+			Email:         "foobar+testdomainrestriction@mattermost.org",
+			Username:      username,
+			AuthService:   "ldap",
+			AuthData:      &username,
+			EmailVerified: true,
+		}
+		ldapUser, appErr := th.App.CreateUser(th.Context, ldapUser)
+		require.Nil(t, appErr)
+
+		client := th.CreateClient()
+		mockLdap.Mock.On("GetUser", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).Return(ldapUser, nil).Times(5)
+
+		th.App.Channels().Ldap = mockLdap
+
+		for i := 0; i < 5; i++ {
+			mockedLdapUser := ldapUser
+			mockedLdapUser.FailedAttempts = i
+			mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(mockedLdapUser, &model.AppError{Id: "ent.ldap.do_login.invalid_password.app_error"})
+			_, _, err := client.LoginByLdap(context.Background(), *ldapUser.AuthData, "wrongpassword")
+			require.Error(t, err)
+		}
+
+		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), ldapUser.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(5), user.FailedAttempts)
+
+		resp, err = th.SystemAdminClient.ResetFailedAttempts(context.Background(), ldapUser.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		user, resp, err = th.SystemAdminClient.GetUser(context.Background(), ldapUser.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(0), user.FailedAttempts)
+	})
+
+	t.Run("Regular user unable to reset failed attempts", func(t *testing.T) {
+		client := th.CreateClient()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.MaximumLoginAttempts = 10
+		})
+		maxAttempts := th.App.Config().ServiceSettings.MaximumLoginAttempts
+
+		user := th.CreateUser()
+
+		for i := 0; i < *maxAttempts; i++ {
+			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
+			require.Error(t, err)
+		}
+
+		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, *maxAttempts, user.FailedAttempts)
+
+		resp, err = th.Client.ResetFailedAttempts(context.Background(), user.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		user, resp, err = th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, *maxAttempts, user.FailedAttempts)
+	})
+
+	t.Run("Reset password failed attempts when user has PermissionSysconsoleWriteUserManagementUsers", func(t *testing.T) {
+		th.AddPermissionToRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+
+		client := th.CreateClient()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.MaximumLoginAttempts = 10
+		})
+		maxAttempts := th.App.Config().ServiceSettings.MaximumLoginAttempts
+
+		user := th.CreateUser()
+
+		for i := 0; i < *maxAttempts; i++ {
+			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
+			require.Error(t, err)
+		}
+
+		fetchedUser, resp, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, *maxAttempts, fetchedUser.FailedAttempts)
+
+		resp, err = th.Client.ResetFailedAttempts(context.Background(), user.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		fetchedUser, resp, err = th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(0), fetchedUser.FailedAttempts)
+	})
+
+	t.Run("Unable to reset password failed attempts for sysadmin when user has PermissionSysconsoleWriteUserManagementUsers", func(t *testing.T) {
+		th.AddPermissionToRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+
+		client := th.CreateClient()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.MaximumLoginAttempts = 10
+		})
+		maxAttempts := th.App.Config().ServiceSettings.MaximumLoginAttempts
+
+		// create sysadmin user
+		sysadmin := th.CreateUser()
+		_, appErr := th.App.UpdateUserRoles(th.Context, sysadmin.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+
+		for i := 0; i < *maxAttempts; i++ {
+			_, _, err := client.Login(context.Background(), sysadmin.Email, "wrongpassword")
+			require.Error(t, err)
+		}
+
+		sysadminUser, resp, err := th.SystemAdminClient.GetUser(context.Background(), sysadmin.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, *maxAttempts, sysadminUser.FailedAttempts)
+
+		resp, err = th.Client.ResetFailedAttempts(context.Background(), sysadminUser.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		sysadminUser, resp, err = th.SystemAdminClient.GetUser(context.Background(), sysadminUser.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(10), sysadminUser.FailedAttempts)
+	})
+
+	t.Run("Reset password failed attempts for sysadmin", func(t *testing.T) {
+		client := th.CreateClient()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.MaximumLoginAttempts = 10
+		})
+		maxAttempts := th.App.Config().ServiceSettings.MaximumLoginAttempts
+
+		sysadmin := th.CreateUser()
+		_, appErr := th.App.UpdateUserRoles(th.Context, sysadmin.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+
+		for i := 0; i < *maxAttempts; i++ {
+			_, _, err := client.Login(context.Background(), sysadmin.Email, "wrongpassword")
+			require.Error(t, err)
+		}
+
+		sysadminUser, resp, err := th.SystemAdminClient.GetUser(context.Background(), sysadmin.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, *maxAttempts, sysadminUser.FailedAttempts)
+
+		resp, err = th.SystemAdminClient.ResetFailedAttempts(context.Background(), sysadminUser.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		sysadminUser, resp, err = th.SystemAdminClient.GetUser(context.Background(), sysadminUser.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(0), sysadminUser.FailedAttempts)
+	})
+}
 func TestSearchUsersWithMfaEnforced(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

@@ -8,9 +8,6 @@
         team.
 
 
-        `not_associated_to_team` **OR** `not_associated_to_channel` is required.
-
-
         If you use `not_associated_to_team`, you must be a team admin for that particular team (permission to manage that team).
 
 
@@ -49,14 +46,12 @@
           in: query
           description: Team GUID which is used to return all the groups not associated to
             this team
-          required: true
           schema:
             type: string
         - name: not_associated_to_channel
           in: query
           description: Group GUID which is used to return all the groups not associated to
             this channel
-          required: true
           schema:
             type: string
         - name: since
@@ -1037,6 +1032,59 @@
         - name: filter_allow_reference
           in: query
           description: Boolean which filters in the group entries with the `allow_reference` attribute set.
+          schema:
+            type: boolean
+            default: false
+        - name: include_member_count
+          in: query
+          description: Boolean which adds a `member_count` field to each group object.
+          schema:
+            type: boolean
+            default: false
+        - name: include_timezones
+          in: query
+          description: Boolean which adds timezone information for group members.
+          schema:
+            type: boolean
+            default: false
+        - name: include_total_count
+          in: query
+          description: Boolean which adds total count of groups in the response.
+          schema:
+            type: boolean
+            default: false
+        - name: include_archived
+          in: query
+          description: Boolean which includes archived groups in the response.
+          schema:
+            type: boolean
+            default: false
+        - name: filter_archived
+          in: query
+          description: Boolean which filters out archived groups from the response.
+          schema:
+            type: boolean
+            default: false
+        - name: filter_parent_team_permitted
+          in: query
+          description: Boolean which filters groups based on parent team permissions.
+          schema:
+            type: boolean
+            default: false
+        - name: filter_has_member
+          in: query
+          description: User ID to filter groups that have this member.
+          schema:
+            type: string
+        - name: include_member_ids
+          in: query
+          description: Boolean which adds member IDs to the group objects.
+          schema:
+            type: boolean
+            default: false
+        - name: only_syncable_sources
+          in: query
+          description: Boolean which includes groups from syncable sources.
           schema:
             type: boolean
             default: false

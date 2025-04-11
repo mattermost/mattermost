@@ -26,15 +26,6 @@ func (s SearchFileInfoStore) indexFile(rctx request.CTX, file *model.FileInfo) {
 					return
 				}
 				channelId := file.ChannelId
-				if file.PostId != "" {
-					post, postErr := s.rootStore.Post().GetSingle(rctx, file.PostId, false)
-					if postErr != nil {
-						rctx.Logger().Error("Couldn't get post for file for SearchEngine indexing.", mlog.String("post_id", file.PostId), mlog.String("search_engine", engineCopy.GetName()), mlog.String("file_info_id", file.Id), mlog.Err(postErr))
-						return
-					}
-					channelId = post.ChannelId
-				}
-
 				if channelId == "" {
 					rctx.Logger().Error("Couldn't associate file with a channel for file for SearchEngine indexing.", mlog.String("search_engine", engineCopy.GetName()), mlog.String("file_info_id", file.Id))
 					return
