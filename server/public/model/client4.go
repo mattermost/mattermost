@@ -4168,6 +4168,9 @@ func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag
 	if opts.SkipFetchThreads {
 		values.Set("skipFetchThreads", "true")
 	}
+	if opts.UpdatesOnly {
+		values.Set("updatesOnly", "true")
+	}
 	if opts.PerPage != 0 {
 		values.Set("perPage", strconv.Itoa(opts.PerPage))
 	}
@@ -4176,6 +4179,9 @@ func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag
 	}
 	if opts.FromCreateAt != 0 {
 		values.Set("fromCreateAt", strconv.FormatInt(opts.FromCreateAt, 10))
+	}
+	if opts.FromUpdateAt != 0 {
+		values.Set("fromUpdateAt", strconv.FormatInt(opts.FromUpdateAt, 10))
 	}
 	if opts.Direction != "" {
 		values.Set("direction", opts.Direction)
