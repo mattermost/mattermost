@@ -72,13 +72,13 @@ const CloudTrialBanner = ({trialEndDate}: Props): JSX.Element | null => {
             title={(
                 <FormattedMessage
                     id='admin.subscription.cloudTrialCard.upgradeTitle'
-                    defaultMessage='Upgrade to one of our paid plans to avoid Free plan data limits'
+                    defaultMessage='Upgrade to one of our paid plans to continue using Mattermost'
                 />
             )}
             message={(
                 <FormattedMessage
                     id='admin.subscription.cloudTrialCard.description'
-                    defaultMessage='Your trial ends on {date} {time}. Upgrade to one of our paid plans with no limits.'
+                    defaultMessage='Your trial ends on {date} {time}. Upgrade to a paid plan to continue using Mattermost after your trial ends.'
                     values={{
                         date: moment(endDate).format('MMM D, YYYY '),
                         time: moment(endDate).endOf('day').format('h:mm a ') + moment().tz(getBrowserTimezone()).format('z'),
@@ -86,26 +86,6 @@ const CloudTrialBanner = ({trialEndDate}: Props): JSX.Element | null => {
                 />
             )}
             hideIcon={true}
-            actionButtonLeft={(
-                <UpgradeLink
-                    buttonText={formatMessage({id: 'admin.subscription.cloudTrialCard.upgrade', defaultMessage: 'Upgrade'})}
-                    styleButton={true}
-                    telemetryInfo='billing_subscriptions_cloud_trial_banner'
-                />
-            )}
-            actionButtonRight={(
-                <button
-                    onClick={openSalesLink}
-                    className='AlertBanner__buttonRight'
-                >
-                    <FormattedMessage
-                        id='admin.billing.subscription.privateCloudCard.contactSalesy'
-                        defaultMessage={
-                            'Contact sales'
-                        }
-                    />
-                </button>
-            )}
         />
     );
 };
