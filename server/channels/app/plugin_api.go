@@ -1354,6 +1354,9 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 
 // RequestTrialLicense requests a trial license and installs it in the server
 func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
+	// Normally, plugins are unrestricted in their abilities, but to maintain backwards compatbilibity with plugins
+	// that were unaware of the nuances of ExperimentalSettings.RestrictSystemAdmin, we restrict the trial license
+	// unconditionally.
 	if *api.app.Config().ExperimentalSettings.RestrictSystemAdmin {
 		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}

@@ -3653,6 +3653,21 @@ func (s *ExportSettings) SetDefaults() {
 	}
 }
 
+type AccessControlSettings struct {
+	EnableAttributeBasedAccessControl *bool `access:"write_restrictable,cloud_restrictable"`
+	EnableChannelScopeAccessControl   *bool `access:"cloud_restrictable"`
+}
+
+func (s *AccessControlSettings) SetDefaults() {
+	if s.EnableAttributeBasedAccessControl == nil {
+		s.EnableAttributeBasedAccessControl = NewPointer(false)
+	}
+
+	if s.EnableChannelScopeAccessControl == nil {
+		s.EnableChannelScopeAccessControl = NewPointer(false)
+	}
+}
+
 type ConfigFunc func() *Config
 
 const (
@@ -3677,7 +3692,8 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 // The 'access' tag '*_read' checks for any Sysconsole read permission and grants access if any read permission is allowed.
 //
 // By default config values can be written with PermissionManageSystem, but if ExperimentalSettings.RestrictSystemAdmin is true
-// and the access tag contains the value 'write_restrictable', then even PermissionManageSystem, does not grant write access.
+// and the access tag contains the value 'write_restrictable', then even PermissionManageSystem, does not grant write access
+// unless the request is made using local mode.
 //
 // PermissionManageSystem always grants read access.
 //
@@ -3744,6 +3760,7 @@ type Config struct {
 	ExportSettings              ExportSettings
 	WranglerSettings            WranglerSettings
 	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
+	AccessControlSettings       AccessControlSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -3861,6 +3878,7 @@ func (o *Config) SetDefaults() {
 	o.ExportSettings.SetDefaults()
 	o.WranglerSettings.SetDefaults()
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
+	o.AccessControlSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
