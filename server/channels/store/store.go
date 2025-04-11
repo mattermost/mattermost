@@ -95,6 +95,7 @@ type Store interface {
 	PropertyGroup() PropertyGroupStore
 	PropertyField() PropertyFieldStore
 	PropertyValue() PropertyValueStore
+	AccessControlPolicy() AccessControlPolicyStore
 }
 
 type RetentionPolicyStore interface {
@@ -1105,6 +1106,15 @@ type PropertyValueStore interface {
 	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Delete(groupID string, id string) error
 	DeleteForField(id string) error
+	DeleteForTarget(groupID string, targetType string, targetID string) error
+}
+
+type AccessControlPolicyStore interface {
+	Save(c request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error)
+	Delete(c request.CTX, id string) error
+	SetActiveStatus(c request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
+	Get(c request.CTX, id string) (*model.AccessControlPolicy, error)
+	GetAll(rctxc request.CTX, opts GetPolicyOptions) ([]*model.AccessControlPolicy, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.
@@ -1198,4 +1208,12 @@ type ThreadMembershipImportData struct {
 	LastViewed int64
 	// UnreadMentions is the number of unread mentions to set the UnreadMentions field to.
 	UnreadMentions int64
+}
+
+// GetPolicyOptions contains options for filtering policy records.
+type GetPolicyOptions struct {
+	// ParentID will filter policy records where they inherit parent with PolicyID.
+	ParentID string
+	// Type will filter policy records where they are associated with the Type.
+	Type string
 }
