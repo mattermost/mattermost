@@ -381,10 +381,7 @@ info:
     The source code for this API reference is hosted at https://github.com/mattermost/mattermost/tree/master/api.
 
   version: 4.0.0
-  title: Mattermost API Reference
-  x-logo:
-    url: https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png
-    backgroundColor: "#FFFFFF"
+  title: Mattermost API
 tags:
   - name: users
     description: >
