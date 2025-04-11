@@ -8701,7 +8701,7 @@
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.one_message",
-    "translation": "Un message a été déplacé vers un message personnel ou un message de groupe\n"
+    "translation": "Un message a été déplacé vers un message personnel ou une conversation de groupe\n"
   },
   {
     "id": "app.post.move_thread.from_another_channel",
@@ -8850,10 +8850,6 @@
   {
     "id": "api.oauth.get_access_token.bad_request.app_error",
     "translation": "invalid_request : Bad request."
-  },
-  {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Votre schéma d'index de canal n'est pas à jour sur Elasticsearch. Il est recommandé de régénérer votre index de canal.\nCliquez sur le bouton `Reconstruire l'index des canaux` de la [section Elasticsearch dans la console système]({{.ElasticsearchSection}}) pour régler ce problème.\nConsultez le journal des modifications pour plus de détails."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",

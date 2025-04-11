@@ -201,7 +201,7 @@ $profilePopoverBorderWidth: 1px;
                 font-size: 16px;
             }
         }
-        
+
         .user-popover__custom_attributes {
             display: flex;
             flex-direction: column;
@@ -218,6 +218,7 @@ $profilePopoverBorderWidth: 1px;
 
             .user-popover__subtitle-text {
                 margin: 0;
+                overflow-wrap: break-word;
             }
         }
 

@@ -14,6 +14,7 @@ import '@testing-library/cypress/add-commands';
 import 'cypress-file-upload';
 import 'cypress-wait-until';
 import 'cypress-plugin-tab';
+import 'cypress-real-events';
 import addContext from 'mochawesome/addContext';
 
 import './api';
@@ -265,5 +266,4 @@ function resetUserPreference(userId) {
     cy.apiSaveSkipStepsPreference(userId, 'true');
     cy.apiSaveStartTrialModal(userId, 'true');
     cy.apiSaveUnreadScrollPositionPreference(userId, 'start_from_left_off');
-    cy.apiSaveDraftsTourTipPreference(userId, 'true');
 }

@@ -599,6 +599,56 @@ func TestChannelBookmarkPreUpdate(t *testing.T) {
 	assert.Greater(t, bookmark.UpdateAt, originalBookmark.UpdateAt)
 }
 
+func TestToBookmarkWithFileInfo(t *testing.T) {
+	testCases := []struct {
+		name          string
+		bookmark      *ChannelBookmark
+		fileInfo      *FileInfo
+		expectedEmoji string
+	}{
+		{
+			name: "emoji with colons",
+			bookmark: &ChannelBookmark{
+				Id:          NewId(),
+				DisplayName: "test bookmark",
+				Emoji:       ":smile:",
+				Type:        ChannelBookmarkLink,
+			},
+			fileInfo:      nil,
+			expectedEmoji: "smile",
+		},
+		{
+			name: "emoji without colons",
+			bookmark: &ChannelBookmark{
+				Id:          NewId(),
+				DisplayName: "test bookmark",
+				Emoji:       "smile",
+				Type:        ChannelBookmarkLink,
+			},
+			fileInfo:      nil,
+			expectedEmoji: "smile",
+		},
+		{
+			name: "empty emoji",
+			bookmark: &ChannelBookmark{
+				Id:          NewId(),
+				DisplayName: "test bookmark",
+				Emoji:       "",
+				Type:        ChannelBookmarkLink,
+			},
+			fileInfo:      nil,
+			expectedEmoji: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := tc.bookmark.ToBookmarkWithFileInfo(tc.fileInfo)
+			assert.Equal(t, tc.expectedEmoji, result.Emoji)
+		})
+	}
+}
+
 func TestChannelBookmarkPatch(t *testing.T) {
 	p := &ChannelBookmarkPatch{
 		DisplayName: NewPointer(NewId()),

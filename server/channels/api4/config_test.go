@@ -122,6 +122,7 @@ func TestGetConfigAnyFlagsAccess(t *testing.T) {
 	require.NoError(t, err)
 	t.Run("Can read value with permission", func(t *testing.T) {
 		assert.NotNil(t, cfg.FeatureFlags)
+		assert.NotNil(t, cfg.ExperimentalSettings.RestrictSystemAdmin)
 	})
 }
 

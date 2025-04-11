@@ -138,7 +138,7 @@ const EmojiPickerSearch = forwardRef<HTMLInputElement, Props>(({value, cursorCat
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
                 autoComplete='off'
-                placeholder={formatMessage({id: 'emoji_picker.search', defaultMessage: 'Search Emoji'})}
+                placeholder={formatMessage({id: 'emoji_picker.search', defaultMessage: 'Search emojis'})}
                 value={value}
             />
         </div>
