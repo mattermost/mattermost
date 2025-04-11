@@ -39,6 +39,7 @@ type TestHelper struct {
 	BasicUser    *model.User
 	BasicChannel *model.Channel
 	BasicTeam    *model.Team
+	BasicPost    *model.Post
 
 	SystemAdminUser *model.User
 
@@ -170,6 +171,16 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicUser = user
 	th.BasicChannel = channel
 	th.BasicTeam = team
+
+	id := model.NewId()
+	post := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "message_" + id,
+		CreateAt:  model.GetMillis() - 10000,
+	}
+
+	th.BasicPost, _= th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{});
 
 	return th
 }
