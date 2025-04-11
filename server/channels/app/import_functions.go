@@ -1627,7 +1627,7 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 	if post.Id != "" {
 		oldFiles, err := a.Srv().Store().FileInfo().GetForPost(post.Id, true, false, true)
 		if err != nil {
-			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
+			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest).Wrap(err)
 		}
 		for _, oldFile := range oldFiles {
 			if oldFile.Name != path.Base(name) || oldFile.Size != fileSize {
@@ -1636,7 +1636,7 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 
 			oldFileReader, appErr := a.FileReader(oldFile.Path)
 			if appErr != nil {
-				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
+				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest).Wrap(appErr)
 			}
 			defer oldFileReader.Close()
 
@@ -2588,7 +2588,7 @@ func (a *App) importEmoji(rctx request.CTX, data *imports.EmojiImportData, dryRu
 		file, err = os.Open(*data.Image)
 	}
 	if err != nil {
-		return model.NewAppError("BulkImport", "app.import.emoji.bad_file.error", map[string]any{"EmojiName": *data.Name}, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.emoji.bad_file.error", map[string]any{"EmojiName": *data.Name}, "", http.StatusBadRequest).Wrap(err)
 	}
 	defer func() {
 		if err := file.Close(); err != nil {
