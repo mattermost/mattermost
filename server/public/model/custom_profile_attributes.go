@@ -131,6 +131,10 @@ type CPAAttrs struct {
 	SAML       string                                                `json:"saml"`
 }
 
+func (c *CPAField) IsSynced() bool {
+	return c.Attrs.LDAP != "" || c.Attrs.SAML != ""
+}
+
 func (c *CPAField) ToPropertyField() *PropertyField {
 	pf := c.PropertyField
 
@@ -211,7 +215,8 @@ func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
 	}, nil
 }
 
-// SanitizeAndValidatePropertyValue validates and sanitizes the given property value based on the field type
+// SanitizeAndValidatePropertyValue validates and sanitizes the given
+// property value based on the field type
 func SanitizeAndValidatePropertyValue(cpaField *CPAField, rawValue json.RawMessage) (json.RawMessage, error) {
 	fieldType := cpaField.Type
 

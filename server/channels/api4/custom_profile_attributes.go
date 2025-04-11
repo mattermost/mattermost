@@ -226,7 +226,7 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	results := make(map[string]json.RawMessage, len(updates))
 	for fieldID, rawValue := range updates {
-		patchedValue, appErr := c.App.PatchCPAValue(userID, fieldID, rawValue)
+		patchedValue, appErr := c.App.PatchCPAValue(userID, fieldID, rawValue, false)
 		if appErr != nil {
 			c.Err = appErr
 			return
