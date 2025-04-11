@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, getFileFromAsset, getBlobFromAsset} from '@mattermost/playwright-lib';
 import {Client4} from '@mattermost/client';
 import {ServerChannel} from '@mattermost/types/channels';
 import {FileUploadResponse} from '@mattermost/types/files';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+
+import {expect, test, getFileFromAsset, getBlobFromAsset} from '@mattermost/playwright-lib';
 
 import {FileUploadResponseSchema} from './schema';
 
