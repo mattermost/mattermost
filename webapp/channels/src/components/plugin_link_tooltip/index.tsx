@@ -13,11 +13,10 @@ import {
     inline,
     useTransitionStyles,
     FloatingOverlay,
-    FloatingFocusManager,
     useFocus,
 } from '@floating-ui/react';
 import React, {useState} from 'react';
-import type {AnchorHTMLAttributes, ReactElement} from 'react';
+import type {AnchorHTMLAttributes, ReactNode} from 'react';
 
 import Pluggable from 'plugins/pluggable';
 import {RootHtmlPortalId, OverlaysTimings, OverlayTransitionStyles} from 'utils/constants';
@@ -26,7 +25,7 @@ import './plugin_link_tooltip.scss';
 
 interface Props {
     nodeAttributes: AnchorHTMLAttributes<HTMLAnchorElement>;
-    children: ReactElement;
+    children: ReactNode;
 }
 
 /**
@@ -74,19 +73,17 @@ export default function PluginLinkTooltip(props: Props) {
             {isMounted && (
                 <FloatingPortal id={RootHtmlPortalId}>
                     <FloatingOverlay className='plugin-link-tooltip-floating-overlay'>
-                        <FloatingFocusManager context={floatingContext}>
-                            <div
-                                ref={setFloating}
-                                style={{...floatingStyles, ...transitionStyles}}
-                                {...getFloatingProps()}
-                            >
-                                <Pluggable
-                                    href={props.nodeAttributes.href || ''}
-                                    show={true}
-                                    pluggableName='LinkTooltip'
-                                />
-                            </div>
-                        </FloatingFocusManager>
+                        <div
+                            ref={setFloating}
+                            style={{...floatingStyles, ...transitionStyles}}
+                            {...getFloatingProps()}
+                        >
+                            <Pluggable
+                                href={props.nodeAttributes.href || ''}
+                                show={true}
+                                pluggableName='LinkTooltip'
+                            />
+                        </div>
                     </FloatingOverlay>
                 </FloatingPortal>
             )}
