@@ -138,21 +138,15 @@ function createFilesNotificationForProfessionalFeatures() {
 
 function createTrialNotificationForProfessionalFeatures() {
     cy.get('#product_switch_menu').click().then((() => {
-        cy.get('#view_plans_cta').click();
-        cy.get('#pricingModal').get('#professional').within(() => {
-            cy.get('#notify_admin_cta').click();
-        });
-        cy.get('#closeIcon').click();
+        // The pricing modal has been replaced with a direct link, so we need to directly use the notify admin CTA
+        cy.get('#notify_admin_cta').click();
     }));
 }
 
 function createTrialNotificationForEnterpriseFeatures() {
     cy.get('#product_switch_menu').click().then((() => {
-        cy.get('#view_plans_cta').click();
-        cy.get('#pricingModal').get('#enterprise').within(() => {
-            cy.get('#notify_admin_cta').click();
-        });
-        cy.get('#closeIcon').click();
+        // The pricing modal has been replaced with a direct link, so we need to directly use the notify admin CTA
+        cy.get('#notify_admin_enterprise_cta').click();
     }));
 }
 
@@ -228,11 +222,15 @@ function assertNotification(featureId, minimumPlan, totalRequests, requestsCount
 
         if (minimumPlan === 'Professional plan') {
             cy.get(`#${featureId}-title`.replaceAll('.', '_')).within(() => {
+                // * Spy on window.open and click the plan mention
+                cy.window().then((win) => {
+                    cy.stub(win, 'open').as('windowOpen');
+                });
+                
                 cy.get('#at_plan_mention').click();
-            });
-
-            cy.get('.PricingModal__header').should('exist').then(() => {
-                cy.get('#closeIcon').click();
+                
+                // * Verify it tried to open the pricing page
+                cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
             });
         }
     });
@@ -240,14 +238,16 @@ function assertNotification(featureId, minimumPlan, totalRequests, requestsCount
 
 function assertUpgradeMessageButton(onlyProfessionalFeatures?: boolean) {
     cy.get('#view_upgrade_options').contains('View upgrade options');
+    
+    // * Spy on window.open and click the button
+    cy.window().then((win) => {
+        cy.stub(win, 'open').as('windowOpen');
+    });
+    
     cy.get('#view_upgrade_options').click();
-    cy.get('#pricingModal').should('exist');
-
-    if (onlyProfessionalFeatures) {
-        cy.get('.close-x').click();
-        cy.get('#upgrade_to_professional').contains('Upgrade to Professional');
-        cy.get('.PurchaseModal').should('exist');
-    }
+    
+    // * Verify it tried to open the pricing page
+    cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
 }
 
 function assertTrialMessageButton() {
@@ -257,8 +257,15 @@ function assertTrialMessageButton() {
         cy.get('.close').click();
     });
 
+    // * Spy on window.open and click the button
+    cy.window().then((win) => {
+        cy.stub(win, 'open').as('windowOpen');
+    });
+    
     cy.findByText('View upgrade options').click();
-    cy.get('#pricingModal').should('exist');
+    
+    // * Verify it tried to open the pricing page
+    cy.get('@windowOpen').should('be.calledWith', 'https://mattermost.com/pricing', '_blank');
 }
 
 function testTrialNotifications(subscription, limits) {

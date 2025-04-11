@@ -16,7 +16,7 @@ import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
 import {NotifyStatus} from 'components/common/hooks/useGetNotifyAdmin';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 import ExternalLink from 'components/external_link';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
@@ -66,7 +66,7 @@ const FeatureRestrictedModal = ({
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.FEATURE_RESTRICTED_MODAL));
     const license = useSelector(getLicense);
     const isCloud = license?.Cloud === 'true';
-    const openPricingModal = useOpenPricingModal();
+    const openPricingDetails = useOpenPricingDetails();
 
     const [notifyAdminBtnText, notifyAdmin, notifyRequestStatus] = useNotifyAdmin({
         ctaText: formatMessage({
@@ -89,7 +89,7 @@ const FeatureRestrictedModal = ({
 
     const handleViewPlansClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         if (isSystemAdmin) {
-            openPricingModal({trackingLocation: 'feature_restricted_modal'});
+            openPricingDetails({trackingLocation: 'feature_restricted_modal'});
             dismissAction();
         } else {
             notifyAdmin(e, 'feature_restricted_modal');

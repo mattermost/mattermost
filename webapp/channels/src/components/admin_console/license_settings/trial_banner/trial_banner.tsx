@@ -12,7 +12,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import AlertBanner from 'components/alert_banner';
 import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
-import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
+import type {TelemetryProps} from 'components/common/hooks/useOpenPricingDetails';
 import ExternalLink from 'components/external_link';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
