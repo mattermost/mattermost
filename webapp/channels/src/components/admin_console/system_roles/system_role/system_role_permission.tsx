@@ -84,6 +84,7 @@ export default class SystemRolePermission extends React.PureComponent<Props> {
         return (
             <div
                 key={section.name}
+                data-testid={`permission_section_${section.name}`}
                 className='PermissionSection'
             >
                 <div className='PermissionSectionText'>
