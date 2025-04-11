@@ -182,7 +182,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 		}
 	}
 
-	ldapUser, err := a.Ldap().DoLogin(rctx, *ldapID, password)
+	ldapUser, err := a.Ldap().DoLogin(rctx, *ldapID, password, "test")
 	if err != nil {
 		// If this is a new LDAP user, we need to get the user from the database because DoLogin will have created the user.
 		if user.Id == "" {
