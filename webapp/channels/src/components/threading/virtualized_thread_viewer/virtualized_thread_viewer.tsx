@@ -440,6 +440,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                         {({width, height}) => (
                             <>
                                 <DynamicSizeList
+                                    id='threadViewerScrollContainer'
                                     canLoadMorePosts={this.canLoadMorePosts}
                                     height={height}
                                     initRangeToRender={this.initRangeToRender}
