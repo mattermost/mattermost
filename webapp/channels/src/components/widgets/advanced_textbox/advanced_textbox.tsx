@@ -126,27 +126,28 @@ const AdvancedTextbox = ({
                 />)
             }
 
+            <div className='AdvancedTextbox__error-wrapper'>
+                {/* Error message display */}
+                {internalError && (
+                    <div className='AdvancedTextbox__error-message'>
+                        <i className='icon icon-alert-circle-outline'/>
+                        <span>{internalError}</span>
+                    </div>
+                )}
 
-            {/* Character count display */}
-            {showCharacterCount && (isTooLong || isTooShort || internalError) && (
-                <div
-                    className={classNames('AdvancedTextbox__character-count', {
-                        'exceeds-limit': isTooLong,
-                        'below-minimum': isTooShort,
-                    })}
-                >
-                    {value.length}{'/'}
-                    {isTooShort ? minLength : maxLength}
-                </div>
-            )}
-
-            {/* Error message display */}
-            {internalError && (
-                <div className='AdvancedTextbox__error-message'>
-                    <i className='icon icon-alert-circle-outline'/>
-                    <span>{internalError}</span>
-                </div>
-            )}
+                {/* Character count display */}
+                {showCharacterCount && (isTooLong || isTooShort || internalError) && (
+                    <div
+                        className={classNames('AdvancedTextbox__character-count', {
+                            'exceeds-limit': isTooLong,
+                            'below-minimum': isTooShort,
+                        })}
+                    >
+                        {value.length}{'/'}
+                        {isTooShort ? minLength : maxLength}
+                    </div>
+                )}
+            </div>
 
             {/* Error message display */}
             {(descriptionMessage && !internalError) && (

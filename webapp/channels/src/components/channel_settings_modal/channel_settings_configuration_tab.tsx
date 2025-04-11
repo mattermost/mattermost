@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -10,10 +10,8 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {patchChannel} from 'mattermost-redux/actions/channels';
 
-import {SAVE_CHANGES_PANEL_ERROR_TIMEOUT} from 'components/channel_settings_modal/channel_settings_info_tab';
 import ColorInput from 'components/color_input';
 import type {TextboxElement} from 'components/textbox';
-import type TextboxClass from 'components/textbox/textbox';
 import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
@@ -33,32 +31,28 @@ const DEFAULT_CHANNEL_BANNER = {
 type Props = {
     channel: Channel;
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
-    IsTabSwitchActionWithUnsaved?: boolean;
+    showTabSwitchError?: boolean;
 }
 
-function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, IsTabSwitchActionWithUnsaved}: Props) {
+function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, showTabSwitchError}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
-    // TODO: use actual placeholder
     const heading = formatMessage({id: 'channel_banner.label.name', defaultMessage: 'Channel Banner'});
     const subHeading = formatMessage({id: 'channel_banner.label.subtext', defaultMessage: 'When enabled, a customized banner will display at the top of the channel.'});
     const bannerTextSettingTitle = formatMessage({id: 'channel_banner.banner_text.label', defaultMessage: 'Banner text'});
     const bannerColorSettingTitle = formatMessage({id: 'channel_banner.banner_color.label', defaultMessage: 'Banner color'});
-    const bannerTextPlaceholder = formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Banner text placeholder'});
+    const bannerTextPlaceholder = formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Channel banner text'});
 
-    // TODO: populate initial state with actual channel info
     const initialBannerInfo = channel.banner_info || DEFAULT_CHANNEL_BANNER;
 
     const [formError, setFormError] = useState('');
     const [showBannerTextPreview, setShowBannerTextPreview] = useState(false);
     const [updatedChannelBanner, setUpdatedChannelBanner] = useState(initialBannerInfo);
 
-    // SaveChangesPanel state
     const [requireConfirm, setRequireConfirm] = useState(false);
     const [characterLimitExceeded, setCharacterLimitExceeded] = useState(false);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
-    const [switchingTabsWithUnsaved, setSwitchingTabsWithUnsaved] = useState(IsTabSwitchActionWithUnsaved);
 
     // Change handlers
     const handleToggle = useCallback(() => {
@@ -90,7 +84,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
         } else if (e.target.value.trim().length <= CHANNEL_BANNER_MIN_CHARACTER_LIMIT) {
             setFormError(formatMessage({
                 id: 'channel_settings.save_changes_panel.banner_text.required_error',
-                defaultMessage: 'TODO channel banner text is required',
+                defaultMessage: 'Channel banner text cannot be empty when enabled',
             }));
             setCharacterLimitExceeded(true);
         } else {
@@ -118,28 +112,19 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
         const unsavedChanges = hasUnsavedChanges();
         setRequireConfirm(unsavedChanges);
         setAreThereUnsavedChanges?.(unsavedChanges);
-        setSwitchingTabsWithUnsaved(IsTabSwitchActionWithUnsaved);
+    }, [hasUnsavedChanges, setAreThereUnsavedChanges]);
 
-        if (IsTabSwitchActionWithUnsaved) {
-            setTimeout(() => {
-                setSwitchingTabsWithUnsaved(false);
-            }, SAVE_CHANGES_PANEL_ERROR_TIMEOUT);
-        }
-    }, [IsTabSwitchActionWithUnsaved, hasUnsavedChanges, setAreThereUnsavedChanges]);
-
-    const bannerTextboxRef = useRef<TextboxClass>(null);
-
-    const handleServerError = (err: ServerError) => {
+    const handleServerError = useCallback((err: ServerError) => {
         const errorMsg = err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'});
         setFormError(errorMsg);
-    };
+    }, [formatMessage]);
 
     const handleSave = useCallback(async (): Promise<boolean> => {
         if (!channel) {
             return false;
         }
 
-        if (updatedChannelBanner.enabled && !updatedChannelBanner.text.trim()) {
+        if (updatedChannelBanner.enabled && !updatedChannelBanner.text?.trim()) {
             setFormError(formatMessage({
                 id: 'channel_settings.error_banner_text_required',
                 defaultMessage: 'Banner text is required',
@@ -147,7 +132,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
             return false;
         }
 
-        if (updatedChannelBanner.enabled && !updatedChannelBanner.background_color.trim()) {
+        if (updatedChannelBanner.enabled && !updatedChannelBanner.background_color?.trim()) {
             setFormError(formatMessage({
                 id: 'channel_settings.error_banner_color_required',
                 defaultMessage: 'Banner color is required',
@@ -155,12 +140,10 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
             return false;
         }
 
-        // Build updated channel object
         const updated: Channel = {
             ...channel,
         };
 
-        // todo: this will be fixed when other channel banner PR is merged
         updated.banner_info = {
             text: updatedChannelBanner.text,
             background_color: updatedChannelBanner.background_color,
@@ -202,7 +185,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
 
     const hasErrors = Boolean(formError) ||
         characterLimitExceeded ||
-        Boolean(switchingTabsWithUnsaved);
+        showTabSwitchError;
 
     return (
         <div className='ChannelSettingsModal__configurationTab'>
@@ -251,19 +234,18 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
                         <div className='setting_body'>
                             <AdvancedTextbox
                                 id='channel_banner_banner_text_textbox'
-                                value={updatedChannelBanner.text}
+                                value={updatedChannelBanner.text!}
                                 channelId={channel.id}
+                                onKeyPress={() => {}}
+                                showCharacterCount={true}
+                                useChannelMentions={false}
                                 onChange={handleTextChange}
-                                createMessage={bannerTextPlaceholder}
                                 preview={showBannerTextPreview}
                                 togglePreview={toggleTextPreview}
-                                textboxRef={bannerTextboxRef}
-                                useChannelMentions={false}
-                                onKeypress={() => {}}
                                 hasError={characterLimitExceeded}
-                                showCharacterCount={true}
-                                minCharacterLimit={CHANNEL_BANNER_MIN_CHARACTER_LIMIT}
-                                characterLimit={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
+                                createMessage={bannerTextPlaceholder}
+                                maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
+                                minLength={CHANNEL_BANNER_MIN_CHARACTER_LIMIT}
                             />
                         </div>
                     </div>
@@ -281,7 +263,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, Is
                             <ColorInput
                                 id='channel_banner_banner_background_color_picker'
                                 onChange={handleColorChange}
-                                value={updatedChannelBanner.background_color}
+                                value={updatedChannelBanner.background_color || ''}
                             />
                         </div>
                     </div>

@@ -12,6 +12,7 @@ import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import Permissions from 'mattermost-redux/constants/permissions';
+import {selectShowChannelBanner} from 'mattermost-redux/selectors/entities/channel_banner';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
@@ -25,7 +26,6 @@ import ChannelSettingsConfigurationTab from './channel_settings_configuration_ta
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
 
 import './channel_settings_modal.scss';
-import {getLicense} from "mattermost-redux/selectors/entities/general";
 
 // Lazy-loaded components
 const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
@@ -48,6 +48,7 @@ const SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT = 3000;
 function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
+    const shouldShowConfigurationTab = useSelector((state: GlobalState) => selectShowChannelBanner(state, channelId));
 
     const canArchivePrivateChannels = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DELETE_PRIVATE_CHANNEL),
@@ -141,7 +142,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             <ChannelSettingsConfigurationTab
                 channel={channel}
                 setAreThereUnsavedChanges={setAreThereUnsavedChanges}
-                IsTabSwitchActionWithUnsaved={IsTabSwitchActionWithUnsaved}
+                showTabSwitchError={showTabSwitchError}
             />
         );
     };
@@ -154,10 +155,6 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             />
         );
     };
-
-    // TODO: use the selector created in https://github.com/mattermost/mattermost/pull/30514 to determine
-    // whether to display the tab or not.
-    const shouldShowConfigurationTab = true;
 
     // Define tabs for the settings sidebar
     const tabs = [
