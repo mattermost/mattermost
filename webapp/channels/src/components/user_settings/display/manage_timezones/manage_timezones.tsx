@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {IntlShape} from 'react-intl';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, StylesConfig} from 'react-select';
 import type {Timezone} from 'timezones.json';
@@ -50,7 +50,7 @@ type State = {
     selectedOption: SelectedOption;
 }
 
-export default class ManageTimezones extends React.PureComponent<Props, State> {
+export class ManageTimezones extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -287,4 +287,5 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
         );
     }
 }
+export default injectIntl(ManageTimezones);
 
