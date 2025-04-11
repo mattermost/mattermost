@@ -82,7 +82,7 @@ export function isUrlSafe(url: string): boolean {
 
     try {
         unescaped = decodeURIComponent(url);
-    } catch (e) {
+    } catch {
         unescaped = unescape(url);
     }
 
