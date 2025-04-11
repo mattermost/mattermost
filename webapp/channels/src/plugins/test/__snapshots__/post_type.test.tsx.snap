@@ -1,141 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`plugins/PostMessageView should match snapshot with extended post type 1`] = `
-<PostMessageView
-  currentRelativeTeamUrl="team_url"
-  enableFormatting={true}
-  isRHS={false}
-  options={Object {}}
-  pluginPostTypes={
-    Object {
-      "testtype": Object {
-        "component": [Function],
-        "id": "some id",
-        "pluginId": "some plugin id",
-        "type": "",
-      },
-    }
-  }
-  post={
-    Object {
-      "id": "post_id",
-      "message": "this is some text",
-      "type": "testtype",
-    }
-  }
-  theme={
-    Object {
-      "awayIndicator": "#ffbc1f",
-      "buttonBg": "#1c58d9",
-      "buttonColor": "#ffffff",
-      "centerChannelBg": "#ffffff",
-      "centerChannelColor": "#3f4350",
-      "codeTheme": "github",
-      "dndIndicator": "#d24b4e",
-      "errorTextColor": "#d24b4e",
-      "linkColor": "#386fe5",
-      "mentionBg": "#ffffff",
-      "mentionBj": "#ffffff",
-      "mentionColor": "#1e325c",
-      "mentionHighlightBg": "#ffd470",
-      "mentionHighlightLink": "#1b1d22",
-      "newMessageSeparator": "#cc8f00",
-      "onlineIndicator": "#3db887",
-      "sidebarBg": "#1e325c",
-      "sidebarHeaderBg": "#192a4d",
-      "sidebarHeaderTextColor": "#ffffff",
-      "sidebarTeamBarBg": "#162545",
-      "sidebarText": "#ffffff",
-      "sidebarTextActiveBorder": "#5d89ea",
-      "sidebarTextActiveColor": "#ffffff",
-      "sidebarTextHoverBg": "#28427b",
-      "sidebarUnreadText": "#ffffff",
-      "type": "Denim",
-    }
-  }
->
-  <PostTypePlugin
-    isRHS={false}
-    post={
-      Object {
-        "id": "post_id",
-        "message": "this is some text",
-        "type": "testtype",
-      }
-    }
-    theme={
-      Object {
-        "awayIndicator": "#ffbc1f",
-        "buttonBg": "#1c58d9",
-        "buttonColor": "#ffffff",
-        "centerChannelBg": "#ffffff",
-        "centerChannelColor": "#3f4350",
-        "codeTheme": "github",
-        "dndIndicator": "#d24b4e",
-        "errorTextColor": "#d24b4e",
-        "linkColor": "#386fe5",
-        "mentionBg": "#ffffff",
-        "mentionBj": "#ffffff",
-        "mentionColor": "#1e325c",
-        "mentionHighlightBg": "#ffd470",
-        "mentionHighlightLink": "#1b1d22",
-        "newMessageSeparator": "#cc8f00",
-        "onlineIndicator": "#3db887",
-        "sidebarBg": "#1e325c",
-        "sidebarHeaderBg": "#192a4d",
-        "sidebarHeaderTextColor": "#ffffff",
-        "sidebarTeamBarBg": "#162545",
-        "sidebarText": "#ffffff",
-        "sidebarTextActiveBorder": "#5d89ea",
-        "sidebarTextActiveColor": "#ffffff",
-        "sidebarTextHoverBg": "#28427b",
-        "sidebarUnreadText": "#ffffff",
-        "type": "Denim",
-      }
-    }
+exports[`plugins/PostMessageView should render properly with extended post type 1`] = `
+<div>
+  <span
+    data-testid="pluginId"
   >
-    <span
-      id="pluginId"
-    >
-      PostTypePlugin
-    </span>
-  </PostTypePlugin>
-</PostMessageView>
+    PostTypePlugin
+  </span>
+</div>
 `;
 
-exports[`plugins/PostMessageView should match snapshot with no extended post type 1`] = `
-<Connect(ShowMore)
-  checkOverflow={0}
-  text="this is some text"
->
+exports[`plugins/PostMessageView should render properly with no extended post type 1`] = `
+<div>
   <div
-    className="post-message__text"
-    dir="auto"
-    id="postMessageText_post_id"
-    onClick={[Function]}
+    data-testid="show-more"
   >
-    <Connect(PostMarkdown)
-      imageProps={
-        Object {
-          "onImageHeightChanged": [Function],
-          "onImageLoaded": [Function],
-        }
-      }
-      message="this is some text"
-      options={Object {}}
-      post={
-        Object {
-          "id": "post_id",
-          "message": "this is some text",
-          "type": "testtype",
-        }
-      }
-    />
+    Show More
   </div>
-  <Pluggable
-    onHeightChange={[Function]}
-    pluggableName="PostMessageAttachment"
-    postId="post_id"
-  />
-</Connect(ShowMore)>
+</div>
 `;
