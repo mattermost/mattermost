@@ -84,8 +84,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	session.Roles = model.SystemUserRoleId
 	th.App.SetSessionExpireInHours(session, 24)
 
-	var err *model.AppError
-	session, err = th.App.CreateSession(th.Context, session)
+	session, err := th.App.CreateSession(th.Context, session)
 	require.Nil(t, err)
 	err = th.App.RevokeAccessToken(th.Context, session.Token)
 	require.NotNil(t, err, "Should have failed does not have an access token")
@@ -104,9 +103,8 @@ func TestOAuthDeleteApp(t *testing.T) {
 	a1.CallbackUrls = []string{"https://nowhere.com"}
 	a1.Homepage = "https://nowhere.com"
 
-	var err *model.AppError
-	a1, err = th.App.CreateOAuthApp(a1)
-	require.Nil(t, err)
+	a1, appErr := th.App.CreateOAuthApp(a1)
+	require.Nil(t, appErr)
 
 	session := &model.Session{}
 	session.CreateAt = model.GetMillis()
@@ -116,7 +114,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	session.IsOAuth = true
 	th.App.ch.srv.platform.SetSessionExpireInHours(session, 24)
 
-	session, appErr := th.App.CreateSession(th.Context, session)
+	session, appErr = th.App.CreateSession(th.Context, session)
 	require.Nil(t, appErr)
 
 	accessData := &model.AccessData{}
@@ -126,14 +124,14 @@ func TestOAuthDeleteApp(t *testing.T) {
 	accessData.ClientId = a1.Id
 	accessData.ExpiresAt = session.ExpiresAt
 
-	_, nErr := th.App.Srv().Store().OAuth().SaveAccessData(accessData)
-	require.NoError(t, nErr)
+	_, err := th.App.Srv().Store().OAuth().SaveAccessData(accessData)
+	require.NoError(t, err)
 
-	err = th.App.DeleteOAuthApp(th.Context, a1.Id)
-	require.Nil(t, err)
+	appErr = th.App.DeleteOAuthApp(th.Context, a1.Id)
+	require.Nil(t, appErr)
 
-	_, err = th.App.GetSession(session.Token)
-	require.NotNil(t, err, "should not get session from cache or db")
+	_, appErr = th.App.GetSession(session.Token)
+	require.NotNil(t, appErr, "should not get session from cache or db")
 }
 
 func TestAuthorizeOAuthUser(t *testing.T) {
@@ -166,12 +164,14 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	}
 
 	makeToken := func(th *TestHelper, cookie string) *model.Token {
-		token, _ := th.App.CreateOAuthStateToken(generateOAuthStateTokenExtra("", "", cookie))
+		token, appErr := th.App.CreateOAuthStateToken(generateOAuthStateTokenExtra("", "", cookie))
+		require.Nil(t, appErr)
 		return token
 	}
 
 	makeRequest := func(cookie string) *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "https://mattermost.example.com", nil)
+		request, err := http.NewRequest(http.MethodGet, "https://mattermost.example.com", nil)
+		require.NoError(t, err)
 
 		if cookie != "" {
 			request.AddCookie(&http.Cookie{
@@ -615,8 +615,8 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 		CallbackUrls: []string{"https://nowhere.com"},
 	}
 
-	oapp, err := th.App.CreateOAuthApp(oapp)
-	require.Nil(t, err)
+	oapp, appErr := th.App.CreateOAuthApp(oapp)
+	require.Nil(t, appErr)
 
 	authRequest := &model.AuthorizeRequest{
 		ResponseType: model.ImplicitResponseType,
@@ -626,8 +626,8 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 		State:        "123",
 	}
 
-	redirectUrl, err := th.App.GetOAuthCodeRedirect(th.BasicUser.Id, authRequest)
-	assert.Nil(t, err)
+	redirectUrl, appErr := th.App.GetOAuthCodeRedirect(th.BasicUser.Id, authRequest)
+	assert.Nil(t, appErr)
 
 	dErr := th.App.DeauthorizeOAuthAppForUser(th.Context, th.BasicUser.Id, oapp.Id)
 	assert.Nil(t, dErr)
@@ -638,8 +638,8 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	queryParams := uri.Query()
 	code := queryParams.Get("code")
 
-	data, nErr := th.App.Srv().Store().OAuth().GetAuthData(code)
-	require.Equal(t, store.NewErrNotFound("AuthData", fmt.Sprintf("code=%s", code)), nErr)
+	data, err := th.App.Srv().Store().OAuth().GetAuthData(code)
+	require.Equal(t, store.NewErrNotFound("AuthData", fmt.Sprintf("code=%s", code)), err)
 	assert.Nil(t, data)
 }
 
@@ -657,8 +657,8 @@ func TestDeactivatedUserOAuthApp(t *testing.T) {
 		CallbackUrls: []string{"https://nowhere.com"},
 	}
 
-	oapp, err := th.App.CreateOAuthApp(oapp)
-	require.Nil(t, err)
+	oapp, appErr := th.App.CreateOAuthApp(oapp)
+	require.Nil(t, appErr)
 
 	authRequest := &model.AuthorizeRequest{
 		ResponseType: model.ImplicitResponseType,
@@ -668,21 +668,21 @@ func TestDeactivatedUserOAuthApp(t *testing.T) {
 		State:        "123",
 	}
 
-	redirectUrl, err := th.App.GetOAuthCodeRedirect(th.BasicUser.Id, authRequest)
-	assert.Nil(t, err)
+	redirectUrl, appErr := th.App.GetOAuthCodeRedirect(th.BasicUser.Id, authRequest)
+	assert.Nil(t, appErr)
 
-	uri, uErr := url.Parse(redirectUrl)
-	require.NoError(t, uErr)
+	uri, err := url.Parse(redirectUrl)
+	require.NoError(t, err)
 
 	queryParams := uri.Query()
 	code := queryParams.Get("code")
 
-	_, appErr := th.App.UpdateActive(th.Context, th.BasicUser, false)
+	_, appErr = th.App.UpdateActive(th.Context, th.BasicUser, false)
 	require.Nil(t, appErr)
 
-	resp, accErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.AccessTokenGrantType, oapp.CallbackUrls[0], code, oapp.ClientSecret, "")
+	resp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.AccessTokenGrantType, oapp.CallbackUrls[0], code, oapp.ClientSecret, "")
 	assert.Nil(t, resp)
-	require.NotNil(t, accErr, "Should not get access token")
-	require.Equal(t, http.StatusBadRequest, accErr.StatusCode)
-	assert.Equal(t, "api.oauth.get_access_token.expired_code.app_error", accErr.Id)
+	require.NotNil(t, appErr, "Should not get access token")
+	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	assert.Equal(t, "api.oauth.get_access_token.expired_code.app_error", appErr.Id)
 }
