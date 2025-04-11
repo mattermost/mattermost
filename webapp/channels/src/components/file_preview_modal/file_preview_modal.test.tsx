@@ -8,6 +8,7 @@ import FilePreviewModal from 'components/file_preview_modal/file_preview_modal';
 
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
+import * as Utils from 'utils/utils';
 import {generateId} from 'utils/utils';
 
 describe('components/FilePreviewModal', () => {
@@ -150,6 +151,66 @@ describe('components/FilePreviewModal', () => {
         const props = {...baseProps, fileInfos};
         const wrapper = shallow(<FilePreviewModal {...props}/>);
         expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should correctly identify image URLs with isImageUrl method', () => {
+        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...baseProps}/>);
+
+        // Test proxied image URLs
+        expect(wrapper.instance().isImageUrl('http://localhost:8065/api/v4/image?url=https%3A%2F%2Fexample.com%2Fimage.jpg')).toBe(true);
+
+        // Test URLs with image extensions
+        expect(wrapper.instance().isImageUrl('https://example.com/image.jpg')).toBe(true);
+        expect(wrapper.instance().isImageUrl('https://example.com/image.png')).toBe(true);
+        expect(wrapper.instance().isImageUrl('https://example.com/image.gif')).toBe(true);
+
+        // Test non-image URLs
+        expect(wrapper.instance().isImageUrl('https://example.com/document.pdf')).toBe(false);
+        expect(wrapper.instance().isImageUrl('https://example.com/file.txt')).toBe(false);
+    });
+
+    test('should handle external image URLs correctly', () => {
+        // Create a mock for Utils.loadImage
+        const loadImageSpy = jest.spyOn(Utils, 'loadImage').mockImplementation((url, onLoad) => {
+            // Create a mock ProgressEvent
+            const mockProgressEvent = new ProgressEvent('progress');
+
+            // Call onLoad with the mock event if it exists
+            if (onLoad) {
+                onLoad.call({} as XMLHttpRequest, mockProgressEvent);
+            }
+        });
+
+        // Create a LinkInfo object for an external image URL
+        const externalImageUrl = 'http://localhost:8065/api/v4/image?url=https%3A%2F%2Fexample.com%2Fimage.jpg';
+        const fileInfos = [{
+            has_preview_image: false,
+            link: externalImageUrl,
+            extension: '',
+            name: 'External Image',
+        }];
+
+        const props = {...baseProps, fileInfos};
+        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...props}/>);
+
+        // Spy on handleImageLoaded
+        const handleImageLoadedSpy = jest.spyOn(wrapper.instance(), 'handleImageLoaded');
+
+        // Call loadImage with the external image URL
+        wrapper.instance().loadImage(0);
+
+        // Verify that Utils.loadImage was called with the correct URL
+        expect(loadImageSpy).toHaveBeenCalledWith(
+            externalImageUrl,
+            expect.any(Function),
+            expect.any(Function),
+        );
+
+        // Verify that handleImageLoaded was called
+        expect(handleImageLoadedSpy).toHaveBeenCalled();
+
+        // Restore the original loadImage function
+        loadImageSpy.mockRestore();
     });
 
     test('should have called loadImage', () => {
