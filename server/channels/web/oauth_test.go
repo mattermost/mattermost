@@ -220,8 +220,8 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	_, err = apiClient.DeauthorizeOAuthApp(context.Background(), model.NewId())
 	require.NoError(t, err)
 
-	th.Logout(apiClient)
-	// We don't check the error from Logout since it's a test helper function
+	_, err = apiClient.Logout(context.Background())
+	require.NoError(t, err)
 	resp, err = apiClient.DeauthorizeOAuthApp(context.Background(), rapp.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -279,7 +279,8 @@ func TestOAuthAccessToken(t *testing.T) {
 	rurl, err := url.Parse(redirect)
 	require.NoError(t, err)
 
-	_, _ = apiClient.Logout(context.Background()) // Ignore error for test setup
+	_, err = apiClient.Logout(context.Background())
+	require.NoError(t, err)
 
 	data = url.Values{"grant_type": []string{"junk"}, "client_id": []string{oauthApp.Id}, "client_secret": []string{oauthApp.ClientSecret}, "code": []string{rurl.Query().Get("code")}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
@@ -766,10 +767,6 @@ func (th *TestHelper) Login(client *model.Client4, user *model.User) {
 	require.Nil(th.t, appErr)
 	client.AuthToken = session.Token
 	client.AuthType = model.HeaderBearer
-}
-
-func (th *TestHelper) Logout(client *model.Client4) {
-	client.AuthToken = ""
 }
 
 func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
