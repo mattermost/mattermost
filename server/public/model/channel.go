@@ -139,6 +139,7 @@ type ChannelPatch struct {
 	Header           *string            `json:"header"`
 	Purpose          *string            `json:"purpose"`
 	GroupConstrained *bool              `json:"group_constrained"`
+	Type             ChannelType        `json:"type"`
 	BannerInfo       *ChannelBannerInfo `json:"banner_info"`
 }
 
@@ -359,6 +360,10 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 
 	if patch.Purpose != nil {
 		o.Purpose = *patch.Purpose
+	}
+
+	if patch.Type != "" {
+		o.Type = patch.Type
 	}
 
 	if patch.GroupConstrained != nil {
