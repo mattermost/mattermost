@@ -108,7 +108,7 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
         cy.uiOpenProductMenu('About Mattermost');
         verifyEmojiPickerNotOpen();
 
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
         verifyEmojiPickerNotOpen();
 
         cy.uiOpenProfileModal('Profile Settings');
@@ -166,9 +166,6 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
 
         // # Close the expanded RHS
         cy.findByLabelText('Collapse Sidebar Icon').click();
-
-        // # Open the pinned posts
-        cy.uiGetChannelPinButton().click();
 
         // # Expand RHS
         cy.findByLabelText('Expand Sidebar Icon').click();

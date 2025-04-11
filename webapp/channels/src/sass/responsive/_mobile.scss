@@ -10,14 +10,19 @@
             }
 
             .navbar-header {
-                margin: 0 -15px;
-                float: none;
+                display: flex;
+                align-items: center;
+                gap: 4px;
 
                 .dropdown__icon {
                     display: inline-block;
                     width: 4px;
                     height: 16px;
                     background-size: 100% 100%;
+                }
+
+                button.navbar-toggle.navbar-right__icon {
+                    margin: 0;
                 }
             }
 
@@ -723,7 +728,7 @@
 
     .sidebar--left .team__header .Avatar,
     #SidebarContainer .team__header .Avatar,
-    .sidebar--menu .team__header .Avatar {
+    .team__header .Avatar {
         display: none;
     }
 
@@ -1186,34 +1191,6 @@
         }
     }
 
-    .sidebar--menu {
-        width: 290px;
-        border: none;
-        transform: translate3d(290px, 0, 0);
-        transition: transform 0.35s ease;
-        visibility: hidden;
-
-        &.visible {
-            display: block;
-            visibility: visible;
-        }
-
-        &.move--left {
-            display: block;
-            transform: translate3d(0, 0, 0);
-            visibility: visible;
-        }
-
-        .mentions {
-            font-size: 17px;
-            font-weight: bold;
-        }
-
-        .Menu .MenuItem.MenuItem--with-icon .MenuItem__help-text {
-            padding-left: 0;
-        }
-    }
-
     .sidebar--left {
         width: 290px;
         border: none;
@@ -1318,22 +1295,6 @@
 
         &.move--right {
             transform: translate3d(0, 0, 0);
-        }
-
-        .team__header {
-            @include mixins.clearfix;
-
-            padding: 15px;
-            pointer-events: none;
-
-            .team__name,
-            .user__name {
-                max-width: 100%;
-            }
-
-            .sidebar-header-dropdown {
-                display: none;
-            }
         }
 
         .search__form {
@@ -1522,7 +1483,7 @@
     }
 
     .inner-wrap {
-        transition: all 0.35s ease;
+        transition: all 0.3s linear;
 
         .app__body & {
             &::before {

@@ -6,7 +6,7 @@ import React from 'react';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import ChannelHeaderMobile from './channel_header_mobile';
+import ChannelHeaderMobile from './mobile_channel_header';
 
 describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
     global.document.querySelector = jest.fn().mockReturnValue({

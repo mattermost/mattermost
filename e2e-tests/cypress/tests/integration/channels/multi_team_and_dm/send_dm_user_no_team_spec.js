@@ -38,7 +38,7 @@ describe('Send a DM', () => {
         cy.visit(testChannelUrl);
         cy.get('#postListContent', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');
         cy.uiGetLHSHeader().click();
-        cy.findByText('Leave Team').click();
+        cy.findByText('Leave team').click();
         cy.findByText('Yes').click();
         cy.url().should('include', '/select_team');
 

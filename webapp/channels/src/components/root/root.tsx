@@ -26,7 +26,6 @@ import LoggedIn from 'components/logged_in';
 import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
-import SidebarMobileRightMenu from 'components/sidebar_mobile_right_menu';
 
 import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
@@ -584,7 +583,6 @@ export default class Root extends React.PureComponent<Props, State> {
                         </div>
                         <Pluggable pluggableName='Global'/>
                         <AppBar/>
-                        <SidebarMobileRightMenu/>
                     </CompassThemeProvider>
                 </Switch>
             </RootProvider>

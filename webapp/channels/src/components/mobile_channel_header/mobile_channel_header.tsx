@@ -33,7 +33,7 @@ type Props = {
     };
 }
 
-export default class ChannelHeaderMobile extends React.PureComponent<Props> {
+export default class MobileChannelHeader extends React.PureComponent<Props> {
     componentDidMount() {
         document.querySelector('.inner-wrap')?.addEventListener('click', this.hideSidebars);
     }

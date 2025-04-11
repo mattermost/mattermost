@@ -31,14 +31,6 @@ export default function UserAccountProfileMenuItem(props: Props) {
     const onboardingTaskStep = useSelector((state: GlobalState) => getInt(state, OnboardingTaskCategory, OnboardingTasksName.COMPLETE_YOUR_PROFILE, 0));
     const isCompleteYourProfileTaskPending = onboardingTaskStep === TaskNameMapToSteps[OnboardingTasksName.COMPLETE_YOUR_PROFILE].STARTED;
 
-    function handleClick() {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.USER_SETTINGS,
-            dialogType: UserSettingsModal,
-            dialogProps: {isContentProductSettings: false, focusOriginElement: 'userAccountMenuButton'},
-        }));
-    }
-
     function handleTourClick() {
         const taskName = OnboardingTasksName.COMPLETE_YOUR_PROFILE;
         const steps = TaskNameMapToSteps[taskName];
@@ -49,6 +41,21 @@ export default function UserAccountProfileMenuItem(props: Props) {
             name: taskName,
             value: steps.FINISHED.toString(),
         }]));
+    }
+
+    function handleClick() {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.USER_SETTINGS,
+            dialogType: UserSettingsModal,
+            dialogProps: {
+                isContentProductSettings: false,
+                focusOriginElement: 'userAccountMenuButton',
+            },
+        }));
+
+        if (isCompleteYourProfileTaskPending) {
+            handleTourClick();
+        }
     }
 
     return (
@@ -66,12 +73,7 @@ export default function UserAccountProfileMenuItem(props: Props) {
                 />
             }
             trailingElements={isCompleteYourProfileTaskPending && (
-                <div
-                    onClick={handleTourClick}
-                    className='userAccountMenu_profileMenuItem_tourWrapper'
-                >
-                    <CompleteYourProfileTour/>
-                </div>
+                <CompleteYourProfileTour/>
             )}
             aria-haspopup={true}
             onClick={handleClick}
