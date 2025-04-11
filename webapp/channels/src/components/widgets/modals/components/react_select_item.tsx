@@ -3,6 +3,7 @@
 
 import type {ReactNode} from 'react';
 import React from 'react';
+import {useIntl} from 'react-intl';
 import type {OnChangeValue} from 'react-select';
 import ReactSelect from 'react-select';
 
@@ -30,6 +31,25 @@ type Props = BaseSettingItemProps & {
     handleChange: (selected: OnChangeValue<Option, boolean>) => void;
 }
 
+// Function to extract text from FormattedMessage components
+export const getOptionLabel = (option: Option, intl: ReturnType<typeof useIntl>) => {
+    if (typeof option.label === 'string') {
+        return option.label;
+    }
+
+    // For FormattedMessage components, extract the defaultMessage and id
+    if (React.isValidElement(option.label)) {
+        const formattedMessage = option.label as React.ReactElement<{id: string; defaultMessage: string}>;
+        const props = formattedMessage.props;
+
+        return intl.formatMessage({
+            id: props.id,
+            defaultMessage: props.defaultMessage,
+        });
+    }
+    return '';
+};
+
 function ReactSelectItemCreator({
     title,
     description,
@@ -37,6 +57,7 @@ function ReactSelectItemCreator({
     inputFieldValue,
     handleChange,
 }: Props): JSX.Element {
+    const intl = useIntl();
     const content = (
         <fieldset className='mm-modal-generic-section-item__fieldset-react-select'>
             <ReactSelect
@@ -52,6 +73,8 @@ function ReactSelectItemCreator({
                 onChange={handleChange}
                 value={inputFieldValue}
                 components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
+                getOptionLabel={(option) => getOptionLabel(option, intl)}
+
             />
         </fieldset>
     );
