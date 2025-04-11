@@ -112,7 +112,8 @@ func TestGetLicenseFileFromDisk(t *testing.T) {
 		f, err := os.CreateTemp("", "TestGetLicenseFileFromDisk")
 		require.NoError(t, err)
 		defer os.Remove(f.Name())
-		os.WriteFile(f.Name(), []byte("not a license"), 0777)
+		err = os.WriteFile(f.Name(), []byte("not a license"), 0777)
+		require.NoError(t, err)
 
 		fileBytes := GetLicenseFileFromDisk(f.Name())
 		require.NotEmpty(t, fileBytes, "should have read the file")
