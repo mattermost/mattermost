@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, StylesConfig} from 'react-select';
 import type {Timezone} from 'timezones.json';
@@ -13,6 +14,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getTimezoneLabel} from 'mattermost-redux/utils/timezone_utils';
 
 import SettingItemMax from 'components/setting_item_max';
+import {getOptionLabel} from 'components/widgets/modals/components/react_select_item';
 
 import {getBrowserTimezone} from 'utils/timezone';
 
@@ -22,6 +24,7 @@ type Actions = {
 }
 
 type Props = {
+    intl: IntlShape;
     user: UserProfile;
     updateSection: (section: string) => void;
     useAutomaticTimezone: boolean;
@@ -47,7 +50,7 @@ type State = {
     selectedOption: SelectedOption;
 }
 
-export default class ManageTimezones extends React.PureComponent<Props, State> {
+export class ManageTimezones extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -244,7 +247,9 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
                     onChange={this.onChange}
                     value={this.state.selectedOption}
                     aria-labelledby='changeInterfaceTimezoneLabel'
+                    getOptionLabel={(option) => getOptionLabel(option, this.props.intl)}
                     isDisabled={useAutomaticTimezone}
+
                 />
                 {serverError}
             </div>
@@ -282,4 +287,5 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
         );
     }
 }
+export default injectIntl(ManageTimezones);
 
