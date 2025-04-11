@@ -10,6 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -17,13 +20,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/config"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
-	t testing.TB
-
 	App        *app.App
 	Context    *request.Context
 	Server     *app.Server
@@ -37,6 +36,8 @@ type TestHelper struct {
 	IncludeCacheLayer bool
 	ConfigStore       *config.Store
 
+	t                         testing.TB
+	tempWorkspace             string
 	oldWatcherPollingInterval int
 }
 
@@ -97,6 +98,7 @@ func setupTestHelper(t testing.TB, dbStore store.Store, enterprise bool, include
 		IncludeCacheLayer: includeCacheLayer,
 		ConfigStore:       configStore,
 		t:                 t,
+		tempWorkspace:     tempWorkspace,
 	}
 
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
@@ -148,13 +150,12 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicUser2, appErr = th.App.GetUser(th.BasicUser2.Id)
 	require.Nil(th.t, appErr)
 
-	// No need to insert users, they're already created in the database by CreateUser
 	th.BasicTeam = th.CreateTeam()
+
 	return th
 }
 
 func (th *TestHelper) CreateTeam() *model.Team {
-	t := th.t
 	id := model.NewId()
 	team := &model.Team{
 		DisplayName: "dn_" + id,
@@ -163,9 +164,8 @@ func (th *TestHelper) CreateTeam() *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	var err *model.AppError
-	team, err = th.App.CreateTeam(th.Context, team)
-	require.Nil(t, err)
+	team, err := th.App.CreateTeam(th.Context, team)
+	require.Nil(th.t, err)
 	return team
 }
 
@@ -217,6 +217,10 @@ func (th *TestHelper) TearDown() {
 		require.Nil(th.t, appErr)
 	}
 	th.ShutdownApp()
+
+	if th.tempWorkspace != "" {
+		os.RemoveAll(th.tempWorkspace)
+	}
 
 	if th.oldWatcherPollingInterval != 0 {
 		jobs.DefaultWatcherPollingInterval = th.oldWatcherPollingInterval
