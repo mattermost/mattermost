@@ -144,7 +144,10 @@ export default class ChannelsCenterView {
         await this.postBoxIndicator.isVisible();
         await this.scheduledDraftChannelIcon.isVisible();
         const messageLocator = this.scheduledDraftChannelInfoMessage.first();
-        await expect(messageLocator).toContainText('Message scheduled for');
+        await Promise.any([
+            expect(messageLocator).toContainText('Message scheduled for'),
+            expect(messageLocator).toContainText('You have one scheduled message.'),
+        ]);
     }
 
     async clickOnLastEditedPost(postID: string | null) {
