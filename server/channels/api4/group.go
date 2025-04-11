@@ -129,7 +129,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if group.Source == model.GroupSourceLdap {
+	if !group.AllowReference {
 		if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionSysconsoleReadUserManagementGroups) {
 			c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 			return
@@ -394,7 +394,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("group_syncable")
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, c.Params.GroupId)
 	})
 
 	w.WriteHeader(http.StatusCreated)
@@ -579,7 +579,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("group_syncable")
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, c.Params.GroupId)
 	})
 
 	b, err := json.Marshal(groupSyncable)
@@ -641,7 +641,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
+		c.App.RemoveMembershipsFromUnlinkedSyncable(c.AppContext, syncableID, syncableType)
 	})
 
 	auditRec.Success()
@@ -655,7 +655,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 		return appErr
 	}
 
-	if group.Source != model.GroupSourceLdap {
+	if !group.IsSyncable() {
 		return model.NewAppError("Api4.linkGroupSyncable", "app.group.crud_permission", nil, "", http.StatusBadRequest)
 	}
 
@@ -818,7 +818,13 @@ func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groups, appErr := c.App.GetGroupsByUserId(c.Params.UserId)
+	filterAllowReference := !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
+
+	opts := model.GroupSearchOpts{
+		FilterAllowReference: filterAllowReference,
+	}
+
+	groups, appErr := c.App.GetGroupsByUserId(c.Params.UserId, opts)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -885,10 +891,12 @@ func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError
 		return nil, model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionListTeamChannels})
 	}
 
+	filterAllowReference := c.Params.FilterAllowReference || !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
+
 	opts := model.GroupSearchOpts{
 		Q:                    c.Params.Q,
 		IncludeMemberCount:   c.Params.IncludeMemberCount,
-		FilterAllowReference: c.Params.FilterAllowReference,
+		FilterAllowReference: filterAllowReference,
 	}
 	if c.Params.Paginate == nil || *c.Params.Paginate {
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
@@ -934,10 +942,12 @@ func getGroupsByChannelCommon(c *Context, r *http.Request) ([]byte, *model.AppEr
 		return nil, model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
 	}
 
+	filterAllowReference := c.Params.FilterAllowReference || !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
+
 	opts := model.GroupSearchOpts{
 		Q:                    c.Params.Q,
 		IncludeMemberCount:   c.Params.IncludeMemberCount,
-		FilterAllowReference: c.Params.FilterAllowReference,
+		FilterAllowReference: filterAllowReference,
 	}
 	if c.Params.Paginate == nil || *c.Params.Paginate {
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
@@ -982,10 +992,12 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
+	filterAllowReference := c.Params.FilterAllowReference || !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
+
 	opts := model.GroupSearchOpts{
 		Q:                    c.Params.Q,
 		IncludeMemberCount:   c.Params.IncludeMemberCount,
-		FilterAllowReference: c.Params.FilterAllowReference,
+		FilterAllowReference: filterAllowReference,
 	}
 	if c.Params.Paginate == nil || *c.Params.Paginate {
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
@@ -1023,6 +1035,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	source := c.Params.GroupSource
 
+	onlySyncableSources := r.URL.Query().Get("only_syncable_sources") == "true"
+
 	if id := c.Params.NotAssociatedToTeam; model.IsValidId(id) {
 		teamID = id
 	}
@@ -1042,9 +1056,9 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If they don't specify a source and custom groups are disabled, ensure they only get ldap groups in the response
+	// If they don't specify a source and custom groups are disabled, ensure they only get the other sources
 	if !*c.App.Config().ServiceSettings.EnableCustomGroups {
-		source = model.GroupSourceLdap
+		onlySyncableSources = true
 	}
 
 	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
@@ -1052,10 +1066,12 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Include archived groups
 	includeArchived := r.URL.Query().Get("include_archived") == "true"
 
+	filterAllowReference := c.Params.FilterAllowReference || !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups)
+
 	opts := model.GroupSearchOpts{
 		Q:                         c.Params.Q,
 		IncludeMemberCount:        c.Params.IncludeMemberCount,
-		FilterAllowReference:      c.Params.FilterAllowReference,
+		FilterAllowReference:      filterAllowReference,
 		FilterArchived:            c.Params.FilterArchived,
 		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
 		Source:                    source,
@@ -1063,6 +1079,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeTimezones:          includeTimezones,
 		IncludeMemberIDs:          c.Params.IncludeMemberIDs,
 		IncludeArchived:           includeArchived,
+		OnlySyncableSources:       onlySyncableSources,
 	}
 
 	if teamID != "" {
@@ -1436,7 +1453,7 @@ func hasPermissionToReadGroupMembers(c *web.Context, groupID string) *model.AppE
 		return lcErr
 	}
 
-	if group.Source == model.GroupSourceLdap && !group.AllowReference {
+	if group.IsSyncable() && !group.AllowReference {
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
 			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
 		}
@@ -1461,7 +1478,11 @@ func licensedAndConfiguredForGroupBySource(app *app.App, source model.GroupSourc
 		return model.NewAppError("", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 	}
 
-	if source == model.GroupSourceCustom && lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise {
+	if strings.HasPrefix(string(source), string(model.GroupSourcePluginPrefix)) && !*lic.Features.LDAPGroups {
+		return model.NewAppError("", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
+	}
+
+	if source == model.GroupSourceCustom && !model.MinimumProfessionalLicense(lic) {
 		return model.NewAppError("", "api.custom_groups.license_error", nil, "", http.StatusBadRequest)
 	}
 

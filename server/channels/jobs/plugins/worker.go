@@ -75,10 +75,12 @@ func (worker *Worker) DoJob(job *model.Job) {
 	logger := worker.logger.With(jobs.JobLoggerFields(job)...)
 	logger.Debug("Worker: Received a new candidate job.")
 
-	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		logger.Info("Worker experienced an error while trying to claim job", mlog.Err(err))
+	var appErr *model.AppError
+	job, appErr = worker.jobServer.ClaimJob(job)
+	if appErr != nil {
+		logger.Warn("Worker experienced an error while trying to claim job", mlog.Err(appErr))
 		return
-	} else if !claimed {
+	} else if job == nil {
 		return
 	}
 

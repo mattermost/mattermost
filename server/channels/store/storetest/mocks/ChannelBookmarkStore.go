@@ -32,17 +32,17 @@ func (_m *ChannelBookmarkStore) Delete(bookmarkID string, deleteFile bool) error
 	return r0
 }
 
-// ErrorIfBookmarkFileInfoAlreadyAttached provides a mock function with given fields: fileID
-func (_m *ChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileID string) error {
-	ret := _m.Called(fileID)
+// ErrorIfBookmarkFileInfoAlreadyAttached provides a mock function with given fields: fileID, channelID
+func (_m *ChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileID string, channelID string) error {
+	ret := _m.Called(fileID, channelID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ErrorIfBookmarkFileInfoAlreadyAttached")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(fileID)
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(fileID, channelID)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -377,10 +377,27 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if patch.BannerInfo != nil {
+		if channelBannerAppErr := canEditChannelBanner(c.App.License(), originalOldChannel); channelBannerAppErr != nil {
+			channelBannerAppErr.Where = "patchChannel"
+			c.Err = channelBannerAppErr
+			return
+		}
+	}
+
 	rchannel, appErr := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	// If the channel is now group constrained but wasn't previously, delete members that aren't part of the channel's groups
+	if patch.GroupConstrained != nil && *patch.GroupConstrained && (originalOldChannel.GroupConstrained == nil || !*originalOldChannel.GroupConstrained) {
+		c.App.Srv().Go(func() {
+			if err := c.App.DeleteGroupConstrainedChannelMemberships(c.AppContext, &rchannel.Id); err != nil {
+				c.Logger.Warn("Error deleting group-constrained channel memberships", mlog.Err(err))
+			}
+		})
 	}
 
 	appErr = c.App.FillInChannelProps(c.AppContext, rchannel)
@@ -2433,4 +2450,16 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	if err := json.NewEncoder(w).Encode(updatedChannel); err != nil {
 		c.Logger.Warn("Error while writing response from convertGroupMessageToChannel", mlog.Err(err))
 	}
+}
+
+func canEditChannelBanner(license *model.License, originalChannel *model.Channel) *model.AppError {
+	if !model.MinimumPremiumLicense(license) {
+		return model.NewAppError("", "license_error.feature_unavailable", nil, "feature is not available for the current license", http.StatusForbidden)
+	}
+
+	if originalChannel.Type != model.ChannelTypeOpen && originalChannel.Type != model.ChannelTypePrivate {
+		return model.NewAppError("", "api.channel.update_channel.banner_info.channel_type.not_allowed", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }

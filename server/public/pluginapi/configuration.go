@@ -14,7 +14,7 @@ type ConfigurationService struct {
 // struct to which the configuration JSON can be unmarshalled.
 //
 // Minimum server version: 5.2
-func (c *ConfigurationService) LoadPluginConfiguration(dest interface{}) error {
+func (c *ConfigurationService) LoadPluginConfiguration(dest any) error {
 	// TODO: Isn't this method redundant given GetPluginConfig() and even GetConfig()?
 	return c.api.LoadPluginConfiguration(dest)
 }
@@ -43,13 +43,13 @@ func (c *ConfigurationService) SaveConfig(cfg *model.Config) error {
 // GetPluginConfig fetches the currently persisted config of plugin
 //
 // Minimum server version: 5.6
-func (c *ConfigurationService) GetPluginConfig() map[string]interface{} {
+func (c *ConfigurationService) GetPluginConfig() map[string]any {
 	return c.api.GetPluginConfig()
 }
 
 // SavePluginConfig sets the given config for plugin and persists the changes
 //
 // Minimum server version: 5.6
-func (c *ConfigurationService) SavePluginConfig(cfg map[string]interface{}) error {
+func (c *ConfigurationService) SavePluginConfig(cfg map[string]any) error {
 	return normalizeAppErr(c.api.SavePluginConfig(cfg))
 }

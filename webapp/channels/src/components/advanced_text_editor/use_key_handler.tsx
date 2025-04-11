@@ -178,9 +178,9 @@ const useKeyHandler = (
         }
 
         if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
-            onCancel?.();
             textboxRef.current?.blur();
             if (isInEditMode) {
+                onCancel?.();
                 dispatch(unsetEditingPost());
             }
         }

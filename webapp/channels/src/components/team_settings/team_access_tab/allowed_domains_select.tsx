@@ -58,7 +58,7 @@ const AllowedDomainsSelect = ({allowedDomains, setAllowedDomains, setHasChanges,
                     defaultMessage: 'When enabled, users can only join the team if their email matches a specific domain (e.g. "mattermost.org")',
                 })}
                 descriptionAboveContent={true}
-                inputFieldData={{name: 'name'}}
+                inputFieldData={{name: 'showAllowedDomains'}}
                 inputFieldValue={showAllowedDomains}
                 handleChange={handleEnableAllowedDomains}
             />

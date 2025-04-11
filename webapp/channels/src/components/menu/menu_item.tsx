@@ -235,7 +235,6 @@ export const MenuItemStyled = styled(MuiMenuItem, {
                 justifyContent: 'flex-start',
                 alignItems: hasOnlyPrimaryLabel || isLabelsRowLayout ? 'center' : 'flex-start',
                 minHeight: '36px',
-                maxHeight: '56px',
 
                 // aria expanded to add the active styling on parent sub menu item
                 '&.Mui-active, &[aria-expanded="true"]': {
@@ -309,6 +308,7 @@ export const MenuItemStyled = styled(MuiMenuItem, {
                     flexWrap: 'nowrap',
                     justifyContent: 'flex-end',
                     color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.75)' : 'var(--error-text)',
+                    marginInlineStart: '24px',
                     gap: '4px',
                     fontSize: '12px',
                     lineHeight: '16px',

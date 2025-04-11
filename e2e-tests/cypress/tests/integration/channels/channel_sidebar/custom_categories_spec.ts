@@ -34,7 +34,7 @@ describe('Channel sidebar', () => {
         const categoryName = createCategoryFromSidebarMenu();
 
         // # Create new category from category menu
-        clickCategoryMenuItem(categoryName, 'Create New Category');
+        clickCategoryMenuItem({categoryDisplayName: categoryName, menuItemText: 'Create New Category'});
 
         const newCategoryName = `category-${getRandomId()}`;
         cy.get('#editCategoryModal input').type(newCategoryName).type('{enter}');
@@ -57,7 +57,7 @@ describe('Channel sidebar', () => {
         const categoryName = createCategoryFromSidebarMenu();
 
         // # Rename category from category menu
-        clickCategoryMenuItem(categoryName, 'Rename Category');
+        clickCategoryMenuItem({categoryDisplayName: categoryName, menuItemText: 'Rename Category'});
 
         const renameCategory = `category-${getRandomId()}`;
 
@@ -75,7 +75,7 @@ describe('Channel sidebar', () => {
         const categoryName = createCategoryFromSidebarMenu();
 
         // # Delete category from category menu
-        clickCategoryMenuItem(categoryName, 'Delete Category');
+        clickCategoryMenuItem({categoryDisplayName: categoryName, menuItemText: 'Delete Category'});
 
         // # Click on delete button
         cy.get('.GenericModal__button.delete').click();
