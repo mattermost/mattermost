@@ -1,9 +1,12 @@
 components:
   securitySchemes:
-    bearerAuth:            # arbitrary name for the security scheme
+    bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: Token
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: MMAUTHTOKEN
   responses:
     Forbidden:
       description: Do not have appropriate permissions
@@ -3929,3 +3932,4 @@ externalDocs:
   url: 'https://about.mattermost.com'
 security:
   - bearerAuth: []
+  - cookieAuth: []
