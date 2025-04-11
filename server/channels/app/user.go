@@ -1044,6 +1044,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		}
 	}
 	ruser := userUpdate.New
+	a.InvalidateCacheForUser(user.Id)
 
 	if !active {
 		if err := a.RevokeAllSessions(c, ruser.Id); err != nil {
@@ -1055,7 +1056,6 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 	}
 
 	a.invalidateUserChannelMembersCaches(c, user.Id)
-	a.InvalidateCacheForUser(user.Id)
 
 	a.sendUpdatedUserEvent(*ruser)
 
@@ -1371,7 +1371,6 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 
 func (a *App) UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError {
 	user, err := a.GetUser(userID)
-
 	if err != nil {
 		return err
 	}
@@ -1679,7 +1678,6 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 
 func (a *App) GetTokenById(token string) (*model.Token, *model.AppError) {
 	rtoken, err := a.Srv().Store().Token().GetByToken(token)
-
 	if err != nil {
 		var status int
 
@@ -1868,7 +1866,6 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		}
 
 		err = a.RemoveFile(info.Path)
-
 		if err != nil {
 			c.Logger().Warn(
 				"Unable to remove file",
@@ -2066,7 +2063,6 @@ func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
 	a.InvalidateCacheForUser(userID)
 
 	user, err := a.GetUser(userID)
-
 	if err != nil {
 		return err
 	}
@@ -2807,7 +2803,6 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil, "")
 	userThread, err := a.Srv().Store().Thread().GetThreadForUser(tm, true, a.IsPostPriorityEnabled())
-
 	if err != nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
