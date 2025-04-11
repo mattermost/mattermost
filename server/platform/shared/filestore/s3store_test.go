@@ -379,3 +379,78 @@ func TestListDirectory(t *testing.T) {
 	err = fileBackend.RemoveDirectory("19700101")
 	require.NoError(t, err)
 }
+
+func TestWriteFileVideoMimeTypes(t *testing.T) {
+	s3Host := os.Getenv("CI_MINIO_HOST")
+	if s3Host == "" {
+		s3Host = "localhost"
+	}
+
+	s3Port := os.Getenv("CI_MINIO_PORT")
+	if s3Port == "" {
+		s3Port = "9000"
+	}
+
+	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+
+	// Generate a random bucket name
+	b := make([]byte, 30)
+	rand.Read(b)
+	bucketName := base64.StdEncoding.EncodeToString(b)
+	bucketName = strings.ToLower(bucketName)
+	bucketName = strings.Replace(bucketName, "+", "", -1)
+	bucketName = strings.Replace(bucketName, "/", "", -1)
+
+	cfg := FileBackendSettings{
+		DriverName:                         model.ImageDriverS3,
+		AmazonS3AccessKeyId:                model.MinioAccessKey,
+		AmazonS3SecretAccessKey:            model.MinioSecretKey,
+		AmazonS3Bucket:                     bucketName,
+		AmazonS3Endpoint:                   s3Endpoint,
+		AmazonS3SSL:                        false,
+		AmazonS3RequestTimeoutMilliseconds: 5000,
+	}
+
+	fileBackend, err := NewS3FileBackend(cfg)
+	require.NoError(t, err)
+
+	err = fileBackend.MakeBucket()
+	require.NoError(t, err)
+
+	// Test video types
+	// Test video types with multiple valid MIME types
+	testContent := []byte("test-video-content")
+	videoTypes := map[string][]string{
+		".avi":  {"video/vnd.avi", "video/x-msvideo"},
+		".mpeg": {"video/mpeg"},
+		".mp4":  {"video/mp4"},
+	}
+
+	for ext, validMimeTypes := range videoTypes {
+		t.Run(strings.TrimPrefix(ext, "."), func(t *testing.T) {
+			path := "test" + ext
+			reader := bytes.NewReader(testContent)
+
+			written, err := fileBackend.WriteFile(reader, path)
+			require.NoError(t, err)
+			require.Equal(t, int64(len(testContent)), written)
+
+			// Verify the file exists with correct mime type
+			props, err := fileBackend.client.StatObject(
+				context.Background(),
+				bucketName,
+				path,
+				s3.StatObjectOptions{},
+			)
+			require.NoError(t, err)
+
+			// Ensure the MIME type is one of the expected values
+			assert.Contains(t, validMimeTypes, props.ContentType, "Unexpected MIME type: %s", props.ContentType)
+
+			defer func() {
+				err = fileBackend.RemoveFile(path)
+				require.NoError(t, err)
+			}()
+		})
+	}
+}
