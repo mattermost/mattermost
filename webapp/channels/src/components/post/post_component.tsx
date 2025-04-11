@@ -104,6 +104,7 @@ export type Props = {
     isPostBeingEdited?: boolean;
     isCollapsedThreadsEnabled?: boolean;
     isMobileView: boolean;
+    isTabletView: boolean;
     canReply?: boolean;
     replyCount?: number;
     isFlaggedPosts?: boolean;
@@ -372,13 +373,13 @@ function PostComponent(props: Props) {
 
     const handleJumpClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
-        if (props.isMobileView) {
+        if (props.isTabletView) {
             props.actions.closeRightHandSide();
         }
 
         props.actions.setRhsExpanded(false);
         getHistory().push(`/${props.teamName}/pl/${post.id}`);
-    }, [props.isMobileView, props.actions, props.teamName, post?.id]);
+    }, [props.isTabletView, props.actions, props.teamName, post?.id]);
 
     const {selectPostFromRightHandSideSearch} = props.actions;
 
