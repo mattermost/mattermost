@@ -30,6 +30,7 @@ export default class ShowMore extends React.PureComponent<Props, State> {
     private maxHeight: number;
     private textContainer: React.RefObject<HTMLDivElement>;
     private overflowRef?: number;
+    private resizeObserver: ResizeObserver | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -42,6 +43,7 @@ export default class ShowMore extends React.PureComponent<Props, State> {
     }
 
     componentDidMount() {
+        this.setupResizeObserver();
         this.checkTextOverflow();
 
         window.addEventListener('resize', this.handleResize);
@@ -63,7 +65,33 @@ export default class ShowMore extends React.PureComponent<Props, State> {
         if (this.overflowRef) {
             window.cancelAnimationFrame(this.overflowRef);
         }
+        this.cleanupResizeObserver();
     }
+
+    setupResizeObserver = () => {
+        if (!this.textContainer.current || !window.ResizeObserver) {
+            // ResizeObserver is not supported in this browser or the container is not available yet
+            return;
+        }
+
+        this.cleanupResizeObserver();
+
+        // Create a new ResizeObserver to watch for size changes in the text container
+        this.resizeObserver = new ResizeObserver(() => {
+            // When the size of the text container changes, check if we need to show/hide the "Show More" button
+            this.checkTextOverflow();
+        });
+
+        // Start observing the text container
+        this.resizeObserver.observe(this.textContainer.current);
+    };
+
+    cleanupResizeObserver = () => {
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+    };
 
     toggleCollapse = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
