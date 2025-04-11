@@ -263,7 +263,7 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 			require.Nil(t, appErr)
 			defer func() {
 				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
-				appErr := th.App.DeleteIncomingWebhook(hook.Id)
+				appErr = th.App.DeleteIncomingWebhook(hook.Id)
 				require.Nil(t, appErr, "Error cleaning up webhook")
 			}()
 
@@ -302,7 +302,7 @@ func TestCreateWebhookPost(t *testing.T) {
 	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
 	require.Nil(t, appErr)
 	defer func() {
-		appErr := th.App.DeleteIncomingWebhook(hook.Id)
+		appErr = th.App.DeleteIncomingWebhook(hook.Id)
 		require.Nil(t, appErr, "Error cleaning up webhook")
 	}()
 
