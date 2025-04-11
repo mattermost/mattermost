@@ -729,9 +729,17 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 }
 
 func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	config, _, err := c.GetConfig(cmd.Context())
+	if err != nil {
+		return err
+	}
+	deleteEnabled := config.ServiceSettings.EnableAPIUserDeletion
+	if deleteEnabled == nil || !*deleteEnabled {
+		return errors.New("ServiceSettings.EnableAPIUserDeletion must be set to true to use this command. See " + ConfigDocumentationUrl + " for more information")
+	}
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
-		if err := getConfirmation("Are you sure you want to delete the users specified? All data will be permanently deleted?", true); err != nil {
+		if err = getConfirmation("Are you sure you want to delete the users specified? All data will be permanently deleted?", true); err != nil {
 			return err
 		}
 	}

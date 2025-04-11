@@ -302,6 +302,14 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	config, _, err := c.GetConfig(cmd.Context())
+	if err != nil {
+		return err
+	}
+	deleteEnabled := config.ServiceSettings.EnableAPITeamDeletion
+	if deleteEnabled == nil || !*deleteEnabled {
+		return errors.New("ServiceSettings.EnableAPITeamDeletion must be set to true to use this command. See " + ConfigDocumentationUrl + " for more information")
+	}
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
 		if err := getConfirmation("Are you sure you want to delete the teams specified?  All data will be permanently deleted?", true); err != nil {
