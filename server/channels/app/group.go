@@ -321,13 +321,10 @@ func (a *App) GetUsersNotInGroupPage(groupID string, page int, perPage int, view
 func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
 	groupMember, err := a.Srv().Store().Group().UpsertMember(groupID, userID)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("UpsertGroupMember", "app.group.uniqueness_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpsertGroupMember", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -807,15 +804,20 @@ func (a *App) UserIsInAdminRoleGroup(userID, syncableID string, syncableType mod
 }
 
 func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
+	hash := make(map[string]bool)
+	for _, id := range userIDs {
+		if _, ok := hash[id]; ok {
+			return nil, model.NewAppError("UpsertGroupMembers", "app.group.uniqueness_error", map[string]any{"UserId": id}, "", http.StatusBadRequest)
+		}
+		hash[id] = true
+	}
+
 	members, err := a.Srv().Store().Group().UpsertMembers(groupID, userIDs)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("UpsertGroupMembers", "app.group.uniqueness_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpsertGroupMembers", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -833,15 +835,12 @@ func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 func (a *App) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
 	members, err := a.Srv().Store().Group().DeleteMembers(groupID, userIDs)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("DeleteGroupMember", "app.group.uniqueness_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
-			return nil, model.NewAppError("DeleteGroupMember", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("DeleteGroupMembers", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
