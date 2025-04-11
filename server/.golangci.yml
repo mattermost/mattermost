@@ -92,7 +92,6 @@ issues:
         channels/app/brand.go|\
         channels/app/config_test.go|\
         channels/app/file.go|\
-        channels/app/file_bench_test.go|\
         channels/app/file_test.go|\
         channels/app/helper_test.go|\
         channels/app/import_functions.go|\
