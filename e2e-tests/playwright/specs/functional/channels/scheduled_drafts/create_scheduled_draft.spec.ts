@@ -285,10 +285,10 @@ test('MM-T5650 should copy scheduled message', async ({pw, browserName}) => {
 
     const draftMessage = 'Scheduled Draft';
 
-    const {user} = await pw.initSetup();
+    const {user, team} = await pw.initSetup();
     const {page, channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
-    await setupChannelPage(channelsPage, draftMessage);
+    await setupChannelPage(channelsPage, draftMessage, '', 'town-square');
     await scheduleMessage(channelsPage);
 
     await channelsPage.centerView.verifyscheduledDraftChannelInfo();

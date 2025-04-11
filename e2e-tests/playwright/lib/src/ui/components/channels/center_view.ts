@@ -21,7 +21,9 @@ export default class ChannelsCenterView {
     readonly scheduledDraftChannelIcon;
     readonly scheduledDraftChannelInfoMessage;
     readonly scheduledDraftChannelInfoMessageLocator;
+    readonly scheduledDraftChannelLocator;
     readonly scheduledDraftChannelInfoMessageText;
+    readonly scheduledDraftChannelLink;
     readonly scheduledDraftSeeAllLink;
     readonly postEdit;
     readonly editedPostIcon;
@@ -29,6 +31,7 @@ export default class ChannelsCenterView {
     constructor(container: Locator) {
         this.container = container;
         this.scheduledDraftChannelInfoMessageLocator = 'span:has-text("Message scheduled for")';
+        this.scheduledDraftChannelLocator = 'span:has-text("scheduled message")';
         this.header = new ChannelsHeader(this.container.locator('.channel-header'));
         this.postCreate = new ChannelsPostCreate(container.getByTestId('post-create'));
         this.scheduledDraftOptions = new ChannelsPostCreate(container.locator('#dropdown_send_post_options'));
@@ -37,6 +40,7 @@ export default class ChannelsCenterView {
         this.scheduledDraftChannelIcon = container.locator('#create_post i.icon-draft-indicator');
         this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
         this.scheduledDraftChannelInfoMessageText = container.locator(this.scheduledDraftChannelInfoMessageLocator);
+        this.scheduledDraftChannelLink = container.locator(this.scheduledDraftChannelLocator);
         this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all")');
         this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
     }
