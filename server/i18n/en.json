@@ -5039,6 +5039,10 @@
     "translation": "Unable to create Custom Profile Attribute field"
   },
   {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Unable to delete Custom Profile Attribute Values for user"
+  },
+  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Unable to get Custom Profile Attribute field"
   },
@@ -10539,6 +10543,14 @@
   {
     "id": "web.incoming_webhook.parse.app_error",
     "translation": "Unable to parse incoming data."
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Failed to parse form for webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Failed to parse multipart form for webhook {{.hook_id}}."
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
