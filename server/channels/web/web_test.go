@@ -93,7 +93,8 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 
 	testLogger, err := mlog.NewLogger()
 	require.NoError(tb, err)
-	logCfg, err := config.MloggerConfigFromLoggerConfig(&newConfig.LogSettings, nil, config.GetLogFileLocation)
+	logCfg, err2 := config.MloggerConfigFromLoggerConfig(&newConfig.LogSettings, nil, config.GetLogFileLocation)
+	require.NoError(tb, err2)
 	err = testLogger.ConfigureTargets(logCfg, nil)
 	require.NoError(tb, err, "failed to configure test logger")
 	// lock logger config so server init cannot override it during testing.
@@ -156,19 +157,21 @@ func (th *TestHelper) NewPluginAPI(manifest *model.Manifest) plugin.API {
 }
 
 func (th *TestHelper) InitBasic() *TestHelper {
-	th.SystemAdminUser, _ = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemAdminRoleId})
+	var appErr *model.AppError
+	th.SystemAdminUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemAdminRoleId})
+	require.Nil(th.t, appErr)
 
-	user, _ := th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemUserRoleId})
+	th.BasicUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemUserRoleId})
+	require.Nil(th.t, appErr)
 
-	team, _ := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TeamOpen})
+	th.BasicTeam, appErr = th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: th.BasicUser.Email, Type: model.TeamOpen})
+	require.Nil(th.t, appErr)
 
-	th.App.JoinUserToTeam(th.Context, team, user, "")
+	_, appErr = th.App.JoinUserToTeam(th.Context, th.BasicTeam, th.BasicUser, "")
+	require.Nil(th.t, appErr)
 
-	channel, _ := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id, CreatorId: user.Id}, true)
-
-	th.BasicUser = user
-	th.BasicChannel = channel
-	th.BasicTeam = team
+	th.BasicChannel, appErr = th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id, CreatorId: th.BasicUser.Id}, true)
+	require.Nil(th.t, appErr)
 
 	return th
 }
@@ -222,7 +225,8 @@ func TestStaticFilesRequest(t *testing.T) {
 
 	// Write the plugin.json manifest
 	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "webapp": {"bundle_path":"main.js"}, "settings_schema": {"settings": []}}`
-	os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(pluginManifest), 0600)
+	err = os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(pluginManifest), 0600)
+	require.NoError(t, err)
 
 	// Activate the plugin
 	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
@@ -231,7 +235,8 @@ func TestStaticFilesRequest(t *testing.T) {
 	require.True(t, activated)
 
 	// Verify access to the bundle with requisite headers
-	req, _ := http.NewRequest("GET", "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", nil)
+	req, err := http.NewRequest("GET", "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", nil)
+	require.NoError(t, err)
 	res := httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, http.StatusOK, res.Code)
@@ -240,7 +245,8 @@ func TestStaticFilesRequest(t *testing.T) {
 
 	// Verify cached access to the bundle with an If-Modified-Since timestamp in the future
 	future := time.Now().Add(24 * time.Hour)
-	req, _ = http.NewRequest("GET", "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", nil)
+	req, err = http.NewRequest("GET", "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", nil)
+	require.NoError(t, err)
 	req.Header.Add("If-Modified-Since", future.Format(time.RFC850))
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
@@ -250,7 +256,8 @@ func TestStaticFilesRequest(t *testing.T) {
 
 	// Verify access to the bundle with an If-Modified-Since timestamp in the past
 	past := time.Now().Add(-24 * time.Hour)
-	req, _ = http.NewRequest("GET", "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", nil)
+	req, err = http.NewRequest("GET", "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", nil)
+	require.NoError(t, err)
 	req.Header.Add("If-Modified-Since", past.Format(time.RFC850))
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
@@ -259,7 +266,8 @@ func TestStaticFilesRequest(t *testing.T) {
 	assert.Equal(t, []string{"max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
 
 	// Verify handling of 404.
-	req, _ = http.NewRequest("GET", "/static/plugins/com.mattermost.sample/404.js", nil)
+	req, err = http.NewRequest("GET", "/static/plugins/com.mattermost.sample/404.js", nil)
+	require.NoError(t, err)
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, http.StatusNotFound, res.Code)
@@ -305,12 +313,14 @@ func TestPublicFilesRequest(t *testing.T) {
 
 	// Write the plugin.json manifest
 	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`
-	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+	err = os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+	require.NoError(t, err)
 
 	// Write the test public file
 	helloHTML := `Hello from the static files public folder for the com.mattermost.sample plugin!`
 	htmlFolderPath := filepath.Join(pluginDir, pluginID, "public")
-	os.MkdirAll(htmlFolderPath, os.ModePerm)
+	err = os.MkdirAll(htmlFolderPath, os.ModePerm)
+	require.NoError(t, err)
 	htmlFilePath := filepath.Join(htmlFolderPath, "hello.html")
 
 	htmlFileErr := os.WriteFile(htmlFilePath, []byte(helloHTML), 0600)
@@ -327,17 +337,20 @@ func TestPublicFilesRequest(t *testing.T) {
 
 	th.App.Channels().SetPluginsEnvironment(env)
 
-	req, _ := http.NewRequest("GET", "/plugins/com.mattermost.sample/public/hello.html", nil)
+	req, err := http.NewRequest("GET", "/plugins/com.mattermost.sample/public/hello.html", nil)
+	require.NoError(t, err)
 	res := httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, helloHTML, res.Body.String())
 
-	req, _ = http.NewRequest("GET", "/plugins/com.mattermost.sample/nefarious-file-access.html", nil)
+	req, err = http.NewRequest("GET", "/plugins/com.mattermost.sample/nefarious-file-access.html", nil)
+	require.NoError(t, err)
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, 404, res.Code)
 
-	req, _ = http.NewRequest("GET", "/plugins/com.mattermost.sample/public/../nefarious-file-access.html", nil)
+	req, err = http.NewRequest("GET", "/plugins/com.mattermost.sample/public/../nefarious-file-access.html", nil)
+	require.NoError(t, err)
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, 301, res.Code)
@@ -361,7 +374,8 @@ func TestStaticFilesCaching(t *testing.T) {
 	th := Setup(t).InitPlugins()
 	defer th.TearDown()
 
-	wd, _ := os.Getwd()
+	wd, err := os.Getwd()
+	require.NoError(t, err)
 	cmd := exec.Command("ls", path.Join(wd, "client", "plugins"))
 	cmd.Stdout = os.Stdout
 	cmd.Run()
@@ -375,7 +389,7 @@ func TestStaticFilesCaching(t *testing.T) {
 	fakeMainBundle := `module.exports = 'main';`
 	fakeRemoteEntry := `module.exports = 'remote';`
 
-	err := os.WriteFile("./client/root.html", []byte(fakeRootHTML), 0600)
+	err = os.WriteFile("./client/root.html", []byte(fakeRootHTML), 0600)
 	require.NoError(t, err)
 	err = os.WriteFile("./client/"+fakeMainBundleName, []byte(fakeMainBundle), 0600)
 	require.NoError(t, err)
@@ -387,7 +401,8 @@ func TestStaticFilesCaching(t *testing.T) {
 	err = os.WriteFile("./client/products/boards/remote_entry.js", []byte(fakeRemoteEntry), 0600)
 	require.NoError(t, err)
 
-	req, _ := http.NewRequest("GET", "/", nil)
+	req, err := http.NewRequest("GET", "/", nil)
+	require.NoError(t, err)
 	res := httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	require.Equal(t, http.StatusOK, res.Code)
@@ -395,28 +410,32 @@ func TestStaticFilesCaching(t *testing.T) {
 	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
 
 	// Checking for HEAD method as well.
-	req, _ = http.NewRequest(http.MethodHead, "/", nil)
+	req, err = http.NewRequest(http.MethodHead, "/", nil)
+	require.NoError(t, err)
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	require.Equal(t, http.StatusOK, res.Code)
 	require.Equal(t, fakeRootHTML, res.Body.String())
 	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
 
-	req, _ = http.NewRequest("GET", "/static/"+fakeMainBundleName, nil)
+	req, err = http.NewRequest("GET", "/static/"+fakeMainBundleName, nil)
+	require.NoError(t, err)
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	require.Equal(t, http.StatusOK, res.Code)
 	require.Equal(t, fakeMainBundle, res.Body.String())
 	require.Equal(t, []string{"max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
 
-	req, _ = http.NewRequest("GET", "/static/remote_entry.js", nil)
+	req, err = http.NewRequest("GET", "/static/remote_entry.js", nil)
+	require.NoError(t, err)
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	require.Equal(t, http.StatusOK, res.Code)
 	require.Equal(t, fakeRemoteEntry, res.Body.String())
 	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
 
-	req, _ = http.NewRequest("GET", "/static/products/boards/remote_entry.js", nil)
+	req, err = http.NewRequest("GET", "/static/products/boards/remote_entry.js", nil)
+	require.NoError(t, err)
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	require.Equal(t, http.StatusOK, res.Code)
