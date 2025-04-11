@@ -770,7 +770,7 @@ vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
 vet-api: export ROOT := $(ROOT)
 vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
-	$(GO) install github.com/mattermost/mattermost-govet/v2@72e7752bcf59b57688fcb41173a6a1583c405adf
+	$(GO) install github.com/mattermost/mattermost-govet/v2@8e4d46e3fad88497dbfe073788a87e75bbae717c
 	make -C ../api build
 	./scripts/vet-api-check.sh
 

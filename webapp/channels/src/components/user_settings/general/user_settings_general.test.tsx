@@ -505,4 +505,72 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', '');
     });
+
+    test('should not show custom attribute input field when LDAP attribute is set', async () => {
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [
+                {
+                    ...customProfileAttribute,
+                    attrs: {
+                        ...customProfileAttribute.attrs,
+                        ldap: 'ldap_field',
+                    },
+                },
+            ],
+            user: {...user, auth_service: 'ldap'},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: customProfileAttribute.name})).not.toBeInTheDocument();
+        expect(await screen.findByText('This field is handled through your login provider. If you want to change it, you need to do so through your login provider.')).toBeInTheDocument();
+    });
+
+    test('should not show custom attribute input field when SAML attribute is set', async () => {
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [
+                {
+                    ...customProfileAttribute,
+                    attrs: {
+                        ...customProfileAttribute.attrs,
+                        saml: 'saml_field',
+                    },
+                },
+            ],
+            user: {...user, auth_service: 'saml'},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(await screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: customProfileAttribute.name})).not.toBeInTheDocument();
+        expect(await screen.findByText('This field is handled through your login provider. If you want to change it, you need to do so through your login provider.')).toBeInTheDocument();
+    });
+
+    test('should show custom attribute input field when LDAP auth but no LDAP attribute set', async () => {
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [
+                {
+                    ...customProfileAttribute,
+                    attrs: {
+                        ...customProfileAttribute.attrs,
+                        ldap: '',
+                    },
+                },
+            ],
+            user: {...user, auth_service: 'ldap'},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(await screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: customProfileAttribute.name})).toBeInTheDocument();
+    });
 });

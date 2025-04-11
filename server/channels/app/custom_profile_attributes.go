@@ -226,7 +226,7 @@ func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMes
 	}
 
 	valuesToUpdate := []*model.PropertyValue{}
-	for fieldID, value := range fieldValueMap {
+	for fieldID, rawValue := range fieldValueMap {
 		// make sure field exists in this group
 		existingField, appErr := a.GetCPAField(fieldID)
 		if appErr != nil {
@@ -235,12 +235,22 @@ func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMes
 			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
 		}
 
+		cpaField, fErr := model.NewCPAFieldFromPropertyField(existingField)
+		if fErr != nil {
+			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(fErr)
+		}
+
+		sanitizedValue, sErr := model.SanitizeAndValidatePropertyValue(cpaField, rawValue)
+		if sErr != nil {
+			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.validate_value.app_error", nil, "", http.StatusBadRequest).Wrap(sErr)
+		}
+
 		value := &model.PropertyValue{
 			GroupID:    groupID,
 			TargetType: "user",
 			TargetID:   userID,
 			FieldID:    fieldID,
-			Value:      value,
+			Value:      sanitizedValue,
 		}
 		valuesToUpdate = append(valuesToUpdate, value)
 	}
@@ -261,4 +271,22 @@ func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMes
 	a.Publish(message)
 
 	return updatedValues, nil
+}
+
+func (a *App) DeleteCPAValues(userID string) *model.AppError {
+	groupID, err := a.CpaGroupID()
+	if err != nil {
+		return model.NewAppError("DeleteCPAValues", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if err := a.Srv().propertyService.DeletePropertyValuesForTarget(groupID, "user", userID); err != nil {
+		return model.NewAppError("DeleteCPAValues", "app.custom_profile_attributes.delete_property_values_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", "", nil, "")
+	message.Add("user_id", userID)
+	message.Add("values", map[string]json.RawMessage{})
+	a.Publish(message)
+
+	return nil
 }

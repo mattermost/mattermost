@@ -7403,6 +7403,22 @@ func (s *TimerLayerPropertyValueStore) DeleteForField(id string) error {
 	return err
 }
 
+func (s *TimerLayerPropertyValueStore) DeleteForTarget(groupID string, targetType string, targetID string) error {
+	start := time.Now()
+
+	err := s.PropertyValueStore.DeleteForTarget(groupID, targetType, targetID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.DeleteForTarget", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPropertyValueStore) Get(groupID string, id string) (*model.PropertyValue, error) {
 	start := time.Now()
 

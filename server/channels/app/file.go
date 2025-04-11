@@ -891,7 +891,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	t.fileinfo.Height = cfg.Height
 
 	if err = checkImageResolutionLimit(cfg.Width, cfg.Height, t.maxImageRes); err != nil {
-		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest)
+		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest).Wrap(err)
 	}
 
 	t.fileinfo.HasPreviewImage = true

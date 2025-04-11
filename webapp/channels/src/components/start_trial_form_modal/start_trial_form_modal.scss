@@ -77,7 +77,7 @@
 
     .modal-body {
         display: flex;
-        overflow: hidden;
+        overflow: scroll;
         width: 100%;
         flex-direction: column;
         padding-top: 32px;

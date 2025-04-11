@@ -85,7 +85,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       }
     >
       <a
-        className="action-icon download-icon"
+        className="action-icon download-icon btn btn-icon btn-sm"
         href="/api/v4/files/file_info_id?download=1"
         onClick={[Function]}
       >
@@ -192,7 +192,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       }
     >
       <a
-        className="action-icon download-icon"
+        className="action-icon download-icon btn btn-icon btn-sm"
         href="/api/v4/files/file_info_id?download=1"
         onClick={[Function]}
       >
@@ -299,7 +299,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       }
     >
       <a
-        className="action-icon download-icon"
+        className="action-icon download-icon btn btn-icon btn-sm"
         href="/api/v4/files/file_info_id?download=1"
         onClick={[Function]}
       >
@@ -401,7 +401,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       }
     >
       <a
-        className="action-icon download-icon"
+        className="action-icon download-icon btn btn-icon btn-sm"
         href="/api/v4/files/file_info_id?download=1"
         onClick={[Function]}
       >
