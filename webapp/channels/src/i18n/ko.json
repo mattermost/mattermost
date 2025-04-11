@@ -2029,8 +2029,6 @@
   "channel_header.flagged": "보관된 메시지",
   "channel_header.groupMessageHasGuests": "이 그룹 메시지는 게스트가 있습니다.",
   "channel_header.leave": "채널 떠나기",
-  "channel_header.manageMembers": "회원 관리",
-  "channel_header.menuAriaLabel": "채널 메뉴",
   "channel_header.mute": "채널 알림 끄기",
   "channel_header.pinnedPosts": "포스트 고정",
   "channel_header.recentMentions": "최근 멘션",

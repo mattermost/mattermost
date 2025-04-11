@@ -7,18 +7,11 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentTeam, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {deleteChannel} from 'actions/views/channel';
-import {getPenultimateViewedChannelName} from 'selectors/local_storage';
 
 import ConfirmationModal from 'components/confirm_modal';
-
-import {getHistory} from 'utils/browser_history';
-import Constants from 'utils/constants';
-import {stopTryNotificationRing} from 'utils/notification_sounds';
 
 import type {GlobalState} from 'types/store';
 
@@ -34,13 +27,8 @@ function ChannelSettingsArchiveTab({
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
-    // Redux selectors
+    // Redux selector
     const canViewArchivedChannels = useSelector((state: GlobalState) => getConfig(state).ExperimentalViewArchivedChannels === 'true');
-    const currentTeamDetails = useSelector(getCurrentTeam);
-
-    const penultimateViewedChannelName = useSelector((state: GlobalState) =>
-        getPenultimateViewedChannelName(state) || getRedirectChannelNameForTeam(state, getCurrentTeamId(state)),
-    );
 
     const [showArchiveConfirmModal, setShowArchiveConfirmModal] = useState(false);
 
@@ -49,21 +37,10 @@ function ChannelSettingsArchiveTab({
     }, []);
 
     const doArchiveChannel = async () => {
-        // Validate channel ID
-        if (channel.id.length !== Constants.CHANNEL_ID_LENGTH) {
-            return;
-        }
-
-        // If user can't view archived channels, redirect to penultimate channel
-        if (!canViewArchivedChannels && penultimateViewedChannelName && currentTeamDetails) {
-            getHistory().push('/' + currentTeamDetails.name + '/channels/' + penultimateViewedChannelName);
-        }
-
-        // Call the delete channel action
+        // Call the delete channel action which handles validation, redirection, and notification sounds
         await dispatch(deleteChannel(channel.id));
 
         // Close the modal
-        stopTryNotificationRing();
         onHide();
     };
 
@@ -92,45 +69,27 @@ function ChannelSettingsArchiveTab({
                     show={true}
                     title={formatMessage({id: 'channel_settings.modal.archiveTitle', defaultMessage: 'Archive channel?'})}
                     message={
-                        canViewArchivedChannels ? (
-                            <div>
-                                <p>
-                                    <FormattedMessage
-                                        id='deleteChannelModal.canViewArchivedChannelsWarning'
-                                        defaultMessage="Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels."
-                                    />
-                                </p>
-                                <p>
-                                    <FormattedMessage
-                                        id='deleteChannelModal.confirmArchive'
-                                        defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
-                                        values={{
-                                            display_name: channel.display_name,
-                                            strong: (chunks: string) => <strong>{chunks}</strong>,
-                                        }}
-                                    />
-                                </p>
-                            </div>
-                        ) : (
-                            <div>
-                                <p>
-                                    <FormattedMessage
-                                        id='deleteChannelModal.cannotViewArchivedChannelsWarning'
-                                        defaultMessage="Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels."
-                                    />
-                                </p>
-                                <p>
-                                    <FormattedMessage
-                                        id='deleteChannelModal.confirmArchive'
-                                        defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
-                                        values={{
-                                            display_name: channel.display_name,
-                                            strong: (chunks: string) => <strong>{chunks}</strong>,
-                                        }}
-                                    />
-                                </p>
-                            </div>
-                        )
+                        <div>
+                            <p>
+                                <FormattedMessage
+                                    id={canViewArchivedChannels ?
+                                        'deleteChannelModal.canViewArchivedChannelsWarning' :
+                                        'deleteChannelModal.cannotViewArchivedChannelsWarning'
+                                    }
+                                    defaultMessage="Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels."
+                                />
+                            </p>
+                            <p>
+                                <FormattedMessage
+                                    id='deleteChannelModal.confirmArchive'
+                                    defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
+                                    values={{
+                                        display_name: channel.display_name,
+                                        strong: (chunks: string) => <strong>{chunks}</strong>,
+                                    }}
+                                />
+                            </p>
+                        </div>
                     }
                     confirmButtonText={formatMessage({id: 'channel_settings.modal.confirmArchive', defaultMessage: 'Confirm'})}
                     onConfirm={doArchiveChannel}

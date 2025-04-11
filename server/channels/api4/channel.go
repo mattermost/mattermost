@@ -385,10 +385,38 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Validate channel type change if attempted
+	if patch.Type != "" && patch.Type != oldChannel.Type {
+		if patch.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionConvertPrivateChannelToPublic) {
+			c.SetPermissionError(model.PermissionConvertPrivateChannelToPublic)
+			return
+		}
+
+		if patch.Type == model.ChannelTypePrivate && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionConvertPublicChannelToPrivate) {
+			c.SetPermissionError(model.PermissionConvertPublicChannelToPrivate)
+			return
+		}
+
+		// Check for default channel and prevent to be converted private
+		if oldChannel.Name == model.DefaultChannelName && patch.Type == model.ChannelTypePrivate {
+			c.Err = model.NewAppError("patchChannel", "api.channel.update_channel_privacy.default_channel_error", nil, "", http.StatusBadRequest)
+			return
+		}
+	}
+
 	rchannel, appErr := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	// If the channel is now group constrained but wasn't previously, delete members that aren't part of the channel's groups
+	if patch.GroupConstrained != nil && *patch.GroupConstrained && (originalOldChannel.GroupConstrained == nil || !*originalOldChannel.GroupConstrained) {
+		c.App.Srv().Go(func() {
+			if err := c.App.DeleteGroupConstrainedChannelMemberships(c.AppContext, &rchannel.Id); err != nil {
+				c.Logger.Warn("Error deleting group-constrained channel memberships", mlog.Err(err))
+			}
+		})
 	}
 
 	appErr = c.App.FillInChannelProps(c.AppContext, rchannel)
@@ -2444,8 +2472,8 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 }
 
 func canEditChannelBanner(license *model.License, originalChannel *model.Channel) *model.AppError {
-	if license == nil || !license.IsE20OrEnterprise() {
-		return model.NewAppError("", "license_error.feature_unavailable.specific", map[string]any{"Feature": "Channel Banner"}, "channel banner feature is not available for the current license", http.StatusForbidden)
+	if !model.MinimumPremiumLicense(license) {
+		return model.NewAppError("", "license_error.feature_unavailable", nil, "feature is not available for the current license", http.StatusForbidden)
 	}
 
 	if originalChannel.Type != model.ChannelTypeOpen && originalChannel.Type != model.ChannelTypePrivate {

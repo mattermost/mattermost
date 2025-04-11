@@ -46,7 +46,7 @@ type ChannelBannerInfo struct {
 	BackgroundColor *string `json:"background_color"`
 }
 
-func (c *ChannelBannerInfo) Scan(value interface{}) error {
+func (c *ChannelBannerInfo) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -96,8 +96,8 @@ type Channel struct {
 	BannerInfo        *ChannelBannerInfo `json:"banner_info"`
 }
 
-func (o *Channel) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *Channel) Auditable() map[string]any {
+	return map[string]any{
 		"create_at":            o.CreateAt,
 		"creator_id":           o.CreatorId,
 		"delete_at":            o.DeleteAt,
@@ -143,8 +143,8 @@ type ChannelPatch struct {
 	BannerInfo       *ChannelBannerInfo `json:"banner_info"`
 }
 
-func (c *ChannelPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *ChannelPatch) Auditable() map[string]any {
+	return map[string]any{
 		"header":            c.Header,
 		"group_constrained": c.GroupConstrained,
 		"purpose":           c.Purpose,
@@ -182,8 +182,8 @@ type ChannelModerationPatch struct {
 	Roles *ChannelModeratedRolesPatch `json:"roles"`
 }
 
-func (c *ChannelModerationPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *ChannelModerationPatch) Auditable() map[string]any {
+	return map[string]any{
 		"name":  c.Name,
 		"roles": c.Roles,
 	}

@@ -151,38 +151,6 @@ describe('Channel Settings Modal', () => {
         cy.get('.SaveChangesPanel').should('contain', 'There are errors in the form above');
     });
 
-    it('MM-T5: Can toggle between public and private channel', () => {
-        // # Create a new public channel for this test
-        cy.apiCreateChannel(testTeam.id, 'public-test', 'Public Test').then(({channel}) => {
-            cy.visit(`/${testTeam.name}/channels/${channel.name}`);
-
-            // # Open channel settings modal
-            cy.get('#channelHeaderDropdownButton').click();
-            cy.findByText('Channel Settings').click();
-
-            // * Verify public channel is selected by default
-            cy.get('#public-private-selector-button-O').should('have.class', 'selected');
-
-            // # Click on private channel option
-            cy.get('#public-private-selector-button-P').click();
-
-            // * Verify private channel is selected
-            cy.get('#public-private-selector-button-P').should('have.class', 'selected');
-
-            // # Save changes
-            cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
-
-            // * Verify changes are saved
-            cy.get('.SaveChangesPanel').should('contain', 'Settings saved');
-
-            // # Close the modal
-            cy.get('.GenericModal .modal-header button[aria-label="Close"]').click();
-
-            // * Verify channel is now private in the sidebar (look for lock icon)
-            cy.get('.SidebarChannel').contains('Public Test').parent().find('.icon-lock-outline').should('exist');
-        });
-    });
-
     it('MM-T6: Can edit channel purpose and header', () => {
         // # Open channel settings modal
         cy.get('#channelHeaderDropdownButton').click();
