@@ -373,6 +373,10 @@ func TestIsValidEmail(t *testing.T) {
 			Expected: false,
 		},
 		{
+			Input:    "<billy@example.com>",
+			Expected: false,
+		},
+		{
 			Input:    "email.domain.com",
 			Expected: false,
 		},
