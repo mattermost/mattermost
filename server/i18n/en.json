@@ -1866,14 +1866,6 @@
     "translation": "remote_id must be blank for custom group"
   },
   {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Unable to convert the property field to a custom profile attribute field"
-  },
-  {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "trying to patch a field that does not exist"
-  },
-  {
     "id": "api.custom_profile_attributes.invalid_field_patch",
     "translation": "invalid custom profile attribute field patch"
   },
@@ -2346,7 +2338,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Failed to apply new trial license. You have previously applied a trial license to this Mattermost instance.. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+    "translation": "Failed to apply new trial license as your workspace has already applied a trial license. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -5047,6 +5039,10 @@
     "translation": "Unable to create Custom Profile Attribute field"
   },
   {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Unable to delete Custom Profile Attribute Values for user"
+  },
+  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Unable to get Custom Profile Attribute field"
   },
@@ -5085,6 +5081,10 @@
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Unable to search Custom Profile Attribute fields"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Failed to validate property value"
   },
   {
     "id": "app.delete_scheduled_post.delete_error",
