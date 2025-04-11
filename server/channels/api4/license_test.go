@@ -472,3 +472,78 @@ func TestRequestTrialLicense(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
+
+func TestGetLicenseLoad(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("when user is logged out", func(t *testing.T) {
+		client := th.CreateClient()
+		_, resp, err := client.GetLicenseLoadMetric(context.Background())
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("when no license is loaded", func(t *testing.T) {
+		th.App.Srv().Platform().SetLicense(nil)
+		data, resp, err := th.Client.GetLicenseLoadMetric(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.Equal(t, 0, data["load"])
+	})
+
+	t.Run("with valid license and changing number of users", func(t *testing.T) {
+		// Create a license with 100 users
+		license := model.NewTestLicense()
+		license.Features.Users = model.NewPointer(100) // Set license for 100 users
+		th.App.Srv().Platform().SetLicense(license)
+
+		// Make user active by setting their status
+		status := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusAway,
+			Manual:         true,
+			LastActivityAt: model.GetMillis(),
+		}
+		initialErr := th.App.Srv().Store().Status().SaveOrUpdate(status)
+		require.NoError(t, initialErr)
+
+		// Get the initial load - this should reflect existing users
+		initialData, resp, err := th.Client.GetLicenseLoadMetric(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		initialCount := initialData["load"]
+		t.Logf("Initial load: %d%%", initialCount)
+
+		// Now create 50 new users and set their status to make them active
+		for i := 0; i < 50; i++ {
+			user := th.CreateUser()
+
+			// Make user active by setting their status
+			status := &model.Status{
+				UserId:         user.Id,
+				Status:         model.StatusAway,
+				Manual:         true,
+				LastActivityAt: model.GetMillis(),
+			}
+			statusErr := th.App.Srv().Store().Status().SaveOrUpdate(status)
+			require.NoError(t, statusErr)
+		}
+
+		// Ensure the load metric updates to reflect the new users
+		updatedData, resp, err := th.Client.GetLicenseLoadMetric(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		updatedCount := updatedData["load"]
+		t.Logf("Updated load: %d%%", updatedCount)
+
+		// The load should increase after adding users
+		require.Greater(t, updatedCount, initialCount, "Load metric should increase after adding users")
+
+		// We should see an increase of roughly 50% (could be slightly less due to existing users)
+		require.GreaterOrEqual(t, updatedCount-initialCount, 30,
+			"Load metric should increase by at least 30 percentage points after adding 50 users with a 100-user license")
+	})
+}

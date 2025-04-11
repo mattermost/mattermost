@@ -2600,6 +2600,15 @@ export default class Client4 {
         );
     };
 
+    getLicenseLoadMetric = () => {
+        return this.doFetch<{
+            load: number;
+        }>(
+            `${this.getBaseRoute()}/license/load_metric`,
+            {method: 'get'},
+        );
+    };
+
     setFirstAdminVisitMarketplaceStatus = async () => {
         return this.doFetch<StatusOK>(
             `${this.getPluginsRoute()}/marketplace/first_admin_visit`,
