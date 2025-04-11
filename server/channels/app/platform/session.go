@@ -43,7 +43,6 @@ func (ps *PlatformService) GetLRUSessions(c request.CTX, userID string, limit ui
 
 func (ps *PlatformService) AddSessionToCache(session *model.Session) error {
 	if err := ps.sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*ps.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute); err != nil {
-		ps.Logger().Error("Failed to add session to cache", mlog.Err(err))
 		return err
 	}
 	return nil
@@ -98,7 +97,6 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 
 func (ps *PlatformService) ClearAllUsersSessionCacheLocal() error {
 	if err := ps.sessionCache.Purge(); err != nil {
-		ps.Logger().Error("Failed to purge session cache", mlog.Err(err))
 		return err
 	}
 	return nil
