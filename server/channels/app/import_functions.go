@@ -939,12 +939,12 @@ func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.
 		var f io.ReadCloser
 		f, err = data.ProfileImageData.Open()
 		if err != nil {
-			return model.NewAppError("importProfileImage", "app.import.profile_image.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return model.NewAppError("importProfileImage", "app.import.profile_image.open.app_error", map[string]any{"FileName": data.ProfileImageData.Name}, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		defer func() {
 			if closeErr := f.Close(); closeErr != nil {
-				rctx.Logger().Warn("Unable to close profile image data.", mlog.Err(closeErr))
+				rctx.Logger().Warn("Unable to close profile image data.", mlog.String("filename", data.ProfileImageData.Name), mlog.Err(closeErr))
 			}
 		}()
 
@@ -964,17 +964,17 @@ func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.
 
 		defer func() {
 			if closeErr := file.(*os.File).Close(); closeErr != nil {
-				rctx.Logger().Warn("Unable to close profile image file.", mlog.Err(closeErr))
+				rctx.Logger().Warn("Unable to close profile image file.", mlog.String("filepath", path), mlog.Err(closeErr))
 			}
 		}()
 	}
 
 	if file != nil {
 		if err := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); err != nil {
-			return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
-		if err := a.SetProfileImageFromFile(rctx, userID, file); err != nil {
-			return err
+		if appErr := a.SetProfileImageFromFile(rctx, userID, file); appErr != nil {
+			return appErr
 		}
 	}
 
@@ -990,9 +990,9 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 	for _, tdata := range *data {
 		teamNames = append(teamNames, *tdata.Name)
 	}
-	allTeams, err := a.getTeamsByNames(teamNames)
-	if err != nil {
-		return err
+	allTeams, appErr := a.getTeamsByNames(teamNames)
+	if appErr != nil {
+		return appErr
 	}
 
 	var (
@@ -1063,9 +1063,9 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 		}
 		if !user.IsGuest() {
 			var userShouldBeAdmin bool
-			userShouldBeAdmin, err = a.UserIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
-			if err != nil {
-				return err
+			userShouldBeAdmin, appErr = a.UserIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
+			if appErr != nil {
+				return appErr
 			}
 			member.SchemeAdmin = userShouldBeAdmin
 		}
@@ -1088,7 +1088,6 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 
 	oldMembers, nErr := a.Srv().Store().Team().UpdateMultipleMembers(oldTeamMembers)
 	if nErr != nil {
-		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr):
 			return appErr
@@ -1102,7 +1101,6 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 		var nErr error
 		newMembers, nErr = a.Srv().Store().Team().SaveMultipleMembers(newTeamMembers, *a.Config().TeamSettings.MaxUsersPerTeam)
 		if nErr != nil {
-			var appErr *model.AppError
 			var conflictErr *store.ErrConflict
 			var limitExceededErr *store.ErrLimitExceeded
 			switch {
@@ -1120,13 +1118,13 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 
 	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByTeamID[member.TeamId] {
-			if _, err = a.UpdateTeamMemberRoles(rctx, member.TeamId, user.Id, rolesByTeamID[member.TeamId]); err != nil {
-				return err
+			if _, appErr = a.UpdateTeamMemberRoles(rctx, member.TeamId, user.Id, rolesByTeamID[member.TeamId]); appErr != nil {
+				return appErr
 			}
 		}
 
-		if _, err := a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamID[member.TeamId]); err != nil {
-			rctx.Logger().Warn("Error updating team member scheme roles", mlog.String("team_id", member.TeamId), mlog.String("user_id", user.Id), mlog.Err(err))
+		if _, appErr := a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamID[member.TeamId]); appErr != nil {
+			rctx.Logger().Warn("Error updating team member scheme roles", mlog.String("team_id", member.TeamId), mlog.String("user_id", user.Id), mlog.Err(appErr))
 		}
 	}
 
@@ -1317,8 +1315,8 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, team *model
 			}
 		}
 
-		if _, err := a.UpdateChannelMemberSchemeRoles(rctx, member.ChannelId, user.Id, isGuestByChannelId[member.ChannelId], isUserByChannelId[member.ChannelId], isAdminByChannelId[member.ChannelId]); err != nil {
-			rctx.Logger().Warn("Error updating channel member scheme roles", mlog.String("channel_id", member.ChannelId), mlog.String("user_id", user.Id), mlog.Err(err))
+		if _, appErr := a.UpdateChannelMemberSchemeRoles(rctx, member.ChannelId, user.Id, isGuestByChannelId[member.ChannelId], isUserByChannelId[member.ChannelId], isAdminByChannelId[member.ChannelId]); appErr != nil {
+			rctx.Logger().Warn("Error updating channel member scheme roles", mlog.String("channel_id", member.ChannelId), mlog.String("user_id", user.Id), mlog.Err(appErr))
 		}
 	}
 
@@ -1443,7 +1441,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		for _, fileID := range reply.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				if err := a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID); err != nil {
-					rctx.Logger().Warn("Error permanently deleting file info", mlog.String("file_id", fileID), mlog.Err(err))
+					rctx.Logger().Warn("Error while permanently deleting file info", mlog.String("file_id", fileID), mlog.Err(err))
 				}
 			}
 		}
@@ -1895,7 +1893,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				if err := a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID); err != nil {
-					rctx.Logger().Warn("Error permanently deleting file info", mlog.String("file_id", fileID), mlog.Err(err))
+					rctx.Logger().Warn("Error while permanently deleting file info", mlog.String("file_id", fileID), mlog.Err(err))
 				}
 			}
 		}
@@ -2417,7 +2415,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				if err := a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID); err != nil {
-					rctx.Logger().Warn("Error permanently deleting file info", mlog.String("file_id", fileID), mlog.Err(err))
+					rctx.Logger().Warn("Error while permanently deleting file info", mlog.String("file_id", fileID), mlog.Err(err))
 				}
 			}
 		}
