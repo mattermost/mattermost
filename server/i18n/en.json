@@ -8037,6 +8037,10 @@
     "translation": "ldap interface was nil."
   },
   {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "Failed to retrieve CPA fields"
+  },
+  {
     "id": "ent.ldap.create_fail",
     "translation": "Unable to create LDAP user."
   },
@@ -8123,6 +8127,14 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Size Limit Exceeded. Try increasing your Maximum page size setting. Check out https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded for more details."
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "Empty LDAP attribute value"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "Error(s) patching CPA value"
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -10543,6 +10555,14 @@
   {
     "id": "web.incoming_webhook.parse.app_error",
     "translation": "Unable to parse incoming data."
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Failed to parse form for webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Failed to parse multipart form for webhook {{.hook_id}}."
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
