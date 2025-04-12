@@ -176,7 +176,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
 
         if (isLinkInfo(fileInfo)) {
             // For LinkInfo, pass the full URL to getFileType to leverage enhanced URL detection
-            return Utils.getFileType(fileInfo.link);
+            return Utils.getFileType(fileInfo.extension || fileInfo.link);
         }
 
         return FileTypes.OTHER;
