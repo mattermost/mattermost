@@ -4385,10 +4385,31 @@ export default class Client4 {
         );
     };
 
+    getChildPolicies = (parentId: string, page: number, perPage: number) => {
+        return this.doFetch<AccessControlPolicy[]>(
+            `${this.getBaseRoute()}/access_control_policies?parent=${parentId}&page=${page}&per_page=${perPage}`,
+            {method: 'get'},
+        );
+    };
+
+    updateOrCreateAccessControlPolicy = (policy: AccessControlPolicy) => {
+        return this.doFetch<AccessControlPolicy>(
+            `${this.getBaseRoute()}/access_control_policies`,
+            {method: 'put', body: JSON.stringify(policy)},
+        );
+    };
+
     getAccessControlPolicy = (id: string) => {
         return this.doFetch<AccessControlPolicy>(
             `${this.getBaseRoute()}/access_control_policies/${id}`,
             {method: 'get'},
+        );
+    };
+
+    deleteAccessControlPolicy = (id: string) => {
+        return this.doFetch<AccessControlPolicy>(
+            `${this.getBaseRoute()}/access_control_policies/${id}`,
+            {method: 'delete'},
         );
     };
 

@@ -6,7 +6,9 @@ import type {GlobalState} from '@mattermost/types/store';
 import { AccessControlPolicy } from "@mattermost/types/admin";
 
 export function getAccessControlPolicies(state: GlobalState): AccessControlPolicy[] {
-    return state.entities.admin.accessControlPolicies || [];
+    return Array.isArray(state.entities.admin.accessControlPolicies) 
+        ? state.entities.admin.accessControlPolicies 
+        : [];
 }
 
 export function getAccessControlPolicy(state: GlobalState, id: string): AccessControlPolicy | undefined | null {

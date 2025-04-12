@@ -5,7 +5,6 @@ package api4
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -13,73 +12,11 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
-var policies = []*model.AccessControlPolicy{
-	{
-		ID:       model.NewId(),
-		Name:     "Confidential DS-BP",
-		Type:     model.AccessControlPolicyTypeParent,
-		Active:   true,
-		CreateAt: model.GetMillis(),
-		Revision: 1,
-		Version:  model.AccessControlPolicyVersionV0_1,
-		Rules: []model.AccessControlPolicyRule{
-			{
-				Actions:    []string{"join_channel"},
-				Expression: "(user.attributes.Program == \"Dragon Spacecraft\" || user.attributes.Program == \"Black Phoenix\") && user.attributes.Clearance == \"L3\"",
-			},
-		},
-	},
-	{
-		ID:       model.NewId(),
-		Name:     "Northern Command",
-		Type:     model.AccessControlPolicyTypeParent,
-		Active:   true,
-		CreateAt: model.GetMillis(),
-		Revision: 1,
-		Version:  model.AccessControlPolicyVersionV0_1,
-		Rules: []model.AccessControlPolicyRule{
-			{
-				Actions:    []string{"join_channel"},
-				Expression: "user.attributes.Program == \"Northern Command\"",
-			},
-		},
-	},
-	{
-		ID:       model.NewId(),
-		Name:     "Dragon Spacecraft",
-		Type:     model.AccessControlPolicyTypeParent,
-		Active:   true,
-		CreateAt: model.GetMillis(),
-		Revision: 1,
-		Version:  model.AccessControlPolicyVersionV0_1,
-		Rules: []model.AccessControlPolicyRule{
-			{
-				Actions:    []string{"join_channel"},
-				Expression: "user.attributes.Program == \"Dragon Spacecraft\"",
-			},
-		},
-	},
-	{
-		ID:       model.NewId(),
-		Name:     "Top Secret",
-		Type:     model.AccessControlPolicyTypeParent,
-		Active:   true,
-		CreateAt: model.GetMillis(),
-		Revision: 1,
-		Version:  model.AccessControlPolicyVersionV0_1,
-		Rules: []model.AccessControlPolicyRule{
-			{
-				Actions:    []string{"join_channel"},
-				Expression: "user.attributes.Clearance >= \"L4\"",
-			},
-		},
-	},
-}
-
 func (api *API) InitAccessControlPolicy() {
-	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessPolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(getAccessPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(getAccessPolicies)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(deleteAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchAccessPolicies)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
@@ -101,13 +38,21 @@ func createAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appErr := policy.IsValid(); appErr != nil {
+	np, appErr := c.App.CreateOrUpdateAccessControlPolicy(c.AppContext, &policy)
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	policies = append(policies, &policy)
-	w.WriteHeader(http.StatusCreated)
+	js, err := json.Marshal(np)
+	if err != nil {
+		c.Err = model.NewAppError("getAccessPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -116,9 +61,19 @@ func getAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("getAccessPolicy")
+	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
+	policyID := c.Params.PolicyId
 
-	js, err := json.Marshal(policies[0])
+	policy, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(policy)
 	if err != nil {
 		c.Err = model.NewAppError("getAccessPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
@@ -130,11 +85,22 @@ func getAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAccessPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement pagination
-	// TODO: Implement filtering by type and also check permissions
-
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	var policies []*model.AccessControlPolicy
+	var appErr *model.AppError
+
+	parentID := r.URL.Query().Get("parent")
+	if parentID == "" {
+		policies, appErr = c.App.GetAllParentPolicies(c.AppContext, 0, 0)
+	} else {
+		policies, appErr = c.App.GetAllChildPolicies(c.AppContext, parentID, 0, 0)
+	}
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -144,20 +110,27 @@ func getAccessPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fields, appErr := c.App.ListCPAFields()
-	if appErr != nil {
-		c.Err = appErr
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func deleteAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
-	for _, field := range fields {
-		fmt.Printf("Field ID: %s", field.ID)
-		fmt.Printf(" Field Name: %s", field.Name)
-		fmt.Printf(" Field Type: %s\n", field.Type)
+	c.RequirePolicyId()
+	if c.Err != nil {
+		return
 	}
+	policyID := c.Params.PolicyId
 
-	if _, err := w.Write(js); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	appErr := c.App.DeleteAccessControlPolicy(c.AppContext, policyID)
+	if appErr != nil {
+		c.Err = appErr
+		return
 	}
 }
 
@@ -219,15 +192,14 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, attributes, appErr := c.App.TestExpression(c.AppContext, checkExpressionRequest.Expression)
+	users, appErr := c.App.TestExpression(c.AppContext, checkExpressionRequest.Expression)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	resp := model.AccessControlPolicyTestResponse{
-		Users:      users,
-		Attributes: attributes,
+		Users: users,
 	}
 
 	js, err := json.Marshal(resp)

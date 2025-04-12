@@ -58,14 +58,12 @@ export default class PolicyList extends React.PureComponent<Props, State> {
             if (!this.mounted) {
                 return;
             }
-            console.log('fetching policies');
             const action = await this.props.actions.getAccessControlPolicies(page, PAGE_SIZE);
             const data = {...action.data};
             this.setState({policies: data || [], loading: false});
         } catch (error) {
             this.setState({loading: false, searchErrored: true});
         }
-        console.log('done policies');
     }
 
 
@@ -91,8 +89,8 @@ export default class PolicyList extends React.PureComponent<Props, State> {
     getRows = (): Row[] => {
         const {startCount, endCount} = this.getPaginationProps();
         const sortedPolicies = Object.values(this.state.policies).sort((a, b) => {
-            const timeA = new Date(a.created_at).valueOf();
-            const timeB = new Date(b.created_at).valueOf();
+            const timeA = new Date(a.created_at || 0).valueOf();
+            const timeB = new Date(b.created_at || 0).valueOf();
 
             return timeB - timeA;
         });

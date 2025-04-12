@@ -146,17 +146,17 @@ export type AccessControlPolicy = {
     id: string;
     name: string;
     type: string;
-    revision: number;
-    created_at: number;
-    version: string;
-    active: boolean;
-    imports: string[];
-    properties: string[];
+    revision?: number;
+    created_at?: number;
+    version?: string;
+    active?: boolean;
+    imports?: string[];
+    properties?: string[];
     rules: AccessControlPolicyRule[];
 }
 
 export type AccessControlPolicyRule = {
-    actions: string[];
+    actions?: string[];
     expression: string;
 }
 

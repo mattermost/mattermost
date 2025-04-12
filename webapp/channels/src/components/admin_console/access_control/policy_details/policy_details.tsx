@@ -1,7 +1,7 @@
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { AccessControlPolicy } from '@mattermost/types/admin';
+import { AccessControlPolicy, AccessControlPolicyRule } from '@mattermost/types/admin';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import TextSetting from 'components/widgets/settings/text_setting';
@@ -15,6 +15,7 @@ import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 
 import CELEditor from 'components/admin_console/access_control/cel_editor/editor';
+import {getHistory} from 'utils/browser_history';
 
 import './policy.scss';
 import { ActionResult } from 'mattermost-redux/types/actions';
@@ -24,12 +25,16 @@ type Props = {
     policy?: AccessControlPolicy | null;
     actions: {
         fetchPolicy: (id: string) => Promise<ActionResult>;
+        createPolicy: (policy: AccessControlPolicy) => Promise<ActionResult>;
+        deletePolicy: (id: string) => Promise<ActionResult>;
     };
 };
 
 type State = {
     autoSyncMembership: boolean | undefined;
     policyName: string | undefined;
+    channels: string[];
+    expression: string;
     serverError: boolean;
     addChannelOpen: boolean;
 }
@@ -40,6 +45,8 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
 
         this.state = {
             policyName: '',
+            expression: '',
+            channels: [],
             autoSyncMembership: false,
             serverError: false,
             addChannelOpen: false,
@@ -54,8 +61,12 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
         if (this.props.policyId) {
             await this.props.actions.fetchPolicy(this.props.policyId);
             this.setState({
-                policyName: this.props.policy?.name,
+                policyName: this.props.policy?.name || '',
+                expression: this.props.policy?.rules?.[0]?.expression || '',
             });
+
+            // const childPolicies = await Client4.getChildPolicies(this.props.policyId, 0, 100);
+            // console.log(childPolicies);
         }
     };
 
@@ -65,6 +76,39 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
 
     closeAddChannel = () => {
         this.setState({addChannelOpen: false});
+    };
+
+    handleSubmit = async () => {
+        try {
+            const updatedPolicy = await this.props.actions.createPolicy({
+                id: this.props.policyId || '',
+                name: this.state.policyName || '',
+                rules: [{expression: this.state.expression, actions: []}] as AccessControlPolicyRule[],
+                type: 'parent',
+                version: "v0.1",
+            });
+
+            getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy/' + updatedPolicy.data.id);
+
+            console.log(updatedPolicy.data.id);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            console.log('done');
+        }
+    };
+
+    handleDelete = async () => {
+        try {
+            if (this.props.policyId) {
+                const result = await this.props.actions.deletePolicy(this.props.policyId);
+                if (result.data) {
+                    getHistory().push('/admin_console/user_management/attribute_based_access_control');
+                }
+            }
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     render() {
@@ -91,7 +135,7 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                                 id='policyName'
                                 label='Access control policy name:'
                                 value={this.state.policyName || ''}
-                                onChange={(e) => {}}
+                                onChange={(id, value) => this.setState({policyName: value})}
                                 labelClassName='col-sm-4'
                                 inputClassName='col-sm-8'
                             />
@@ -117,7 +161,7 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                             <Card.Body>
                                 <CELEditor
                                    value={this.props.policy?.rules?.[0]?.expression || ''}
-                                   onChange={() => {}}
+                                   onChange={(value) => this.setState({expression: value})}
                                    onValidate={() => {}}
                                />
                             </Card.Body>
@@ -199,7 +243,7 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                     <SaveButton
                         // saving={this.state.saving}
                         // disabled={!this.state.saveNeeded}
-                        // onClick={this.handleSubmit}
+                        onClick={this.handleSubmit}
                         defaultMessage={(
                             <FormattedMessage
                                 id='admin.access_control.edit_policy.save'
@@ -207,6 +251,16 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                             />
                         )}
                     />
+                    <BlockableLink
+                        className='btn btn-danger'
+                        onClick={this.handleDelete}
+                        to='/admin_console/user_management/attribute_based_access_control'
+                    >
+                    <FormattedMessage
+                        id='admin.access_control.edit_policy.delete'
+                        defaultMessage='Delete'
+                    />
+                    </BlockableLink>
                     <BlockableLink
                         className='btn btn-quaternary'
                         to='/admin_console/user_management/attribute_based_access_control'

@@ -6,93 +6,88 @@ package app
 import (
 	"net/http"
 
-	"github.com/google/cel-go/cel"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-type PolicyAdministrationPoint struct {
-	env *cel.Env
-}
-
-func (s *PolicyAdministrationPoint) Init(rctx request.CTX) error {
-	env, err := cel.NewEnv(
-		cel.Types(&model.Subject{}),
-		cel.Variable("user", cel.ObjectType("model.Subject")),
-	)
+func (a *App) GetAllParentPolicies(rctx request.CTX, page, perPage int) ([]*model.AccessControlPolicy, *model.AppError) {
+	policies, err := a.Srv().Store().AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{
+		Type: model.AccessControlPolicyTypeParent,
+	})
 	if err != nil {
-		return model.NewAppError("Init", "app.pap.init.app_error", nil, err.Error(), 0)
-	}
-	s.env = env
-
-	return nil
-}
-
-func (s *PolicyAdministrationPoint) GetBasicAutocomplete(rctx request.CTX, targetType string) (map[string]any, error) {
-	return nil, nil
-}
-
-func (s *PolicyAdministrationPoint) CheckExpression(rctx request.CTX, expression string) ([]model.CELExpressionError, error) {
-	if s.env == nil {
-		return nil, model.NewAppError("CheckExpression", "app.pap.check_expression.app_error", nil, "CEL environment is not initialized", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetAllParentPolicies", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	_, iss := s.env.Compile(expression)
-	if iss != nil && iss.Err() != nil {
-		errs := make([]model.CELExpressionError, len(iss.Errors()))
-		for i, err := range iss.Errors() {
-			errs[i] = model.CELExpressionError{
-				Line:    err.Location.Line(),
-				Column:  err.Location.Column(),
-				Message: err.Message,
-			}
-		}
-		return errs, nil
-
-	}
-
-	return []model.CELExpressionError{}, nil
+	return policies, nil
 }
 
-func (s *PolicyAdministrationPoint) SavePolicy(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
-	return nil, nil
-}
-
-func (s *PolicyAdministrationPoint) GetPolicy(rctx request.CTX, id string) (*model.AccessControlPolicy, error) {
-	return nil, nil
-}
-
-func (s *PolicyAdministrationPoint) ExtractAttributeFields(rctx request.CTX, targetType, expression string) ([]string, error) {
-	if s.env == nil {
-		return nil, model.NewAppError("ExtractAttributeFields", "app.pap.check_expression.app_error", nil, "CEL environment is not initialized", http.StatusNotImplemented)
-	}
-
-	ast, iss := s.env.Compile(expression)
-	if iss != nil && iss.Err() != nil {
-		return nil, model.NewAppError("ExtractAttributeFields", "app.pap.check_expression.app_error", nil, iss.Err().Error(), http.StatusBadRequest)
-	}
-
-	// Extract the attribute fields from the expression
-	fields, err := ExtractAttributeFieldsFromAST(ast)
+func (a *App) GetAllChildPolicies(rctx request.CTX, parentID string, page, perPage int) ([]*model.AccessControlPolicy, *model.AppError) {
+	policies, err := a.Srv().Store().AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{
+		Type:     model.AccessControlPolicyTypeChannel,
+		ParentID: parentID,
+	})
 	if err != nil {
-		return nil, model.NewAppError("ExtractAttributeFields", "app.pdp.test_expression.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetAllChildPolicies", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return fields, nil
+	return policies, nil
 }
 
-func (s *PolicyAdministrationPoint) DeletePolicy(rctx request.CTX, id string) error {
+func (a *App) GetAccessControlPolicy(rctx request.CTX, id string) (*model.AccessControlPolicy, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	policy, appErr := acs.GetPolicy(rctx, id)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return policy, nil
+}
+
+func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("CreateAccessControlPolicy", "app.pap.create_access_control_policy.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	if policy.ID == "" {
+		policy.ID = model.NewId()
+	}
+
+	var appErr *model.AppError
+	policy, appErr = acs.SavePolicy(rctx, policy)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return policy, nil
+}
+
+func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppError {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return model.NewAppError("DeleteAccessControlPolicy", "app.pap.delete_access_control_policy.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	appErr := acs.DeletePolicy(rctx, id)
+	if appErr != nil {
+		return appErr
+	}
+
 	return nil
 }
 
 func (a *App) CheckExpression(rctx request.CTX, expression string) ([]model.CELExpressionError, *model.AppError) {
-	pap := a.Srv().ch.PAP
-	if pap == nil {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
 		return nil, model.NewAppError("CheckExpression", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	errs, appErr := pap.CheckExpression(rctx, expression)
+	errs, appErr := acs.CheckExpression(rctx, expression)
 	if appErr != nil {
 		return nil, model.NewAppError("CheckExpression", "app.pap.check_expression.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
@@ -100,59 +95,21 @@ func (a *App) CheckExpression(rctx request.CTX, expression string) ([]model.CELE
 	return errs, nil
 }
 
-func (a *App) TestExpression(rctx request.CTX, expression string) ([]*model.User, []string, *model.AppError) {
-	// pdp := a.Srv().ch.PDP
-	// if pdp == nil {
-	// 	return nil, nil, model.NewAppError("TestExpression", "app.pdp.test_expression.app_error", nil, "Policy Decision Point is not initialized", http.StatusNotImplemented)
-	// }
-
-	pap := a.Srv().ch.PAP
-	if pap == nil {
-		return nil, nil, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+func (a *App) TestExpression(rctx request.CTX, expression string) ([]*model.User, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	// extract all properties from the expression
-	fields, err := a.Srv().ch.PAP.ExtractAttributeFields(rctx, "user", expression)
+	res, err := acs.QueryExpression(rctx, expression)
 	if err != nil {
-		return nil, nil, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	subjects, err2 := a.Srv().Store().AccessControlPolicy().GetAllSubjects(rctx)
-	if err2 != nil {
-		return nil, nil, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, err2.Error(), http.StatusInternalServerError)
-	}
-
-	userIDs := make([]string, 0)
-	env := pap.(*PolicyAdministrationPoint).env
-
-	ast, iss := env.Compile(expression)
-	if iss != nil && iss.Err() != nil {
-		return nil, nil, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, iss.Err().Error(), http.StatusBadRequest)
-	}
-
-	prg, err3 := env.Program(ast)
-	if err3 != nil {
-		return nil, nil, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, err3.Error(), http.StatusInternalServerError)
-	}
-
-	for _, subject := range subjects {
-		// Create the evaluation map
-		evalMap := map[string]interface{}{
-			"user": subject,
-		}
-		out, _, err4 := prg.Eval(evalMap)
-		if err4 != nil {
-			return nil, nil, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, err4.Error(), http.StatusInternalServerError)
-		}
-		if out != nil && out.Type() == cel.BoolType && out.Value().(bool) {
-			userIDs = append(userIDs, subject.ID)
-		}
-	}
-
-	users, appErr := a.GetUsers(userIDs)
+	users, appErr := a.GetUsers(res.MatchedSubjectIDs)
 	if err != nil {
-		return nil, nil, appErr
+		return nil, appErr
 	}
 
-	return users, fields, nil
+	return users, nil
 }

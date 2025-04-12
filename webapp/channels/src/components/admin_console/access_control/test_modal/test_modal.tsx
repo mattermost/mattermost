@@ -65,6 +65,10 @@ export default class TestResultsModal extends React.PureComponent<Props, State> 
             };
         } = {};
 
+        // Ensure users is always an array
+        const users = Array.isArray(this.props.testResults?.users) ? this.props.testResults.users : [];
+        const total = users.length;
+
         return (
             <Modal
                 dialogClassName='a11y__modal test-results-modal'
@@ -84,31 +88,17 @@ export default class TestResultsModal extends React.PureComponent<Props, State> 
                             id='admin.access_control.testResults'
                             defaultMessage='Access Rule Test Results'
                         />
-                        <div className='attributes-container'>
-                        {this.props.testResults?.attributes?.map((attribute, index) => (
-                            <span
-                                key={index}
-                                className='attribute-pill'
-                                style={{
-                                    backgroundColor: `hsl(${Math.random() * 360}, 70%, 85%)`,
-                                }}
-                            >
-                                {attribute}
-                            </span>
-                        ))}
-                    </div>
                     </Modal.Title>
-
                 </Modal.Header>
                 <Modal.Body>
                     <SearchableUserList
-                 users={this.props.testResults?.users || []}
-                usersPerPage={USERS_PER_PAGE}
-                total={this.props.testResults?.users.length || 0}
-                nextPage={() => {}}
-                search={this.search}
-                actionUserProps={actionUserProps}
-            />
+                        users={users}
+                        usersPerPage={USERS_PER_PAGE}
+                        total={total}
+                        nextPage={() => {}}
+                        search={this.search}
+                        actionUserProps={actionUserProps}
+                    />
                 </Modal.Body>
             </Modal>
         );
