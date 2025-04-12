@@ -1,3 +1,8 @@
 .form-group {
     min-height: 40px;
 }
+
+.btn-delete {
+    background: var(--denim-status-do-not-disturb, #d24b4e) !important;
+    color: var(--button-color, #fff) !important;
+}

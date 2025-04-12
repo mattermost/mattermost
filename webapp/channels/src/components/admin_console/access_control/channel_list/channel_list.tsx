@@ -36,12 +36,6 @@ type Props = {
     channelsToRemove: Record<string, ChannelWithTeamData>;
     channelsToAdd: Record<string, ChannelWithTeamData>;
 
-    filterProps?: {
-        options: FilterOptions;
-        keys: string[];
-        onFilter: (options: FilterOptions) => void;
-    };
-
     actions: {
         searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
         getDataRetentionCustomPolicyChannels: (id: string, page: number, perPage: number) => Promise<ActionResult>;
@@ -319,17 +313,6 @@ export default class ChannelList extends React.PureComponent<Props, State> {
             onFilter: this.onFilter,
         };
 
-        const fpfn: () => {
-            options: FilterOptions;
-            keys: string[];
-            onFilter: (options: FilterOptions) => void; 
-        } = () => {
-            if (this.props.filterProps) {
-                return this.props.filterProps
-            }
-            return filterProps  
-        }
-
         return (
             <div className='PolicyChannelsList'>
                 <DataGrid
@@ -345,7 +328,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                     className={'customTable'}
                     onSearch={this.onSearch}
                     term={this.props.searchTerm}
-                    filterProps={fpfn()}
+                    filterProps={filterProps}
                 />
             </div>
         );

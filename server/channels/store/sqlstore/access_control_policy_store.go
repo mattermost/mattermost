@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -181,11 +182,35 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		return nil, errors.Wrapf(err, "failed to fetch policy with id=%s", policy.ID)
 	}
 
+	storePolicy, err := fromModel(policy)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse policy with Id=%s", policy.ID)
+	}
+
+	data := storePolicy.Data
+	props := storePolicy.Props
+	if s.IsBinaryParamEnabled() {
+		data = AppendBinaryFlag(data)
+		props = AppendBinaryFlag(props)
+	}
+
 	if existingPolicy != nil {
+		if existingPolicy.Type != policy.Type {
+			return nil, errors.New("cannot change type of existing policy")
+		}
+
 		// move existing policy to history
 		tmp, err2 := fromModel(existingPolicy)
 		if err2 != nil {
 			return nil, errors.Wrapf(err2, "failed to parse policy with id=%s", policy.ID)
+		}
+
+		// Check if the policy has actually changed
+		// We compare data, name, and version fields, and ensure type hasn't changed
+		if bytes.Equal(storePolicy.Data, tmp.Data) &&
+			storePolicy.Name == tmp.Name &&
+			storePolicy.Version == tmp.Version {
+			return existingPolicy, nil
 		}
 
 		data := tmp.Data
@@ -212,18 +237,6 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 	}
 
 	preSaveAccessControlPolicy(policy, existingPolicy)
-
-	storePolicy, err := fromModel(policy)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse policy with Id=%s", policy.ID)
-	}
-
-	data := storePolicy.Data
-	props := storePolicy.Props
-	if s.IsBinaryParamEnabled() {
-		data = AppendBinaryFlag(data)
-		props = AppendBinaryFlag(props)
-	}
 
 	query := s.getQueryBuilder().
 		Insert("AccessControlPolicies").
@@ -446,7 +459,7 @@ func (s *SqlAccessControlPolicyStore) GetAllSubjects(rctxc request.CTX) ([]*mode
 			return nil, errors.Wrap(err, "failed to scan subject row")
 		}
 
-		if err := json.Unmarshal(properties, &subject.Attributes); err != nil {
+		if err := json.Unmarshal(properties, &subject.Properties); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal properties")
 		}
 

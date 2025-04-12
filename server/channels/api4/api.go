@@ -160,7 +160,7 @@ type Routes struct {
 	AuditLogs *mux.Router // 'api/v4/audit_logs'
 
 	AccessControlPolicies *mux.Router // 'api/v4/access_control_policies'
-	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policy/{access_policy_id:[A-Za-z0-9]+}'
+	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policy/{policy_id:[A-Za-z0-9]+}'
 }
 
 type API struct {
@@ -306,7 +306,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.AuditLogs = api.BaseRoutes.APIRoot.PathPrefix("/audit_logs").Subrouter()
 
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
-	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{access_policy_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
@@ -449,7 +449,7 @@ func InitLocal(srv *app.Server) *API {
 	api.BaseRoutes.CustomProfileAttributesValues = api.BaseRoutes.CustomProfileAttributes.PathPrefix("/values").Subrouter()
 
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
-	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{access_policy_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.InitUserLocal()
 	api.InitTeamLocal()

@@ -649,8 +649,11 @@ function dataRetentionCustomPoliciesCount(state = 0, action: MMReduxAction) {
     }
 }
 
-function accessControlPolicies(state: AccessControlPolicy[] | {} = {}, action: MMReduxAction) {
+function accessControlPolicies(state: AccessControlPolicy[] = [], action: MMReduxAction) {
     switch (action.type) {
+    case AdminTypes.CREATE_ACCESS_CONTROL_POLICY_SUCCESS:
+    case AdminTypes.RECEIVED_ACCESS_CONTROL_POLICY:
+        return [...state, action.data];
     case AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES:
         return action.data;
     default:
@@ -658,14 +661,6 @@ function accessControlPolicies(state: AccessControlPolicy[] | {} = {}, action: M
     }
 }
 
-function accessControlPolicy(state: AccessControlPolicy | null = null, action: MMReduxAction) {
-    switch (action.type) {
-    case AdminTypes.RECEIVED_ACCESS_CONTROL_POLICY:
-        return action.data;
-    default:
-        return state;
-    }
-}
 
 export default combineReducers({
 
@@ -731,6 +726,4 @@ export default combineReducers({
     prevTrialLicense,
 
     accessControlPolicies,
-
-    accessControlPolicy,
 });

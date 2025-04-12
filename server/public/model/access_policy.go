@@ -59,6 +59,10 @@ type CELExpressionError struct {
 	Message string `json:"message"`
 }
 
+type AccessControlQueryResult struct {
+	MatchedSubjectIDs []string `json:"matched_subject_ids"`
+}
+
 func (p *AccessControlPolicy) IsValid() *AppError {
 	switch p.Version {
 	case AccessControlPolicyVersionV0_1:
