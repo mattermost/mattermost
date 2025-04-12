@@ -15,6 +15,7 @@ import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 
 import CELEditor from 'components/admin_console/access_control/cel_editor/editor';
+import TableEditor from 'components/admin_console/access_control/table_editor/table_editor';
 import {getHistory} from 'utils/browser_history';
 
 import './policy.scss';
@@ -37,7 +38,23 @@ type State = {
     expression: string;
     serverError: boolean;
     addChannelOpen: boolean;
+    editorMode: 'cel' | 'table';
 }
+
+const userAttributes = [
+    {
+        attribute: 'Program',
+        values: ['Dragon Spacecraft', 'Black Phoenix', 'Operation Deep Dive'],
+    },
+    {
+        attribute: 'Department',
+        values: ['Engineering', 'Sales', 'Marketing', 'HR', 'Finance', 'Legal', 'Customer Success', 'Support', 'Product', 'Design', 'Research', 'Security', 'Compliance', 'IT', 'Administration', 'Executive'],
+    },
+    {
+        attribute: 'Clearance',
+        values: ['Top Secret', 'Secret', 'Confidential'],
+    }
+];
 
 export default class PolicyDetails extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -50,6 +67,7 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
             autoSyncMembership: false,
             serverError: false,
             addChannelOpen: false,
+            editorMode: 'cel',
         };
     }
 
@@ -111,6 +129,10 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
         }
     };
 
+    handleExpressionChange = (value: string) => {
+        this.setState({expression: value});
+    };
+
     render() {
         const {serverError} = this.state;
 
@@ -148,22 +170,50 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                                 helpText='All users matching the property values configured below will be added as members, and membership will be automatically maintained as user property values change.'
                             />
                         </div>
-                            <Card
-                                expanded={true}
-                                className={'console'}
-                            >
+                        <Card
+                            expanded={true}
+                            className={'console'}
+                        >
                             <Card.Header>
-                            <TitleAndButtonCardHeader
-                                title={'Attribute based access rules'}
-                                subtitle={'Select user attributes and values as rules to restrict channel membership.'}
-                            />
+                                <TitleAndButtonCardHeader
+                                    title={'Attribute based access rules'}
+                                    subtitle={'Select user attributes and values as rules to restrict channel membership.'}
+                                />
                             </Card.Header>
                             <Card.Body>
-                                <CELEditor
-                                   value={this.props.policy?.rules?.[0]?.expression || ''}
-                                   onChange={(value) => this.setState({expression: value})}
-                                   onValidate={() => {}}
-                               />
+                                <div className="editor-tabs">
+                                    <button
+                                        className={`editor-tab ${this.state.editorMode === 'cel' ? 'active' : ''}`}
+                                        onClick={() => this.setState({editorMode: 'cel'})}
+                                    >
+                                        <FormattedMessage
+                                            id="admin.access_control.editor.cel"
+                                            defaultMessage="CEL Expression"
+                                        />
+                                    </button>
+                                    <button
+                                        className={`editor-tab ${this.state.editorMode === 'table' ? 'active' : ''}`}
+                                        onClick={() => this.setState({editorMode: 'table'})}
+                                    >
+                                        <FormattedMessage
+                                            id="admin.access_control.editor.table"
+                                            defaultMessage="Table View"
+                                        />
+                                    </button>
+                                </div>
+                                {this.state.editorMode === 'cel' ? (
+                                    <CELEditor
+                                        value={this.state.expression}
+                                        onChange={this.handleExpressionChange}
+                                        onValidate={() => {}}
+                                    />
+                                ) : (
+                                    <TableEditor
+                                        value={this.state.expression}
+                                        onChange={this.handleExpressionChange}
+                                        onValidate={() => {}}
+                                    />
+                                )}
                             </Card.Body>
                             {this.state.addChannelOpen &&
                             <ChannelSelectorModal
@@ -181,10 +231,10 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                             />
                             }
                         </Card>
-                            <Card
+                        <Card
                             expanded={true}
                             className={'console'}
-                            >
+                        >
                             <Card.Header>
                                 <TitleAndButtonCardHeader
                                     title={
@@ -236,7 +286,6 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                                 />
                             </Card.Body>
                         </Card>
-
                     </div>
                 </div>
                 <div className='admin-console-save'>

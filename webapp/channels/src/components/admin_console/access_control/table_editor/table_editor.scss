@@ -1,0 +1,161 @@
+.table-editor {
+    margin-bottom: 24px;
+    
+    &__table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 16px;
+        background: var(--center-channel-bg);
+        
+        th {
+            text-align: left;
+            padding: 12px;
+            font-weight: 600;
+            color: var(--center-channel-color);
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        }
+        
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        }
+    }
+    
+    &__input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        
+        &:focus {
+            border-color: var(--button-bg);
+            outline: none;
+        }
+        
+        &:disabled {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+            cursor: not-allowed;
+        }
+    }
+    
+    &__actions {
+        width: 80px;
+        text-align: center;
+    }
+    
+    &__button {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        
+        &--delete {
+            background: transparent;
+            color: var(--error-text);
+            padding: 4px;
+            
+            &:hover {
+                background: rgba(var(--error-text-color-rgb), 0.08);
+            }
+            
+            &:disabled {
+                color: rgba(var(--center-channel-color-rgb), 0.32);
+                cursor: not-allowed;
+            }
+        }
+        
+        &--add {
+            background: var(--button-bg);
+            color: var(--button-color);
+            
+            i {
+                margin-right: 8px;
+                font-size: 14px;
+            }
+            
+            &:hover {
+                background: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)), var(--button-bg);
+            }
+            
+            &:disabled {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.32);
+                cursor: not-allowed;
+            }
+        }
+
+        &--test {
+            background: transparent;
+            border: 1px solid var(--button-bg);
+            color: var(--button-bg);
+            
+            i {
+                margin-right: 8px;
+                font-size: 14px;
+            }
+            
+            &:hover {
+                background: rgba(var(--button-bg-rgb), 0.08);
+            }
+            
+            &:disabled {
+                border-color: rgba(var(--center-channel-color-rgb), 0.32);
+                color: rgba(var(--center-channel-color-rgb), 0.32);
+                cursor: not-allowed;
+            }
+        }
+    }
+    
+    &__footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 16px;
+
+        &-left {
+            display: flex;
+            align-items: center;
+        }
+
+        &-right {
+            display: flex;
+            align-items: center;
+        }
+    }
+    
+    &__disabled-message {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        background: rgba(var(--error-text-color-rgb), 0.08);
+        border-radius: 4px;
+        color: var(--error-text);
+        margin-bottom: 16px;
+        
+        i {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+    }
+
+    &__help-text {
+        margin-top: 16px;
+        font-size: 12px;
+        line-height: 1.5;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        
+        code {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+    }
+    
+} 
