@@ -20,6 +20,7 @@ import {getHistory} from 'utils/browser_history';
 
 import './policy.scss';
 import { ActionResult } from 'mattermost-redux/types/actions';
+import { ChannelWithTeamData } from '@mattermost/types/channels';
 
 type Props = {
     policyId?: string;
@@ -28,6 +29,7 @@ type Props = {
         fetchPolicy: (id: string) => Promise<ActionResult>;
         createPolicy: (policy: AccessControlPolicy) => Promise<ActionResult>;
         deletePolicy: (id: string) => Promise<ActionResult>;
+        getChildPolicies: (id: string, page: number, perPage: number) => Promise<ActionResult>;
     };
 };
 
@@ -39,6 +41,8 @@ type State = {
     serverError: boolean;
     addChannelOpen: boolean;
     editorMode: 'cel' | 'table';
+    newChannels: ChannelWithTeamData[];
+    removedChannels: ChannelWithTeamData[];
 }
 
 const userAttributes = [
@@ -68,6 +72,8 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
             serverError: false,
             addChannelOpen: false,
             editorMode: 'cel',
+            newChannels: [],
+            removedChannels: [],
         };
     }
 
@@ -82,9 +88,6 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                 policyName: this.props.policy?.name || '',
                 expression: this.props.policy?.rules?.[0]?.expression || '',
             });
-
-            // const childPolicies = await Client4.getChildPolicies(this.props.policyId, 0, 100);
-            // console.log(childPolicies);
         }
     };
 
@@ -127,6 +130,14 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
         } catch (error) {
             console.error(error);
         }
+    };
+
+    addToNewChannels = (channels: ChannelWithTeamData[]) => {
+        this.setState({newChannels: channels});
+    };
+
+    addToRemovedChannels = (channels: ChannelWithTeamData[]) => {
+        this.setState({removedChannels: channels});
     };
 
     handleExpressionChange = (value: string) => {
@@ -220,14 +231,16 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                             <ChannelSelectorModal
                                 onModalDismissed={this.closeAddChannel}
                                 onChannelsSelected={(channels) => {
-                                    // this.addToNewChannels(channels);
+                                    this.addToNewChannels(channels);
                                 }}
+                                // onChannelRemoved={(channel: ChannelWithTeamData) => {
+                                //     return this.addToRemovedChannels([channel]);
+                                // }}
                                 groupID={''}
                                 alreadySelected={
-                                    // Object.keys(this.state.newChannels)
-                                    []
+                                    Object.keys(this.state.newChannels)
                                 }
-                                excludePolicyConstrained={true}
+                                excludeAccessControlPolicyEnforced={true}
                                 excludeTypes={['O', 'D', 'G']}
                             />
                             }
@@ -240,19 +253,19 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                                 <TitleAndButtonCardHeader
                                     title={
                                         <FormattedMessage
-                                            id='admin.data_retention.custom_policy.channel_selector.title'
+                                            id='admin.access_control.policy.edit_policy.channel_selector.title'
                                             defaultMessage='Assigned channels'
                                         />
                                     }
                                     subtitle={
                                         <FormattedMessage
-                                            id='admin.data_retention.custom_policy.channel_selector.subTitle'
+                                            id='admin.daccess_control.policy.edit_policy.channel_selector.subTitle'
                                             defaultMessage='Add channels that this property based access policy will apply to.'
                                         />
                                     }
                                     buttonText={
                                         <FormattedMessage
-                                            id='admin.data_retention.custom_policy.channel_selector.addChannels'
+                                            id='admin.access_control.policy.edit_policy.channel_selector.addChannels'
                                             defaultMessage='Add channels'
                                         />
                                     }
@@ -265,21 +278,21 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                                 expanded={true}
                             >
                                 <ChannelList
-                                    onRemoveCallback={
-                                        // this.addToRemovedChannels
-                                        () => {}
+                                    onRemoveCallback={(channel) => {
+                                        console.log('onRemoveCallback', channel);
+                                        this.addToRemovedChannels([channel]);
+                                    }}
+                                    onAddCallback={ () => {
+                                        console.log('onAddCallback');
+                                        this.addToNewChannels(this.state.newChannels);
                                     }
-                                    onAddCallback={
-                                        // this.addToNewChannels
-                                        () => {}
+                                        
                                     }
                                     channelsToRemove={
-                                        // this.state.removedChannels
-                                        {}
+                                        Object.fromEntries(this.state.removedChannels.map(channel => [channel.id, channel]))
                                     }
                                     channelsToAdd={
-                                        // this.state.newChannels
-                                        {}
+                                        Object.fromEntries(this.state.newChannels.map(channel => [channel.id, channel]))
                                     }
                                     policyId={
                                         this.props.policyId

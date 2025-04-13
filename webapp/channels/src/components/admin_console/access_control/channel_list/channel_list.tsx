@@ -38,7 +38,7 @@ type Props = {
 
     actions: {
         searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
-        getDataRetentionCustomPolicyChannels: (id: string, page: number, perPage: number) => Promise<ActionResult>;
+        getChildPolicies: (id: string, page: number, perPage: number) => Promise<ActionResult>;
         setChannelListSearch: (term: string) => void;
         setChannelListFilters: (filters: ChannelSearchOpts) => void;
     };
@@ -51,6 +51,9 @@ type State = {
 const PAGE_SIZE = 10;
 export default class ChannelList extends React.PureComponent<Props, State> {
     private pageLoaded = 0;
+    private shouldLoadMoreData = false;
+    private nextPageToLoad?: number;
+    
     public constructor(props: Props) {
         super(props);
         this.state = {
@@ -73,7 +76,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
     private loadPage = async (page: number, pageSize = PAGE_SIZE) => {
         if (this.props.policyId) {
             this.setStateLoading(true);
-            await this.props.actions.getDataRetentionCustomPolicyChannels(this.props.policyId, page, pageSize);
+            await this.props.actions.getChildPolicies(this.props.policyId, page, pageSize);
             this.setStateLoading(false);
         }
     };
@@ -175,16 +178,16 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         channelsToDisplay = [...includeTeamsList, ...channelsToDisplay];
         channelsToDisplay = channelsToDisplay.slice(startCount - 1, endCount);
 
-        // Dont load more elements if searching
-        if (channelsToDisplay.length < PAGE_SIZE && channels.length < totalCount) { //term === '' &&  was included
+        // Check if we need to load more data, but don't do it here
+        if (channelsToDisplay.length < PAGE_SIZE && channels.length < totalCount) {
             const numberOfTeamsRemoved = Object.keys(channelsToRemove).length;
             const pagesOfTeamsRemoved = Math.floor(numberOfTeamsRemoved / PAGE_SIZE);
             const pageToLoad = page + pagesOfTeamsRemoved + 1;
 
-            // Directly call action to load more users from parent component to load more users into the state
+            // Set a flag to load more data in componentDidUpdate
             if (pageToLoad > this.pageLoaded) {
-                this.loadPage(pageToLoad + 1);
-                this.pageLoaded = pageToLoad;
+                this.shouldLoadMoreData = true;
+                this.nextPageToLoad = pageToLoad;
             }
         }
 
@@ -247,6 +250,16 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         const {policyId, searchTerm, filters} = this.props;
         const filtersModified = !isEqual(prevProps.filters, this.props.filters);
         const searchTermModified = prevProps.searchTerm !== searchTerm;
+        
+        // Handle loading more data if needed
+        if (this.shouldLoadMoreData && this.nextPageToLoad) {
+            this.shouldLoadMoreData = false;
+            const pageToLoad = this.nextPageToLoad;
+            this.nextPageToLoad = undefined;
+            this.pageLoaded = pageToLoad;
+            await this.loadPage(pageToLoad + 1);
+        }
+        
         if (searchTermModified || filtersModified) {
             this.setStateLoading(true);
             if (searchTerm === '') {

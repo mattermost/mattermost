@@ -1128,27 +1128,29 @@ type AccessControlPolicyStore interface {
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
 type ChannelSearchOpts struct {
-	Term                     string
-	NotAssociatedToGroup     string
-	IncludeDeleted           bool
-	Deleted                  bool
-	ExcludeChannelNames      []string
-	TeamIds                  []string
-	GroupConstrained         bool
-	ExcludeGroupConstrained  bool
-	PolicyID                 string
-	ExcludePolicyConstrained bool
-	IncludePolicyID          bool
-	IncludeTeamInfo          bool
-	IncludeSearchByID        bool
-	ExcludeRemote            bool
-	CountOnly                bool
-	Public                   bool
-	Private                  bool
-	Page                     *int
-	PerPage                  *int
-	LastDeleteAt             int
-	LastUpdateAt             int
+	Term                               string
+	NotAssociatedToGroup               string
+	IncludeDeleted                     bool
+	Deleted                            bool
+	ExcludeChannelNames                []string
+	TeamIds                            []string
+	GroupConstrained                   bool
+	ExcludeGroupConstrained            bool
+	PolicyID                           string
+	ExcludePolicyConstrained           bool
+	IncludePolicyID                    bool
+	IncludeTeamInfo                    bool
+	IncludeSearchByID                  bool
+	ExcludeRemote                      bool
+	CountOnly                          bool
+	Public                             bool
+	Private                            bool
+	Page                               *int
+	PerPage                            *int
+	LastDeleteAt                       int
+	LastUpdateAt                       int
+	ExcludeAccessControlPolicyEnforced bool
+	ParentAccessControlPolicyId        string
 }
 
 func (c *ChannelSearchOpts) IsPaginated() bool {

@@ -204,26 +204,29 @@ type ChannelModeratedRolesPatch struct {
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
+// ExcludeAccessPolicyEnforced will exclude channels that are enforced by an access policy.
 type ChannelSearchOpts struct {
-	NotAssociatedToGroup     string
-	ExcludeDefaultChannels   bool
-	IncludeDeleted           bool // If true, deleted channels will be included in the results.
-	Deleted                  bool
-	ExcludeChannelNames      []string
-	TeamIds                  []string
-	GroupConstrained         bool
-	ExcludeGroupConstrained  bool
-	PolicyID                 string
-	ExcludePolicyConstrained bool
-	IncludePolicyID          bool
-	IncludeSearchById        bool
-	ExcludeRemote            bool
-	Public                   bool
-	Private                  bool
-	Page                     *int
-	PerPage                  *int
-	LastDeleteAt             int // When combined with IncludeDeleted, only channels deleted after this time will be returned.
-	LastUpdateAt             int
+	NotAssociatedToGroup               string
+	ExcludeDefaultChannels             bool
+	IncludeDeleted                     bool // If true, deleted channels will be included in the results.
+	Deleted                            bool
+	ExcludeChannelNames                []string
+	TeamIds                            []string
+	GroupConstrained                   bool
+	ExcludeGroupConstrained            bool
+	PolicyID                           string
+	ExcludePolicyConstrained           bool
+	IncludePolicyID                    bool
+	IncludeSearchById                  bool
+	ExcludeRemote                      bool
+	Public                             bool
+	Private                            bool
+	Page                               *int
+	PerPage                            *int
+	LastDeleteAt                       int // When combined with IncludeDeleted, only channels deleted after this time will be returned.
+	LastUpdateAt                       int
+	ExcludeAccessControlPolicyEnforced bool
+	ParentAccessControlPolicyId        string
 }
 
 type ChannelMemberCountByGroup struct {

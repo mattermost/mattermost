@@ -1280,6 +1280,9 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 	if opts.ExcludePolicyConstrained {
 		query = query.Where("RetentionPoliciesChannels.ChannelId IS NULL")
 	}
+	if opts.ExcludeAccessControlPolicyEnforced {
+		query = query.Where("c.Id NOT IN (SELECT ID From AccessControlPolicies WHERE Type = ?)", model.AccessControlPolicyTypeChannel)
+	}
 
 	return query
 }
@@ -3541,6 +3544,16 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 				sq.Eq{"SharedChannels.Home": true},
 				sq.Eq{"SharedChannels.ChannelId": nil},
 			})
+	}
+
+	if opts.ExcludeAccessControlPolicyEnforced {
+		query = query.Where("c.Id NOT IN (SELECT ID From AccessControlPolicies WHERE Type = ?)", model.AccessControlPolicyTypeChannel)
+	} else if opts.ParentAccessControlPolicyId != "" {
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			query = query.Where(sq.Expr("c.Id IN (SELECT ID From AccessControlPolicies WHERE Type = ? AND Data->'imports' @> ?)", model.AccessControlPolicyTypeChannel, fmt.Sprintf("%q", opts.ParentAccessControlPolicyId)))
+		} else {
+			query = query.Where(sq.Expr("c.Id IN (SELECT ID From AccessControlPolicies WHERE Type = ? AND JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?))", model.AccessControlPolicyTypeChannel, fmt.Sprintf("%q", opts.ParentAccessControlPolicyId)))
+		}
 	}
 
 	return query

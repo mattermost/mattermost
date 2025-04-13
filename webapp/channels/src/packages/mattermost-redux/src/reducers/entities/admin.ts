@@ -3,7 +3,7 @@
 
 import {combineReducers} from 'redux';
 
-import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState, AccessControlPolicy, AccessControlPolicies} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState, AccessControlPolicy} from '@mattermost/types/admin';
 import type {Audit} from '@mattermost/types/audits';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
@@ -656,11 +656,26 @@ function accessControlPolicies(state: AccessControlPolicy[] = [], action: MMRedu
         return [...state, action.data];
     case AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES:
         return action.data;
+    case AdminTypes.DELETE_ACCESS_CONTROL_POLICY_SUCCESS:
+        return state.filter((policy) => policy.id !== action.data.id);
     default:
         return state;
     }
 }
 
+function channelsForAccessControlPolicy(state: Record<string, string[]> = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case AdminTypes.RECEIVED_ACCESS_CONTROL_CHILD_POLICIES:
+        if (action.data) {
+            return {...state, ...action.data};
+        }
+        return state;
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
 
 export default combineReducers({
 
@@ -726,4 +741,5 @@ export default combineReducers({
     prevTrialLicense,
 
     accessControlPolicies,
+    channelsForAccessControlPolicy,
 });

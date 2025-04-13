@@ -1556,7 +1556,8 @@ export default class Client4 {
         excludeDefaultChannels: boolean | undefined,
         includeTotalCount: true,
         includeDeleted: boolean | undefined,
-        excludePolicyConstrained: boolean | undefined
+        excludePolicyConstrained: boolean | undefined,
+        excludeAccessControlPolicyEnforced: boolean | undefined
     ): Promise<ChannelsWithTotalCount>;
     getAllChannels(
         page = 0,
@@ -1566,6 +1567,7 @@ export default class Client4 {
         includeTotalCount = false,
         includeDeleted = false,
         excludePolicyConstrained = false,
+        excludeAccessControlPolicyEnforced = false
     ) {
         const queryData = {
             page,
@@ -1575,6 +1577,7 @@ export default class Client4 {
             include_total_count: includeTotalCount,
             include_deleted: includeDeleted,
             exclude_policy_constrained: excludePolicyConstrained,
+            exclude_access_control_policy_enforced: excludeAccessControlPolicyEnforced,
         };
         return this.doFetch<ChannelWithTeamData[] | ChannelsWithTotalCount>(
             `${this.getChannelsRoute()}${buildQueryString(queryData)}`,
@@ -4389,6 +4392,20 @@ export default class Client4 {
         return this.doFetch<AccessControlPolicy[]>(
             `${this.getBaseRoute()}/access_control_policies?parent=${parentId}&page=${page}&per_page=${perPage}`,
             {method: 'get'},
+        );
+    };
+
+    getChannelsForAccessControlPolicy = (policyId: string, page: number, perPage: number) => {
+        return this.doFetch<ChannelWithTeamData[]>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/channels?page=${page}&per_page=${perPage}`,
+            {method: 'get'},
+        );
+    };
+
+    searchChildAccessControlPolicyChannels = (policyId: string, term: string, opts: ChannelSearchOpts) => {
+        return this.doFetch<ChannelWithTeamData[]>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/channels/search?term=${term}`,
+            {method: 'post', body: JSON.stringify({term, ...opts})},
         );
     };
 

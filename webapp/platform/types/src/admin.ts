@@ -70,6 +70,7 @@ export type AdminState = {
     dataRetentionCustomPoliciesCount: number;
     prevTrialLicense: ClientLicense;
     accessControlPolicies: AccessControlPolicy[];
+    channelsForAccessControlPolicy: Record<string, string[]>;
 };
 
 export type AnalyticsState = {
