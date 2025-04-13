@@ -183,21 +183,21 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                             <Card.Body>
                                 <div className="editor-tabs">
                                     <button
-                                        className={`editor-tab ${this.state.editorMode === 'cel' ? 'active' : ''}`}
-                                        onClick={() => this.setState({editorMode: 'cel'})}
-                                    >
-                                        <FormattedMessage
-                                            id="admin.access_control.editor.cel"
-                                            defaultMessage="CEL Expression"
-                                        />
-                                    </button>
-                                    <button
                                         className={`editor-tab ${this.state.editorMode === 'table' ? 'active' : ''}`}
                                         onClick={() => this.setState({editorMode: 'table'})}
                                     >
                                         <FormattedMessage
                                             id="admin.access_control.editor.table"
-                                            defaultMessage="Table View"
+                                            defaultMessage="Simple Expressions"
+                                        />
+                                    </button>
+                                    <button
+                                        className={`editor-tab ${this.state.editorMode === 'cel' ? 'active' : ''}`}
+                                        onClick={() => this.setState({editorMode: 'cel'})}
+                                    >
+                                        <FormattedMessage
+                                            id="admin.access_control.editor.cel"
+                                            defaultMessage="Advanced Expressions"
                                         />
                                     </button>
                                 </div>
@@ -212,6 +212,7 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                                         value={this.state.expression}
                                         onChange={this.handleExpressionChange}
                                         onValidate={() => {}}
+                                        userAttributes={userAttributes}
                                     />
                                 )}
                             </Card.Body>

@@ -1,49 +1,150 @@
 .table-editor {
     margin-bottom: 24px;
     
-    &__table {
-        width: 100%;
-        border-collapse: collapse;
+    &__conditions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
         margin-bottom: 16px;
-        background: var(--center-channel-bg);
-        
-        th {
-            text-align: left;
-            padding: 12px;
+        min-height: 138px;
+    }
+
+    &__condition {
+        display: flex;
+        align-items: center;
+        background: var(--button-bg);
+        border-radius: 4px;
+        padding: 4px 8px;
+        color: var(--button-color);
+        font-size: 14px;
+        max-height: 34px;
+
+        &-attribute {
             font-weight: 600;
-            color: var(--center-channel-color);
-            background: rgba(var(--center-channel-color-rgb), 0.04);
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         }
-        
-        td {
-            padding: 8px 12px;
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+        &-equals {
+            margin: 0 8px;
+            opacity: 0.8;
+        }
+
+        &-value {
+            display: flex;
+            align-items: center;
+        }
+
+        &-remove {
+            background: transparent;
+            border: none;
+            color: var(--button-color);
+            padding: 4px;
+            margin-left: 8px;
+            cursor: pointer;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            &:hover {
+                opacity: 1;
+            }
+
+            &:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+
+            i {
+                font-size: 12px;
+            }
         }
     }
-    
-    &__input {
-        width: 100%;
-        padding: 8px;
+
+    &__add-condition {
+        position: relative;
+    }
+
+    &__add-button {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border: 1px dashed rgba(var(--center-channel-color-rgb), 0.32);
+        border-radius: 4px;
+        background: transparent;
+        color: var(--button-bg);
+        font-weight: 600;
+        cursor: pointer;
+
+        i {
+            margin-right: 8px;
+            font-size: 14px;
+        }
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.04);
+            border-color: var(--button-bg);
+        }
+    }
+
+    &__dropdown-container {
+        position: absolute;
+        top: 25%;
+        left: 0;
+        margin-top: 4px;
+        z-index: 10;
+        background: var(--center-channel-bg);
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
-        background: var(--center-channel-bg);
-        color: var(--center-channel-color);
-        
-        &:focus {
-            border-color: var(--button-bg);
-            outline: none;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        min-width: 240px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    &__dropdown {
+        padding: 8px 0;
+    }
+
+    &__dropdown-section {
+        &:not(:last-child) {
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            margin-bottom: 8px;
+            padding-bottom: 8px;
         }
-        
-        &:disabled {
-            background: rgba(var(--center-channel-color-rgb), 0.04);
-            cursor: not-allowed;
+    }
+
+    &__dropdown-attribute {
+        padding: 4px 16px;
+        color: var(--center-channel-color);
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        opacity: 0.64;
+    }
+
+    &__dropdown-values {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__dropdown-value {
+        background: transparent;
+        border: none;
+        padding: 8px 16px;
+        text-align: left;
+        color: var(--center-channel-color);
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
         }
     }
     
-    &__actions {
-        width: 80px;
-        text-align: center;
+    &__footer {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-top: 16px;
     }
     
     &__button {
@@ -54,41 +155,6 @@
         border-radius: 4px;
         font-weight: 600;
         cursor: pointer;
-        
-        &--delete {
-            background: transparent;
-            color: var(--error-text);
-            padding: 4px;
-            
-            &:hover {
-                background: rgba(var(--error-text-color-rgb), 0.08);
-            }
-            
-            &:disabled {
-                color: rgba(var(--center-channel-color-rgb), 0.32);
-                cursor: not-allowed;
-            }
-        }
-        
-        &--add {
-            background: var(--button-bg);
-            color: var(--button-color);
-            
-            i {
-                margin-right: 8px;
-                font-size: 14px;
-            }
-            
-            &:hover {
-                background: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)), var(--button-bg);
-            }
-            
-            &:disabled {
-                background: rgba(var(--center-channel-color-rgb), 0.08);
-                color: rgba(var(--center-channel-color-rgb), 0.32);
-                cursor: not-allowed;
-            }
-        }
 
         &--test {
             background: transparent;
@@ -109,23 +175,6 @@
                 color: rgba(var(--center-channel-color-rgb), 0.32);
                 cursor: not-allowed;
             }
-        }
-    }
-    
-    &__footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 16px;
-
-        &-left {
-            display: flex;
-            align-items: center;
-        }
-
-        &-right {
-            display: flex;
-            align-items: center;
         }
     }
     
@@ -157,5 +206,4 @@
             font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
         }
     }
-    
 } 
