@@ -24,12 +24,13 @@ type Props = {
     intl: IntlShape;
     groupID: string;
     actions: {
-        loadChannels: (page?: number, perPage?: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, excludePolicyConstrained?: boolean) => Promise<ActionResult<ChannelWithTeamData[]>>;
+        loadChannels: (page?: number, perPage?: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, excludePolicyConstrained?: boolean, excludeAccessControlPolicyEnforced?: boolean) => Promise<ActionResult<ChannelWithTeamData[]>>;
         setModalSearchTerm: (term: string) => void;
         searchAllChannels: (term: string, opts?: ChannelSearchOpts) => Promise<ActionResult<ChannelWithTeamData[]>>;
     };
     alreadySelected?: string[];
     excludePolicyConstrained?: boolean;
+    excludeAccessControlPolicyEnforced?: boolean;
     excludeTeamIds?: string[];
     excludeTypes?: string[];
 }
@@ -57,7 +58,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
     };
 
     componentDidMount() {
-        this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained).then((response) => {
+        this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
             this.setState({channels: response.data!.sort(compareChannels)});
             this.setChannelsLoadingState(false);
         });
@@ -69,7 +70,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
 
             const searchTerm = this.props.searchTerm;
             if (searchTerm === '') {
-                this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained).then((response) => {
+                this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
                     this.setState({channels: response.data!.sort(compareChannels)});
                     this.setChannelsLoadingState(false);
                 });
@@ -131,7 +132,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
     handlePageChange = (page: number, prevPage: number) => {
         if (page > prevPage) {
             this.setChannelsLoadingState(true);
-            this.props.actions.loadChannels(page, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained).then((response) => {
+            this.props.actions.loadChannels(page, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
                 const newState = [...this.state.channels];
                 const stateChannelIDs = this.state.channels.map((stateChannel) => stateChannel.id);
                 response.data!.forEach((serverChannel) => {

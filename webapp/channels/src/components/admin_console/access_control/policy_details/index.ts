@@ -8,6 +8,7 @@ import type {Dispatch} from 'redux';
 import { getAccessControlPolicy as fetchPolicy } from 'mattermost-redux/actions/access_control';
 import { createAccessControlPolicy as createPolicy } from 'mattermost-redux/actions/access_control';
 import { deleteAccessControlPolicy as deletePolicy } from 'mattermost-redux/actions/access_control';
+import { getChannelsForParentPolicy as getChildPolicies } from 'mattermost-redux/actions/access_control';
 import {getAccessControlPolicy} from 'mattermost-redux/selectors/entities/access_control';
 
 import type {GlobalState} from 'types/store';
@@ -38,6 +39,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             fetchPolicy,
             createPolicy,
             deletePolicy,
+            getChildPolicies,
         }, dispatch),
     };
 }

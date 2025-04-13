@@ -17,10 +17,11 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(getAccessPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(getAccessPolicies)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(deleteAccessPolicy)).Methods(http.MethodDelete)
-	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchAccessPolicies)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicy.Handle("/assign", api.APISessionRequired(assignAccessPolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APISessionRequired(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", api.APISessionRequired(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
 }
 
 func createAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -134,11 +135,50 @@ func deleteAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func searchAccessPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
-	// search should be implemented
-	// - search by name
-	// - search by attribute
-	// - search by channel
+func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	var props *model.ChannelSearch
+	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&props)
+	if err != nil || props == nil {
+		c.SetInvalidParamWithErr("channel_search", err)
+		return
+	}
+
+	policyID := c.Params.PolicyId
+
+	c.RequirePolicyId()
+
+	opts := model.ChannelSearchOpts{
+		Deleted:                     props.Deleted,
+		IncludeDeleted:              props.IncludeDeleted,
+		Private:                     true,
+		ExcludeGroupConstrained:     true,
+		TeamIds:                     props.TeamIds,
+		ParentAccessControlPolicyId: policyID,
+	}
+
+	channels, _, appErr := c.App.SearchAllChannels(c.AppContext, props.Term, opts)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channelsJSON, jsonErr := json.Marshal(channels)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchChannelsInPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		return
+	}
+
+	w.Write(channelsJSON)
 }
 
 func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -214,7 +254,43 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
 	// assign access policy to channel
 	// assign access policy to user
 	// assign access policy to group
+}
+
+func getChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
+	policyID := c.Params.PolicyId
+	page := c.Params.Page
+	perPage := c.Params.PerPage
+
+	channels, appErr := c.App.GetChannelsForPolicy(c.AppContext, policyID, page, perPage)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(channels)
+	if err != nil {
+		c.Err = model.NewAppError("getChannelsForAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

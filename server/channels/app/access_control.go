@@ -34,6 +34,47 @@ func (a *App) GetAllChildPolicies(rctx request.CTX, parentID string, page, perPa
 	return policies, nil
 }
 
+func (a *App) GetChannelsForPolicy(rctx request.CTX, policyID string, page, perPage int) ([]*model.ChannelWithTeamData, *model.AppError) {
+	policy, appErr := a.GetAccessControlPolicy(rctx, policyID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	switch policy.Type {
+	case model.AccessControlPolicyTypeParent:
+		policies, err := a.Srv().Store().AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{
+			Type:     model.AccessControlPolicyTypeChannel,
+			ParentID: policyID,
+			// Page:	 page,
+			// PerPage:  perPage,
+		})
+		if err != nil {
+			return nil, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		channelIDs := make([]string, 0, len(policies))
+
+		for _, p := range policies {
+			channelIDs = append(channelIDs, p.ID)
+		}
+
+		chs, err := a.Srv().Store().Channel().GetChannelsWithTeamDataByIds(channelIDs, true)
+		if err != nil {
+			return nil, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		return chs, nil
+	case model.AccessControlPolicyTypeChannel:
+		chs, err := a.Srv().Store().Channel().GetChannelsWithTeamDataByIds([]string{policyID}, true)
+		if err != nil {
+			return nil, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		return chs, nil
+	default:
+		return nil, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, "Invalid policy type", http.StatusBadRequest)
+	}
+}
+
 func (a *App) GetAccessControlPolicy(rctx request.CTX, id string) (*model.AccessControlPolicy, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {

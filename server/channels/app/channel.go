@@ -1989,13 +1989,14 @@ func (a *App) GetAllChannels(c request.CTX, page, perPage int, opts model.Channe
 		opts.ExcludeChannelNames = a.DefaultChannelNames(c)
 	}
 	storeOpts := store.ChannelSearchOpts{
-		NotAssociatedToGroup:     opts.NotAssociatedToGroup,
-		IncludeDeleted:           opts.IncludeDeleted,
-		ExcludeChannelNames:      opts.ExcludeChannelNames,
-		GroupConstrained:         opts.GroupConstrained,
-		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
-		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
-		IncludePolicyID:          opts.IncludePolicyID,
+		NotAssociatedToGroup:               opts.NotAssociatedToGroup,
+		IncludeDeleted:                     opts.IncludeDeleted,
+		ExcludeChannelNames:                opts.ExcludeChannelNames,
+		GroupConstrained:                   opts.GroupConstrained,
+		ExcludeGroupConstrained:            opts.ExcludeGroupConstrained,
+		ExcludePolicyConstrained:           opts.ExcludePolicyConstrained,
+		IncludePolicyID:                    opts.IncludePolicyID,
+		ExcludeAccessControlPolicyEnforced: opts.ExcludeAccessControlPolicyEnforced,
 	}
 	channels, err := a.Srv().Store().Channel().GetAllChannels(page*perPage, perPage, storeOpts)
 	if err != nil {
@@ -2964,22 +2965,24 @@ func (a *App) SearchAllChannels(c request.CTX, term string, opts model.ChannelSe
 		opts.ExcludeChannelNames = a.DefaultChannelNames(c)
 	}
 	storeOpts := store.ChannelSearchOpts{
-		ExcludeChannelNames:      opts.ExcludeChannelNames,
-		NotAssociatedToGroup:     opts.NotAssociatedToGroup,
-		IncludeDeleted:           opts.IncludeDeleted,
-		Deleted:                  opts.Deleted,
-		TeamIds:                  opts.TeamIds,
-		GroupConstrained:         opts.GroupConstrained,
-		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
-		PolicyID:                 opts.PolicyID,
-		IncludePolicyID:          opts.IncludePolicyID,
-		IncludeSearchByID:        opts.IncludeSearchById,
-		ExcludeRemote:            opts.ExcludeRemote,
-		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
-		Public:                   opts.Public,
-		Private:                  opts.Private,
-		Page:                     opts.Page,
-		PerPage:                  opts.PerPage,
+		ExcludeChannelNames:                opts.ExcludeChannelNames,
+		NotAssociatedToGroup:               opts.NotAssociatedToGroup,
+		IncludeDeleted:                     opts.IncludeDeleted,
+		Deleted:                            opts.Deleted,
+		TeamIds:                            opts.TeamIds,
+		GroupConstrained:                   opts.GroupConstrained,
+		ExcludeGroupConstrained:            opts.ExcludeGroupConstrained,
+		PolicyID:                           opts.PolicyID,
+		IncludePolicyID:                    opts.IncludePolicyID,
+		IncludeSearchByID:                  opts.IncludeSearchById,
+		ExcludeRemote:                      opts.ExcludeRemote,
+		ExcludePolicyConstrained:           opts.ExcludePolicyConstrained,
+		Public:                             opts.Public,
+		Private:                            opts.Private,
+		Page:                               opts.Page,
+		PerPage:                            opts.PerPage,
+		ExcludeAccessControlPolicyEnforced: opts.ExcludeAccessControlPolicyEnforced,
+		ParentAccessControlPolicyId:        opts.ParentAccessControlPolicyId,
 	}
 
 	term = strings.TrimSpace(term)
