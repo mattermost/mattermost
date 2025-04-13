@@ -64,21 +64,22 @@
         display: flex;
         align-items: center;
     }
-    
+
     &__test-btn {
         display: flex;
         align-items: center;
         background: transparent;
         border: 1px solid var(--button-bg);
         border-radius: 4px;
-        padding: 8px 8px;
+        padding: 8px 16px;
         font-size: 14px;
         font-weight: 600;
         color: var(--button-bg);
         cursor: pointer;
         
         i {
-            font-size: 16px;
+            margin-right: 8px;
+            font-size: 14px;
         }
         
         &:hover {

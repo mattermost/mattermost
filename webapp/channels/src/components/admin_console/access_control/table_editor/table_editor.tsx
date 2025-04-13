@@ -14,6 +14,10 @@ interface TableEditorProps {
     onChange: (value: string) => void;
     onValidate?: (isValid: boolean) => void;
     disabled?: boolean;
+    userAttributes: Array<{
+        attribute: string;
+        values: string[];
+    }>;
 }
 
 interface TableRow {
@@ -24,7 +28,7 @@ interface TableRow {
 // Parse initial value into table rows
 const parseExpression = (expr: string): TableRow[] => {
     if (!expr) {
-        return [{attribute: '', value: ''}];
+        return [];
     }
 
     const rows: TableRow[] = [];
@@ -40,7 +44,7 @@ const parseExpression = (expr: string): TableRow[] => {
         }
     }
 
-    return rows.length ? rows : [{attribute: '', value: ''}];
+    return rows;
 };
 
 const TableEditor: React.FC<TableEditorProps> = ({
@@ -48,11 +52,24 @@ const TableEditor: React.FC<TableEditorProps> = ({
     onChange,
     onValidate,
     disabled = false,
+    userAttributes,
 }) => {
     const [rows, setRows] = useState<TableRow[]>(parseExpression(value));
     const [isTableMode, setIsTableMode] = useState(true);
     const [showTestResults, setShowTestResults] = useState(false);
     const [testResults, setTestResults] = useState<AccessControlTestResult | null>(null);
+    const [showAttributeDropdown, setShowAttributeDropdown] = useState(false);
+
+    // Get available attributes (excluding ones already used)
+    const getAvailableAttributes = () => {
+        const usedAttributes = new Set(rows.map(row => row.attribute));
+        return userAttributes.filter(attr => !usedAttributes.has(attr.attribute));
+    };
+
+    // Get available values for a specific attribute
+    const getValuesForAttribute = (attribute: string) => {
+        return userAttributes.find(attr => attr.attribute === attribute)?.values || [];
+    };
 
     // Check if expression is simple enough for table mode
     useEffect(() => {
@@ -74,22 +91,15 @@ const TableEditor: React.FC<TableEditorProps> = ({
         }
     };
 
-    const handleRowChange = (index: number, field: 'attribute' | 'value', newValue: string) => {
-        const newRows = [...rows];
-        newRows[index] = {...newRows[index], [field]: newValue};
+    const addCondition = (attribute: string, value: string) => {
+        const newRows = [...rows, {attribute, value}];
         setRows(newRows);
         updateExpression(newRows);
+        setShowAttributeDropdown(false);
     };
 
-    const addRow = () => {
-        setRows([...rows, {attribute: '', value: ''}]);
-    };
-
-    const removeRow = (index: number) => {
+    const removeCondition = (index: number) => {
         const newRows = rows.filter((_, i) => i !== index);
-        if (newRows.length === 0) {
-            newRows.push({attribute: '', value: ''});
-        }
         setRows(newRows);
         updateExpression(newRows);
     };
@@ -113,7 +123,7 @@ const TableEditor: React.FC<TableEditorProps> = ({
                 <i className="icon icon-alert-outline"/>
                 <FormattedMessage
                     id="admin.access_control.table_editor.complex_expression"
-                    defaultMessage="Complex expression detected. Table editor is only available for simple attribute comparisons."
+                    defaultMessage="Complex expression detected. Simple expressions editor is not available at the moment."
                 />
             </div>
         );
@@ -121,79 +131,66 @@ const TableEditor: React.FC<TableEditorProps> = ({
 
     return (
         <div className="table-editor">
-            <table className="table-editor__table">
-                <thead>
-                    <tr>
-                        <th>
-                            <FormattedMessage
-                                id="admin.access_control.table_editor.attribute"
-                                defaultMessage="Attribute"
-                            />
-                        </th>
-                        <th>
-                            <FormattedMessage
-                                id="admin.access_control.table_editor.value"
-                                defaultMessage="Value"
-                            />
-                        </th>
-                        <th className="table-editor__actions">
-                            <FormattedMessage
-                                id="admin.access_control.table_editor.actions"
-                                defaultMessage="Actions"
-                            />
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows.map((row, index) => (
-                        <tr key={index}>
-                            <td>
-                                <input
-                                    type="text"
-                                    value={row.attribute}
-                                    onChange={(e) => handleRowChange(index, 'attribute', e.target.value)}
-                                    placeholder="Enter attribute"
-                                    disabled={disabled}
-                                    className="table-editor__input"
+            <div className="table-editor__conditions">
+                {rows.map((row, index) => (
+                    <div key={index} className="table-editor__condition">
+                        <div className="table-editor__condition-attribute">
+                            {row.attribute}
+                        </div>
+                        <div className="table-editor__condition-equals">=</div>
+                        <div className="table-editor__condition-value">
+                            {row.value}
+                            <button
+                                className="table-editor__condition-remove"
+                                onClick={() => removeCondition(index)}
+                                disabled={disabled}
+                            >
+                                <i className="icon icon-close"/>
+                            </button>
+                        </div>
+                    </div>
+                ))}
+                {!disabled && getAvailableAttributes().length > 0 && (
+                    <div className="table-editor__add-condition">
+                        {showAttributeDropdown ? (
+                            <div className="table-editor__dropdown-container">
+                                <div className="table-editor__dropdown">
+                                    {getAvailableAttributes().map((attr) => (
+                                        <div key={attr.attribute} className="table-editor__dropdown-section">
+                                            <div className="table-editor__dropdown-attribute">
+                                                {attr.attribute}
+                                            </div>
+                                            <div className="table-editor__dropdown-values">
+                                                {attr.values.map((value) => (
+                                                    <button
+                                                        key={value}
+                                                        className="table-editor__dropdown-value"
+                                                        onClick={() => addCondition(attr.attribute, value)}
+                                                    >
+                                                        {value}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <button
+                                className="table-editor__add-button"
+                                onClick={() => setShowAttributeDropdown(true)}
+                            >
+                                <i className="icon icon-plus"/>
+                                <FormattedMessage
+                                    id="admin.access_control.table_editor.add_condition"
+                                    defaultMessage="Add condition"
                                 />
-                            </td>
-                            <td>
-                                <input
-                                    type="text"
-                                    value={row.value}
-                                    onChange={(e) => handleRowChange(index, 'value', e.target.value)}
-                                    placeholder="Enter value"
-                                    disabled={disabled}
-                                    className="table-editor__input"
-                                />
-                            </td>
-                            <td className="table-editor__actions">
-                                <button
-                                    className="table-editor__button table-editor__button--delete"
-                                    onClick={() => removeRow(index)}
-                                    disabled={disabled || rows.length === 1}
-                                >
-                                    <i className="icon icon-trash-can-outline"/>
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+                            </button>
+                        )}
+                    </div>
+                )}
+            </div>
             <div className="table-editor__footer">
-                <div className="table-editor__footer-left">
-                    <button
-                        className="table-editor__button table-editor__button--add"
-                        onClick={addRow}
-                        disabled={disabled}
-                    >
-                        <i className="icon icon-plus"/>
-                        <FormattedMessage
-                            id="admin.access_control.table_editor.add_row"
-                            defaultMessage="Add Row"
-                        />
-                    </button>
-                </div>
                 <div className="table-editor__footer-right">
                     <button
                         className="table-editor__button table-editor__button--test"
@@ -210,7 +207,7 @@ const TableEditor: React.FC<TableEditorProps> = ({
             </div>
             <div className="table-editor__help-text">
                 <Markdown
-                    message={"Add rules to each row and users must have all of the attributes above to access this channel."}
+                    message={"Add rules to combine user attributes to restrict channel membership. This is a simple expression editor and does not support complex expressions."}
                     options={{mentionHighlight: false}}
                 />
                 <a href="#" className="cel-editor__learn-more">
