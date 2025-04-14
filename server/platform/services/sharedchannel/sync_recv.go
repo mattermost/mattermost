@@ -66,11 +66,6 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		mlog.Int("post_count", len(syncMsg.Posts)),
 		mlog.Int("reaction_count", len(syncMsg.Reactions)),
 		mlog.Int("status_count", len(syncMsg.Statuses)),
-		mlog.Bool("has_priority_posts", hasPriorityPosts(syncMsg.Posts)),
-		mlog.Bool("has_urgent_posts", hasUrgentPosts(syncMsg.Posts)),
-		mlog.Bool("has_requested_ack_posts", hasRequestedAckPosts(syncMsg.Posts)),
-		mlog.Bool("has_persistent_notifications_posts", hasPersistentNotificationsPosts(syncMsg.Posts)),
-		mlog.Bool("has_ack_posts", hasAckPosts(syncMsg.Posts)),
 	)
 
 	if targetChannel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
@@ -408,8 +403,9 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 				mlog.String("channel_id", post.ChannelId),
 			)
 		}
-	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || shouldUpdatePostMetadata(post, rpost) {
-		// update post
+	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.Metadata != nil {
+		// Always update post if edit time changed, message changed, or post has metadata.
+		// This ensures priority, acknowledgements, and persistent notifications are properly synced.
 		rpost, appErr = scs.app.UpdatePost(request.EmptyContext(scs.server.Log()), post, nil)
 		if appErr == nil {
 			logFields := []mlog.Field{
