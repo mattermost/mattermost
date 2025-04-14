@@ -15,6 +15,11 @@ const Footer = () => {
 
     const {AboutLink, PrivacyPolicyLink, TermsOfServiceLink, HelpLink} = useSelector(getConfig);
 
+    // Check if MMEMBED cookie is set and if so, don't show the footer
+    if (document.cookie.includes('MMEMBED=1')) {
+        return null;
+    }
+
     return (
         <div className='hfroute-footer'>
             <span

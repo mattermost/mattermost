@@ -27,7 +27,8 @@ type SqlChannelStore struct {
 	*SqlStore
 	metrics einterfaces.MetricsInterface
 
-	tableSelectQuery sq.SelectBuilder
+	tableSelectQuery           sq.SelectBuilder
+	sidebarCategorySelectQuery sq.SelectBuilder
 
 	// prepared query builders for use in multiple methods
 	channelMembersForTeamWithSchemeSelectQuery sq.SelectBuilder
@@ -135,6 +136,32 @@ func channelSliceColumns(prefix ...string) []string {
 		p + "Shared",
 		p + "TotalMsgCountRoot",
 		p + "LastRootPostAt",
+		p + "BannerInfo",
+	}
+}
+
+func channelToSlice(channel *model.Channel) []any {
+	return []any{
+		channel.Id,
+		channel.CreateAt,
+		channel.UpdateAt,
+		channel.DeleteAt,
+		channel.TeamId,
+		channel.Type,
+		channel.DisplayName,
+		channel.Name,
+		channel.Header,
+		channel.Purpose,
+		channel.LastPostAt,
+		channel.TotalMsgCount,
+		channel.ExtraUpdateAt,
+		channel.CreatorId,
+		channel.SchemeId,
+		channel.GroupConstrained,
+		channel.Shared,
+		channel.TotalMsgCountRoot,
+		channel.LastRootPostAt,
+		channel.BannerInfo,
 	}
 }
 
@@ -155,30 +182,6 @@ func channelMemberToSlice(member *model.ChannelMember) []any {
 	resultSlice = append(resultSlice, member.SchemeAdmin)
 	resultSlice = append(resultSlice, member.SchemeGuest)
 	return resultSlice
-}
-
-func channelToSlice(channel *model.Channel) []interface{} {
-	return []interface{}{
-		channel.Id,
-		channel.CreateAt,
-		channel.UpdateAt,
-		channel.DeleteAt,
-		channel.TeamId,
-		channel.Type,
-		channel.DisplayName,
-		channel.Name,
-		channel.Header,
-		channel.Purpose,
-		channel.LastPostAt,
-		channel.TotalMsgCount,
-		channel.ExtraUpdateAt,
-		channel.CreatorId,
-		channel.SchemeId,
-		channel.GroupConstrained,
-		channel.Shared,
-		channel.TotalMsgCountRoot,
-		channel.LastRootPostAt,
-	}
 }
 
 type channelMemberWithSchemeRolesList []channelMemberWithSchemeRoles
@@ -504,6 +507,10 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 	}
 
 	s.tableSelectQuery = s.getQueryBuilder().Select(channelSliceColumns()...).From("Channels")
+
+	s.sidebarCategorySelectQuery = s.getQueryBuilder().
+		Select("SidebarCategories.Id", "SidebarCategories.UserId", "SidebarCategories.TeamId", "SidebarCategories.SortOrder", "SidebarCategories.Sorting", "SidebarCategories.Type", "SidebarCategories.DisplayName", "SidebarCategories.Muted", "SidebarCategories.Collapsed").
+		From("SidebarCategories")
 
 	s.initializeQueries()
 
@@ -834,7 +841,8 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 			GroupConstrained=:GroupConstrained,
 			Shared=:Shared,
 			TotalMsgCountRoot=:TotalMsgCountRoot,
-			LastRootPostAt=:LastRootPostAt
+			LastRootPostAt=:LastRootPostAt,
+		    BannerInfo=:BannerInfo
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {

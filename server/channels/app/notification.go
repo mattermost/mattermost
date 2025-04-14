@@ -209,7 +209,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		for _, profile := range profileMap {
 			if (profile.NotifyProps[model.PushNotifyProp] == model.UserNotifyAll ||
 				channelMemberNotifyPropsMap[profile.Id][model.PushNotifyProp] == model.ChannelNotifyAll) &&
-				(post.UserId != profile.Id || post.GetProp("from_webhook") == "true") &&
+				(post.UserId != profile.Id || post.GetProp(model.PostPropsFromWebhook) == "true") &&
 				!post.IsSystemMessage() &&
 				!(a.IsCRTEnabledForUser(c, profile.Id) && post.RootId != "") {
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
@@ -228,7 +228,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		var rootMentions *MentionResults
 		if parentPostList != nil {
 			rootPost := parentPostList.Posts[parentPostList.Order[0]]
-			if rootPost.GetProp("from_webhook") != "true" {
+			if rootPost.GetProp(model.PostPropsFromWebhook) != "true" {
 				if _, ok := profileMap[rootPost.UserId]; ok {
 					threadParticipants[rootPost.UserId] = true
 				}
@@ -358,7 +358,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				continue
 			}
 
-			if post.GetProp("from_webhook") != "true" && uid == post.UserId {
+			if post.GetProp(model.PostPropsFromWebhook) != "true" && uid == post.UserId {
 				continue
 			}
 
@@ -1038,7 +1038,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 	var keywords MentionKeywords
 
 	if channel.Type == model.ChannelTypeDirect {
-		isWebhook := post.GetProp("from_webhook") == "true"
+		isWebhook := post.GetProp(model.PostPropsFromWebhook) == "true"
 
 		// A bot can post in a DM where it doesn't belong to.
 		// Therefore, we cannot "guess" who is the other user,
@@ -1119,7 +1119,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 		}
 
 		// Prevent the user from mentioning themselves
-		if post.GetProp("from_webhook") != "true" {
+		if post.GetProp(model.PostPropsFromWebhook) != "true" {
 			mentions.removeMention(post.UserId)
 		}
 	}
@@ -1465,7 +1465,7 @@ func (a *App) allowChannelMentions(c request.CTX, post *model.Post, numProfiles 
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
 func (a *App) allowGroupMentions(c request.CTX, post *model.Post) bool {
-	if license := a.Srv().License(); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
+	if !model.MinimumProfessionalLicense(a.Srv().License()) {
 		return false
 	}
 
@@ -1639,7 +1639,7 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 	}
 
 	if overridesAllowed && n.Channel.Type != model.ChannelTypeDirect {
-		if value := n.Post.GetProps()["override_username"]; value != nil && n.Post.GetProp("from_webhook") == "true" {
+		if value := n.Post.GetProp(model.PostPropsOverrideUsername); value != nil && n.Post.GetProp(model.PostPropsFromWebhook) == "true" {
 			if s, ok := value.(string); ok {
 				return s
 			}

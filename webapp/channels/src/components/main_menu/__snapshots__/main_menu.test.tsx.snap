@@ -278,6 +278,11 @@ exports[`components/Menu should match snapshot with id 1`] = `
       teamId="team-id"
     >
       <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "focusOriginElement": "sidebarDropdownMenuButton",
+          }
+        }
         dialogType={
           Object {
             "$$typeof": Symbol(react.memo),
@@ -485,6 +490,11 @@ exports[`components/Menu should match snapshot with most of the thing disabled 1
       teamId="team-id"
     >
       <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "focusOriginElement": "sidebarDropdownMenuButton",
+          }
+        }
         dialogType={
           Object {
             "$$typeof": Symbol(react.memo),
@@ -714,6 +724,7 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
     <MenuItemToggleModalRedux
       dialogProps={
         Object {
+          "focusOriginElement": "userAccountMenuButton2",
           "isContentProductSettings": false,
         }
       }
@@ -738,6 +749,7 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
     <MenuItemToggleModalRedux
       dialogProps={
         Object {
+          "focusOriginElement": "userAccountMenuButton3",
           "isContentProductSettings": true,
         }
       }
@@ -799,6 +811,11 @@ exports[`components/Menu should match snapshot with most of the thing disabled i
       teamId="team-id"
     >
       <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "focusOriginElement": "sidebarDropdownMenuButton",
+          }
+        }
         dialogType={
           Object {
             "$$typeof": Symbol(react.memo),
@@ -1105,6 +1122,11 @@ exports[`components/Menu should match snapshot with most of the thing enabled 1`
       teamId="team-id"
     >
       <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "focusOriginElement": "sidebarDropdownMenuButton",
+          }
+        }
         dialogType={
           Object {
             "$$typeof": Symbol(react.memo),
@@ -1334,6 +1356,7 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
     <MenuItemToggleModalRedux
       dialogProps={
         Object {
+          "focusOriginElement": "userAccountMenuButton2",
           "isContentProductSettings": false,
         }
       }
@@ -1358,6 +1381,7 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
     <MenuItemToggleModalRedux
       dialogProps={
         Object {
+          "focusOriginElement": "userAccountMenuButton3",
           "isContentProductSettings": true,
         }
       }
@@ -1419,6 +1443,11 @@ exports[`components/Menu should match snapshot with most of the thing enabled in
       teamId="team-id"
     >
       <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "focusOriginElement": "sidebarDropdownMenuButton",
+          }
+        }
         dialogType={
           Object {
             "$$typeof": Symbol(react.memo),
@@ -1727,6 +1756,11 @@ exports[`components/Menu should match snapshot with plugins 1`] = `
       teamId="team-id"
     >
       <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "focusOriginElement": "sidebarDropdownMenuButton",
+          }
+        }
         dialogType={
           Object {
             "$$typeof": Symbol(react.memo),
@@ -1973,6 +2007,7 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
     <MenuItemToggleModalRedux
       dialogProps={
         Object {
+          "focusOriginElement": "userAccountMenuButton2",
           "isContentProductSettings": false,
         }
       }
@@ -1997,6 +2032,7 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
     <MenuItemToggleModalRedux
       dialogProps={
         Object {
+          "focusOriginElement": "userAccountMenuButton3",
           "isContentProductSettings": true,
         }
       }
@@ -2058,6 +2094,11 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
       teamId="team-id"
     >
       <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "focusOriginElement": "sidebarDropdownMenuButton",
+          }
+        }
         dialogType={
           Object {
             "$$typeof": Symbol(react.memo),

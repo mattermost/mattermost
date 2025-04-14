@@ -4,7 +4,7 @@
 import type {ChangeEvent, ReactNode} from 'react';
 import React, {memo, useEffect, useRef, Fragment, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import type {ValueType} from 'react-select';
+import type {OnChangeValue} from 'react-select';
 import ReactSelect from 'react-select';
 
 import type {UserNotifyProps} from '@mattermost/types/users';
@@ -96,7 +96,7 @@ function DesktopNotificationSoundsSettings({
         }
     }, [setParentState]);
 
-    const handleChangeForMessageNotificationSoundSelect = useCallback((selectedOption: ValueType<SelectOption>) => {
+    const handleChangeForMessageNotificationSoundSelect = useCallback((selectedOption: OnChangeValue<SelectOption, boolean>) => {
         stopTryNotificationRing();
 
         if (selectedOption && 'value' in selectedOption) {
@@ -105,7 +105,7 @@ function DesktopNotificationSoundsSettings({
         }
     }, [setParentState]);
 
-    const handleChangeForIncomingCallSoundSelect = useCallback((selectedOption: ValueType<SelectOption>) => {
+    const handleChangeForIncomingCallSoundSelect = useCallback((selectedOption: OnChangeValue<SelectOption, boolean>) => {
         stopTryNotificationRing();
 
         if (selectedOption && 'value' in selectedOption) {
@@ -138,7 +138,6 @@ function DesktopNotificationSoundsSettings({
                         className='react-select inlineSelect'
                         classNamePrefix='react-select'
                         options={optionsOfMessageNotificationSoundsSelect}
-                        clearable={false}
                         isClearable={false}
                         isSearchable={false}
                         isDisabled={!isMessageNotificationSoundChecked}
@@ -178,7 +177,6 @@ function DesktopNotificationSoundsSettings({
                             className='react-select inlineSelect'
                             classNamePrefix='react-select'
                             options={optionsOfIncomingCallSoundsSelect}
-                            clearable={false}
                             isClearable={false}
                             isSearchable={false}
                             isDisabled={!isIncomingCallSoundChecked}

@@ -76,6 +76,7 @@ Object {
                     class="Input_wrapper"
                   >
                     <input
+                      aria-invalid="false"
                       aria-label="Name"
                       class="Input form-control large"
                       id="input_name"
@@ -102,6 +103,8 @@ Object {
                     class="Input_wrapper"
                   >
                     <input
+                      aria-describedby="error_email"
+                      aria-invalid="true"
                       aria-label="Business Email"
                       class="Input form-control large Input__focus"
                       id="input_email"
@@ -114,8 +117,11 @@ Object {
                 </fieldset>
                 <div
                   class="Input___customMessage Input___error"
+                  id="error_email"
+                  role="alert"
                 >
                   <i
+                    aria-hidden="true"
                     class="icon error icon-alert-circle-outline"
                   />
                   <span>
@@ -136,6 +142,7 @@ Object {
                     class="Input_wrapper"
                   >
                     <input
+                      aria-invalid="false"
                       aria-label="Company Name"
                       class="Input form-control large"
                       id="input_company_name"
@@ -161,53 +168,64 @@ Object {
                     class="Input_wrapper"
                   >
                     <div
-                      class="Input company_size_dropdown css-2b097c-container"
+                      class="Input company_size_dropdown css-b62m3t-container"
                       id="DropdownInput_company_size_dropdown"
                     >
+                      <span
+                        class="css-1f43avz-a11yText-A11yText"
+                        id="react-select-2-live-region"
+                      />
+                      <span
+                        aria-atomic="false"
+                        aria-live="polite"
+                        aria-relevant="additions text"
+                        class="css-1f43avz-a11yText-A11yText"
+                        role="log"
+                      />
                       <div
                         class="DropdownInput__controlContainer"
                       >
                         <div
-                          class="DropDown__control css-1nr98fh-control"
+                          class="DropDown__control css-2vz60i-control"
                         >
                           <div
-                            class="DropDown__value-container css-1hwfws3"
+                            class="DropDown__value-container css-hlgwow"
                           >
                             <div
-                              class="DropDown__placeholder css-1wa3eu0-placeholder"
+                              class="DropDown__placeholder css-1jqq78o-placeholder"
+                              id="react-select-2-placeholder"
                             >
                               Company Size
                             </div>
                             <div
-                              class="css-1ed09z3-Input"
+                              class="DropDown__input-container css-19yuyn7"
+                              data-value=""
                             >
-                              <div
+                              <input
+                                aria-activedescendant=""
+                                aria-autocomplete="list"
+                                aria-describedby="react-select-2-placeholder"
+                                aria-expanded="false"
+                                aria-haspopup="true"
+                                autocapitalize="none"
+                                autocomplete="off"
+                                autocorrect="off"
                                 class="DropDown__input"
-                                style="display: inline-block;"
-                              >
-                                <input
-                                  aria-autocomplete="list"
-                                  autocapitalize="none"
-                                  autocomplete="off"
-                                  autocorrect="off"
-                                  id="react-select-2-input"
-                                  spellcheck="false"
-                                  style="box-sizing: content-box; width: 2px; border: 0px; opacity: 1; outline: 0; padding: 0px;"
-                                  tabindex="0"
-                                  type="text"
-                                  value=""
-                                />
-                                <div
-                                  style="position: absolute; top: 0px; left: 0px; visibility: hidden; height: 0px; overflow: scroll; white-space: pre; font-family: -webkit-small-control; letter-spacing: normal; text-transform: none;"
-                                />
-                              </div>
+                                id="react-select-2-input"
+                                role="combobox"
+                                spellcheck="false"
+                                style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                                tabindex="0"
+                                type="text"
+                                value=""
+                              />
                             </div>
                           </div>
                           <div
                             class="DropdownInput__indicatorsContainer"
                           >
                             <div
-                              class="DropDown__indicators css-1hb7zxy-IndicatorsContainer"
+                              class="DropDown__indicators css-1wy0on6"
                             >
                               <i
                                 class="icon icon-chevron-down"
@@ -237,53 +255,64 @@ Object {
                       class="Input_wrapper"
                     >
                       <div
-                        class="Input css-2b097c-container"
+                        class="Input css-b62m3t-container"
                         id="DropdownInput_country_dropdown"
                       >
+                        <span
+                          class="css-1f43avz-a11yText-A11yText"
+                          id="react-select-3-live-region"
+                        />
+                        <span
+                          aria-atomic="false"
+                          aria-live="polite"
+                          aria-relevant="additions text"
+                          class="css-1f43avz-a11yText-A11yText"
+                          role="log"
+                        />
                         <div
                           class="DropdownInput__controlContainer"
                         >
                           <div
-                            class="DropDown__control css-1nr98fh-control"
+                            class="DropDown__control css-2vz60i-control"
                           >
                             <div
-                              class="DropDown__value-container css-1hwfws3"
+                              class="DropDown__value-container css-hlgwow"
                             >
                               <div
-                                class="DropDown__placeholder css-1wa3eu0-placeholder"
+                                class="DropDown__placeholder css-1jqq78o-placeholder"
+                                id="react-select-3-placeholder"
                               >
                                 Country/Region
                               </div>
                               <div
-                                class="css-1ed09z3-Input"
+                                class="DropDown__input-container css-19yuyn7"
+                                data-value=""
                               >
-                                <div
+                                <input
+                                  aria-activedescendant=""
+                                  aria-autocomplete="list"
+                                  aria-describedby="react-select-3-placeholder"
+                                  aria-expanded="false"
+                                  aria-haspopup="true"
+                                  autocapitalize="none"
+                                  autocomplete="off"
+                                  autocorrect="off"
                                   class="DropDown__input"
-                                  style="display: inline-block;"
-                                >
-                                  <input
-                                    aria-autocomplete="list"
-                                    autocapitalize="none"
-                                    autocomplete="off"
-                                    autocorrect="off"
-                                    id="react-select-3-input"
-                                    spellcheck="false"
-                                    style="box-sizing: content-box; width: 2px; border: 0px; opacity: 1; outline: 0; padding: 0px;"
-                                    tabindex="0"
-                                    type="text"
-                                    value=""
-                                  />
-                                  <div
-                                    style="position: absolute; top: 0px; left: 0px; visibility: hidden; height: 0px; overflow: scroll; white-space: pre; font-family: -webkit-small-control; letter-spacing: normal; text-transform: none;"
-                                  />
-                                </div>
+                                  id="react-select-3-input"
+                                  role="combobox"
+                                  spellcheck="false"
+                                  style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                                  tabindex="0"
+                                  type="text"
+                                  value=""
+                                />
                               </div>
                             </div>
                             <div
                               class="DropdownInput__indicatorsContainer"
                             >
                               <div
-                                class="DropDown__indicators css-1hb7zxy-IndicatorsContainer"
+                                class="DropDown__indicators css-1wy0on6"
                               >
                                 <i
                                   class="icon icon-chevron-down"
