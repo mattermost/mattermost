@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -68,6 +69,7 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 	channel.Shared = model.NewPointer(true)
 
 	scs.notifyClientsForSharedChannelConverted(channel)
+
 	return scNew, nil
 }
 
@@ -87,24 +89,76 @@ func (scs *Service) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedC
 	return scUpdated, nil
 }
 
-// UnshareChannel unshared the channel by deleting the SharedChannels record and unsets the Channel `shared` flag.
+// UnshareChannel unshares the channel by deleting the SharedChannels record and unsets the Channel `shared` flag.
 // Returns true if a shared channel existed and was deleted.
 func (scs *Service) UnshareChannel(channelID string) (bool, error) {
+	return scs.unshareChannelWithOptions(channelID, true)
+}
+
+// unshareChannelWithOptions unshares the channel with additional options.
+// If notifyRemotes is true, it will attempt to notify remote clusters about the unshare.
+// This allows us to skip redundant remote notifications when we already know there are no remotes.
+func (scs *Service) unshareChannelWithOptions(channelID string, notifyRemotes bool) (bool, error) {
 	channel, err := scs.server.GetStore().Channel().Get(channelID, true)
 	if err != nil {
 		return false, err
 	}
 
+	sc, err := scs.server.GetStore().SharedChannel().Get(channelID)
+	if err != nil {
+		return false, nil
+	}
+
+	// Only attempt to notify remotes if this is a home channel and we're instructed to do so
+	if sc.Home && notifyRemotes {
+		opts := model.SharedChannelRemoteFilterOpts{
+			ChannelId: channelID,
+		}
+		remotes, remoteErr := scs.server.GetStore().SharedChannel().GetRemotes(0, 100, opts)
+		if remoteErr == nil && len(remotes) > 0 {
+			rcs := scs.server.GetRemoteClusterService()
+			if rcs != nil && rcs.Active() {
+				for _, remote := range remotes {
+					rc, rcErr := scs.server.GetStore().RemoteCluster().Get(remote.RemoteId, false)
+					if rcErr != nil {
+						scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error fetching remote cluster",
+							mlog.String("remote_id", remote.RemoteId),
+							mlog.String("channel_id", channelID),
+							mlog.Err(rcErr),
+						)
+						continue
+					}
+
+					_ = scs.SendChannelUnshare(channelID, sc.CreatorId, rc)
+				}
+			}
+		}
+	}
 	// deletes the ShareChannel, unsets the share flag on the channel, deletes all records in SharedChannelRemotes for the channel.
 	deleted, err := scs.server.GetStore().SharedChannel().Delete(channelID)
 	if err != nil {
 		return false, err
 	}
+
 	// to avoid fetching the channel again, we manually set the shared
 	// flag before notifying the clients
 	channel.Shared = model.NewPointer(false)
-
 	scs.notifyClientsForSharedChannelConverted(channel)
+
+	post := &model.Post{
+		UserId:    sc.CreatorId,
+		ChannelId: channelID,
+		Message:   UnshareMessage,
+		Type:      model.PostTypeSystemGeneric,
+	}
+
+	if _, appErr := scs.app.CreatePost(request.EmptyContext(scs.server.Log()), post, channel, model.CreatePostFlags{}); appErr != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error creating unshare notification post",
+			mlog.String("channel_id", channelID),
+			mlog.Err(appErr),
+		)
+	}
+
 	return deleted, nil
 }
 
@@ -189,8 +243,9 @@ func (scs *Service) unshareChannelIfNoActiveRemotes(channelID string) (bool, err
 	}
 
 	// If no remotes remain, unshare the channel
+	// Since we already know there are no remotes, skip the remote notification step
 	if len(remotes) == 0 {
-		unshared, err := scs.UnshareChannel(channelID)
+		unshared, err := scs.unshareChannelWithOptions(channelID, false)
 		if err != nil {
 			return false, fmt.Errorf("failed to automatically unshare channel after removing last remote: %w", err)
 		}
