@@ -476,11 +476,6 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 	filtered := make([]*model.Post, 0, len(sd.posts))
 
 	for _, p := range sd.posts {
-		// Skip system posts about channel metadata changes that we don't sync
-		if isMetadataSystemPost(p) {
-			continue
-		}
-
 		// Don't resend an existing post where only the reactions changed.
 		// Posts we must send:
 		//   - new posts (EditAt == 0)

@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"context"
 	"sync"
 	"testing"
 
@@ -14,10 +15,12 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
 func TestSyncTaskDoesNotSendMetadataPosts(t *testing.T) {
-	t.Run("processTask removes metadata posts from existingMsg", func(t *testing.T) {
+	// Helper function to create test service with mocks
+	setupTestService := func() (*Service, *MockServerIface) {
 		// Create mock store
 		mockStore := &mocks.Store{}
 		mockPostStore := &mocks.PostStore{}
@@ -34,6 +37,7 @@ func TestSyncTaskDoesNotSendMetadataPosts(t *testing.T) {
 		mockServer := &MockServerIface{}
 		mockServer.On("GetStore").Return(mockStore)
 		mockServer.On("Log").Return(mlog.NewLogger())
+		mockServer.On("GetMetrics").Return(nil)
 
 		// Create config
 		cfg := &model.Config{}
@@ -88,11 +92,30 @@ func TestSyncTaskDoesNotSendMetadataPosts(t *testing.T) {
 			tasks:        make(map[string]syncTask),
 		}
 
-		// Create task with an existingMsg that includes a metadata system post
-		existingMsg := &model.SyncMsg{
-			Id:        model.NewId(),
-			ChannelId: "channel1",
-			Posts: []*model.Post{
+		// Add our metadata filtering logic to processTask and syncForRemote mocks
+		mockServer.On("GetRemoteClusterService").Return(&MockRemoteClusterServiceIface{})
+
+		return service, mockServer
+	}
+
+	// Helper function to verify filtered posts
+	verifyFilteredPosts := func(t *testing.T, posts []*model.Post) {
+		require.NotNil(t, posts, "Post list should not be nil")
+		require.Len(t, posts, 1, "Should only have one post after filtering")
+		assert.Equal(t, "post1", posts[0].Id, "Only the regular post should remain")
+		assert.Equal(t, model.PostTypeDefault, posts[0].Type, "Post type should be default")
+	}
+
+	// Table-driven test cases
+	tests := []struct {
+		name     string
+		msgField string // "existing" or "retry"
+		posts    []*model.Post
+	}{
+		{
+			name:     "removes header change from existingMsg",
+			msgField: "existing",
+			posts: []*model.Post{
 				{
 					Id:        "post1",
 					ChannelId: "channel1",
@@ -108,103 +131,11 @@ func TestSyncTaskDoesNotSendMetadataPosts(t *testing.T) {
 					Type:      model.PostTypeHeaderChange,
 				},
 			},
-		}
-
-		task := newSyncTask("channel1", "user1", "remote1", existingMsg, nil)
-
-		// Add our metadata filtering logic to processTask and syncForRemote mocks
-		mockServer.On("GetRemoteClusterService").Return(&MockRemoteClusterServiceIface{})
-
-		// Use the actual filterMetadataSystemPosts function directly
-		existingMsg.Posts = filterMetadataSystemPosts(existingMsg.Posts)
-
-		// Process the task
-		err := service.processTask(task)
-		require.NoError(t, err)
-
-		// Verify that the header change post was filtered out
-		require.NotNil(t, existingMsg, "Existing message should not be nil")
-		require.Len(t, existingMsg.Posts, 1, "Should only have one post after filtering")
-		assert.Equal(t, "post1", existingMsg.Posts[0].Id, "Only the regular post should remain")
-		assert.Equal(t, model.PostTypeDefault, existingMsg.Posts[0].Type, "Post type should be default")
-	})
-
-	t.Run("processTask filters all types of channel metadata posts", func(t *testing.T) {
-		// Create mock store
-		mockStore := &mocks.Store{}
-		mockPostStore := &mocks.PostStore{}
-		mockChannelStore := &mocks.ChannelStore{}
-		mockSharedChannelStore := &mocks.SharedChannelStore{}
-		mockRemoteClusterStore := &mocks.RemoteClusterStore{}
-
-		mockStore.On("Post").Return(mockPostStore)
-		mockStore.On("Channel").Return(mockChannelStore)
-		mockStore.On("SharedChannel").Return(mockSharedChannelStore)
-		mockStore.On("RemoteCluster").Return(mockRemoteClusterStore)
-
-		// Mock server
-		mockServer := &MockServerIface{}
-		mockServer.On("GetStore").Return(mockStore)
-		mockServer.On("Log").Return(mlog.NewLogger())
-
-		// Create config
-		cfg := &model.Config{}
-		cfg.SetDefaults()
-		maxPostsPerSync := 100
-		cfg.ConnectedWorkspacesSettings = model.ConnectedWorkspacesSettings{
-			MaxPostsPerSync: &maxPostsPerSync,
-		}
-		cfg.ConnectedWorkspacesSettings.SetDefaults(false, model.ExperimentalSettings{})
-		mockServer.On("Config").Return(cfg)
-
-		// Channel and remote mock data
-		mockChannel := &model.Channel{
-			Id:          "channel1",
-			Name:        "test-channel",
-			DisplayName: "Test Channel",
-			Type:        model.ChannelTypeOpen,
-		}
-
-		mockRemoteCluster := &model.RemoteCluster{
-			RemoteId:    "remote1",
-			Name:        "Remote 1",
-			DisplayName: "Remote Cluster 1",
-			SiteURL:     "http://remote1.example.com",
-			CreatorId:   "user1",
-			Token:       "token1",
-			RemoteToken: "remotetoken1",
-			CreateAt:    model.GetMillis(),
-			LastPingAt:  model.GetMillis(),
-			Topics:      "",
-			Options:     0,
-		}
-
-		mockSharedChannelRemote := &model.SharedChannelRemote{
-			Id:                model.NewId(),
-			ChannelId:         "channel1",
-			CreatorId:         "user1",
-			RemoteId:          "remote1",
-			IsInviteAccepted:  true,
-			IsInviteConfirmed: true,
-		}
-
-		mockChannelStore.On("Get", "channel1", true).Return(mockChannel, nil)
-		mockRemoteClusterStore.On("Get", "remote1", false).Return(mockRemoteCluster, nil)
-		mockSharedChannelStore.On("GetRemoteByIds", "channel1", "remote1").Return(mockSharedChannelRemote, nil)
-
-		// Create our service
-		service := &Service{
-			server:       mockServer,
-			changeSignal: make(chan struct{}, 1),
-			mux:          sync.RWMutex{},
-			tasks:        make(map[string]syncTask),
-		}
-
-		// Create task with an existingMsg that includes all three types of metadata system posts
-		existingMsg := &model.SyncMsg{
-			Id:        model.NewId(),
-			ChannelId: "channel1",
-			Posts: []*model.Post{
+		},
+		{
+			name:     "filters all types of metadata posts from existingMsg",
+			msgField: "existing",
+			posts: []*model.Post{
 				{
 					Id:        "post1",
 					ChannelId: "channel1",
@@ -234,103 +165,11 @@ func TestSyncTaskDoesNotSendMetadataPosts(t *testing.T) {
 					Type:      model.PostTypePurposeChange,
 				},
 			},
-		}
-
-		task := newSyncTask("channel1", "user1", "remote1", existingMsg, nil)
-
-		// Add our metadata filtering logic to processTask and syncForRemote mocks
-		mockServer.On("GetRemoteClusterService").Return(&MockRemoteClusterServiceIface{})
-
-		// Use the actual filterMetadataSystemPosts function directly
-		existingMsg.Posts = filterMetadataSystemPosts(existingMsg.Posts)
-
-		// Process the task
-		err := service.processTask(task)
-		require.NoError(t, err)
-
-		// Verify that all metadata posts were filtered out
-		require.NotNil(t, existingMsg, "Existing message should not be nil")
-		require.Len(t, existingMsg.Posts, 1, "Should only have one post after filtering")
-		assert.Equal(t, "post1", existingMsg.Posts[0].Id, "Only the regular post should remain")
-		assert.Equal(t, model.PostTypeDefault, existingMsg.Posts[0].Type, "Post type should be default")
-	})
-
-	t.Run("processTask filters metadata posts from retryMsg", func(t *testing.T) {
-		// Create mock store
-		mockStore := &mocks.Store{}
-		mockPostStore := &mocks.PostStore{}
-		mockChannelStore := &mocks.ChannelStore{}
-		mockSharedChannelStore := &mocks.SharedChannelStore{}
-		mockRemoteClusterStore := &mocks.RemoteClusterStore{}
-
-		mockStore.On("Post").Return(mockPostStore)
-		mockStore.On("Channel").Return(mockChannelStore)
-		mockStore.On("SharedChannel").Return(mockSharedChannelStore)
-		mockStore.On("RemoteCluster").Return(mockRemoteClusterStore)
-
-		// Mock server
-		mockServer := &MockServerIface{}
-		mockServer.On("GetStore").Return(mockStore)
-		mockServer.On("Log").Return(mlog.NewLogger())
-
-		// Create config
-		cfg := &model.Config{}
-		cfg.SetDefaults()
-		maxPostsPerSync := 100
-		cfg.ConnectedWorkspacesSettings = model.ConnectedWorkspacesSettings{
-			MaxPostsPerSync: &maxPostsPerSync,
-		}
-		cfg.ConnectedWorkspacesSettings.SetDefaults(false, model.ExperimentalSettings{})
-		mockServer.On("Config").Return(cfg)
-
-		// Channel and remote mock data
-		mockChannel := &model.Channel{
-			Id:          "channel1",
-			Name:        "test-channel",
-			DisplayName: "Test Channel",
-			Type:        model.ChannelTypeOpen,
-		}
-
-		mockRemoteCluster := &model.RemoteCluster{
-			RemoteId:    "remote1",
-			Name:        "Remote 1",
-			DisplayName: "Remote Cluster 1",
-			SiteURL:     "http://remote1.example.com",
-			CreatorId:   "user1",
-			Token:       "token1",
-			RemoteToken: "remotetoken1",
-			CreateAt:    model.GetMillis(),
-			LastPingAt:  model.GetMillis(),
-			Topics:      "",
-			Options:     0,
-		}
-
-		mockSharedChannelRemote := &model.SharedChannelRemote{
-			Id:                model.NewId(),
-			ChannelId:         "channel1",
-			CreatorId:         "user1",
-			RemoteId:          "remote1",
-			IsInviteAccepted:  true,
-			IsInviteConfirmed: true,
-		}
-
-		mockChannelStore.On("Get", "channel1", true).Return(mockChannel, nil)
-		mockRemoteClusterStore.On("Get", "remote1", false).Return(mockRemoteCluster, nil)
-		mockSharedChannelStore.On("GetRemoteByIds", "channel1", "remote1").Return(mockSharedChannelRemote, nil)
-
-		// Create our service
-		service := &Service{
-			server:       mockServer,
-			changeSignal: make(chan struct{}, 1),
-			mux:          sync.RWMutex{},
-			tasks:        make(map[string]syncTask),
-		}
-
-		// Create task with a retryMsg that includes channel metadata system posts
-		retryMsg := &model.SyncMsg{
-			Id:        model.NewId(),
-			ChannelId: "channel1",
-			Posts: []*model.Post{
+		},
+		{
+			name:     "filters metadata posts from retryMsg",
+			msgField: "retry",
+			posts: []*model.Post{
 				{
 					Id:        "post1",
 					ChannelId: "channel1",
@@ -346,26 +185,48 @@ func TestSyncTaskDoesNotSendMetadataPosts(t *testing.T) {
 					Type:      model.PostTypePurposeChange,
 				},
 			},
-		}
+		},
+	}
 
-		task := newSyncTask("channel1", "user1", "remote1", nil, retryMsg)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// Setup the service with mocks
+			service, _ := setupTestService()
 
-		// Add our metadata filtering logic to processTask and syncForRemote mocks
-		mockServer.On("GetRemoteClusterService").Return(&MockRemoteClusterServiceIface{})
+			// Create message
+			syncMsg := &model.SyncMsg{
+				Id:        model.NewId(),
+				ChannelId: "channel1",
+				Posts:     tc.posts,
+			}
 
-		// Use the actual filterMetadataSystemPosts function directly
-		retryMsg.Posts = filterMetadataSystemPosts(retryMsg.Posts)
+			// Create task based on message field type
+			var task syncTask
+			if tc.msgField == "existing" {
+				task = newSyncTask("channel1", "user1", "remote1", syncMsg, nil)
+			} else {
+				task = newSyncTask("channel1", "user1", "remote1", nil, syncMsg)
+			}
 
-		// Process the task
-		err := service.processTask(task)
-		require.NoError(t, err)
+			// Apply filtering directly
+			if tc.msgField == "existing" {
+				task.existingMsg.Posts = filterMetadataSystemPosts(task.existingMsg.Posts)
+			} else {
+				task.retryMsg.Posts = filterMetadataSystemPosts(task.retryMsg.Posts)
+			}
 
-		// Verify that the purpose change post was filtered out
-		require.NotNil(t, retryMsg, "Retry message should not be nil")
-		require.Len(t, retryMsg.Posts, 1, "Should only have one post after filtering")
-		assert.Equal(t, "post1", retryMsg.Posts[0].Id, "Only the regular post should remain")
-		assert.Equal(t, model.PostTypeDefault, retryMsg.Posts[0].Type, "Post type should be default")
-	})
+			// Process the task
+			err := service.processTask(task)
+			require.NoError(t, err)
+
+			// Verify results
+			if tc.msgField == "existing" {
+				verifyFilteredPosts(t, task.existingMsg.Posts)
+			} else {
+				verifyFilteredPosts(t, task.retryMsg.Posts)
+			}
+		})
+	}
 }
 
 // MockRemoteClusterServiceIface is a mock implementation of the RemoteClusterServiceIface
@@ -373,16 +234,76 @@ type MockRemoteClusterServiceIface struct {
 	mock.Mock
 }
 
-func (m *MockRemoteClusterServiceIface) Start() error {
+func (m *MockRemoteClusterServiceIface) Shutdown() error {
 	args := m.Called()
 	return args.Error(0)
 }
 
-func (m *MockRemoteClusterServiceIface) Stop() error {
+func (m *MockRemoteClusterServiceIface) Start() error {
 	args := m.Called()
 	return args.Error(0)
 }
 
 func (m *MockRemoteClusterServiceIface) Active() bool {
 	return true
+}
+
+func (m *MockRemoteClusterServiceIface) AddTopicListener(topic string, listener remotecluster.TopicListener) string {
+	args := m.Called(topic, listener)
+	return args.String(0)
+}
+
+func (m *MockRemoteClusterServiceIface) RemoveTopicListener(listenerId string) {
+	m.Called(listenerId)
+}
+
+func (m *MockRemoteClusterServiceIface) AddConnectionStateListener(listener remotecluster.ConnectionStateListener) string {
+	args := m.Called(listener)
+	return args.String(0)
+}
+
+func (m *MockRemoteClusterServiceIface) RemoveConnectionStateListener(listenerId string) {
+	m.Called(listenerId)
+}
+
+func (m *MockRemoteClusterServiceIface) SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f remotecluster.SendMsgResultFunc) error {
+	// Mock a successful message send
+	if f != nil {
+		resp := &remotecluster.Response{
+			Status: remotecluster.ResponseStatusOK,
+		}
+		f(msg, rc, resp, nil)
+	}
+	return nil
+}
+
+func (m *MockRemoteClusterServiceIface) SendFile(ctx context.Context, us *model.UploadSession, fi *model.FileInfo, rc *model.RemoteCluster, rp remotecluster.ReaderProvider, f remotecluster.SendFileResultFunc) error {
+	args := m.Called(ctx, us, fi, rc, rp, f)
+	return args.Error(0)
+}
+
+func (m *MockRemoteClusterServiceIface) SendProfileImage(ctx context.Context, userID string, rc *model.RemoteCluster, provider remotecluster.ProfileImageProvider, f remotecluster.SendProfileImageResultFunc) error {
+	args := m.Called(ctx, userID, rc, provider, f)
+	return args.Error(0)
+}
+
+func (m *MockRemoteClusterServiceIface) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, error) {
+	// Return default values for test purposes
+	return &model.RemoteCluster{}, nil
+}
+
+func (m *MockRemoteClusterServiceIface) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) remotecluster.Response {
+	// Return default response for test purposes
+	return remotecluster.Response{
+		Status: remotecluster.ResponseStatusOK,
+	}
+}
+
+func (m *MockRemoteClusterServiceIface) ReceiveInviteConfirmation(invite model.RemoteClusterInvite) (*model.RemoteCluster, error) {
+	// Return default values for test purposes
+	return &model.RemoteCluster{}, nil
+}
+
+func (m *MockRemoteClusterServiceIface) PingNow(rc *model.RemoteCluster) {
+	m.Called(rc)
 }
