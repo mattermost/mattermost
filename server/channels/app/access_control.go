@@ -154,3 +154,35 @@ func (a *App) TestExpression(rctx request.CTX, expression string) ([]*model.User
 
 	return users, nil
 }
+
+func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, policyID string, channelIDs []string) ([]*model.AccessControlPolicy, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	policy, appErr := a.GetAccessControlPolicy(rctx, policyID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if policy.Type != model.AccessControlPolicyTypeParent {
+		return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "Policy is not of type parent", http.StatusBadRequest)
+	}
+
+	policies := make([]*model.AccessControlPolicy, len(channelIDs))
+	for _, channelID := range channelIDs {
+		newPolicy, appErr := policy.Inherit(channelID, model.AccessControlPolicyTypeChannel)
+		if appErr != nil {
+			return nil, appErr
+		}
+
+		newPolicy, appErr = acs.SavePolicy(rctx, newPolicy)
+		if appErr != nil {
+			return nil, appErr
+		}
+		policies = append(policies, newPolicy)
+	}
+
+	return policies, nil
+}

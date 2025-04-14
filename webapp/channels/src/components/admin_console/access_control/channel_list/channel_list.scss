@@ -1,4 +1,3 @@
-
 .PolicyChannelsList {
     .ChannelList__nameColumn {
         display: inline-flex;
@@ -24,4 +23,9 @@
             margin-left: 0px;
         }
     }
+}
+
+.marked-for-removal {
+    color: #e74c3c;
+    font-weight: bold;
 }

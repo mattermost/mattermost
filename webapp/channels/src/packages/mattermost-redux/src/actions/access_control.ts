@@ -8,9 +8,8 @@ import type { AccessControlPolicy, AccessControlPolicyRule } from '@mattermost/t
 import {Client4} from 'mattermost-redux/client';
 import {AdminTypes, ChannelTypes} from 'mattermost-redux/action_types';
 import { ChannelSearchOpts, ChannelWithTeamData } from '@mattermost/types/channels';
-import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
-import {getChannel} from './channels';
+import type { StatusOK } from '@mattermost/types/client4';
 
 export function getAccessControlPolicy(id: string): ActionFuncAsync<AccessControlPolicy> {
     return async (dispatch, getState) => {
@@ -144,6 +143,34 @@ export function searchAccessControlPolicyChannels(id: string, term: string, opts
             {type: AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES_SEARCH, data: data},
             {type: ChannelTypes.RECEIVED_CHANNELS, data: data},
         ]));
+
+        return {data};
+    };
+}
+
+export function assignChannelsToAccessControlPolicy(policyId: string, channelIds: string[]): ActionFuncAsync<StatusOK> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.assignChannelsToAccessControlPolicy(policyId, channelIds);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
+
+        return {data};
+    };
+}
+
+export function unassignChannelsFromAccessControlPolicy(policyId: string, channelIds: string[]): ActionFuncAsync<StatusOK> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.unassignChannelsFromAccessControlPolicy(policyId, channelIds);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
 
         return {data};
     };

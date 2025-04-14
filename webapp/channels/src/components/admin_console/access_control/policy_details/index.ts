@@ -8,8 +8,10 @@ import type {Dispatch} from 'redux';
 import { getAccessControlPolicy as fetchPolicy } from 'mattermost-redux/actions/access_control';
 import { createAccessControlPolicy as createPolicy } from 'mattermost-redux/actions/access_control';
 import { deleteAccessControlPolicy as deletePolicy } from 'mattermost-redux/actions/access_control';
-import { getChannelsForParentPolicy as getChildPolicies } from 'mattermost-redux/actions/access_control';
+import {getChannelsForParentPolicy} from 'mattermost-redux/actions/access_control';
 import {getAccessControlPolicy} from 'mattermost-redux/selectors/entities/access_control';
+import {assignChannelsToAccessControlPolicy, unassignChannelsFromAccessControlPolicy} from 'mattermost-redux/actions/access_control';
+import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 
 import type {GlobalState} from 'types/store';
 import PolicyDetails from './policy_details';
@@ -25,11 +27,9 @@ type OwnProps = {
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const policyId = ownProps.match.params.policy_id;
     const policy = getAccessControlPolicy(state, policyId);
-    // const channels = policyId ? getChildPolicies(state, {policyId}) : [];
     return {
         policyId,
         policy,
-        // channels,
     };
 }
 
@@ -39,7 +39,10 @@ function mapDispatchToProps(dispatch: Dispatch) {
             fetchPolicy,
             createPolicy,
             deletePolicy,
-            getChildPolicies,
+            getChannelsForParentPolicy,
+            assignChannelsToAccessControlPolicy,
+            unassignChannelsFromAccessControlPolicy,
+            setNavigationBlocked,
         }, dispatch),
     };
 }

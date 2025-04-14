@@ -20,6 +20,7 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicies.Handle("/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicy.Handle("/assign", api.APISessionRequired(assignAccessPolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", api.APISessionRequired(unassignAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APISessionRequired(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", api.APISessionRequired(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
 }
@@ -141,12 +142,12 @@ func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *
 		return
 	}
 
-	var props *model.ChannelSearch
 	c.RequirePolicyId()
 	if c.Err != nil {
 		return
 	}
 
+	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
 	if err != nil || props == nil {
 		c.SetInvalidParamWithErr("channel_search", err)
@@ -259,9 +260,77 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// assign access policy to channel
-	// assign access policy to user
-	// assign access policy to group
+	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
+	policyID := c.Params.PolicyId
+
+	var assignments struct {
+		ChannelIds []string `json:"channel_ids"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&assignments)
+	if err != nil {
+		c.SetInvalidParamWithErr("assignments", err)
+		return
+	}
+
+	if len(assignments.ChannelIds) != 0 {
+		_, appErr := c.App.AssignAccessControlPolicyToChannels(c.AppContext, policyID, assignments.ChannelIds)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+	}
+}
+
+func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
+	policyID := c.Params.PolicyId
+
+	var assignments struct {
+		ChannelIds []string `json:"channel_ids"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&assignments)
+	if err != nil {
+		c.SetInvalidParamWithErr("assignments", err)
+		return
+	}
+
+	policy, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if policy.Type != model.AccessControlPolicyTypeParent {
+		appErr := model.NewAppError("assignAccessPolicy", "api.access_control_policy.assign.invalid_type.app_error", nil, "", http.StatusBadRequest)
+		c.Err = appErr
+		return
+	}
+
+	for _, channelID := range assignments.ChannelIds {
+		appErr = c.App.DeleteAccessControlPolicy(c.AppContext, channelID)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+	}
 }
 
 func getChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
