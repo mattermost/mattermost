@@ -3338,7 +3338,7 @@ func (s *SqlPostStore) GetPostReminders(now int64) (_ []*model.PostReminder, err
 
 	err = transaction.Select(&reminders, `SELECT PostId, UserId
 		FROM PostReminders
-		WHERE TargetTime < ?`, now)
+		WHERE TargetTime <= ?`, now)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, errors.Wrap(err, "failed to get post reminders")
 	}
@@ -3351,7 +3351,7 @@ func (s *SqlPostStore) GetPostReminders(now int64) (_ []*model.PostReminder, err
 	// Postgres supports RETURNING * in a DELETE statement, but MySQL doesn't.
 	// So we are stuck with 2 queries. Not taking separate paths for Postgres
 	// and MySQL for simplicity.
-	_, err = transaction.Exec(`DELETE from PostReminders WHERE TargetTime < ?`, now)
+	_, err = transaction.Exec(`DELETE from PostReminders WHERE TargetTime <= ?`, now)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to delete post reminders")
 	}

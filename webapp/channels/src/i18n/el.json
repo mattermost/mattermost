@@ -172,7 +172,6 @@
   "channel_header.directchannel.you": "{displayname} (εσείς) ",
   "channel_header.groupMessageHasGuests": "Αυτό το ομαδικό μήνυμα έχει επισκέπτες",
   "channel_header.leave": "Αποχώρηση από το Κανάλι",
-  "channel_header.manageMembers": "Διαχείριση μελών",
   "channel_header.search": "Αναζήτηση",
   "channel_header.unarchive": "Επαναφορά Καναλιού",
   "channel_header.userHelpGuide": "Βοήθεια",
