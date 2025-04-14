@@ -807,9 +807,16 @@ func TestImportImportUser(t *testing.T) {
 	t.Run("import a valid user in apply mode", func(t *testing.T) {
 		username := "A" + model.NewUsername()[1:]
 		testsDir, _ := fileutils.FindDir("tests")
+		defaultDir := *th.App.Config().FileSettings.Directory
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FileSettings.Directory = model.NewPointer(testsDir)
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FileSettings.Directory = model.NewPointer(defaultDir)
+		})
 		data := imports.UserImportData{
 			Avatar: imports.Avatar{
-				ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
+				ProfileImage: model.NewPointer("test.png"),
 			},
 			Username:  &username,
 			Email:     model.NewPointer(model.NewId() + "@example.com"),
@@ -853,9 +860,16 @@ func TestImportImportUser(t *testing.T) {
 	t.Run("import a valid user where there is an existing user", func(t *testing.T) {
 		username := model.NewUsername()
 		testsDir, _ := fileutils.FindDir("tests")
+		defaultDir := *th.App.Config().FileSettings.Directory
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FileSettings.Directory = model.NewPointer(testsDir)
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FileSettings.Directory = model.NewPointer(defaultDir)
+		})
 		data := imports.UserImportData{
 			Avatar: imports.Avatar{
-				ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
+				ProfileImage: model.NewPointer("test.png"),
 			},
 			Username:  &username,
 			Email:     model.NewPointer(model.NewId() + "@example.com"),
@@ -878,7 +892,7 @@ func TestImportImportUser(t *testing.T) {
 
 		// Alter all the fields of that user.
 		data.Email = model.NewPointer(model.NewId() + "@example.com")
-		data.ProfileImage = model.NewPointer(filepath.Join(testsDir, "testgif.gif"))
+		data.ProfileImage = model.NewPointer("testgif.gif")
 		data.AuthService = model.NewPointer("ldap")
 		data.AuthData = &username
 		data.Nickname = model.NewPointer(model.NewId())
@@ -920,9 +934,16 @@ func TestImportImportUser(t *testing.T) {
 	t.Run("import invalid fields", func(t *testing.T) {
 		username := model.NewUsername()
 		testsDir, _ := fileutils.FindDir("tests")
+		defaultDir := *th.App.Config().FileSettings.Directory
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FileSettings.Directory = model.NewPointer(testsDir)
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FileSettings.Directory = model.NewPointer(defaultDir)
+		})
 		data := imports.UserImportData{
 			Avatar: imports.Avatar{
-				ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
+				ProfileImage: model.NewPointer("test.png"),
 			},
 			Username:    &username,
 			Email:       model.NewPointer(model.NewId() + "@example.com"),
