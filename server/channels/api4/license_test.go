@@ -514,7 +514,7 @@ func TestGetLicenseLoad(t *testing.T) {
 		require.NotNil(t, resp)
 
 		initialCount := initialData["load"]
-		t.Logf("Initial load: %d%%", initialCount)
+		t.Logf("Initial load: %d", initialCount)
 
 		// Now create 50 new users and set their status to make them active
 		for i := 0; i < 50; i++ {
@@ -537,13 +537,13 @@ func TestGetLicenseLoad(t *testing.T) {
 		require.NotNil(t, resp)
 
 		updatedCount := updatedData["load"]
-		t.Logf("Updated load: %d%%", updatedCount)
+		t.Logf("Updated load: %d", updatedCount)
 
 		// The load should increase after adding users
 		require.Greater(t, updatedCount, initialCount, "Load metric should increase after adding users")
 
-		// We should see an increase of roughly 50% (could be slightly less due to existing users)
-		require.GreaterOrEqual(t, updatedCount-initialCount, 30,
-			"Load metric should increase by at least 30 percentage points after adding 50 users with a 100-user license")
+		// We should see an increase of roughly 500 (could be slightly less due to existing users)
+		require.GreaterOrEqual(t, updatedCount-initialCount, 300,
+			"Load metric should increase by at least 300 points after adding 50 users with a 100-user license")
 	})
 }

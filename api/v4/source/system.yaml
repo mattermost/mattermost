@@ -617,7 +617,7 @@
         - system
       summary: Get license load metric
       description: >
-        Get the current license load metric, calculated as the percentage of monthly active users
+        Get the current license load metric, calculated based on monthly active users
         against the licensed user count. Returns a value of 0 when there is no license loaded or
         the license doesn't have a user count.
 
@@ -637,7 +637,7 @@
                 properties:
                   load:
                     type: integer
-                    description: Current license load as a percentage
+                    description: Current license load metric as an integer
         "401":
           $ref: "#/components/responses/Unauthorized"
         "500":

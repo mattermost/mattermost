@@ -5092,7 +5092,7 @@ func (c *Client4) RemoveLicenseFile(ctx context.Context) (*Response, error) {
 }
 
 // GetLicenseLoadMetric retrieves the license load metric from the server.
-// The load is calculated as (monthly active users / licensed users) * 100.
+// The load is calculated as (monthly active users / licensed users) * 1000.
 func (c *Client4) GetLicenseLoadMetric(ctx context.Context) (map[string]int, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.licenseRoute()+"/load_metric", "")
 	if err != nil {

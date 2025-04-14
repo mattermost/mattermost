@@ -261,7 +261,7 @@ func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getLicenseLoadMetric returns a load metric computed as (mau / licensed) * 100.
+// getLicenseLoadMetric returns a load metric computed as (mau / licensed) * 1000.
 func getLicenseLoadMetric(c *Context, w http.ResponseWriter, r *http.Request) {
 	var loadMetric int
 	var licenseUsers int64
@@ -278,7 +278,7 @@ func getLicenseLoadMetric(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		loadMetric = int(math.Round((float64(monthlyActiveUsers) / float64(licenseUsers)) * 100))
+		loadMetric = int(math.Round((float64(monthlyActiveUsers) / float64(licenseUsers)) * 1000))
 	}
 
 	// Create response object
