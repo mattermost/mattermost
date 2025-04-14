@@ -567,7 +567,7 @@ func TestEndToEndMetadataSync(t *testing.T) {
 
 		// Post with no metadata
 		postWithoutMetadata := &model.Post{
-			Metadata:  nil, // No metadata
+			Metadata: nil, // No metadata
 		}
 		assert.Nil(t, postWithoutMetadata.Metadata, "Post should have no metadata")
 

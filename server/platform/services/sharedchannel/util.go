@@ -139,4 +139,3 @@ func reducePostsSliceInCache(posts []*model.Post, cache map[string]*model.Post) 
 	}
 	return reduced
 }
-
