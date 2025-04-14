@@ -29,7 +29,10 @@ type Props = {
         fetchPolicy: (id: string) => Promise<ActionResult>;
         createPolicy: (policy: AccessControlPolicy) => Promise<ActionResult>;
         deletePolicy: (id: string) => Promise<ActionResult>;
-        getChildPolicies: (id: string, page: number, perPage: number) => Promise<ActionResult>;
+        getChannelsForParentPolicy: (id: string, page: number, perPage: number) => Promise<ActionResult>;
+        setNavigationBlocked: (blocked: boolean) => void;
+        assignChannelsToAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
+        unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     };
 };
 
@@ -41,8 +44,10 @@ type State = {
     serverError: boolean;
     addChannelOpen: boolean;
     editorMode: 'cel' | 'table';
-    newChannels: ChannelWithTeamData[];
-    removedChannels: ChannelWithTeamData[];
+    removedChannels: Record<string, ChannelWithTeamData>;
+    newChannels: Record<string, ChannelWithTeamData>;
+    removedChannelsCount: number;
+    saveNeeded: boolean;
 }
 
 const userAttributes = [
@@ -72,8 +77,10 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
             serverError: false,
             addChannelOpen: false,
             editorMode: 'cel',
-            newChannels: [],
-            removedChannels: [],
+            removedChannels: {},
+            newChannels: {},
+            removedChannelsCount: 0,
+            saveNeeded: false,
         };
     }
 
@@ -84,6 +91,8 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
     private loadPage = async () => {
         if (this.props.policyId) {
             await this.props.actions.fetchPolicy(this.props.policyId);
+            // Load initial set of channels for the policy
+            await this.props.actions.getChannelsForParentPolicy(this.props.policyId, 0, 15); // Using default page size
             this.setState({
                 policyName: this.props.policy?.name || '',
                 expression: this.props.policy?.rules?.[0]?.expression || '',
@@ -110,12 +119,23 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
             });
 
             getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy/' + updatedPolicy.data.id);
+           
+            if (this.props.policyId) {
+                if (this.state.removedChannelsCount > 0) {
+                    await this.props.actions.unassignChannelsFromAccessControlPolicy(this.props.policyId, Object.keys(this.state.removedChannels));
+                }
+                if (Object.keys(this.state.newChannels).length > 0) {
+                    await this.props.actions.assignChannelsToAccessControlPolicy(this.props.policyId, Object.keys(this.state.newChannels));
+                }
+            }
 
-            console.log(updatedPolicy.data.id);
+            this.setState({removedChannels: {}, newChannels: {}});
+            await this.loadPage();
+            
+            this.setState({saveNeeded: false});
+            this.props.actions.setNavigationBlocked(false);
         } catch (error) {
-            console.error(error);
-        } finally {
-            console.log('done');
+            this.setState({serverError: true});
         }
     };
 
@@ -133,11 +153,42 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
     };
 
     addToNewChannels = (channels: ChannelWithTeamData[]) => {
-        this.setState({newChannels: channels});
+        let {removedChannelsCount} = this.state;
+        const {newChannels, removedChannels} = this.state;
+        channels.forEach((channel: ChannelWithTeamData) => {
+            if (removedChannels[channel.id]?.id === channel.id) {
+                delete removedChannels[channel.id];
+                removedChannelsCount -= 1;
+            } else {
+                newChannels[channel.id] = channel;
+            }
+        });
+        this.setState({newChannels: {...newChannels}, removedChannels: {...removedChannels}, removedChannelsCount, saveNeeded: true});
+        this.props.actions.setNavigationBlocked(true);
     };
 
-    addToRemovedChannels = (channels: ChannelWithTeamData[]) => {
-        this.setState({removedChannels: channels});
+    addToRemovedChannels = (channel: ChannelWithTeamData) => {
+        let {removedChannelsCount} = this.state;
+        const {newChannels, removedChannels} = this.state;
+        if (newChannels[channel.id]?.id === channel.id) {
+            delete newChannels[channel.id];
+        } else if (removedChannels[channel.id]?.id !== channel.id) {
+            removedChannelsCount += 1;
+            removedChannels[channel.id] = channel;
+        }
+        this.setState({removedChannels: {...removedChannels}, newChannels: {...newChannels}, removedChannelsCount, saveNeeded: true});
+        this.props.actions.setNavigationBlocked(true);
+    };
+
+    undoRemovedChannels = (channel: ChannelWithTeamData) => {
+        let {removedChannelsCount} = this.state;
+        const {newChannels, removedChannels} = this.state;
+        if (removedChannels[channel.id]?.id === channel.id) {
+            delete removedChannels[channel.id];
+            removedChannelsCount -= 1;
+        }
+        this.setState({removedChannels: {...removedChannels}, newChannels: {...newChannels}, removedChannelsCount, saveNeeded: true});
+        this.props.actions.setNavigationBlocked(true);
     };
 
     handleExpressionChange = (value: string) => {
@@ -233,12 +284,9 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                                 onChannelsSelected={(channels) => {
                                     this.addToNewChannels(channels);
                                 }}
-                                // onChannelRemoved={(channel: ChannelWithTeamData) => {
-                                //     return this.addToRemovedChannels([channel]);
-                                // }}
                                 groupID={''}
                                 alreadySelected={
-                                    Object.keys(this.state.newChannels)
+                                    Object.values(this.state.newChannels).map(channel => channel.id)
                                 }
                                 excludeAccessControlPolicyEnforced={true}
                                 excludeTypes={['O', 'D', 'G']}
@@ -278,22 +326,11 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                                 expanded={true}
                             >
                                 <ChannelList
-                                    onRemoveCallback={(channel) => {
-                                        console.log('onRemoveCallback', channel);
-                                        this.addToRemovedChannels([channel]);
-                                    }}
-                                    onAddCallback={ () => {
-                                        console.log('onAddCallback');
-                                        this.addToNewChannels(this.state.newChannels);
-                                    }
-                                        
-                                    }
-                                    channelsToRemove={
-                                        Object.fromEntries(this.state.removedChannels.map(channel => [channel.id, channel]))
-                                    }
-                                    channelsToAdd={
-                                        Object.fromEntries(this.state.newChannels.map(channel => [channel.id, channel]))
-                                    }
+                                    onRemoveCallback={this.addToRemovedChannels}
+                                    onUndoRemoveCallback={this.undoRemovedChannels}
+                                    onAddCallback={this.addToNewChannels}
+                                    channelsToRemove={this.state.removedChannels}
+                                    channelsToAdd={this.state.newChannels}
                                     policyId={
                                         this.props.policyId
                                     }
@@ -305,7 +342,8 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                 <div className='admin-console-save'>
                     <SaveButton
                         // saving={this.state.saving}
-                        // disabled={!this.state.saveNeeded}
+                        
+                        disabled={!this.state.saveNeeded}
                         onClick={this.handleSubmit}
                         defaultMessage={(
                             <FormattedMessage

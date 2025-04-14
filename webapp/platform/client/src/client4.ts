@@ -4430,6 +4430,20 @@ export default class Client4 {
         );
     };
 
+    assignChannelsToAccessControlPolicy = (policyId: string, channelIds: string[]) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/assign`,
+            {method: 'post', body: JSON.stringify({channel_ids: channelIds})},
+        );
+    };
+
+    unassignChannelsFromAccessControlPolicy = (policyId: string, channelIds: string[]) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/unassign`,
+            {method: 'delete', body: JSON.stringify({channel_ids: channelIds})},
+        );
+    };
+
     checkAccessControlExpression = (expression: string) => {
         return this.doFetch<CELExpressionError[]>(
             `${this.getBaseRoute()}/access_control_policies/check`,

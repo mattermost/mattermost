@@ -4,6 +4,7 @@
 package model
 
 import (
+	"fmt"
 	"slices"
 
 	"golang.org/x/mod/semver"
@@ -117,4 +118,40 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_1() *AppError {
 	}
 
 	return nil
+}
+
+func (p *AccessControlPolicy) Inherit(resourceID, resourceType string) (*AccessControlPolicy, *AppError) {
+	rules := make([]AccessControlPolicyRule, len(p.Rules))
+
+	switch p.Version {
+	case AccessControlPolicyVersionV0_1:
+		for i, rule := range p.Rules {
+			actions := make([]string, len(rule.Actions))
+			copy(actions, rule.Actions)
+			rules[i] = AccessControlPolicyRule{
+				Actions:    actions,
+				Expression: fmt.Sprintf("policies.%s", p.ID),
+			}
+		}
+	default:
+		return nil, NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.version.app_error", nil, "", 400)
+	}
+
+	child := &AccessControlPolicy{
+		ID:       resourceID,
+		Type:     resourceType,
+		Active:   p.Active,
+		CreateAt: GetMillis(),
+		Version:  p.Version,
+		Imports:  []string{p.ID},
+		Rules:    rules,
+
+		Props: map[string]any{},
+	}
+
+	if appErr := child.IsValid(); appErr != nil {
+		return nil, appErr
+	}
+
+	return child, nil
 }

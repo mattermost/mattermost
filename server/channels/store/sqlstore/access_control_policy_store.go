@@ -153,7 +153,7 @@ func newSqlAccessControlPolicyStore(sqlStore *SqlStore, metrics einterfaces.Metr
 	return s
 }
 
-func preSaveAccessControlPolicy(policy, existingPolicy *model.AccessControlPolicy) {
+func preSaveAccessControlPolicy(policy *storeAccessControlPolicy, existingPolicy *model.AccessControlPolicy) {
 	// since policies are immutable, we need to create a new revision
 	// also if it's going to be saved, eventually it will be the new one
 	// we overwrite createAt to make sure it gets the correct timestamp before saving
@@ -234,9 +234,16 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to delete policy with id=%s", policy.ID)
 		}
+	} else {
+		// if there is no existing policy, also check the history table
+		// to make sure we are not overwriting an existing policy
+		existingPolicy, err = s.getHistoryT(rctx, tx, policy.ID)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.Wrapf(err, "failed to fetch policy with id=%s", policy.ID)
+		}
 	}
 
-	preSaveAccessControlPolicy(policy, existingPolicy)
+	preSaveAccessControlPolicy(storePolicy, existingPolicy)
 
 	query := s.getQueryBuilder().
 		Insert("AccessControlPolicies").
@@ -381,6 +388,34 @@ func (s *SqlAccessControlPolicyStore) getT(_ request.CTX, tx *sqlxTxWrapper, id 
 		Where(
 			sq.Eq{"ID": id},
 		)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
+	}
+
+	var storePolicy storeAccessControlPolicy
+	err = tx.Get(&storePolicy, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	policy, err := storePolicy.toModel()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse policy with id=%s", id)
+	}
+
+	return policy, nil
+}
+
+func (s *SqlAccessControlPolicyStore) getHistoryT(_ request.CTX, tx *sqlxTxWrapper, id string) (*model.AccessControlPolicy, error) {
+	query := s.getQueryBuilder().
+		Select(accessControlPolicyHistorySliceColumns()...).
+		From("AccessControlPolicyHistory").
+		Where(
+			sq.Eq{"ID": id},
+		).OrderBy("Revision DESC").
+		Limit(1)
 
 	sql, args, err := query.ToSql()
 	if err != nil {

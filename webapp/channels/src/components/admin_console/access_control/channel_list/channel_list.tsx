@@ -32,6 +32,7 @@ type Props = {
     policyId?: string;
 
     onRemoveCallback: (channel: ChannelWithTeamData) => void;
+    onUndoRemoveCallback: (channel: ChannelWithTeamData) => void;
     onAddCallback: (channels: ChannelWithTeamData[]) => void;
     channelsToRemove: Record<string, ChannelWithTeamData>;
     channelsToAdd: Record<string, ChannelWithTeamData>;
@@ -96,8 +97,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
     private getVisibleTotalCount = (): number => {
         const {channelsToAdd, channelsToRemove, totalCount} = this.props;
         const channelsToAddCount = Object.keys(channelsToAdd).length;
-        const channelsToRemoveCount = Object.keys(channelsToRemove).length;
-        return totalCount + (channelsToAddCount - channelsToRemoveCount);
+        return totalCount + channelsToAddCount;
     };
 
     public getPaginationProps = (): {startCount: number; endCount: number; total: number} => {
@@ -115,10 +115,14 @@ export default class ChannelList extends React.PureComponent<Props, State> {
 
     private removeChannel = (channel: ChannelWithTeamData) => {
         const {channelsToRemove} = this.props;
+        // Toggle between adding and removing the channel
         if (channelsToRemove[channel.id] === channel) {
+            console.log('toggle to remove');
+            // If the channel is already marked for removal, undo it
+            this.props.onUndoRemoveCallback(channel);
             return;
         }
-
+        // If the channel is not marked for removal, mark it
         let {page} = this.state;
         const {endCount} = this.getPaginationProps();
 
@@ -173,21 +177,21 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         let channelsToDisplay = channels;
         const includeTeamsList = Object.values(channelsToAdd);
 
-        // Remove users to remove and add users to add
-        channelsToDisplay = channelsToDisplay.filter((user) => !channelsToRemove[user.id]);
+        // Don't filter out channels marked for removal anymore
+        // channelsToDisplay = channelsToDisplay.filter((channel) => !channelsToRemove[channel.id]);
         channelsToDisplay = [...includeTeamsList, ...channelsToDisplay];
         channelsToDisplay = channelsToDisplay.slice(startCount - 1, endCount);
 
-        // Check if we need to load more data, but don't do it here
-        if (channelsToDisplay.length < PAGE_SIZE && channels.length < totalCount) {
-            const numberOfTeamsRemoved = Object.keys(channelsToRemove).length;
-            const pagesOfTeamsRemoved = Math.floor(numberOfTeamsRemoved / PAGE_SIZE);
-            const pageToLoad = page + pagesOfTeamsRemoved + 1;
+        // Dont load more elements if searching
+        if (channelsToDisplay.length < PAGE_SIZE && channels.length < totalCount) { //term === '' &&  was included
+            // Since we're not removing channels from the display list anymore,
+            // we don't need to adjust the page calculation based on removed channels
+            const pageToLoad = page + 1;
 
-            // Set a flag to load more data in componentDidUpdate
+            // Directly call action to load more users from parent component to load more users into the state
             if (pageToLoad > this.pageLoaded) {
-                this.shouldLoadMoreData = true;
-                this.nextPageToLoad = pageToLoad;
+                this.loadPage(pageToLoad + 1);
+                this.pageLoaded = pageToLoad;
             }
         }
 
@@ -205,6 +209,30 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                     />
                 );
             }
+
+            const isMarkedForRemoval = channelsToRemove[channel.id] === channel && channels.find(c => c.id === channel.id) !== undefined;
+
+            // Determine the button text and action based on the channel state
+            let buttonText;
+            let buttonClassName = 'group-actions TeamList_editText';
+            
+            if (isMarkedForRemoval) {
+                buttonText = (
+                    <FormattedMessage
+                        id='admin.access_control.policy.edit_policy.channel_selector.to_be_removed'
+                        defaultMessage='To be removed'
+                    />
+                );
+                buttonClassName += ' marked-for-removal';
+            } else {
+                buttonText = (
+                    <FormattedMessage
+                        id='admin.access_control.policy.edit_policy.channel_selector.remove'
+                        defaultMessage='Remove'
+                    />
+                );
+            }
+
             return {
                 cells: {
                     id: channel.id,
@@ -225,17 +253,14 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                     remove: (
                         <a
                             id={`remove-channel-${channel.id}`}
-                            className='group-actions TeamList_editText'
+                            className={buttonClassName}
                             onClick={(e) => {
                                 e.preventDefault();
                                 this.removeChannel(channel);
                             }}
                             href='#'
                         >
-                            <FormattedMessage
-                                id='admin.data_retention.custom_policy.teams.remove'
-                                defaultMessage='Remove'
-                            />
+                            {buttonText}
                         </a>
                     ),
                 },
