@@ -31,6 +31,23 @@ func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.U
 	}
 }
 
+// removeMention removes any mentions in a post for the specified user.
+// This is used to prevent local users from being mentioned on remote clusters
+// where there might be users with the same username.
+func removeMention(post *model.Post, mentionMap model.UserMentionMap, user *model.User) {
+	if post == nil || len(mentionMap) == 0 {
+		return
+	}
+
+	// Look for mentions of this user and remove them
+	for mention, id := range mentionMap {
+		if id == user.Id {
+			// Remove the mention by replacing it with the non-mention text
+			post.Message = strings.ReplaceAll(post.Message, "@"+mention, mention)
+		}
+	}
+}
+
 func sanitizeUserForSync(user *model.User) *model.User {
 	user.Password = model.NewId()
 	user.AuthData = nil

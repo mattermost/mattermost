@@ -428,10 +428,19 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 			sd.profileImages[user.Id] = user
 		}
 
-		// if this was a mention then put the real username in place of the username+remotename, but only
-		// when sending to the remote that the user belongs to.
-		if v.post != nil && user.RemoteId != nil && *user.RemoteId == sd.rc.RemoteId {
-			fixMention(v.post, v.mentionMap, user)
+		// Handle user mentions in shared channels
+		if v.post != nil {
+			if user.RemoteId != nil {
+				if *user.RemoteId == sd.rc.RemoteId {
+					// For remote users from the target remote, fix the mention format
+					// when sending back to their origin server
+					fixMention(v.post, v.mentionMap, user)
+				} else {
+					// For remote users from other servers, remove the mention completely
+					// This ensures only local users get mentioned, not remote users with the same username
+					removeMention(v.post, v.mentionMap, user)
+				}
+			}
 		}
 	}
 	return merr.ErrorOrNil()

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -67,6 +68,179 @@ func Test_mungUsernameFuzz(t *testing.T) {
 				require.LessOrEqual(t, len(result), 64)
 			}
 		}
+	}
+}
+
+func Test_fixMention(t *testing.T) {
+	tests := []struct {
+		name       string
+		post       *model.Post
+		mentionMap model.UserMentionMap
+		user       *model.User
+		expected   string
+	}{
+		{
+			name:       "nil post",
+			post:       nil,
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "",
+		},
+		{
+			name:       "empty mentionMap",
+			post:       &model.Post{Message: "hello @user:remote"},
+			mentionMap: model.UserMentionMap{},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello @user:remote",
+		},
+		{
+			name:       "no RemoteUsername prop",
+			post:       &model.Post{Message: "hello @user:remote"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello @user:remote",
+		},
+		{
+			name:       "simple mention",
+			post:       &model.Post{Message: "hello @user:remote"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			expected:   "hello @realuser",
+		},
+		{
+			name:       "mention at start",
+			post:       &model.Post{Message: "@user:remote hello"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			expected:   "@realuser hello",
+		},
+		{
+			name:       "mention at end",
+			post:       &model.Post{Message: "hello @user:remote"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			expected:   "hello @realuser",
+		},
+		{
+			name:       "multiple mentions of same user",
+			post:       &model.Post{Message: "hello @user:remote and @user:remote again"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			expected:   "hello @realuser and @realuser again",
+		},
+		{
+			name:       "multiple different mentions",
+			post:       &model.Post{Message: "hello @user:remote and @other:remote"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid", "other:remote": "otherid"},
+			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			expected:   "hello @realuser and @other:remote",
+		},
+		{
+			name:       "mention without colon",
+			post:       &model.Post{Message: "hello @user"},
+			mentionMap: model.UserMentionMap{"user": "userid"},
+			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			expected:   "hello @user",
+		},
+		{
+			name:       "mention different user id",
+			post:       &model.Post{Message: "hello @user:remote"},
+			mentionMap: model.UserMentionMap{"user:remote": "different"},
+			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			expected:   "hello @user:remote",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fixMention(tt.post, tt.mentionMap, tt.user)
+			if tt.post != nil {
+				require.Equal(t, tt.expected, tt.post.Message)
+			}
+		})
+	}
+}
+
+func Test_removeMention(t *testing.T) {
+	tests := []struct {
+		name       string
+		post       *model.Post
+		mentionMap model.UserMentionMap
+		user       *model.User
+		expected   string
+	}{
+		{
+			name:       "nil post",
+			post:       nil,
+			mentionMap: model.UserMentionMap{"user": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "",
+		},
+		{
+			name:       "empty mentionMap",
+			post:       &model.Post{Message: "hello @user"},
+			mentionMap: model.UserMentionMap{},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello @user",
+		},
+		{
+			name:       "simple mention",
+			post:       &model.Post{Message: "hello @user"},
+			mentionMap: model.UserMentionMap{"user": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello user",
+		},
+		{
+			name:       "mention at start",
+			post:       &model.Post{Message: "@user hello"},
+			mentionMap: model.UserMentionMap{"user": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "user hello",
+		},
+		{
+			name:       "mention at end",
+			post:       &model.Post{Message: "hello @user"},
+			mentionMap: model.UserMentionMap{"user": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello user",
+		},
+		{
+			name:       "multiple mentions of same user",
+			post:       &model.Post{Message: "hello @user and @user again"},
+			mentionMap: model.UserMentionMap{"user": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello user and user again",
+		},
+		{
+			name:       "multiple different mentions",
+			post:       &model.Post{Message: "hello @user and @other"},
+			mentionMap: model.UserMentionMap{"user": "userid", "other": "otherid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello user and @other",
+		},
+		{
+			name:       "mention with colon",
+			post:       &model.Post{Message: "hello @user:remote"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello user:remote",
+		},
+		{
+			name:       "mention different user id",
+			post:       &model.Post{Message: "hello @user"},
+			mentionMap: model.UserMentionMap{"user": "different"},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello @user",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			removeMention(tt.post, tt.mentionMap, tt.user)
+			if tt.post != nil {
+				require.Equal(t, tt.expected, tt.post.Message)
+			}
+		})
 	}
 }
 
