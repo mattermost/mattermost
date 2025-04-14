@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 let keywords: string[];
 const highlightWithoutNotificationClass = 'non-notification-highlight';
 
-test.beforeAll(async ({pw}) => {
+test.beforeEach(async ({pw}) => {
     keywords = [`AB${pw.random.id()}`, `CD${pw.random.id()}`, `EF${pw.random.id()}`, `Highlight me ${pw.random.id()}`];
 });
 
