@@ -21,7 +21,9 @@ export default class ChannelsCenterView {
     readonly scheduledDraftChannelIcon;
     readonly scheduledDraftChannelInfoMessage;
     readonly scheduledDraftChannelInfoMessageLocator;
+    readonly scheduledDraftDMChannelLocator;
     readonly scheduledDraftChannelInfoMessageText;
+    readonly scheduledDraftDMChannelLocatorString;
     readonly scheduledDraftSeeAllLink;
     readonly postEdit;
     readonly editedPostIcon;
@@ -29,6 +31,7 @@ export default class ChannelsCenterView {
     constructor(container: Locator) {
         this.container = container;
         this.scheduledDraftChannelInfoMessageLocator = 'span:has-text("Message scheduled for")';
+        this.scheduledDraftDMChannelLocatorString = 'div.ScheduledPostIndicator span a';
         this.header = new ChannelsHeader(this.container.locator('.channel-header'));
         this.postCreate = new ChannelsPostCreate(container.getByTestId('post-create'));
         this.scheduledDraftOptions = new ChannelsPostCreate(container.locator('#dropdown_send_post_options'));
@@ -37,6 +40,7 @@ export default class ChannelsCenterView {
         this.scheduledDraftChannelIcon = container.locator('#create_post i.icon-draft-indicator');
         this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
         this.scheduledDraftChannelInfoMessageText = container.locator(this.scheduledDraftChannelInfoMessageLocator);
+        this.scheduledDraftDMChannelLocator = container.locator(this.scheduledDraftDMChannelLocatorString);
         this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all")');
         this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
     }
@@ -127,16 +131,20 @@ export default class ChannelsCenterView {
         );
     }
 
+    async goToScheduledDraftsFromDMChannel() {
+        if (await this.scheduledDraftDMChannelLocator.isVisible()) {
+            await this.scheduledDraftDMChannelLocator.click();
+            return;
+        }
+        await this.scheduledDraftSeeAllLink.isVisible();
+        await this.scheduledDraftSeeAllLink.click();
+    }
+
     async verifyscheduledDraftChannelInfo() {
         await this.postBoxIndicator.isVisible();
         await this.scheduledDraftChannelIcon.isVisible();
         const messageLocator = this.scheduledDraftChannelInfoMessage.first();
-        try {
-            await expect(messageLocator).toContainText('Message scheduled for');
-        } catch {
-            // First assertion failed, trying fallback
-            await expect(messageLocator).toContainText('You have one scheduled message.');
-        }
+        await expect(messageLocator).toContainText('Message scheduled for');
     }
 
     async clickOnLastEditedPost(postID: string | null) {
