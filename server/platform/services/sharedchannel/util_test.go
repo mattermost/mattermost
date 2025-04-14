@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -73,4 +75,76 @@ func Test_mungUsernameFuzz(t *testing.T) {
 // R returns a string with the specified string repeated `count` times.
 func R(count int, s string) string {
 	return strings.Repeat(s, count)
+}
+
+func TestShouldUpdatePostMetadata(t *testing.T) {
+	t.Run("should update when priority added", func(t *testing.T) {
+		post1 := &model.Post{Id: model.NewId(), ChannelId: model.NewId()}
+		post2 := post1.Clone()
+		priority := model.PostPriorityUrgent
+		post2.Metadata = &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority: &priority,
+			},
+		}
+
+		assert.True(t, shouldUpdatePostMetadata(post2, post1))
+	})
+
+	t.Run("should update when acknowledgement added", func(t *testing.T) {
+		post1 := &model.Post{Id: model.NewId(), ChannelId: model.NewId()}
+		post2 := post1.Clone()
+		post2.Metadata = &model.PostMetadata{
+			Acknowledgements: []*model.PostAcknowledgement{
+				{
+					UserId:         model.NewId(),
+					PostId:         post1.Id,
+					AcknowledgedAt: model.GetMillis(),
+				},
+			},
+		}
+
+		assert.True(t, shouldUpdatePostMetadata(post2, post1))
+	})
+
+	t.Run("should update when persistent notification added", func(t *testing.T) {
+		post1 := &model.Post{Id: model.NewId(), ChannelId: model.NewId()}
+		post2 := post1.Clone()
+		persistentNotif := true
+		post2.Metadata = &model.PostMetadata{
+			Priority: &model.PostPriority{
+				PersistentNotifications: &persistentNotif,
+			},
+		}
+
+		assert.True(t, shouldUpdatePostMetadata(post2, post1))
+	})
+
+	t.Run("should update when requestedAck added", func(t *testing.T) {
+		post1 := &model.Post{Id: model.NewId(), ChannelId: model.NewId()}
+		post2 := post1.Clone()
+		requestedAck := true
+		post2.Metadata = &model.PostMetadata{
+			Priority: &model.PostPriority{
+				RequestedAck: &requestedAck,
+			},
+		}
+
+		assert.True(t, shouldUpdatePostMetadata(post2, post1))
+	})
+
+	t.Run("should not update when no metadata changes", func(t *testing.T) {
+		post1 := &model.Post{Id: model.NewId(), ChannelId: model.NewId()}
+		post2 := post1.Clone()
+
+		assert.False(t, shouldUpdatePostMetadata(post2, post1))
+	})
+
+	t.Run("should not update when metadata is nil", func(t *testing.T) {
+		post1 := &model.Post{Id: model.NewId(), ChannelId: model.NewId()}
+		post2 := post1.Clone()
+		post2.Metadata = nil
+
+		assert.False(t, shouldUpdatePostMetadata(post2, post1))
+	})
 }
