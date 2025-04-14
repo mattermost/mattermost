@@ -1387,7 +1387,7 @@ func TestConfigSanitize(t *testing.T) {
 		QueryTimeLag:     NewPointer("QueryTimeLag"),
 	}}
 
-	c.Sanitize(nil)
+	c.Sanitize(nil, false)
 
 	assert.Equal(t, FakeSetting, *c.LdapSettings.BindPassword)
 	assert.Equal(t, FakeSetting, *c.FileSettings.PublicLinkSalt)
@@ -1409,9 +1409,18 @@ func TestConfigSanitize(t *testing.T) {
 	t.Run("with default config", func(t *testing.T) {
 		c := Config{}
 		c.SetDefaults()
-		c.Sanitize(nil)
+		c.Sanitize(nil, false)
 
 		assert.Len(t, c.SqlSettings.ReplicaLagSettings, 0)
+	})
+
+	t.Run("partially sanitize DataSource", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		*c.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable"
+		c.Sanitize(nil, true)
+
+		assert.Equal(t, "postgres://****:****@localhost:5432/mattermost_test?sslmode=disable", *c.SqlSettings.DataSource)
 	})
 }
 
@@ -1553,6 +1562,56 @@ func TestPluginSettingsSanitize(t *testing.T) {
 			assert.Equal(t, tc.expected, c.Plugins, name)
 		})
 	}
+}
+
+func TestSanitizeDataSource(t *testing.T) {
+	t.Run(DatabaseDriverPostgres, func(t *testing.T) {
+		testCases := []struct {
+			Original  string
+			Sanitized string
+		}{
+			{
+				"",
+				"//****:****@",
+			},
+			{
+				"postgres://mmuser:mostest@localhost",
+				"postgres://****:****@localhost",
+			},
+			{
+				"postgres://mmuser:mostest@localhost/dummy?sslmode=disable",
+				"postgres://****:****@localhost/dummy?sslmode=disable",
+			},
+			{
+				"postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest",
+				"postgres://****:****@localhost/dummy?sslmode=disable",
+			},
+		}
+		driver := DatabaseDriverPostgres
+		for _, tc := range testCases {
+			out, err := SanitizeDataSource(driver, tc.Original)
+			require.NoError(t, err)
+			assert.Equal(t, tc.Sanitized, out)
+		}
+	})
+
+	t.Run(DatabaseDriverMysql, func(t *testing.T) {
+		testCases := []struct {
+			Original  string
+			Sanitized string
+		}{
+			{
+				"mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
+				"****:****@tcp(localhost:3306)/mattermost_test?readTimeout=30s&writeTimeout=30s&charset=utf8mb4%2Cutf8",
+			},
+		}
+		driver := DatabaseDriverMysql
+		for _, tc := range testCases {
+			out, err := SanitizeDataSource(driver, tc.Original)
+			require.NoError(t, err)
+			assert.Equal(t, tc.Sanitized, out)
+		}
+	})
 }
 
 func TestConfigFilteredByTag(t *testing.T) {
@@ -2012,7 +2071,7 @@ func TestFilterConfig(t *testing.T) {
 		require.NotEmpty(t, m)
 		require.Equal(t, dsn, m["SqlSettings"].(map[string]any)["DataSource"])
 
-		cfg.Sanitize(nil)
+		cfg.Sanitize(nil, false)
 		m, err = FilterConfig(cfg, ConfigFilterOptions{
 			GetConfigOptions: GetConfigOptions{
 				RemoveDefaults: true,
@@ -2022,7 +2081,7 @@ func TestFilterConfig(t *testing.T) {
 		require.NotEmpty(t, m)
 		require.Equal(t, FakeSetting, m["SqlSettings"].(map[string]any)["DataSource"])
 
-		cfg.Sanitize(nil)
+		cfg.Sanitize(nil, false)
 		m, err = FilterConfig(cfg, ConfigFilterOptions{
 			GetConfigOptions: GetConfigOptions{
 				RemoveDefaults: true,

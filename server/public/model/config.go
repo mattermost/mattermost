@@ -20,7 +20,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/mattermost/ldap"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
@@ -4621,7 +4623,13 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 	return options
 }
 
-func (o *Config) Sanitize(pluginManifests []*Manifest) {
+// Sanitize removes sensitive information from the configuration object.
+// It replaces sensitive fields with [FakeSetting] or sanitizes them.
+//
+// Parameters:
+//   - pluginManifests: Plugin manifests for sanitizing plugin settings.
+//   - partiallySanitizeDataSources: Whether to partially sanitize SQL data sources instead of fully replacing it with [FakeSetting].
+func (o *Config) Sanitize(pluginManifests []*Manifest, partiallySanitizeDataSources bool) {
 	if o.LdapSettings.BindPassword != nil && *o.LdapSettings.BindPassword != "" {
 		*o.LdapSettings.BindPassword = FakeSetting
 	}
@@ -4655,7 +4663,16 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	}
 
 	if o.SqlSettings.DataSource != nil {
-		*o.SqlSettings.DataSource = FakeSetting
+		if partiallySanitizeDataSources {
+			sanitized, err := SanitizeDataSource(*o.SqlSettings.DriverName, *o.SqlSettings.DataSource)
+			if err != nil {
+				mlog.Warn("Failed to sanitize SqlSettings.DataSource", mlog.Err(err))
+			} else {
+				*o.SqlSettings.DataSource = sanitized
+			}
+		} else {
+			*o.SqlSettings.DataSource = FakeSetting
+		}
 	}
 
 	if o.SqlSettings.AtRestEncryptKey != nil {
@@ -4667,15 +4684,42 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	}
 
 	for i := range o.SqlSettings.DataSourceReplicas {
-		o.SqlSettings.DataSourceReplicas[i] = FakeSetting
+		if partiallySanitizeDataSources {
+			sanitized, err := SanitizeDataSource(*o.SqlSettings.DriverName, o.SqlSettings.DataSourceReplicas[i])
+			if err != nil {
+				mlog.Warn("Failed to sanitize SqlSettings.DataSourceReplicas", mlog.Err(err))
+				continue
+			}
+			o.SqlSettings.DataSourceReplicas[i] = sanitized
+		} else {
+			o.SqlSettings.DataSourceReplicas[i] = FakeSetting
+		}
 	}
 
 	for i := range o.SqlSettings.DataSourceSearchReplicas {
-		o.SqlSettings.DataSourceSearchReplicas[i] = FakeSetting
+		if partiallySanitizeDataSources {
+			sanitized, err := SanitizeDataSource(*o.SqlSettings.DriverName, o.SqlSettings.DataSourceSearchReplicas[i])
+			if err != nil {
+				mlog.Warn("Failed to sanitize SqlSettings.DataSourceSearchReplicas", mlog.Err(err))
+				continue
+			}
+			o.SqlSettings.DataSourceSearchReplicas[i] = sanitized
+		} else {
+			o.SqlSettings.DataSourceSearchReplicas[i] = FakeSetting
+		}
 	}
 
 	for i := range o.SqlSettings.ReplicaLagSettings {
-		o.SqlSettings.ReplicaLagSettings[i].DataSource = NewPointer(FakeSetting)
+		if partiallySanitizeDataSources {
+			sanitized, err := SanitizeDataSource(*o.SqlSettings.DriverName, *o.SqlSettings.ReplicaLagSettings[i].DataSource)
+			if err != nil {
+				mlog.Warn("Failed to sanitize SqlSettings.ReplicaLagSettings", mlog.Err(err))
+				continue
+			}
+			o.SqlSettings.ReplicaLagSettings[i].DataSource = NewPointer(sanitized)
+		} else {
+			o.SqlSettings.ReplicaLagSettings[i].DataSource = NewPointer(FakeSetting)
+		}
 	}
 
 	if o.MessageExportSettings.GlobalRelaySettings != nil &&
@@ -4693,6 +4737,40 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	}
 
 	o.PluginSettings.Sanitize(pluginManifests)
+}
+
+func SanitizeDataSource(driverName, dataSource string) (string, error) {
+	switch driverName {
+	case DatabaseDriverPostgres:
+		u, err := url.Parse(dataSource)
+		if err != nil {
+			return "", err
+		}
+		u.User = url.UserPassword("****", "****")
+
+		// Remove username and password from query string
+		params := u.Query()
+		params.Del("user")
+		params.Del("password")
+		u.RawQuery = params.Encode()
+
+		// Unescape the URL to make it human-readable
+		out, err := url.QueryUnescape(u.String())
+		if err != nil {
+			return "", err
+		}
+		return out, nil
+	case DatabaseDriverMysql:
+		cfg, err := mysql.ParseDSN(dataSource)
+		if err != nil {
+			return "", err
+		}
+		cfg.User = "****"
+		cfg.Passwd = "****"
+		return cfg.FormatDSN(), nil
+	default:
+		return "", errors.New("invalid drivername. Not postgres or mysql.")
+	}
 }
 
 type FilterTag struct {
