@@ -604,6 +604,27 @@ func (a *App) getDisableBotSysadminMessage(user *model.User, userBots model.BotL
 
 // ConvertUserToBot converts a user to bot.
 func (a *App) ConvertUserToBot(rctx request.CTX, user *model.User) (*model.Bot, *model.AppError) {
+	// Clear OAuth credentials before converting to bot
+	if user.AuthService != "" {
+		emptyString := ""
+		userAuth := &model.UserAuth{
+			AuthService: "",
+			AuthData:    &emptyString,
+		}
+
+		_, err := a.UpdateUserAuth(rctx, user.Id, userAuth)
+		if err != nil {
+			return nil, err
+		}
+
+		// Refresh user data
+		updatedUser, err := a.GetUser(user.Id)
+		if err != nil {
+			return nil, err
+		}
+		user = updatedUser
+	}
+
 	bot, err := a.Srv().Store().Bot().Save(model.BotFromUser(user))
 	if err != nil {
 		var appErr *model.AppError
