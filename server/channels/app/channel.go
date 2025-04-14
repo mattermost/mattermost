@@ -2405,7 +2405,17 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 		return err
 	}
 
-	if channel.Type == model.ChannelTypePrivate && membersCount == 1 {
+	groupsWithScheme, err := a.Srv().Store().Group().GetGroupsByChannel(channel.Id, model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 1,
+		},
+	})
+	if err != nil {
+		return model.NewAppError("LeaveChannel", "api.channel.leave.get_groups.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if channel.Type == model.ChannelTypePrivate && membersCount == 1 && len(groupsWithScheme) == 0 {
 		err := model.NewAppError("LeaveChannel", "api.channel.leave.last_member.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 		return err
 	}
