@@ -175,15 +175,30 @@ export function loadProfilesForOutgoingOAuthConnections(connections: OutgoingOAu
 }
 
 // webapp/channels/src/actions/integration_actions.tsx
+/**
+ * Proxy action for submitting an interactive dialog
+ * This enhances the base Redux action by checking for dialog arguments in the state
+ * before falling back to the current channel ID
+ */
 export function submitInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<SubmitDialogResponse, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
 
+        // Get dialog arguments from state if available
         const dialogArguments = getDialogArguments(state);
-        submission.channel_id = (dialogArguments && dialogArguments.channel_id) ? dialogArguments.channel_id : getCurrentChannelId(state);
+        
+        // Use channel_id from dialog arguments if available
+        if (dialogArguments && dialogArguments.channel_id) {
+            submission.channel_id = dialogArguments.channel_id;
+        }
 
-        const {data} = await dispatch(IntegrationActions.submitInteractiveDialog(submission));
-
+        // Dispatch the base action with our enhanced submission
+        const {data, error} = await dispatch(IntegrationActions.submitInteractiveDialog(submission));
+        
+        if (error) {
+            return {error};
+        }
+        
         return {data};
     };
 }
