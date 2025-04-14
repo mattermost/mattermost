@@ -48,10 +48,7 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	uid, ok := params["uid"]
 	if ok {
 		hasher := fnv.New32a()
-		_, err := hasher.Write([]byte(uid[0] + strconv.Itoa(int(time.Now().UTC().UnixNano()))))
-		if err != nil {
-			c.Logger.Error("Failed to write to hasher", mlog.Err(err))
-		}
+		hasher.Write([]byte(uid[0] + strconv.Itoa(int(time.Now().UTC().UnixNano()))))
 		hash := hasher.Sum32()
 		rand.Seed(int64(hash))
 	} else {
@@ -118,17 +115,8 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if _, verifyErr := c.App.Srv().Store().User().VerifyEmail(user.Id, user.Email); verifyErr != nil {
-			c.Logger.Error("Unable to verify email", mlog.Err(verifyErr))
-			c.Err = model.NewAppError("manualTest", "app.user.verify_email.app_error", nil, "", http.StatusInternalServerError).Wrap(verifyErr)
-			return
-		}
-
-		if _, saveErr := c.App.Srv().Store().Team().SaveMember(c.AppContext, &model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam); saveErr != nil {
-			c.Logger.Error("Unable to save team member", mlog.Err(saveErr))
-			c.Err = model.NewAppError("manualTest", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(saveErr)
-			return
-		}
+		c.App.Srv().Store().User().VerifyEmail(user.Id, user.Email)
+		c.App.Srv().Store().Team().SaveMember(c.AppContext, &model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
 
 		userID = user.Id
 
