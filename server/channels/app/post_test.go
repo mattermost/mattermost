@@ -2994,7 +2994,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 
 	t.Run("should sanitize participant data", func(t *testing.T) {
 		id := model.NewId()
-		user3, appEr := th.App.CreateUser(th.Context, &model.User{
+		user3, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
@@ -3002,7 +3002,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			AuthService:   "saml",
 			EmailVerified: true,
 		})
-		require.Nil(t, appEr)
+		require.Nil(t, appErr)
 		defer func() {
 			appErr := th.App.PermanentDeleteUser(th.Context, user3)
 			require.Nil(t, appErr)
@@ -3017,26 +3017,26 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		th.LinkUserToTeam(user3, th.BasicTeam)
 		th.AddUserToChannel(user3, channel)
 
-		postRoot, appEr := th.App.CreatePost(th.Context, &model.Post{
+		postRoot, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
 			Message:   "root post",
 		}, channel, model.CreatePostFlags{SetOnline: true})
-		require.Nil(t, appEr)
+		require.Nil(t, appErr)
 
-		_, appEr = th.App.CreatePost(th.Context, &model.Post{
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user3.Id,
 			ChannelId: channel.Id,
 			RootId:    postRoot.Id,
 			Message:   "reply",
 		}, channel, model.CreatePostFlags{SetOnline: true})
-		require.Nil(t, appEr)
+		require.Nil(t, appErr)
 		thread, err := th.App.Srv().Store().Thread().Get(postRoot.Id)
 		require.NoError(t, err)
 		require.Len(t, thread.Participants, 1)
 
 		// extended fetch posts page
-		l, appEr := th.App.GetPostsPage(model.GetPostsOptions{
+		l, appErr := th.App.GetPostsPage(model.GetPostsOptions{
 			UserId:                   user1.Id,
 			ChannelId:                channel.Id,
 			PerPage:                  int(10),
@@ -3044,17 +3044,17 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			CollapsedThreads:         true,
 			CollapsedThreadsExtended: true,
 		})
-		require.Nil(t, appEr)
+		require.Nil(t, appErr)
 		require.Len(t, l.Order, 1)
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
 		require.Empty(t, l.Posts[postRoot.Id].Participants[0].AuthData)
 
-		_, appEr = th.App.MarkChannelAsUnreadFromPost(th.Context, postRoot.Id, user1.Id, true)
-		require.Nil(t, appEr)
+		_, appErr = th.App.MarkChannelAsUnreadFromPost(th.Context, postRoot.Id, user1.Id, true)
+		require.Nil(t, appErr)
 
 		// extended fetch posts around
-		l, appEr = th.App.GetPostsForChannelAroundLastUnread(th.Context, channel.Id, user1.Id, 10, 10, true, true, true)
-		require.Nil(t, appEr)
+		l, appErr = th.App.GetPostsForChannelAroundLastUnread(th.Context, channel.Id, user1.Id, 10, 10, true, true, true)
+		require.Nil(t, appErr)
 		require.Len(t, l.Order, 1)
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
 		require.Empty(t, l.Posts[postRoot.Id].Participants[0].AuthData)
@@ -3066,8 +3066,8 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			CollapsedThreadsExtended: true,
 		}
 
-		l, appEr = th.App.GetPostThread(postRoot.Id, opts, user1.Id)
-		require.Nil(t, appEr)
+		l, appErr = th.App.GetPostThread(postRoot.Id, opts, user1.Id)
+		require.Nil(t, appErr)
 		require.Len(t, l.Order, 2)
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
 		require.Empty(t, l.Posts[postRoot.Id].Participants[0].AuthData)
