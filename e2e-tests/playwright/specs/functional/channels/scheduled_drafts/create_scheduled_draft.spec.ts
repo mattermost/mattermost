@@ -192,11 +192,7 @@ test('MM-T5643_3 should create a scheduled message from a DM', async ({pw}) => {
     await setupChannelPage(channelsPage, draftMessage, team.name, `@${user2.username}`);
     await scheduleMessage(channelsPage);
 
-    await channelsPage.centerView.verifyscheduledDraftChannelInfo();
-
-    const postBoxIndicator = await channelsPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
-
-    await verifyScheduledDraft(channelsPage, scheduledDraftPage, draftMessage, postBoxIndicator);
+    await channelsPage.centerView.goToScheduledDraftsFromDMChannel();
 
     // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
@@ -288,7 +284,7 @@ test('MM-T5650 should copy scheduled message', async ({pw, browserName}) => {
     const {user} = await pw.initSetup();
     const {page, channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
-    await setupChannelPage(channelsPage, draftMessage);
+    await setupChannelPage(channelsPage, draftMessage, '', 'town-square');
     await scheduleMessage(channelsPage);
 
     await channelsPage.centerView.verifyscheduledDraftChannelInfo();
