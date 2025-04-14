@@ -26,7 +26,7 @@ test('Theme settings should be keyboard accessible', async ({axe, pw}) => {
     const settingsModal = await channelsPage.globalHeader.openSettings();
 
     // * The settings modal should have no accessibility violations
-    let accessibilityScanResults = await ab.analyze()
+    let accessibilityScanResults = await ab.analyze();
     expect(accessibilityScanResults.violations).toHaveLength(0);
 
     // # Open display tab
@@ -41,7 +41,7 @@ test('Theme settings should be keyboard accessible', async ({axe, pw}) => {
     await displaySettings.toBeVisible();
 
     // * The display tab should have no accessibility violations
-    accessibilityScanResults = await ab.analyze()
+    accessibilityScanResults = await ab.analyze();
     expect(accessibilityScanResults.violations).toHaveLength(0);
 
     // # Open the theme section
@@ -55,7 +55,7 @@ test('Theme settings should be keyboard accessible', async ({axe, pw}) => {
     await expect(page.getByLabel('Premade Themes')).toBeFocused();
 
     // * The theme section for premade themes should have no accessibility violations
-    accessibilityScanResults = await ab.analyze()
+    accessibilityScanResults = await ab.analyze();
     expect(accessibilityScanResults.violations).toHaveLength(0);
 
     // * Should be able to tab through the options
