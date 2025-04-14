@@ -56,10 +56,10 @@ func TestListExports(t *testing.T) {
 	}, "expected exports")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		originalExportDir := *th.App.Config().ExportSettings.Directory
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExportSettings.Directory = "new" })
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			oldExportDir := *th.App.Config().ExportSettings.Directory
-			*cfg.ExportSettings.Directory = oldExportDir
+			*cfg.ExportSettings.Directory = originalExportDir
 		})
 
 		exportDir := filepath.Join(dataDir, *th.App.Config().ExportSettings.Directory)
