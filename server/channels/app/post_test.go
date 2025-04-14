@@ -3004,13 +3004,13 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 		defer func() {
-			appErr := th.App.PermanentDeleteUser(th.Context, user3)
+			appErr = th.App.PermanentDeleteUser(th.Context, user3)
 			require.Nil(t, appErr)
 		}()
 
 		channel := th.CreateChannel(th.Context, th.BasicTeam)
 		defer func() {
-			appErr := th.App.DeleteChannel(th.Context, channel, user1.Id)
+			appErr = th.App.DeleteChannel(th.Context, channel, user1.Id)
 			require.Nil(t, appErr)
 		}()
 
