@@ -187,24 +187,6 @@ func TestPriorityMetadataPreservation(t *testing.T) {
 		assert.NotNil(t, postWithPriority.Metadata, "Post should have metadata")
 	})
 
-	// STEP 4: Check that getPostMetadataLogFields preserves priority
-	t.Run("step 4: getPostMetadataLogFields includes priority", func(t *testing.T) {
-		// Get log fields for the post
-		logFields := getPostMetadataLogFields(originalPost)
-
-		// Find the priority field and verify it exists
-		found := false
-		for _, field := range logFields {
-			if field.Key == "has_priority" {
-				found = true
-				// Just verify the field exists, we don't need to check its exact type/value
-				// as that's an implementation detail of the logging system
-				break
-			}
-		}
-
-		assert.True(t, found, "getPostMetadataLogFields should include has_priority field")
-	})
 }
 
 // TestReceivingEndProcessesPriorityMetadata tests the receiving end of the sync process
@@ -329,36 +311,6 @@ func TestReceivingEndProcessesPriorityMetadata(t *testing.T) {
 		assert.NotNil(t, postWithoutPersistentNotif.Metadata, "Post should have metadata")
 	})
 
-	// STEP 3: Test the post metadata is included in logging
-	t.Run("step 3: priority metadata included in logging", func(t *testing.T) {
-		// Get log fields for a post with priority
-		logFields := getPostMetadataLogFields(postWithPriority)
-
-		// Check for specific priority-related fields
-		hasHasPriority := false
-		hasIsUrgent := false
-		hasRequestedAck := false
-		hasPersistentNotifications := false
-
-		for _, field := range logFields {
-			switch field.Key {
-			case "has_priority":
-				hasHasPriority = true
-			case "is_urgent":
-				hasIsUrgent = true
-			case "has_requested_ack":
-				hasRequestedAck = true
-			case "has_persistent_notifications":
-				hasPersistentNotifications = true
-			}
-		}
-
-		// Verify all priority-related fields are included
-		assert.True(t, hasHasPriority, "getPostMetadataLogFields should include has_priority")
-		assert.True(t, hasIsUrgent, "getPostMetadataLogFields should include is_urgent")
-		assert.True(t, hasRequestedAck, "getPostMetadataLogFields should include has_requested_ack")
-		assert.True(t, hasPersistentNotifications, "getPostMetadataLogFields should include has_persistent_notifications")
-	})
 }
 
 // TestFilterPostsWithPriority tests that posts with priority metadata are not filtered out
@@ -615,7 +567,7 @@ func TestEndToEndMetadataSync(t *testing.T) {
 
 		// Post with no metadata
 		postWithoutMetadata := &model.Post{
-			Metadata: nil, // No metadata
+			Metadata:  nil, // No metadata
 		}
 		assert.Nil(t, postWithoutMetadata.Metadata, "Post should have no metadata")
 
@@ -690,24 +642,4 @@ func TestEndToEndMetadataSync(t *testing.T) {
 		assert.Len(t, originalPost.Metadata.Acknowledgements, 2, "Original post should have 2 acknowledgements")
 	})
 
-	// STEP 4: Test that metadata is included in logging fields
-	t.Run("step 4: metadata included in logging fields", func(t *testing.T) {
-		// Get log fields for the original post
-		logFields := getPostMetadataLogFields(originalPost)
-
-		// Check for specific fields related to metadata
-		fieldMap := make(map[string]bool)
-		for _, field := range logFields {
-			fieldMap[field.Key] = true
-		}
-
-		// Verify priority fields
-		assert.True(t, fieldMap["has_priority"], "Log fields should include has_priority")
-		assert.True(t, fieldMap["is_urgent"], "Log fields should include is_urgent")
-		assert.True(t, fieldMap["has_requested_ack"], "Log fields should include has_requested_ack")
-		assert.True(t, fieldMap["has_persistent_notifications"], "Log fields should include has_persistent_notifications")
-
-		// Verify acknowledgements field
-		assert.True(t, fieldMap["ack_count"], "Log fields should include ack_count")
-	})
 }

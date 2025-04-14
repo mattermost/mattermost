@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -141,45 +140,3 @@ func reducePostsSliceInCache(posts []*model.Post, cache map[string]*model.Post) 
 	return reduced
 }
 
-// getPostMetadataLogFields returns common log fields for a post's metadata
-func getPostMetadataLogFields(post *model.Post) []mlog.Field {
-	return []mlog.Field{
-		mlog.Bool("has_priority", post.Metadata != nil && post.Metadata.Priority != nil),
-		mlog.Bool("is_urgent", isUrgentPost(post)),
-		mlog.Bool("has_requested_ack", hasRequestedAck(post)),
-		mlog.Bool("has_persistent_notifications", hasPersistentNotifications(post)),
-		mlog.Int("ack_count", getAckCount(post)),
-	}
-}
-
-// isUrgentPost returns true if the post has the urgent priority flag set
-func isUrgentPost(post *model.Post) bool {
-	if post.Metadata != nil && post.Metadata.Priority != nil && post.Metadata.Priority.Priority != nil {
-		return *post.Metadata.Priority.Priority == model.PostPriorityUrgent
-	}
-	return false
-}
-
-// hasRequestedAck returns true if the post has the requested acknowledgement flag set
-func hasRequestedAck(post *model.Post) bool {
-	if post.Metadata != nil && post.Metadata.Priority != nil && post.Metadata.Priority.RequestedAck != nil {
-		return *post.Metadata.Priority.RequestedAck
-	}
-	return false
-}
-
-// hasPersistentNotifications returns true if the post has the persistent notifications flag set
-func hasPersistentNotifications(post *model.Post) bool {
-	if post.Metadata != nil && post.Metadata.Priority != nil && post.Metadata.Priority.PersistentNotifications != nil {
-		return *post.Metadata.Priority.PersistentNotifications
-	}
-	return false
-}
-
-// getAckCount returns the number of acknowledgements in a post
-func getAckCount(post *model.Post) int {
-	if post.Metadata != nil {
-		return len(post.Metadata.Acknowledgements)
-	}
-	return 0
-}

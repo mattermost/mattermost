@@ -387,12 +387,9 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 
 		rpost, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
 		if appErr == nil {
-			logFields := []mlog.Field{
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId),
-			}
-			logFields = append(logFields, getPostMetadataLogFields(post)...)
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post", logFields...)
+				mlog.String("channel_id", post.ChannelId))
 		}
 	} else if post.DeleteAt > 0 {
 		// delete post
@@ -408,12 +405,9 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		// This ensures priority, acknowledgements, and persistent notifications are properly synced.
 		rpost, appErr = scs.app.UpdatePost(request.EmptyContext(scs.server.Log()), post, nil)
 		if appErr == nil {
-			logFields := []mlog.Field{
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post",
 				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId),
-			}
-			logFields = append(logFields, getPostMetadataLogFields(post)...)
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post", logFields...)
+				mlog.String("channel_id", post.ChannelId))
 		}
 	} else {
 		// nothing to update
