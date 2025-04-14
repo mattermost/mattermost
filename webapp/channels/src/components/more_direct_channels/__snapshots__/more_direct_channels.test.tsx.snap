@@ -5,7 +5,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
   bodyPadding={false}
   className="a11y__modal more-modal more-direct-channels more-direct-channels-generic-modal"
   compassDesign={true}
-  focusTrapDelay={500}
+  delayFocusTrap={true}
   id="moreDmModal"
   modalHeaderText={
     <Memo(MemoizedFormattedMessage)
@@ -249,7 +249,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
   bodyPadding={false}
   className="a11y__modal more-modal more-direct-channels more-direct-channels-generic-modal"
   compassDesign={true}
-  focusTrapDelay={500}
+  delayFocusTrap={true}
   id="moreDmModal"
   modalHeaderText={
     <Memo(MemoizedFormattedMessage)
