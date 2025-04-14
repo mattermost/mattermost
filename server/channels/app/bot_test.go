@@ -901,6 +901,54 @@ func TestConvertUserToBot(t *testing.T) {
 		require.NotNil(t, err)
 		require.Equal(t, "api.context.invalid_token.error", err.Id)
 	})
+
+	t.Run("user with oauth credentials", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Create a user first
+		oauthUser := &model.User{
+			Email:         "oauth_user@example.com",
+			Username:      "oauth_user",
+			Password:      "password",
+			EmailVerified: true,
+		}
+
+		oauthUser, err := th.App.CreateUser(th.Context, oauthUser)
+		require.Nil(t, err)
+
+		// Set OAuth credentials
+		authData := "google_auth_data"
+		userAuth := &model.UserAuth{
+			AuthData:    &authData,
+			AuthService: "google",
+		}
+		_, err = th.App.UpdateUserAuth(th.Context, oauthUser.Id, userAuth)
+		require.Nil(t, err)
+
+		// Verify OAuth credentials are set
+		oauthUser, appErr := th.App.GetUser(oauthUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "google", oauthUser.AuthService)
+		require.NotNil(t, oauthUser.AuthData)
+
+		// Convert user to bot
+		bot, err := th.App.ConvertUserToBot(th.Context, oauthUser)
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		// Get updated user and verify OAuth credentials are cleared
+		updatedUser, err := th.App.GetUser(oauthUser.Id)
+		require.Nil(t, err)
+		assert.Empty(t, updatedUser.AuthService)
+		// AuthData may be empty string instead of nil in the database
+		if updatedUser.AuthData != nil {
+			assert.Empty(t, *updatedUser.AuthData)
+		}
+	})
 }
 
 func TestGetSystemBot(t *testing.T) {
