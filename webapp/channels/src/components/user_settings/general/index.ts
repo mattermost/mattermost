@@ -6,13 +6,13 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
-import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {
     updateMe,
     sendVerificationEmail,
     setDefaultProfileImage,
     uploadProfileImage,
     saveCustomProfileAttribute,
+    getCustomProfileAttributeValues,
 } from 'mattermost-redux/actions/users';
 import {getConfig, getCustomProfileAttributes, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 
@@ -67,7 +67,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setDefaultProfileImage,
             uploadProfileImage,
             saveCustomProfileAttribute,
-            getCustomProfileAttributeFields,
+            getCustomProfileAttributeValues,
         }, dispatch),
     };
 }

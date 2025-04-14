@@ -82,7 +82,7 @@ describe('Team Settings', () => {
     function inviteNewMemberToTeam(email) {
         cy.wait(TIMEOUTS.HALF_SEC);
 
-        cy.findByRole('textbox', {name: 'Add or Invite People'}).
+        cy.findByRole('combobox', {name: 'Add or Invite People'}).
             typeWithForce(email).
             wait(TIMEOUTS.HALF_SEC).
             typeWithForce('{enter}');

@@ -11,9 +11,14 @@
         }
     }
 
+    &__header {
+        padding-left: 0 !important;
+    }
+
     &__footer {
         display: flex;
         justify-content: space-between;
+        padding-right: 0 !important;
 
         // to override clearfix rule in clearfix.less
         &::before,
