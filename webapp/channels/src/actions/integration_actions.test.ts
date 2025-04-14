@@ -3,8 +3,8 @@
 
 import type {IncomingWebhook, OutgoingWebhook, Command, OAuthApp} from '@mattermost/types/integrations';
 
-import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import * as IntegrationActions from 'mattermost-redux/actions/integrations';
+import {getProfilesByIds} from 'mattermost-redux/actions/users';
 
 import * as Actions from 'actions/integration_actions';
 

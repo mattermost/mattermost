@@ -753,42 +753,57 @@ describe('Actions.Integrations', () => {
         expect(data.errors.name).toEqual('some error');
     });
 
-    it('submitInteractiveDialogArgs', async () => {
-        const channelID = TestHelper.generateId();
-        const initialState = {
-            entities: {
-                integrations: {
-                    dialogArguments: {
-                        channel_id: channelID,
-                    },
-                },
-                channels: {
-                    currentChannelId: 'abc',
-                },
-            },
+    it('submitInteractiveDialog handles successful response', async () => {
+        const successResponse = {
+            errors: {},
         };
-        store = configureStore(initialState);
-        let receivedChannelId = '';
+
         nock(Client4.getBaseRoute()).
-            post('/actions/dialogs/submit', (body) => {
-                console.log(body);
-                receivedChannelId = body.channel_id;
-                return true;
-            }).
-            reply(200, {});
+            post('/actions/dialogs/submit').
+            reply(200, successResponse);
 
         const submit: DialogSubmission = {
-            url: 'https://mattermost.com',
-            callback_id: '123',
-            state: '123',
+            callback_id: 'callback_id',
             channel_id: TestHelper.generateId(),
-            team_id: TestHelper.generateId(),
-            submission: {name: 'value'},
+            state: 'state',
+            submission: {
+                field1: 'value1',
+                field2: 'value2',
+            },
             cancelled: false,
-            user_id: '',
+            team_id: TestHelper.generateId(),
+            user_id: TestHelper.generateId(),
         };
 
-        await store.dispatch(Actions.submitInteractiveDialog(submit));
-        expect(receivedChannelId).toEqual(channelID);
+        const {data} = await store.dispatch(Actions.submitInteractiveDialog(submit));
+
+        expect(data).toEqual(successResponse);
+    });
+
+    it('submitInteractiveDialog handles error response', async () => {
+        const errorResponse = {
+            message: 'Invalid dialog submission',
+        };
+
+        nock(Client4.getBaseRoute()).
+            post('/actions/dialogs/submit').
+            reply(400, errorResponse);
+
+        const submit: DialogSubmission = {
+            callback_id: 'callback_id',
+            channel_id: TestHelper.generateId(),
+            state: 'state',
+            submission: {
+                field1: 'value1',
+            },
+            cancelled: false,
+            team_id: TestHelper.generateId(),
+            user_id: TestHelper.generateId(),
+        };
+
+        const {error} = await store.dispatch(Actions.submitInteractiveDialog(submit));
+
+        expect(error).toBeTruthy();
+        expect(error.message).toEqual(errorResponse.message);
     });
 });

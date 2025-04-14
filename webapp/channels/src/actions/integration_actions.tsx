@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {IncomingWebhook, IncomingWebhooksWithCount, OutgoingWebhook, Command, OAuthApp, OutgoingOAuthConnection} from '@mattermost/types/integrations';
+import type {IncomingWebhook, IncomingWebhooksWithCount, OutgoingWebhook, Command, OAuthApp, OutgoingOAuthConnection, DialogSubmission, SubmitDialogResponse} from '@mattermost/types/integrations';
 
 import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
+import {getDialogArguments} from 'mattermost-redux/selectors/entities/integrations';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import type {ActionFuncAsync} from 'types/store';
+import type {ActionFuncAsync, GlobalState} from 'types/store';
 
 const DEFAULT_PAGE_SIZE = 100;
 
@@ -169,5 +171,19 @@ export function loadProfilesForOutgoingOAuthConnections(connections: OutgoingOAu
 
         dispatch(getProfilesByIds(list));
         return {data: null};
+    };
+}
+
+// webapp/channels/src/actions/integration_actions.tsx
+export function submitInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<SubmitDialogResponse, GlobalState> {
+    return async (dispatch, getState) => {
+        const state = getState();
+
+        const dialogArguments = getDialogArguments(state);
+        submission.channel_id = dialogArguments ? dialogArguments.channel_id : getCurrentChannelId(state);
+
+        const {data} = await dispatch(IntegrationActions.submitInteractiveDialog(submission));
+
+        return {data};
     };
 }
