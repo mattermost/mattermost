@@ -98,7 +98,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
             ...updatedChannelBanner,
             background_color: color,
         });
-    }, []);
+    }, [updatedChannelBanner]);
 
     const toggleTextPreview = useCallback(() => setShowBannerTextPreview((show) => !show), []);
 

@@ -12,7 +12,7 @@ import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import {selectShowChannelBanner} from 'mattermost-redux/selectors/entities/channel_banner';
+import {selectChannelBannerEnabled} from 'mattermost-redux/selectors/entities/channel_banner';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
@@ -48,7 +48,7 @@ const SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT = 3000;
 function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
-    const shouldShowConfigurationTab = useSelector((state: GlobalState) => selectShowChannelBanner(state, channelId));
+    const shouldShowConfigurationTab = useSelector(selectChannelBannerEnabled);
 
     const canArchivePrivateChannels = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DELETE_PRIVATE_CHANNEL),
