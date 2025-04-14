@@ -30,6 +30,7 @@ type AdvancedTextboxProps = {
     onValidate?: (value: string) => { isValid: boolean; errorMessage?: string };
     showCharacterCount?: boolean;
     readOnly?: boolean;
+    name?: string; // Added name prop for floating label
 };
 
 const AdvancedTextbox = ({
@@ -51,9 +52,11 @@ const AdvancedTextbox = ({
     onValidate,
     showCharacterCount = false,
     readOnly = false,
+    name,
 }: AdvancedTextboxProps) => {
     const {formatMessage} = useIntl();
     const [internalError, setInternalError] = useState<string | JSX.Element | undefined>(errorMessage);
+    const [isFocused, setIsFocused] = useState(false);
 
     // Derived values
     const isTooLong = value.length > maxLength;
@@ -77,6 +80,15 @@ const AdvancedTextbox = ({
             setInternalError(undefined);
         }
     }, [errorMessage, isTooLong, isTooShort, maxLength, minLength, minLengthErrorMessage, formatMessage]);
+
+    // Handle focus events
+    const handleFocus = () => {
+        setIsFocused(true);
+    };
+
+    const handleBlur = () => {
+        setIsFocused(false);
+    };
 
     // Handle validation on change
     const handleChange = (e: React.ChangeEvent<TextboxElement>) => {
@@ -103,20 +115,29 @@ const AdvancedTextbox = ({
 
     return (
         <div className='AdvancedTextbox'>
-            <Textbox
-                value={value}
-                onChange={handleChange}
-                onKeyPress={onKeyPress}
-                supportsCommands={false}
-                suggestionListPosition='bottom'
-                createMessage={createMessage}
-                channelId={channelId}
-                id={id}
-                characterLimit={maxLength}
-                preview={localPreview}
-                useChannelMentions={useChannelMentions}
-                hasError={hasError}
-            />
+            <div className='AdvancedTextbox__wrapper'>
+                {name && (
+                    <div className={`AdvancedTextbox__label ${(value || isFocused) ? 'AdvancedTextbox__label--active' : ''}`}>
+                        {name}
+                    </div>
+                )}
+                <Textbox
+                    value={value}
+                    onChange={handleChange}
+                    onKeyPress={onKeyPress}
+                    supportsCommands={false}
+                    suggestionListPosition='bottom'
+                    createMessage={createMessage}
+                    channelId={channelId}
+                    id={id}
+                    characterLimit={maxLength}
+                    preview={localPreview}
+                    useChannelMentions={useChannelMentions}
+                    hasError={hasError}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                />
+            </div>
             {!readOnly && value.trim().length > 0 && (
                 <ShowFormat
                     onClick={togglePreview}

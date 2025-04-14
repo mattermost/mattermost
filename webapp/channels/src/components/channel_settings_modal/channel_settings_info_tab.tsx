@@ -401,6 +401,7 @@ function ChannelSettingsInfoTab({
                 }
                 showCharacterCount={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH}
                 readOnly={!canManageChannelProperties}
+                name={formatMessage({id: 'channel_settings.purpose.label', defaultMessage: 'Channel Purpose'})}
             />
 
             {/* Channel Header Section*/}
@@ -432,6 +433,7 @@ function ChannelSettingsInfoTab({
                 }
                 showCharacterCount={channelHeader.length > HEADER_MAX_LENGTH}
                 readOnly={!canManageChannelProperties}
+                name={formatMessage({id: 'channel_settings.header.label', defaultMessage: 'Channel Header'})}
             />
 
             {/* SaveChangesPanel for unsaved changes */}
