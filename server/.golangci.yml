@@ -95,7 +95,6 @@ issues:
         channels/app/file_test.go|\
         channels/app/helper_test.go|\
         channels/app/import_functions.go|\
-        channels/app/integration_action.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\
@@ -103,7 +102,6 @@ issues:
         channels/app/platform/status.go|\
         channels/app/platform/web_hub_test.go|\
         channels/app/post_test.go|\
-        channels/app/slack.go|\
         channels/app/slashcommands/auto_environment.go|\
         channels/app/slashcommands/command_test.go|\
         channels/app/slashcommands/helper_test.go|\
@@ -160,7 +158,6 @@ issues:
         channels/store/storetest/team_store.go|\
         channels/store/storetest/thread_store.go|\
         channels/store/storetest/user_store.go|\
-        channels/utils/license_test.go|\
         channels/web/oauth_test.go|\
         channels/web/saml.go|\
         channels/web/web_test.go|\
