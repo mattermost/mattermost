@@ -10376,10 +10376,6 @@
     "translation": "Сеанс не знайдено."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "спроба змінити поле, яке не існує"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Неможливо отримати закладки для заархівованого каналу"
   },
@@ -10505,10 +10501,6 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
-    "translation": "Не вдалося перетворити поле властивості на поле атрибута кастомного профілю"
-  },
-  {
-    "id": "api.custom_profile_attributes.field_conversion_error",
     "translation": "Не вдалося перетворити поле властивості на поле атрибута кастомного профілю"
   },
   {

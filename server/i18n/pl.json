@@ -10396,10 +10396,6 @@
     "translation": "Nie udało się zaktualizować kolejności sortowania zakładki kanału."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "próba załatania pola, które nie istnieje"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Nie można pobrać zakładek dla zarchiwizowanego kanału"
   },
@@ -10501,10 +10497,6 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
-    "translation": "Nie można przekonwertować pola właściwości na niestandardowe pole atrybutu profilu"
-  },
-  {
-    "id": "api.custom_profile_attributes.field_conversion_error",
     "translation": "Nie można przekonwertować pola właściwości na niestandardowe pole atrybutu profilu"
   },
   {

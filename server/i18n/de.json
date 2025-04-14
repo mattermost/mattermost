@@ -10404,10 +10404,6 @@
     "translation": "Die Sortierreihenfolge des Kanal-Lesezeichens konnte nicht aktualisiert werden."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "Versuch, ein Feld zu patchen, das nicht existiert"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Lesezeichen für einen archivierten Kanal können nicht abgerufen werden"
   },
@@ -10494,10 +10490,6 @@
   {
     "id": "license_error.feature_unavailable",
     "translation": "Funktion ist für die aktuelle Lizenz nicht verfügbar"
-  },
-  {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Das Eigenschaftsfeld kann nicht in ein benutzerdefiniertes Profilattributfeld umgewandelt werden"
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",

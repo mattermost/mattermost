@@ -10084,10 +10084,6 @@
     "translation": "Невозможно выполнить команду в удаленном канале."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "пытаюсь исправить поле, которого не существует"
-  },
-  {
     "id": "api.context.get_session.app_error",
     "translation": "Сеанс не найден."
   },
@@ -10250,10 +10246,6 @@
   {
     "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
     "translation": "Ваша учётная запись заблокирована из-за слишком большого количества неудачных попыток ввода пароля. Обратитесь к своему системному администратору."
-  },
-  {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Невозможно преобразовать поле свойства в поле атрибута пользовательского профиля"
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",

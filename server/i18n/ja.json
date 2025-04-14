@@ -10394,10 +10394,6 @@
     "translation": "チャンネルブックマークのソート順を更新できませんでした。"
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "存在しないフィールドにパッチを当てようとしています"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "アーカイブされたチャンネルのブックマークを取得できませんでした"
   },
@@ -10480,10 +10476,6 @@
   {
     "id": "app.drafts.permanent_delete_by_user.app_error",
     "translation": "ユーザーの下書きを削除できません。"
-  },
-  {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "プロパティフィールドをカスタムプロフィール属性フィールドに変換できません"
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
