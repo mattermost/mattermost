@@ -5439,6 +5439,9 @@ func groupTestGroupMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func groupTestDistinctGroupMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
+	ss.DropAllTables()
+
+	// Create two groups
 	group1, err := ss.Group().Create(&model.Group{
 		Name:        model.NewPointer(model.NewId()),
 		DisplayName: model.NewId(),
@@ -5457,43 +5460,48 @@ func groupTestDistinctGroupMemberCount(t *testing.T, rctx request.CTX, ss store.
 	require.NoError(t, err)
 	defer ss.Group().Delete(group2.Id)
 
-	user := &model.User{
-		Email:    fmt.Sprintf("test.%s@localhost", model.NewId()),
+	// Create two users
+	user1 := &model.User{
+		Email:    MakeEmail(),
 		Username: model.NewUsername(),
 	}
-	user, err = ss.User().Save(rctx, user)
+	user1, err = ss.User().Save(rctx, user1)
 	require.NoError(t, err)
 
 	user2 := &model.User{
-		Email:    fmt.Sprintf("test.%s@localhost", model.NewId()),
+		Email:    MakeEmail(),
 		Username: model.NewUsername(),
 	}
 	user2, err = ss.User().Save(rctx, user2)
 	require.NoError(t, err)
 
-	member1, err := ss.Group().UpsertMember(group1.Id, user.Id)
+	// Add user1 to group1
+	member1, err := ss.Group().UpsertMember(group1.Id, user1.Id)
 	require.NoError(t, err)
 	defer ss.Group().DeleteMember(group1.Id, member1.UserId)
 
-	count, err := ss.Group().GroupMemberCount()
+	// Verify count is now 1
+	count, err := ss.Group().DistinctGroupMemberCount()
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, count, int64(1))
+	require.Equal(t, int64(1), count)
 
-	member2, err := ss.Group().UpsertMember(group1.Id, user2.Id)
+	// Add user2 to group1
+	_, err = ss.Group().UpsertMember(group1.Id, user2.Id)
 	require.NoError(t, err)
-	defer ss.Group().DeleteMember(group1.Id, member2.UserId)
 
-	countAfter1, err := ss.Group().GroupMemberCount()
+	// Verify count is now 2
+	countAfter1, err := ss.Group().DistinctGroupMemberCount()
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, countAfter1, count+1)
+	require.Equal(t, int64(2), countAfter1)
 
-	member3, err := ss.Group().UpsertMember(group1.Id, member1.UserId)
+	// Add user1 to group2 as well
+	_, err = ss.Group().UpsertMember(group2.Id, user1.Id)
 	require.NoError(t, err)
-	defer ss.Group().DeleteMember(group1.Id, member3.UserId)
 
-	countAfter2, err := ss.Group().GroupMemberCount()
+	// Verify count stays at 2 (user1 is already counted)
+	countAfter2, err := ss.Group().DistinctGroupMemberCount()
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, countAfter2, countAfter1)
+	require.Equal(t, countAfter1, countAfter2)
 }
 
 func groupTestGroupCountWithAllowReference(t *testing.T, rctx request.CTX, ss store.Store) {
