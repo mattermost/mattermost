@@ -153,6 +153,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		if teamId := relayProps["team_id"]; teamId != "" {
 			if err = c.App.AddUserToTeamByTeamId(c.AppContext, teamId, user); err != nil {
 				c.LogErrorByCode(err)
+				break
 			}
 			if err = c.App.AddDirectChannels(c.AppContext, teamId, user); err != nil {
 				c.LogErrorByCode(err)
