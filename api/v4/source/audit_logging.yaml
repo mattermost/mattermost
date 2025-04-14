@@ -9,7 +9,7 @@
         ##### Permissions
         Must have `sysconsole_write_experimental_features` permission.
 
-        __Minimum server version__: 9.5
+        __Minimum server version__: 10.9
       operationId: AddAuditLogCertificate
       requestBody:
         content:
