@@ -65,7 +65,7 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 	// Helper function to verify filtered posts
 	verifyFilteredPosts := func(t *testing.T, filteredPosts []*model.Post, expectedIDs []string) {
 		require.Len(t, filteredPosts, len(expectedIDs), "Should have the expected number of posts after filtering")
-		
+
 		for i, expectedID := range expectedIDs {
 			assert.Equal(t, expectedID, filteredPosts[i].Id, "Post ID should match expected")
 		}
@@ -79,11 +79,10 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 		}
 	}
 
-
 	t.Run("filterMetadataSystemPosts filters out metadata posts", func(t *testing.T) {
 		// Test with all post types
 		posts := createTestPosts()
-		
+
 		// Use the filterMetadataSystemPosts function directly
 		filteredPosts := filterMetadataSystemPosts(posts)
 
@@ -301,7 +300,7 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 		// Create individual posts for testing isMetadataSystemPost
 		regularPost := &model.Post{
 			Id:        "regularPost",
-			ChannelId: "channel1", 
+			ChannelId: "channel1",
 			UserId:    "user1",
 			Message:   "Regular post",
 			Type:      model.PostTypeDefault,
@@ -354,14 +353,14 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 			posts := []*model.Post{regularPost, headerChangePost, displayNameChangePost, purposeChangePost}
 			originalPosts := make([]*model.Post, len(posts))
 			copy(originalPosts, posts)
-			
+
 			// Apply the filter
 			result := filterMetadataSystemPosts(posts)
-			
+
 			// Verify the result
 			require.Len(t, result, 1, "Should only have one post after filtering")
 			assert.Equal(t, "regularPost", result[0].Id, "Only regular post should remain after filtering")
-			
+
 			// Verify the original slice was modified (since we're using in-place filtering)
 			assert.Equal(t, posts[:1], result, "The filtered result should be a slice of the original")
 		})
