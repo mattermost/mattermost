@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator} from '@playwright/test';
-
-import {expect} from '@mattermost/playwright-lib';
+import {expect, Locator} from '@playwright/test';
 
 export type DisplaySettingsSection =
     | 'theme'
