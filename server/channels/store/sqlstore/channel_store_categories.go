@@ -533,7 +533,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 
 	categories := []*sidebarCategoryForJoin{}
 	query := s.sidebarCategorySelectQuery.
-		Columns("SidebarChannels.ChannelId").
+		Columns("SidebarChannels.ChannelId"). //dfd
 		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=SidebarCategories.Id").
 		InnerJoin("Teams ON Teams.Id=SidebarCategories.TeamId").
 		InnerJoin("TeamMembers ON TeamMembers.TeamId=SidebarCategories.TeamId").
