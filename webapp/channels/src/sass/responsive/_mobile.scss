@@ -400,7 +400,6 @@
         flex: 1;
 
         .emoji-picker__category-header {
-            padding-top: 8px;
             font-size: 14px;
         }
     }
@@ -409,20 +408,7 @@
         width: calc(100% / 15);
         height: auto;
         padding: 0;
-        padding-top: calc(100% / 15);
-        margin: calc(100% / 45);
-
-        > div {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            display: flex;
-            width: 30px;
-            height: 30px;
-            align-items: center;
-            justify-content: center;
-            transform: translate(-50%, -50%);
-        }
+        margin-inline: calc(100% / 45);
     }
 
     .emoji-picker__preview {
@@ -1824,7 +1810,6 @@
 
     .emoji-picker__item {
         width: calc(100% / #{variables.$emoji-per-row});
-        padding-top: calc(100% / #{variables.$emoji-per-row});
         margin: 0;
     }
 

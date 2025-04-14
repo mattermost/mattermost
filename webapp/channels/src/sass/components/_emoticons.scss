@@ -460,12 +460,13 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 
 .emoji-picker__items {
     position: relative;
-    padding: 4px 0 4px 12px;
     border-top-width: 1px;
     border-top-style: solid;
     -webkit-overflow-scrolling: touch;
     overflow-x: hidden;
     overflow-y: auto;
+    padding-block: 4px;
+    padding-inline: 0px;
 
     &:has(.no-results__wrapper) {
         display: flex;
@@ -489,11 +490,11 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 
     .emoji-picker__category-header {
         position: relative;
-        padding-top: 3px;
-        margin-top: 6px;
+        align-content: center;
         color: rgba(var(--center-channel-color-rgb), 0.48);
         font-size: 12px;
         font-weight: bold;
+        line-height: normal;
         text-transform: uppercase;
     }
 
@@ -513,6 +514,8 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 .emoji-picker__row {
     display: flex;
     justify-content: flex-start;
+    padding-inline-end: 4px;
+    padding-inline-start: 12px;
 }
 
 .emoji-picker__item {
@@ -558,10 +561,6 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 
     &:active {
         background-color: rgba(var(--center-channel-color-rgb), 0.32);
-    }
-
-    > div {
-        text-align: center;
     }
 
     img {
