@@ -1509,7 +1509,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nКанали додані:\n"
+    "translation": "\nДодані канали:\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -10510,5 +10510,41 @@
   {
     "id": "api.custom_profile_attributes.field_conversion_error",
     "translation": "Не вдалося перетворити поле властивості на поле атрибута кастомного профілю"
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Недійсний ідентифікатор політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Недійсний імпорт для політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Недійсна назва політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Недійсна версія політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Правила недійсні."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Політика має імпортувати або визначати правила."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Недійсний тип політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Версія недійсна для цієї політики контролю доступу."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "недійсний патч поля атрибута спеціального профілю"
   }
 ]
