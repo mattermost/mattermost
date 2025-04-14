@@ -140,8 +140,8 @@ func channelSliceColumns(prefix ...string) []string {
 	}
 }
 
-func channelToSlice(channel *model.Channel) []interface{} {
-	return []interface{}{
+func channelToSlice(channel *model.Channel) []any {
+	return []any{
 		channel.Id,
 		channel.CreateAt,
 		channel.UpdateAt,
