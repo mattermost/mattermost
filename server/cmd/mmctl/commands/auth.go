@@ -167,9 +167,9 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 	allowInsecureTLS := viper.GetBool("insecure-tls-version")
 
 	instanceURL := strings.TrimRight(args[0], "/")
-	_, urlErr := url.ParseRequestURI(instanceURL)
-	if urlErr != nil {
-		return fmt.Errorf("could not parse the instance url: %w", urlErr)
+	_, err = url.ParseRequestURI(instanceURL)
+	if err != nil {
+		return fmt.Errorf("could not parse the instance url: %w", err)
 	}
 
 	res, err := http.Get(instanceURL)
