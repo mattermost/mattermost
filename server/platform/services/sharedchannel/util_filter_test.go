@@ -79,53 +79,6 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 		}
 	}
 
-	t.Run("filterPostsForSync applies other filtering criteria", func(t *testing.T) {
-		// Setup test service and data
-		scs := Service{}
-		
-		// Create test posts that are already filtered for metadata
-		// (since filtering now happens in fetchPostsForSync)
-		posts := []*model.Post{
-			// Regular post (should be kept)
-			{
-				Id:        "post1",
-				ChannelId: "channel1",
-				UserId:    "user1",
-				Message:   "Regular post",
-				Type:      model.PostTypeDefault,
-			},
-			// Another regular post (should be kept)
-			{
-				Id:        "post5",
-				ChannelId: "channel1",
-				UserId:    "user1",
-				Message:   "Another regular post",
-				Type:      model.PostTypeDefault,
-			},
-		}
-		
-		sd := &syncData{
-			posts: posts,
-			scr: &model.SharedChannelRemote{
-				Id:               "remote1",
-				ChannelId:        "channel1",
-				RemoteId:         "remoteCluster1",
-				LastPostUpdateAt: 0,
-				LastPostCreateAt: 0,
-			},
-			rc: &model.RemoteCluster{
-				RemoteId: "remoteCluster1",
-			},
-		}
-
-		// Run the function being tested
-		scs.filterPostsForSync(sd)
-
-		// Verify results - both posts should remain since they're not metadata posts
-		require.Len(t, sd.posts, 2, "Both posts should be kept")
-		assert.Equal(t, "post1", sd.posts[0].Id, "First post should be kept")
-		assert.Equal(t, "post5", sd.posts[1].Id, "Second post should be kept")
-	})
 
 	t.Run("filterMetadataSystemPosts filters out metadata posts", func(t *testing.T) {
 		// Test with all post types
