@@ -95,6 +95,7 @@ func TestGroupStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetNonMemberUsersPage", func(t *testing.T) { groupTestGetNonMemberUsersPage(t, rctx, ss) })
 
 	t.Run("DistinctGroupMemberCountForSource", func(t *testing.T) { groupTestDistinctGroupMemberCountForSource(t, rctx, ss) })
+	t.Run("GroupCountBySource", func(t *testing.T) { groupTestGroupCountBySource(t, rctx, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -5683,4 +5684,64 @@ func groupTestDistinctGroupMemberCountForSource(t *testing.T, rctx request.CTX, 
 	ldapGroupCount, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceLdap)
 	require.NoError(t, err)
 	require.Equal(t, ldapGroupCountBefore+1, ldapGroupCount)
+}
+
+func groupTestGroupCountBySource(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Get initial counts for different sources
+	customSourceCountBefore, err := ss.Group().GroupCountBySource(model.GroupSourceCustom)
+	require.NoError(t, err)
+	ldapSourceCountBefore, err := ss.Group().GroupCountBySource(model.GroupSourceLdap)
+	require.NoError(t, err)
+
+	// Create groups with different sources
+	g1 := &model.Group{
+		Name:        model.NewPointer(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewPointer(model.NewId()),
+	}
+	customGroup, err := ss.Group().Create(g1)
+	require.NoError(t, err)
+
+	g2 := &model.Group{
+		Name:        model.NewPointer(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewPointer(model.NewId()),
+	}
+	ldapGroup, err := ss.Group().Create(g2)
+	require.NoError(t, err)
+
+	g3 := &model.Group{
+		Name:        model.NewPointer(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewPointer(model.NewId()),
+	}
+	ldapGroup2, err := ss.Group().Create(g3)
+	require.NoError(t, err)
+
+	defer func() {
+		ss.Group().Delete(customGroup.Id)
+		ss.Group().Delete(ldapGroup.Id)
+		ss.Group().Delete(ldapGroup2.Id)
+	}()
+
+	// Check counts after creating groups
+	customSourceCountAfter, err := ss.Group().GroupCountBySource(model.GroupSourceCustom)
+	require.NoError(t, err)
+	require.Equal(t, customSourceCountBefore+1, customSourceCountAfter)
+
+	ldapSourceCountAfter, err := ss.Group().GroupCountBySource(model.GroupSourceLdap)
+	require.NoError(t, err)
+	require.Equal(t, ldapSourceCountBefore+2, ldapSourceCountAfter)
+
+	// Delete one LDAP group and verify count decreases
+	ss.Group().Delete(ldapGroup.Id)
+	ldapSourceCountAfterDelete, err := ss.Group().GroupCountBySource(model.GroupSourceLdap)
+	require.NoError(t, err)
+	require.Equal(t, ldapSourceCountAfter-1, ldapSourceCountAfterDelete)
 }
