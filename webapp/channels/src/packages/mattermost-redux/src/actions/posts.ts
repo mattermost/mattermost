@@ -1226,6 +1226,9 @@ export function doPostActionWithCookie(postId: string, actionId: string, actionC
                 type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
                 data: data.trigger_id,
             });
+            const state = getState();
+            const post = PostSelectors.getPost(state, postId);
+            dispatch({type: IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS, data: {channel_id: post.channel_id}});
         }
 
         return {data};
