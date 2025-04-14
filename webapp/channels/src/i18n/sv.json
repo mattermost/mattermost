@@ -659,7 +659,7 @@
   "admin.customization.announcement.bannerTextColorTitle": "Banner textfärg:",
   "admin.customization.announcement.bannerTextDesc": "Text att visa i informationsbanner.",
   "admin.customization.announcement.bannerTextTitle": "Bannertext:",
-  "admin.customization.announcement.enableBannerDesc": "Aktivera en informationsbanner för alla grupper.",
+  "admin.customization.announcement.enableBannerDesc": "Aktivera en informationsbanner för alla team.",
   "admin.customization.announcement.enableBannerTitle": "Aktivera system-notifieringar:",
   "admin.customization.appDownloadLinkDesc": "Lägg till en länk till sidan för nedladdning av Mattermost appar. När en länk är tillgänglig, kommer valet \"Ladda ner Mattermost appar\" att läggas till i produktmenyn så användare kan hitta sidan. Lämna fältet tomt för att dölja valet i produktmenyn.",
   "admin.customization.appDownloadLinkTitle": "Sidlänk för Mattermost appar:",
