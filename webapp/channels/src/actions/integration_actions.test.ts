@@ -47,20 +47,7 @@ describe('actions/integration_actions', () => {
             channels: {
                 currentChannelId: 'current_channel_id',
             },
-            threads: {
-                threads: {
-                    thread1: {
-                        id: 'thread1',
-                        post: {
-                            id: 'thread_post_id',
-                            channel_id: 'thread_channel_id',
-                        },
-                    },
-                },
-                threadsInTeam: {
-                    team_id1: ['thread1'],
-                },
-            },
+            integrations: {},
         },
         views: {
             threads: {
@@ -153,7 +140,44 @@ describe('actions/integration_actions', () => {
 
     describe('submitInteractiveDialog', () => {
         test('submitInteractiveDialog with current channel', async () => {
+            const testState = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    integrations: {
+                        ...initialState.entities.integrations,
+                        dialogArguments: {
+                            channel_id: 'dialog_channel_id',
+                        },
+                    },
+                },
+            };
+            const testStore = mockStore(testState);
+            const submission = {
+                callback_id: 'callback_id',
+                state: 'state',
+                submission: {
+                    name: 'value',
+                },
+                user_id: 'current_user_id',
+                team_id: 'team_id1',
+                channel_id: '',
+                cancelled: false,
+            };
+
+            const expectedSubmission = {
+                ...submission,
+                channel_id: 'dialog_channel_id',
+            };
+
+            await testStore.dispatch(Actions.submitInteractiveDialog(submission));
+
+            expect(IntegrationActions.submitInteractiveDialog).toHaveBeenCalledWith(expectedSubmission);
+        });
+
+        test('submitInteractiveDialog with currentChannel context', async () => {
             const testStore = mockStore(initialState);
+
             const submission = {
                 callback_id: 'callback_id',
                 state: 'state',
@@ -169,41 +193,6 @@ describe('actions/integration_actions', () => {
             const expectedSubmission = {
                 ...submission,
                 channel_id: 'current_channel_id',
-            };
-
-            await testStore.dispatch(Actions.submitInteractiveDialog(submission));
-
-            expect(IntegrationActions.submitInteractiveDialog).toHaveBeenCalledWith(expectedSubmission);
-        });
-
-        test('submitInteractiveDialog with thread context', async () => {
-            // Set current channel to empty to simulate thread view
-            const threadState = {
-                ...initialState,
-                entities: {
-                    ...initialState.entities,
-                    channels: {
-                        currentChannelId: '',
-                    },
-                },
-            };
-            const testStore = mockStore(threadState);
-
-            const submission = {
-                callback_id: 'callback_id',
-                state: 'state',
-                submission: {
-                    name: 'value',
-                },
-                user_id: 'current_user_id',
-                team_id: 'team_id1',
-                channel_id: '',
-                cancelled: false,
-            };
-
-            const expectedSubmission = {
-                ...submission,
-                channel_id: 'thread_channel_id',
             };
 
             await testStore.dispatch(Actions.submitInteractiveDialog(submission));

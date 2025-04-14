@@ -753,57 +753,63 @@ describe('Actions.Integrations', () => {
         expect(data.errors.name).toEqual('some error');
     });
 
-    it('submitInteractiveDialog handles successful response', async () => {
-        const successResponse = {
-            errors: {},
+    it('submitInteractiveDialog uses submission data', async () => {
+        const submit: DialogSubmission = {
+            callback_id: 'callback_id',
+            channel_id: 'submission_channel_id',
+            state: 'state',
+            submission: {
+                field1: 'value1',
+            },
+            cancelled: false,
+            team_id: 'submission_team_id',
+            user_id: TestHelper.generateId(),
         };
 
         nock(Client4.getBaseRoute()).
-            post('/actions/dialogs/submit').
-            reply(200, successResponse);
+            post('/actions/dialogs/submit', submit).
+            reply(200, OK_RESPONSE);
+
+        const {data} = await store.dispatch(Actions.submitInteractiveDialog(submit));
+        expect(data).toEqual(OK_RESPONSE);
+    });
+
+    it('submitInteractiveDialog uses state information', async () => {
+        store = configureStore({
+            entities: {
+                teams: {
+                    currentTeamId: 'currentTeamID',
+                },
+                channels: {
+                    currentChannelId: 'dialog_channel_id',
+                },
+            },
+        });
 
         const submit: DialogSubmission = {
             callback_id: 'callback_id',
-            channel_id: TestHelper.generateId(),
+            channel_id: '',
             state: 'state',
             submission: {
                 field1: 'value1',
                 field2: 'value2',
             },
             cancelled: false,
-            team_id: TestHelper.generateId(),
+            team_id: '',
             user_id: TestHelper.generateId(),
         };
 
-        const {data} = await store.dispatch(Actions.submitInteractiveDialog(submit));
-
-        expect(data).toEqual(successResponse);
-    });
-
-    it('submitInteractiveDialog handles error response', async () => {
-        const errorResponse = {
-            message: 'Invalid dialog submission',
+        const expectedRequest = {
+            ...submit,
+            channel_id: 'dialog_channel_id',
+            team_id: 'currentTeamID',
         };
 
         nock(Client4.getBaseRoute()).
-            post('/actions/dialogs/submit').
-            reply(400, errorResponse);
+            post('/actions/dialogs/submit', expectedRequest).
+            reply(200, OK_RESPONSE);
 
-        const submit: DialogSubmission = {
-            callback_id: 'callback_id',
-            channel_id: TestHelper.generateId(),
-            state: 'state',
-            submission: {
-                field1: 'value1',
-            },
-            cancelled: false,
-            team_id: TestHelper.generateId(),
-            user_id: TestHelper.generateId(),
-        };
-
-        const {error} = await store.dispatch(Actions.submitInteractiveDialog(submit));
-
-        expect(error).toBeTruthy();
-        expect(error.message).toEqual(errorResponse.message);
+        const {data} = await store.dispatch(Actions.submitInteractiveDialog(submit));
+        expect(data).toEqual(OK_RESPONSE);
     });
 });

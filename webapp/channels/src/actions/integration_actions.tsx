@@ -180,7 +180,7 @@ export function submitInteractiveDialog(submission: DialogSubmission): ActionFun
         const state = getState();
 
         const dialogArguments = getDialogArguments(state);
-        submission.channel_id = dialogArguments ? dialogArguments.channel_id : getCurrentChannelId(state);
+        submission.channel_id = (dialogArguments && dialogArguments.channel_id) ? dialogArguments.channel_id : getCurrentChannelId(state);
 
         const {data} = await dispatch(IntegrationActions.submitInteractiveDialog(submission));
 

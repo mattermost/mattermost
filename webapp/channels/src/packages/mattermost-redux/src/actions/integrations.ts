@@ -502,6 +502,7 @@ export function submitInteractiveDialog(submission: DialogSubmission): ActionFun
 
         let data;
         try {
+            console.log(submission);
             data = await Client4.submitInteractiveDialog(submission);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
