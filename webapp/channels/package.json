@@ -68,7 +68,6 @@
     "react-custom-scrollbars": "4.2.1",
     "react-day-picker": "8.3.6",
     "react-dom": "17.0.2",
-    "react-hot-loader": "4.13.0",
     "react-intl": "*",
     "react-is": "17.0.2",
     "react-overlays": "0.9.3",
@@ -101,7 +100,6 @@
   },
   "devDependencies": {
     "@deanwhillier/jest-matchmedia-mock": "1.2.0",
-    "@hot-loader/react-dom": "17.0.2",
     "@mattermost/calls-common": "0.27.0",
     "@mattermost/eslint-plugin": "*",
     "@mattermost/mmjstool": "github:mattermost/mattermost-utilities#7b63833d208d482ba4a1c12230bb3e68dd9c5e5e",
