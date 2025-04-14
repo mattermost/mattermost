@@ -40,8 +40,6 @@ type ChannelSettingsInfoTabProps = {
     showTabSwitchError?: boolean;
 };
 
-export const SAVE_CHANGES_PANEL_ERROR_TIMEOUT = 3000;
-
 function ChannelSettingsInfoTab({
     channel,
     onCancel,
