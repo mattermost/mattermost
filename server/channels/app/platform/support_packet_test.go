@@ -358,7 +358,7 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 	require.NoError(t, err)
 
 	// Ensure sensitive fields are redacted
-	assert.Equal(t, model.FakeSetting, *config.SqlSettings.DataSource)
+	assert.Equal(t, model.FakeSetting, *config.FileSettings.PublicLinkSalt)
 
 	// Ensure non-sensitive fields are present
 	assert.Equal(t, "example.com", *config.ServiceSettings.AllowedUntrustedInternalConnections)
