@@ -3907,6 +3907,10 @@
     "translation": "Received invalid response from OAuth service provider."
   },
   {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "An error occurred in the OnSamlLogin hook. Please contact your System Administrator."
+  },
+  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML response is too long"
   },
