@@ -281,8 +281,8 @@ func TestDownloadJob(t *testing.T) {
 	}()
 
 	filePath := "./data/export/" + job.Id + "/testdat.txt"
-	mkdirAllErr := os.MkdirAll(filepath.Dir(filePath), 0770)
-	require.NoError(t, mkdirAllErr)
+	err = os.MkdirAll(filepath.Dir(filePath), 0770)
+	require.NoError(t, err)
 
 	_, createErr := os.Create(filePath)
 	require.NoError(t, createErr)
@@ -315,7 +315,8 @@ func TestDownloadJob(t *testing.T) {
 	// Now we stub the results of the job into the same directory and try to download it again
 	// This time we should successfully retrieve the results without any error
 	filePath = filepath.Join(*th.App.Config().FileSettings.Directory, "export/", job.Id+".zip")
-	require.NoError(t, mkdirAllErr)
+	err = os.MkdirAll(filepath.Dir(filePath), 0770)
+	require.NoError(t, err)
 
 	_, createErr = os.Create(filePath)
 	require.NoError(t, createErr)
