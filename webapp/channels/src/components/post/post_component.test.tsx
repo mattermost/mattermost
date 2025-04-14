@@ -3,8 +3,9 @@
 
 import React from 'react';
 
-import type {DeepPartial} from '@mattermost/types/utilities';
 import {PostPriority} from '@mattermost/types/posts';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {Posts} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
