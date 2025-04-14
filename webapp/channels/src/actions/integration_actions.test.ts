@@ -49,13 +49,6 @@ describe('actions/integration_actions', () => {
             },
             integrations: {},
         },
-        views: {
-            threads: {
-                selectedThreadIdInTeam: {
-                    team_id1: 'thread1',
-                },
-            },
-        },
     };
 
     describe('loadProfilesForIncomingHooks', () => {
