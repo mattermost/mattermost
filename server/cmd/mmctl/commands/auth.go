@@ -21,7 +21,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
@@ -39,7 +38,7 @@ var LoginCmd = &cobra.Command{
   auth login https://mattermost.example.com --name local-server --username sysadmin --password-file mysupersecret.txt --mfa-token 123456
   auth login https://mattermost.example.com --name local-server --access-token myaccesstoken`,
 	Args: cobra.ExactArgs(1),
-	RunE: withClient(loginCmdF),
+	RunE: loginCmdF,
 }
 
 var CurrentCmd = &cobra.Command{
@@ -126,7 +125,7 @@ func init() {
 	RootCmd.AddCommand(AuthCmd)
 }
 
-func loginCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+func loginCmdF(cmd *cobra.Command, args []string) error {
 	name, err := cmd.Flags().GetString("name")
 	if err != nil {
 		return err
