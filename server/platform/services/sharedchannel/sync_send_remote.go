@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -432,9 +433,24 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		if v.post != nil {
 			if user.RemoteId != nil {
 				if *user.RemoteId == sd.rc.RemoteId {
-					// For remote users from the target remote, fix the mention format
-					// when sending back to their origin server
-					fixMention(v.post, v.mentionMap, user)
+					// First check if mention has colon (was selected from autocomplete)
+					hasSelectedMention := false
+					for mention, id := range v.mentionMap {
+						if id == user.Id && strings.Contains(mention, ":") {
+							hasSelectedMention = true
+							break
+						}
+					}
+					
+					if hasSelectedMention {
+						// For remote users from the target remote, fix the mention format
+						// when sending back to their origin server (only if explicitly mentioned)
+						fixMention(v.post, v.mentionMap, user)
+					} else {
+						// Remove mentions that weren't explicitly selected from autocomplete
+						// This prevents mentioning both local and remote users with the same name
+						removeMention(v.post, v.mentionMap, user)
+					}
 				} else {
 					// For remote users from other servers, remove the mention completely
 					// This ensures only local users get mentioned, not remote users with the same username
