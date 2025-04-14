@@ -29,7 +29,7 @@ func TestGroupStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetByName", func(t *testing.T) { testGroupStoreGetByName(t, rctx, ss) })
 	t.Run("GetByIDs", func(t *testing.T) { testGroupStoreGetByIDs(t, rctx, ss) })
 	t.Run("GetByRemoteID", func(t *testing.T) { testGroupStoreGetByRemoteID(t, rctx, ss) })
-	t.Run("GetAllBySource", func(t *testing.T) { testGroupStoreGetAllByType(t, rctx, ss) })
+	t.Run("GetAllBySource", func(t *testing.T) { testGroupAllBySource(t, rctx, ss) })
 	t.Run("GetByUser", func(t *testing.T) { testGroupStoreGetByUser(t, rctx, ss) })
 	t.Run("Update", func(t *testing.T) { testGroupStoreUpdate(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testGroupStoreDelete(t, rctx, ss) })
@@ -498,38 +498,85 @@ func testGroupStoreGetByRemoteID(t *testing.T, rctx request.CTX, ss store.Store)
 	require.True(t, errors.As(err, &nfErr))
 }
 
-func testGroupStoreGetAllByType(t *testing.T, rctx request.CTX, ss store.Store) {
-	numGroups := 10
-
-	groups := []*model.Group{}
-
-	// Create groups
-	for i := 0; i < numGroups; i++ {
-		g := &model.Group{
-			Name:        model.NewPointer(model.NewId()),
-			DisplayName: model.NewId(),
-			Description: model.NewId(),
-			Source:      model.GroupSourceLdap,
-			RemoteId:    model.NewPointer(model.NewId()),
-		}
-		groups = append(groups, g)
-		_, err := ss.Group().Create(g)
-		require.NoError(t, err)
+func testGroupAllBySource(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Create groups with different sources
+	g1 := &model.Group{
+		Name:        model.NewPointer(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewPointer(model.NewId()),
 	}
-
-	// Returns all the groups
-	d1, err := ss.Group().GetAllBySource(model.GroupSourceLdap)
+	customGroup, err := ss.Group().Create(g1)
 	require.NoError(t, err)
-	require.Condition(t, func() bool { return len(d1) >= numGroups }, len(d1), ">=", numGroups)
-	for _, expectedGroup := range groups {
-		present := false
-		for _, dbGroup := range d1 {
-			if dbGroup.Id == expectedGroup.Id {
-				present = true
-				break
-			}
+	defer ss.Group().Delete(customGroup.Id)
+
+	g2 := &model.Group{
+		Name:        model.NewPointer(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewPointer(model.NewId()),
+	}
+	ldapGroup, err := ss.Group().Create(g2)
+	require.NoError(t, err)
+	defer ss.Group().Delete(ldapGroup.Id)
+
+	g3 := &model.Group{
+		Name:        model.NewPointer(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewPointer(model.NewId()),
+	}
+	ldapGroup2, err := ss.Group().Create(g3)
+	require.NoError(t, err)
+	defer ss.Group().Delete(ldapGroup2.Id)
+
+	// Test filtering by LDAP source
+	ldapGroups, err := ss.Group().GetAllBySource(model.GroupSourceLdap)
+	require.NoError(t, err)
+
+	// Verify we got at least the 2 LDAP groups we created
+	found1, found2 := false, false
+	for _, group := range ldapGroups {
+		if group.Id == ldapGroup.Id {
+			found1 = true
 		}
-		require.True(t, present)
+		if group.Id == ldapGroup2.Id {
+			found2 = true
+		}
+		// Make sure all returned groups are LDAP source
+		require.Equal(t, model.GroupSourceLdap, group.Source)
+	}
+	require.True(t, found1, "Failed to find the first LDAP group")
+	require.True(t, found2, "Failed to find the second LDAP group")
+
+	// Test filtering by Custom source
+	customGroups, err := ss.Group().GetAllBySource(model.GroupSourceCustom)
+	require.NoError(t, err)
+
+	// Verify we got at least the custom group we created
+	foundCustom := false
+	for _, group := range customGroups {
+		if group.Id == customGroup.Id {
+			foundCustom = true
+		}
+		// Make sure all returned groups are Custom source
+		require.Equal(t, model.GroupSourceCustom, group.Source)
+	}
+	require.True(t, foundCustom, "Failed to find the custom group")
+
+	// Test with deleted group to ensure it's not returned
+	_, err = ss.Group().Delete(ldapGroup2.Id)
+	require.NoError(t, err)
+
+	ldapGroupsAfterDelete, err := ss.Group().GetAllBySource(model.GroupSourceLdap)
+	require.NoError(t, err)
+
+	// Verify the deleted group is not returned
+	for _, group := range ldapGroupsAfterDelete {
+		require.NotEqual(t, ldapGroup2.Id, group.Id, "Deleted group should not be returned")
 	}
 }
 
