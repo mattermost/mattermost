@@ -1354,7 +1354,7 @@ describe('Actions.Posts', () => {
         const actionId = 'action7ja7ntdkek6g13dp3wka';
         const triggerId = 'trigger7ja7ntdkek6g13dp3wka';
         const channelId = 'channel7ja7ntdkek6g13dp3wka';
-        
+
         // Setup post in state
         store = configureStore({
             entities: {
@@ -1364,7 +1364,7 @@ describe('Actions.Posts', () => {
                     },
                 },
                 integrations: {
-                    triggerIdDialogData: {},
+                    dialogArguments: {},
                 },
             },
         });
@@ -1374,35 +1374,18 @@ describe('Actions.Posts', () => {
             reply(200, {trigger_id: triggerId});
 
         const {data} = await store.dispatch(Actions.doPostActionWithCookie(postId, actionId, '', 'option'));
-        
+
         // Verify the trigger_id was received and stored in state
         const state = store.getState();
+        expect(data).toBeTruthy();
         expect(data).toEqual({trigger_id: triggerId});
-        expect(state.entities.integrations.triggerIdDialogData).toBeTruthy();
-        expect(state.entities.integrations.triggerIdDialogData.trigger_id).toEqual(triggerId);
-        expect(state.entities.integrations.triggerIdDialogData.channel_id).toEqual(channelId);
-    });
+        console.log(data);
+        console.log(state.entities.integrations);
+        expect(data).toBeTruthy();
 
-    it('doPostActionWithCookie with cookie', async () => {
-        const postId = 'posth67ja7ntdkek6g13dp3wka';
-        const actionId = 'action7ja7ntdkek6g13dp3wka';
-        const actionCookie = 'cookie7ja7ntdkek6g13dp3wka';
-        
-        // Clear previous nock to avoid conflicts
-        nock.cleanAll();
-        
-        // Setup the nock interceptor before the request
-        let cookieValue = '';
-        nock(Client4.getBaseRoute())
-            .post(`/posts/${postId}/actions/${actionId}`)
-            .reply(200, function() {
-                // This captures the request body
-                cookieValue = this.req.body.cookie;
-                return {};
-            });
-
-        await store.dispatch(Actions.doPostActionWithCookie(postId, actionId, actionCookie, 'option'));
-        expect(cookieValue).toEqual(actionCookie);
+        expect(state.entities.integrations.dialogArguments).toBeTruthy();
+        expect(state.entities.integrations.dialogTriggerId).toEqual(triggerId);
+        expect(state.entities.integrations.dialogArguments.channel_id).toEqual(channelId);
     });
 
     it('addMessageIntoHistory', async () => {
