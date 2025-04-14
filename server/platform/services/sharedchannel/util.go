@@ -155,12 +155,15 @@ func filterMetadataSystemPosts(posts []*model.Post) []*model.Post {
 		return nil
 	}
 
-	filteredPosts := make([]*model.Post, 0, len(posts))
-	for _, post := range posts {
-		// Skip system posts about channel metadata changes that we don't sync
-		if !isMetadataSystemPost(post) {
-			filteredPosts = append(filteredPosts, post)
+	j := 0
+	for i := 0; i < len(posts); i++ {
+		if !isMetadataSystemPost(posts[i]) {
+			// Only copy if we need to
+			if i != j {
+				posts[j] = posts[i]
+			}
+			j++
 		}
 	}
-	return filteredPosts
+	return posts[:j]
 }
