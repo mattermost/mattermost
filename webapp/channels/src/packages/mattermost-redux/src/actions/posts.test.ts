@@ -1379,8 +1379,6 @@ describe('Actions.Posts', () => {
         const state = store.getState();
         expect(data).toBeTruthy();
         expect(data).toEqual({trigger_id: triggerId});
-        console.log(data);
-        console.log(state.entities.integrations);
         expect(data).toBeTruthy();
 
         expect(state.entities.integrations.dialogArguments).toBeTruthy();
