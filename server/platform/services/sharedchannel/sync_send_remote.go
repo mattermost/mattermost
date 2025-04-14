@@ -290,6 +290,10 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	if err != nil {
 		return fmt.Errorf("could not fetch new posts for sync: %w", err)
 	}
+
+	// Filter out channel metadata system posts that shouldn't be synchronized
+	posts = filterMetadataSystemPosts(posts)
+
 	count := len(posts)
 	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt, scs.server.Log())
 
@@ -303,6 +307,10 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		if err != nil {
 			return fmt.Errorf("could not fetch modified posts for sync: %w", err)
 		}
+
+		// Filter out channel metadata system posts from the updated posts as well
+		posts = filterMetadataSystemPosts(posts)
+
 		posts = reducePostsSliceInCache(posts, cache)
 		count += len(posts)
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt, scs.server.Log())
@@ -463,11 +471,16 @@ func (scs *Service) fetchPostAttachmentsForSync(sd *syncData) error {
 	return merr.ErrorOrNil()
 }
 
-// filterPostsforSync removes any posts that do not need to sync.
+// filterPostsForSync removes any posts that do not need to sync.
 func (scs *Service) filterPostsForSync(sd *syncData) {
 	filtered := make([]*model.Post, 0, len(sd.posts))
 
 	for _, p := range sd.posts {
+		// Skip system posts about channel metadata changes that we don't sync
+		if isMetadataSystemPost(p) {
+			continue
+		}
+
 		// Don't resend an existing post where only the reactions changed.
 		// Posts we must send:
 		//   - new posts (EditAt == 0)
