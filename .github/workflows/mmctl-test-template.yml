@@ -49,6 +49,8 @@ jobs:
         run: |
           cd server/build
           docker compose --ansi never run --rm start_dependencies
+          cat ../tests/custom-schema-objectID.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
+          cat ../tests/custom-schema-cpa.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
           cat ../tests/test-data.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
