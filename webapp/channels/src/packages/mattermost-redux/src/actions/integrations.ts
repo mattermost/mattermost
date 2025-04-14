@@ -497,10 +497,11 @@ export function deleteOutgoingOAuthConnection(id: string): ActionFuncAsync<boole
 export function submitInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<SubmitDialogResponse> {
     return async (dispatch, getState) => {
         const state = getState();
-        
+
         // Use the current channel and team IDs as fallbacks
         submission.channel_id ||= getCurrentChannelId(state);
         submission.team_id ||= getCurrentTeamId(state);
+        submission.user_id ||= getCurrentUserId(state);
 
         let data;
         try {
