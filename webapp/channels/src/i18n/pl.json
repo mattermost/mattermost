@@ -5783,7 +5783,6 @@
   "user.settings.notifications.email.disabled_long": "Powiadomienia e-mail nie zostały włączone przez twojego Administratora systemu.",
   "user.settings.notifications.email.everyHour": "Co godzinę",
   "user.settings.notifications.email.everyXMinutes": "Co {count, plural, one {minutę} other {{count, number} minut}}",
-  "user.settings.notifications.email.immediately": "Natychmiastowo",
   "user.settings.notifications.email.never": "Nigdy",
   "user.settings.notifications.email.notifyForthreads": "Powiadamiaj mnie o odpowiedziach na wątki, które obserwuję",
   "user.settings.notifications.email.send": "Wysyłanie powiadomień e-mail",

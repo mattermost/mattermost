@@ -5783,7 +5783,6 @@
   "user.settings.notifications.email.disabled_long": "E-Mail-Benachrichtigungen wurden vom Systemadministrator deaktiviert.",
   "user.settings.notifications.email.everyHour": "Jede Stunde",
   "user.settings.notifications.email.everyXMinutes": "{count, plural, one {Jede Minute} other {Alle {count, number} Minuten}}",
-  "user.settings.notifications.email.immediately": "Sofort",
   "user.settings.notifications.email.never": "Nie",
   "user.settings.notifications.email.notifyForthreads": "Benachrichtige mich über Antworten auf Unterhaltungen, denen ich folge",
   "user.settings.notifications.email.send": "E-Mail-Benachrichtigungen senden",

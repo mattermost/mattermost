@@ -4446,7 +4446,6 @@
   "user.settings.notifications.email.disabled_long": "Известията по ел.поща не са активирани от вашия системен администратор.",
   "user.settings.notifications.email.everyHour": "Всеки час",
   "user.settings.notifications.email.everyXMinutes": "{count, plural, one {Всяка минута} other {Всеки {count, number} минути}}",
-  "user.settings.notifications.email.immediately": "Веднага",
   "user.settings.notifications.email.never": "Никога",
   "user.settings.notifications.email.send": "Изпращане на известия по ел.поща",
   "user.settings.notifications.emailBatchingInfo": "Известията, получени през избрания период от време, се комбинират и изпращат в една ел.поща.",

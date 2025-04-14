@@ -5783,7 +5783,6 @@
   "user.settings.notifications.email.disabled_long": "Notifiering via e-post är inte aktiverat av din systemadministratör.",
   "user.settings.notifications.email.everyHour": "Varje timme",
   "user.settings.notifications.email.everyXMinutes": "Var {count, plural, one {minute} other {{count, number} minutes}}",
-  "user.settings.notifications.email.immediately": "Omgående",
   "user.settings.notifications.email.never": "Aldrig",
   "user.settings.notifications.email.notifyForthreads": "Notifiera mig om svar i trådar som jag följer",
   "user.settings.notifications.email.send": "Skicka mejlnotifieringar",

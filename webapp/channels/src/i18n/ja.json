@@ -5739,7 +5739,6 @@
   "user.settings.notifications.email.disabled_long": "電子メール通知はシステム管理者によって有効化されていません。",
   "user.settings.notifications.email.everyHour": "1時間毎",
   "user.settings.notifications.email.everyXMinutes": "{count, plural, one {分} other {{count, number} 分}}ごと",
-  "user.settings.notifications.email.immediately": "すぐに",
   "user.settings.notifications.email.never": "通知しない",
   "user.settings.notifications.email.notifyForthreads": "フォローしているスレッドに対する返信を通知する",
   "user.settings.notifications.email.send": "電子メール通知を送信する",

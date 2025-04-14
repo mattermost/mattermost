@@ -5783,7 +5783,6 @@
   "user.settings.notifications.email.disabled_long": "E-mailmeldingen zijn niet ingeschakeld door de Systeembeheerder.",
   "user.settings.notifications.email.everyHour": "Elk uur",
   "user.settings.notifications.email.everyXMinutes": "Iedere {count, plural, one {minuut} other {{count, number} minuten}}",
-  "user.settings.notifications.email.immediately": "Onmiddellijk",
   "user.settings.notifications.email.never": "Nooit",
   "user.settings.notifications.email.notifyForthreads": "Hou me op de hoogte van reacties op draadjes die ik volg",
   "user.settings.notifications.email.send": "Stuur e-mailmeldingen",

@@ -4640,7 +4640,6 @@
   "user.settings.notifications.email.disabled_long": "Jūsų sistemos administratorius neįjungė el. pašto pranešimų.",
   "user.settings.notifications.email.everyHour": "Kas valandą",
   "user.settings.notifications.email.everyXMinutes": "Kas {count, plural, one {minute} other {{count, number} minutes}}",
-  "user.settings.notifications.email.immediately": "Iš karto",
   "user.settings.notifications.email.never": "Niekada",
   "user.settings.notifications.email.send": "Siųsti pranešimus el. paštu",
   "user.settings.notifications.emailBatchingInfo": "Per pasirinktą laikotarpį gauti pranešimai sujungiami ir išsiunčiami vienu el.",

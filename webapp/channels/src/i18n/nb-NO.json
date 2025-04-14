@@ -4442,7 +4442,6 @@
   "user.settings.notifications.email.disabled": "E-postvarsler er ikke aktivert",
   "user.settings.notifications.email.disabled_long": "E-postvarsler har ikke blitt aktivert av systemadministrator.",
   "user.settings.notifications.email.everyHour": "Hver time",
-  "user.settings.notifications.email.immediately": "Øyeblikkelig",
   "user.settings.notifications.email.never": "Aldri",
   "user.settings.notifications.email.notifyForthreads": "Varsle meg om svar på tråder jeg følger",
   "user.settings.notifications.email.send": "Send e-postvarsler",

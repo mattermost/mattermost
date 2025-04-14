@@ -5783,7 +5783,6 @@
   "user.settings.notifications.email.disabled_long": "Ваш системний адміністратор не ввімкнув сповіщення на електронну пошту.",
   "user.settings.notifications.email.everyHour": "Щогодини",
   "user.settings.notifications.email.everyXMinutes": "{count, plural, one {Кожну хвилину} other {Кожні {count, number} хвилин}}",
-  "user.settings.notifications.email.immediately": "Негайно",
   "user.settings.notifications.email.never": "Ніколи",
   "user.settings.notifications.email.notifyForthreads": "Сповіщати мене про відповіді на обговорення, за якими я стежу",
   "user.settings.notifications.email.send": "Надсилати сповіщення електронною поштою",

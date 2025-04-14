@@ -4406,7 +4406,6 @@
   "user.settings.notifications.email.disabled_long": "E-mailmeldingen zijn niet ingeschakeld door de Systeembeheerder.",
   "user.settings.notifications.email.everyHour": "Elk oere",
   "user.settings.notifications.email.everyXMinutes": "Iedere {count, plural, one {minuut} other {{count, number} minuten}}",
-  "user.settings.notifications.email.immediately": "Daliks",
   "user.settings.notifications.email.never": "Nea",
   "user.settings.notifications.email.send": "Stjoer e-mailmeldingen",
   "user.settings.notifications.emailBatchingInfo": "Meldingen die ontvangen zijn in de geselecteerde tijdsperiode worden gecombineerd en verstuurd in een enkele email.",
