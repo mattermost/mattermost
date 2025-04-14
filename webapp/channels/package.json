@@ -109,7 +109,6 @@
     "@testing-library/react": "12.1.4",
     "@testing-library/react-hooks": "8.0.1",
     "@testing-library/user-event": "13.5.0",
-    "@types/bootstrap": "4.5.0",
     "@types/country-list": "2.1.0",
     "@types/enzyme": "3.10.11",
     "@types/jest": "28.1.8",
