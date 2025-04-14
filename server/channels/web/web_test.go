@@ -93,8 +93,8 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 
 	testLogger, err := mlog.NewLogger()
 	require.NoError(tb, err)
-	logCfg, err2 := config.MloggerConfigFromLoggerConfig(&newConfig.LogSettings, nil, config.GetLogFileLocation)
-	require.NoError(tb, err2)
+	logCfg, err := config.MloggerConfigFromLoggerConfig(&newConfig.LogSettings, nil, config.GetLogFileLocation)
+	require.NoError(tb, err)
 	err = testLogger.ConfigureTargets(logCfg, nil)
 	require.NoError(tb, err, "failed to configure test logger")
 	// lock logger config so server init cannot override it during testing.
