@@ -298,9 +298,9 @@ func (_m *MetricsInterface) IncrementWebsocketEvent(eventType model.WebsocketEve
 	_m.Called(eventType)
 }
 
-// IncrementWebsocketReconnectEvent provides a mock function with given fields: eventType
-func (_m *MetricsInterface) IncrementWebsocketReconnectEvent(eventType string) {
-	_m.Called(eventType)
+// IncrementWebsocketReconnectEventWithReason provides a mock function with given fields: eventType, disconnectReason
+func (_m *MetricsInterface) IncrementWebsocketReconnectEventWithReason(eventType string, disconnectReason string) {
+	_m.Called(eventType, disconnectReason)
 }
 
 // ObserveAPIEndpointDuration provides a mock function with given fields: endpoint, method, statusCode, originClient, pageLoadContext, elapsed

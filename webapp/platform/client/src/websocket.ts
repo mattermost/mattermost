@@ -45,6 +45,7 @@ export default class WebSocketClient {
     private serverSequence: number;
     private connectFailCount: number;
     private responseCallbacks: {[x: number]: ((msg: any) => void)};
+    private lastCloseReason: string | null;
 
     /**
      * @deprecated Use messageListeners instead
@@ -110,6 +111,7 @@ export default class WebSocketClient {
         this.config = {...defaultWebSocketClientConfig, ...config};
         this.pingInterval = null;
         this.waitingForPong = false;
+        this.lastCloseReason = null;
     }
 
     // on connect, only send auth cookie and blank state.
@@ -198,19 +200,35 @@ export default class WebSocketClient {
         // Add connection id, and last_sequence_number to the query param.
         // We cannot use a cookie because it will bleed across tabs.
         // We cannot also send it as part of the auth_challenge, because the session cookie is already sent with the request.
-        const websocketUrl = `${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}${this.postedAck ? '&posted_ack=true' : ''}`;
+        let websocketUrl = `${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}`;
+
+        if (this.postedAck) {
+            websocketUrl += '&posted_ack=true';
+        }
+
+        if (this.lastCloseReason) {
+            websocketUrl += `&disconnect_reason=${encodeURIComponent(this.lastCloseReason)}`;
+        }
+
         if (this.config.newWebSocketFn) {
             this.conn = this.config.newWebSocketFn(websocketUrl);
         } else {
             this.conn = new WebSocket(websocketUrl);
         }
 
-        const onclose = () => {
+        const onclose = (event: CloseEvent) => {
             this.conn = null;
             this.responseSequence = 1;
 
+            if (event && event.code) {
+                this.lastCloseReason = `${event.code}`;
+                if (event.reason) {
+                    this.lastCloseReason += `:${event.reason}`;
+                }
+            }
+
             if (this.connectFailCount === 0) {
-                console.log('websocket closed'); //eslint-disable-line no-console
+                console.log(`websocket closed: ${this.lastCloseReason}`); //eslint-disable-line no-console
             }
 
             this.connectFailCount++;
@@ -254,6 +272,8 @@ export default class WebSocketClient {
                 this.sendMessage('authentication_challenge', {token});
             }
 
+            this.lastCloseReason = null;
+
             if (this.connectFailCount > 0) {
                 console.log('websocket re-established connection'); //eslint-disable-line no-console
 
@@ -294,6 +314,14 @@ export default class WebSocketClient {
 
                     console.log('ping received no response within time limit: re-establishing websocket'); //eslint-disable-line no-console
 
+                    // Set the close reason to status 1006, which is a general status
+                    // used when a websocket is closed abnormally.
+                    const closeEvent = new CloseEvent('close', {
+                        code: 1006,
+                        reason: 'client_ping_timeout',
+                        wasClean: false,
+                    });
+
                     // Calling conn.close() will trigger the onclose callback,
                     // but sometimes with a significant delay. So instead, we
                     // call the onclose callback ourselves immediately. We also
@@ -303,7 +331,7 @@ export default class WebSocketClient {
                     this.responseSequence = 1;
                     this.conn.onclose = () => {};
                     this.conn.close();
-                    onclose();
+                    onclose(closeEvent);
                 },
                 this.config.clientPingInterval);
 
@@ -369,10 +397,27 @@ export default class WebSocketClient {
                 // we just disconnect and reconnect.
                 if (msg.seq !== this.serverSequence) {
                     console.log('missed websocket event, act_seq=' + msg.seq + ' exp_seq=' + this.serverSequence); //eslint-disable-line no-console
-                    // We are not calling this.close() because we need to auto-restart.
+
+                    // Set the close reason to status 4000, which is an unused status
+                    // available for applications to use for app specific errors.
+                    const closeEvent = new CloseEvent('close', {
+                        code: 4000,
+                        reason: 'client_sequence_mismatch',
+                        wasClean: false,
+                    });
+
+                    // Calling conn.close() will trigger the onclose callback,
+                    // but sometimes with a significant delay. So instead, we
+                    // call the onclose callback ourselves immediately. We also
+                    // unset the callback on the old connection to ensure it
+                    // is only called once.
                     this.connectFailCount = 0;
                     this.responseSequence = 1;
-                    this.conn?.close(); // Will auto-reconnect after MIN_WEBSOCKET_RETRY_TIME.
+                    if (this.conn) {
+                        this.conn.onclose = () => {};
+                        this.conn.close();
+                        onclose(closeEvent);
+                    }
                     return;
                 }
                 this.serverSequence = msg.seq + 1;
@@ -507,13 +552,14 @@ export default class WebSocketClient {
         this.connectFailCount = 0;
         this.responseSequence = 1;
         this.clearReconnectTimeout();
+        this.lastCloseReason = null;
         this.stopPingInterval();
 
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
             this.conn.onclose = () => {};
             this.conn.close();
             this.conn = null;
-            console.log('websocket closed'); //eslint-disable-line no-console
+            console.log('websocket closed manually'); //eslint-disable-line no-console
         }
 
         if (this.onlineHandler) {

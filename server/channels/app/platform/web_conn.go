@@ -62,17 +62,18 @@ type pluginWSPostedHook struct {
 }
 
 type WebConnConfig struct {
-	WebSocket     *websocket.Conn
-	Session       model.Session
-	TFunc         i18n.TranslateFunc
-	Locale        string
-	ConnectionID  string
-	Active        bool
-	ReuseCount    int
-	OriginClient  string
-	PostedAck     bool
-	RemoteAddress string
-	XForwardedFor string
+	WebSocket        *websocket.Conn
+	Session          model.Session
+	TFunc            i18n.TranslateFunc
+	Locale           string
+	ConnectionID     string
+	Active           bool
+	ReuseCount       int
+	OriginClient     string
+	PostedAck        bool
+	RemoteAddress    string
+	XForwardedFor    string
+	DisconnectReason string
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int64
@@ -95,6 +96,7 @@ type WebConn struct {
 	Sequence         int64
 	UserId           string
 	PostedAck        bool
+	DisconnectReason string
 
 	allChannelMembers         map[string]string
 	lastAllChannelMembersTime int64
@@ -246,6 +248,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		T:                  cfg.TFunc,
 		Locale:             cfg.Locale,
 		PostedAck:          cfg.PostedAck,
+		DisconnectReason:   cfg.DisconnectReason,
 		reuseCount:         cfg.ReuseCount,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
@@ -523,7 +526,7 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEvent(reconnectFound)
+				m.IncrementWebsocketReconnectEventWithReason(reconnectFound, wc.DisconnectReason)
 			}
 		} else if wc.hasMsgLoss() {
 			// If the seq number is not in dead queue, but it was supposed to be,
@@ -541,11 +544,11 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEvent(reconnectNotFound)
+				m.IncrementWebsocketReconnectEventWithReason(reconnectNotFound, wc.DisconnectReason)
 			}
 		} else {
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEvent(reconnectLossless)
+				m.IncrementWebsocketReconnectEventWithReason(reconnectLossless, wc.DisconnectReason)
 			}
 		}
 	}
