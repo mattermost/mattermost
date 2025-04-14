@@ -441,7 +441,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 							break
 						}
 					}
-					
+
 					if hasSelectedMention {
 						// For remote users from the target remote, fix the mention format
 						// when sending back to their origin server (only if explicitly mentioned)
