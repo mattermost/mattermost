@@ -4775,9 +4775,8 @@ func testChannelStoreGetMembersForUserWithCursorPagination(t *testing.T, rctx re
 		if len(members) == pageSize {
 			channelID = members[len(members)-1].ChannelId
 			continue
-		} else {
-			require.Fail(t, "len(members) is > pageSize")
 		}
+		require.Fail(t, "len(members) is > pageSize")
 	}
 	assert.Equal(t, numPages, 4)
 	assert.ElementsMatch(t, channelIDs, gotChannelIDs)
