@@ -158,7 +158,6 @@ issues:
         channels/store/storetest/thread_store.go|\
         channels/store/storetest/user_store.go|\
         channels/web/oauth_test.go|\
-        channels/web/saml.go|\
         channels/web/web_test.go|\
         cmd/mattermost/commands/cmdtestlib.go|\
         cmd/mattermost/commands/db.go|\
