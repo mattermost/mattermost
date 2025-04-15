@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {IntlShape} from 'react-intl';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, StylesConfig} from 'react-select';
 import type {Timezone} from 'timezones.json';
@@ -23,7 +22,6 @@ type Actions = {
 }
 
 type Props = {
-    intl: IntlShape;
     user: UserProfile;
     updateSection: (section: string) => void;
     useAutomaticTimezone: boolean;
@@ -247,7 +245,6 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
                     value={this.state.selectedOption}
                     aria-labelledby='changeInterfaceTimezoneLabel'
                     isDisabled={useAutomaticTimezone}
-
                 />
                 {serverError}
             </div>

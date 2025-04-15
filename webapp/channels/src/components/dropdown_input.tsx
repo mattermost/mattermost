@@ -13,7 +13,6 @@ import type {CustomMessageInputType} from 'components/widgets/inputs/input/input
 import {ItemStatus} from 'utils/constants';
 
 import './dropdown_input.scss';
-import {getOptionLabel} from './widgets/modals/components/react_select_item';
 
 // TODO: This component needs work, should not be used outside of AddressInfo until this comment is removed.
 
@@ -105,7 +104,7 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
         }
     };
 
-    const intl = useIntl();
+    const {formatMessage} = useIntl();
     const [customInputLabel, setCustomInputLabel] = useState<CustomMessageInputType>(null);
     const ownValue = useRef<T>();
 
@@ -120,9 +119,9 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
             return;
         }
 
-        const validationErrorMsg = intl.formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
+        const validationErrorMsg = formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
         setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
-    }, [required, intl.formatMessage]);
+    }, [required, formatMessage]);
 
     const onInputBlur = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
         setFocused(false);
@@ -170,7 +169,6 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
                         value={value}
                         onChange={ownOnChange as any} // types are not working correctly for multiselect
                         styles={{...baseStyles, ...styles}}
-                        getOptionLabel={(option) => getOptionLabel(option, intl)}
                         {...otherProps}
                     />
                 </div>
