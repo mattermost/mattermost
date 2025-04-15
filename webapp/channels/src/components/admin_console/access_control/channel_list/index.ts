@@ -22,30 +22,37 @@ type OwnProps = {
 }
 
 function searchChannelsToAdd(channels: Record<string, Channel>, term: string, filters: ChannelSearchOpts): Record<string, Channel> {
-    let filteredTeams = filterChannelsMatchingTerm(Object.keys(channels).map((key) => channels[key]), term);
-    filteredTeams = filterChannelList(filteredTeams, filters);
-    return channelListToMap(filteredTeams);
+    const filteredChannels = filterChannelsMatchingTerm(Object.values(channels), term);
+    const filteredWithFilters = filterChannelList(filteredChannels, filters);
+    return channelListToMap(filteredWithFilters);
 }
 
 function mapStateToProps() {
     const getPolicyChannels = getChannelsInAccessControlPolicy();
     return (state: GlobalState, ownProps: OwnProps) => {
-        let {channelsToAdd} = ownProps;
-
-        let channels: ChannelWithTeamData[] = [];
-        let totalCount = 0;
-        const policyId = ownProps.policyId;
+        const {channelsToAdd, policyId} = ownProps;
         const searchTerm = state.views.search.channelListSearch.term || '';
         const filters = state.views.search.channelListSearch?.filters || {};
 
-        if (searchTerm || (filters && Object.keys(filters).length !== 0)) {
+        let channels: ChannelWithTeamData[] = [];
+        let totalCount = 0;
+
+        if (searchTerm || Object.keys(filters).length !== 0) {
             channels = policyId ? searchChannelsInheritsPolicy(state, policyId, searchTerm, filters) as ChannelWithTeamData[] : [];
-            channelsToAdd = searchChannelsToAdd(channelsToAdd, searchTerm, filters) as Record<string, ChannelWithTeamData>;
+            const filteredChannelsToAdd = searchChannelsToAdd(channelsToAdd, searchTerm, filters) as Record<string, ChannelWithTeamData>;
             totalCount = channels.length;
-        } else {
-            channels = policyId ? getPolicyChannels(state, {policyId}) as ChannelWithTeamData[] : [];
-            totalCount = channels.length;
+            return {
+                channels,
+                totalCount,
+                searchTerm,
+                channelsToAdd: filteredChannelsToAdd,
+                filters,
+            };
         }
+        
+        channels = policyId ? getPolicyChannels(state, {policyId}) as ChannelWithTeamData[] : [];
+        totalCount = channels.length;
+        
         return {
             channels,
             totalCount,

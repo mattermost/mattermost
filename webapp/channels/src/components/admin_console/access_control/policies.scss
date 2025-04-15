@@ -2,28 +2,28 @@
     overflow: auto;
 
     .DataGrid {
-        padding: 0rem;
+        padding: 0;
 
-        .DataGrid_search {
+        &_search {
             height: 4em;
         }
 
-        .DataGrid_searchBar {
-            margin-left: 0px;
+        &_searchBar {
+            margin-left: 0;
         }
 
-        .DataGrid_header {
+        &_header {
             font-size: 1em;
             font-weight: normal;
         }
         
-        .DataGrid_row {
+        &_row {
             min-height: 40px;
             cursor: pointer;
         }
 
-        .DataGrid_footer {
-            border-bottom: 0px;
+        &_footer {
+            border-bottom: 0;
         }
     }
 
@@ -33,7 +33,7 @@
         align-items: center;
         margin-bottom: 16px;
         
-        .policy-header-text {
+        &-text {
             h1 {
                 font-size: 20px;
                 font-weight: 600;
@@ -66,6 +66,5 @@
 .action-wrapper {
     display: flex;
     justify-content: flex-end;
-    padding-right: 16px;
-    padding-left: 16px;
+    padding: 0 16px;
 }
