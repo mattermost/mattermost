@@ -2,19 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import PolicyList from './policies';
-
-import {searchAccessControlPolicies as searchPolicies} from 'mattermost-redux/actions/access_control';
-import { bindActionCreators } from 'redux';
+import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-function mapDispatchToProps(dispatch: Dispatch) {
-    return {
-        actions: bindActionCreators({
-            searchPolicies: searchPolicies,
-        }, dispatch),
-    };
-}
+import {searchAccessControlPolicies} from 'mattermost-redux/actions/access_control';
+import PolicyList from './policies';
 
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+    actions: bindActionCreators({
+        searchPolicies: searchAccessControlPolicies,
+    }, dispatch),
+});
 
 export default connect(null, mapDispatchToProps)(PolicyList);

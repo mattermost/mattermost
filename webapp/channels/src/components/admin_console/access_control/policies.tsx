@@ -28,6 +28,8 @@ type State = {
 const PAGE_SIZE = 10;
 
 export default class PolicyList extends React.PureComponent<Props, State> {
+    private mounted = false;
+
     constructor(props: Props) {
         super(props);
 
@@ -43,10 +45,7 @@ export default class PolicyList extends React.PureComponent<Props, State> {
         };
     }
 
-    private mounted = false;
-
-    // Add componentDidMount to fetch policies when the component loads
-    async componentDidMount() {
+    componentDidMount() {
         this.mounted = true;
         this.fetchPolicies();
     }
@@ -55,46 +54,50 @@ export default class PolicyList extends React.PureComponent<Props, State> {
         this.mounted = false;
     }
 
-    fetchPolicies = async () => {
-        const {after} = this.state;
-        this.setState({loading: true});
-        console.log('fetching policies; after:', after); 
-        try {
-            if (!this.mounted) {
-                return;
-            }
+    fetchPolicies = async (term = '', after = '', resetPage = false) => {
+        if (!this.mounted) {
+            return;
+        }
 
-            const action = await this.props.actions.searchPolicies('', 'parent', after, PAGE_SIZE + 1);
+        this.setState({loading: true});
+        
+        try {
+            const action = await this.props.actions.searchPolicies(term, 'parent', after, PAGE_SIZE + 1);
             const data = action.data.policies || [];
             const total = action.data.total || 0;
 
             // Check if we have more data than the page size, indicating there's a next page
             const hasNextPage = data.length > PAGE_SIZE;
-
             // If we have more data than needed, remove the extra item (which is used to check for next page)
             const policies = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
             
             // Get the ID of the last policy for the next cursor
             const lastPolicyId = policies.length > 0 ? policies[policies.length - 1].id : '';
             
-            this.setState({
-                policies,
-                loading: false,
-                after: lastPolicyId,
-                total: total,
-            });
+            if (resetPage) {
+                this.setState({
+                    policies,
+                    loading: false,
+                    after: lastPolicyId,
+                    total,
+                    page: 0,
+                    cursorHistory: [],
+                });
+            } else {
+                this.setState({
+                    policies,
+                    loading: false,
+                    after: lastPolicyId,
+                    total,
+                });
+            }
         } catch (error) {
             this.setState({loading: false, searchErrored: true});
         }
     }
 
-    isSearching = (term: string) => {
-        return term.length > 0;
-    };
-
     onSearch = async (term: string) => {
         if (term.length === 0) {
-            console.log('onSearch - term:', term);
             this.setState({
                 page: 0,
                 after: '',
@@ -106,33 +109,9 @@ export default class PolicyList extends React.PureComponent<Props, State> {
             });
             return;
         }
-        try {
-            this.setState({loading: true});
-            const action = await this.props.actions.searchPolicies(term, 'parent', '', PAGE_SIZE + 1);
-            const data = action.data.policies || [];
-            const total = action.data.total || 0;
-            
-            // Check if we have more data than the page size, indicating there's a next page
-            const hasNextPage = data.length > PAGE_SIZE;
-            // If we have more data than needed, remove the extra item (which is used to check for next page)
-            const policies = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
-            
-            // Get the ID of the last policy for the next cursor
-            const lastPolicyId = policies.length > 0 ? policies[policies.length - 1].id : '';
-            
-            this.setState({
-                policies,
-                loading: false,
-                after: lastPolicyId,
-                page: 0,
-                search: term,
-                cursorHistory: [],
-                total: total,
-            });
-        } catch (error) {
-            this.setState({loading: false, searchErrored: true});
-            console.error(error);
-        }
+        
+        this.setState({loading: true, search: term});
+        await this.fetchPolicies(term, '', true);
     };
 
     nextPage = async () => {
@@ -147,28 +126,7 @@ export default class PolicyList extends React.PureComponent<Props, State> {
             cursorHistory: newCursorHistory,
         });
         
-        try {
-            const action = await this.props.actions.searchPolicies(search, 'parent', after, PAGE_SIZE + 1);
-            const data = action.data.policies || [];
-            const total = action.data.total || 0;
-            
-            // Check if we have more data than the page size, indicating there's a next page
-            const hasNextPage = data.length > PAGE_SIZE;
-            // If we have more data than needed, remove the extra item (which is used to check for next page)
-            const policies = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
-            
-            // Get the ID of the last policy for the next cursor
-            const lastPolicyId = policies.length > 0 ? policies[policies.length - 1].id : '';
-            
-            this.setState({
-                policies,
-                loading: false,
-                after: lastPolicyId,
-                total: total,
-            });
-        } catch (error) {
-            this.setState({loading: false, searchErrored: true});
-        }
+        await this.fetchPolicies(search, after);
     };
 
     previousPage = async () => {
@@ -191,74 +149,36 @@ export default class PolicyList extends React.PureComponent<Props, State> {
             cursorHistory: newCursorHistory,
         });
         
-        try {
-            const action = await this.props.actions.searchPolicies(search, 'parent', previousCursor, PAGE_SIZE + 1);
-            const data = action.data.policies || [];
-            const total = action.data.total || 0;
-            
-            // Check if we have more data than the page size, indicating there's a next page
-            const hasNextPage = data.length > PAGE_SIZE;
-            // If we have more data than needed, remove the extra item (which is used to check for next page)
-            const policies = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
-            
-            // Get the ID of the last policy for the next cursor
-            const lastPolicyId = policies.length > 0 ? policies[policies.length - 1].id : '';
-            
-            this.setState({
-                policies,
-                loading: false,
-                after: lastPolicyId,
-                total: total,
-            });
-        } catch (error) {
-            this.setState({loading: false, searchErrored: true});
-        }
+        await this.fetchPolicies(search, previousCursor);
     };
 
     getRows = (): Row[] => {
-        const sortedPolicies = Object.values(this.state.policies).sort((a, b) => {
-            const timeA = new Date(a.created_at || 0).valueOf();
-            const timeB = new Date(b.created_at || 0).valueOf();
-
-            return timeB - timeA;
-        });
-
-        if (!sortedPolicies) {
+        const { policies } = this.state;
+        
+        if (!policies.length) {
             return [];
         }
 
-        return Object.values(sortedPolicies).map((policy: AccessControlPolicy) => {
-            return {
-                cells: {
-                    name: policy.name,
-                    // properties: policy.properties?.join(', '),
-                    // applies_to: (
-                    //     <FormattedMessage
-                    //         id='admin.access_control.policies.channels_count'
-                    //         defaultMessage='{count} channels'
-                    //         values={{
-                    //             count: 4, // TODO: get the actual number of channels
-                    //         }}
-                    //     />
-                    // ),
-                    actions: (
-                        <div className='action-wrapper'>
-                            <a
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    getHistory().push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
-                                }}
-                            >
-                                Edit
-                            </a>
-                        </div>
-                    ),
-                },
-                onClick: () => {
-                    getHistory().push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
-                }
-            };
-        });
+        return policies.map((policy: AccessControlPolicy) => ({
+            cells: {
+                name: policy.name,
+                actions: (
+                    <div className='action-wrapper'>
+                        <a
+                            onClick={(e) => {
+                                e.preventDefault();
+                                getHistory().push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
+                            }}
+                        >
+                            Edit
+                        </a>
+                    </div>
+                ),
+            },
+            onClick: () => {
+                getHistory().push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
+            }
+        }));
     };
 
     getColumns = (): Column[] => {
@@ -272,28 +192,8 @@ export default class PolicyList extends React.PureComponent<Props, State> {
                 ),
                 field: 'name',
             },
-            // {
-            //     name: (
-            //         <FormattedMessage
-            //             id='admin.access_control.policies.properties'
-            //             defaultMessage='Properties'
-            //         />
-            //     ),
-            //     field: 'properties',
-            // },
-            // {
-            //     name: (
-            //         <FormattedMessage
-            //             id='admin.access_control.policies.applies_to'
-            //             defaultMessage='Applies to'
-            //         />
-            //     ),
-            //     field: 'applies_to',
-            // },
             {
-                name: (
-                    <span></span>
-                ),
+                name: <span></span>,
                 field: 'actions',
                 className: 'actions-column',
             },
@@ -338,23 +238,22 @@ export default class PolicyList extends React.PureComponent<Props, State> {
             minHeight: `${rows.length * 40}px`,
         };
 
-
         return (
             <div className='PolicyTable'>
                 <div className='policy-header'>
-                <div className='policy-header-text'>
-                    <h1>Access policies</h1>
-                    <p>Create policies containing attribute based access rules and the objects they apply to.</p>
+                    <div className='policy-header-text'>
+                        <h1>Access policies</h1>
+                        <p>Create policies containing attribute based access rules and the objects they apply to.</p>
+                    </div>
+                    <button 
+                        className='btn btn-primary'
+                        onClick={() => {
+                            getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy');
+                        }}>
+                        <i className='icon icon-plus'></i>
+                        <span>Add policy</span>
+                    </button>
                 </div>
-                <button 
-                    className='btn btn-primary'
-                    onClick={() => {
-                        getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy');
-                    }}>
-                    <i className='icon icon-plus'></i>
-                    <span>Add policy</span>
-                </button>
-            </div>
                 <DataGrid
                     columns={columns}
                     rows={rows}

@@ -7,7 +7,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
-
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import DataGrid from 'components/admin_console/data_grid/data_grid';
@@ -28,15 +27,12 @@ type Props = {
     totalCount: number;
     searchTerm: string;
     filters: ChannelSearchOpts;
-
     policyId?: string;
-
     onRemoveCallback: (channel: ChannelWithTeamData) => void;
     onUndoRemoveCallback: (channel: ChannelWithTeamData) => void;
     onAddCallback: (channels: ChannelWithTeamData[]) => void;
     channelsToRemove: Record<string, ChannelWithTeamData>;
     channelsToAdd: Record<string, ChannelWithTeamData>;
-
     actions: {
         searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
         setChannelListSearch: (term: string) => void;
@@ -55,6 +51,7 @@ const PAGE_SIZE = 5;
 
 export default class ChannelList extends React.PureComponent<Props, State> {
     private mounted = false;
+    private searchDebounced: () => void;
     
     public constructor(props: Props) {
         super(props);
@@ -64,6 +61,17 @@ export default class ChannelList extends React.PureComponent<Props, State> {
             page: 0,
             cursorHistory: [],
         };
+        
+        this.searchDebounced = debounce(
+            async () => {
+                const {policyId, searchTerm, filters, actions} = this.props;
+                if (policyId) {
+                    await actions.searchChannels(policyId, searchTerm, filters);
+                }
+                this.setState({loading: false});
+            },
+            Constants.SEARCH_TIMEOUT_MILLISECONDS,
+        );
     }
 
     componentDidMount = () => {
@@ -75,72 +83,49 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         this.mounted = false;
     };
 
-    private setStateLoading = (loading: boolean) => {
-        this.setState({loading});
-    };
-    
-    private setStatePage = (page: number) => {
-        this.setState({page});
-    };
+    public async componentDidUpdate(prevProps: Props) {
+        const {policyId, searchTerm, filters} = this.props;
+        const filtersModified = !isEqual(prevProps.filters, filters);
+        const searchTermModified = prevProps.searchTerm !== searchTerm;
+        
+        if (searchTermModified || filtersModified) {
+            this.setState({loading: true});
+            
+            if (searchTerm === '') {
+                if (filtersModified && policyId) {
+                    await prevProps.actions.searchChannels(policyId, searchTerm, filters);
+                } else {
+                    // Reset pagination state when clearing search
+                    this.setState({
+                        after: '',
+                        page: 0,
+                        cursorHistory: [],
+                    });
+                    await this.loadPage(0, PAGE_SIZE + 1);
+                }
+                this.setState({loading: false});
+                return;
+            }
+
+            this.searchDebounced();
+        }
+    }
 
     private loadPage = async (page: number, pageSize = PAGE_SIZE + 1) => {
-        if (this.props.policyId) {
-            this.setStateLoading(true);
-            // const after = this.state.after;
-            const search = this.props.searchTerm;
-            const filters = this.props.filters;
-
-            filters.page = page;
-            filters.per_page = pageSize;
-
-            try {
-                if  ((!this.mounted) || (!this.props.policyId)) {
-                    return;
-                }
-                
-                const action = await this.props.actions.searchChannels(this.props.policyId, search, filters);
-                const data = action.data.channels || [];
-
-                // Check if we have more data than the page size, indicating there's a next page
-                const hasNextPage = data.length > PAGE_SIZE;
-                
-                // If we have more data than needed, remove the extra item (which is used to check for next page)
-                const channels = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
-                
-                // Get the ID of the last channel for the next cursor
-                const lastChannelId = channels.length > 0 ? channels[channels.length - 1].id : '';
-                
-                this.setState({
-                    after: lastChannelId,
-                    loading: false,
-                });
-            } catch (error) {
-                this.setState({loading: false});
-                console.error(error);
-            }
+        const {policyId, searchTerm, filters, actions} = this.props;
+        
+        if (!policyId || !this.mounted) {
+            return;
         }
-    };
-
-    private nextPage = async () => {
-        const {after, cursorHistory} = this.state;
         
-        // Save current cursor to history for "previous" navigation
-        const newCursorHistory = [...cursorHistory, after];
+        this.setState({loading: true});
         
-        this.setState({
-            loading: true,
-            page: this.state.page + 1,
-            cursorHistory: newCursorHistory,
-        });
-
-        const {filters, searchTerm} = this.props;
-        filters.page = this.state.page + 1;
-        filters.per_page = PAGE_SIZE;
+        const searchFilters = {...filters, page, per_page: pageSize};
 
         try {
-            const action = await this.props.actions.searchChannels(this.props.policyId || '', searchTerm, filters);
+            const action = await actions.searchChannels(policyId, searchTerm, searchFilters);
             const data = action.data.channels || [];
-            
+
             // Check if we have more data than the page size, indicating there's a next page
             const hasNextPage = data.length > PAGE_SIZE;
             
@@ -160,8 +145,23 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         }
     };
 
+    private nextPage = async () => {
+        const {after, cursorHistory, page} = this.state;
+        
+        // Save current cursor to history for "previous" navigation
+        const newCursorHistory = [...cursorHistory, after];
+        
+        this.setState({
+            loading: true,
+            page: page + 1,
+            cursorHistory: newCursorHistory,
+        });
+
+        await this.loadPage(page + 1, PAGE_SIZE);
+    };
+
     private previousPage = async () => {
-        const {cursorHistory} = this.state;
+        const {cursorHistory, page} = this.state;
         
         if (cursorHistory.length === 0) {
             return;
@@ -170,41 +170,14 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         // Remove the current cursor from history
         const newCursorHistory = [...cursorHistory];
         newCursorHistory.pop();
-
-        const {filters, searchTerm} = this.props;
-        filters.page = this.state.page - 1;
-        filters.per_page = PAGE_SIZE;
-        
-        // Get the previous cursor
-        const previousCursor = newCursorHistory.length > 0 ? newCursorHistory[newCursorHistory.length - 1] : '';
         
         this.setState({
             loading: true,
-            page: this.state.page - 1,
+            page: page - 1,
             cursorHistory: newCursorHistory,
         });
         
-        try {
-            const action = await this.props.actions.searchChannels(this.props.policyId || '', searchTerm, filters);
-            const data = action.data.channels || [];
-            
-            // Check if we have more data than the page size, indicating there's a next page
-            const hasNextPage = data.length > PAGE_SIZE;
-            
-            // If we have more data than needed, remove the extra item (which is used to check for next page)
-            const channels = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
-            
-            // Get the ID of the last channel for the next cursor
-            const lastChannelId = channels.length > 0 ? channels[channels.length - 1].id : '';
-            
-            this.setState({
-                after: lastChannelId,
-                loading: false,
-            });
-        } catch (error) {
-            this.setState({loading: false});
-            console.error(error);
-        }
+        await this.loadPage(page - 1, PAGE_SIZE);
     };
 
     private getVisibleTotalCount = (): number => {
@@ -218,59 +191,50 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         const {page} = this.state;
         const startCount = (page * PAGE_SIZE) + 1;
         const total = this.getVisibleTotalCount();
-
-        let endCount = 0;
-
-        endCount = (page + 1) * PAGE_SIZE;
-        endCount = endCount > total ? total : endCount;
+        const endCount = Math.min((page + 1) * PAGE_SIZE, total);
 
         return {startCount, endCount, total};
     };
 
     private removeChannel = (channel: ChannelWithTeamData) => {
-        const {channelsToRemove} = this.props;
+        const {channelsToRemove, onRemoveCallback, onUndoRemoveCallback} = this.props;
+        const {page} = this.state;
+        
         // Toggle between adding and removing the channel
         if (channelsToRemove[channel.id] === channel) {
-            console.log('toggle to remove');
             // If the channel is already marked for removal, undo it
-            this.props.onUndoRemoveCallback(channel);
+            onUndoRemoveCallback(channel);
             return;
         }
+        
         // If the channel is not marked for removal, mark it
-        let {page} = this.state;
+        onRemoveCallback(channel);
+        
         const {endCount} = this.getPaginationProps();
-
-        this.props.onRemoveCallback(channel);
         if (endCount > this.getVisibleTotalCount() && (endCount % PAGE_SIZE) === 1 && page > 0) {
-            page--;
+            this.setState({page: page - 1});
         }
-
-        this.setStatePage(page);
     };
 
     getColumns = (): Column[] => {
-        const name = (
-            <FormattedMessage
-                id='admin.channel_settings.channel_list.nameHeader'
-                defaultMessage='Name'
-            />
-        );
-
-        const team = (
-            <FormattedMessage
-                id='admin.channel_settings.channel_list.teamHeader'
-                defaultMessage='Team'
-            />
-        );
-
         return [
             {
-                name,
+                name: (
+                    <FormattedMessage
+                        id='admin.channel_settings.channel_list.nameHeader'
+                        defaultMessage='Name'
+                    />
+                ),
                 field: 'name',
                 fixed: true,
             },
             {
-                name: team,
+                name: (
+                    <FormattedMessage
+                        id='admin.channel_settings.channel_list.teamHeader'
+                        defaultMessage='Team'
+                    />
+                ),
                 field: 'team',
                 fixed: true,
             },
@@ -287,17 +251,15 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         const {channels, channelsToRemove, channelsToAdd} = this.props;
         const {startCount, endCount} = this.getPaginationProps();
 
-        let channelsToDisplay = channels;
-        const includeTeamsList = Object.values(channelsToAdd);
-
-        // Don't filter out channels marked for removal anymore
-        // channelsToDisplay = channelsToDisplay.filter((channel) => !channelsToRemove[channel.id]);
-        channelsToDisplay = [...includeTeamsList, ...channelsToDisplay];
-        channelsToDisplay = channelsToDisplay.slice(startCount - 1, endCount);
+        // Combine channels to add with existing channels
+        const channelsToDisplay = [
+            ...Object.values(channelsToAdd),
+            ...channels
+        ].slice(startCount - 1, endCount);
 
         return channelsToDisplay.map((channel) => {
+            // Determine which icon to display based on channel type
             let iconToDisplay = <GlobeIcon className='channel-icon'/>;
-
             if (channel.type === Constants.PRIVATE_CHANNEL) {
                 iconToDisplay = <LockIcon className='channel-icon'/>;
             }
@@ -310,28 +272,22 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                 );
             }
 
-            const isMarkedForRemoval = channelsToRemove[channel.id] === channel && channels.find(c => c.id === channel.id) !== undefined;
+            const isMarkedForRemoval = channelsToRemove[channel.id] === channel && 
+                channels.find(c => c.id === channel.id) !== undefined;
 
             // Determine the button text and action based on the channel state
-            let buttonText;
-            let buttonClassName = 'group-actions TeamList_editText';
-            
-            if (isMarkedForRemoval) {
-                buttonText = (
-                    <FormattedMessage
-                        id='admin.access_control.policy.edit_policy.channel_selector.to_be_removed'
-                        defaultMessage='To be removed'
-                    />
-                );
-                buttonClassName += ' marked-for-removal';
-            } else {
-                buttonText = (
-                    <FormattedMessage
-                        id='admin.access_control.policy.edit_policy.channel_selector.remove'
-                        defaultMessage='Remove'
-                    />
-                );
-            }
+            const buttonClassName = `group-actions TeamList_editText${isMarkedForRemoval ? ' marked-for-removal' : ''}`;
+            const buttonText = isMarkedForRemoval ? (
+                <FormattedMessage
+                    id='admin.access_control.policy.edit_policy.channel_selector.to_be_removed'
+                    defaultMessage='To be removed'
+                />
+            ) : (
+                <FormattedMessage
+                    id='admin.access_control.policy.edit_policy.channel_selector.remove'
+                    defaultMessage='Remove'
+                />
+            );
 
             return {
                 cells: {
@@ -368,53 +324,14 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         });
     };
 
-    onSearch = async (searchTerm: string) => {
+    onSearch = (searchTerm: string) => {
         this.props.actions.setChannelListSearch(searchTerm);
     };
-    
-    public async componentDidUpdate(prevProps: Props) {
-        const {policyId, searchTerm, filters} = this.props;
-        const filtersModified = !isEqual(prevProps.filters, this.props.filters);
-        const searchTermModified = prevProps.searchTerm !== searchTerm;
-        
-        if (searchTermModified || filtersModified) {
-            this.setStateLoading(true);
-            if (searchTerm === '') {
-                if (filtersModified && policyId) {
-                    await prevProps.actions.searchChannels(policyId, searchTerm, filters);
-                } else {
-                    // Reset pagination state when clearing search
-                    this.setState({
-                        after: '',
-                        page: 0,
-                        cursorHistory: [],
-                    });
-                    await this.loadPage(0, PAGE_SIZE + 1);
-                }
-                this.setStateLoading(false);
-                return;
-            }
 
-            this.searchDebounced();
-        }
-    }
-
-    searchDebounced = debounce(
-        async () => {
-            const {policyId, searchTerm, filters, actions} = this.props;
-            if (policyId) {
-                await actions.searchChannels(policyId, searchTerm, filters);
-            }
-
-            this.setStateLoading(false);
-        },
-        Constants.SEARCH_TIMEOUT_MILLISECONDS,
-    );
-
-    onFilter = async (filterOptions: FilterOptions) => {
+    onFilter = (filterOptions: FilterOptions) => {
         const filters: ChannelSearchOpts = {};
         const {team_ids: teamIds} = filterOptions.teams.values;
-        if ( (teamIds.value as string[]).length) {
+        if ((teamIds.value as string[]).length) {
             filters.team_ids = teamIds.value as string[];
         }
         this.props.actions.setChannelListFilters(filters);
@@ -424,6 +341,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         const rows: Row[] = this.getRows();
         const columns: Column[] = this.getColumns();
         const {startCount, endCount, total} = this.getPaginationProps();
+        
         const filterOptions: FilterOptions = {
             teams: {
                 name: 'Teams',

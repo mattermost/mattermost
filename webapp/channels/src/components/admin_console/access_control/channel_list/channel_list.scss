@@ -4,7 +4,7 @@
         align-items: center;
         justify-content: center;
 
-        span.channel-icon {
+        .channel-icon {
             margin: 3px 8px 0 0;
         }
     }
@@ -17,10 +17,9 @@
         width: auto;
     }
 
-
     .DataGrid {
         .DataGrid_searchBar {
-            margin-left: 0px;
+            margin-left: 0;
         }
     }
 }

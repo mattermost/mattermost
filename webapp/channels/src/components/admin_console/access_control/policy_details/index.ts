@@ -9,7 +9,6 @@ import { getAccessControlPolicy as fetchPolicy } from 'mattermost-redux/actions/
 import { createAccessControlPolicy as createPolicy } from 'mattermost-redux/actions/access_control';
 import { deleteAccessControlPolicy as deletePolicy } from 'mattermost-redux/actions/access_control';
 import { searchAccessControlPolicyChannels as searchChannels } from 'mattermost-redux/actions/access_control';
-import {getAccessControlPolicy} from 'mattermost-redux/selectors/entities/access_control';
 import {assignChannelsToAccessControlPolicy, unassignChannelsFromAccessControlPolicy} from 'mattermost-redux/actions/access_control';
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 
@@ -26,10 +25,8 @@ type OwnProps = {
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const policyId = ownProps.match.params.policy_id;
-    const policy = getAccessControlPolicy(state, policyId);
     return {
         policyId,
-        policy,
     };
 }
 
