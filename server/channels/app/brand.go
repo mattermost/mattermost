@@ -50,9 +50,9 @@ func (a *App) SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) 
 	oldPath := BrandFilePath + BrandFileName
 	newPath := BrandFilePath + t.Format("2006-01-02T15:04:05") + ".png"
 
-	fileExists, fileErr := a.FileExists(oldPath)
-	if fileErr != nil {
-		rctx.Logger().Warn("Failed to check if brand image exists before backup", mlog.String("path", oldPath), mlog.Err(fileErr))
+	fileExists, appErr := a.FileExists(oldPath)
+	if appErr != nil {
+		rctx.Logger().Warn("Failed to check if brand image exists before backup", mlog.String("path", oldPath), mlog.Err(appErr))
 	}
 
 	if fileExists {
