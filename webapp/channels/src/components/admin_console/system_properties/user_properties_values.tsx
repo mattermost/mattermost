@@ -84,6 +84,7 @@ const UserPropertyValues = ({
                     className='user-property-field-values__chip-link'
                     to={`/admin_console/authentication/ldap#custom_profile_attribute-${field.name}`}
                     key={`${field.name}-ldap`}
+                    data-testid={`user-property-field-values__ldap-${field.name}`}
                 >
                     <FormattedMessage
                         id='admin.system_properties.user_properties.table.values.synced_with.ldap'
@@ -97,6 +98,7 @@ const UserPropertyValues = ({
                     className='user-property-field-values__chip-link'
                     to={`/admin_console/authentication/saml#custom_profile_attribute-${field.name}`}
                     key={`${field.name}-saml`}
+                    data-testid={`user-property-field-values__saml-${field.name}`}
                 >
                     <FormattedMessage
                         id='admin.system_properties.user_properties.table.values.synced_with.saml'
