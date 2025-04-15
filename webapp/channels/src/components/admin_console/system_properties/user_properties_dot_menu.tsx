@@ -174,7 +174,7 @@ const DotMenu = ({
             </Menu.SubMenu>
             <Menu.LinkItem
                 id={`${menuId}_link_ad-ldap`}
-                href={`/admin_console/authentication/ldap#custom_profile_attribute-${field.name}`}
+                to={`/admin_console/authentication/ldap#custom_profile_attribute-${field.name}`}
                 leadingElement={<SyncIcon size={18}/>}
                 labels={(
                     <FormattedMessage
@@ -185,7 +185,7 @@ const DotMenu = ({
             />
             <Menu.LinkItem
                 id={`${menuId}_link_ad-ldap`}
-                href={`/admin_console/authentication/saml#custom_profile_attribute-${field.name}`}
+                to={`/admin_console/authentication/saml#custom_profile_attribute-${field.name}`}
                 leadingElement={<SyncIcon size={18}/>}
                 labels={(
                     <FormattedMessage
