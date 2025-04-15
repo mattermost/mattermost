@@ -100,6 +100,27 @@ describe('components/threading/global_threads/thread_item', () => {
             entities: {
                 users: {
                     currentUserId: user.id,
+                    profiles: {
+                        [user.id]: user,
+                    },
+                },
+                groups: {
+                    groups: {},
+                    myGroups: [],
+                },
+                teams: {
+                    teams: {
+                        currentTeamId: 'tid',
+                    },
+                    groupsAssociatedToTeam: {
+                        tid: {},
+                    },
+                },
+                channels: {
+                    channels: [mockChannel],
+                    groupsAssociatedToChannel: {
+                        [mockChannel.id]: {},
+                    },
                 },
                 preferences: {
                     myPreferences: {},
