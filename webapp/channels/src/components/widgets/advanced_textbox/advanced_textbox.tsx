@@ -30,7 +30,6 @@ type AdvancedTextboxProps = {
     onValidate?: (value: string) => { isValid: boolean; errorMessage?: string };
     showCharacterCount?: boolean;
     readOnly?: boolean;
-    classname?: string;
 };
 
 const AdvancedTextbox = ({
@@ -52,7 +51,6 @@ const AdvancedTextbox = ({
     onValidate,
     showCharacterCount = false,
     readOnly = false,
-    classname,
 }: AdvancedTextboxProps) => {
     const {formatMessage} = useIntl();
     const [internalError, setInternalError] = useState<string | JSX.Element | undefined>(errorMessage);
@@ -104,7 +102,7 @@ const AdvancedTextbox = ({
     }
 
     return (
-        <div className={classNames('AdvancedTextbox', {classname})}>
+        <div className='AdvancedTextbox'>
             <Textbox
                 value={value}
                 onChange={handleChange}
