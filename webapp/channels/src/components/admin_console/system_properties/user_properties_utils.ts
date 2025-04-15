@@ -191,11 +191,22 @@ export const useUserPropertyFields = () => {
                 return collectionReplaceItem(pending, field);
             });
         },
-        create: () => {
+        create: (patch?) => {
             pendingIO.apply((pending) => {
                 const nextOrder = Object.values(pending.data).filter((x) => !isDeletePending(x)).length;
-                const name = getIncrementedName('Text', pending);
-                const field = newPendingField({name, type: 'text', attrs: {sort_order: nextOrder, visibility: 'when_set', value_type: ''}});
+
+                const field = newPendingField({
+                    type: 'text',
+                    ...patch,
+                    name: getIncrementedName(patch?.name ?? 'Text', pending),
+                    attrs: {
+                        visibility: 'when_set',
+                        value_type: '',
+                        ...patch?.attrs,
+                        sort_order: nextOrder,
+                    },
+                });
+
                 return collectionAddItem(pending, field);
             });
         },
@@ -269,8 +280,8 @@ export const newPendingId = () => `${PENDING}${generateId()}`;
 
 export const newPendingField = (patch: UserPropertyFieldPatch & Pick<UserPropertyField, 'name'>): UserPropertyField => {
     return {
-        ...patch,
         type: 'text',
+        ...patch,
         group_id: 'custom_profile_attributes' satisfies UserPropertyFieldGroupID,
         id: newPendingId(),
         create_at: 0,
@@ -281,7 +292,11 @@ export const newPendingField = (patch: UserPropertyFieldPatch & Pick<UserPropert
             sort_order: 0,
             value_type: '' satisfies FieldValueType,
             ...patch.attrs,
-        },
 
+            // clear option ids & sync/links from duplicate flow
+            options: patch.attrs?.options?.map((option) => ({...option, id: ''})),
+            ldap: '',
+            saml: '',
+        },
     };
 };
