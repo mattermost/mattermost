@@ -107,7 +107,7 @@ const SelectTeam = (props: Props) => {
                 type='text'
                 placeholder={intl.formatMessage({id: 'search_teams_selector.search_teams', defaultMessage: 'Search teams'})}
                 className='search-teams-selector-search'
-                inputPrefix={<SearchIcon size={16}/>}
+                inputPrefix={<SearchIcon size={18}/>}
                 value={filter}
                 onChange={onFilterChange}
             />,
