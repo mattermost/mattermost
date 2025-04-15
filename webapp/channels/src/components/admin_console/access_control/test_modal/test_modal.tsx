@@ -6,10 +6,10 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlTestResult} from '@mattermost/types/admin';
-import type {TeamMembership} from '@mattermost/types/teams';
+
+import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container';
 
 import type {ModalData} from 'types/actions';
-import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container';
 
 import './test_modal.scss';
 

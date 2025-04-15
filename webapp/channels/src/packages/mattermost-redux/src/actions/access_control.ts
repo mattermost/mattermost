@@ -1,15 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ServerError} from '@mattermost/types/errors';
-import { forceLogoutIfNecessary} from './helpers';
-import { ActionFuncAsync } from 'mattermost-redux/types/actions';
-import type { AccessControlPoliciesResult, AccessControlPolicy } from '@mattermost/types/admin';
-import {Client4} from 'mattermost-redux/client';
-import {AdminTypes, ChannelTypes} from 'mattermost-redux/action_types';
-import { ChannelSearchOpts, ChannelsWithTotalCount, ChannelWithTeamData } from '@mattermost/types/channels';
 import {batchActions} from 'redux-batched-actions';
-import type { StatusOK } from '@mattermost/types/client4';
+
+import type {AccessControlPoliciesResult, AccessControlPolicy} from '@mattermost/types/admin';
+import type {ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
+import type {StatusOK} from '@mattermost/types/client4';
+import type {ServerError} from '@mattermost/types/errors';
+
+import {AdminTypes, ChannelTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+
+import {forceLogoutIfNecessary} from './helpers';
 
 export function getAccessControlPolicy(id: string): ActionFuncAsync<AccessControlPolicy> {
     return async (dispatch, getState) => {
@@ -91,7 +94,7 @@ export function searchAccessControlPolicies(term: string, type: string, after: s
             {type: AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES_SEARCH, data: data.policies},
         );
 
-        return {data: data};
+        return {data};
     };
 }
 
@@ -111,8 +114,8 @@ export function searchAccessControlPolicyChannels(id: string, term: string, opts
             return {error};
         }
 
-        let childs: Record<string, string[]> = {}
-        childs[id] = data.channels.map((channel) => channel.id)
+        const childs: Record<string, string[]> = {};
+        childs[id] = data.channels.map((channel) => channel.id);
 
         dispatch(batchActions([
             {type: AdminTypes.RECEIVED_ACCESS_CONTROL_CHILD_POLICIES, data: childs},

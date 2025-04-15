@@ -7,13 +7,15 @@ import type {Dispatch} from 'redux';
 
 import type {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 
-import { searchAccessControlPolicyChannels as searchChannels} from 'mattermost-redux/actions/access_control';
-import {searchChannelsInheritsPolicy} from 'mattermost-redux/selectors/entities/access_control';
+import {searchAccessControlPolicyChannels as searchChannels} from 'mattermost-redux/actions/access_control';
+import {searchChannelsInheritsPolicy, getChannelsInAccessControlPolicy} from 'mattermost-redux/selectors/entities/access_control';
 import {filterChannelList} from 'mattermost-redux/selectors/entities/channels';
-import {getChannelsInAccessControlPolicy} from 'mattermost-redux/selectors/entities/access_control';
 import {filterChannelsMatchingTerm, channelListToMap} from 'mattermost-redux/utils/channel_utils';
+
 import {setChannelListSearch, setChannelListFilters} from 'actions/views/search';
+
 import type {GlobalState} from 'types/store';
+
 import ChannelList from './channel_list';
 
 type OwnProps = {
@@ -49,10 +51,10 @@ function mapStateToProps() {
                 filters,
             };
         }
-        
+
         channels = policyId ? getPolicyChannels(state, {policyId}) as ChannelWithTeamData[] : [];
         totalCount = channels.length;
-        
+
         return {
             channels,
             totalCount,

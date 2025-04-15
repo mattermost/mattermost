@@ -25,8 +25,6 @@ import {
     invalidateAllEmailInvites, testSmtp, testSiteURL, getSamlMetadataFromIdp, setSamlIdpCertificateFromMetadata,
 } from 'actions/admin_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-import PolicyList from './access_control';
-import PolicyDetails from './access_control/policy_details';
 
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 import CustomProfileAttributes from 'components/admin_console/custom_profile_attributes/custom_profile_attributes';
@@ -43,6 +41,8 @@ import {isCloudLicense} from 'utils/license_utils';
 import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 
+import PolicyList from './access_control';
+import PolicyDetails from './access_control/policy_details';
 import * as DefinitionConstants from './admin_definition_constants';
 import AuditLoggingCertificateUploadSetting from './audit_logging';
 import Audits from './audits';
@@ -112,7 +112,6 @@ import TeamDetails from './team_channel_settings/team/details';
 import type {Check, AdminDefinition as AdminDefinitionType, ConsoleAccess} from './types';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
-import { useUserPropertiesTable } from './system_properties/user_properties_table';
 
 const FILE_STORAGE_DRIVER_LOCAL = 'local';
 const FILE_STORAGE_DRIVER_S3 = 'amazons3';
@@ -670,6 +669,7 @@ const AdminDefinition: AdminDefinitionType = {
             access_control_policy_details_edit: {
                 url: `user_management/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
+                    it.licensedForSku(LicenseSkus.Premium),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -682,6 +682,7 @@ const AdminDefinition: AdminDefinitionType = {
             access_control_policy_details: {
                 url: 'user_management/attribute_based_access_control/edit_policy',
                 isHidden: it.any(
+                    it.licensedForSku(LicenseSkus.Premium),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -694,6 +695,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'user_management/attribute_based_access_control',
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
+                    it.licensedForSku(LicenseSkus.Premium),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -734,7 +736,7 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                     ],
                 },
-                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.Enterprise),
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.Premium),
             },
         },
     },

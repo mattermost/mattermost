@@ -39,7 +39,7 @@ import Constants from 'utils/constants';
 import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapter';
 
 import Setting from './setting';
-import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSection, AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefinitionSettingDropdownOption, AdminDefinitionSubSectionSchema, ConsoleAccess} from './types';
+import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefinitionSettingDropdownOption, AdminDefinitionSubSectionSchema, ConsoleAccess} from './types';
 
 import './schema_admin_settings.scss';
 

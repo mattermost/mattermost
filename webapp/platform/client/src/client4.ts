@@ -1567,7 +1567,7 @@ export default class Client4 {
         includeTotalCount = false,
         includeDeleted = false,
         excludePolicyConstrained = false,
-        excludeAccessControlPolicyEnforced = false
+        excludeAccessControlPolicyEnforced = false,
     ) {
         const queryData = {
             page,
@@ -4426,7 +4426,7 @@ export default class Client4 {
     searchAccessControlPolicies = (term: string, type: string, after: string, limit: number) => {
         return this.doFetch<AccessControlPoliciesResult>(
             `${this.getBaseRoute()}/access_control_policies/search`,
-            {method: 'post', body: JSON.stringify({term, type, cursor: {id: after}, limit})},
+            {method: 'post', body: JSON.stringify({term, type, cursor: {id: after}, limit, include_children: true})},
         );
     };
 
@@ -4454,14 +4454,14 @@ export default class Client4 {
     checkAccessControlExpression = (expression: string) => {
         return this.doFetch<CELExpressionError[]>(
             `${this.getBaseRoute()}/access_control_policies/check`,
-            {method: 'post', body: JSON.stringify({"expression": expression})},
+            {method: 'post', body: JSON.stringify({expression})},
         );
     };
 
     testAccessControlExpression = (expression: string) => {
         return this.doFetch<AccessControlTestResult>(
             `${this.getBaseRoute()}/access_control_policies/test`,
-            {method: 'post', body: JSON.stringify({"expression": expression})},
+            {method: 'post', body: JSON.stringify({expression})},
         );
     };
 }

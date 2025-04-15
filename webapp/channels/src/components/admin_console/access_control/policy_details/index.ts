@@ -5,14 +5,12 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import { getAccessControlPolicy as fetchPolicy } from 'mattermost-redux/actions/access_control';
-import { createAccessControlPolicy as createPolicy } from 'mattermost-redux/actions/access_control';
-import { deleteAccessControlPolicy as deletePolicy } from 'mattermost-redux/actions/access_control';
-import { searchAccessControlPolicyChannels as searchChannels } from 'mattermost-redux/actions/access_control';
-import {assignChannelsToAccessControlPolicy, unassignChannelsFromAccessControlPolicy} from 'mattermost-redux/actions/access_control';
+import {getAccessControlPolicy as fetchPolicy, createAccessControlPolicy as createPolicy, deleteAccessControlPolicy as deletePolicy, searchAccessControlPolicyChannels as searchChannels, assignChannelsToAccessControlPolicy, unassignChannelsFromAccessControlPolicy} from 'mattermost-redux/actions/access_control';
+
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 
 import type {GlobalState} from 'types/store';
+
 import PolicyDetails from './policy_details';
 
 type OwnProps = {

@@ -10,8 +10,9 @@ import type {AccessControlTestResult} from '@mattermost/types/admin';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {MonacoLanguageProvider} from './language_provider';
 import Markdown from 'components/markdown';
+
+import {MonacoLanguageProvider} from './language_provider';
 
 import TestResultsModal from '../test_modal/test_modal';
 
@@ -106,7 +107,7 @@ const CELEditor: React.FC<CELEditorProps> = ({
     const monacoRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
     useEffect(() => {
-        setEditorState(prev => ({...prev, expression: value}));
+        setEditorState((prev) => ({...prev, expression: value}));
     }, [value]);
 
     useEffect(() => {
@@ -116,7 +117,7 @@ const CELEditor: React.FC<CELEditorProps> = ({
     }, [editorState.expression]);
 
     const handleChange = useCallback((newValue: string) => {
-        setEditorState(prev => ({
+        setEditorState((prev) => ({
             ...prev,
             expression: newValue,
             statusBarColor: 'var(--button-bg)',
@@ -126,21 +127,21 @@ const CELEditor: React.FC<CELEditorProps> = ({
     }, [onChange]);
 
     const validateSyntax = useCallback(async () => {
-        setEditorState(prev => ({...prev, isValidating: true}));
+        setEditorState((prev) => ({...prev, isValidating: true}));
 
         try {
             const errors = await Client4.checkAccessControlExpression(editorState.expression);
             const isValid = errors.length === 0;
-            setEditorState(prev => ({
+            setEditorState((prev) => ({
                 ...prev,
                 isValid,
-                validationErrors: errors.map(error => `${error.message} @L${error.line}:${error.column + 1}`),
+                validationErrors: errors.map((error) => `${error.message} @L${error.line}:${error.column + 1}`),
                 statusBarColor: isValid ? 'var(--online-indicator)' : 'var(--error-text)',
                 isValidating: false,
             }));
             onValidate?.(isValid);
         } catch (error) {
-            setEditorState(prev => ({
+            setEditorState((prev) => ({
                 ...prev,
                 isValid: false,
                 validationErrors: [error.detailed_error || 'Unknown error'],
@@ -154,7 +155,7 @@ const CELEditor: React.FC<CELEditorProps> = ({
     const testAccessRule = useCallback(async () => {
         try {
             const result = await Client4.testAccessControlExpression(editorState.expression);
-            setEditorState(prev => ({
+            setEditorState((prev) => ({
                 ...prev,
                 testResults: {
                     attributes: result.attributes || {},
@@ -163,22 +164,18 @@ const CELEditor: React.FC<CELEditorProps> = ({
                 showTestResults: true,
             }));
         } catch (error) {
-            console.error('Error testing access rule:', error);
+            // Handle error silently
         }
     }, [editorState.expression]);
 
     // initialize monaco editor
     useEffect(() => {
         if (!editorRef.current || monacoRef.current) {
-            // returning no-op cleanup function to satisfy typescript
-            // constraint of consistent return types. Since we're
-            // returning a cleanup function at the end,
-            // we also need to return a () => void function in every code path.
             return () => {};
         }
 
         monacoRef.current = monaco.editor.create(editorRef.current, MONACO_EDITOR_OPTIONS);
-        
+
         // Set the initial value from the expression state
         monacoRef.current.setValue(editorState.expression);
 
@@ -188,7 +185,7 @@ const CELEditor: React.FC<CELEditorProps> = ({
         });
 
         monacoRef.current.onDidChangeCursorPosition((e) => {
-            setEditorState(prev => ({
+            setEditorState((prev) => ({
                 ...prev,
                 cursorPosition: {line: e.position.lineNumber, column: e.position.column},
             }));
@@ -226,15 +223,14 @@ const CELEditor: React.FC<CELEditorProps> = ({
                 className='cel-editor__container'
                 data-status-color={editorState.statusBarColor}
             >
-                {
-                    !editorState.expression &&
+                {!editorState.expression && (
                     <div
                         className='policy-editor-placeholder'
                         aria-label='CEL Expression Editor'
                     >
                         {placeholder}
                     </div>
-                }
+                )}
 
                 <div
                     ref={editorRef}
@@ -245,48 +241,58 @@ const CELEditor: React.FC<CELEditorProps> = ({
                     style={{backgroundColor: editorState.statusBarColor}}
                 >
                     <div className='cel-editor__status-message'>
-                        {editorState.validationErrors.length > 0 ? (
-                            <span className='cel-editor__error'>
-                                <i
-                                    className='icon icon-refresh'
+                        {(() => {
+                            if (editorState.validationErrors.length > 0) {
+                                return (
+                                    <span className='cel-editor__error'>
+                                        <i
+                                            className='icon icon-refresh'
+                                            onClick={validateSyntax}
+                                            role='button'
+                                            aria-label='Retry validation'
+                                        />
+                                        {editorState.validationErrors[0]}
+                                    </span>
+                                );
+                            }
+
+                            if (editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)') {
+                                return (
+                                    <span className='cel-editor__valid'>
+                                        <i className='icon icon-check'/>
+                                        {'Valid'}
+                                    </span>
+                                );
+                            }
+
+                            return (
+                                <button
+                                    className='cel-editor__inline-validate-btn'
                                     onClick={validateSyntax}
-                                    role='button'
-                                    aria-label='Retry validation'
-                                />
-                                {editorState.validationErrors[0]}
-                            </span>
-                        ) : editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)' ? (
-                            <span className='cel-editor__valid'>
-                                <i className='icon icon-check'/>
-                                {'Valid'}
-                            </span>
-                        ) : (
-                            <button
-                                className='cel-editor__inline-validate-btn'
-                                onClick={validateSyntax}
-                                disabled={editorState.isValidating}
-                            >
-                                <span className='cel-editor__loading'>
-                                    {editorState.isValidating ? (
-                                        <>
-                                            <i className='fa fa-spinner fa-spin'/>
-                                            <FormattedMessage
-                                                id='admin.access_control.cel.validating'
-                                                defaultMessage='Validating...'
-                                            />
-                                        </>
-                                    ) : (
-                                        <>
-                                            <i className='icon icon-magnify'/>
-                                            <FormattedMessage
-                                                id='admin.access_control.cel.validateSyntax'
-                                                defaultMessage='Validate syntax'
-                                            />
-                                        </>
-                                    )}
-                                </span>
-                            </button>
-                        )}
+                                    disabled={editorState.isValidating}
+                                >
+                                    <span className='cel-editor__loading'>
+                                        {editorState.isValidating ? (
+                                            <>
+                                                <i className='fa fa-spinner fa-spin'/>
+                                                <FormattedMessage
+                                                    id='admin.access_control.cel.validating'
+                                                    defaultMessage='Validating...'
+                                                />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className='icon icon-magnify'/>
+                                                <FormattedMessage
+                                                    id='admin.access_control.cel.validateSyntax'
+                                                    defaultMessage='Validate syntax'
+                                                />
+                                            </>
+                                        )}
+                                    </span>
+                                </button>
+                            );
+                        })()}
                     </div>
                     <div className='cel-editor__cursor-position'>
                         <FormattedMessage
@@ -333,7 +339,7 @@ const CELEditor: React.FC<CELEditorProps> = ({
             {editorState.showTestResults && (
                 <TestResultsModal
                     testResults={editorState.testResults}
-                    onExited={() => setEditorState(prev => ({...prev, showTestResults: false}))}
+                    onExited={() => setEditorState((prev) => ({...prev, showTestResults: false}))}
                     actions={{
                         openModal: () => {},
                         setModalSearchTerm: (term: string): ActionResult => ({data: term}),

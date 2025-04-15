@@ -15,11 +15,68 @@
         &_header {
             font-size: 1em;
             font-weight: normal;
+            
+            .DataGrid_cell {
+                display: flex;
+                
+                &[data-field="name"] {
+                    justify-content: flex-start;
+                }
+                
+                &[data-field="resources"] {
+                    justify-content: flex-start;
+                    align-items: left;
+                }
+            }
         }
         
         &_row {
             min-height: 40px;
             cursor: pointer;
+
+            .policy-name {
+                width: 100%;
+                padding: 10px 0;
+            }
+
+            .policy-resources {
+                width: 100%;
+                padding: 10px 0;
+                text-align: left;
+            }
+
+            .policy-actions {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+
+            .policy-menu-button {
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                border: none;
+                background: transparent;
+                border-radius: 4px;
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+                cursor: pointer;
+
+                &:hover {
+                    background: rgba(var(--center-channel-color-rgb), 0.08);
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                }
+
+                .icon {
+                    font-size: 18px;
+                    line-height: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+            }
         }
 
         &_footer {
@@ -29,29 +86,57 @@
 
     .policy-header {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
         margin-bottom: 16px;
         
         &-text {
             h1 {
+                margin-bottom: 8px;
                 font-size: 20px;
                 font-weight: 600;
-                margin-bottom: 8px;
             }
             
             p {
-                color: rgba(63, 67, 80, 0.72);
                 margin: 0;
+                color: rgba(63, 67, 80, 0.72);
             }
         }
         
         .btn-primary {
             display: flex;
             align-items: center;
-            gap: 8px;
             padding: 10px 16px;
+            gap: 8px;
             
+            .icon {
+                font-size: 18px;
+            }
+        }
+    }
+
+    .action-wrapper {
+        display: flex;
+        justify-content: flex-end;
+        padding: 0 16px;
+
+        .icon-button {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            color: rgba(63, 67, 80, 0.72);
+
+            &:hover {
+                background-color: rgba(63, 67, 80, 0.08);
+                color: rgba(63, 67, 80, 0.8);
+            }
+
             .icon {
                 font-size: 18px;
             }
@@ -60,11 +145,6 @@
 }
 
 .actions-column {
-    justify-content: flex-end;
-}
-
-.action-wrapper {
-    display: flex;
-    justify-content: flex-end;
-    padding: 0 16px;
+    justify-content: flex-end !important;
+    text-align: right;
 }
