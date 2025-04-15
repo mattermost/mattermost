@@ -232,7 +232,9 @@ func (a *App) ClearSessionCacheForUser(userID string) {
 }
 
 func (a *App) ClearSessionCacheForAllUsers() {
-	a.ch.srv.platform.ClearAllUsersSessionCache()
+	if err := a.ch.srv.platform.ClearAllUsersSessionCache(); err != nil {
+		a.Srv().Platform().Log().Error("Failed to clear session cache for all users", mlog.Err(err))
+	}
 }
 
 func (a *App) ClearSessionCacheForUserSkipClusterSend(userID string) {

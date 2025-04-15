@@ -96,10 +96,7 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 }
 
 func (ps *PlatformService) ClearAllUsersSessionCacheLocal() error {
-	if err := ps.sessionCache.Purge(); err != nil {
-		return err
-	}
-	return nil
+	return ps.sessionCache.Purge()
 }
 
 func (ps *PlatformService) ClearUserSessionCache(userID string) {
@@ -115,9 +112,9 @@ func (ps *PlatformService) ClearUserSessionCache(userID string) {
 	}
 }
 
-func (ps *PlatformService) ClearAllUsersSessionCache() {
+func (ps *PlatformService) ClearAllUsersSessionCache() error {
 	if err := ps.ClearAllUsersSessionCacheLocal(); err != nil {
-		ps.Logger().Error("Failed to purge session cache", mlog.Err(err))
+		return err
 	}
 
 	if ps.clusterIFace != nil {
@@ -127,6 +124,7 @@ func (ps *PlatformService) ClearAllUsersSessionCache() {
 		}
 		ps.clusterIFace.SendClusterMessage(msg)
 	}
+	return nil
 }
 
 func (ps *PlatformService) GetSession(c request.CTX, token string) (*model.Session, error) {
@@ -163,7 +161,9 @@ func (ps *PlatformService) RevokeSessionsFromAllUsers() error {
 		return err
 	}
 
-	ps.ClearAllUsersSessionCache()
+	if err := ps.ClearAllUsersSessionCache(); err != nil {
+		ps.logger.Error("Failed to clear session cache", mlog.Err(err))
+	}
 	return nil
 }
 
