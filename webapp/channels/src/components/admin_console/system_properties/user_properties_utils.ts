@@ -279,6 +279,17 @@ export const isDeletePending = <T extends {delete_at: number; create_at: number}
 export const newPendingId = () => `${PENDING}${generateId()}`;
 
 export const newPendingField = (patch: UserPropertyFieldPatch & Pick<UserPropertyField, 'name'>): UserPropertyField => {
+    const attrs = {...patch.attrs};
+
+    if (attrs.options) {
+        // clear option ids
+        attrs.options = patch.attrs?.options?.map((option) => ({...option, id: ''}));
+    }
+
+    // clear ldap/saml links
+    Reflect.deleteProperty(attrs, 'ldap');
+    Reflect.deleteProperty(attrs, 'saml');
+
     return {
         type: 'text',
         ...patch,
@@ -291,12 +302,7 @@ export const newPendingField = (patch: UserPropertyFieldPatch & Pick<UserPropert
             visibility: 'when_set' satisfies FieldVisibility,
             sort_order: 0,
             value_type: '' satisfies FieldValueType,
-            ...patch.attrs,
-
-            // clear option ids & sync/links from duplicate flow
-            options: patch.attrs?.options?.map((option) => ({...option, id: ''})),
-            ldap: '',
-            saml: '',
+            ...attrs,
         },
     };
 };
