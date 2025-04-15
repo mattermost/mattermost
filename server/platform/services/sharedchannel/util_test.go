@@ -186,7 +186,6 @@ func TestPriorityMetadataPreservation(t *testing.T) {
 		// which makes the sync process simpler and more reliable
 		assert.NotNil(t, postWithPriority.Metadata, "Post should have metadata")
 	})
-
 }
 
 // TestReceivingEndProcessesPriorityMetadata tests the receiving end of the sync process
@@ -310,7 +309,6 @@ func TestReceivingEndProcessesPriorityMetadata(t *testing.T) {
 		}
 		assert.NotNil(t, postWithoutPersistentNotif.Metadata, "Post should have metadata")
 	})
-
 }
 
 // TestFilterPostsWithPriority tests that posts with priority metadata are not filtered out
@@ -641,5 +639,4 @@ func TestEndToEndMetadataSync(t *testing.T) {
 		assert.True(t, *originalPost.Metadata.Priority.PersistentNotifications, "Original post should have PersistentNotifications=true")
 		assert.Len(t, originalPost.Metadata.Acknowledgements, 2, "Original post should have 2 acknowledgements")
 	})
-
 }
