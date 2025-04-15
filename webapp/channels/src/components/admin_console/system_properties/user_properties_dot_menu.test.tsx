@@ -30,6 +30,7 @@ describe('UserPropertyDotMenu', () => {
 
     const updateField = jest.fn();
     const deleteField = jest.fn();
+    const createField = jest.fn();
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -43,6 +44,7 @@ describe('UserPropertyDotMenu', () => {
                         field={field}
                         updateField={updateField}
                         deleteField={deleteField}
+                        createField={createField}
                     />
                     <ModalController/>
                 </div>
@@ -102,6 +104,42 @@ describe('UserPropertyDotMenu', () => {
                 ...baseField.attrs,
                 visibility: 'always',
             },
+        });
+    });
+
+    it('displays LDAP and SAML link menu options', async () => {
+        renderComponent();
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
+        fireEvent.click(menuButton);
+
+        // Verify both link options are shown
+        expect(screen.getByText('Link property to AD/LDAP')).toBeInTheDocument();
+        expect(screen.getByText('Link property to SAML')).toBeInTheDocument();
+
+        // TODO mock history and verify the link actions
+    });
+
+    it('handles field duplication', async () => {
+        renderComponent();
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
+        fireEvent.click(menuButton);
+
+        // Find and click the duplicate option
+        const duplicateOptions = screen.getAllByText(/Duplicate property/);
+        const duplicateOption = duplicateOptions[0];
+        fireEvent.click(duplicateOption);
+
+        // Wait for createField to be called
+        await waitFor(() => {
+            // Verify createField was called with the correct parameters
+            expect(createField).toHaveBeenCalledWith(expect.objectContaining({
+                id: baseField.id,
+                name: 'Test Field (copy)',
+            }));
         });
     });
 
