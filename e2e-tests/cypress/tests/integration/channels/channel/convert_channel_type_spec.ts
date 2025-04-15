@@ -153,10 +153,10 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
 
     // Function kept for potential future use but not used in current tests
     // since private to public conversion is no longer allowed
-    const convertChannelToPublic = () => {
-        cy.get('#public-private-selector-button-O').click();
-        cy.get('#public-private-selector-button-O').should('have.class', 'selected');
-    };
+    // const convertChannelToPublic = () => {
+    //     cy.get('#public-private-selector-button-O').click();
+    //     cy.get('#public-private-selector-button-O').should('have.class', 'selected');
+    // };
 
     // Helper functions for verification
     const verifyChannelIsPrivate = (channelName: string) => {
@@ -165,9 +165,9 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
 
     // Function kept for potential future use but not used in current tests
     // since private to public conversion is no longer allowed
-    const verifyChannelIsPublic = (channelName: string) => {
-        cy.get('.SidebarChannel').contains(channelName).parent().find('.icon-lock-outline').should('not.exist');
-    };
+    // const verifyChannelIsPublic = (channelName: string) => {
+    //     cy.get('.SidebarChannel').contains(channelName).parent().find('.icon-lock-outline').should('not.exist');
+    // };
 
     const verifyConversionOptionDisabled = (toPrivate = true) => {
         if (toPrivate) {
