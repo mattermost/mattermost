@@ -898,26 +898,12 @@ func TestLeaveChannel(t *testing.T) {
 		require.Len(t, threads.Threads, 1)
 	})
 
-	t.Run("cannot leave private channel as last member when there are no groups synced", func(t *testing.T) {
+	t.Run("can leave private channel as last member", func(t *testing.T) {
 		channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypePrivate)
 
-		appErr := th.App.LeaveChannel(th.Context, channel.Id, th.BasicUser.Id)
-		require.NotNil(t, appErr, "It should fail to remove channel membership")
-	})
-
-	t.Run("can leave private channel as last member when there are groups synced", func(t *testing.T) {
-		channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypePrivate)
-
-		group, appErr := th.App.CreateGroup(&model.Group{
-			Name:        model.NewPointer(model.NewId()),
-			DisplayName: "Test",
-			RemoteId:    model.NewPointer(model.NewId()),
-			Source:      model.GroupSourceLdap,
-		})
-		require.Nil(t, appErr)
-
-		_, appErr = th.App.UpsertGroupSyncable(model.NewGroupChannel(group.Id, channel.Id, true))
-		require.Nil(t, appErr)
+		count, appErr := th.App.GetChannelMemberCount(th.Context, th.BasicChannel.Id)
+		require.Nil(t, appErr, "It should remove channel membership")
+		require.Equal(t, 1, count)
 
 		appErr = th.App.LeaveChannel(th.Context, channel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
