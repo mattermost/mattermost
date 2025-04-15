@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Audit} from './audits';
-import { ChannelWithTeamData } from './channels';
+import type {ChannelWithTeamData} from './channels';
 import type {Compliance} from './compliance';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from './config';
 import type {DataRetentionCustomPolicies} from './data_retention';
@@ -153,7 +153,7 @@ export type AccessControlPolicy = {
     version?: string;
     active?: boolean;
     imports?: string[];
-    properties?: string[];
+    props?: Record<string, any[]>;
     rules: AccessControlPolicyRule[];
 }
 

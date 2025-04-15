@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AccessControlPolicy} from '@mattermost/types/admin';
+import type {Channel, ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
 import type {GlobalState} from '@mattermost/types/store';
 
-import { AccessControlPolicy } from "@mattermost/types/admin";
-import { createSelector } from '../create_selector';
-import { filterChannelList } from './channels';
-import { filterChannelsMatchingTerm } from 'mattermost-redux/utils/channel_utils';
-import { Channel, ChannelWithTeamData, ChannelSearchOpts } from '@mattermost/types/channels';
+import {filterChannelsMatchingTerm} from 'mattermost-redux/utils/channel_utils';
+
+import {filterChannelList} from './channels';
+
+import {createSelector} from '../create_selector';
 
 export function getAccessControlPolicies(state: GlobalState): AccessControlPolicy[] {
-    return Array.isArray(state.entities.admin.accessControlPolicies) 
-        ? state.entities.admin.accessControlPolicies 
-        : [];
+    return Array.isArray(state.entities.admin.accessControlPolicies) ? state.entities.admin.accessControlPolicies : [];
 }
 
 export function getAccessControlPolicy(state: GlobalState, id: string): AccessControlPolicy | undefined | null {
@@ -21,9 +21,7 @@ export function getAccessControlPolicy(state: GlobalState, id: string): AccessCo
 }
 
 export function getChannelIdsForAccessControlPolicy(state: GlobalState, parentId: string): string[] {
-    return Array.isArray(state.entities.admin.channelsForAccessControlPolicy[parentId]) 
-        ? state.entities.admin.channelsForAccessControlPolicy[parentId]
-        : [];
+    return Array.isArray(state.entities.admin.channelsForAccessControlPolicy[parentId]) ? state.entities.admin.channelsForAccessControlPolicy[parentId] : [];
 }
 
 export function getAllChildAccessControlPolicies(state: GlobalState) {
@@ -40,7 +38,7 @@ export function getChannelsInAccessControlPolicy() {
             if (!ids) {
                 return [];
             }
- 
+
             const policyChannels: ChannelWithTeamData[] = [];
 
             ids.forEach((channelId) => {

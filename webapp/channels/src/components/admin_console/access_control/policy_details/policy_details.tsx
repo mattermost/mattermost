@@ -1,23 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { FormattedMessage } from 'react-intl';
-import { AccessControlPolicy, AccessControlPolicyRule } from '@mattermost/types/admin';
-import { ChannelSearchOpts, ChannelWithTeamData } from '@mattermost/types/channels';
-import { ActionResult } from 'mattermost-redux/types/actions';
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
-import AdminHeader from 'components/widgets/admin_console/admin_header';
-import TextSetting from 'components/widgets/settings/text_setting';
-import BooleanSetting from 'components/admin_console/boolean_setting';
-import ChannelSelectorModal from 'components/channel_selector_modal';
+import React, {useState, useEffect} from 'react';
+import {FormattedMessage} from 'react-intl';
+import {getHistory} from 'utils/browser_history';
+
+import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/admin';
+import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import CELEditor from 'components/admin_console/access_control/cel_editor/editor';
 import ChannelList from 'components/admin_console/access_control/channel_list';
+import TableEditor from 'components/admin_console/access_control/table_editor/table_editor';
 import BlockableLink from 'components/admin_console/blockable_link';
-import SaveButton from 'components/save_button';
+import BooleanSetting from 'components/admin_console/boolean_setting';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
-import CELEditor from 'components/admin_console/access_control/cel_editor/editor';
-import TableEditor from 'components/admin_console/access_control/table_editor/table_editor';
-import { getHistory } from 'utils/browser_history';
+import ChannelSelectorModal from 'components/channel_selector_modal';
+import SaveButton from 'components/save_button';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
+import TextSetting from 'components/widgets/settings/text_setting';
 
-import './policy.scss';
+import './policy_details.scss';
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -49,15 +54,15 @@ const userAttributes = [
     },
     {
         attribute: 'Department',
-        values: ['Engineering', 'Sales', 'Marketing', 'HR', 'Finance', 'Legal', 'Customer Success', 'Support', 'Product', 'Design', 'Research', 'Security', 'Compliance', 'IT', 'Administration', 'Executive'],
+        values: ['Engineering', 'Sales', 'Marketing'],
     },
     {
         attribute: 'Clearance',
         values: ['Top Secret', 'Secret', 'Confidential'],
-    }
+    },
 ];
 
-const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
+const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
     const [policyName, setPolicyName] = useState('');
     const [expression, setExpression] = useState('');
     const [autoSyncMembership, setAutoSyncMembership] = useState(false);
@@ -70,6 +75,7 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
         removedCount: 0,
     });
     const [saveNeeded, setSaveNeeded] = useState(false);
+    const [channelsCount, setChannelsCount] = useState(0);
 
     useEffect(() => {
         loadPage();
@@ -78,13 +84,14 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
     const loadPage = async () => {
         if (policyId) {
             const result = await actions.fetchPolicy(policyId);
-            
+
             // Set policy name and expression after fetching the policy
             setPolicyName(result.data?.name || '');
             setExpression(result.data?.rules?.[0]?.expression || '');
-            
+
             // Search for channels after setting the policy details
-            await actions.searchChannels(policyId, '', { per_page: DEFAULT_PAGE_SIZE });
+            const channelsResult = await actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE});
+            setChannelsCount(channelsResult.data?.total_count || 0);
         }
     };
 
@@ -93,23 +100,23 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
             const updatedPolicy = await actions.createPolicy({
                 id: policyId || '',
                 name: policyName,
-                rules: [{ expression, actions: [] }] as AccessControlPolicyRule[],
+                rules: [{expression, actions: []}] as AccessControlPolicyRule[],
                 type: 'parent',
-                version: "v0.1",
+                version: 'v0.1',
             });
 
-            getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy/' + updatedPolicy.data.id);
-
-            if (policyId) {
+            if (updatedPolicy.data.id) {
                 if (channelChanges.removedCount > 0) {
-                    await actions.unassignChannelsFromAccessControlPolicy(policyId, Object.keys(channelChanges.removed));
+                    await actions.unassignChannelsFromAccessControlPolicy(updatedPolicy.data.id, Object.keys(channelChanges.removed));
                 }
                 if (Object.keys(channelChanges.added).length > 0) {
-                    await actions.assignChannelsToAccessControlPolicy(policyId, Object.keys(channelChanges.added));
+                    await actions.assignChannelsToAccessControlPolicy(updatedPolicy.data.id, Object.keys(channelChanges.added));
                 }
             }
 
-            setChannelChanges({ removed: {}, added: {}, removedCount: 0 });
+            getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy/' + updatedPolicy.data.id);
+
+            setChannelChanges({removed: {}, added: {}, removedCount: 0});
             await loadPage();
             setSaveNeeded(false);
             actions.setNavigationBlocked(false);
@@ -121,21 +128,28 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
     const handleDelete = async () => {
         try {
             if (policyId) {
-                const result = await actions.deletePolicy(policyId);
-                if (result.data) {
-                    getHistory().push('/admin_console/user_management/attribute_based_access_control');
+                if (channelChanges.removedCount > 0) {
+                    await actions.unassignChannelsFromAccessControlPolicy(policyId, Object.keys(channelChanges.removed));
                 }
+
+                await actions.deletePolicy(policyId).then(
+                    (result) => {
+                        if (result.data) {
+                            getHistory().push('/admin_console/user_management/attribute_based_access_control');
+                        }
+                    },
+                );
             }
         } catch (error) {
-            console.error(error);
+            setServerError(true);
         }
     };
 
     const handleChannelChanges = (channels: ChannelWithTeamData[], isAdding: boolean) => {
-        setChannelChanges(prev => {
-            const newChanges = { ...prev };
-            
-            channels.forEach(channel => {
+        setChannelChanges((prev) => {
+            const newChanges = {...prev};
+
+            channels.forEach((channel) => {
                 if (isAdding) {
                     if (newChanges.removed[channel.id]) {
                         delete newChanges.removed[channel.id];
@@ -143,13 +157,11 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
                     } else {
                         newChanges.added[channel.id] = channel;
                     }
-                } else {
-                    if (newChanges.added[channel.id]) {
-                        delete newChanges.added[channel.id];
-                    } else if (!newChanges.removed[channel.id]) {
-                        newChanges.removedCount++;
-                        newChanges.removed[channel.id] = channel;
-                    }
+                } else if (newChanges.added[channel.id]) {
+                    delete newChanges.added[channel.id];
+                } else if (!newChanges.removed[channel.id]) {
+                    newChanges.removedCount++;
+                    newChanges.removed[channel.id] = channel;
                 }
             });
 
@@ -160,8 +172,8 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
     };
 
     const handleUndoRemove = (channel: ChannelWithTeamData) => {
-        setChannelChanges(prev => {
-            const newChanges = { ...prev };
+        setChannelChanges((prev) => {
+            const newChanges = {...prev};
             if (newChanges.removed[channel.id]) {
                 delete newChanges.removed[channel.id];
                 newChanges.removedCount--;
@@ -170,6 +182,14 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
         });
         setSaveNeeded(true);
         actions.setNavigationBlocked(true);
+    };
+
+    const hasChannels = () => {
+        // If there are channels on the server (minus any pending removals) or newly added channels
+        return (
+            (channelsCount > channelChanges.removedCount) ||
+            (Object.keys(channelChanges.added).length > 0)
+        );
     };
 
     return (
@@ -210,7 +230,10 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
                         />
                     </div>
 
-                    <Card expanded={true} className={'console'}>
+                    <Card
+                        expanded={true}
+                        className={'console'}
+                    >
                         <Card.Header>
                             <TitleAndButtonCardHeader
                                 title={'Attribute based access rules'}
@@ -218,14 +241,14 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
                             />
                         </Card.Header>
                         <Card.Body>
-                            <div className="editor-tabs">
+                            <div className='editor-tabs'>
                                 <button
                                     className={`editor-tab ${editorMode === 'table' ? 'active' : ''}`}
                                     onClick={() => setEditorMode('table')}
                                 >
                                     <FormattedMessage
-                                        id="admin.access_control.editor.table"
-                                        defaultMessage="Simple Expressions"
+                                        id='admin.access_control.editor.table'
+                                        defaultMessage='Simple Expressions'
                                     />
                                 </button>
                                 <button
@@ -233,8 +256,8 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
                                     onClick={() => setEditorMode('cel')}
                                 >
                                     <FormattedMessage
-                                        id="admin.access_control.editor.cel"
-                                        defaultMessage="Advanced Expressions"
+                                        id='admin.access_control.editor.cel'
+                                        defaultMessage='Advanced Expressions'
                                     />
                                 </button>
                             </div>
@@ -261,7 +284,10 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
                         </Card.Body>
                     </Card>
 
-                    <Card expanded={true} className={'console'}>
+                    <Card
+                        expanded={true}
+                        className={'console add-channels'}
+                    >
                         <Card.Header>
                             <TitleAndButtonCardHeader
                                 title={
@@ -289,13 +315,55 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
                             <ChannelList
                                 onRemoveCallback={(channel) => handleChannelChanges([channel], false)}
                                 onUndoRemoveCallback={handleUndoRemove}
-                                onAddCallback={(channels) => handleChannelChanges(channels, true)}
                                 channelsToRemove={channelChanges.removed}
                                 channelsToAdd={channelChanges.added}
                                 policyId={policyId}
                             />
                         </Card.Body>
                     </Card>
+                    {policyId && (
+                        <Card
+                            expanded={true}
+                            className={'console delete-policy'}
+                        >
+                            <Card.Header>
+                                <TitleAndButtonCardHeader
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.access_control.policy.edit_policy.delete_policy.title'
+                                            defaultMessage='Delete policy'
+                                        />
+                                    }
+                                    subtitle={
+                                        hasChannels() ? (
+                                            <FormattedMessage
+                                                id='admin.daccess_control.policy.edit_policy.delete_policy.subtitle.hasChannels'
+                                                defaultMessage='Remove all assigned resources (eg. Channels) to be able to delete this policy'
+                                            />
+                                        ) : (
+                                            <FormattedMessage
+                                                id='admin.daccess_control.policy.edit_policy.delete_policy.subtitle'
+                                                defaultMessage='This policy will be deleted and cannot be recovered.'
+                                            />
+                                        )
+                                    }
+                                    buttonText={
+                                        <FormattedMessage
+                                            id='admin.access_control.policy.edit_policy.delete_policy.delete'
+                                            defaultMessage='Delete'
+                                        />
+                                    }
+                                    onClick={() => {
+                                        if (hasChannels()) {
+                                            return;
+                                        }
+                                        handleDelete();
+                                    }}
+                                    isDisabled={hasChannels()}
+                                />
+                            </Card.Header>
+                        </Card>
+                    )}
                 </div>
             </div>
 
@@ -304,7 +372,7 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
                     onModalDismissed={() => setAddChannelOpen(false)}
                     onChannelsSelected={(channels) => handleChannelChanges(channels, true)}
                     groupID={''}
-                    alreadySelected={Object.values(channelChanges.added).map(channel => channel.id)}
+                    alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
                     excludeAccessControlPolicyEnforced={true}
                     excludeTypes={['O', 'D', 'G']}
                 />
@@ -321,16 +389,6 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
                         />
                     }
                 />
-                <BlockableLink
-                    className='btn btn-danger'
-                    onClick={handleDelete}
-                    to='/admin_console/user_management/attribute_based_access_control'
-                >
-                    <FormattedMessage
-                        id='admin.access_control.edit_policy.delete'
-                        defaultMessage='Delete'
-                    />
-                </BlockableLink>
                 <BlockableLink
                     className='btn btn-quaternary'
                     to='/admin_console/user_management/attribute_based_access_control'
@@ -354,4 +412,4 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({ policyId, actions }) => {
     );
 };
 
-export default PolicyDetails; 
+export default PolicyDetails;

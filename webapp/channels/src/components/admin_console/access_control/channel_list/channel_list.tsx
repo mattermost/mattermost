@@ -5,8 +5,11 @@ import debounce from 'lodash/debounce';
 import isEqual from 'lodash/isEqual';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {isArchivedChannel} from 'utils/channel_utils';
+import {Constants} from 'utils/constants';
 
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
+
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import DataGrid from 'components/admin_console/data_grid/data_grid';
@@ -16,9 +19,6 @@ import TeamFilterDropdown from 'components/admin_console/filter/team_filter_drop
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import GlobeIcon from 'components/widgets/icons/globe_icon';
 import LockIcon from 'components/widgets/icons/lock_icon';
-
-import {isArchivedChannel} from 'utils/channel_utils';
-import {Constants} from 'utils/constants';
 
 import './channel_list.scss';
 
@@ -30,7 +30,6 @@ type Props = {
     policyId?: string;
     onRemoveCallback: (channel: ChannelWithTeamData) => void;
     onUndoRemoveCallback: (channel: ChannelWithTeamData) => void;
-    onAddCallback: (channels: ChannelWithTeamData[]) => void;
     channelsToRemove: Record<string, ChannelWithTeamData>;
     channelsToAdd: Record<string, ChannelWithTeamData>;
     actions: {
@@ -52,7 +51,7 @@ const PAGE_SIZE = 10;
 export default class ChannelList extends React.PureComponent<Props, State> {
     private mounted = false;
     private searchDebounced: () => void;
-    
+
     public constructor(props: Props) {
         super(props);
         this.state = {
@@ -61,7 +60,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
             page: 0,
             cursorHistory: [],
         };
-        
+
         this.searchDebounced = debounce(
             async () => {
                 const {policyId, searchTerm, filters, actions} = this.props;
@@ -87,10 +86,10 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         const {policyId, searchTerm, filters} = this.props;
         const filtersModified = !isEqual(prevProps.filters, filters);
         const searchTermModified = prevProps.searchTerm !== searchTerm;
-        
+
         if (searchTermModified || filtersModified) {
             this.setState({loading: true});
-            
+
             if (searchTerm === '') {
                 if (filtersModified && policyId) {
                     await prevProps.actions.searchChannels(policyId, searchTerm, filters);
@@ -113,13 +112,13 @@ export default class ChannelList extends React.PureComponent<Props, State> {
 
     private loadPage = async (page: number, pageSize = PAGE_SIZE + 1) => {
         const {policyId, searchTerm, filters, actions} = this.props;
-        
+
         if (!policyId || !this.mounted) {
             return;
         }
-        
+
         this.setState({loading: true});
-        
+
         const searchFilters = {...filters, page, per_page: pageSize};
 
         try {
@@ -128,29 +127,28 @@ export default class ChannelList extends React.PureComponent<Props, State> {
 
             // Check if we have more data than the page size, indicating there's a next page
             const hasNextPage = data.length > PAGE_SIZE;
-            
+
             // If we have more data than needed, remove the extra item (which is used to check for next page)
             const channels = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
-            
+
             // Get the ID of the last channel for the next cursor
             const lastChannelId = channels.length > 0 ? channels[channels.length - 1].id : '';
-            
+
             this.setState({
                 after: lastChannelId,
                 loading: false,
             });
         } catch (error) {
             this.setState({loading: false});
-            console.error(error);
         }
     };
 
     private nextPage = async () => {
         const {after, cursorHistory, page} = this.state;
-        
+
         // Save current cursor to history for "previous" navigation
         const newCursorHistory = [...cursorHistory, after];
-        
+
         this.setState({
             loading: true,
             page: page + 1,
@@ -162,29 +160,28 @@ export default class ChannelList extends React.PureComponent<Props, State> {
 
     private previousPage = async () => {
         const {cursorHistory, page} = this.state;
-        
+
         if (cursorHistory.length === 0) {
             return;
         }
-        
+
         // Remove the current cursor from history
         const newCursorHistory = [...cursorHistory];
         newCursorHistory.pop();
-        
+
         this.setState({
             loading: true,
             page: page - 1,
             cursorHistory: newCursorHistory,
         });
-        
+
         await this.loadPage(page - 1, PAGE_SIZE);
     };
 
     private getVisibleTotalCount = (): number => {
-        const {channelsToAdd, channelsToRemove, totalCount} = this.props;
+        const {channelsToAdd, totalCount} = this.props;
         const channelsToAddCount = Object.keys(channelsToAdd).length;
-        const channelsToRemoveCount = Object.keys(channelsToRemove).length;
-        return totalCount + channelsToAddCount - channelsToRemoveCount;
+        return (totalCount + channelsToAddCount);
     };
 
     public getPaginationProps = (): {startCount: number; endCount: number; total: number} => {
@@ -199,17 +196,17 @@ export default class ChannelList extends React.PureComponent<Props, State> {
     private removeChannel = (channel: ChannelWithTeamData) => {
         const {channelsToRemove, onRemoveCallback, onUndoRemoveCallback} = this.props;
         const {page} = this.state;
-        
+
         // Toggle between adding and removing the channel
         if (channelsToRemove[channel.id] === channel) {
             // If the channel is already marked for removal, undo it
             onUndoRemoveCallback(channel);
             return;
         }
-        
+
         // If the channel is not marked for removal, mark it
         onRemoveCallback(channel);
-        
+
         const {endCount} = this.getPaginationProps();
         if (endCount > this.getVisibleTotalCount() && (endCount % PAGE_SIZE) === 1 && page > 0) {
             this.setState({page: page - 1});
@@ -254,7 +251,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         // Combine channels to add with existing channels
         const channelsToDisplay = [
             ...Object.values(channelsToAdd),
-            ...channels
+            ...channels,
         ].slice(startCount - 1, endCount);
 
         return channelsToDisplay.map((channel) => {
@@ -272,8 +269,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                 );
             }
 
-            const isMarkedForRemoval = channelsToRemove[channel.id] === channel && 
-                channels.find(c => c.id === channel.id) !== undefined;
+            const isMarkedForRemoval = channelsToRemove[channel.id] === channel;
 
             // Determine the button text and action based on the channel state
             const buttonClassName = `group-actions TeamList_editText${isMarkedForRemoval ? ' marked-for-removal' : ''}`;
@@ -336,12 +332,12 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         }
         this.props.actions.setChannelListFilters(filters);
     };
-    
+
     render() {
         const rows: Row[] = this.getRows();
         const columns: Column[] = this.getColumns();
         const {startCount, endCount, total} = this.getPaginationProps();
-        
+
         const filterOptions: FilterOptions = {
             teams: {
                 name: 'Teams',
@@ -388,4 +384,3 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         );
     }
 }
-

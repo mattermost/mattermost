@@ -1,0 +1,97 @@
+.form-group {
+    min-height: 40px;
+}
+
+.btn-delete {
+    background: var(--denim-status-do-not-disturb, #d24b4e) !important;
+    color: var(--button-color, #fff) !important;
+}
+
+.AccessControlPolicySettings {
+    .editor-tabs {
+        display: flex;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        margin-bottom: 16px;
+    }
+
+    .editor-tab {
+        padding: 12px 24px;
+        border: none;
+        border-bottom: 2px solid transparent;
+        margin-right: 16px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+        font-weight: 600;
+
+        &:hover {
+            color: var(--center-channel-color);
+        }
+
+        &.active {
+            border-bottom-color: var(--button-bg);
+            color: var(--button-bg);
+        }
+    }
+
+    .delete-policy-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .delete-button-container {
+        margin-left: auto;
+        
+        span {
+            display: inline-block; // Ensures the tooltip works correctly
+        }
+    }
+
+    .delete-policy-button {
+        min-width: 120px; // Match width with Add channels button
+
+        &.disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+    }
+    
+    // Style for the tooltip
+    .tooltip {
+        opacity: 1;
+        
+        .tooltip-inner {
+            max-width: 250px;
+            padding: 8px 12px;
+        }
+    }
+
+    .add-channels {
+        .btn-primary {
+            min-width: 130px;
+        }
+    }
+
+    .delete-policy {
+        .btn-primary {
+            background: var(--denim-status-do-not-disturb, #d24b4e);
+            color: var(--button-color, #fff);
+            opacity: 1;
+            min-width: 130px;
+
+            &:hover:not(:disabled) {
+                background: darken(#d24b4e, 10%);
+                color: var(--button-color, #fff) !important;
+            }
+
+            &:disabled {
+                color: var(--button-color, #fff) !important;
+                background: darken(#d24b4e, 10%);
+                opacity: 0.65;
+                cursor: not-allowed;
+            }
+        }
+    }
+}

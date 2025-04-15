@@ -691,6 +691,30 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="user_management.attribute_based_access_control"
+              key="user_management.attribute_based_access_control"
+              name="user_management/attribute_based_access_control"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="premium"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="environment"
@@ -1441,6 +1465,30 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Delegated Granular Administration"
                   id="admin.sidebar.systemRoles"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.attribute_based_access_control"
+              key="user_management.attribute_based_access_control"
+              name="user_management/attribute_based_access_control"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="premium"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
                 />
               }
             />
@@ -2419,6 +2467,30 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="user_management.attribute_based_access_control"
+              key="user_management.attribute_based_access_control"
+              name="user_management/attribute_based_access_control"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="premium"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="environment"
@@ -3359,6 +3431,30 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="user_management.attribute_based_access_control"
+              key="user_management.attribute_based_access_control"
+              name="user_management/attribute_based_access_control"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="premium"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="environment"
@@ -4119,6 +4215,30 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="user_management.attribute_based_access_control"
+              key="user_management.attribute_based_access_control"
+              name="user_management/attribute_based_access_control"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="premium"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="environment"
@@ -4821,6 +4941,30 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Permissions"
                   id="admin.sidebar.permissions"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.attribute_based_access_control"
+              key="user_management.attribute_based_access_control"
+              name="user_management/attribute_based_access_control"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="premium"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
                 />
               }
             />
@@ -5548,6 +5692,30 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Delegated Granular Administration"
                   id="admin.sidebar.systemRoles"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.attribute_based_access_control"
+              key="user_management.attribute_based_access_control"
+              name="user_management/attribute_based_access_control"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="premium"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
                 />
               }
             />
@@ -6476,6 +6644,30 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Delegated Granular Administration"
                   id="admin.sidebar.systemRoles"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.attribute_based_access_control"
+              key="user_management.attribute_based_access_control"
+              name="user_management/attribute_based_access_control"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="premium"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
                 />
               }
             />
