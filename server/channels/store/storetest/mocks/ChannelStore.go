@@ -1700,9 +1700,9 @@ func (_m *ChannelStore) GetMembersForUser(teamID string, userID string) (model.C
 	return r0, r1
 }
 
-// GetMembersForUserWithCursorPagination provides a mock function with given fields: userId, page, fromChanneID
-func (_m *ChannelStore) GetMembersForUserWithCursorPagination(userId string, page int, fromChanneID string) (model.ChannelMembersWithTeamData, error) {
-	ret := _m.Called(userId, page, fromChanneID)
+// GetMembersForUserWithCursorPagination provides a mock function with given fields: userId, perPage, fromChanneID
+func (_m *ChannelStore) GetMembersForUserWithCursorPagination(userId string, perPage int, fromChanneID string) (model.ChannelMembersWithTeamData, error) {
+	ret := _m.Called(userId, perPage, fromChanneID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMembersForUserWithCursorPagination")
@@ -1711,10 +1711,10 @@ func (_m *ChannelStore) GetMembersForUserWithCursorPagination(userId string, pag
 	var r0 model.ChannelMembersWithTeamData
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, int, string) (model.ChannelMembersWithTeamData, error)); ok {
-		return rf(userId, page, fromChanneID)
+		return rf(userId, perPage, fromChanneID)
 	}
 	if rf, ok := ret.Get(0).(func(string, int, string) model.ChannelMembersWithTeamData); ok {
-		r0 = rf(userId, page, fromChanneID)
+		r0 = rf(userId, perPage, fromChanneID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelMembersWithTeamData)
@@ -1722,7 +1722,7 @@ func (_m *ChannelStore) GetMembersForUserWithCursorPagination(userId string, pag
 	}
 
 	if rf, ok := ret.Get(1).(func(string, int, string) error); ok {
-		r1 = rf(userId, page, fromChanneID)
+		r1 = rf(userId, perPage, fromChanneID)
 	} else {
 		r1 = ret.Error(1)
 	}

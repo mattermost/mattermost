@@ -2071,11 +2071,11 @@ func (s *RetryLayerChannelStore) GetMembersForUser(teamID string, userID string)
 
 }
 
-func (s *RetryLayerChannelStore) GetMembersForUserWithCursorPagination(userId string, page int, fromChanneID string) (model.ChannelMembersWithTeamData, error) {
+func (s *RetryLayerChannelStore) GetMembersForUserWithCursorPagination(userId string, perPage int, fromChanneID string) (model.ChannelMembersWithTeamData, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetMembersForUserWithCursorPagination(userId, page, fromChanneID)
+		result, err := s.ChannelStore.GetMembersForUserWithCursorPagination(userId, perPage, fromChanneID)
 		if err == nil {
 			return result, nil
 		}
