@@ -13,7 +13,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ExternalLink from 'components/external_link';
 import SettingItemMax from 'components/setting_item_max';
-import {getOptionLabel} from 'components/widgets/modals/components/react_select_item';
 
 import type {Language} from 'i18n/i18n';
 import Constants from 'utils/constants';
@@ -239,7 +238,6 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
                         onMenuOpen={this.handleMenuOpen}
                         aria-labelledby='changeInterfaceLanguageLabel'
                         aria-live='assertive'
-                        getOptionLabel={(option) => getOptionLabel(option, intl)}
                     />
                     {serverError}
                 </div>

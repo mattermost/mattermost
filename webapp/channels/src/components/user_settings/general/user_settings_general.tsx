@@ -23,7 +23,6 @@ import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-import {getOptionLabel} from 'components/widgets/modals/components/react_select_item';
 
 import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
 import {validHttpUrl} from 'utils/url';
@@ -1479,7 +1478,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 components={{IndicatorSeparator: null}}
                                 styles={selectStyles}
                                 value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as SelectOption}
-                                getOptionLabel={(option) => getOptionLabel(option, this.props.intl)}
                                 onChange={(v, a) => this.updateSelectAttribute(v, a, attribute.id)}
                             />,
                         );

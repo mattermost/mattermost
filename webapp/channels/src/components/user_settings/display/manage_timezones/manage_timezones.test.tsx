@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-
 import ManageTimezones from './manage_timezones';
-import type {ManageTimezones as ManageTimezonesClass} from './manage_timezones';
 
 describe('components/user_settings/display/manage_timezones/manage_timezones', () => {
     const user = {
@@ -33,9 +31,9 @@ describe('components/user_settings/display/manage_timezones/manage_timezones', (
     test('submitUser() should have called [updateMe, updateSection]', async () => {
         const updateMe = jest.fn(() => Promise.resolve({data: true}));
         const props = {...requiredProps, actions: {...requiredProps.actions, updateMe}};
-        const wrapper = shallowWithIntl(<ManageTimezones {...props}/>);
+        const wrapper = shallow(<ManageTimezones {...props}/>);
 
-        await (wrapper.instance() as ManageTimezonesClass).submitUser();
+        await (wrapper.instance() as ManageTimezones).submitUser();
 
         const expected = {...props.user,
             timezone: {
