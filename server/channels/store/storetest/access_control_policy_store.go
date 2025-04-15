@@ -294,20 +294,20 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 	require.NoError(t, err)
 	require.NotNil(t, resourcePolicy)
 	t.Run("GetAll", func(t *testing.T) {
-		policies, err := ss.AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{})
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
 		require.Len(t, policies, 2)
 	})
 
 	t.Run("GetAll by type", func(t *testing.T) {
-		policies, err := ss.AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{Type: model.AccessControlPolicyTypeParent})
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{Type: model.AccessControlPolicyTypeParent})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
 		require.Len(t, policies, 1)
 		require.Equal(t, parentPolicy.ID, policies[0].ID)
 
-		policies, err = ss.AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{Type: model.AccessControlPolicyTypeChannel})
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{Type: model.AccessControlPolicyTypeChannel})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
 		require.Len(t, policies, 1)
@@ -315,13 +315,13 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 	})
 
 	t.Run("GetAll by parent", func(t *testing.T) {
-		policies, err := ss.AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{ParentID: parentPolicy.ID})
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{ParentID: parentPolicy.ID})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
 		require.Len(t, policies, 1)
 		require.Equal(t, resourcePolicy.ID, policies[0].ID)
 
-		policies, err = ss.AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{ParentID: model.NewId()})
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{ParentID: model.NewId()})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
 		require.Len(t, policies, 0)

@@ -20,7 +20,9 @@ import {getHistory} from 'utils/browser_history';
 
 import './policy.scss';
 import { ActionResult } from 'mattermost-redux/types/actions';
-import { ChannelWithTeamData } from '@mattermost/types/channels';
+import { ChannelSearchOpts, ChannelWithTeamData } from '@mattermost/types/channels';
+
+const DEFAULT_PAGE_SIZE = 10;
 
 type Props = {
     policyId?: string;
@@ -29,7 +31,7 @@ type Props = {
         fetchPolicy: (id: string) => Promise<ActionResult>;
         createPolicy: (policy: AccessControlPolicy) => Promise<ActionResult>;
         deletePolicy: (id: string) => Promise<ActionResult>;
-        getChannelsForParentPolicy: (id: string, page: number, perPage: number) => Promise<ActionResult>;
+        searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
         assignChannelsToAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
         unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
@@ -92,7 +94,8 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
         if (this.props.policyId) {
             await this.props.actions.fetchPolicy(this.props.policyId);
             // Load initial set of channels for the policy
-            await this.props.actions.getChannelsForParentPolicy(this.props.policyId, 0, 15); // Using default page size
+            await this.props.actions.searchChannels(this.props.policyId, '', {per_page: DEFAULT_PAGE_SIZE}); // Using default page size
+
             this.setState({
                 policyName: this.props.policy?.name || '',
                 expression: this.props.policy?.rules?.[0]?.expression || '',
@@ -192,7 +195,7 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
     };
 
     handleExpressionChange = (value: string) => {
-        this.setState({expression: value});
+        this.setState({expression: value, saveNeeded: true});
     };
 
     render() {
@@ -219,7 +222,7 @@ export default class PolicyDetails extends React.PureComponent<Props, State> {
                                 id='policyName'
                                 label='Access control policy name:'
                                 value={this.state.policyName || ''}
-                                onChange={(id, value) => this.setState({policyName: value})}
+                                onChange={(id, value) => this.setState({policyName: value, saveNeeded: true})}
                                 labelClassName='col-sm-4'
                                 inputClassName='col-sm-8'
                             />

@@ -8,7 +8,6 @@ import type {Dispatch} from 'redux';
 import type {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 
 import { searchAccessControlPolicyChannels as searchChannels} from 'mattermost-redux/actions/access_control';
-import { getChannelsForParentPolicy } from 'mattermost-redux/actions/access_control';
 import {searchChannelsInheritsPolicy} from 'mattermost-redux/selectors/entities/access_control';
 import {filterChannelList} from 'mattermost-redux/selectors/entities/channels';
 import {getChannelsInAccessControlPolicy} from 'mattermost-redux/selectors/entities/access_control';
@@ -60,7 +59,6 @@ function mapStateToProps() {
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
-            getChildPolicies: getChannelsForParentPolicy,
             searchChannels,
             setChannelListSearch,
             setChannelListFilters,

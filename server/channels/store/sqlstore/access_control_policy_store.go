@@ -18,6 +18,8 @@ import (
 	sq "github.com/mattermost/squirrel"
 )
 
+const MaxPerPage = 1000
+
 // Usually rules are how we define the policy, hence the versioning. For v0.1, we also
 // have the imports field which is used to link with the parent policy.
 type accessControlPolicyV0_1 struct {
@@ -436,7 +438,7 @@ func (s *SqlAccessControlPolicyStore) getHistoryT(_ request.CTX, tx *sqlxTxWrapp
 	return policy, nil
 }
 
-func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts store.GetPolicyOptions) ([]*model.AccessControlPolicy, error) {
+func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccessControlPolicyOptions) ([]*model.AccessControlPolicy, model.AccessControlPolicyCursor, error) {
 	p := []storeAccessControlPolicy{}
 	query := s.selectQueryBuilder
 
@@ -452,20 +454,111 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts store.GetPolicy
 		query = query.Where(sq.Eq{"Type": opts.Type})
 	}
 
+	cursor := opts.Cursor
+
+	if !cursor.IsEmpty() {
+		query = query.Where(sq.Or{
+			sq.Gt{"Id": cursor.ID},
+		})
+	}
+
+	limit := uint64(opts.Limit)
+	if limit < 1 {
+		limit = 10
+	} else if limit > MaxPerPage {
+		limit = MaxPerPage
+	}
+
+	query = query.Limit(limit)
+
 	err := s.GetReplica().SelectBuilder(&p, query)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find policies with opts={\"parentID\"=%q, \"resourceType\"=%q", opts.ParentID, opts.Type)
+		return nil, cursor, errors.Wrapf(err, "failed to find policies with opts={\"parentID\"=%q, \"resourceType\"=%q", opts.ParentID, opts.Type)
 	}
 
 	policies := make([]*model.AccessControlPolicy, len(p))
 	for i := range p {
 		policies[i], err = p[i].toModel()
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+			return nil, cursor, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
 		}
 	}
 
-	return policies, nil
+	if len(policies) != 0 {
+		cursor.ID = policies[len(policies)-1].ID
+	}
+
+	return policies, cursor, nil
+}
+
+func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error) {
+	p := []storeAccessControlPolicy{}
+	query := s.selectQueryBuilder
+	count := s.getQueryBuilder().Select("COUNT(*)").From("AccessControlPolicies")
+
+	if opts.Term != "" {
+		condition := sq.Like{"Name": fmt.Sprintf("%%%s%%", opts.Term)}
+		query = query.Where(condition)
+		count = count.Where(condition)
+	}
+
+	if opts.Type != "" {
+		condition := sq.Eq{"Type": opts.Type}
+		query = query.Where(condition)
+		count = count.Where(condition)
+	}
+
+	if opts.ParentID != "" {
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			condition := sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID))
+			query = query.Where(condition)
+			count = count.Where(condition)
+		} else {
+			condition := sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", opts.ParentID))
+			query = query.Where(condition)
+			count = count.Where(condition)
+		}
+	}
+
+	cursor := opts.Cursor
+
+	if !cursor.IsEmpty() {
+		query = query.Where(sq.Gt{"Id": cursor.ID})
+	}
+
+	limit := uint64(opts.Limit)
+	if limit < 1 {
+		limit = 10
+	} else if limit > MaxPerPage {
+		limit = MaxPerPage
+	}
+
+	query = query.Limit(limit)
+
+	err := s.GetReplica().SelectBuilder(&p, query)
+	if err != nil {
+		return nil, 0, errors.Wrapf(err, "failed to find policies with opts={\"name\"=%q, \"resourceType\"=%q", opts.Term, opts.Type)
+	}
+
+	policies := make([]*model.AccessControlPolicy, len(p))
+	for i := range p {
+		policies[i], err = p[i].toModel()
+		if err != nil {
+			return nil, 0, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+		}
+	}
+
+	var total int64
+	err = s.GetReplica().GetBuilder(&total, count)
+	if err != nil {
+		return nil, 0, errors.Wrapf(err, "failed to count policies with opts={\"name\"=%q, \"resourceType\"=%q", opts.Term, opts.Type)
+	}
+
+	if len(policies) != 0 {
+		cursor.ID = policies[len(policies)-1].ID
+	}
+
+	return policies, total, nil
 }
 
 func (s *SqlAccessControlPolicyStore) GetAllSubjects(rctxc request.CTX) ([]*model.Subject, error) {
