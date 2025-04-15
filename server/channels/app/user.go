@@ -1040,6 +1040,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		}
 	}
 	ruser := userUpdate.New
+	a.InvalidateCacheForUser(user.Id)
 
 	if !active {
 		if err := a.RevokeAllSessions(c, ruser.Id); err != nil {
@@ -1053,8 +1054,6 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 	if appErr := a.invalidateUserChannelMembersCaches(c, user.Id); appErr != nil {
 		c.Logger().Warn("Error while invalidating user channel members caches", mlog.Err(appErr))
 	}
-	a.InvalidateCacheForUser(user.Id)
-
 	a.sendUpdatedUserEvent(ruser)
 
 	if !active && user.DeleteAt != 0 {
