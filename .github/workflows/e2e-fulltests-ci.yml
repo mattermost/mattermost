@@ -255,7 +255,7 @@ jobs:
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_CYPRESS }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
-      BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
+      BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}-cypress"
       REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
       ROLLING_RELEASE_commit_sha: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_commit_sha }}"
       ROLLING_RELEASE_SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
@@ -288,16 +288,18 @@ jobs:
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_PLAYWRIGHT }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
-      BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
+      BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}-playwright"
       REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
       ROLLING_RELEASE_commit_sha: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_commit_sha }}"
       ROLLING_RELEASE_SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
     secrets:
-      MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
-      PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
-      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
-      CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
-      CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
+        MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
+        AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
+        AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
+        PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
+        REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+        CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
+        CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
 
   notify-user:
     runs-on: ubuntu-latest
