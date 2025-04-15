@@ -156,10 +156,16 @@ describe('ChannelSettingsInfoTab', () => {
         // Initially, SaveChangesPanel should not be visible.
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
 
-        // Change the channel name.
-        const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
-        await userEvent.clear(nameInput);
-        await userEvent.type(nameInput, 'Updated Channel Name');
+        // Wrap the interaction in act to handle state updates properly
+        await act(async () => {
+            // Change the channel name.
+            const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
+            await userEvent.clear(nameInput);
+            await userEvent.type(nameInput, 'Updated Channel Name');
+        });
+
+        // Add a small delay to ensure all state updates are processed
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // SaveChangesPanel should now be visible.
         expect(screen.queryByRole('button', {name: 'Save'})).toBeInTheDocument();
@@ -171,20 +177,26 @@ describe('ChannelSettingsInfoTab', () => {
 
         renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
-        // Change the channel name.
-        const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
-        await userEvent.clear(nameInput);
-        await userEvent.type(nameInput, 'Updated Channel Name');
+        // Wrap all user interactions in act to handle state updates properly
+        await act(async () => {
+            // Change the channel name.
+            const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
+            await userEvent.clear(nameInput);
+            await userEvent.type(nameInput, 'Updated Channel Name');
 
-        // Change the channel purpose.
-        const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
-        await userEvent.clear(purposeInput);
-        await userEvent.type(purposeInput, 'Updated purpose');
+            // Change the channel purpose.
+            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            await userEvent.clear(purposeInput);
+            await userEvent.type(purposeInput, 'Updated purpose');
 
-        // Change the channel header.
-        const headerInput = screen.getByTestId('channel_settings_header_textbox');
-        await userEvent.clear(headerInput);
-        await userEvent.type(headerInput, 'Updated header');
+            // Change the channel header.
+            const headerInput = screen.getByTestId('channel_settings_header_textbox');
+            await userEvent.clear(headerInput);
+            await userEvent.type(headerInput, 'Updated header');
+        });
+
+        // Add a small delay to ensure all state updates are processed
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // Click the Save button in the SaveChangesPanel.
         await act(async () => {
@@ -204,16 +216,24 @@ describe('ChannelSettingsInfoTab', () => {
     it('should reset form when Reset button is clicked', async () => {
         renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
-        // Change the channel name.
-        const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
-        await userEvent.clear(nameInput);
-        await userEvent.type(nameInput, 'Updated Channel Name');
+        // Wrap the interaction in act to handle state updates properly
+        await act(async () => {
+            // Change the channel name.
+            const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
+            await userEvent.clear(nameInput);
+            await userEvent.type(nameInput, 'Updated Channel Name');
+        });
+
+        // Add a small delay to ensure all state updates are processed
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // SaveChangesPanel should now be visible.
         expect(screen.queryByRole('button', {name: 'Save'})).toBeInTheDocument();
 
         // Click the Reset button.
-        await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
+        await act(async () => {
+            await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
+        });
 
         // Form should be reset to original values.
         expect(screen.getByRole('textbox', {name: 'Channel name'})).toHaveValue('Test Channel');
@@ -228,10 +248,16 @@ describe('ChannelSettingsInfoTab', () => {
 
         renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
-        // Change the channel name.
-        const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
-        await userEvent.clear(nameInput);
-        await userEvent.type(nameInput, 'Updated Channel Name');
+        // Wrap the interaction in act to handle state updates properly
+        await act(async () => {
+            // Change the channel name.
+            const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
+            await userEvent.clear(nameInput);
+            await userEvent.type(nameInput, 'Updated Channel Name');
+        });
+
+        // Add a small delay to ensure all state updates are processed
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // Click the Save button.
         await act(async () => {
@@ -253,12 +279,18 @@ describe('ChannelSettingsInfoTab', () => {
             />,
         );
 
-        // Clear the channel name to simulate an error.
-        const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
-        await userEvent.clear(nameInput);
-        await userEvent.type(nameInput, 'Updated Channel Name');
-        await userEvent.clear(nameInput);
-        nameInput.blur();
+        // Wrap the interaction in act to handle state updates properly
+        await act(async () => {
+            // Clear the channel name to simulate an error.
+            const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
+            await userEvent.clear(nameInput);
+            await userEvent.type(nameInput, 'Updated Channel Name');
+            await userEvent.clear(nameInput);
+            nameInput.blur();
+        });
+
+        // Add a small delay to ensure all state updates are processed
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // SaveChangesPanel should show error state.
         const errorMessage = screen.getByText(/There are errors in the form above/);
@@ -275,9 +307,16 @@ describe('ChannelSettingsInfoTab', () => {
 
         // Create a string that exceeds the allowed character limit
         const longPurpose = 'a'.repeat(1025);
-        const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
-        await userEvent.clear(purposeInput);
-        await userEvent.type(purposeInput, longPurpose);
+
+        // Wrap the interaction in act to handle state updates properly
+        await act(async () => {
+            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            await userEvent.clear(purposeInput);
+            await userEvent.type(purposeInput, longPurpose);
+        });
+
+        // Add a small delay to ensure all state updates are processed
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // SaveChangesPanel should show error state.
         const errorMessage = screen.getByText(/There are errors in the form above/);
@@ -294,9 +333,16 @@ describe('ChannelSettingsInfoTab', () => {
 
         // Create a string that exceeds the header character limit.
         const longHeader = 'a'.repeat(1025);
-        const headerInput = screen.getByTestId('channel_settings_header_textbox');
-        await userEvent.clear(headerInput);
-        await userEvent.type(headerInput, longHeader);
+
+        // Wrap the interaction in act to handle state updates properly
+        await act(async () => {
+            const headerInput = screen.getByTestId('channel_settings_header_textbox');
+            await userEvent.clear(headerInput);
+            await userEvent.type(headerInput, longHeader);
+        });
+
+        // Add a small delay to ensure all state updates are processed
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // SaveChangesPanel should show error state.
         const errorMessage = screen.getByText(/There are errors in the form above/);

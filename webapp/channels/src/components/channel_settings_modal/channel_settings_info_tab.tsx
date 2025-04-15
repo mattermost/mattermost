@@ -194,6 +194,15 @@ function ChannelSettingsInfoTab({
         const errorMsg = err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'});
         setFormError(errorMsg);
         setSaveChangesPanelState('error');
+
+        // Check if the error is related to a URL conflict
+        if (err.message && (
+            err.message.toLowerCase().includes('url') ||
+            err.message.toLowerCase().includes('name') ||
+            err.message.toLowerCase().includes('already exists')
+        )) {
+            setUrlError(errorMsg); // Set the URL error to show in the URL input
+        }
     };
 
     // Validate & Save - using useCallback to ensure it has the latest state values
@@ -217,7 +226,6 @@ function ChannelSettingsInfoTab({
                 handleServerError(error as ServerError);
                 return false;
             }
-            return false;
         }
 
         // Build updated channel object
