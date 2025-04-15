@@ -6877,8 +6877,16 @@
     "translation": "No entry for that status exists."
   },
   {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "Encountered an error decoding JSON response from interactive dialog submission."
+  },
+  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Encountered an error encoding JSON for the interactive dialog."
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Encountered an error reading response body from interactive dialog submission."
   },
   {
     "id": "app.system.complete_onboarding_request.app_error",
@@ -8057,6 +8065,10 @@
     "translation": "Error loading LDAP TLS Certificate file."
   },
   {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Invalid AD/LDAP Id"
+  },
+  {
     "id": "ent.ldap.do_login.invalid_password.app_error",
     "translation": "Invalid Password."
   },
@@ -8155,6 +8167,10 @@
   {
     "id": "ent.ldap_groups.groups_search_error",
     "translation": "error retrieving ldap groups"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Invalid AD/LDAP id"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
