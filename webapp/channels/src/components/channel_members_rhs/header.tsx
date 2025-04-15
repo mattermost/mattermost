@@ -17,8 +17,11 @@ interface Props {
     goBack: () => void;
 }
 
-const HeaderTitle = styled.span`
+const HeaderTitle = styled.h2`
     line-height: 2.4rem;
+    font-size: inherit;
+    font-weight: inherit;
+    margin: 0;
 `;
 
 const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
