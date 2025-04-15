@@ -52,7 +52,7 @@ function SearchResultsHeader(props: Props) {
 
     return (
         <div className='sidebar--right__header'>
-            <span
+            <h2
                 className='sidebar--right__title'
                 id='rhsPanelTitle'
             >
@@ -66,7 +66,7 @@ function SearchResultsHeader(props: Props) {
                     </button>
                 )}
                 {props.children}
-            </span>
+            </h2>
             <div className='pull-right'>
                 {showExpand && (
                     <WithTooltip
