@@ -4091,6 +4091,43 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 	require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
 }
 
+func TestAddChannelMemberGuestAccessControl(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Enable guest accounts and add license
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GuestAccountsSettings.Enable = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	// Create a guest user
+	guest, guestClient := th.CreateGuestAndClient()
+
+	// Create a public channel to which the guest doesn't belong
+	publicChannel := th.CreatePublicChannel()
+
+	// Try to add another user to the channel using the guest's client
+	// This should fail with a permission error, validating our fix
+	_, resp, err := guestClient.AddChannelMember(context.Background(), publicChannel.Id, th.BasicUser2.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	// Also verify that using user IDs in the request body doesn't bypass the check
+	_, resp, err = guestClient.AddChannelMembers(context.Background(), publicChannel.Id, "", []string{th.BasicUser2.Id})
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	// Verify that the guest can get channel members for channels they belong to
+	channelWithGuest := th.CreatePublicChannel()
+	th.AddUserToChannel(guest, channelWithGuest)
+
+	// Guest should be able to read members of channels they belong to
+	members, _, err := guestClient.GetChannelMembers(context.Background(), channelWithGuest.Id, 0, 100, "")
+	require.NoError(t, err)
+	require.NotEmpty(t, members)
+}
+
 func TestAddChannelMemberAddMyself(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
