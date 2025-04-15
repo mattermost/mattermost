@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page} from '@playwright/test';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 import {Channel} from '@mattermost/types/channels';
@@ -12,9 +11,7 @@ import {expect, test, ChannelsPage} from '@mattermost/playwright-lib';
 
 // Constants for test data
 const TEST_PHONE = '555-123-4567';
-const TEST_UPDATED_PHONE = '555-987-6543';
 const TEST_URL = 'https://example.com';
-const TEST_UPDATED_URL = 'https://mattermost.com';
 const TEST_DEPARTMENT = 'Engineering';
 const TEST_LOCATION = 'Remote';
 const TEST_UPDATED_DEPARTMENT = 'Product';
@@ -470,45 +467,6 @@ async function updateCustomProfileAttributeVisibility(
     } catch (error) {
         // eslint-disable-next-line no-console
         console.log(`Failed to update visibility for attribute ${attributeName}:`, error);
-    }
-}
-
-/**
- * Clears the value of a specific custom profile attribute
- * @param {Client4} userClient - User client object
- * @param {Object} fieldsMap - Map of field IDs to field objects
- * @param {string} attributeName - The name of the attribute to clear
- */
-async function clearCustomProfileAttributeValue(
-    userClient: Client4,
-    fieldsMap: Record<string, UserPropertyField>,
-    attributeName: string,
-): Promise<void> {
-    let fieldID = '';
-
-    // Find the field ID for the attribute name
-    for (const [id, field] of Object.entries(fieldsMap)) {
-        if (field.name === attributeName) {
-            fieldID = id;
-            break;
-        }
-    }
-
-    if (!fieldID) {
-        throw new Error(`Could not find field ID for attribute: ${attributeName}`);
-    }
-
-    // Create a map with an empty value for the field
-    const valuesByFieldId: Record<string, string> = {
-        [fieldID]: '',
-    };
-
-    try {
-        // Update the value to empty
-        await userClient.updateCustomProfileAttributeValues(valuesByFieldId);
-    } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log(`Failed to clear value for attribute ${attributeName}:`, error);
     }
 }
 
