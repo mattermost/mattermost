@@ -63,7 +63,6 @@ func TestListExports(t *testing.T) {
 		})
 
 		exportDir := filepath.Join(dataDir, *th.App.Config().ExportSettings.Directory)
-		t.Log("create export directory", exportDir)
 		err := os.Mkdir(exportDir, 0700)
 		require.NoError(t, err)
 		defer func() {
