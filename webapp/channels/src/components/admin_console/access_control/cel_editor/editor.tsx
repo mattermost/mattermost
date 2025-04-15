@@ -25,7 +25,7 @@ const MONACO_EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions 
     language: POLICY_LANGUAGE,
     automaticLayout: true,
     minimap: {enabled: false},
-    lineNumbers: 'on',
+    lineNumbers: 'off',
     scrollBeyondLastLine: false,
     wordWrap: 'on',
     renderLineHighlight: 'none',
@@ -108,6 +108,13 @@ const CELEditor: React.FC<CELEditorProps> = ({
         setExpression(value);
     }, [value]);
 
+    // Update Monaco editor content when expression state changes
+    useEffect(() => {
+        if (monacoRef.current && monacoRef.current.getValue() !== expression) {
+            monacoRef.current.setValue(expression);
+        }
+    }, [expression]);
+
     const handleChange = useCallback((newValue: string) => {
         setExpression(newValue);
         onChange(newValue);
@@ -175,6 +182,9 @@ const CELEditor: React.FC<CELEditorProps> = ({
         }
 
         monacoRef.current = monaco.editor.create(editorRef.current, MONACO_EDITOR_OPTIONS);
+        
+        // Set the initial value from the expression state
+        monacoRef.current.setValue(expression);
 
         monacoRef.current.getModel()?.onDidChangeContent(() => {
             const newValue = monacoRef.current?.getValue() || '';
