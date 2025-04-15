@@ -280,7 +280,7 @@ func TestDownloadJob(t *testing.T) {
 		require.NoError(t, delErr, "Failed to delete job %s", job.Id)
 	}()
 
-	filePath := "./data/export/" + job.Id + "/testdat.txt"
+	filePath := filepath.Join(*th.App.Config().FileSettings.Directory, "export", job.Id+"/testdat.txt")
 	err = os.MkdirAll(filepath.Dir(filePath), 0770)
 	require.NoError(t, err)
 
@@ -314,7 +314,7 @@ func TestDownloadJob(t *testing.T) {
 
 	// Now we stub the results of the job into the same directory and try to download it again
 	// This time we should successfully retrieve the results without any error
-	filePath = filepath.Join(*th.App.Config().FileSettings.Directory, "export/", job.Id+".zip")
+	filePath = filepath.Join(*th.App.Config().FileSettings.Directory, "export", job.Id+".zip")
 	err = os.MkdirAll(filepath.Dir(filePath), 0770)
 	require.NoError(t, err)
 
