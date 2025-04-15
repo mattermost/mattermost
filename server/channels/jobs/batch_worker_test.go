@@ -54,7 +54,8 @@ func TestBatchWorker(t *testing.T) {
 
 		batchNumber++
 		job.Data["batch_number"] = strconv.Itoa(batchNumber)
-		th.Server.Jobs.SetJobProgress(job, 0)
+		appErr := th.Server.Jobs.SetJobProgress(job, 0)
+		require.Nil(t, appErr)
 	}
 
 	t.Run("stop after first batch", func(t *testing.T) {
