@@ -47,7 +47,7 @@ type State = {
     cursorHistory: string[];
 }
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 export default class ChannelList extends React.PureComponent<Props, State> {
     private mounted = false;
