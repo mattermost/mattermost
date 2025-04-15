@@ -4,10 +4,10 @@
 import type {ServerError} from '@mattermost/types/errors';
 import { forceLogoutIfNecessary} from './helpers';
 import { ActionFuncAsync } from 'mattermost-redux/types/actions';
-import type { AccessControlPolicy, AccessControlPolicyRule } from '@mattermost/types/admin';
+import type { AccessControlPoliciesResult, AccessControlPolicy } from '@mattermost/types/admin';
 import {Client4} from 'mattermost-redux/client';
 import {AdminTypes, ChannelTypes} from 'mattermost-redux/action_types';
-import { ChannelSearchOpts, ChannelWithTeamData } from '@mattermost/types/channels';
+import { ChannelSearchOpts, ChannelsWithTotalCount, ChannelWithTeamData } from '@mattermost/types/channels';
 import {batchActions} from 'redux-batched-actions';
 import type { StatusOK } from '@mattermost/types/client4';
 
@@ -71,16 +71,16 @@ export function deleteAccessControlPolicy(id: string): ActionFuncAsync<AccessCon
     };
 }
 
-export function getAccessControlPolicies(page: number, perPage: number): ActionFuncAsync<AccessControlPolicy[]> {
+export function searchAccessControlPolicies(term: string, type: string, after: string, limit: number): ActionFuncAsync<AccessControlPoliciesResult> {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.getAccessControlPolicies(page, perPage);
+            data = await Client4.searchAccessControlPolicies(term, type, after, limit);
         } catch (error) {
             forceLogoutIfNecessary(error as ServerError, dispatch, getState);
             dispatch(
                 {
-                    type: AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES,
+                    type: AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES_SEARCH,
                     error,
                 },
             );
@@ -88,42 +88,14 @@ export function getAccessControlPolicies(page: number, perPage: number): ActionF
         }
 
         dispatch(
-            {type: AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES, data},
+            {type: AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES_SEARCH, data: data.policies},
         );
 
-        return {data};
+        return {data: data};
     };
 }
 
-export function getChannelsForParentPolicy(parentId: string, page: number, perPage: number): ActionFuncAsync<ChannelWithTeamData[]> {
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.getChannelsForAccessControlPolicy(parentId, page, perPage);
-        } catch (error) {
-            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            dispatch(
-                {
-                    type: AdminTypes.RECEIVED_ACCESS_CONTROL_CHILD_POLICIES,
-                    error,
-                },
-            );
-            return {error};
-        }
-
-        let childs: Record<string, string[]> = {}
-        childs[parentId] = data.map((channel) => channel.id)
-
-        dispatch(batchActions([
-            {type: AdminTypes.RECEIVED_ACCESS_CONTROL_CHILD_POLICIES, data: childs},
-            {type: ChannelTypes.RECEIVED_CHANNELS, data: data},
-        ]));
-
-        return {data}
-    };
-}
-
-export function searchAccessControlPolicyChannels(id: string, term: string, opts: ChannelSearchOpts): ActionFuncAsync<ChannelWithTeamData[]> {
+export function searchAccessControlPolicyChannels(id: string, term: string, opts: ChannelSearchOpts): ActionFuncAsync<ChannelsWithTotalCount> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -139,9 +111,12 @@ export function searchAccessControlPolicyChannels(id: string, term: string, opts
             return {error};
         }
 
+        let childs: Record<string, string[]> = {}
+        childs[id] = data.channels.map((channel) => channel.id)
+
         dispatch(batchActions([
-            {type: AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES_SEARCH, data: data},
-            {type: ChannelTypes.RECEIVED_CHANNELS, data: data},
+            {type: AdminTypes.RECEIVED_ACCESS_CONTROL_CHILD_POLICIES, data: childs},
+            {type: ChannelTypes.RECEIVED_CHANNELS, data: data.channels},
         ]));
 
         return {data};

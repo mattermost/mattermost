@@ -8,48 +8,24 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) GetAllParentPolicies(rctx request.CTX, page, perPage int) ([]*model.AccessControlPolicy, *model.AppError) {
-	policies, err := a.Srv().Store().AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{
-		Type: model.AccessControlPolicyTypeParent,
-	})
-	if err != nil {
-		return nil, model.NewAppError("GetAllParentPolicies", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return policies, nil
-}
-
-func (a *App) GetAllChildPolicies(rctx request.CTX, parentID string, page, perPage int) ([]*model.AccessControlPolicy, *model.AppError) {
-	policies, err := a.Srv().Store().AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{
-		Type:     model.AccessControlPolicyTypeChannel,
-		ParentID: parentID,
-	})
-	if err != nil {
-		return nil, model.NewAppError("GetAllChildPolicies", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return policies, nil
-}
-
-func (a *App) GetChannelsForPolicy(rctx request.CTX, policyID string, page, perPage int) ([]*model.ChannelWithTeamData, *model.AppError) {
+func (a *App) GetChannelsForPolicy(rctx request.CTX, policyID string, cursor model.AccessControlPolicyCursor, limit int) ([]*model.ChannelWithTeamData, int64, *model.AppError) {
 	policy, appErr := a.GetAccessControlPolicy(rctx, policyID)
 	if appErr != nil {
-		return nil, appErr
+		return nil, 0, appErr
 	}
 
 	switch policy.Type {
 	case model.AccessControlPolicyTypeParent:
-		policies, err := a.Srv().Store().AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{
+		policies, total, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
 			Type:     model.AccessControlPolicyTypeChannel,
 			ParentID: policyID,
-			// Page:	 page,
-			// PerPage:  perPage,
+			Cursor:   cursor,
+			Limit:    limit,
 		})
 		if err != nil {
-			return nil, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, 0, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		channelIDs := make([]string, 0, len(policies))
 
@@ -59,19 +35,20 @@ func (a *App) GetChannelsForPolicy(rctx request.CTX, policyID string, page, perP
 
 		chs, err := a.Srv().Store().Channel().GetChannelsWithTeamDataByIds(channelIDs, true)
 		if err != nil {
-			return nil, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, 0, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
-		return chs, nil
+		return chs, total, nil
 	case model.AccessControlPolicyTypeChannel:
 		chs, err := a.Srv().Store().Channel().GetChannelsWithTeamDataByIds([]string{policyID}, true)
 		if err != nil {
-			return nil, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, 0, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
-		return chs, nil
+		total := int64(len(chs))
+		return chs, total, nil
 	default:
-		return nil, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, "Invalid policy type", http.StatusBadRequest)
+		return nil, 0, model.NewAppError("GetChannelsForPolicy", "app.pap.get_all_access_control_policies.app_error", nil, "Invalid policy type", http.StatusBadRequest)
 	}
 }
 
@@ -185,4 +162,18 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, policyID str
 	}
 
 	return policies, nil
+}
+
+func (a *App) SearchAccessControlPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, 0, model.NewAppError("SearchAccessControlPolicies", "app.pap.search_access_control_policies.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	policies, total, appErr := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, opts)
+	if appErr != nil {
+		return nil, 0, model.NewAppError("SearchAccessControlPolicies", "app.pap.search_access_control_policies.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
+	return policies, total, nil
 }

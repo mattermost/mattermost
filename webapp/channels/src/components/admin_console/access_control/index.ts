@@ -4,14 +4,14 @@
 import {connect} from 'react-redux';
 import PolicyList from './policies';
 
-import {getAccessControlPolicies as fetchPolicies} from 'mattermost-redux/actions/access_control';
+import {searchAccessControlPolicies as searchPolicies} from 'mattermost-redux/actions/access_control';
 import { bindActionCreators } from 'redux';
 import type {Dispatch} from 'redux';
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
-            getAccessControlPolicies: fetchPolicies,
+            searchPolicies: searchPolicies,
         }, dispatch),
     };
 }

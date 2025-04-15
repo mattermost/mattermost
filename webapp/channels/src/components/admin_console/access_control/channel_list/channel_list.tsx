@@ -39,7 +39,6 @@ type Props = {
 
     actions: {
         searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
-        getChildPolicies: (id: string, page: number, perPage: number) => Promise<ActionResult>;
         setChannelListSearch: (term: string) => void;
         setChannelListFilters: (filters: ChannelSearchOpts) => void;
     };
@@ -48,56 +47,171 @@ type Props = {
 type State = {
     loading: boolean;
     page: number;
+    after: string;
+    cursorHistory: string[];
 }
-const PAGE_SIZE = 10;
+
+const PAGE_SIZE = 5;
+
 export default class ChannelList extends React.PureComponent<Props, State> {
-    private pageLoaded = 0;
-    private shouldLoadMoreData = false;
-    private nextPageToLoad?: number;
+    private mounted = false;
     
     public constructor(props: Props) {
         super(props);
         this.state = {
+            after: '',
             loading: false,
             page: 0,
+            cursorHistory: [],
         };
     }
 
     componentDidMount = () => {
-        this.loadPage(0, PAGE_SIZE * 2);
+        this.mounted = true;
+        this.loadPage(0, PAGE_SIZE + 1);
+    };
+
+    componentWillUnmount = () => {
+        this.mounted = false;
     };
 
     private setStateLoading = (loading: boolean) => {
         this.setState({loading});
     };
+    
     private setStatePage = (page: number) => {
         this.setState({page});
     };
 
-    private loadPage = async (page: number, pageSize = PAGE_SIZE) => {
+    private loadPage = async (page: number, pageSize = PAGE_SIZE + 1) => {
         if (this.props.policyId) {
             this.setStateLoading(true);
-            await this.props.actions.getChildPolicies(this.props.policyId, page, pageSize);
-            this.setStateLoading(false);
+            // const after = this.state.after;
+            const search = this.props.searchTerm;
+            const filters = this.props.filters;
+
+            filters.page = page;
+            filters.per_page = pageSize;
+
+            try {
+                if  ((!this.mounted) || (!this.props.policyId)) {
+                    return;
+                }
+                
+                const action = await this.props.actions.searchChannels(this.props.policyId, search, filters);
+                const data = action.data.channels || [];
+
+                // Check if we have more data than the page size, indicating there's a next page
+                const hasNextPage = data.length > PAGE_SIZE;
+                
+                // If we have more data than needed, remove the extra item (which is used to check for next page)
+                const channels = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
+                
+                // Get the ID of the last channel for the next cursor
+                const lastChannelId = channels.length > 0 ? channels[channels.length - 1].id : '';
+                
+                this.setState({
+                    after: lastChannelId,
+                    loading: false,
+                });
+            } catch (error) {
+                this.setState({loading: false});
+                console.error(error);
+            }
         }
     };
 
-    private nextPage = () => {
-        const page = this.state.page + 1;
-        this.loadPage(page + 1);
-        this.setStatePage(page);
+    private nextPage = async () => {
+        const {after, cursorHistory} = this.state;
+        
+        // Save current cursor to history for "previous" navigation
+        const newCursorHistory = [...cursorHistory, after];
+        
+        this.setState({
+            loading: true,
+            page: this.state.page + 1,
+            cursorHistory: newCursorHistory,
+        });
+
+        const {filters, searchTerm} = this.props;
+        filters.page = this.state.page + 1;
+        filters.per_page = PAGE_SIZE;
+
+        try {
+            const action = await this.props.actions.searchChannels(this.props.policyId || '', searchTerm, filters);
+            const data = action.data.channels || [];
+            
+            // Check if we have more data than the page size, indicating there's a next page
+            const hasNextPage = data.length > PAGE_SIZE;
+            
+            // If we have more data than needed, remove the extra item (which is used to check for next page)
+            const channels = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
+            
+            // Get the ID of the last channel for the next cursor
+            const lastChannelId = channels.length > 0 ? channels[channels.length - 1].id : '';
+            
+            this.setState({
+                after: lastChannelId,
+                loading: false,
+            });
+        } catch (error) {
+            this.setState({loading: false});
+            console.error(error);
+        }
     };
 
-    private previousPage = () => {
-        const page = this.state.page - 1;
-        this.loadPage(page + 1);
-        this.setStatePage(page);
+    private previousPage = async () => {
+        const {cursorHistory} = this.state;
+        
+        if (cursorHistory.length === 0) {
+            return;
+        }
+        
+        // Remove the current cursor from history
+        const newCursorHistory = [...cursorHistory];
+        newCursorHistory.pop();
+
+        const {filters, searchTerm} = this.props;
+        filters.page = this.state.page - 1;
+        filters.per_page = PAGE_SIZE;
+        
+        // Get the previous cursor
+        const previousCursor = newCursorHistory.length > 0 ? newCursorHistory[newCursorHistory.length - 1] : '';
+        
+        this.setState({
+            loading: true,
+            page: this.state.page - 1,
+            cursorHistory: newCursorHistory,
+        });
+        
+        try {
+            const action = await this.props.actions.searchChannels(this.props.policyId || '', searchTerm, filters);
+            const data = action.data.channels || [];
+            
+            // Check if we have more data than the page size, indicating there's a next page
+            const hasNextPage = data.length > PAGE_SIZE;
+            
+            // If we have more data than needed, remove the extra item (which is used to check for next page)
+            const channels = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
+            
+            // Get the ID of the last channel for the next cursor
+            const lastChannelId = channels.length > 0 ? channels[channels.length - 1].id : '';
+            
+            this.setState({
+                after: lastChannelId,
+                loading: false,
+            });
+        } catch (error) {
+            this.setState({loading: false});
+            console.error(error);
+        }
     };
 
     private getVisibleTotalCount = (): number => {
         const {channelsToAdd, channelsToRemove, totalCount} = this.props;
         const channelsToAddCount = Object.keys(channelsToAdd).length;
-        return totalCount + channelsToAddCount;
+        const channelsToRemoveCount = Object.keys(channelsToRemove).length;
+        return totalCount + channelsToAddCount - channelsToRemoveCount;
     };
 
     public getPaginationProps = (): {startCount: number; endCount: number; total: number} => {
@@ -170,8 +284,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
     };
 
     getRows = () => {
-        const {page} = this.state;
-        const {channels, channelsToRemove, channelsToAdd, totalCount} = this.props; // term was here
+        const {channels, channelsToRemove, channelsToAdd} = this.props;
         const {startCount, endCount} = this.getPaginationProps();
 
         let channelsToDisplay = channels;
@@ -181,19 +294,6 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         // channelsToDisplay = channelsToDisplay.filter((channel) => !channelsToRemove[channel.id]);
         channelsToDisplay = [...includeTeamsList, ...channelsToDisplay];
         channelsToDisplay = channelsToDisplay.slice(startCount - 1, endCount);
-
-        // Dont load more elements if searching
-        if (channelsToDisplay.length < PAGE_SIZE && channels.length < totalCount) { //term === '' &&  was included
-            // Since we're not removing channels from the display list anymore,
-            // we don't need to adjust the page calculation based on removed channels
-            const pageToLoad = page + 1;
-
-            // Directly call action to load more users from parent component to load more users into the state
-            if (pageToLoad > this.pageLoaded) {
-                this.loadPage(pageToLoad + 1);
-                this.pageLoaded = pageToLoad;
-            }
-        }
 
         return channelsToDisplay.map((channel) => {
             let iconToDisplay = <GlobeIcon className='channel-icon'/>;
@@ -271,19 +371,11 @@ export default class ChannelList extends React.PureComponent<Props, State> {
     onSearch = async (searchTerm: string) => {
         this.props.actions.setChannelListSearch(searchTerm);
     };
+    
     public async componentDidUpdate(prevProps: Props) {
         const {policyId, searchTerm, filters} = this.props;
         const filtersModified = !isEqual(prevProps.filters, this.props.filters);
         const searchTermModified = prevProps.searchTerm !== searchTerm;
-        
-        // Handle loading more data if needed
-        if (this.shouldLoadMoreData && this.nextPageToLoad) {
-            this.shouldLoadMoreData = false;
-            const pageToLoad = this.nextPageToLoad;
-            this.nextPageToLoad = undefined;
-            this.pageLoaded = pageToLoad;
-            await this.loadPage(pageToLoad + 1);
-        }
         
         if (searchTermModified || filtersModified) {
             this.setStateLoading(true);
@@ -291,8 +383,13 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                 if (filtersModified && policyId) {
                     await prevProps.actions.searchChannels(policyId, searchTerm, filters);
                 } else {
-                    await this.loadPage(1);
-                    this.setStatePage(0);
+                    // Reset pagination state when clearing search
+                    this.setState({
+                        after: '',
+                        page: 0,
+                        cursorHistory: [],
+                    });
+                    await this.loadPage(0, PAGE_SIZE + 1);
                 }
                 this.setStateLoading(false);
                 return;
@@ -322,6 +419,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         }
         this.props.actions.setChannelListFilters(filters);
     };
+    
     render() {
         const rows: Row[] = this.getRows();
         const columns: Column[] = this.getColumns();

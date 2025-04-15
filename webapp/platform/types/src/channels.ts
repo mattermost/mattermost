@@ -230,4 +230,6 @@ export type ChannelSearchOpts = {
     deleted?: boolean;
     page?: number;
     per_page?: number;
+    exclude_access_control_policy_enforced?: boolean;
+    parent_access_control_policy_id?: string;
 };

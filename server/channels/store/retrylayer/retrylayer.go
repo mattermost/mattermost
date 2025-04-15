@@ -583,27 +583,6 @@ func (s *RetryLayerAccessControlPolicyStore) Get(c request.CTX, id string) (*mod
 
 }
 
-func (s *RetryLayerAccessControlPolicyStore) GetAll(rctxc request.CTX, opts store.GetPolicyOptions) ([]*model.AccessControlPolicy, error) {
-
-	tries := 0
-	for {
-		result, err := s.AccessControlPolicyStore.GetAll(rctxc, opts)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerAccessControlPolicyStore) GetAllSubjects(rctxc request.CTX) ([]*model.Subject, error) {
 
 	tries := 0
@@ -640,6 +619,27 @@ func (s *RetryLayerAccessControlPolicyStore) Save(c request.CTX, policy *model.A
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, err := s.AccessControlPolicyStore.SearchPolicies(rctx, opts)
+		if err == nil {
+			return result, resultVar1, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

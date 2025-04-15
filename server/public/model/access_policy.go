@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/pkg/errors"
 	"golang.org/x/mod/semver"
 )
 
@@ -31,6 +32,30 @@ type ParentPolicy struct {
 type AccessControlPolicyTestResponse struct {
 	Users      []*User  `json:"users"`
 	Attributes []string `json:"attributes"`
+}
+
+type GetAccessControlPolicyOptions struct {
+	Type     string                    `json:"type"`
+	ParentID string                    `json:"parent_id"`
+	Cursor   AccessControlPolicyCursor `json:"cursor"`
+	Limit    int                       `json:"limit"`
+}
+
+type AccessControlPolicySearch struct {
+	Term     string                    `json:"term"`
+	Type     string                    `json:"type"`
+	ParentID string                    `json:"parent_id"`
+	Cursor   AccessControlPolicyCursor `json:"cursor"`
+	Limit    int                       `json:"limit"`
+}
+
+type AccessControlPolicyCursor struct {
+	ID string `json:"id"`
+}
+
+type AccessControlPoliciesWithCount struct {
+	Policies []*AccessControlPolicy `json:"policies"`
+	Total    int64                  `json:"total"`
 }
 
 type AccessControlPolicy struct {
@@ -154,4 +179,20 @@ func (p *AccessControlPolicy) Inherit(resourceID, resourceType string) (*AccessC
 	}
 
 	return child, nil
+}
+
+func (c *AccessControlPolicyCursor) IsEmpty() bool {
+	return c.ID == ""
+}
+
+func (c *AccessControlPolicyCursor) IsValid() error {
+	if c.IsEmpty() {
+		return nil
+	}
+
+	if !IsValidId(c.ID) {
+		return errors.New("cursor id is invalid")
+	}
+
+	return nil
 }

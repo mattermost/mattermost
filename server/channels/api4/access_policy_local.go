@@ -8,7 +8,6 @@ import "net/http"
 func (api *API) InitAccessControlPolicyLocal() {
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APILocal(createAccessPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APILocal(getAccessPolicy)).Methods(http.MethodGet)
-	api.BaseRoutes.AccessControlPolicies.Handle("", api.APILocal(getAccessPolicies)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APILocal(deleteAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicies.Handle("/check", api.APILocal(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/test", api.APILocal(testExpression)).Methods(http.MethodPost)

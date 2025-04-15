@@ -10,17 +10,19 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 type Props = {
     actions: {
-        getAccessControlPolicies: (page: number, pageSize: number) => Promise<ActionResult>;
+        searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
     };
 };
 
 type State = {
     policies: AccessControlPolicy[];
-
     page: number;
+    after: string;
     loading: boolean;
     search: string;
     searchErrored: boolean;
+    cursorHistory: string[];
+    total: number;
 };
 
 const PAGE_SIZE = 10;
@@ -34,7 +36,10 @@ export default class PolicyList extends React.PureComponent<Props, State> {
             loading: false,
             search: '',
             page: 0,
+            after: '',
             searchErrored: false,
+            cursorHistory: [],
+            total: 0,
         };
     }
 
@@ -51,43 +56,166 @@ export default class PolicyList extends React.PureComponent<Props, State> {
     }
 
     fetchPolicies = async () => {
-        const {page} = this.state;
+        const {after} = this.state;
         this.setState({loading: true});
-    
+        console.log('fetching policies; after:', after); 
         try {
             if (!this.mounted) {
                 return;
             }
-            const action = await this.props.actions.getAccessControlPolicies(page, PAGE_SIZE);
-            const data = {...action.data};
-            this.setState({policies: data || [], loading: false});
+
+            const action = await this.props.actions.searchPolicies('', 'parent', after, PAGE_SIZE + 1);
+            const data = action.data.policies || [];
+            const total = action.data.total || 0;
+
+            // Check if we have more data than the page size, indicating there's a next page
+            const hasNextPage = data.length > PAGE_SIZE;
+
+            // If we have more data than needed, remove the extra item (which is used to check for next page)
+            const policies = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
+            
+            // Get the ID of the last policy for the next cursor
+            const lastPolicyId = policies.length > 0 ? policies[policies.length - 1].id : '';
+            
+            this.setState({
+                policies,
+                loading: false,
+                after: lastPolicyId,
+                total: total,
+            });
         } catch (error) {
             this.setState({loading: false, searchErrored: true});
         }
     }
 
-
     isSearching = (term: string) => {
         return term.length > 0;
     };
 
-    onSearch = (term: string) => {
-        // this.props.onSearchChange(term);
-        this.setState({ page: 0 });
+    onSearch = async (term: string) => {
+        if (term.length === 0) {
+            console.log('onSearch - term:', term);
+            this.setState({
+                page: 0,
+                after: '',
+                loading: false,
+                searchErrored: false,
+                search: '', 
+            }, () => {
+                this.fetchPolicies();
+            });
+            return;
+        }
+        try {
+            this.setState({loading: true});
+            const action = await this.props.actions.searchPolicies(term, 'parent', '', PAGE_SIZE + 1);
+            const data = action.data.policies || [];
+            const total = action.data.total || 0;
+            
+            // Check if we have more data than the page size, indicating there's a next page
+            const hasNextPage = data.length > PAGE_SIZE;
+            // If we have more data than needed, remove the extra item (which is used to check for next page)
+            const policies = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
+            
+            // Get the ID of the last policy for the next cursor
+            const lastPolicyId = policies.length > 0 ? policies[policies.length - 1].id : '';
+            
+            this.setState({
+                policies,
+                loading: false,
+                after: lastPolicyId,
+                page: 0,
+                search: term,
+                cursorHistory: [],
+                total: total,
+            });
+        } catch (error) {
+            this.setState({loading: false, searchErrored: true});
+            console.error(error);
+        }
     };
 
-    nextPage = () => {
-        const page = this.state.page + 1;
-        this.setState({page});
+    nextPage = async () => {
+        const {after, cursorHistory, search} = this.state;
+        
+        // Save current cursor to history for "previous" navigation
+        const newCursorHistory = [...cursorHistory, after];
+        
+        this.setState({
+            loading: true,
+            page: this.state.page + 1,
+            cursorHistory: newCursorHistory,
+        });
+        
+        try {
+            const action = await this.props.actions.searchPolicies(search, 'parent', after, PAGE_SIZE + 1);
+            const data = action.data.policies || [];
+            const total = action.data.total || 0;
+            
+            // Check if we have more data than the page size, indicating there's a next page
+            const hasNextPage = data.length > PAGE_SIZE;
+            // If we have more data than needed, remove the extra item (which is used to check for next page)
+            const policies = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
+            
+            // Get the ID of the last policy for the next cursor
+            const lastPolicyId = policies.length > 0 ? policies[policies.length - 1].id : '';
+            
+            this.setState({
+                policies,
+                loading: false,
+                after: lastPolicyId,
+                total: total,
+            });
+        } catch (error) {
+            this.setState({loading: false, searchErrored: true});
+        }
     };
 
-    previousPage = () => {
-        const page = this.state.page - 1;
-        this.setState({page});
+    previousPage = async () => {
+        const {cursorHistory, search} = this.state;
+        
+        if (cursorHistory.length === 0) {
+            return;
+        }
+        
+        // Remove the current cursor from history
+        const newCursorHistory = [...cursorHistory];
+        newCursorHistory.pop();
+        
+        // Get the previous cursor
+        const previousCursor = newCursorHistory.length > 0 ? newCursorHistory[newCursorHistory.length - 1] : '';
+        
+        this.setState({
+            loading: true,
+            page: this.state.page - 1,
+            cursorHistory: newCursorHistory,
+        });
+        
+        try {
+            const action = await this.props.actions.searchPolicies(search, 'parent', previousCursor, PAGE_SIZE + 1);
+            const data = action.data.policies || [];
+            const total = action.data.total || 0;
+            
+            // Check if we have more data than the page size, indicating there's a next page
+            const hasNextPage = data.length > PAGE_SIZE;
+            // If we have more data than needed, remove the extra item (which is used to check for next page)
+            const policies = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
+            
+            // Get the ID of the last policy for the next cursor
+            const lastPolicyId = policies.length > 0 ? policies[policies.length - 1].id : '';
+            
+            this.setState({
+                policies,
+                loading: false,
+                after: lastPolicyId,
+                total: total,
+            });
+        } catch (error) {
+            this.setState({loading: false, searchErrored: true});
+        }
     };
 
     getRows = (): Row[] => {
-        const {startCount, endCount} = this.getPaginationProps();
         const sortedPolicies = Object.values(this.state.policies).sort((a, b) => {
             const timeA = new Date(a.created_at || 0).valueOf();
             const timeB = new Date(b.created_at || 0).valueOf();
@@ -173,18 +301,14 @@ export default class PolicyList extends React.PureComponent<Props, State> {
     };
 
     getPaginationProps = () => {
-        const { policies } = this.state;
-        const { page } = this.state;
-        const startCount = page * PAGE_SIZE;
-        const endCount = Math.min(startCount + PAGE_SIZE, policies.length);
+        const { policies, page, total } = this.state;
+        const startCount = page * PAGE_SIZE + 1;
+        const endCount = startCount + policies.length - 1;
 
         return {
-            page,
-            startCount: startCount + 1,
+            startCount,
             endCount,
-            total: policies.length,
-            onNextPage: this.nextPage,
-            onPreviousPage: this.previousPage,
+            total,
         };
     };
 

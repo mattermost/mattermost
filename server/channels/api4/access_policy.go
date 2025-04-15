@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -15,10 +16,10 @@ import (
 func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(getAccessPolicy)).Methods(http.MethodGet)
-	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(getAccessPolicies)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(deleteAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicies.Handle("/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicy.Handle("/assign", api.APISessionRequired(assignAccessPolicy)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", api.APISessionRequired(unassignAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APISessionRequired(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
@@ -86,37 +87,6 @@ func getAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getAccessPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	var policies []*model.AccessControlPolicy
-	var appErr *model.AppError
-
-	parentID := r.URL.Query().Get("parent")
-	if parentID == "" {
-		policies, appErr = c.App.GetAllParentPolicies(c.AppContext, 0, 0)
-	} else {
-		policies, appErr = c.App.GetAllChildPolicies(c.AppContext, parentID, 0, 0)
-	}
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	js, err := json.Marshal(policies)
-	if err != nil {
-		c.Err = model.NewAppError("getAccessPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(js); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
 func deleteAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -167,13 +137,15 @@ func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *
 		ParentAccessControlPolicyId: policyID,
 	}
 
-	channels, _, appErr := c.App.SearchAllChannels(c.AppContext, props.Term, opts)
+	channels, total, appErr := c.App.SearchAllChannels(c.AppContext, props.Term, opts)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	channelsJSON, jsonErr := json.Marshal(channels)
+	data := model.ChannelsWithCount{Channels: channels, TotalCount: total}
+
+	channelsJSON, jsonErr := json.Marshal(data)
 	if jsonErr != nil {
 		c.Err = model.NewAppError("searchChannelsInPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
@@ -246,6 +218,41 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 	js, err := json.Marshal(resp)
 	if err != nil {
 		c.Err = model.NewAppError("checkExpression", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	var props *model.AccessControlPolicySearch
+	err := json.NewDecoder(r.Body).Decode(&props)
+	if err != nil || props == nil {
+		c.SetInvalidParamWithErr("access_control_policy_search", err)
+		return
+	}
+
+	policies, total, appErr := c.App.SearchAccessControlPolicies(c.AppContext, *props)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	result := model.AccessControlPoliciesWithCount{
+		Policies: policies,
+		Total:    total,
+	}
+
+	js, err := json.Marshal(result)
+	if err != nil {
+		c.Err = model.NewAppError("searchAccessControlPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -344,16 +351,31 @@ func getChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 	policyID := c.Params.PolicyId
-	page := c.Params.Page
-	perPage := c.Params.PerPage
 
-	channels, appErr := c.App.GetChannelsForPolicy(c.AppContext, policyID, page, perPage)
+	afterID := r.URL.Query().Get("after")
+	if afterID != "" && !model.IsValidId(afterID) {
+		c.SetInvalidParam("after")
+		return
+	}
+
+	limitStr := r.URL.Query().Get("limit")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		c.Err = model.NewAppError("getChannelsForAccessControlPolicy", "api.access_control_policy.get_channels.limit.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	channels, total, appErr := c.App.GetChannelsForPolicy(c.AppContext, policyID, model.AccessControlPolicyCursor{
+		ID: afterID,
+	}, limit)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	js, err := json.Marshal(channels)
+	data := model.ChannelsWithCount{Channels: channels, TotalCount: total}
+
+	js, err := json.Marshal(data)
 	if err != nil {
 		c.Err = model.NewAppError("getChannelsForAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
