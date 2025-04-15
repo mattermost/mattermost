@@ -95,7 +95,6 @@ issues:
         channels/app/file_test.go|\
         channels/app/helper_test.go|\
         channels/app/import_functions.go|\
-        channels/app/integration_action.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\
@@ -108,7 +107,6 @@ issues:
         channels/app/team.go|\
         channels/app/team_test.go|\
         channels/app/upload.go|\
-        channels/app/webhook_test.go|\
         channels/jobs/batch_worker_test.go|\
         channels/jobs/helper_test.go|\
         channels/jobs/hosted_purchase_screening/worker.go|\
