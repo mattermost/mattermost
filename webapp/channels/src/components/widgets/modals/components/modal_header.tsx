@@ -16,12 +16,12 @@ function ModalHeader({id, title, subtitle, handleClose}: Props) {
     const intl = useIntl();
     return (
         <header className='mm-modal-header'>
-            <h1
+            <h2
                 id={`mm-modal-header-${id}`}
                 className='mm-modal-header__title'
             >
                 {title}
-            </h1>
+            </h2>
             <div className='mm-modal-header__vertical-divider'/>
             <p className='mm-modal-header__subtitle'>{subtitle}</p>
             {handleClose && <div className='mm-modal-header__ctr'>
