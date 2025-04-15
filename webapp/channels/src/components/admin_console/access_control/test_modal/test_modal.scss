@@ -1,20 +1,16 @@
 .test-results-modal {
     .col-sm-12 {
-        padding-left: 0px;
+        padding-left: 0;
         padding-bottom: 12px;
         padding-top: 12px;
     }
 
-    .more-modal__row {
-        padding: 10px 12px;
-    }
-
     .col-xs-12 {
-        padding-right: 0px;
-        padding-left: 0px;
+        padding-right: 0;
+        padding-left: 0;
     }
 
-    .more-modal__row{
-        padding: 10px 0px;
+    .more-modal__row {
+        padding: 10px 0;
     }
 }

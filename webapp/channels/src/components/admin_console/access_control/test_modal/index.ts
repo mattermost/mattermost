@@ -7,16 +7,14 @@ import type {Dispatch} from 'redux';
 
 import {openModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
-
 import TestResultsModal from './test_modal';
-import { ModalIdentifiers } from 'utils/constants';
-import type {ActionResult} from 'mattermost-redux/types/actions';
+
 function mapStateToProps(state: GlobalState) {
-    const modalId = ModalIdentifiers.TEAM_MEMBERS;
     return {
-        show: isModalOpen(state, modalId),
+        show: isModalOpen(state, ModalIdentifiers.TEST_RESULTS),
     };
 }
 
@@ -24,7 +22,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,
-            setModalSearchTerm: (term: string): ActionResult => ({data: term}),
+            setModalSearchTerm: (term: string) => ({type: 'SET_MODAL_SEARCH_TERM', data: term}),
         }, dispatch),
     };
 }
