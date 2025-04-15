@@ -3,6 +3,7 @@
 
 import {fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
+import type {ComponentProps} from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -36,12 +37,14 @@ describe('UserPropertyDotMenu', () => {
         jest.clearAllMocks();
     });
 
-    const renderComponent = (field: UserPropertyField = baseField) => {
+    const renderComponent = (field: UserPropertyField = baseField, dotMenuProps?: Partial<ComponentProps<typeof DotMenu>>) => {
         return renderWithContext(
             (
                 <div>
                     <DotMenu
                         field={field}
+                        canCreate={true}
+                        {...dotMenuProps}
                         updateField={updateField}
                         deleteField={deleteField}
                         createField={createField}
@@ -128,10 +131,8 @@ describe('UserPropertyDotMenu', () => {
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
         fireEvent.click(menuButton);
 
-        // Find and click the duplicate option
-        const duplicateOptions = screen.getAllByText(/Duplicate property/);
-        const duplicateOption = duplicateOptions[0];
-        fireEvent.click(duplicateOption);
+        // Click the duplicate option
+        fireEvent.click(screen.getByText(/Duplicate property/));
 
         // Wait for createField to be called
         await waitFor(() => {
@@ -141,6 +142,17 @@ describe('UserPropertyDotMenu', () => {
                 name: 'Test Field (copy)',
             }));
         });
+    });
+
+    it('hides field duplication when at field limit', async () => {
+        renderComponent(undefined, {canCreate: false});
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
+        fireEvent.click(menuButton);
+
+        // Verify duplicate option is not shown
+        expect(screen.queryByText(/Duplicate property/)).not.toBeInTheDocument();
     });
 
     it('handles field deletion with confirmation when field exists in DB', async () => {

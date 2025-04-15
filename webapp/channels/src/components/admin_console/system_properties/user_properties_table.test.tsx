@@ -68,6 +68,7 @@ describe('UserPropertiesTable', () => {
         return renderWithContext(
             <UserPropertiesTable
                 data={collection}
+                canCreate={true}
                 createField={createField}
                 updateField={updateField}
                 deleteField={deleteField}
@@ -151,6 +152,7 @@ describe('UserPropertiesTable', () => {
         renderWithContext(
             <UserPropertiesTable
                 data={collection}
+                canCreate={true}
                 createField={createField}
                 updateField={updateField}
                 deleteField={deleteField}

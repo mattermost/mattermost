@@ -14,6 +14,7 @@ import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
 import {isCreatePending} from './user_properties_utils';
 type Props = {
     field: UserPropertyField;
+    canCreate: boolean;
     createField: (field: UserPropertyField) => void;
     updateField: (field: UserPropertyField) => void;
     deleteField: (id: string) => void;
@@ -23,6 +24,7 @@ const menuId = 'user-property-field_dotmenu';
 
 const DotMenu = ({
     field,
+    canCreate,
     createField,
     updateField,
     deleteField,
@@ -195,17 +197,19 @@ const DotMenu = ({
                 )}
             />
             <Menu.Separator/>
-            <Menu.Item
-                id={`${menuId}_duplicate`}
-                onClick={handleDuplicate}
-                leadingElement={<ContentCopyIcon size={18}/>}
-                labels={(
-                    <FormattedMessage
-                        id='admin.system_properties.user_properties.dotmenu.duplicate.label'
-                        defaultMessage={'Duplicate property'}
-                    />
-                )}
-            />
+            {canCreate && (
+                <Menu.Item
+                    id={`${menuId}_duplicate`}
+                    onClick={handleDuplicate}
+                    leadingElement={<ContentCopyIcon size={18}/>}
+                    labels={(
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.dotmenu.duplicate.label'
+                            defaultMessage={'Duplicate property'}
+                        />
+                    )}
+                />
+            )}
             <Menu.Item
                 id={`${menuId}_delete`}
                 onClick={handleDelete}
