@@ -402,7 +402,6 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		}
 	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.Metadata != nil {
 		// Always update post if edit time changed, message changed, or post has metadata.
-		// This ensures priority, acknowledgements, and persistent notifications are properly synced.
 		rpost, appErr = scs.app.UpdatePost(request.EmptyContext(scs.server.Log()), post, nil)
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post",
