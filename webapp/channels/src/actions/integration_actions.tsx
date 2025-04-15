@@ -6,7 +6,6 @@ import type {IncomingWebhook, IncomingWebhooksWithCount, OutgoingWebhook, Comman
 import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getDialogArguments} from 'mattermost-redux/selectors/entities/integrations';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
@@ -186,7 +185,7 @@ export function submitInteractiveDialog(submission: DialogSubmission): ActionFun
 
         // Get dialog arguments from state if available
         const dialogArguments = getDialogArguments(state);
-        
+
         // Use channel_id from dialog arguments if available
         if (dialogArguments && dialogArguments.channel_id) {
             submission.channel_id = dialogArguments.channel_id;
@@ -194,11 +193,9 @@ export function submitInteractiveDialog(submission: DialogSubmission): ActionFun
 
         // Dispatch the base action with our enhanced submission
         const {data, error} = await dispatch(IntegrationActions.submitInteractiveDialog(submission));
-        
         if (error) {
             return {error};
         }
-        
         return {data};
     };
 }
