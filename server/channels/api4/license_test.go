@@ -529,7 +529,7 @@ func TestGetLicenseLoadMetric(t *testing.T) {
 			require.NoError(t, statusErr)
 		}
 
-		// Check load metric - should be around 50
+		// Check load metric - should be exactly 50
 		data, resp, err := th.Client.GetLicenseLoadMetric(context.Background())
 		require.NoError(t, err)
 		require.NotNil(t, resp)
