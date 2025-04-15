@@ -179,18 +179,13 @@ describe('actions/integration_actions', () => {
                 },
                 user_id: 'current_user_id',
                 team_id: 'team_id1',
-                channel_id: '',
-                cancelled: false,
-            };
-
-            const expectedSubmission = {
-                ...submission,
                 channel_id: 'current_channel_id',
+                cancelled: false,
             };
 
             await testStore.dispatch(Actions.submitInteractiveDialog(submission));
 
-            expect(IntegrationActions.submitInteractiveDialog).toHaveBeenCalledWith(expectedSubmission);
+            expect(IntegrationActions.submitInteractiveDialog).toHaveBeenCalledWith(submission);
         });
     });
 });
