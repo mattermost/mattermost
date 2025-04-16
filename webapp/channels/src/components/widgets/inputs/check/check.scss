@@ -9,6 +9,7 @@
 
     .text {
         margin-left: 8px;
+        padding-top: 2px;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
         font-style: normal;
@@ -18,6 +19,7 @@
         .header {
             display: block;
             color: var(--center-channel-color);
+            margin-bottom: 8px;
         }
     }
 }
