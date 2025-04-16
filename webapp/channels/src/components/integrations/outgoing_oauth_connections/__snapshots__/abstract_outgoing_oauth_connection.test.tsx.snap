@@ -498,7 +498,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             title="Save Outgoing OAuth Connection"
           >
             <GenericModal
-              ariaLabel="confirmModalLabel"
+              ariaLabelledby="confirmModalLabel"
               autoCloseOnCancelButton={true}
               autoCloseOnConfirmButton={true}
               bodyPadding={true}
@@ -517,8 +517,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             >
               <Modal
                 animation={true}
-                aria-label="confirmModalLabel"
-                aria-labelledby="genericModalLabel"
+                aria-labelledby="confirmModalLabel"
                 aria-modal="true"
                 autoFocus={true}
                 backdrop={true}
@@ -1103,7 +1102,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             title="Save Outgoing OAuth Connection"
           >
             <GenericModal
-              ariaLabel="confirmModalLabel"
+              ariaLabelledby="confirmModalLabel"
               autoCloseOnCancelButton={true}
               autoCloseOnConfirmButton={true}
               bodyPadding={true}
@@ -1122,8 +1121,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             >
               <Modal
                 animation={true}
-                aria-label="confirmModalLabel"
-                aria-labelledby="genericModalLabel"
+                aria-labelledby="confirmModalLabel"
                 aria-modal="true"
                 autoFocus={true}
                 backdrop={true}

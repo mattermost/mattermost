@@ -188,7 +188,7 @@ export default class ConfirmModal extends React.Component<Props, State> {
                 show={this.props.show}
                 onHide={this.handleCancel}
                 onExited={this.handleExited}
-                ariaLabel='confirmModalLabel'
+                ariaLabelledby='confirmModalLabel'
                 compassDesign={true}
                 modalHeaderText={this.props.title}
             >
