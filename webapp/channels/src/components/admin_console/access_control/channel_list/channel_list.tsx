@@ -5,8 +5,6 @@ import debounce from 'lodash/debounce';
 import isEqual from 'lodash/isEqual';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {isArchivedChannel} from 'utils/channel_utils';
-import {Constants} from 'utils/constants';
 
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 
@@ -19,6 +17,9 @@ import TeamFilterDropdown from 'components/admin_console/filter/team_filter_drop
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import GlobeIcon from 'components/widgets/icons/globe_icon';
 import LockIcon from 'components/widgets/icons/lock_icon';
+
+import {isArchivedChannel} from 'utils/channel_utils';
+import {Constants} from 'utils/constants';
 
 import './channel_list.scss';
 

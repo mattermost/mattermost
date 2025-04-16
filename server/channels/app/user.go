@@ -2355,15 +2355,15 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 		}
 	}
 
-	// if len(restrictions.Channels) > 0 {
-	// 	result, err := a.userBelongsToChannels(otherUserId, restrictions.Channels)
-	// 	if err != nil {
-	// 		return false, err
-	// 	}
-	// 	if result {
-	// 		return true, nil
-	// 	}
-	// }
+	if len(restrictions.Channels) > 0 {
+		result, err := a.userBelongsToChannels(otherUserId, restrictions.Channels)
+		if err != nil {
+			return false, err
+		}
+		if result {
+			return true, nil
+		}
+	}
 
 	return false, nil
 }

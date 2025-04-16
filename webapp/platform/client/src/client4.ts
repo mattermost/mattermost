@@ -3,7 +3,7 @@
 
 /* eslint-disable max-lines */
 
-import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery, AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery, AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlExpressionAutocomplete} from '@mattermost/types/admin';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -4448,6 +4448,13 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/access_control_policies/${policyId}/unassign`,
             {method: 'delete', body: JSON.stringify({channel_ids: channelIds})},
+        );
+    };
+
+    checkAccessControlExpressionAutocomplete = () => {
+        return this.doFetch<AccessControlExpressionAutocomplete>(
+            `${this.getBaseRoute()}/access_control_policies/autocomplete`,
+            {method: 'get'},
         );
     };
 

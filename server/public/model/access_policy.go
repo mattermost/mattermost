@@ -20,8 +20,21 @@ const (
 	AccessControlPolicyVersionV0_1 = "v0.1"
 )
 
+// AccessControlAttribute represents a user attribute with its name and possible values
+type AccessControlAttribute struct {
+	Name   string   `json:"name"`
+	Values []string `json:"values"`
+}
+
+// AccessControlEntity represents an entity with its name and attributes
+type AccessControlEntity struct {
+	Name       string                   `json:"name"`
+	Attributes []AccessControlAttribute `json:"attributes"`
+}
+
+// AccessControlExpressionAutocomplete represents the autocomplete data for access control expressions
 type AccessControlExpressionAutocomplete struct {
-	Values map[string]any `json:"values"`
+	Entities map[string]AccessControlEntity `json:"entities"`
 }
 
 type AccessControlPolicyTestResponse struct {
