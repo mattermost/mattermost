@@ -98,6 +98,12 @@ func RegisterIPFilteringInterface(f func(*App) einterfaces.IPFilteringInterface)
 	ipFilteringInterface = f
 }
 
+var accessControlServiceInterface func(*App) einterfaces.AccessControlServiceInterface
+
+func RegisterAccessControlServiceInterface(f func(*App) einterfaces.AccessControlServiceInterface) {
+	accessControlServiceInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if cloudInterface != nil {
 		s.Cloud = cloudInterface(s)

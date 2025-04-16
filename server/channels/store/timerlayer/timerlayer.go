@@ -553,10 +553,10 @@ func (s *TimerLayerAccessControlPolicyStore) Get(c request.CTX, id string) (*mod
 	return result, err
 }
 
-func (s *TimerLayerAccessControlPolicyStore) GetAll(rctxc request.CTX, opts store.GetPolicyOptions) ([]*model.AccessControlPolicy, error) {
+func (s *TimerLayerAccessControlPolicyStore) GetAllSubjects(rctxc request.CTX) ([]*model.Subject, error) {
 	start := time.Now()
 
-	result, err := s.AccessControlPolicyStore.GetAll(rctxc, opts)
+	result, err := s.AccessControlPolicyStore.GetAllSubjects(rctxc)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -564,7 +564,7 @@ func (s *TimerLayerAccessControlPolicyStore) GetAll(rctxc request.CTX, opts stor
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetAll", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetAllSubjects", success, elapsed)
 	}
 	return result, err
 }
@@ -583,6 +583,22 @@ func (s *TimerLayerAccessControlPolicyStore) Save(c request.CTX, policy *model.A
 		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.Save", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.AccessControlPolicyStore.SearchPolicies(rctx, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.SearchPolicies", success, elapsed)
+	}
+	return result, resultVar1, err
 }
 
 func (s *TimerLayerAccessControlPolicyStore) SetActiveStatus(c request.CTX, id string, active bool) (*model.AccessControlPolicy, error) {

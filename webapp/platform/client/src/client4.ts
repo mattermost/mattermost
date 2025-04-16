@@ -3,7 +3,7 @@
 
 /* eslint-disable max-lines */
 
-import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery, AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlExpressionAutocomplete} from '@mattermost/types/admin';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -1556,7 +1556,8 @@ export default class Client4 {
         excludeDefaultChannels: boolean | undefined,
         includeTotalCount: true,
         includeDeleted: boolean | undefined,
-        excludePolicyConstrained: boolean | undefined
+        excludePolicyConstrained: boolean | undefined,
+        excludeAccessControlPolicyEnforced: boolean | undefined
     ): Promise<ChannelsWithTotalCount>;
     getAllChannels(
         page = 0,
@@ -1566,6 +1567,7 @@ export default class Client4 {
         includeTotalCount = false,
         includeDeleted = false,
         excludePolicyConstrained = false,
+        excludeAccessControlPolicyEnforced = false,
     ) {
         const queryData = {
             page,
@@ -1575,6 +1577,7 @@ export default class Client4 {
             include_total_count: includeTotalCount,
             include_deleted: includeDeleted,
             exclude_policy_constrained: excludePolicyConstrained,
+            exclude_access_control_policy_enforced: excludeAccessControlPolicyEnforced,
         };
         return this.doFetch<ChannelWithTeamData[] | ChannelsWithTotalCount>(
             `${this.getChannelsRoute()}${buildQueryString(queryData)}`,
@@ -4366,6 +4369,97 @@ export default class Client4 {
         return this.doFetchWithResponse<Post>(
             `${this.getPostRoute(postId)}/restore/${restoreVersionId}`,
             {method: 'post', headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    getAccessControlPolicy = (id: string) => {
+        return this.doFetch<AccessControlPolicy>(
+            `${this.getBaseRoute()}/access_control_policies/${id}`,
+            {method: 'get'},
+        );
+    };
+
+    updateOrCreateAccessControlPolicy = (policy: AccessControlPolicy) => {
+        return this.doFetch<AccessControlPolicy>(
+            `${this.getBaseRoute()}/access_control_policies`,
+            {method: 'put', body: JSON.stringify(policy)},
+        );
+    };
+
+    deleteAccessControlPolicy = (id: string) => {
+        return this.doFetch<AccessControlPolicy>(
+            `${this.getBaseRoute()}/access_control_policies/${id}`,
+            {method: 'delete'},
+        );
+    };
+
+    getAccessControlPolicies = (after: string, limit: number) => {
+        return this.doFetch<AccessControlPoliciesResult>(
+            `${this.getBaseRoute()}/access_control_policies/search`,
+            {method: 'post', body: JSON.stringify({type: 'parent', cursor: {id: after}, limit})},
+        );
+    };
+
+    getChildPolicies = (parentId: string, after: string, limit: number) => {
+        return this.doFetch<AccessControlPoliciesResult>(
+            `${this.getBaseRoute()}/access_control_policies/search`,
+            {method: 'post', body: JSON.stringify({parent_id: parentId, cursor: {id: after}, limit})},
+        );
+    };
+
+    getChannelsForAccessControlPolicy = (policyId: string, after: string, limit: number) => {
+        return this.doFetch<AccessControlPolicyChannelsResult>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/channels?after=${after}&limit=${limit}`,
+            {method: 'get'},
+        );
+    };
+
+    searchAccessControlPolicies = (term: string, type: string, after: string, limit: number) => {
+        return this.doFetch<AccessControlPoliciesResult>(
+            `${this.getBaseRoute()}/access_control_policies/search`,
+            {method: 'post', body: JSON.stringify({term, type, cursor: {id: after}, limit, include_children: true})},
+        );
+    };
+
+    searchChildAccessControlPolicyChannels = (policyId: string, term: string, opts: ChannelSearchOpts) => {
+        return this.doFetch<ChannelsWithTotalCount>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/channels/search?term=${term}`,
+            {method: 'post', body: JSON.stringify({term, ...opts})},
+        );
+    };
+
+    assignChannelsToAccessControlPolicy = (policyId: string, channelIds: string[]) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/assign`,
+            {method: 'post', body: JSON.stringify({channel_ids: channelIds})},
+        );
+    };
+
+    unassignChannelsFromAccessControlPolicy = (policyId: string, channelIds: string[]) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/unassign`,
+            {method: 'delete', body: JSON.stringify({channel_ids: channelIds})},
+        );
+    };
+
+    checkAccessControlExpressionAutocomplete = () => {
+        return this.doFetch<AccessControlExpressionAutocomplete>(
+            `${this.getBaseRoute()}/access_control_policies/autocomplete`,
+            {method: 'get'},
+        );
+    };
+
+    checkAccessControlExpression = (expression: string) => {
+        return this.doFetch<CELExpressionError[]>(
+            `${this.getBaseRoute()}/access_control_policies/check`,
+            {method: 'post', body: JSON.stringify({expression})},
+        );
+    };
+
+    testAccessControlExpression = (expression: string) => {
+        return this.doFetch<AccessControlTestResult>(
+            `${this.getBaseRoute()}/access_control_policies/test`,
+            {method: 'post', body: JSON.stringify({expression})},
         );
     };
 }

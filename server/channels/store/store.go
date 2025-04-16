@@ -1114,7 +1114,8 @@ type AccessControlPolicyStore interface {
 	Delete(c request.CTX, id string) error
 	SetActiveStatus(c request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
 	Get(c request.CTX, id string) (*model.AccessControlPolicy, error)
-	GetAll(rctxc request.CTX, opts GetPolicyOptions) ([]*model.AccessControlPolicy, error)
+	GetAllSubjects(rctxc request.CTX) ([]*model.Subject, error)
+	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.
@@ -1127,27 +1128,29 @@ type AccessControlPolicyStore interface {
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
 type ChannelSearchOpts struct {
-	Term                     string
-	NotAssociatedToGroup     string
-	IncludeDeleted           bool
-	Deleted                  bool
-	ExcludeChannelNames      []string
-	TeamIds                  []string
-	GroupConstrained         bool
-	ExcludeGroupConstrained  bool
-	PolicyID                 string
-	ExcludePolicyConstrained bool
-	IncludePolicyID          bool
-	IncludeTeamInfo          bool
-	IncludeSearchByID        bool
-	ExcludeRemote            bool
-	CountOnly                bool
-	Public                   bool
-	Private                  bool
-	Page                     *int
-	PerPage                  *int
-	LastDeleteAt             int
-	LastUpdateAt             int
+	Term                               string
+	NotAssociatedToGroup               string
+	IncludeDeleted                     bool
+	Deleted                            bool
+	ExcludeChannelNames                []string
+	TeamIds                            []string
+	GroupConstrained                   bool
+	ExcludeGroupConstrained            bool
+	PolicyID                           string
+	ExcludePolicyConstrained           bool
+	IncludePolicyID                    bool
+	IncludeTeamInfo                    bool
+	IncludeSearchByID                  bool
+	ExcludeRemote                      bool
+	CountOnly                          bool
+	Public                             bool
+	Private                            bool
+	Page                               *int
+	PerPage                            *int
+	LastDeleteAt                       int
+	LastUpdateAt                       int
+	ExcludeAccessControlPolicyEnforced bool
+	ParentAccessControlPolicyId        string
 }
 
 func (c *ChannelSearchOpts) IsPaginated() bool {
@@ -1208,12 +1211,4 @@ type ThreadMembershipImportData struct {
 	LastViewed int64
 	// UnreadMentions is the number of unread mentions to set the UnreadMentions field to.
 	UnreadMentions int64
-}
-
-// GetPolicyOptions contains options for filtering policy records.
-type GetPolicyOptions struct {
-	// ParentID will filter policy records where they inherit parent with PolicyID.
-	ParentID string
-	// Type will filter policy records where they are associated with the Type.
-	Type string
 }

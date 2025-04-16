@@ -1,0 +1,289 @@
+.cel-editor {
+    margin-bottom: 24px;
+
+    &__container {
+        position: relative;
+        display: flex;
+        overflow: auto;
+        height: auto;
+        flex-direction: column;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        margin-bottom: 8px;
+        background: var(--center-channel-bg);
+        overflow-y: auto;
+
+        .policy-editor-placeholder {
+            position: absolute;
+            z-index: 10;
+            top: 13px;
+            left: 30px;
+            color: rgba(0,0,0, 0.40);
+            font-family: monospace;
+            font-size: 12px;
+            pointer-events: none;
+            user-select: none;
+            white-space: pre-wrap;
+        }
+    }
+
+    &__cursor-position {
+        position: absolute;
+        right: 8px;
+        padding: 2px 4px;
+        border-radius: 4px;
+        color: var(--button-color);
+        font-family: monospace;
+        font-size: 12px;
+        pointer-events: none;
+    }
+
+    &__input {
+        overflow: auto;
+        width: 100%;
+        height: auto;
+        min-height: 120px;
+        max-height: 600px;
+        //overflow-y: auto;
+        flex-grow: 0;
+        padding: 12px;
+        border: 1px solid var(--button-bg);
+        border-radius: 4px 4px 0 0;
+        font-family: monospace;
+        resize: vertical;
+        transition: border-color 0.15s ease;
+
+        &:focus {
+            outline: none;
+        }
+
+        &::placeholder {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+
+        .policyEditor {
+            outline: none;
+        }
+
+        .cel-editor__container[data-status-color='var(--error-text)'] & {
+            border-color: var(--error-text);
+        }
+
+        .cel-editor__container[data-status-color='var(--online-indicator)'] & {
+            border-color: var(--online-indicator);
+        }
+
+        .cel-editor__container[data-status-color='var(--button-bg)'] & {
+            border-color: var(--button-bg);
+        }
+    }
+
+    &__footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        margin-bottom: 16px;
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+    }
+
+    &__test-btn {
+        display: flex;
+        align-items: center;
+        padding: 8px 16px;
+        border: 1px solid var(--button-bg);
+        border-radius: 4px;
+        background: transparent;
+        color: var(--button-bg);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+
+        i {
+            margin-right: 8px;
+            font-size: 14px;
+        }
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+
+        &:disabled {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+            cursor: not-allowed;
+        }
+    }
+
+    &__loading {
+        display: flex;
+        align-items: center;
+
+        i {
+            margin-right: 8px;
+        }
+    }
+
+    &__help-text {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        line-height: 1.5;
+
+        code {
+            padding: 2px 4px;
+            border-radius: 2px;
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+    }
+
+    &__learn-more {
+        display: block;
+        margin-top: 4px;
+        color: var(--button-bg);
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    &__status-bar {
+        display: flex;
+        height: 24px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 8px;
+        border-radius: 0 0 4px 4px;
+        color: var(--button-color);
+        font-family: monospace;
+        font-size: 12px;
+        transition: background-color 0.15s ease;
+    }
+
+    &__error-message {
+        display: flex;
+        align-items: center;
+
+        .icon {
+            margin-right: 4px;
+            font-size: 14px;
+        }
+    }
+
+    &__error {
+        display: flex;
+        align-items: center;
+        color: var(--button-color);
+    }
+
+    &__status-message {
+        display: flex;
+        align-items: center;
+
+        .icon {
+            margin-right: 4px;
+            font-size: 14px;
+
+            &.icon-refresh {
+                cursor: pointer;
+                &:hover {
+                    opacity: 0.8;
+                }
+            }
+        }
+    }
+
+    &__inline-validate-btn {
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: var(--button-color);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+
+        &:hover {
+            text-decoration: underline;
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .cel-editor__loading {
+            display: flex;
+            align-items: center;
+
+            i {
+                margin-right: 4px;
+                font-size: 12px;
+            }
+        }
+    }
+
+    &__validate-btn {
+        display: none;
+    }
+}
+
+.cel-test-results-modal {
+    .modal-body {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .cel-test-attributes {
+        padding: 10px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-bottom: 20px;
+
+        .cel-attribute-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 0 4px 4px 0;
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            font-size: 12px;
+        }
+    }
+
+    .cel-subjects-list {
+        .cel-subject-item {
+            padding: 12px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            border-radius: 4px;
+            margin-bottom: 12px;
+
+            .cel-subject-header {
+                margin-bottom: 8px;
+                font-weight: 600;
+            }
+
+            .cel-subject-attributes {
+                display: grid;
+                gap: 8px;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+
+                .cel-subject-attribute {
+                    .cel-attribute-key {
+                        margin-right: 4px;
+                        font-weight: 500;
+                    }
+
+                    .cel-attribute-value {
+                        color: rgba(var(--center-channel-color-rgb), 0.72);
+                    }
+                }
+            }
+        }
+    }
+}
+
+.Card__body.expanded:has(.cel-editor) {
+    height: max-content !important;
+}

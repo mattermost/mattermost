@@ -1,0 +1,30 @@
+.PolicyChannelsList {
+    .ChannelList__nameColumn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        .channel-icon {
+            margin: 3px 8px 0 0;
+        }
+    }
+
+    .Filter_content.Filter__show {
+        width: 320px;
+    }
+
+    .FilterList {
+        width: auto;
+    }
+
+    .DataGrid {
+        .DataGrid_searchBar {
+            margin-left: 0;
+        }
+    }
+}
+
+.marked-for-removal {
+    color: #e74c3c;
+    font-weight: bold;
+}

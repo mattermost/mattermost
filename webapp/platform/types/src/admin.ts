@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Audit} from './audits';
+import type {ChannelWithTeamData} from './channels';
 import type {Compliance} from './compliance';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from './config';
 import type {DataRetentionCustomPolicies} from './data_retention';
@@ -69,6 +70,8 @@ export type AdminState = {
     dataRetentionCustomPolicies: DataRetentionCustomPolicies;
     dataRetentionCustomPoliciesCount: number;
     prevTrialLicense: ClientLicense;
+    accessControlPolicies: AccessControlPolicy[];
+    channelsForAccessControlPolicy: Record<string, string[]>;
 };
 
 export type AnalyticsState = {
@@ -139,4 +142,72 @@ export type SupportPacketContent = {
     label: string;
     selected: boolean;
     mandatory: boolean;
+}
+
+export type AccessControlPolicy = {
+    id: string;
+    name: string;
+    type: string;
+    revision?: number;
+    created_at?: number;
+    version?: string;
+    active?: boolean;
+    imports?: string[];
+    props?: Record<string, any[]>;
+    rules: AccessControlPolicyRule[];
+}
+
+export type AccessControlPolicyCursor = {
+    id: string;
+}
+
+export type AccessControlPoliciesResult = {
+    policies: AccessControlPolicy[];
+    total: number;
+}
+
+export type AccessControlPolicySearchOpts = {
+    term: string;
+    type: string;
+    cursor: AccessControlPolicyCursor;
+    limit: number;
+}
+
+export type AccessControlPolicyChannelsResult = {
+    channels: ChannelWithTeamData[];
+    total: number;
+}
+
+export type AccessControlPolicyRule = {
+    actions?: string[];
+    expression: string;
+}
+
+export type CELExpressionError = {
+    message: string;
+    line: number;
+    column: number;
+}
+
+export type AccessControlPolicies = {
+    [x: string]: AccessControlPolicy;
+};
+
+export type AccessControlTestResult = {
+    users: UserProfile[];
+    attributes: string[];
+}
+
+export type AccessControlExpressionAutocomplete = {
+    entities: Record<string, AccessControlEntity>;
+}
+
+export type AccessControlEntity = {
+    name: string;
+    attributes: AccessControlAttribute[];
+}
+
+export type AccessControlAttribute = {
+    name: string;
+    values: string[];
 }
