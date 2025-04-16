@@ -295,55 +295,78 @@ function printSummary(summary) {
 
 const maxRetryCount = 0;
 async function runSpecFragment(count) {
-    // Use environment variables without logging
-    const repo = REPO || 'mattermost-webapp';
-    const branch = BRANCH || 'master';
-    const buildId = BUILD_ID || `playwright-${Date.now()}`;
-    const baseUrl = CI_BASE_URL || 'http://localhost:8065';
+    // Get cycle ID from environment or use a default
+    const cycleId = process.env.CYCLE_ID;
+    
+    if (!cycleId) {
+        console.log(chalk.yellow('No CYCLE_ID provided. Please set the CYCLE_ID environment variable.'));
+        return {
+            tryNext: false,
+            count,
+            message: 'Missing CYCLE_ID environment variable',
+        };
+    }
 
-    const spec = await getSpecToTest({
-        repo: repo,
-        branch: branch,
-        build: buildId,
-        server: baseUrl,
+    // Get specs for the cycle
+    const response = await getSpecToTest({
+        cycle_id: cycleId,
     });
 
-    // If no spec or error, just return
-    if (!spec || spec.code) {
+    // If no specs or error, just return
+    if (!response || response.code) {
+        console.log(chalk.red('Error getting specs:'), response ? response.message : 'Unknown error');
         return {
             tryNext: false,
             count,
-            message: 'No specs available or error connecting to dashboard',
+            message: 'Error getting specs from dashboard',
         };
     }
 
+    // Check if we have specs to run
+    if (!response.specs || response.specs.length === 0) {
+        console.log(chalk.yellow('No specs available for this cycle'));
+        return {
+            tryNext: false,
+            count,
+            message: 'No specs available for this cycle',
+        };
+    }
+
+    // Get the spec to run based on the current count
+    if (count >= response.specs.length) {
+        console.log(chalk.green('All specs have been executed'));
+        return {
+            tryNext: false,
+            count,
+            message: `Completed all ${response.specs.length} tests`,
+        };
+    }
+
+    const spec = response.specs[count];
+    
     // Check if we have a valid spec to run
-    if (!spec.execution || !spec.execution.file) {
+    if (!spec || !spec.file) {
+        console.log(chalk.yellow('Invalid spec at index', count));
         return {
-            tryNext: false,
-            count,
-            message: 'No test execution available',
+            tryNext: true,
+            count: count + 1,
+            message: 'Skipping invalid spec',
         };
     }
-
-    // Get current test count
-    const currentTestCount = spec.summary ? spec.summary.reduce((total, item) => {
-        return total + parseInt(item.count, 10);
-    }, 0) : 0;
 
     // Run the test
-    console.log(chalk.magenta(`Running test: ${spec.execution.file}`));
-    const result = await runPlaywrightTest(spec.execution);
-    await saveResult(spec.execution, result, count);
+    console.log(chalk.magenta(`Running test ${count + 1}/${response.specs.length}: ${spec.file}`));
+    const result = await runPlaywrightTest(spec);
+    await saveResult(spec, result, count);
 
     const newCount = count + 1;
 
     // Check if we're done with all tests
-    if (spec.cycle && spec.cycle.specs_registered === currentTestCount) {
+    if (newCount >= response.specs.length) {
         return {
             tryNext: false,
             count: newCount,
-            message: `Completed all tests`,
+            message: `Completed all ${response.specs.length} tests`,
         };
     }
 

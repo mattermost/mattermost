@@ -46,30 +46,36 @@ async function createAndStartCycle(data) {
 
 /**
  * Get a spec to test.
- * @param {Object} data - Contains repo, branch, build and server.
+ * @param {Object} data - Contains cycle_id.
  * @returns {Object} - Contains spec information.
  */
 async function getSpecToTest(data) {
     try {
-        // Make sure we have default values for required fields
-        const requestData = {
-            repo: data.repo || 'mattermost-webapp',
-            branch: data.branch || 'master',
-            build: data.build || `playwright-${Date.now()}`,
-            server: data.server || 'localhost',
-        };
-        
-        console.log('Requesting spec to test with dashboard at:', requestData);
-        const response = await axios.post('/api/specs/to-test', requestData, config);
-        
-        if (!response.data) {
+        // Use cycle_id to get specs
+        const cycleId = data.cycle_id;
+        if (!cycleId) {
             return {
-                code: 'EMPTY_RESPONSE',
-                message: 'Empty response from dashboard API',
+                code: 'MISSING_CYCLE_ID',
+                message: 'Cycle ID is required',
             };
         }
         
-        return response.data;
+        console.log(`Getting specs for cycle: ${cycleId}`);
+        const response = await axios.get(`/api/specs/to-test?cycle_id=${cycleId}`, config);
+        
+        if (!response.data || !Array.isArray(response.data.specs)) {
+            return {
+                code: 'INVALID_RESPONSE',
+                message: 'Invalid response from dashboard API',
+                data: response.data,
+            };
+        }
+        
+        // Return the specs array
+        return {
+            specs: response.data.specs,
+            cycle: response.data.cycle,
+        };
     } catch (err) {
         return {
             code: err.code || 'ERROR',
