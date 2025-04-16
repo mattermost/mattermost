@@ -903,7 +903,7 @@ func TestLeaveChannel(t *testing.T) {
 
 		count, appErr := th.App.GetChannelMemberCount(th.Context, th.BasicChannel.Id)
 		require.Nil(t, appErr, "It should remove channel membership")
-		require.Equal(t, 1, count)
+		require.Equal(t, int64(1), count)
 
 		appErr = th.App.LeaveChannel(th.Context, channel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
