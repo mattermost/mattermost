@@ -6523,6 +6523,14 @@
     "translation": "Unable to save thread membership for post."
   },
   {
+    "id": "app.post.save_priority.save_error",
+    "translation": "Unable to save the post with updated metadata"
+  },
+  {
+    "id": "app.post.save_priority.store_error",
+    "translation": "Unable to save priority data to the metadata priority store"
+  },
+  {
     "id": "app.post.search.app_error",
     "translation": "Error searching posts"
   },
