@@ -20,13 +20,8 @@ const (
 	AccessControlPolicyVersionV0_1 = "v0.1"
 )
 
-// ParentPolicy is a augmented version of AccessPolicy to be used in
-// system console and API responses.
-type ParentPolicy struct {
-	ID         string                 `json:"id"`
-	Name       string                 `json:"name"`
-	Attributes map[string]string      `json:"attributes"`
-	Children   []*AccessControlPolicy `json:"children"`
+type AccessControlExpressionAutocomplete struct {
+	Values map[string]any `json:"values"`
 }
 
 type AccessControlPolicyTestResponse struct {
@@ -42,11 +37,12 @@ type GetAccessControlPolicyOptions struct {
 }
 
 type AccessControlPolicySearch struct {
-	Term     string                    `json:"term"`
-	Type     string                    `json:"type"`
-	ParentID string                    `json:"parent_id"`
-	Cursor   AccessControlPolicyCursor `json:"cursor"`
-	Limit    int                       `json:"limit"`
+	Term            string                    `json:"term"`
+	Type            string                    `json:"type"`
+	ParentID        string                    `json:"parent_id"`
+	Cursor          AccessControlPolicyCursor `json:"cursor"`
+	Limit           int                       `json:"limit"`
+	IncludeChildren bool                      `json:"include_children"`
 }
 
 type AccessControlPolicyCursor struct {

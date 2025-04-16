@@ -492,8 +492,33 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 }
 
 func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error) {
-	p := []storeAccessControlPolicy{}
-	query := s.selectQueryBuilder
+	type wrapper struct {
+		storeAccessControlPolicy
+		ChildIDs json.RawMessage
+	}
+
+	p := []wrapper{}
+	var query sq.SelectBuilder
+	if opts.IncludeChildren && opts.ParentID == "" {
+		columns := accessControlPolicySliceColumns("p")
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			childIDs := `COALESCE((SELECT JSON_AGG(c.ID) 
+     FROM AccessControlPolicies c
+	 WHERE c.Type != 'parent' 
+     AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), '[]'::json) AS ChildIDs`
+			columns = append(columns, childIDs)
+		} else {
+			childIDs := `COALESCE((SELECT JSON_ARRAYAGG(c.ID) 
+     FROM AccessControlPolicies c
+     WHERE c.Type != 'parent' 
+     AND JSON_SEARCH(c.Data->'$.imports', 'one', p.ID) IS NOT NULL), JSON_ARRAY()) AS ChildIDs`
+			columns = append(columns, childIDs)
+		}
+		query = s.getQueryBuilder().Select(columns...).From("AccessControlPolicies p")
+	} else {
+		query = s.selectQueryBuilder
+	}
+
 	count := s.getQueryBuilder().Select("COUNT(*)").From("AccessControlPolicies")
 
 	if opts.Term != "" {
@@ -542,10 +567,27 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 
 	policies := make([]*model.AccessControlPolicy, len(p))
 	for i := range p {
-		policies[i], err = p[i].toModel()
+		m, err := p[i].toModel()
 		if err != nil {
 			return nil, 0, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
 		}
+
+		// Props field is not guaranteed to be persisted correctly, and it shouldn't be.
+		// This is a field that we want to include metadata, some values may be stored but
+		// not all of them. For example for the childs, we don't want to update it whenever a
+		// child policy changes.
+		if opts.IncludeChildren && opts.ParentID == "" {
+			if m.Props == nil {
+				m.Props = make(map[string]any)
+			}
+			// Unmarshal the JSON array into a slice of strings
+			var childIDs []string
+			if err := json.Unmarshal(p[i].ChildIDs, &childIDs); err != nil {
+				return nil, 0, errors.Wrapf(err, "failed to unmarshal child IDs for policy with id=%s", p[i].ID)
+			}
+			m.Props["child_ids"] = childIDs
+		}
+		policies[i] = m
 	}
 
 	var total int64
