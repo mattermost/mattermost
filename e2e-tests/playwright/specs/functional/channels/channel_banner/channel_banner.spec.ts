@@ -16,8 +16,8 @@ test('Should show channel banner when configured', async ({pw}) => {
 
     await channelsPage.newChannel(getRandomId(), 'O');
 
-    const settingsModal = await channelsPage.openChannelSettings();
-    const configurationTab = await settingsModal.openConfigurationTab();
+    let settingsModal = await channelsPage.openChannelSettings();
+    let configurationTab = await settingsModal.openConfigurationTab();
 
     await configurationTab.enableChannelBanner();
     await configurationTab.setChannelBannerText('Example channel banner text');
@@ -27,4 +27,52 @@ test('Should show channel banner when configured', async ({pw}) => {
     await settingsModal.closeModal();
 
     await channelsPage.centerView.assertChannelBanner('Example channel banner text', '#77DD88');
+
+    // Now we'll disable the channel banner
+    settingsModal = await channelsPage.openChannelSettings();
+    configurationTab = await settingsModal.openConfigurationTab();
+    await configurationTab.disableChannelBanner();
+
+    await configurationTab.save();
+    await settingsModal.closeModal();
+
+    await channelsPage.centerView.assertChannelBannerNotVisible();
+
+    // re-enabling channel banner should already have
+    // the previously configured text and color
+    settingsModal = await channelsPage.openChannelSettings();
+    configurationTab = await settingsModal.openConfigurationTab();
+    await configurationTab.enableChannelBanner();
+
+    await configurationTab.save();
+    await settingsModal.closeModal();
+
+    await channelsPage.centerView.assertChannelBanner('Example channel banner text', '#77DD88');
 })
+
+test('Should render markdown', async ({pw}) => {
+    const {adminUser, adminClient} = await pw.initSetup();
+    const license = await adminClient.getClientLicenseOld();
+    test.skip(license.SkuShortName !== 'premium', 'Skipping test - server does not have Premium license');
+
+    const {channelsPage} = await pw.testBrowser.login(adminUser);
+    await channelsPage.goto();
+    await channelsPage.toBeVisible();
+
+    await channelsPage.newChannel(getRandomId(), 'O');
+
+    const settingsModal = await channelsPage.openChannelSettings();
+    const configurationTab = await settingsModal.openConfigurationTab();
+
+    await configurationTab.enableChannelBanner();
+    await configurationTab.setChannelBannerText('**bold** *italic* ~~strikethrough~~');
+    await configurationTab.setChannelBannerTextColor('#77DD88');
+
+    await configurationTab.save();
+    await settingsModal.closeModal();
+
+    await channelsPage.centerView.assertChannelBannerHasBoldText('bold');
+    await channelsPage.centerView.assertChannelBannerHasItalicText('italic');
+    await channelsPage.centerView.assertChannelBannerHasStrikethroughText('strikethrough');
+})
+

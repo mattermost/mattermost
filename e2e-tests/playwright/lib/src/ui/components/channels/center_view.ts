@@ -163,7 +163,6 @@ export default class ChannelsCenterView {
         await expect(this.channelBanner).toBeVisible();
 
         const actualText = await this.channelBanner.textContent();
-        console.log({actualText});
         expect(actualText).toBe(text);
 
         const actualBackgroundColor = await this.channelBanner.evaluate((el) => {
@@ -171,5 +170,33 @@ export default class ChannelsCenterView {
         });
 
         expect(actualBackgroundColor).toBe(hexToRgb(backgroundColor));
+    }
+
+    async assertChannelBannerNotVisible() {
+        await expect(this.channelBanner).not.toBeVisible();
+    }
+
+    async assertChannelBannerHasBoldText(text: string) {
+        const boldText = await this.channelBanner.locator('strong');
+        expect(boldText).toBeVisible();
+
+        const actualText = await boldText.textContent();
+        expect(actualText).toBe(text);
+    }
+
+    async assertChannelBannerHasItalicText(text: string) {
+        const italicText = await this.channelBanner.locator('em');
+        expect(italicText).toBeVisible();
+
+        const actualText = await italicText.textContent();
+        expect(actualText).toBe(text);
+    }
+
+    async assertChannelBannerHasStrikethroughText(text: string) {
+        const strikethroughText = await this.channelBanner.locator('del');
+        expect(strikethroughText).toBeVisible();
+
+        const actualText = await strikethroughText.textContent();
+        expect(actualText).toBe(text);
     }
 }

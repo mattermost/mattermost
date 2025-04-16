@@ -31,7 +31,6 @@ export default class ChannelsPage {
     readonly postReminderMenu;
 
     readonly emojiGifPickerPopup;
-    // readonly channelSettingsModal;
 
     constructor(page: Page) {
         this.page = page;

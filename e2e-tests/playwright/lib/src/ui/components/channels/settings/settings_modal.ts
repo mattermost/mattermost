@@ -4,6 +4,7 @@
 import {Locator, expect} from '@playwright/test';
 
 import NotificationsSettings from './notification_settings';
+
 import ConfigurationSettings from "@/ui/components/channels/settings/configuration_settings";
 
 export default class SettingsModal {

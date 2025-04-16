@@ -28,6 +28,14 @@ export default class ConfigurationSettings {
         }
     }
 
+    async disableChannelBanner() {
+        const toggleButton = await this.container.getByTestId('channelBannerToggle-button');
+        const classes = await toggleButton.getAttribute('class');
+        if (classes?.includes('active')) {
+            await toggleButton.click();
+        }
+    }
+
     async setChannelBannerText(text: string) {
         const textBox = await this.container.getByTestId('channel_banner_banner_text_textbox');
         await expect(textBox).toBeVisible();
