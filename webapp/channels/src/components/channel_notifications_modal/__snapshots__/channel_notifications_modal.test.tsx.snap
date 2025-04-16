@@ -69,12 +69,12 @@ Object {
                       <header
                         class="mm-modal-header"
                       >
-                        <h1
+                        <h2
                           class="mm-modal-header__title"
                           id="mm-modal-header-channelNotificationModalLabel"
                         >
                           Notification Preferences
-                        </h1>
+                        </h2>
                         <div
                           class="mm-modal-header__vertical-divider"
                         />
@@ -551,12 +551,12 @@ Object {
                       <header
                         class="mm-modal-header"
                       >
-                        <h1
+                        <h2
                           class="mm-modal-header__title"
                           id="mm-modal-header-channelNotificationModalLabel"
                         >
                           Notification Preferences
-                        </h1>
+                        </h2>
                         <div
                           class="mm-modal-header__vertical-divider"
                         />
@@ -1193,12 +1193,12 @@ Object {
                       <header
                         class="mm-modal-header"
                       >
-                        <h1
+                        <h2
                           class="mm-modal-header__title"
                           id="mm-modal-header-channelNotificationModalLabel"
                         >
                           Notification Preferences
-                        </h1>
+                        </h2>
                         <div
                           class="mm-modal-header__vertical-divider"
                         />
@@ -1553,12 +1553,12 @@ Object {
                       <header
                         class="mm-modal-header"
                       >
-                        <h1
+                        <h2
                           class="mm-modal-header__title"
                           id="mm-modal-header-channelNotificationModalLabel"
                         >
                           Notification Preferences
-                        </h1>
+                        </h2>
                         <div
                           class="mm-modal-header__vertical-divider"
                         />
@@ -2133,12 +2133,12 @@ Object {
                       <header
                         class="mm-modal-header"
                       >
-                        <h1
+                        <h2
                           class="mm-modal-header__title"
                           id="mm-modal-header-channelNotificationModalLabel"
                         >
                           Notification Preferences
-                        </h1>
+                        </h2>
                         <div
                           class="mm-modal-header__vertical-divider"
                         />
@@ -2713,12 +2713,12 @@ Object {
                       <header
                         class="mm-modal-header"
                       >
-                        <h1
+                        <h2
                           class="mm-modal-header__title"
                           id="mm-modal-header-channelNotificationModalLabel"
                         >
                           Notification Preferences
-                        </h1>
+                        </h2>
                         <div
                           class="mm-modal-header__vertical-divider"
                         />
