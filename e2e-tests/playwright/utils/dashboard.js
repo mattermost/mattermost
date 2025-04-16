@@ -63,14 +63,29 @@ async function getSpecToTest(data) {
         console.log('Request data:', JSON.stringify(requestData, null, 2));
         
         const response = await axios.post('/api/specs/to-test', requestData, config);
+        console.log('Response received:', response.status);
+        
+        if (!response.data) {
+            console.error('Empty response data');
+            return {
+                code: 'EMPTY_RESPONSE',
+                message: 'Empty response from dashboard API',
+            };
+        }
+        
+        console.log('Response data summary:', 
+            response.data.execution ? 'Has execution' : 'No execution',
+            response.data.cycle ? `Cycle ID: ${response.data.cycle.id}` : 'No cycle'
+        );
+        
         return response.data;
     } catch (err) {
         console.error('Error getting spec to test:', err.message);
         if (err.response) {
             console.error('Response status:', err.response.status);
-            console.error('Response data:', err.response.data);
+            console.error('Response data:', JSON.stringify(err.response.data));
         } else if (err.request) {
-            console.error('No response received');
+            console.error('No response received, request was:', err.request.method, err.request.path);
         }
         return {
             code: err.code || 'ERROR',

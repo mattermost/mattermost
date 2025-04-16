@@ -293,36 +293,54 @@ function printSummary(summary) {
     });
 }
 
-const maxRetryCount = 0;
+const maxRetryCount = 3;
 async function runSpecFragment(count, retry) {
     console.log(chalk.magenta(`Preparing for: ${count + 1}`));
 
+    // Use environment variables or defaults
+    const repo = REPO || 'mattermost-webapp';
+    const branch = BRANCH || 'master';
+    const buildId = BUILD_ID || `playwright-${Date.now()}`;
+    const baseUrl = CI_BASE_URL || 'http://localhost:8065';
+
+    console.log(chalk.cyan('Using configuration:'));
+    console.log(chalk.cyan(`  Repo: ${repo}`));
+    console.log(chalk.cyan(`  Branch: ${branch}`));
+    console.log(chalk.cyan(`  Build ID: ${buildId}`));
+    console.log(chalk.cyan(`  Base URL: ${baseUrl}`));
+
     const spec = await getSpecToTest({
-        repo: REPO,
-        branch: BRANCH,
-        build: BUILD_ID,
-        server: CI_BASE_URL,
+        repo: repo,
+        branch: branch,
+        build: buildId,
+        server: baseUrl,
     });
 
     // Retry on connection/timeout errors
     if (!spec || spec.code) {
-        if (retry >= maxRetryCount) {
+        const currentRetry = retry + 1;
+        if (currentRetry >= maxRetryCount) {
+            console.log(chalk.red(`Maximum retry count (${maxRetryCount}) reached.`));
             return {
                 tryNext: false,
                 count,
-                message: `Test ended due to multiple (${retry}) connection/timeout errors with the dashboard server.`,
+                message: `Test ended due to multiple (${currentRetry}) connection/timeout errors with the dashboard server.`,
             };
         }
 
-        console.log(chalk.red(`Retry count: ${retry}`));
-        return runSpecFragment(count, retry + 1);
+        console.log(chalk.yellow(`Retry ${currentRetry}/${maxRetryCount} after 5 seconds...`));
+        // Wait 5 seconds before retrying
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        return runSpecFragment(count, currentRetry);
     }
 
     if (!spec.execution || !spec.execution.file) {
+        console.log(chalk.yellow('No execution or file in response:'));
+        console.log(chalk.yellow(JSON.stringify(spec, null, 2)));
         return {
             tryNext: false,
             count,
-            message: spec.message,
+            message: spec.message || 'No test execution available from dashboard',
         };
     }
 
