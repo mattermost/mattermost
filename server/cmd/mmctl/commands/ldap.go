@@ -69,7 +69,10 @@ var LdapJobShowCmd = &cobra.Command{
 
 func init() {
 	LdapSyncCmd.Flags().Bool("include-removed-members", false, "Include members who left or were removed from a group-synced team/channel")
-	LdapSyncCmd.Flags().MarkDeprecated("include-removed-members", "This flag is deprecated and will be removed in a future version. Use --re-add-removed-members instead.")
+	err := LdapSyncCmd.Flags().MarkDeprecated("include-removed-members", "This flag is deprecated and will be removed in a future version. Use --re-add-removed-members instead.")
+	if err != nil {
+		panic(err)
+	}
 	LdapSyncCmd.Flags().Bool("re-add-removed-members", false, "Re-add members who left or were removed from a group-synced team/channel")
 
 	LdapJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of import jobs")
