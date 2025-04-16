@@ -40,10 +40,20 @@ func (a *App) SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post,
 		return post, nil
 	}
 
-	// Retrieve the current post to ensure we have the latest version
-	currentPost, err := a.GetSinglePost(c, post.Id, false)
-	if err != nil {
-		return nil, err
+	// If we have a complete post with CreateAt already set, use it directly
+	// Otherwise, retrieve the current post from the database
+	var currentPost *model.Post
+	var err *model.AppError
+
+	if post.CreateAt > 0 {
+		// We have a complete post, use it directly
+		currentPost = post
+	} else {
+		// Retrieve the current post to ensure we have the latest version
+		currentPost, err = a.GetSinglePost(c, post.Id, false)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// For remote posts or when dealing with updates to just priority metadata,
