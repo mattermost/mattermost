@@ -51,7 +51,8 @@ h6.markdown__heading {
 }
 
 #post-list,
-#rhsContainer {
+#rhsContainer,
+.textbox-preview-area {
     .markdown-inline-img {
         max-height: 500px;
         border-radius: 4px;
@@ -144,6 +145,16 @@ h6.markdown__heading {
     .broken-image--scaled-down {
         max-height: 18px;
         margin: 2px;
+    }
+}
+
+.textbox-preview-area {
+    .markdown-inline-img--hover {
+        &:hover {
+            border: 1px solid transparent;
+            box-shadow: none;
+            cursor: default;
+        }
     }
 }
 
