@@ -96,7 +96,7 @@ export default class SearchSuggestionList extends SuggestionList {
             items.push(
                 <Component
                     key={term}
-                    ref={(ref: React.RefObject<HTMLDivElement>) => this.itemRefs.set(term, ref)}
+                    id={`sbrSearchBox_item_${term}`}
                     item={item}
                     term={term}
                     matchedPretext={this.props.matchedPretext[i]}

@@ -822,7 +822,7 @@ export default class SuggestionBox extends React.PureComponent {
                     {...props}
                     aria-controls='suggestionList'
                     role='combobox'
-                    {...(this.state.selection && {'aria-activedescendant': `${props.id}_${this.state.selection}`}
+                    {...(this.state.selection && {'aria-activedescendant': `suggestionList_item_${this.state.selection}`}
                     )}
                     aria-autocomplete='list'
                     aria-expanded={this.state.focused || this.props.forceSuggestionsWhenBlur}

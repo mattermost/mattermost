@@ -191,7 +191,6 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
             role='option'
             {...props}
             data-testid={`mentionSuggestion_${itemname}`}
-            id={`${item.textboxId}_@${itemname}`}
         >
             {icon}
             <span className='suggestion-list__ellipsis'>
