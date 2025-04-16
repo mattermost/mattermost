@@ -38,7 +38,11 @@ const {
     uploadScreenshot,
 } = require('./utils/dashboard');
 const {writeJsonToFile} = require('../cypress/utils/report');
-const {MOCHAWESOME_REPORT_DIR, RESULTS_DIR} = require('../cypress/utils/constants');
+
+// Use the same report directories as in playwright.config.ts
+const RESULTS_DIR = path.join(__dirname, 'results');
+const REPORT_OUTPUT_DIR = path.join(RESULTS_DIR, 'reporter');
+const TEST_OUTPUT_DIR = path.join(RESULTS_DIR, 'output');
 
 require('dotenv').config();
 
@@ -56,17 +60,14 @@ async function runPlaywrightTest(specExecution) {
     const headless = isHeadless();
 
     // Create directories for reports if they don't exist
-    if (!fs.existsSync(MOCHAWESOME_REPORT_DIR)) {
-        fs.mkdirSync(MOCHAWESOME_REPORT_DIR, { recursive: true });
+    if (!fs.existsSync(RESULTS_DIR)) {
+        fs.mkdirSync(RESULTS_DIR, { recursive: true });
     }
-    if (!fs.existsSync(`${MOCHAWESOME_REPORT_DIR}/screenshots`)) {
-        fs.mkdirSync(`${MOCHAWESOME_REPORT_DIR}/screenshots`, { recursive: true });
+    if (!fs.existsSync(REPORT_OUTPUT_DIR)) {
+        fs.mkdirSync(REPORT_OUTPUT_DIR, { recursive: true });
     }
-    if (!fs.existsSync(`${MOCHAWESOME_REPORT_DIR}/videos`)) {
-        fs.mkdirSync(`${MOCHAWESOME_REPORT_DIR}/videos`, { recursive: true });
-    }
-    if (!fs.existsSync(`${MOCHAWESOME_REPORT_DIR}/json`)) {
-        fs.mkdirSync(`${MOCHAWESOME_REPORT_DIR}/json`, { recursive: true });
+    if (!fs.existsSync(TEST_OUTPUT_DIR)) {
+        fs.mkdirSync(TEST_OUTPUT_DIR, { recursive: true });
     }
 
     // Prepare result object similar to Cypress
@@ -76,7 +77,7 @@ async function runPlaywrightTest(specExecution) {
         // Run the Playwright test using the test runner
         const { execSync } = require('child_process');
 
-        const reportPath = path.join(MOCHAWESOME_REPORT_DIR, 'json', path.basename(specExecution.file, '.ts') + '.json');
+        const reportPath = path.join(REPORT_OUTPUT_DIR, path.basename(specExecution.file, '.ts') + '.json');
         
         // Build the command with appropriate options
         const command = [
@@ -201,7 +202,7 @@ async function saveResult(specExecution, result, testIndex) {
             node_version: process.version,
         };
 
-        writeJsonToFile(environment, 'environment.json', RESULTS_DIR);
+        writeJsonToFile(environment, 'environment.json', REPORT_OUTPUT_DIR);
         await updateCycle(specExecution.cycle_id, environment);
     }
 
