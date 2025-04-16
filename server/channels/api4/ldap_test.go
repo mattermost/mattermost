@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -142,36 +143,161 @@ func TestSyncLdap(t *testing.T) {
 		*cfg.LdapSettings.EnableSync = true
 	})
 
-	ldapMock := &mocks.LdapInterface{}
-	mockCall := ldapMock.On(
-		"StartSynchronizeJob",
-		mock.AnythingOfType("*request.Context"),
-		mock.AnythingOfType("bool"),
-		mock.AnythingOfType("bool"),
-	).Return(nil, nil)
-	ready := make(chan bool)
-	includeRemovedMembers := false
-	mockCall.RunFn = func(args mock.Arguments) {
-		includeRemovedMembers = args[2].(bool)
-		ready <- true
-	}
-	th.App.Channels().Ldap = ldapMock
+	t.Run("legacy API compatibility", func(t *testing.T) {
+		ldapMock := &mocks.LdapInterface{}
+		mockCall := ldapMock.On(
+			"StartSynchronizeJob",
+			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("bool"),
+			mock.AnythingOfType("bool"),
+		).Return(nil, nil)
+		ready := make(chan bool)
+		includeRemovedMembers := false
+		mockCall.RunFn = func(args mock.Arguments) {
+			includeRemovedMembers = args[2].(bool)
+			ready <- true
+		}
+		th.App.Channels().Ldap = ldapMock
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, err := client.SyncLdap(context.Background(), false)
-		<-ready
-		require.NoError(t, err)
-		require.False(t, includeRemovedMembers)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, err := client.SyncLdap(context.Background(), nil)
+			<-ready
+			require.NoError(t, err)
+			require.False(t, includeRemovedMembers)
 
-		_, err = client.SyncLdap(context.Background(), true)
-		<-ready
-		require.NoError(t, err)
-		require.True(t, includeRemovedMembers)
+			_, err = client.SyncLdap(context.Background(), &model.LdapSyncOptions{ReAddRemovedMembers: model.NewPointer(true)})
+			<-ready
+			require.NoError(t, err)
+			require.True(t, includeRemovedMembers)
+		})
+
+		resp, err := th.Client.SyncLdap(context.Background(), nil)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
-	resp, err := th.Client.SyncLdap(context.Background(), false)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	t.Run("new API with options", func(t *testing.T) {
+		syncOptions := &model.LdapSyncOptions{}
+		ldapMock := &mocks.LdapInterface{}
+		mockCall := ldapMock.On(
+			"StartSynchronizeJobWithOpts",
+			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("*model.LdapSyncOptions"),
+		).Return(nil, nil)
+		ready := make(chan bool)
+		mockCall.RunFn = func(args mock.Arguments) {
+			syncOptions = args[1].(*model.LdapSyncOptions)
+			ready <- true
+		}
+		th.App.Channels().Ldap = ldapMock
+
+		// Test with nil options (should use defaults)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, err := client.SyncLdap(context.Background(), nil)
+			<-ready
+			require.NoError(t, err)
+			require.NotNil(t, syncOptions)
+			require.Nil(t, syncOptions.ReAddRemovedMembers)
+		})
+
+		// Test with ReAddRemovedMembers set to true
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, err := client.SyncLdap(context.Background(), &model.LdapSyncOptions{
+				ReAddRemovedMembers: model.NewPointer(true),
+			})
+			<-ready
+			require.NoError(t, err)
+			require.NotNil(t, syncOptions)
+			require.NotNil(t, syncOptions.ReAddRemovedMembers)
+			require.True(t, *syncOptions.ReAddRemovedMembers)
+		})
+
+		// Test with ReAddRemovedMembers set to false
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, err := client.SyncLdap(context.Background(), &model.LdapSyncOptions{
+				ReAddRemovedMembers: model.NewPointer(false),
+			})
+			<-ready
+			require.NoError(t, err)
+			require.NotNil(t, syncOptions)
+			require.NotNil(t, syncOptions.ReAddRemovedMembers)
+			require.False(t, *syncOptions.ReAddRemovedMembers)
+		})
+
+		// Test with non-admin user (should fail)
+		resp, err := th.Client.SyncLdap(context.Background(), &model.LdapSyncOptions{
+			ReAddRemovedMembers: model.NewPointer(true),
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("backward compatibility with old request format", func(t *testing.T) {
+		syncOptions := &model.LdapSyncOptions{}
+		ldapMock := &mocks.LdapInterface{}
+		mockCall := ldapMock.On(
+			"StartSynchronizeJobWithOpts",
+			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("*model.LdapSyncOptions"),
+		).Return(nil, nil)
+		ready := make(chan bool)
+		mockCall.RunFn = func(args mock.Arguments) {
+			syncOptions = args[1].(*model.LdapSyncOptions)
+			ready <- true
+		}
+		th.App.Channels().Ldap = ldapMock
+
+		// Test with old format using include_removed_members=true
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			url := "/api/v4/ldap/sync"
+			request := map[string]interface{}{
+				"include_removed_members": true,
+			}
+			jsonRequest, _ := json.Marshal(request)
+			
+			r, err := client.DoAPIPost(context.Background(), url, string(jsonRequest))
+			require.NoError(t, err)
+			defer r.Body.Close()
+			
+			<-ready
+			require.NotNil(t, syncOptions)
+			require.NotNil(t, syncOptions.ReAddRemovedMembers)
+			require.True(t, *syncOptions.ReAddRemovedMembers)
+		})
+
+		// Test with old format using include_removed_members=false
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			url := "/api/v4/ldap/sync"
+			request := map[string]interface{}{
+				"include_removed_members": false,
+			}
+			jsonRequest, _ := json.Marshal(request)
+			
+			r, err := client.DoAPIPost(context.Background(), url, string(jsonRequest))
+			require.NoError(t, err)
+			defer r.Body.Close()
+			
+			<-ready
+			require.NotNil(t, syncOptions)
+			require.NotNil(t, syncOptions.ReAddRemovedMembers)
+			require.False(t, *syncOptions.ReAddRemovedMembers)
+		})
+
+		// Test with invalid JSON in request body
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			url := "/api/v4/ldap/sync"
+			invalidJSON := "{invalid-json"
+			
+			resp, err := client.DoAPIPost(context.Background(), url, invalidJSON)
+			require.Error(t, err)
+			
+			// Build a model.Response to check status
+			modelResp := &model.Response{
+				StatusCode: resp.StatusCode,
+			}
+			CheckBadRequestStatus(t, modelResp)
+		})
+	})
 }
 
 func TestGetLdapGroups(t *testing.T) {
@@ -277,6 +403,82 @@ func TestUploadPrivateCertificate(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, err := client.DeleteLdapPrivateCertificate(context.Background())
 		require.NoErrorf(t, err, "Should have passed. System Admin privileges %v", err)
+	})
+}
+
+
+func TestSyncLdapBackwardCompatibility(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.LdapSettings.EnableSync = true
+	})
+
+	syncOptions := &model.LdapSyncOptions{}
+	ldapMock := &mocks.LdapInterface{}
+	mockCall := ldapMock.On(
+		"StartSynchronizeJobWithOpts",
+		mock.AnythingOfType("*request.Context"),
+		mock.AnythingOfType("*model.LdapSyncOptions"),
+	).Return(nil, nil)
+	ready := make(chan bool)
+	mockCall.RunFn = func(args mock.Arguments) {
+		syncOptions = args[1].(*model.LdapSyncOptions)
+		ready <- true
+	}
+	th.App.Channels().Ldap = ldapMock
+
+	// Test with old format using include_removed_members=true
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		url := "/api/v4/ldap/sync"
+		request := map[string]interface{}{
+			"include_removed_members": true,
+		}
+		jsonRequest, _ := json.Marshal(request)
+
+		r, err := client.DoAPIPost(context.Background(), url, string(jsonRequest))
+		require.NoError(t, err)
+		defer r.Body.Close()
+
+		<-ready
+		require.NotNil(t, syncOptions)
+		require.NotNil(t, syncOptions.ReAddRemovedMembers)
+		require.True(t, *syncOptions.ReAddRemovedMembers)
+	})
+
+	// Test with old format using include_removed_members=false
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		url := "/api/v4/ldap/sync"
+		request := map[string]interface{}{
+			"include_removed_members": false,
+		}
+		jsonRequest, _ := json.Marshal(request)
+
+		r, err := client.DoAPIPost(context.Background(), url, string(jsonRequest))
+		require.NoError(t, err)
+		defer r.Body.Close()
+
+		<-ready
+		require.NotNil(t, syncOptions)
+		require.NotNil(t, syncOptions.ReAddRemovedMembers)
+		require.False(t, *syncOptions.ReAddRemovedMembers)
+	})
+
+	// Test with invalid JSON in request body
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		url := "/api/v4/ldap/sync"
+		invalidJSON := "{invalid-json"
+
+		resp, err := client.DoAPIPost(context.Background(), url, invalidJSON)
+		require.Error(t, err)
+
+		// Build a model.Response to check status
+		modelResp := &model.Response{
+			StatusCode: resp.StatusCode,
+		}
+		CheckBadRequestStatus(t, modelResp)
 	})
 }
 
