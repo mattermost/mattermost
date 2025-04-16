@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen} from '@testing-library/react';
+import {render, screen, fireEvent} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import type {ComponentProps} from 'react';
@@ -19,6 +19,8 @@ jest.mock('components/textbox', () => ({
             onChange={props.onChange}
             onKeyPress={props.onKeyPress}
             placeholder={props.createMessage}
+            onFocus={props.onFocus}
+            onBlur={props.onBlur}
         />
     )),
 }));
@@ -236,5 +238,84 @@ describe('AdvancedTextbox', () => {
             }),
             expect.anything(),
         );
+    });
+
+    // Tests for the floating label functionality
+    test('does not render label when name prop is not provided', () => {
+        render(<AdvancedTextbox {...defaultProps}/>);
+
+        // Label should not be in the document
+        expect(document.querySelector('.AdvancedTextbox__label')).not.toBeInTheDocument();
+    });
+
+    test('renders label when name prop is provided', () => {
+        render(<AdvancedTextbox {...{...defaultProps, name: 'Test Label'}}/>);
+
+        // Label should be in the document
+        const label = document.querySelector('.AdvancedTextbox__label');
+        expect(label).toBeInTheDocument();
+        expect(label).toHaveTextContent('Test Label');
+    });
+
+    test('applies active class to label when component has value', () => {
+        render(<AdvancedTextbox {...{...defaultProps, name: 'Test Label', value: 'Some value'}}/>);
+
+        // Label should have active class
+        const label = document.querySelector('.AdvancedTextbox__label');
+        expect(label).toHaveClass('AdvancedTextbox__label--active');
+    });
+
+    test('applies active class to label when component is focused', () => {
+        render(<AdvancedTextbox {...{...defaultProps, name: 'Test Label', value: ''}}/>);
+
+        // Initially label should not have active class
+        let label = document.querySelector('.AdvancedTextbox__label');
+        expect(label).not.toHaveClass('AdvancedTextbox__label--active');
+
+        // Focus the textbox
+        const textbox = screen.getByTestId('mock-textbox');
+        fireEvent.focus(textbox);
+
+        // Label should now have active class
+        label = document.querySelector('.AdvancedTextbox__label');
+        expect(label).toHaveClass('AdvancedTextbox__label--active');
+    });
+
+    test('removes active class from label when component loses focus and has no value', () => {
+        render(<AdvancedTextbox {...{...defaultProps, name: 'Test Label', value: ''}}/>);
+
+        // Focus the textbox
+        const textbox = screen.getByTestId('mock-textbox');
+        fireEvent.focus(textbox);
+
+        // Label should have active class
+        let label = document.querySelector('.AdvancedTextbox__label');
+        expect(label).toHaveClass('AdvancedTextbox__label--active');
+
+        // Blur the textbox
+        fireEvent.blur(textbox);
+
+        // Label should not have active class
+        label = document.querySelector('.AdvancedTextbox__label');
+        expect(label).not.toHaveClass('AdvancedTextbox__label--active');
+    });
+
+    test('keeps active class on label when component loses focus but has value', () => {
+        render(<AdvancedTextbox {...{...defaultProps, name: 'Test Label', value: 'Some value'}}/>);
+
+        // Focus the textbox
+        const textbox = screen.getByTestId('mock-textbox');
+        fireEvent.focus(textbox);
+
+        // Label should have active class
+        let label = document.querySelector('.AdvancedTextbox__label');
+        expect(label).toHaveClass('AdvancedTextbox__label--active');
+
+        // Blur the textbox
+        fireEvent.blur(textbox);
+
+        // Label should still have active class because there's a value
+        label = document.querySelector('.AdvancedTextbox__label');
+        expect(label).toHaveClass('AdvancedTextbox__label--active');
     });
 });

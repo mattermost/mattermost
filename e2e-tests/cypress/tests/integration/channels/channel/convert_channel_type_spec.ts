@@ -73,7 +73,7 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
 
         // # Save
         saveConfig();
-        cy.wait(5000);
+        cy.wait(1000);
         cy.visit('/admin_console/user_management/permissions/system_scheme');
     };
 
@@ -137,6 +137,7 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
         cy.get('.ChannelSettingsModal').should('not.exist');
     };
 
+    // Helper functions for UI interaction
     const saveChannelSettings = () => {
         cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
     };
@@ -147,8 +148,19 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
 
     // Helper functions for channel conversion
     const convertChannelToPrivate = () => {
+        // Select private channel type
         cy.get('#public-private-selector-button-P').click();
         cy.get('#public-private-selector-button-P').should('have.class', 'selected');
+
+        // Save changes - this will trigger the confirmation modal
+        saveChannelSettings();
+
+        // Handle the confirmation modal that appears when converting from public to private
+        cy.get('#confirmModal').should('be.visible');
+        cy.get('#confirmModalButton').click();
+
+        // Verify settings were saved
+        verifySettingsSaved();
     };
 
     // Function kept for potential future use but not used in current tests
@@ -171,17 +183,45 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
 
     const verifyConversionOptionDisabled = (toPrivate = true) => {
         if (toPrivate) {
-            cy.get('#public-private-selector-button-P').should('have.class', 'disabled');
+            // Wait for the UI to fully load and stabilize
+            cy.wait(500);
+
+            // Check if the button is disabled - it might have a disabled attribute or a disabled class
+            cy.get('#public-private-selector-button-P').then(($el) => {
+                const isDisabled = $el.hasClass('disabled') || $el.prop('disabled') === true || $el.attr('aria-disabled') === 'true';
+                expect(isDisabled).to.be.true;
+            });
         } else {
-            cy.get('#public-private-selector-button-O').should('have.class', 'disabled');
+            // Wait for the UI to fully load and stabilize
+            cy.wait(500);
+
+            // Check if the button is disabled - it might have a disabled attribute or a disabled class
+            cy.get('#public-private-selector-button-O').then(($el) => {
+                const isDisabled = $el.hasClass('disabled') || $el.prop('disabled') === true || $el.attr('aria-disabled') === 'true';
+                expect(isDisabled).to.be.true;
+            });
         }
     };
 
     const verifyConversionOptionEnabled = (toPrivate = true) => {
         if (toPrivate) {
-            cy.get('#public-private-selector-button-P').should('not.have.class', 'disabled');
+            // Wait for the UI to fully load and stabilize
+            cy.wait(500);
+
+            // Check if the button is enabled - it should not have disabled attributes or classes
+            cy.get('#public-private-selector-button-P').then(($el) => {
+                const isDisabled = $el.hasClass('disabled') || $el.prop('disabled') === true || $el.attr('aria-disabled') === 'true';
+                expect(isDisabled).to.be.false;
+            });
         } else {
-            cy.get('#public-private-selector-button-O').should('not.have.class', 'disabled');
+            // Wait for the UI to fully load and stabilize
+            cy.wait(500);
+
+            // Check if the button is enabled - it should not have disabled attributes or classes
+            cy.get('#public-private-selector-button-O').then(($el) => {
+                const isDisabled = $el.hasClass('disabled') || $el.prop('disabled') === true || $el.attr('aria-disabled') === 'true';
+                expect(isDisabled).to.be.false;
+            });
         }
     };
 
@@ -221,15 +261,40 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
                 // # Convert to private
                 convertChannelToPrivate();
 
-                // # Save changes
-                saveChannelSettings();
-                verifySettingsSaved();
+                // # Close the modal
+                closeChannelSettingsModal();
+
+                // * Verify channel is now private
+                verifyChannelIsPrivate(channel.display_name);
+            });
+        });
+
+        it('MM-T3348-5 - Cannot convert a private channel back to public', () => {
+            // # Setup permissions
+            setupPermissions({resetToDefault: true, publicToPrivate: true});
+
+            // # Create and visit a public channel
+            createAndVisitPublicChannel(testTeam.name, 'private-stays-private', 'Private Stays Private').then((channel) => {
+                // # Open channel settings modal
+                openChannelSettingsModal();
+
+                // # Convert to private
+                convertChannelToPrivate();
 
                 // # Close the modal
                 closeChannelSettingsModal();
 
                 // * Verify channel is now private
                 verifyChannelIsPrivate(channel.display_name);
+
+                // # Open channel settings modal again
+                openChannelSettingsModal();
+
+                // * Verify conversion option to public is disabled
+                verifyConversionOptionDisabled(false);
+
+                // # Close the modal
+                closeChannelSettingsModal();
             });
         });
     });
@@ -390,10 +455,6 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
                 // # Convert to private
                 convertChannelToPrivate();
 
-                // # Save changes
-                saveChannelSettings();
-                verifySettingsSaved();
-
                 // # Close the modal
                 closeChannelSettingsModal();
 
@@ -458,10 +519,6 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
                 // # Convert to private
                 convertChannelToPrivate();
 
-                // # Save changes
-                saveChannelSettings();
-                verifySettingsSaved();
-
                 // # Close the modal
                 closeChannelSettingsModal();
 
@@ -471,16 +528,30 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
         });
 
         it('MM-T3349-2 - Channel admin cannot convert public to private when permission is removed', () => {
+            // Generate a unique channel name with timestamp to avoid conflicts
+            const timestamp = Date.now();
+            const channelId = `channel-admin-no-perm-${timestamp}`;
+            const displayName = `Channel Admin No Permission ${timestamp}`;
+
             // # Setup permissions - remove public to private conversion permission
-            setupPermissions({resetToDefault: true, publicToPrivate: false});
+            setupPermissions({resetToDefault: true, publicToPrivate: false, removeFromTeamAdmin: true});
 
             // # Create and visit a public channel
-            createAndVisitPublicChannel(testTeam.name, 'channel-admin-no-perm', 'Channel Admin No Permission').then((channel) => {
+            createAndVisitPublicChannel(testTeam.name, channelId, displayName).then((channel) => {
                 // # Make test user a channel admin
                 makeUserChannelAdmin(channel.id, testUser.id);
 
+                // # Log back in as the test user after making channel admin
+                cy.apiLogin(testUser);
+
+                // # Wait for login to complete
+                cy.wait(500);
+
                 // # Visit the channel again after role change
                 visitChannel(testTeam.name, channel.name);
+
+                // # Wait for channel to load
+                cy.wait(500);
 
                 // # Open channel settings modal
                 openChannelSettingsModal();
