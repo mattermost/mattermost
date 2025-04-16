@@ -254,11 +254,11 @@ func TestSyncLdap(t *testing.T) {
 				"include_removed_members": true,
 			}
 			jsonRequest, _ := json.Marshal(request)
-			
+
 			r, err := client.DoAPIPost(context.Background(), url, string(jsonRequest))
 			require.NoError(t, err)
 			defer r.Body.Close()
-			
+
 			<-ready
 			require.NotNil(t, syncOptions)
 			require.NotNil(t, syncOptions.ReAddRemovedMembers)
@@ -272,11 +272,11 @@ func TestSyncLdap(t *testing.T) {
 				"include_removed_members": false,
 			}
 			jsonRequest, _ := json.Marshal(request)
-			
+
 			r, err := client.DoAPIPost(context.Background(), url, string(jsonRequest))
 			require.NoError(t, err)
 			defer r.Body.Close()
-			
+
 			<-ready
 			require.NotNil(t, syncOptions)
 			require.NotNil(t, syncOptions.ReAddRemovedMembers)
@@ -287,10 +287,10 @@ func TestSyncLdap(t *testing.T) {
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			url := "/api/v4/ldap/sync"
 			invalidJSON := "{invalid-json"
-			
+
 			resp, err := client.DoAPIPost(context.Background(), url, invalidJSON)
 			require.Error(t, err)
-			
+
 			// Build a model.Response to check status
 			modelResp := &model.Response{
 				StatusCode: resp.StatusCode,
@@ -405,7 +405,6 @@ func TestUploadPrivateCertificate(t *testing.T) {
 		require.NoErrorf(t, err, "Should have passed. System Admin privileges %v", err)
 	})
 }
-
 
 func TestSyncLdapBackwardCompatibility(t *testing.T) {
 	th := Setup(t)
