@@ -5,6 +5,7 @@ import type {ServerError} from '@mattermost/types/errors';
 import type {GetGroupsForUserParams, GetGroupsParams} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
 
+import {fetchChannelsAndMembers} from 'mattermost-redux/actions/channels';
 import {logError} from 'mattermost-redux/actions/errors';
 import {getGroups, getAllGroupsAssociatedToChannelsInTeam, getAllGroupsAssociatedToTeam, getGroupsByUserIdPaginated} from 'mattermost-redux/actions/groups';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
@@ -89,6 +90,14 @@ export function joinTeam(teamname: string, joinedOnFirstLoad: boolean): ActionFu
                         }
 
                         await dispatch(initializeTeam(team));
+
+                        try {
+                            await dispatch(fetchChannelsAndMembers(team.id));
+                        } catch (error) {
+                            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+                            dispatch(logError(error as ServerError));
+                            return {error: error as ServerError};
+                        }
 
                         return {data: team};
                     }
