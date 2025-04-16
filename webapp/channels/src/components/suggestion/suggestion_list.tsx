@@ -9,10 +9,8 @@ import {FormattedMessage} from 'react-intl';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
-import {isEmptyObject} from 'utils/utils';
 
 export interface Props {
-    ariaLiveRef?: React.RefObject<HTMLDivElement>;
     inputRef?: React.RefObject<HTMLDivElement>;
     open: boolean;
     position?: 'top' | 'bottom';
@@ -47,8 +45,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
     contentRef: React.RefObject<HTMLUListElement>;
     wrapperRef: React.RefObject<HTMLDivElement>;
     itemRefs: Map<string, any>;
-    currentLabel: string | null;
-    currentItem: any;
     maxHeight: number;
 
     constructor(props: Props) {
@@ -57,8 +53,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
         this.contentRef = React.createRef();
         this.wrapperRef = React.createRef();
         this.itemRefs = new Map();
-        this.currentLabel = '';
-        this.currentItem = {};
         this.maxHeight = 0;
     }
 
@@ -71,17 +65,9 @@ export default class SuggestionList extends React.PureComponent<Props> {
             this.scrollToItem(this.props.selection);
         }
 
-        if (!isEmptyObject(this.currentItem)) {
-            this.generateLabel(this.currentItem);
-        }
-
         if (this.props.items.length > 0 && prevProps.items.length === 0) {
             this.updateMaxHeight();
         }
-    }
-
-    componentWillUnmount() {
-        this.removeLabel();
     }
 
     updateMaxHeight = () => {
@@ -100,42 +86,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
             this.contentRef.current.style.maxHeight = `${this.maxHeight}px`;
         }
     };
-
-    announceLabel() {
-        const suggestionReadOut = this.props.ariaLiveRef?.current;
-        if (suggestionReadOut) {
-            suggestionReadOut.textContent = this.currentLabel;
-        }
-    }
-
-    removeLabel() {
-        const suggestionReadOut = this.props.ariaLiveRef?.current;
-        if (suggestionReadOut) {
-            suggestionReadOut.textContent = '';
-        }
-    }
-
-    generateLabel(item: any) {
-        if (item.username) {
-            this.currentLabel = item.username;
-            if ((item.first_name || item.last_name) && item.nickname) {
-                this.currentLabel += ` ${item.first_name} ${item.last_name} ${item.nickname}`;
-            } else if (item.nickname) {
-                this.currentLabel += ` ${item.nickname}`;
-            } else if (item.first_name || item.last_name) {
-                this.currentLabel += ` ${item.first_name} ${item.last_name}`;
-            }
-        } else if (item.type === 'mention.channels') {
-            this.currentLabel = item.channel.display_name;
-        } else if (item.emoji) {
-            this.currentLabel = item.name;
-        }
-
-        if (this.currentLabel) {
-            this.currentLabel = this.currentLabel.toLowerCase();
-        }
-        this.announceLabel();
-    }
 
     getContent = () => {
         return this.contentRef.current;
@@ -270,10 +220,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
             if (item.loading) {
                 items.push(<LoadingSpinner key={item.type}/>);
                 continue;
-            }
-
-            if (isSelection) {
-                this.currentItem = item;
             }
 
             items.push(
