@@ -11,7 +11,7 @@ cd "$(dirname "$0")/playwright"
 # Check if we need to install dependencies
 if [ ! -d "node_modules" ]; then
   echo "Installing dependencies..."
-  npm install glob chalk dotenv axios axios-retry form-data @playwright/test
+  npm install glob chalk dotenv axios axios-retry@3.1.9 form-data @playwright/test
 fi
 
 # Determine which script to run
