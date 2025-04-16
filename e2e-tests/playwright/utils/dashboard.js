@@ -50,6 +50,7 @@ async function createAndStartCycle(data) {
  */
 async function getSpecToTest(data) {
     try {
+        console.log('Getting spec to test with dashboard at:', AUTOMATION_DASHBOARD_URL);
         const response = await axios.post('/api/specs/to-test', data, config);
         return response.data;
     } catch (err) {
