@@ -41,13 +41,6 @@ ${MME2E_DC_SERVER} exec -i -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/p
 
 # Collect run results
 # Documentation on the results.json file: https://playwright.dev/docs/api/class-testcase#test-case-expected-status
-# NB: the following line is needed only for compatibility reasons, to support RollingRelease tests for versions prior to v10.1.0
-#     It can be removed after releases <=v10.0.x are phased out
-mv -v ../playwright/playwright-report/results.json ../playwright/results/reporter/results.json 2>/dev/null || true
-
-# NB: the following line is needed only for compatibility reasons, to support RollingRelease tests for versions prior to v10.6.0
-#     It can be removed once 10.5 (ESR) is no longer supported
-mv -v ../playwright/test/results/ ../playwright/ 2>/dev/null || true
 
 jq -f /dev/stdin ../playwright/results/reporter/results.json > ../playwright/results/summary.json <<EOF
 {
