@@ -16,7 +16,7 @@ type LdapInterface interface {
 	CheckPasswordAuthData(c request.CTX, authData string, password string) *model.AppError
 	CheckProviderAttributes(c request.CTX, LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string
 	SwitchToLdap(c request.CTX, userID, ldapID, ldapPassword string) *model.AppError
-	StartSynchronizeJob(c request.CTX, waitForJobToFinish bool, includeRemovedMembers bool) (*model.Job, *model.AppError)
+	StartSynchronizeJob(c request.CTX, waitForJobToFinish bool, opts *model.LdapSyncOptions) (*model.Job, *model.AppError)
 	GetAllLdapUsers(c request.CTX) ([]*model.User, *model.AppError)
 	MigrateIDAttribute(c request.CTX, toAttribute string) error
 	GetGroup(rctx request.CTX, groupUID string) (*model.Group, *model.AppError)

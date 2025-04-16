@@ -50,12 +50,26 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	type LdapSyncOptions struct {
-		IncludeRemovedMembers bool `json:"include_removed_members"`
+		IncludeRemovedMembers *bool `json:"include_removed_members"`
 	}
-	var opts LdapSyncOptions
-	err := json.NewDecoder(r.Body).Decode(&opts)
+	var oldOpts LdapSyncOptions
+	err := json.NewDecoder(r.Body).Decode(&oldOpts)
 	if err != nil {
-		c.Logger.LogM(mlog.MlvlLDAPInfo, "Error decoding LDAP sync options", mlog.Err(err))
+		c.SetInvalidParamWithErr("LdapSyncOptions", err)
+		return
+	}
+
+	var opts model.LdapSyncOptions
+	err = json.NewDecoder(r.Body).Decode(&opts)
+	if err != nil {
+		c.SetInvalidParamWithErr("LdapSyncOptions", err)
+		return
+	}
+	// For compatibility with old API, check if include_removed_members is set
+	// and set ReAddRemovedMembers accordingly.
+	// This is a temporary solution until we remove the old API.
+	if oldOpts.IncludeRemovedMembers != nil {
+		opts.ReAddRemovedMembers = oldOpts.IncludeRemovedMembers
 	}
 
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
@@ -66,7 +80,7 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SyncLdap(c.AppContext, opts.IncludeRemovedMembers)
+	c.App.SyncLdap(c.AppContext, &opts)
 
 	auditRec.Success()
 	ReturnStatusOK(w)
