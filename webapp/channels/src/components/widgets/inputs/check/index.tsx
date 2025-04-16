@@ -26,7 +26,13 @@ function CheckInput(props: Props) {
                 data-testid={id}
                 type='checkbox'
             />
-            <label className='text' htmlFor={id}>{text}</label>
+            <label
+                className='text'
+                htmlFor={id}
+            >
+                <span className='header'>{header}</span>
+                {text}
+            </label>
         </div>
     );
 }
