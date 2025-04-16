@@ -50,13 +50,30 @@ async function createAndStartCycle(data) {
  */
 async function getSpecToTest(data) {
     try {
-        console.log('Getting spec to test with dashboard at:', AUTOMATION_DASHBOARD_URL);
-        const response = await axios.post('/api/specs/to-test', data, config);
+        console.log('Getting spec to test with dashboard at:', config.baseURL);
+        
+        // Make sure we have default values for required fields
+        const requestData = {
+            repo: data.repo || 'mattermost-webapp',
+            branch: data.branch || 'master',
+            build: data.build || `playwright-${Date.now()}`,
+            server: data.server || 'localhost',
+        };
+        
+        console.log('Request data:', JSON.stringify(requestData, null, 2));
+        
+        const response = await axios.post('/api/specs/to-test', requestData, config);
         return response.data;
     } catch (err) {
         console.error('Error getting spec to test:', err.message);
+        if (err.response) {
+            console.error('Response status:', err.response.status);
+            console.error('Response data:', err.response.data);
+        } else if (err.request) {
+            console.error('No response received');
+        }
         return {
-            code: err.code,
+            code: err.code || 'ERROR',
             message: err.message,
             data: err.response ? err.response.data : undefined,
         };

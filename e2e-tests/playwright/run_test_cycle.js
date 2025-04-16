@@ -293,7 +293,7 @@ function printSummary(summary) {
     });
 }
 
-const maxRetryCount = 0;
+const maxRetryCount = 3;
 async function runSpecFragment(count, retry) {
     console.log(chalk.magenta(`Preparing for: ${count + 1}`));
 
