@@ -184,6 +184,35 @@ type PostPriority struct {
 	ChannelId string `json:",omitempty"`
 }
 
+// Clone creates a deep copy of the PostPriority
+func (p *PostPriority) Clone() *PostPriority {
+	if p == nil {
+		return nil
+	}
+
+	result := &PostPriority{
+		PostId:    p.PostId,
+		ChannelId: p.ChannelId,
+	}
+
+	if p.Priority != nil {
+		priorityValue := *p.Priority
+		result.Priority = &priorityValue
+	}
+
+	if p.RequestedAck != nil {
+		requestedAck := *p.RequestedAck
+		result.RequestedAck = &requestedAck
+	}
+
+	if p.PersistentNotifications != nil {
+		persistentNotifications := *p.PersistentNotifications
+		result.PersistentNotifications = &persistentNotifications
+	}
+
+	return result
+}
+
 type PostPersistentNotifications struct {
 	PostId     string
 	CreateAt   int64
@@ -339,7 +368,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	return nil
 }
 
-// Clone shallowly copies the post and returns the copy.
+// Clone shallowly copies the post and returns the result.
 func (o *Post) Clone() *Post {
 	pCopy := &Post{} //nolint:revive
 	o.ShallowCopy(pCopy)

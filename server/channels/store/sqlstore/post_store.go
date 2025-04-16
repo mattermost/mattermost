@@ -3132,6 +3132,12 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 
 func (s *SqlPostStore) savePostsPriority(transaction *sqlxTxWrapper, posts []*model.Post) error {
 	for _, post := range posts {
+		mlog.Debug("Debug post priority",
+			mlog.String("post_id", post.Id),
+			mlog.Bool("has_metadata", post.Metadata != nil),
+			mlog.Bool("has_priority", post.GetPriority() != nil),
+		)
+
 		if post.GetPriority() != nil {
 			postPriority := &model.PostPriority{
 				PostId:                  post.Id,
@@ -3140,9 +3146,23 @@ func (s *SqlPostStore) savePostsPriority(transaction *sqlxTxWrapper, posts []*mo
 				RequestedAck:            post.Metadata.Priority.RequestedAck,
 				PersistentNotifications: post.Metadata.Priority.PersistentNotifications,
 			}
+
+			mlog.Debug("Debug post priority details",
+				mlog.String("post_id", post.Id),
+				mlog.Any("postPriority", postPriority),
+			)
+
 			if _, err := transaction.NamedExec(`INSERT INTO PostsPriority (PostId, ChannelId, Priority, RequestedAck, PersistentNotifications) VALUES (:PostId, :ChannelId, :Priority, :RequestedAck, :PersistentNotifications)`, postPriority); err != nil {
+				mlog.Error("Error saving post priority",
+					mlog.String("post_id", post.Id),
+					mlog.Err(err),
+				)
 				return err
 			}
+
+			mlog.Debug("Post priority saved",
+				mlog.String("post_id", post.Id),
+			)
 		}
 	}
 	return nil

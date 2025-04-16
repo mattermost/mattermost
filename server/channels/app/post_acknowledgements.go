@@ -130,6 +130,48 @@ func (a *App) GetAcknowledgementsForPostList(postList *model.PostList) (map[stri
 	return acknowledgementsMap, nil
 }
 
+// DeleteAllAcknowledgementsForPost deletes all acknowledgements for a post.
+// This is useful for when we need to replace all acknowledgements in a post during sync operations.
+func (a *App) DeleteAllAcknowledgementsForPost(c request.CTX, postID string) *model.AppError {
+	post, err := a.GetSinglePost(c, postID, false)
+	if err != nil {
+		return err
+	}
+
+	channel, err := a.GetChannel(c, post.ChannelId)
+	if err != nil {
+		return err
+	}
+
+	if channel.DeleteAt > 0 {
+		return model.NewAppError("DeleteAllAcknowledgementsForPost", "api.acknowledgement.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
+	}
+
+	// Get all current acknowledgements
+	acknowledgements, appErr := a.GetAcknowledgementsForPost(postID)
+	if appErr != nil {
+		return appErr
+	}
+
+	// Delete each acknowledgement one by one
+	for _, ack := range acknowledgements {
+		nErr := a.Srv().Store().PostAcknowledgement().Delete(ack)
+		if nErr != nil {
+			return model.NewAppError("DeleteAllAcknowledgementsForPost", "app.acknowledgement.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+
+		// Trigger an event for each deleted acknowledgement
+		a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementRemoved, ack, post)
+	}
+
+	// Invalidate the last post time cache if we deleted any acknowledgements
+	if len(acknowledgements) > 0 {
+		a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
+	}
+
+	return nil
+}
+
 func (a *App) sendAcknowledgementEvent(rctx request.CTX, event model.WebsocketEventType, acknowledgement *model.PostAcknowledgement, post *model.Post) {
 	// send out that a acknowledgement has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil, "")
