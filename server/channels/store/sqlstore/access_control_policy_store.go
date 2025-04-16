@@ -215,8 +215,8 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 			return existingPolicy, nil
 		}
 
-		data := tmp.Data
-		props := tmp.Props
+		data = tmp.Data
+		props = tmp.Props
 		if s.IsBinaryParamEnabled() {
 			data = AppendBinaryFlag(data)
 			props = AppendBinaryFlag(props)
@@ -567,9 +567,9 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 
 	policies := make([]*model.AccessControlPolicy, len(p))
 	for i := range p {
-		m, err := p[i].toModel()
-		if err != nil {
-			return nil, 0, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+		m, err2 := p[i].toModel()
+		if err2 != nil {
+			return nil, 0, errors.Wrapf(err2, "failed to parse policy with id=%s", p[i].ID)
 		}
 
 		// Props field is not guaranteed to be persisted correctly, and it shouldn't be.
@@ -582,7 +582,7 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 			}
 			// Unmarshal the JSON array into a slice of strings
 			var childIDs []string
-			if err := json.Unmarshal(p[i].ChildIDs, &childIDs); err != nil {
+			if err = json.Unmarshal(p[i].ChildIDs, &childIDs); err != nil {
 				return nil, 0, errors.Wrapf(err, "failed to unmarshal child IDs for policy with id=%s", p[i].ID)
 			}
 			m.Props["child_ids"] = childIDs

@@ -307,7 +307,7 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		},
 	}
 	t.Cleanup(func() {
-		err := ss.AccessControlPolicy().Delete(rctx, id)
+		err = ss.AccessControlPolicy().Delete(rctx, id)
 		require.NoError(t, err)
 	})
 

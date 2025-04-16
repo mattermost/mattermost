@@ -152,7 +152,9 @@ func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *
 		return
 	}
 
-	w.Write(channelsJSON)
+	if _, err := w.Write(channelsJSON); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -327,7 +329,7 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if policy.Type != model.AccessControlPolicyTypeParent {
-		appErr := model.NewAppError("assignAccessPolicy", "api.access_control_policy.assign.invalid_type.app_error", nil, "", http.StatusBadRequest)
+		appErr = model.NewAppError("assignAccessPolicy", "api.access_control_policy.assign.invalid_type.app_error", nil, "", http.StatusBadRequest)
 		c.Err = appErr
 		return
 	}
@@ -393,4 +395,35 @@ func getExpressionAutocomplete(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	ac := model.AccessControlExpressionAutocomplete{
+		Entities: map[string]model.AccessControlEntity{
+			"user": {
+				Name: "User",
+				Attributes: []model.AccessControlAttribute{
+					{
+						Name:   "Program",
+						Values: []string{"Dragon Spacecraft", "Black Phoenix", "Operation Deep Dive"},
+					},
+					{
+						Name:   "Department",
+						Values: []string{"Engineering", "Sales", "Marketing"},
+					},
+					{
+						Name:   "Clearance",
+						Values: []string{"Top Secret"},
+					},
+				},
+			},
+		},
+	}
+
+	js, err := json.Marshal(ac)
+	if err != nil {
+		c.Err = model.NewAppError("getExpressionAutocomplete", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

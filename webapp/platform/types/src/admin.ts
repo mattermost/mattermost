@@ -197,3 +197,17 @@ export type AccessControlTestResult = {
     users: UserProfile[];
     attributes: string[];
 }
+
+export type AccessControlExpressionAutocomplete = {
+    entities: Record<string, AccessControlEntity>;
+}
+
+export type AccessControlEntity = {
+    name: string;
+    attributes: AccessControlAttribute[];
+}
+
+export type AccessControlAttribute = {
+    name: string;
+    values: string[];
+}

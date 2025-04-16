@@ -125,7 +125,7 @@ func (a *App) TestExpression(rctx request.CTX, expression string) ([]*model.User
 	}
 
 	users, appErr := a.GetUsers(res.MatchedSubjectIDs)
-	if err != nil {
+	if appErr != nil {
 		return nil, appErr
 	}
 
@@ -147,7 +147,7 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, policyID str
 		return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "Policy is not of type parent", http.StatusBadRequest)
 	}
 
-	policies := make([]*model.AccessControlPolicy, len(channelIDs))
+	policies := make([]*model.AccessControlPolicy, 0, len(channelIDs))
 	for _, channelID := range channelIDs {
 		newPolicy, appErr := policy.Inherit(channelID, model.AccessControlPolicyTypeChannel)
 		if appErr != nil {

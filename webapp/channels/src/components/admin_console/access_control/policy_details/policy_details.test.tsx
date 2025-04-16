@@ -29,6 +29,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
     const mockSetNavigationBlocked = jest.fn();
     const mockAssignChannelsToAccessControlPolicy = jest.fn();
     const mockUnassignChannelsFromAccessControlPolicy = jest.fn();
+    const mockGetAccessControlExpressionAutocomplete = jest.fn();
 
     const defaultProps = {
         policyId: 'policy1',
@@ -44,6 +45,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         onAddCallback: mockOnAddCallback,
         channelsToRemove: {},
         channelsToAdd: {},
+        autocompleteResult: {entities: {}},
         actions: {
             createPolicy: mockCreatePolicy,
             updatePolicy: mockUpdatePolicy,
@@ -55,6 +57,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             setNavigationBlocked: mockSetNavigationBlocked,
             assignChannelsToAccessControlPolicy: mockAssignChannelsToAccessControlPolicy,
             unassignChannelsFromAccessControlPolicy: mockUnassignChannelsFromAccessControlPolicy,
+            getAccessControlExpressionAutocomplete: mockGetAccessControlExpressionAutocomplete,
         },
     };
 
@@ -72,6 +75,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         mockSetNavigationBlocked.mockReset();
         mockAssignChannelsToAccessControlPolicy.mockReset();
         mockUnassignChannelsFromAccessControlPolicy.mockReset();
+        mockGetAccessControlExpressionAutocomplete.mockReset();
     });
 
     test('should match snapshot with new policy', () => {
@@ -120,7 +124,9 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         const onClickProp = deleteButton.props().onClick;
         expect(onClickProp).toBeDefined();
         await act(async () => {
-            onClickProp && onClickProp({} as React.MouseEvent);
+            if (onClickProp) {
+                await onClickProp({} as React.MouseEvent);
+            }
         });
 
         expect(mockDeletePolicy).toHaveBeenCalledWith('policy1');

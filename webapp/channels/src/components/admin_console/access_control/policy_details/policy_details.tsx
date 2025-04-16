@@ -3,9 +3,8 @@
 
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {getHistory} from 'utils/browser_history';
 
-import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/admin';
+import type {AccessControlExpressionAutocomplete, AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/admin';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -22,6 +21,8 @@ import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import TextSetting from 'components/widgets/settings/text_setting';
 
+import {getHistory} from 'utils/browser_history';
+
 import './policy_details.scss';
 
 const DEFAULT_PAGE_SIZE = 10;
@@ -34,11 +35,13 @@ interface PolicyActions {
     setNavigationBlocked: (blocked: boolean) => void;
     assignChannelsToAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
+    getAccessControlExpressionAutocomplete: () => Promise<ActionResult>;
 }
 
 export interface PolicyDetailsProps {
     policyId?: string;
     actions: PolicyActions;
+    autocompleteResult: AccessControlExpressionAutocomplete;
 }
 
 interface ChannelChanges {
@@ -46,21 +49,6 @@ interface ChannelChanges {
     added: Record<string, ChannelWithTeamData>;
     removedCount: number;
 }
-
-const userAttributes = [
-    {
-        attribute: 'Program',
-        values: ['Dragon Spacecraft', 'Black Phoenix', 'Operation Deep Dive'],
-    },
-    {
-        attribute: 'Department',
-        values: ['Engineering', 'Sales', 'Marketing'],
-    },
-    {
-        attribute: 'Clearance',
-        values: ['Top Secret', 'Secret', 'Confidential'],
-    },
-];
 
 const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
     const [policyName, setPolicyName] = useState('');
@@ -76,6 +64,7 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
     });
     const [saveNeeded, setSaveNeeded] = useState(false);
     const [channelsCount, setChannelsCount] = useState(0);
+    const [autocompleteResult, setAutocompleteResult] = useState<AccessControlExpressionAutocomplete>({entities: {}});
 
     useEffect(() => {
         loadPage();
@@ -92,6 +81,11 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
             // Search for channels after setting the policy details
             const channelsResult = await actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE});
             setChannelsCount(channelsResult.data?.total_count || 0);
+
+            const autocompleteResult = await actions.getAccessControlExpressionAutocomplete();
+            if (autocompleteResult.data) {
+                setAutocompleteResult(autocompleteResult.data);
+            }
         }
     };
 
@@ -278,7 +272,10 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
                                         setSaveNeeded(true);
                                     }}
                                     onValidate={() => {}}
-                                    userAttributes={userAttributes}
+                                    userAttributes={autocompleteResult.entities.user?.attributes?.map((attr) => ({
+                                        attribute: attr.name,
+                                        values: attr.values,
+                                    })) || []}
                                 />
                             )}
                         </Card.Body>

@@ -104,12 +104,6 @@ func RegisterAccessControlServiceInterface(f func(*App) einterfaces.AccessContro
 	accessControlServiceInterface = f
 }
 
-var pdpInterface func(*App) einterfaces.PolicyDecisionPointInterface
-
-func RegisterPDPInterface(f func(*App) einterfaces.PolicyDecisionPointInterface) {
-	pdpInterface = f
-}
-
 func (s *Server) initEnterprise() {
 	if cloudInterface != nil {
 		s.Cloud = cloudInterface(s)

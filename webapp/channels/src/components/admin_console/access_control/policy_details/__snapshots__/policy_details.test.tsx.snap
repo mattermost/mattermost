@@ -100,7 +100,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             subtitle={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Add channels that this property based access policy will apply to."
-                id="admin.daccess_control.policy.edit_policy.channel_selector.subTitle"
+                id="admin.access_control.policy.edit_policy.channel_selector.subtitle"
               />
             }
             title={
@@ -140,7 +140,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             subtitle={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="This policy will be deleted and cannot be recovered."
-                id="admin.daccess_control.policy.edit_policy.delete_policy.subtitle"
+                id="admin.access_control.policy.edit_policy.delete_policy.subtitle"
               />
             }
             title={
@@ -280,7 +280,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             subtitle={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Add channels that this property based access policy will apply to."
-                id="admin.daccess_control.policy.edit_policy.channel_selector.subTitle"
+                id="admin.access_control.policy.edit_policy.channel_selector.subtitle"
               />
             }
             title={

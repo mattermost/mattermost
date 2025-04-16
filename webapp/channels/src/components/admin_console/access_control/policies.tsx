@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {getHistory} from 'utils/browser_history';
 
 import type {AccessControlPolicy} from '@mattermost/types/admin';
 
@@ -12,6 +11,8 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import * as Menu from 'components/menu';
+
+import {getHistory} from 'utils/browser_history';
 
 import './policies.scss';
 

@@ -142,7 +142,7 @@ func NewChannels(s *Server) (*Channels, error) {
 			s.Log().Error("An error occurred while initializing Access Control", mlog.Err(appErr))
 		}
 
-		app.AddLicenseListener(func(new, old *model.License) {
+		app.AddLicenseListener(func(newCfg, old *model.License) {
 			if ch.AccessControl != nil {
 				if appErr := ch.AccessControl.Init(request.EmptyContext(s.Log())); appErr != nil {
 					s.Log().Error("An error occurred while initializing Access Control", mlog.Err(appErr))

@@ -24,13 +24,15 @@
                 }
                 
                 &[data-field="resources"] {
-                    justify-content: flex-start;
+                    display: flex;
                     align-items: left;
+                    justify-content: flex-start;
                 }
             }
         }
         
         &_row {
+            display: flex;
             min-height: 40px;
             cursor: pointer;
 
@@ -46,21 +48,21 @@
             }
 
             .policy-actions {
-                width: 100%;
                 display: flex;
+                width: 100%;
                 justify-content: center;
             }
 
             .policy-menu-button {
+                display: flex;
                 width: 32px;
                 height: 32px;
-                display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 0;
                 border: none;
-                background: transparent;
                 border-radius: 4px;
+                background: transparent;
                 color: rgba(var(--center-channel-color-rgb), 0.56);
                 cursor: pointer;
 
@@ -70,11 +72,11 @@
                 }
 
                 .icon {
-                    font-size: 18px;
-                    line-height: 18px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    font-size: 18px;
+                    line-height: 18px;
                 }
             }
         }
@@ -121,16 +123,16 @@
         padding: 0 16px;
 
         .icon-button {
+            display: flex;
             width: 32px;
             height: 32px;
-            display: flex;
             align-items: center;
             justify-content: center;
             border: none;
-            background: transparent;
             border-radius: 4px;
-            cursor: pointer;
+            background: transparent;
             color: rgba(63, 67, 80, 0.72);
+            cursor: pointer;
 
             &:hover {
                 background-color: rgba(63, 67, 80, 0.08);
