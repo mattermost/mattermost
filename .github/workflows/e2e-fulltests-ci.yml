@@ -253,6 +253,7 @@ jobs:
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
       ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_CYPRESS }}"
+      TEST: "cypress"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
       BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}-cypress"
@@ -284,7 +285,7 @@ jobs:
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
-      TEST: playwright
+      TEST: "playwright"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_PLAYWRIGHT }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"

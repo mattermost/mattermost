@@ -25,12 +25,14 @@
  */
 
 const axios = require('axios');
-const axiosRetry = require('axios-retry');
 const chalk = require('chalk');
 const { test } = require('@playwright/test');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+
+// Import axios-retry correctly
+const axiosRetry = require('axios-retry');
 
 const {
     getSpecToTest,

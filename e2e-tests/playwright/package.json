@@ -1,6 +1,8 @@
 {
   "name": "mattermost-playwright",
-  "workspaces": ["lib"],
+  "workspaces": [
+    "lib"
+  ],
   "scripts": {
     "postinstall": "script/post_install.sh && npm run build",
     "build": "npm run build --workspaces",
@@ -25,6 +27,8 @@
     "@mattermost/playwright-lib": "*",
     "@mattermost/types": "file:../../webapp/platform/types",
     "@playwright/test": "1.51.1",
+    "axios": "^1.8.4",
+    "axios-retry": "^4.5.0",
     "cross-env": "7.0.3",
     "dayjs": "1.11.13",
     "zod": "3.24.2"

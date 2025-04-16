@@ -25,9 +25,11 @@
  */
 
 const axios = require('axios');
-const axiosRetry = require('axios-retry');
 const chalk = require('chalk');
 const cypress = require('cypress');
+
+// Import axios-retry correctly
+const axiosRetry = require('axios-retry');
 
 const {
     getSpecToTest,

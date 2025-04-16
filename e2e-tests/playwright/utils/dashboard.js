@@ -31,7 +31,7 @@ async function createAndStartCycle(data) {
     try {
         console.log('Creating test cycle with dashboard at:', config.baseURL);
         
-        const response = await axios.post('/api/cycles/start', data, config);
+        const response = await axios.post('/cycles/start', data, config);
         return response.data;
     } catch (err) {
         console.error('Error creating test cycle:', err.message);

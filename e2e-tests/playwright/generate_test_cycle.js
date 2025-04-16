@@ -45,33 +45,17 @@ const {
     REPO,
 } = process.env;
 
-/**
- * Get test files with metadata
- * @param {string} platform - os platform
- * @param {string} browser - browser
- * @param {boolean} headless - true/false if test to run on headless mode
- * @returns {Object} weighted test files and spec files
- */
-/**
- * Get test files with metadata
- * @param {string} platform - os platform
- * @param {string} browser - browser
- * @param {boolean} headless - true/false if test to run on headless mode
- * @returns {Object} weighted test files and spec files
- */
 function getSortedTestFiles(platform, browser, headless) {
     // Define the base directory for Playwright tests
     const baseDir = path.join(__dirname, 'specs', 'functional');
     
     // Get only .spec.ts files
-    const specFiles = glob.sync('**/*.spec.ts', { cwd: baseDir }).map(file => path.join(baseDir, file));
+    const specFiles = glob.sync('**/*.spec.ts', { cwd: baseDir });
     
     // Create simple metadata for each file
     const weightedTestFiles = specFiles.map(file => {
         return {
             file,
-            stage: '',
-            group: '',
             shouldSkip: false,
             weight: 1,
         };
