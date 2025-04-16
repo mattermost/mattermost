@@ -8707,6 +8707,27 @@ func (s *RetryLayerPostPersistentNotificationStore) UpdateLastActivity(postIds [
 
 }
 
+func (s *RetryLayerPostPriorityStore) Delete(postID string) error {
+
+	tries := 0
+	for {
+		err := s.PostPriorityStore.Delete(postID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostPriorityStore) GetForPost(postID string) (*model.PostPriority, error) {
 
 	tries := 0
@@ -8733,6 +8754,27 @@ func (s *RetryLayerPostPriorityStore) GetForPosts(ids []string) ([]*model.PostPr
 	tries := 0
 	for {
 		result, err := s.PostPriorityStore.GetForPosts(ids)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPriority, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostPriorityStore.Save(priority)
 		if err == nil {
 			return result, nil
 		}
