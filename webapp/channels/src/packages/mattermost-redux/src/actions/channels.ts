@@ -794,7 +794,7 @@ export function getAllChannelsWithCount(page = 0, perPage: number = General.CHAN
 
         let payload;
         try {
-            payload = await Client4.getAllChannels(page, perPage, notAssociatedToGroup, excludeDefaultChannels, true, includeDeleted, excludePolicyConstrained);
+            payload = await Client4.getAllChannels(page, perPage, notAssociatedToGroup, excludeDefaultChannels, true, includeDeleted, excludePolicyConstrained, false);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: ChannelTypes.GET_ALL_CHANNELS_FAILURE, error});
@@ -826,7 +826,7 @@ export function getAllChannels(page = 0, perPage: number = General.CHANNELS_CHUN
 
         let channels;
         try {
-            channels = await Client4.getAllChannels(page, perPage, notAssociatedToGroup, excludeDefaultChannels, false, false, excludePolicyConstrained, excludeAccessControlPolicyEnforced);
+            channels = await Client4.getAllChannels(page, perPage, notAssociatedToGroup, excludeDefaultChannels, false, excludePolicyConstrained, excludeAccessControlPolicyEnforced);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: ChannelTypes.GET_ALL_CHANNELS_FAILURE, error});

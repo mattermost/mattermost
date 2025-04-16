@@ -151,6 +151,38 @@ func (_m *PolicyAdministrationPointInterface) Init(rctx request.CTX) *model.AppE
 	return r0
 }
 
+// QueryExpression provides a mock function with given fields: rctx, expression
+func (_m *PolicyAdministrationPointInterface) QueryExpression(rctx request.CTX, expression string) (*model.AccessControlQueryResult, *model.AppError) {
+	ret := _m.Called(rctx, expression)
+
+	if len(ret) == 0 {
+		panic("no return value specified for QueryExpression")
+	}
+
+	var r0 *model.AccessControlQueryResult
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.AccessControlQueryResult, *model.AppError)); ok {
+		return rf(rctx, expression)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.AccessControlQueryResult); ok {
+		r0 = rf(rctx, expression)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AccessControlQueryResult)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
+		r1 = rf(rctx, expression)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SavePolicy provides a mock function with given fields: rctx, policy
 func (_m *PolicyAdministrationPointInterface) SavePolicy(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
 	ret := _m.Called(rctx, policy)
