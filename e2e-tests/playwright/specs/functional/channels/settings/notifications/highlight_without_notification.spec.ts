@@ -100,7 +100,7 @@ test('MM-T5465-2 Should highlight the keywords when a message is sent with the k
     // # Post a message without the keyword
     const messageWithoutKeyword = 'This message does not contain the keyword';
     await channelsPage.centerView.postCreate.postMessage(messageWithoutKeyword);
-    const lastPostWithoutHighlight = await channelsPage.centerView.getLastPost();
+    const lastPostWithoutHighlight = await channelsPage.getLastPost();
 
     // * Verify that the keywords are not highlighted
     await expect(lastPostWithoutHighlight.container.getByText(messageWithoutKeyword)).toBeVisible();
@@ -111,7 +111,7 @@ test('MM-T5465-2 Should highlight the keywords when a message is sent with the k
     // # Post a message with the keyword
     const messageWithKeyword = `This message contains the keyword ${keywords[3]}`;
     await channelsPage.centerView.postCreate.postMessage(messageWithKeyword);
-    const lastPostWithHighlight = await channelsPage.centerView.getLastPost();
+    const lastPostWithHighlight = await channelsPage.getLastPost();
 
     // * Verify that the keywords are highlighted
     await expect(lastPostWithHighlight.container.getByText(messageWithKeyword)).toBeVisible();
@@ -155,7 +155,7 @@ test('MM-T5465-3 Should highlight the keywords when a message is sent with the k
     // # Post a message without the keyword
     const messageWithoutKeyword = 'This message does not contain the keyword';
     await channelsPage.centerView.postCreate.postMessage(messageWithoutKeyword);
-    const lastPostWithoutHighlight = await channelsPage.centerView.getLastPost();
+    const lastPostWithoutHighlight = await channelsPage.getLastPost();
 
     // # Open the message in the RHS
     await lastPostWithoutHighlight.hover();
@@ -271,7 +271,7 @@ test('MM-T5465-5 Should highlight keywords in message sent from another user', a
     await channelsPage.settingsModal.closeModal();
 
     // * Verify that the keywords are highlighted in the last message received
-    const lastPostWithHighlight = await channelsPage.centerView.getLastPost();
+    const lastPostWithHighlight = await channelsPage.getLastPost();
     await expect(lastPostWithHighlight.container.getByText(messageWithKeyword)).toBeVisible();
     await expect(lastPostWithHighlight.container.getByText(highlightKeyword)).toHaveClass(
         highlightWithoutNotificationClass,

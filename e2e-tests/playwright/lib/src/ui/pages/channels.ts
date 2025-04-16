@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page} from '@playwright/test';
+import {expect, Page} from '@playwright/test';
 
 import {components} from '@/ui/components';
 import SettingsModal from "@/ui/components/channels/settings/settings_modal";
@@ -12,6 +12,7 @@ export default class ChannelsPage {
     readonly page: Page;
 
     readonly globalHeader;
+    readonly userAccountMenuButton;
     readonly searchPopover;
     readonly centerView;
     readonly scheduledDraftDropdown;
@@ -25,11 +26,11 @@ export default class ChannelsPage {
     readonly findChannelsModal;
     readonly deletePostModal;
     readonly settingsModal;
-
+    readonly profileModal;
     readonly postContainer;
     readonly postDotMenu;
     readonly postReminderMenu;
-
+    readonly userAccountMenu;
     readonly emojiGifPickerPopup;
 
     constructor(page: Page) {
@@ -43,15 +44,18 @@ export default class ChannelsPage {
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
         this.appBar = new components.ChannelsAppBar(page.locator('.app-bar'));
         this.messagePriority = new components.MessagePriority(page.locator('body'));
+        this.userAccountMenuButton = page.getByRole('button', {name: "User's account menu"});
 
         // Modals
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
         this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
+        this.profileModal = new components.ProfileModal(page.getByRole('dialog', {name: 'Profile'}));
 
         // Menus
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
         this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for:'}));
+        this.userAccountMenu = new components.UserAccountMenu(page.locator('#userAccountMenu'));
 
         // Popovers
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
@@ -70,7 +74,7 @@ export default class ChannelsPage {
     }
 
     async getLastPost() {
-        return this.postContainer.last();
+        return this.centerView.getLastPost();
     }
 
     async goto(teamName = '', channelName = '') {
@@ -113,5 +117,18 @@ export default class ChannelsPage {
         }
 
         await this.page.getByText('Create channel').click();
+    }
+
+    async openUserAccountMenu() {
+        await this.userAccountMenuButton.click();
+        await expect(this.userAccountMenu.container).toBeVisible();
+        return this.userAccountMenu;
+    }
+
+    async openProfileModal() {
+        await this.openUserAccountMenu();
+        await this.userAccountMenu.profile.click();
+        await expect(this.profileModal.container).toBeVisible();
+        return this.profileModal;
     }
 }

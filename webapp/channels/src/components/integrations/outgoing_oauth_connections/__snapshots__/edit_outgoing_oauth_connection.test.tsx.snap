@@ -549,7 +549,7 @@ https://myothersite.com/api/v2"
                     }
                   >
                     <GenericModal
-                      ariaLabel="confirmModalLabel"
+                      ariaLabelledby="confirmModalLabel"
                       autoCloseOnCancelButton={true}
                       autoCloseOnConfirmButton={true}
                       bodyPadding={true}
@@ -573,8 +573,7 @@ https://myothersite.com/api/v2"
                     >
                       <Modal
                         animation={true}
-                        aria-label="confirmModalLabel"
-                        aria-labelledby="genericModalLabel"
+                        aria-labelledby="confirmModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
@@ -673,7 +672,7 @@ https://myothersite.com/api/v2"
               title="Save Outgoing OAuth Connection"
             >
               <GenericModal
-                ariaLabel="confirmModalLabel"
+                ariaLabelledby="confirmModalLabel"
                 autoCloseOnCancelButton={true}
                 autoCloseOnConfirmButton={true}
                 bodyPadding={true}
@@ -692,8 +691,7 @@ https://myothersite.com/api/v2"
               >
                 <Modal
                   animation={true}
-                  aria-label="confirmModalLabel"
-                  aria-labelledby="genericModalLabel"
+                  aria-labelledby="confirmModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
@@ -1311,7 +1309,7 @@ https://myothersite.com/api/v2"
                     }
                   >
                     <GenericModal
-                      ariaLabel="confirmModalLabel"
+                      ariaLabelledby="confirmModalLabel"
                       autoCloseOnCancelButton={true}
                       autoCloseOnConfirmButton={true}
                       bodyPadding={true}
@@ -1335,8 +1333,7 @@ https://myothersite.com/api/v2"
                     >
                       <Modal
                         animation={true}
-                        aria-label="confirmModalLabel"
-                        aria-labelledby="genericModalLabel"
+                        aria-labelledby="confirmModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
@@ -1435,7 +1432,7 @@ https://myothersite.com/api/v2"
               title="Save Outgoing OAuth Connection"
             >
               <GenericModal
-                ariaLabel="confirmModalLabel"
+                ariaLabelledby="confirmModalLabel"
                 autoCloseOnCancelButton={true}
                 autoCloseOnConfirmButton={true}
                 bodyPadding={true}
@@ -1454,8 +1451,7 @@ https://myothersite.com/api/v2"
               >
                 <Modal
                   animation={true}
-                  aria-label="confirmModalLabel"
-                  aria-labelledby="genericModalLabel"
+                  aria-labelledby="confirmModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
@@ -2072,7 +2068,7 @@ https://myothersite.com/api/v2"
                     }
                   >
                     <GenericModal
-                      ariaLabel="confirmModalLabel"
+                      ariaLabelledby="confirmModalLabel"
                       autoCloseOnCancelButton={true}
                       autoCloseOnConfirmButton={true}
                       bodyPadding={true}
@@ -2096,8 +2092,7 @@ https://myothersite.com/api/v2"
                     >
                       <Modal
                         animation={true}
-                        aria-label="confirmModalLabel"
-                        aria-labelledby="genericModalLabel"
+                        aria-labelledby="confirmModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
@@ -2196,7 +2191,7 @@ https://myothersite.com/api/v2"
               title="Save Outgoing OAuth Connection"
             >
               <GenericModal
-                ariaLabel="confirmModalLabel"
+                ariaLabelledby="confirmModalLabel"
                 autoCloseOnCancelButton={true}
                 autoCloseOnConfirmButton={true}
                 bodyPadding={true}
@@ -2215,8 +2210,7 @@ https://myothersite.com/api/v2"
               >
                 <Modal
                   animation={true}
-                  aria-label="confirmModalLabel"
-                  aria-labelledby="genericModalLabel"
+                  aria-labelledby="confirmModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}

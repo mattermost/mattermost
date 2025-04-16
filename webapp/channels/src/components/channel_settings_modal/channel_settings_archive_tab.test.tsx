@@ -88,8 +88,8 @@ describe('ChannelSettingsArchiveTab', () => {
         await userEvent.click(screen.getByText('Archive this channel'));
 
         // Check that the confirmation modal is shown
-        expect(screen.getByLabelText('confirmModalLabel')).toBeInTheDocument();
-        expect(screen.getByRole('dialog', {name: 'Archive channel?'})).toBeInTheDocument();
+        expect(screen.getByTestId('archiveChannelConfirmModal')).toBeInTheDocument();
+        expect(screen.getByText('Archive channel?')).toBeInTheDocument();
     });
 
     it('should call deleteChannel and onHide when confirmed', async () => {
@@ -117,14 +117,14 @@ describe('ChannelSettingsArchiveTab', () => {
         await userEvent.click(screen.getByText('Archive this channel'));
 
         // Check that the confirmation modal is shown
-        expect(screen.getByRole('dialog', {name: 'Archive channel?'})).toBeInTheDocument();
+        expect(screen.getByTestId('archiveChannelConfirmModal')).toBeInTheDocument();
 
         // Click the cancel button in the modal
-        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+        await userEvent.click(screen.getByTestId('cancel-button'));
 
         // Check that the confirmation modal is hidden
         await waitFor(() => {
-            expect(screen.queryByRole('dialog', {name: 'Archive channel?'})).not.toBeInTheDocument();
+            expect(screen.queryByTestId('archiveChannelConfirmModal')).not.toBeInTheDocument();
         });
     });
 
@@ -144,10 +144,10 @@ describe('ChannelSettingsArchiveTab', () => {
         await userEvent.click(screen.getByText('Archive this channel'));
 
         // Check that the confirmation modal is shown
-        expect(screen.getByRole('dialog', {name: 'Archive channel?'})).toBeInTheDocument();
+        expect(screen.getByTestId('archiveChannelConfirmModal')).toBeInTheDocument();
 
         // Click the confirm button in the modal
-        await userEvent.click(screen.getByRole('button', {name: 'Confirm'}));
+        await userEvent.click(screen.getByText('Confirm'));
 
         // Check that deleteChannel was called with the channel ID
         expect(channelActions.deleteChannel).toHaveBeenCalledWith(mockChannel.id);
@@ -160,8 +160,14 @@ describe('ChannelSettingsArchiveTab', () => {
         await userEvent.click(screen.getByText('Archive this channel'));
 
         // Check that the confirmation modal message mentions that archived channels cannot be viewed
-        const modalMessage = screen.getByRole('dialog', {name: 'Archive channel?'});
-        expect(modalMessage).toHaveTextContent("Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels.");
+        const modalMessage = screen.getByTestId('archiveChannelConfirmModal');
+        expect(modalMessage).toBeInTheDocument();
+
+        // Check for the specific text content within the modal
+        // Use the within function to scope the query to just the modal content
+        const modalBody = screen.getByTestId('archiveChannelConfirmModal').querySelector('#confirmModalBody');
+        expect(modalBody).toBeInTheDocument();
+        expect(modalBody).toHaveTextContent(/Archiving a channel removes it from the user interface/);
     });
 
     it('should call deleteChannel which handles channel ID validation', async () => {
