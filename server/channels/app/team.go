@@ -766,8 +766,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 	}
 
 	opts := &store.SidebarCategorySearchOpts{
-		TeamID:      team.Id,
-		ExcludeTeam: false,
+		TeamID: team.Id,
 	}
 	if _, err := a.createInitialSidebarCategories(c, user.Id, opts); err != nil {
 		c.Logger().Warn(

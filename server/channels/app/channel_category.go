@@ -29,8 +29,7 @@ func (a *App) GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID s
 	if err == nil && len(categories.Categories) == 0 {
 		// A user must always have categories, so migration must not have happened yet, and we should run it ourselves
 		categories, appErr = a.createInitialSidebarCategories(c, userID, &store.SidebarCategorySearchOpts{
-			TeamID:      teamID,
-			ExcludeTeam: false,
+			TeamID: teamID,
 		})
 		if appErr != nil {
 			return nil, appErr
