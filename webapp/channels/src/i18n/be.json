@@ -4096,7 +4096,6 @@
   "user.settings.notifications.email.disabled_long": "Ваш сістэмны адміністратар не ўключыў апавяшчэння па электроннай пошце.",
   "user.settings.notifications.email.everyHour": "Кожную гадзiну",
   "user.settings.notifications.email.everyXMinutes": "{count, plural, one {Кожную хвіліну} other {Кожныя {count, number} хвілін}}",
-  "user.settings.notifications.email.immediately": "Неадкладна",
   "user.settings.notifications.email.never": "Нiколi",
   "user.settings.notifications.email.send": "Адпраўляць апавяшчэння па электроннай пошце",
   "user.settings.notifications.emailBatchingInfo": "Апавяшчэнні, атрыманыя за абраны часавы прамежак, аб'ядноўваюцца і адпраўляюцца адзіным лістом.",
