@@ -52,58 +52,35 @@ const {
  * @param {boolean} headless - true/false if test to run on headless mode
  * @returns {Object} weighted test files and spec files
  */
-/**                                                                                                                                                                                                        
- * Get test files with metadata                                                                                                                                                                            
- * @param {string} platform - os platform                                                                                                                                                                  
- * @param {string} browser - browser                                                                                                                                                                       
- * @param {boolean} headless - true/false if test to run on headless mode                                                                                                                                  
- * @returns {Object} weighted test files and spec files                                                                                                                                                    
- */                                                                                                                                                                                                        
-function getSortedTestFiles(platform, browser, headless) {                                                                                                                                                 
-    // Define the base directory for Playwright tests                                                                                                                                                      
-    const baseDir = path.join(__dirname, 'specs', 'functional');                                                                                                                                           
-                                                                                                                                                                                                           
-    // Get all spec files                                                                                                                                                                                  
-    const specFiles = glob.sync('**/*.spec.ts', { cwd: baseDir }).map(file => path.join(baseDir, file));                                                                                                   
-                                                                                                                                                                                                           
-    // Parse metadata from spec files                                                                                                                                                                      
-    const weightedTestFiles = specFiles.map(file => {                                                                                                                                                      
-        const content = fs.readFileSync(file, 'utf8');                                                                                                                                                     
-                                                                                                                                                                                                           
-        // Extract metadata from file content (similar to how Cypress does it)                                                                                                                             
-        const stageMatch = content.match(/@stage\s+(\S+)/);                                                                                                                                                
-        const groupMatch = content.match(/@group\s+(\S+)/);                                                                                                                                                
-                                                                                                                                                                                                           
-        const stage = stageMatch ? stageMatch[1] : '';                                                                                                                                                     
-        const group = groupMatch ? groupMatch[1] : '';                                                                                                                                                     
-                                                                                                                                                                                                           
-        // Determine if test should be skipped based on platform, browser, etc.                                                                                                                            
-        const skipPlatformMatch = content.match(/@skip_if_platform\s+(\S+)/);                                                                                                                              
-        const skipBrowserMatch = content.match(/@skip_if_browser\s+(\S+)/);                                                                                                                                
-        const skipHeadlessMatch = content.match(/@skip_if_headless\s+(\S+)/);                                                                                                                              
-                                                                                                                                                                                                           
-        const skipPlatform = skipPlatformMatch ? skipPlatformMatch[1].includes(platform) : false;                                                                                                          
-        const skipBrowser = skipBrowserMatch ? skipBrowserMatch[1].includes(browser) : false;                                                                                                              
-        const skipHeadless = skipHeadlessMatch ? skipHeadlessMatch[1] === String(headless) : false;                                                                                                        
-                                                                                                                                                                                                           
-        const shouldSkip = skipPlatform || skipBrowser || skipHeadless;                                                                                                                                    
-                                                                                                                                                                                                           
-        return {                                                                                                                                                                                           
-            file,                                                                                                                                                                                          
-            stage,                                                                                                                                                                                         
-            group,                                                                                                                                                                                         
-            shouldSkip,                                                                                                                                                                                    
-            weight: 1, // Default weight, can be adjusted based on test complexity                                                                                                                         
-        };                                                                                                                                                                                                 
-    });                                                                                                                                                                                                    
-                                                                                                                                                                                                           
-    // Filter out skipped tests                                                                                                                                                                            
-    const filteredTestFiles = weightedTestFiles.filter(file => !file.shouldSkip);                                                                                                                          
-                                                                                                                                                                                                           
-    return {                                                                                                                                                                                               
-        weightedTestFiles: filteredTestFiles,                                                                                                                                                              
-        specFiles: filteredTestFiles.map(item => item.file),                                                                                                                                               
-    };                                                                                                                                                                                                     
+/**
+ * Get test files with metadata
+ * @param {string} platform - os platform
+ * @param {string} browser - browser
+ * @param {boolean} headless - true/false if test to run on headless mode
+ * @returns {Object} weighted test files and spec files
+ */
+function getSortedTestFiles(platform, browser, headless) {
+    // Define the base directory for Playwright tests
+    const baseDir = path.join(__dirname, 'specs', 'functional');
+    
+    // Get only .spec.ts files
+    const specFiles = glob.sync('**/*.spec.ts', { cwd: baseDir }).map(file => path.join(baseDir, file));
+    
+    // Create simple metadata for each file
+    const weightedTestFiles = specFiles.map(file => {
+        return {
+            file,
+            stage: '',
+            group: '',
+            shouldSkip: false,
+            weight: 1,
+        };
+    });
+    
+    return {
+        weightedTestFiles,
+        specFiles,
+    };
 }
 
 async function main() {
