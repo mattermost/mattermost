@@ -424,13 +424,8 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			}
 			priorityPost.Metadata.Priority = originalPriority
 
-			// Log priority save operation to file
-
-			// Create a request context with detailed logging
-			logCtx := request.EmptyContext(scs.server.Log())
-
 			// Use the app's SavePriorityForPost method to save priorities
-			_, priorityErr := scs.app.SavePriorityForPost(logCtx, priorityPost)
+			_, priorityErr := scs.app.SavePriorityForPost(rctx, priorityPost)
 
 			if priorityErr != nil {
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error saving post priority",
