@@ -821,7 +821,6 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, updateP
 
 	userID := c.Session().UserId
 	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, rpost, userID)
-
 	if appErr != nil {
 		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
 

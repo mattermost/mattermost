@@ -18,7 +18,6 @@ func (a *App) GetPriorityForPost(postId string) (*model.PostPriority, *model.App
 	if err != nil && err != sql.ErrNoRows {
 		return nil, model.NewAppError("GetPriorityForPost", "app.post_prority.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
 	return priority, nil
 }
 

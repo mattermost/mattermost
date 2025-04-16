@@ -412,6 +412,11 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 
 		// Always handle priority metadata updates separately regardless of whether UpdatePost preserved them
 		if appErr == nil && originalPriority != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post",
+				mlog.String("post_id", post.Id),
+				mlog.String("channel_id", post.ChannelId),
+			)
+
 			// Create a post clone specifically for priority update to ensure it's saved properly
 			priorityPost := post.Clone()
 			if priorityPost.Metadata == nil {
@@ -504,6 +509,12 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 				rpost.Metadata.Acknowledgements = actualAcks
 			}
 		}
+	} else {
+		// nothing to update
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Update to sync post ignored",
+			mlog.String("post_id", post.Id),
+			mlog.String("channel_id", post.ChannelId),
+		)
 	}
 
 	var rerr error
