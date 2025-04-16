@@ -21,8 +21,8 @@ function CheckInput(props: Props) {
         <div className='check-input'>
             <input
                 {...rest}
-                aria-label={ariaLabel}
                 id={id}
+                aria-label={ariaLabel}
                 data-testid={id}
                 type='checkbox'
             />
