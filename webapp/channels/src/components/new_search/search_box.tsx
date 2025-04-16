@@ -5,6 +5,8 @@ import React, {useState, useRef, forwardRef, useCallback, useEffect} from 'react
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
+import type {Team} from '@mattermost/types/teams';
+
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {escapeRegex} from 'utils/text_formatting';
@@ -25,6 +27,7 @@ type Props = {
     initialSearchType: string;
     initialSearchTeam: string;
     crossTeamSearchEnabled: boolean;
+    myTeams: Team[];
 };
 
 const SearchBoxContainer = styled.div`
@@ -73,7 +76,7 @@ const SearchTeamSelector = styled.div`
 
 const SearchBox = forwardRef(
     (
-        {onClose, onSearch, initialSearchTerms, initialSearchType, initialSearchTeam, crossTeamSearchEnabled}: Props,
+        {onClose, onSearch, initialSearchTerms, initialSearchType, initialSearchTeam, crossTeamSearchEnabled, myTeams}: Props,
         ref: React.Ref<HTMLDivElement>,
     ): JSX.Element => {
         const intl = useIntl();
@@ -82,6 +85,8 @@ const SearchBox = forwardRef(
         const [searchTeam, setSearchTeam] = useState<string>(initialSearchTeam);
         const [searchType, setSearchType] = useState<string>(initialSearchType || 'messages');
         const [selectedOption, setSelectedOption] = useState<number>(-1);
+
+        const hasMoreThanOneTeam = myTeams.length > 1;
 
         const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -281,7 +286,7 @@ const SearchBox = forwardRef(
                         searchType={searchType}
                         setSearchType={setSearchType}
                     />
-                    {crossTeamSearchEnabled && (
+                    {crossTeamSearchEnabled && hasMoreThanOneTeam && (
                         <SearchTeamSelector>
                             <SelectTeam
                                 selectedTeamId={searchTeam}
