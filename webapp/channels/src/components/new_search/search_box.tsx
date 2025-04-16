@@ -287,7 +287,7 @@ const SearchBox = forwardRef(
                         setSearchType={setSearchType}
                     />
                     {crossTeamSearchEnabled && hasMoreThanOneTeam && (
-                        <SearchTeamSelector>
+                        <SearchTeamSelector data-testid={'searchTeamSelector'}>
                             <SelectTeam
                                 selectedTeamId={searchTeam}
                                 onTeamSelected={changeSearchTeam}
