@@ -22,10 +22,4 @@ export default class ChannelsHeader {
         await this.channelMenuDropdown.isVisible();
         await this.channelMenuDropdown.click();
     }
-
-    async openChannelSettings() {
-        await this.openChannelMenu();
-        const channelSettingMenuItem = await this.container.locator('#channelSettings[role="menuitem"]');
-        await channelSettingMenuItem.click();
-    }
 }
