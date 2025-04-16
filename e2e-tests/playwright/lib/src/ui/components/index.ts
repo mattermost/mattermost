@@ -24,6 +24,8 @@ import GenericConfirmModal from './channels/generic_confirm_modal';
 import MessagePriority from './channels/message_priority';
 import ScheduledDraftMenu from './channels/scheduled_draft_menu';
 import ScheduledDraftModal from './channels/scheduled_draft_modal';
+import UserAccountMenu from './user_account_menu';
+import ProfileModal from './channels/profile_modal';
 import UserProfilePopover from './channels/user_profile_popover';
 import SystemConsoleSidebar from './system_console/sidebar';
 import SystemConsoleNavbar from './system_console/navbar';
@@ -71,8 +73,10 @@ const components = {
     SystemConsoleMobileSecurity,
     MessagePriority,
     UserProfilePopover,
+    UserAccountMenu,
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
+    ProfileModal,
 };
 
 export {
@@ -93,4 +97,6 @@ export {
     ThreadFooter,
     MessagePriority,
     DeletePostConfirmationDialog,
+    RestorePostConfirmationDialog,
+    ProfileModal,
 };
