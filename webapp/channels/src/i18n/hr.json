@@ -1778,7 +1778,6 @@
   "user.settings.notifications.comments": "Obavijesti za odgovore",
   "user.settings.notifications.email.disabled": "E-mail obavijesti nisu aktivirana",
   "user.settings.notifications.email.everyHour": "Svaki sat",
-  "user.settings.notifications.email.immediately": "Odmah",
   "user.settings.notifications.email.never": "Nikada",
   "user.settings.notifications.email.send": "Pošalji e-mail obavijesti",
   "user.settings.notifications.emailInfo": "E-mail obavijesti se šalju za spominjanja i izravne poruke kad nemaš internetsku vezu ili kad si odsutan/na više od 5 minuta.",

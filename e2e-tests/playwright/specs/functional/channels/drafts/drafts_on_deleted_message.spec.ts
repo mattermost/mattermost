@@ -30,7 +30,7 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    const lastPostByAdmin = await channelsPage.centerView.getLastPost();
+    const lastPostByAdmin = await channelsPage.getLastPost();
     await lastPostByAdmin.toBeVisible();
 
     // # Open the last post sent by admin in RHS
@@ -89,7 +89,7 @@ test('MM-T5435_2 Global Drafts link in sidebar should be hidden when user delete
     await channelsPage.centerView.postCreate.postMessage('Message which will be deleted');
 
     // # Start a thread by clicking on reply menuitem from post options menu
-    const post = await channelsPage.centerView.getLastPost();
+    const post = await channelsPage.getLastPost();
     await post.hover();
     await post.postMenu.toBeVisible();
     await post.postMenu.reply();
