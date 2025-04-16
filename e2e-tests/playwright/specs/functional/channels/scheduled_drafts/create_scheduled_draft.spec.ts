@@ -34,7 +34,8 @@ test.skip('MM-T5643_1 should create a scheduled message from a channel', async (
     // * Verify the message has been sent and there's no more scheduled messages
     await expect(channelsPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
     await expect(channelsPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-    await expect(await channelsPage.getLastPost()).toHaveText(draftMessage);
+    const lastPost = await channelsPage.getLastPost();
+    await expect(lastPost.body).toHaveText(draftMessage);
     await channelsPage.sidebarLeft.assertNoPendingScheduledDraft();
 });
 
@@ -55,7 +56,7 @@ test('MM-T5643_6 should create a scheduled message under a thread post ', async 
     await channelsPage.centerView.postCreate.postMessage('Root Message');
 
     // # Start a thread by clicking on reply menuitem from post options menu
-    const post = await channelsPage.centerView.getLastPost();
+    const post = await channelsPage.getLastPost();
     await replyToLastPost(post);
 
     const sidebarRight = channelsPage.sidebarRight;
@@ -176,7 +177,8 @@ test('MM-T5643_9 should send a scheduled message immediately', async ({pw}) => {
     // Verify message has arrived
     await expect(channelsPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
     await expect(channelsPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-    await expect(await channelsPage.getLastPost()).toHaveText(draftMessage);
+    const lastPost = await channelsPage.getLastPost();
+    await expect(lastPost.body).toHaveText(draftMessage);
 });
 
 test('MM-T5643_3 should create a scheduled message from a DM', async ({pw}) => {
@@ -203,7 +205,8 @@ test('MM-T5643_3 should create a scheduled message from a DM', async ({pw}) => {
     // * Verify the message has been sent and there's no more scheduled messages
     await expect(channelsPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
     await expect(channelsPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-    await expect(await channelsPage.getLastPost()).toHaveText(draftMessage);
+    const lastPost = await channelsPage.getLastPost();
+    await expect(lastPost.body).toHaveText(draftMessage);
 
     await channelsPage.sidebarLeft.assertNoPendingScheduledDraft();
 });
@@ -267,7 +270,8 @@ test('MM-T5644 should edit scheduled message', async ({pw}) => {
     await page.waitForSelector(channelsPage.centerView.scheduledDraftChannelInfoMessageLocator, {state: 'hidden'});
     await expect(channelsPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
     await expect(channelsPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-    await expect(await channelsPage.getLastPost()).toHaveText(updatedText);
+    const lastPost = await channelsPage.getLastPost();
+    await expect(lastPost.body).toHaveText(updatedText);
 
     await channelsPage.sidebarLeft.assertNoPendingScheduledDraft();
 });
