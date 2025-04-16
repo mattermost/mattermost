@@ -67,8 +67,8 @@ const glob = require('glob');
 
 const chalk = require('chalk');
 
-// Reuse the dashboard utility from Cypress
-const {createAndStartCycle} = require('../cypress/utils/dashboard');
+// Use our own dashboard utility
+const {createAndStartCycle} = require('./utils/dashboard');
 
 require('dotenv').config();
 
@@ -152,15 +152,30 @@ async function main() {
         return;
     }
 
-    const data = await createAndStartCycle({
-        repo: REPO,
-        branch: BRANCH,
-        build: BUILD_ID,
-        files: weightedTestFiles,
-    });
+    try {
+        const data = await createAndStartCycle({
+            repo: REPO || 'mattermost-webapp',
+            branch: BRANCH || 'master',
+            build: BUILD_ID || `playwright-${Date.now()}`,
+            files: weightedTestFiles,
+        });
 
-    console.log(chalk.green('Successfully generated a test cycle.'));
-    console.log(data.cycle);
+        console.log(chalk.green('Successfully generated a test cycle.'));
+        if (data && data.cycle) {
+            console.log(chalk.cyan('Cycle ID:'), data.cycle.id);
+            console.log(chalk.cyan('Specs registered:'), data.cycle.specs_registered);
+        } else {
+            console.log(chalk.yellow('Warning: Received unexpected response format from dashboard'));
+            console.log(chalk.yellow('Response data:'), JSON.stringify(data, null, 2));
+        }
+    } catch (error) {
+        console.error(chalk.red('Error generating test cycle:'));
+        console.error(chalk.red(error.message));
+        if (error.response) {
+            console.error(chalk.red('Response status:'), error.response.status);
+            console.error(chalk.red('Response data:'), error.response.data);
+        }
+    }
 }
 
 main();

@@ -37,7 +37,7 @@ const {
     recordSpecResult,
     updateCycle,
     uploadScreenshot,
-} = require('../cypress/utils/dashboard');
+} = require('./utils/dashboard');
 const {writeJsonToFile} = require('../cypress/utils/report');
 const {MOCHAWESOME_REPORT_DIR, RESULTS_DIR} = require('../cypress/utils/constants');
 
