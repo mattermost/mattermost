@@ -7,6 +7,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
 const path = require('path');
+const { stringify } = require('querystring');
 
 require('dotenv').config();
 
@@ -58,6 +59,7 @@ async function getSpecToTest(data) {
             server: data.server || 'localhost',
         };
         
+        console.log('Requesting spec to test with dashboard at:', requestData);
         const response = await axios.post('/api/specs/to-test', requestData, config);
         
         if (!response.data) {
