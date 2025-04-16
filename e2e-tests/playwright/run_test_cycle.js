@@ -294,20 +294,12 @@ function printSummary(summary) {
 }
 
 const maxRetryCount = 0;
-async function runSpecFragment(count, retry) {
-    console.log(chalk.magenta(`Preparing for: ${count + 1}`));
-
-    // Use environment variables or defaults
+async function runSpecFragment(count) {
+    // Use environment variables without logging
     const repo = REPO || 'mattermost-webapp';
     const branch = BRANCH || 'master';
     const buildId = BUILD_ID || `playwright-${Date.now()}`;
     const baseUrl = CI_BASE_URL || 'http://localhost:8065';
-
-    console.log(chalk.cyan('Using configuration:'));
-    console.log(chalk.cyan(`  Repo: ${repo}`));
-    console.log(chalk.cyan(`  Branch: ${branch}`));
-    console.log(chalk.cyan(`  Build ID: ${buildId}`));
-    console.log(chalk.cyan(`  Base URL: ${baseUrl}`));
 
     const spec = await getSpecToTest({
         repo: repo,
@@ -316,67 +308,56 @@ async function runSpecFragment(count, retry) {
         server: baseUrl,
     });
 
-    // Retry on connection/timeout errors
+    // If no spec or error, just return
     if (!spec || spec.code) {
-        const currentRetry = retry + 1;
-        if (currentRetry >= maxRetryCount) {
-            console.log(chalk.red(`Maximum retry count (${maxRetryCount}) reached.`));
-            return {
-                tryNext: false,
-                count,
-                message: `Test ended due to multiple (${currentRetry}) connection/timeout errors with the dashboard server.`,
-            };
-        }
-
-        console.log(chalk.yellow(`Retry ${currentRetry}/${maxRetryCount} after 5 seconds...`));
-        // Wait 5 seconds before retrying
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        return runSpecFragment(count, currentRetry);
-    }
-
-    if (!spec.execution || !spec.execution.file) {
-        console.log(chalk.yellow('No execution or file in response:'));
-        console.log(chalk.yellow(JSON.stringify(spec, null, 2)));
         return {
             tryNext: false,
             count,
-            message: spec.message || 'No test execution available from dashboard',
+            message: 'No specs available or error connecting to dashboard',
         };
     }
 
-    const currentTestCount = spec.summary.reduce((total, item) => {
+    // Check if we have a valid spec to run
+    if (!spec.execution || !spec.execution.file) {
+        return {
+            tryNext: false,
+            count,
+            message: 'No test execution available',
+        };
+    }
+
+    // Get current test count
+    const currentTestCount = spec.summary ? spec.summary.reduce((total, item) => {
         return total + parseInt(item.count, 10);
-    }, 0);
+    }, 0) : 0;
 
-    printSummary(spec.summary);
-    console.log(chalk.magenta(`\n(Testing ${currentTestCount} of ${spec.cycle.specs_registered}) - ${spec.execution.file}`));
-    console.log(chalk.magenta(`At "${process.env.CI_BASE_URL}" server`));
-
+    // Run the test
+    console.log(chalk.magenta(`Running test: ${spec.execution.file}`));
     const result = await runPlaywrightTest(spec.execution);
     await saveResult(spec.execution, result, count);
 
     const newCount = count + 1;
 
-    if (spec.cycle.specs_registered === currentTestCount) {
+    // Check if we're done with all tests
+    if (spec.cycle && spec.cycle.specs_registered === currentTestCount) {
         return {
             tryNext: false,
             count: newCount,
-            message: `Completed testing of all registered ${currentTestCount} spec/s.`,
+            message: `Completed all tests`,
         };
     }
 
     return {
         tryNext: true,
         count: newCount,
-        retry: 0,
         message: 'Continue testing',
     };
 }
 
-async function runSpec(count = 0, retry = 0) {
-    const fragment = await runSpecFragment(count, retry);
+async function runSpec(count = 0) {
+    const fragment = await runSpecFragment(count);
     if (fragment.tryNext) {
-        return runSpec(fragment.count, fragment.retry);
+        return runSpec(fragment.count);
     }
 
     return {
@@ -386,8 +367,8 @@ async function runSpec(count = 0, retry = 0) {
 }
 
 runSpec().then(({count, message}) => {
-    console.log(chalk.magenta(message));
+    console.log(chalk.green(message));
     if (count > 0) {
-        console.log(chalk.magenta(`This test runner has completed ${count} spec file/s.`));
+        console.log(chalk.green(`Completed ${count} spec file/s.`));
     }
 });
