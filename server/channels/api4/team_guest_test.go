@@ -69,11 +69,11 @@ func TestGetTeamAsGuest(t *testing.T) {
 	_, _, err = th.SystemAdminClient.AddTeamMember(context.Background(), privateTeamIsAMember.Id, guest.Id)
 	require.NoError(t, err)
 
-	t.Run("guest can view public team they are not a member of", func(t *testing.T) {
+	t.Run("guest cannot view public team they are not a member of", func(t *testing.T) {
 		team, resp, err := guestClient.GetTeam(context.Background(), publicTeamNotAMember.Id, "")
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-		assert.Equal(t, publicTeamNotAMember.Id, team.Id)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		assert.Nil(t, team)
 	})
 
 	t.Run("guest can view public team they are a member of", func(t *testing.T) {
