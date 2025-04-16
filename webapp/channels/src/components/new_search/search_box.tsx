@@ -175,7 +175,7 @@ const SearchBox = forwardRef(
                 }
 
                 setSearchTerms(
-                    searchTerms.slice(0, caretPosition).replace(new RegExp(escapedMatchedPretext + '$', 'i'), '') +
+                    searchTerms.slice(0, caretPosition).replace(new RegExp(escapedMatchedPretext + '$', 'i'), '').trimEnd() +
                     val +
                     extraSpace +
                     searchTerms.slice(caretPosition),
@@ -233,7 +233,8 @@ const SearchBox = forwardRef(
         const changeSearchTeam = (selectedTeam: string) => {
             const newTerms = searchTerms.
                 replace(/\bin:[^\s]*/gi, '').replace(/\s{2,}/g, ' ').
-                replace(/\bfrom:[^\s]*/gi, '').replace(/\s{2,}/g, ' ');
+                replace(/\bfrom:[^\s]*/gi, '').replace(/\s{2,}/g, ' ').
+                trim();
 
             if (newTerms !== searchTerms) {
                 clearTimeout(filterResetTimeout.current);
