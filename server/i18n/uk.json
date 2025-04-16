@@ -7629,7 +7629,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Не вдалося застосувати нову пробну ліцензію. Ви вже застосовували пробну ліцензію до цього екземпляра Mattermost. Якщо ви хочете продовжити пробний період, будь ласка, [зв'яжіться з нашою командою продажів] (https://mattermost.com/contact-us/)."
+    "translation": "Не вдалося застосувати нову пробну ліцензію, оскільки у вашому робочому просторі вже було застосовано пробну ліцензію. Якщо ви хочете продовжити пробний період, будь ласка, [зв'яжіться з нашим відділом продажів] (https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request_trial_license.embargoed",
@@ -10546,5 +10546,21 @@
   {
     "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} має бути префіксом IndexPrefix {{.IndexPrefix}}."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Не вдалося додати сертифікат."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Не вдалося видалити сертифікат."
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "Не вдалося відкрити файл зображення профілю: {{.FileName}}"
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "Виникла помилка при декодуванні JSON-відповіді з інтерактивного діалогу."
   }
 ]
