@@ -31,9 +31,6 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-// Import axios-retry correctly
-const axiosRetry = require('axios-retry');
-
 const {
     getSpecToTest,
     recordSpecResult,
@@ -44,10 +41,6 @@ const {writeJsonToFile} = require('../cypress/utils/report');
 const {MOCHAWESOME_REPORT_DIR, RESULTS_DIR} = require('../cypress/utils/constants');
 
 require('dotenv').config();
-axiosRetry(axios, {
-    retries: 5,
-    retryDelay: axiosRetry.exponentialDelay,
-});
 
 const {
     BRANCH,
@@ -61,7 +54,7 @@ const {
 async function runPlaywrightTest(specExecution) {
     const browser = BROWSER || 'chromium';
     const headless = isHeadless();
-    
+
     // Create directories for reports if they don't exist
     if (!fs.existsSync(MOCHAWESOME_REPORT_DIR)) {
         fs.mkdirSync(MOCHAWESOME_REPORT_DIR, { recursive: true });
@@ -78,11 +71,11 @@ async function runPlaywrightTest(specExecution) {
 
     // Prepare result object similar to Cypress
     const startTime = new Date();
-    
+
     try {
         // Run the Playwright test using the test runner
         const { execSync } = require('child_process');
-        
+
         const reportPath = path.join(MOCHAWESOME_REPORT_DIR, 'json', path.basename(specExecution.file, '.ts') + '.json');
         
         // Build the command with appropriate options
