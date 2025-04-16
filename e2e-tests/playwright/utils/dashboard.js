@@ -50,7 +50,7 @@ async function createAndStartCycle(data) {
  */
 async function getSpecToTest(data) {
     try {
-        const response = await axios.post('/api/specs/to-test', data, config);
+        const response = await axios.post('/specs/to-test', data, config);
         return response.data;
     } catch (err) {
         console.error('Error getting spec to test:', err.message);
@@ -71,7 +71,7 @@ async function getSpecToTest(data) {
  */
 async function recordSpecResult(id, spec, testCases) {
     try {
-        const response = await axios.post(`/api/specs/${id}/result`, {spec, testCases}, config);
+        const response = await axios.post(`/specs/${id}/result`, {spec, testCases}, config);
         return response.data;
     } catch (err) {
         console.error('Error recording spec result:', err.message);
@@ -87,7 +87,7 @@ async function recordSpecResult(id, spec, testCases) {
  */
 async function updateCycle(id, data) {
     try {
-        const response = await axios.put(`/api/cycles/${id}`, data, config);
+        const response = await axios.put(`/cycles/${id}`, data, config);
         return response.data;
     } catch (err) {
         console.error('Error updating cycle:', err.message);
@@ -115,7 +115,7 @@ async function uploadScreenshot(filePath, repo, branch, build) {
         form.append('build', build);
         form.append('file', fs.createReadStream(filePath));
 
-        const response = await axios.post('/api/screenshots', form, {
+        const response = await axios.post('/screenshots', form, {
             ...config,
             headers: {
                 ...config.headers,
