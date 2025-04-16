@@ -533,5 +533,3 @@ channels/db/migrations/postgres/000133_add_channel_banner_fields.down.sql
 channels/db/migrations/postgres/000133_add_channel_banner_fields.up.sql
 channels/db/migrations/postgres/000134_create_access_control_policies.down.sql
 channels/db/migrations/postgres/000134_create_access_control_policies.up.sql
-channels/db/migrations/postgres/000135_create_PropertyView.down.sql
-channels/db/migrations/postgres/000135_create_PropertyView.up.sql

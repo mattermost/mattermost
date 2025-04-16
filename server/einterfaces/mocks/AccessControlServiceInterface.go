@@ -16,7 +16,7 @@ type AccessControlServiceInterface struct {
 }
 
 // AccessEvaluation provides a mock function with given fields: rctx, accessRequest
-func (_m *AccessControlServiceInterface) AccessEvaluation(rctx request.CTX, accessRequest model.AccessRequest) (model.AccessDecision, error) {
+func (_m *AccessControlServiceInterface) AccessEvaluation(rctx request.CTX, accessRequest model.AccessRequest) (model.AccessDecision, *model.AppError) {
 	ret := _m.Called(rctx, accessRequest)
 
 	if len(ret) == 0 {
@@ -24,8 +24,8 @@ func (_m *AccessControlServiceInterface) AccessEvaluation(rctx request.CTX, acce
 	}
 
 	var r0 model.AccessDecision
-	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, model.AccessRequest) (model.AccessDecision, error)); ok {
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, model.AccessRequest) (model.AccessDecision, *model.AppError)); ok {
 		return rf(rctx, accessRequest)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, model.AccessRequest) model.AccessDecision); ok {
@@ -34,10 +34,12 @@ func (_m *AccessControlServiceInterface) AccessEvaluation(rctx request.CTX, acce
 		r0 = ret.Get(0).(model.AccessDecision)
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, model.AccessRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, model.AccessRequest) *model.AppError); ok {
 		r1 = rf(rctx, accessRequest)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
 	}
 
 	return r0, r1
@@ -177,6 +179,38 @@ func (_m *AccessControlServiceInterface) Init(rctx request.CTX) *model.AppError 
 	}
 
 	return r0
+}
+
+// QueryExpression provides a mock function with given fields: rctx, expression
+func (_m *AccessControlServiceInterface) QueryExpression(rctx request.CTX, expression string) (*model.AccessControlQueryResult, *model.AppError) {
+	ret := _m.Called(rctx, expression)
+
+	if len(ret) == 0 {
+		panic("no return value specified for QueryExpression")
+	}
+
+	var r0 *model.AccessControlQueryResult
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.AccessControlQueryResult, *model.AppError)); ok {
+		return rf(rctx, expression)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.AccessControlQueryResult); ok {
+		r0 = rf(rctx, expression)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AccessControlQueryResult)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
+		r1 = rf(rctx, expression)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SavePolicy provides a mock function with given fields: rctx, policy
