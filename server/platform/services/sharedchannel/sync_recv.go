@@ -408,14 +408,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 
 		// First update the post
 
-		rpost, appErr = scs.app.UpdatePost(request.EmptyContext(scs.server.Log()), post, nil)
-
-		// Now handle any priority metadata updates separately since they may not be saved by UpdatePost
-		// Add detailed logging to understand if this condition is being entered
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Checking priority update conditions",
-			mlog.Bool("has_metadata_and_priority", post.Metadata != nil && post.Metadata.Priority != nil),
-			mlog.Bool("no_error_and_has_original_priority", appErr == nil && originalPriority != nil),
-		)
+		rpost, appErr = scs.app.UpdatePost(rctx, post, nil)
 
 		// Always handle priority metadata updates separately regardless of whether UpdatePost preserved them
 		if appErr == nil && originalPriority != nil {
@@ -434,15 +427,6 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			// Use the app's SavePriorityForPost method to save priorities
 			_, priorityErr := scs.app.SavePriorityForPost(logCtx, priorityPost)
 
-			// Log result of SavePriorityForPost
-			if priorityErr != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error in SavePriorityForPost",
-					mlog.Err(priorityErr))
-			}
-
-			// Directly check if priority exists in database - Used only for debugging
-			// We don't actually use the returned values, just check if there are any errors
-			_, _ = scs.server.GetStore().PostPriority().GetForPost(priorityPost.Id)
 			if priorityErr != nil {
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error saving post priority",
 					mlog.String("post_id", post.Id),
@@ -464,16 +448,11 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			// For metadata-only updates, we want to completely replace the existing acknowledgements
 			// So first, clear all existing acknowledgements
 
-			existingAcks, appErrGet := scs.app.GetAcknowledgementsForPost(post.Id)
+			_, appErrGet := scs.app.GetAcknowledgementsForPost(post.Id)
 			if appErrGet != nil {
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error getting existing acknowledgements",
 					mlog.String("post_id", post.Id),
 					mlog.Err(appErrGet),
-				)
-			} else {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Retrieved existing acknowledgements",
-					mlog.String("post_id", post.Id),
-					mlog.Int("count", len(existingAcks)),
 				)
 			}
 
@@ -485,33 +464,19 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 				)
 			}
 
-			verifyAcks, appErrVerify := scs.app.GetAcknowledgementsForPost(post.Id)
+			_, appErrVerify := scs.app.GetAcknowledgementsForPost(post.Id)
 			if appErrVerify != nil {
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error getting acknowledgements after deletion",
 					mlog.String("post_id", post.Id),
 					mlog.Err(appErrVerify),
 				)
-			} else {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Post acknowledgements after deletion",
-					mlog.String("post_id", post.Id),
-					mlog.Int("count", len(verifyAcks)),
-				)
 			}
-
-			// Then save all the acknowledgements from the remote post
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Saving acknowledgements from remote post",
-				mlog.String("post_id", post.Id),
-				mlog.Int("count", len(post.Metadata.Acknowledgements)),
-			)
-
-			// Create a context with log tracing to help debug issues
-			ctx := request.EmptyContext(scs.server.Log())
 
 			// Save all acknowledgements from the remote post in a deterministic order
 			for _, ack := range post.Metadata.Acknowledgements {
 				userId := ack.UserId // Store in a local variable to ensure consistency
 
-				_, appErrAck := scs.app.SaveAcknowledgementForPost(ctx, post.Id, userId)
+				_, appErrAck := scs.app.SaveAcknowledgementForPost(rctx, post.Id, userId)
 				if appErrAck != nil {
 					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error saving acknowledgement",
 						mlog.String("post_id", post.Id),
@@ -538,25 +503,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			} else {
 				rpost.Metadata.Acknowledgements = actualAcks
 			}
-
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated post acknowledgements",
-				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId),
-				mlog.Int("count", len(rpost.Metadata.Acknowledgements)),
-			)
 		}
-
-		if appErr == nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post",
-				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId))
-		}
-	} else {
-		// nothing to update
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Update to sync post ignored",
-			mlog.String("post_id", post.Id),
-			mlog.String("channel_id", post.ChannelId),
-		)
 	}
 
 	var rerr error
