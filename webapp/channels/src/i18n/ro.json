@@ -3598,7 +3598,6 @@
   "user.settings.notifications.email.disabled_long": "Notificările prin e-mail nu au fost activate de administratorul de sistem.",
   "user.settings.notifications.email.everyHour": "O dată pe oră",
   "user.settings.notifications.email.everyXMinutes": "Fiecare {count, plural, one {minute} other {{count, number} minutes}}",
-  "user.settings.notifications.email.immediately": "Imediat",
   "user.settings.notifications.email.never": "Niciodată",
   "user.settings.notifications.email.send": "Trimiteți notificări prin e-mail",
   "user.settings.notifications.emailBatchingInfo": "Notificările primite în perioada de timp selectată sunt combinate și trimise într-un singur e-mail.",

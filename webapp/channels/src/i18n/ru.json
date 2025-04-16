@@ -5476,7 +5476,6 @@
   "user.settings.notifications.email.disabled_long": "Ваш системный администратор не включил уведомления по электронной почте.",
   "user.settings.notifications.email.everyHour": "Каждый час",
   "user.settings.notifications.email.everyXMinutes": "{count, plural, one {Каждую минуту} other {Каждые {count, number} минут}}",
-  "user.settings.notifications.email.immediately": "Немедленно",
   "user.settings.notifications.email.never": "Никогда",
   "user.settings.notifications.email.notifyForthreads": "Уведомляйте меня об ответах в темах, которые я отслеживаю",
   "user.settings.notifications.email.send": "Отправлять уведомления по электронной почте",

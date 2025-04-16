@@ -3087,7 +3087,6 @@
   "user.settings.notifications.email.disabled": "전자우편 알림이 활성화되지 않았습니다",
   "user.settings.notifications.email.disabled_long": "시스템 관리자가 전자우편 알림을 비활성화하였습니다.",
   "user.settings.notifications.email.everyHour": "매 시간마다",
-  "user.settings.notifications.email.immediately": "즉시",
   "user.settings.notifications.email.never": "알림 사용 안함",
   "user.settings.notifications.email.send": "알림 받기",
   "user.settings.notifications.emailInfo": "전자우편 알림은 멘션 혹은 개인 메시지를 받았을 때, 오프라인 상태로 60초가 지났거나 자리비움 상태로 5분 이상 지났을 때 발생합니다.",
