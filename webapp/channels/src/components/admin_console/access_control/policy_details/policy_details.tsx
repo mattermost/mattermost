@@ -298,7 +298,7 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
                                 }
                                 subtitle={
                                     <FormattedMessage
-                                        id='admin.daccess_control.policy.edit_policy.channel_selector.subTitle'
+                                        id='admin.access_control.policy.edit_policy.channel_selector.subtitle'
                                         defaultMessage='Add channels that this property based access policy will apply to.'
                                     />
                                 }
@@ -337,12 +337,12 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
                                     subtitle={
                                         hasChannels() ? (
                                             <FormattedMessage
-                                                id='admin.daccess_control.policy.edit_policy.delete_policy.subtitle.hasChannels'
+                                                id='admin.access_control.policy.edit_policy.delete_policy.subtitle.has_resources'
                                                 defaultMessage='Remove all assigned resources (eg. Channels) to be able to delete this policy'
                                             />
                                         ) : (
                                             <FormattedMessage
-                                                id='admin.daccess_control.policy.edit_policy.delete_policy.subtitle'
+                                                id='admin.access_control.policy.edit_policy.delete_policy.subtitle'
                                                 defaultMessage='This policy will be deleted and cannot be recovered.'
                                             />
                                         )
