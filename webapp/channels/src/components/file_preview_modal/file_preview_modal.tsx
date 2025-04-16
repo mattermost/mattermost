@@ -175,8 +175,10 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         }
 
         if (isLinkInfo(fileInfo)) {
-            // For LinkInfo, pass the full URL to getFileType to leverage enhanced URL detection
-            return Utils.getFileType(fileInfo.extension || fileInfo.link);
+            // if extension is not available or is longer than 5 characters, use the link to determine the file type
+            const maxLenghtExtension = 11; // applescript is the longest extension
+            const extensionOrLink = fileInfo.extension && fileInfo.extension.length <= maxLenghtExtension ? fileInfo.extension : fileInfo.link;
+            return Utils.getFileType(extensionOrLink);
         }
 
         return FileTypes.OTHER;
