@@ -4346,7 +4346,6 @@
   "user.settings.notifications.email.disabled_long": "A rendszergazda nem engedélyezte az e-mail értesítéseket.",
   "user.settings.notifications.email.everyHour": "Óránként",
   "user.settings.notifications.email.everyXMinutes": "{count, plural, one {Percenként} other {{count, number} percenként}}",
-  "user.settings.notifications.email.immediately": "Azonnal",
   "user.settings.notifications.email.never": "Soha",
   "user.settings.notifications.email.send": "E-mail értesítések küldése",
   "user.settings.notifications.emailBatchingInfo": "A kiválasztott időtartam alatt beérkezett értesítéseket egy e-mailben egyesítjük és elküldjük.",

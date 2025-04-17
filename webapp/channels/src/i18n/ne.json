@@ -414,7 +414,6 @@
   "user.settings.notifications.comments": "सूचनाहरू जवाफ दिनुहोस्",
   "user.settings.notifications.email.disabled": "ईमेल सूचनाहरू सक्षम छैनन्",
   "user.settings.notifications.email.everyHour": "हरेक घण्टा",
-  "user.settings.notifications.email.immediately": "तुरुन्त",
   "user.settings.notifications.email.never": "कहिले पनि हुँदैन",
   "user.settings.notifications.email.send": "ईमेल सूचनाहरू पठाउनुहोस्",
   "user.settings.notifications.emailInfo": "ईमेल सूचनाहरू उल्लेख र प्रत्यक्ष सन्देशहरूको लागि पठाइन्छ जब तपाईं अफलाईन हुनुहुन्छ वा ५ मिनेट भन्दा बढीको लागि।",

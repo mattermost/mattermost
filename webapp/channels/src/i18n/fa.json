@@ -4049,7 +4049,6 @@
   "user.settings.notifications.email.disabled_long": "اعلان‌های ایمیل توسط سرپرست سیستم شما فعال نشده است.",
   "user.settings.notifications.email.everyHour": "هر ساعت",
   "user.settings.notifications.email.everyXMinutes": "هر {count, plural, one {minute} other {{count, number} دقیقه}}",
-  "user.settings.notifications.email.immediately": "بلافاصله. مستقیما",
   "user.settings.notifications.email.never": "هرگز",
   "user.settings.notifications.email.send": "ارسال اعلان های ایمیل",
   "user.settings.notifications.emailBatchingInfo": "اعلان های دریافت شده در بازه زمانی انتخاب شده ترکیب شده و در یک ایمیل ارسال می شود.",
