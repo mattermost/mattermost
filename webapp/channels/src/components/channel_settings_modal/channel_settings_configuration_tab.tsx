@@ -213,7 +213,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
                         disabled={false}
                         onToggle={handleToggle}
                         toggled={updatedChannelBanner.enabled}
-                        tabIndex={-1}
+                        tabIndex={0}
                         toggleClassName='btn-toggle-primary'
                     />
                 </div>
