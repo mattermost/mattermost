@@ -885,9 +885,8 @@ func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string) error {
 		}
 
 		// Update connection metadata
-		if channelIDs, ok := i.byConnection[conn]; ok {
-			channelIDs = newChannelIDs
-			i.byConnection[conn] = channelIDs
+		if _, ok := i.byConnection[conn]; ok {
+			i.byConnection[conn] = newChannelIDs
 		}
 	}
 
