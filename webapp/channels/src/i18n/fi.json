@@ -1581,7 +1581,6 @@
   "user.settings.notifications.email.disabled_long": "Järjestelmänvalvoja ei ole ottanut sähköposti-ilmoituksia käyttöön.",
   "user.settings.notifications.email.everyHour": "Joka tunti",
   "user.settings.notifications.email.everyXMinutes": "Joka {count, plural, one {minuutti} other {{count, number}. minuutti}}",
-  "user.settings.notifications.email.immediately": "Välittömästi",
   "user.settings.notifications.email.send": "Lähetä sähköposti-ilmoitukset",
   "user.settings.notifications.emailBatchingInfo": "Valitun aikavälin sisällä vastaanotetut ilmoitukset yhdistetään ja lähetetään yhdessä sähköpostiviestissä.",
   "user.settings.notifications.emailInfo": "Sähköposti-ilmoitukset lähetetään maininnoista ja suoraviesteistä kun olet offline tai poissa yli 5 minuuttia.",
