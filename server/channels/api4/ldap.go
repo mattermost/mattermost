@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"io"
 	"mime/multipart"
 	"net/http"
 
@@ -49,18 +50,28 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type LdapSyncOptions struct {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateLdapSyncJob) {
+		c.SetPermissionError(model.PermissionCreateLdapSyncJob)
+		return
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.SetInvalidParamWithErr("LdapSyncOptions", err)
+		return
+	}
+
+	var oldOpts struct {
 		IncludeRemovedMembers *bool `json:"include_removed_members"`
 	}
-	var oldOpts LdapSyncOptions
-	err := json.NewDecoder(r.Body).Decode(&oldOpts)
+	err = json.Unmarshal(data, &oldOpts)
 	if err != nil {
 		c.SetInvalidParamWithErr("LdapSyncOptions", err)
 		return
 	}
 
 	var opts model.LdapSyncOptions
-	err = json.NewDecoder(r.Body).Decode(&opts)
+	err = json.Unmarshal(data, &opts)
 	if err != nil {
 		c.SetInvalidParamWithErr("LdapSyncOptions", err)
 		return
@@ -74,11 +85,6 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateLdapSyncJob) {
-		c.SetPermissionError(model.PermissionCreateLdapSyncJob)
-		return
-	}
 
 	c.App.SyncLdap(c.AppContext, &opts)
 
