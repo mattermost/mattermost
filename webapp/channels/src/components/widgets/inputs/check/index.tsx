@@ -30,8 +30,8 @@ function CheckInput(props: Props) {
                 className='text'
                 htmlFor={id}
             >
-                <span className='header'>{header}</span>
-                {text}
+                <span>{text}</span>
+                
             </label>
         </div>
     );
