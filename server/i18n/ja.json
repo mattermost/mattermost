@@ -10394,10 +10394,6 @@
     "translation": "チャンネルブックマークのソート順を更新できませんでした。"
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "存在しないフィールドにパッチを当てようとしています"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "アーカイブされたチャンネルのブックマークを取得できませんでした"
   },
@@ -10448,5 +10444,73 @@
   {
     "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
     "translation": "チャンネルバナー情報テキストが長すぎます。最大長は{{.maxLength}}文字です。"
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "無効なカスタムプロフィール属性フィールドのパッチ"
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "ログイン試行回数のリセットに失敗しました。"
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "ユーザー取得に失敗しました。"
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "この機能は現在のライセンスでは利用できません"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "パスワードの試行回数が多すぎるため、アカウントがロックされました。システム管理者に連絡してください。"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "ユーザ認証サービスはLDAP または電子メールでなければなりません。"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "このリソースを更新する権限がありません。"
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "ユーザーの下書きを削除できません。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "プロパティフィールドをカスタムプロフィール属性フィールドに変換できません"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "無効なプロパティ値属性 : {{.AttributeName}} ({{.Reason}})"
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "LDAPライセンスが必要です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "無効なポリシーIDです。"
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "ポリシーのインポートが無効です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "ポリシーの名前が無効です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "ポリシーのリビジョンが無効です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "ルールは無効です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "ポリシーはルールをインポートするか定義しなければなりません。"
   }
 ]
