@@ -4,7 +4,7 @@
 import {expect, Page} from '@playwright/test';
 
 import {components} from '@/ui/components';
-import SettingsModal from "@/ui/components/channels/settings/settings_modal";
+import SettingsModal from '@/ui/components/channels/settings/settings_modal';
 
 export default class ChannelsPage {
     readonly channels = 'Channels';

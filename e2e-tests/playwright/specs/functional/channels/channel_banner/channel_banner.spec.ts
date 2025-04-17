@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {test} from '@mattermost/playwright-lib';
-import {getRandomId} from "utils/utils";
-
+import {getRandomId} from 'utils/utils';
 
 test('Should show channel banner when configured', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
@@ -48,7 +47,7 @@ test('Should show channel banner when configured', async ({pw}) => {
     await settingsModal.closeModal();
 
     await channelsPage.centerView.assertChannelBanner('Example channel banner text', '#77DD88');
-})
+});
 
 test('Should render markdown', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
@@ -74,5 +73,4 @@ test('Should render markdown', async ({pw}) => {
     await channelsPage.centerView.assertChannelBannerHasBoldText('bold');
     await channelsPage.centerView.assertChannelBannerHasItalicText('italic');
     await channelsPage.centerView.assertChannelBannerHasStrikethroughText('strikethrough');
-})
-
+});

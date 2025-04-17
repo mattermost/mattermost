@@ -11,7 +11,6 @@ import ChannelsPost from './post';
 import {duration, hexToRgb} from '@/util';
 import {waitUntil} from '@/test_action';
 
-
 export default class ChannelsCenterView {
     readonly container: Locator;
     readonly page: Page;

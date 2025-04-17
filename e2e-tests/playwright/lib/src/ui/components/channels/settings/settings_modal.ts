@@ -5,7 +5,7 @@ import {Locator, expect} from '@playwright/test';
 
 import NotificationsSettings from './notification_settings';
 
-import ConfigurationSettings from "@/ui/components/channels/settings/configuration_settings";
+import ConfigurationSettings from '@/ui/components/channels/settings/configuration_settings';
 
 export default class SettingsModal {
     readonly container: Locator;
@@ -23,7 +23,9 @@ export default class SettingsModal {
         this.configurationSettingsTab = container.locator('#configurationButton');
 
         this.notificationsSettings = new NotificationsSettings(container.locator('#notificationsSettings'));
-        this.configurationSettings = new ConfigurationSettings(container.locator('.ChannelSettingsModal__configurationTab'));
+        this.configurationSettings = new ConfigurationSettings(
+            container.locator('.ChannelSettingsModal__configurationTab'),
+        );
     }
 
     async toBeVisible() {
