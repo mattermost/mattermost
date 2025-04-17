@@ -392,7 +392,7 @@ func TestHubConnIndex(t *testing.T) {
 				ids = append(ids, c.GetConnectionID())
 			}
 			require.ElementsMatch(t, []string{wc1ID, wc2ID, wc3ID}, ids)
-			require.Nil(t, slices.Collect(connIndex.ForChannel("notexist")), 0)
+			require.Len(t, slices.Collect(connIndex.ForChannel("notexist")), 0)
 		})
 
 		ch := th.CreateChannel(th.BasicTeam)
