@@ -4807,7 +4807,6 @@
   "user.settings.notifications.email.disabled_long": "Les notifications par e-mail n'ont pas été activées par votre administrateur système.",
   "user.settings.notifications.email.everyHour": "Toutes les heures",
   "user.settings.notifications.email.everyXMinutes": "{count, plural, one {Chaque minute} other {Toutes les {count, number} minutes}}",
-  "user.settings.notifications.email.immediately": "Immédiatement",
   "user.settings.notifications.email.never": "Jamais",
   "user.settings.notifications.email.notifyForthreads": "Me notifier des réponses au fils que je suis",
   "user.settings.notifications.email.send": "Envoyer les notifications",

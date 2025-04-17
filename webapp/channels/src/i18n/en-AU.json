@@ -5743,7 +5743,6 @@
   "user.settings.notifications.email.disabled_long": "Email notifications have not been enabled by your System Administrator.",
   "user.settings.notifications.email.everyHour": "Every hour",
   "user.settings.notifications.email.everyXMinutes": "Every {count, plural, one {minute} other {{count, number} minutes}}",
-  "user.settings.notifications.email.immediately": "Immediately",
   "user.settings.notifications.email.never": "Never",
   "user.settings.notifications.email.notifyForthreads": "Notify me about replies to threads I’m following",
   "user.settings.notifications.email.send": "Send email notifications",
