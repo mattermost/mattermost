@@ -4440,7 +4440,6 @@
   "user.settings.notifications.email.disabled_long": "Las notificaciones por correo electrónico no han sido habilitadas por tu Administrador del Sistema.",
   "user.settings.notifications.email.everyHour": "Cada hora",
   "user.settings.notifications.email.everyXMinutes": "Cada {count, plural, one {minuto} other {{count, number} minutos}}",
-  "user.settings.notifications.email.immediately": "Inmediatamente",
   "user.settings.notifications.email.never": "Nunca",
   "user.settings.notifications.email.send": "Enviar notificaciones de correo electrónico",
   "user.settings.notifications.emailBatchingInfo": "Las notificaciones recibidas durante el período de tiempo seleccionado se combinan y enviar en un solo correo electrónico.",

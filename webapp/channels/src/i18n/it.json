@@ -3342,7 +3342,6 @@
   "user.settings.notifications.email.disabled_long": "Le notifiche email non sono state abilitate dall'Amministratore di Sistema.",
   "user.settings.notifications.email.everyHour": "Ogni ora",
   "user.settings.notifications.email.everyXMinutes": "Ogni {count, plural, one {minute} other {{count, number} minuti}}",
-  "user.settings.notifications.email.immediately": "Immediatamente",
   "user.settings.notifications.email.never": "Mai",
   "user.settings.notifications.email.send": "Invia notifiche email",
   "user.settings.notifications.emailBatchingInfo": "Le notifiche ricevute nel periodo di tempo selezionato sono combinate e inviate come singola email.",
