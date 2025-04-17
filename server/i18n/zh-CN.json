@@ -10398,10 +10398,6 @@
     "translation": "删除频道书签失败。"
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "尝试更新一个不存在的字段"
-  },
-  {
     "id": "app.file_info.get_storage_usage.app_error",
     "translation": "获取文件总存储占用失败。"
   },
