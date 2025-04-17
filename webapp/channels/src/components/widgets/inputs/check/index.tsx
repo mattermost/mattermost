@@ -31,7 +31,6 @@ function CheckInput(props: Props) {
                 htmlFor={id}
             >
                 <span>{text}</span>
-                
             </label>
         </div>
     );
