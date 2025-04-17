@@ -319,6 +319,21 @@ export function uploadIdpSamlCertificate(fileData: File) {
     });
 }
 
+export function uploadAuditCertificate(fileData: File) {
+    return bindClientFunc({
+        clientFunc: Client4.uploadAuditLogCertificate,
+        params: [
+            fileData,
+        ],
+    });
+}
+
+export function removeAuditCertificate() {
+    return bindClientFunc({
+        clientFunc: Client4.removeAuditLogCertificate,
+    });
+}
+
 export function removePublicSamlCertificate() {
     return bindClientFunc({
         clientFunc: Client4.deletePublicSamlCertificate,

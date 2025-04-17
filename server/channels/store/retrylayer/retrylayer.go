@@ -9337,6 +9337,27 @@ func (s *RetryLayerPropertyValueStore) DeleteForField(id string) error {
 
 }
 
+func (s *RetryLayerPropertyValueStore) DeleteForTarget(groupID string, targetType string, targetID string) error {
+
+	tries := 0
+	for {
+		err := s.PropertyValueStore.DeleteForTarget(groupID, targetType, targetID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyValueStore) Get(groupID string, id string) (*model.PropertyValue, error) {
 
 	tries := 0
