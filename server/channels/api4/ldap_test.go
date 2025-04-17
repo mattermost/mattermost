@@ -148,13 +148,13 @@ func TestSyncLdap(t *testing.T) {
 		mockCall := ldapMock.On(
 			"StartSynchronizeJob",
 			mock.AnythingOfType("*request.Context"),
-			mock.AnythingOfType("bool"),
-			mock.AnythingOfType("bool"),
+			false,
+			mock.AnythingOfType("*model.LdapSyncOptions"),
 		).Return(nil, nil)
 		ready := make(chan bool)
 		includeRemovedMembers := false
 		mockCall.RunFn = func(args mock.Arguments) {
-			includeRemovedMembers = args[2].(bool)
+			includeRemovedMembers = args[1].(bool)
 			ready <- true
 		}
 		th.App.Channels().Ldap = ldapMock
@@ -177,14 +177,15 @@ func TestSyncLdap(t *testing.T) {
 	})
 
 	t.Run("new API with options", func(t *testing.T) {
-		syncOptions := &model.LdapSyncOptions{}
 		ldapMock := &mocks.LdapInterface{}
 		mockCall := ldapMock.On(
-			"StartSynchronizeJobWithOpts",
+			"StartSynchronizeJob",
 			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("bool"),
 			mock.AnythingOfType("*model.LdapSyncOptions"),
 		).Return(nil, nil)
 		ready := make(chan bool)
+		syncOptions := &model.LdapSyncOptions{}
 		mockCall.RunFn = func(args mock.Arguments) {
 			syncOptions = args[1].(*model.LdapSyncOptions)
 			ready <- true
@@ -233,14 +234,15 @@ func TestSyncLdap(t *testing.T) {
 	})
 
 	t.Run("backward compatibility with old request format", func(t *testing.T) {
-		syncOptions := &model.LdapSyncOptions{}
 		ldapMock := &mocks.LdapInterface{}
 		mockCall := ldapMock.On(
-			"StartSynchronizeJobWithOpts",
+			"StartSynchronizeJob",
 			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("bool"),
 			mock.AnythingOfType("*model.LdapSyncOptions"),
 		).Return(nil, nil)
 		ready := make(chan bool)
+		syncOptions := &model.LdapSyncOptions{}
 		mockCall.RunFn = func(args mock.Arguments) {
 			syncOptions = args[1].(*model.LdapSyncOptions)
 			ready <- true
@@ -249,11 +251,12 @@ func TestSyncLdap(t *testing.T) {
 
 		// Test with old format using include_removed_members=true
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			url := "/api/v4/ldap/sync"
+			url := "/ldap/sync"
 			request := map[string]interface{}{
 				"include_removed_members": true,
 			}
-			jsonRequest, _ := json.Marshal(request)
+			jsonRequest, err := json.Marshal(request)
+			require.NoError(t, err)
 
 			r, err := client.DoAPIPost(context.Background(), url, string(jsonRequest))
 			require.NoError(t, err)
@@ -267,11 +270,12 @@ func TestSyncLdap(t *testing.T) {
 
 		// Test with old format using include_removed_members=false
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			url := "/api/v4/ldap/sync"
+			url := "/ldap/sync"
 			request := map[string]interface{}{
 				"include_removed_members": false,
 			}
-			jsonRequest, _ := json.Marshal(request)
+			jsonRequest, err := json.Marshal(request)
+			require.NoError(t, err)
 
 			r, err := client.DoAPIPost(context.Background(), url, string(jsonRequest))
 			require.NoError(t, err)
@@ -285,7 +289,7 @@ func TestSyncLdap(t *testing.T) {
 
 		// Test with invalid JSON in request body
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			url := "/api/v4/ldap/sync"
+			url := "/ldap/sync"
 			invalidJSON := "{invalid-json"
 
 			resp, err := client.DoAPIPost(context.Background(), url, invalidJSON)
@@ -418,25 +422,26 @@ func TestSyncLdapBackwardCompatibility(t *testing.T) {
 	syncOptions := &model.LdapSyncOptions{}
 	ldapMock := &mocks.LdapInterface{}
 	mockCall := ldapMock.On(
-		"StartSynchronizeJobWithOpts",
+		"StartSynchronizeJob",
 		mock.AnythingOfType("*request.Context"),
+		mock.AnythingOfType("bool"),
 		mock.AnythingOfType("*model.LdapSyncOptions"),
 	).Return(nil, nil)
 	ready := make(chan bool)
 	mockCall.RunFn = func(args mock.Arguments) {
-		syncOptions = args[1].(*model.LdapSyncOptions)
+		syncOptions = args[2].(*model.LdapSyncOptions)
 		ready <- true
 	}
 	th.App.Channels().Ldap = ldapMock
 
 	// Test with old format using include_removed_members=true
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		url := "/api/v4/ldap/sync"
+		url := "/ldap/sync"
 		request := map[string]interface{}{
 			"include_removed_members": true,
 		}
-		jsonRequest, _ := json.Marshal(request)
-
+		jsonRequest, err := json.Marshal(request)
+		require.NoError(t, err)
 		r, err := client.DoAPIPost(context.Background(), url, string(jsonRequest))
 		require.NoError(t, err)
 		defer r.Body.Close()
@@ -449,11 +454,12 @@ func TestSyncLdapBackwardCompatibility(t *testing.T) {
 
 	// Test with old format using include_removed_members=false
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		url := "/api/v4/ldap/sync"
+		url := "/ldap/sync"
 		request := map[string]interface{}{
 			"include_removed_members": false,
 		}
-		jsonRequest, _ := json.Marshal(request)
+		jsonRequest, err := json.Marshal(request)
+		require.NoError(t, err)
 
 		r, err := client.DoAPIPost(context.Background(), url, string(jsonRequest))
 		require.NoError(t, err)
@@ -467,7 +473,7 @@ func TestSyncLdapBackwardCompatibility(t *testing.T) {
 
 	// Test with invalid JSON in request body
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		url := "/api/v4/ldap/sync"
+		url := "/ldap/sync"
 		invalidJSON := "{invalid-json"
 
 		resp, err := client.DoAPIPost(context.Background(), url, invalidJSON)
