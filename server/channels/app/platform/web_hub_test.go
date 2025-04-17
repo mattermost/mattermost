@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"runtime"
+	"slices"
 	"testing"
 	"time"
 
@@ -246,8 +247,8 @@ func TestHubConnIndex(t *testing.T) {
 					assert.True(t, connIndex.Has(wc1))
 					assert.True(t, connIndex.Has(wc2))
 
-					assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc3, wc4})
-					assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{wc1})
+					assert.ElementsMatch(t, slices.Collect(connIndex.ForUser(wc2.UserId)), []*WebConn{wc2, wc3, wc4})
+					assert.ElementsMatch(t, slices.Collect(connIndex.ForUser(wc1.UserId)), []*WebConn{wc1})
 					assert.True(t, connIndex.Has(wc2))
 					assert.True(t, connIndex.Has(wc1))
 					assert.Len(t, connIndex.All(), 4)
@@ -256,8 +257,8 @@ func TestHubConnIndex(t *testing.T) {
 				t.Run("RemoveMiddleUser2", func(t *testing.T) {
 					connIndex.Remove(wc3) // Remove from middle from user2
 
-					assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc4})
-					assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{wc1})
+					assert.ElementsMatch(t, slices.Collect(connIndex.ForUser(wc2.UserId)), []*WebConn{wc2, wc4})
+					assert.ElementsMatch(t, slices.Collect(connIndex.ForUser(wc1.UserId)), []*WebConn{wc1})
 					assert.True(t, connIndex.Has(wc2))
 					assert.False(t, connIndex.Has(wc3))
 					assert.True(t, connIndex.Has(wc4))
@@ -267,9 +268,9 @@ func TestHubConnIndex(t *testing.T) {
 				t.Run("RemoveUser1", func(t *testing.T) {
 					connIndex.Remove(wc1) // Remove sole connection from user1
 
-					assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc4})
-					assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
-					assert.Len(t, connIndex.ForUser(wc1.UserId), 0)
+					assert.ElementsMatch(t, slices.Collect(connIndex.ForUser(wc2.UserId)), []*WebConn{wc2, wc4})
+					assert.ElementsMatch(t, slices.Collect(connIndex.ForUser(wc1.UserId)), []*WebConn{})
+					assert.Len(t, slices.Collect(connIndex.ForUser(wc1.UserId)), 0)
 					assert.Len(t, connIndex.All(), 2)
 					assert.False(t, connIndex.Has(wc1))
 					assert.True(t, connIndex.Has(wc2))
@@ -278,8 +279,8 @@ func TestHubConnIndex(t *testing.T) {
 				t.Run("RemoveEndUser2", func(t *testing.T) {
 					connIndex.Remove(wc4) // Remove from end from user2
 
-					assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2})
-					assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
+					assert.ElementsMatch(t, slices.Collect(connIndex.ForUser(wc2.UserId)), []*WebConn{wc2})
+					assert.ElementsMatch(t, slices.Collect(connIndex.ForUser(wc1.UserId)), []*WebConn{})
 					assert.True(t, connIndex.Has(wc2))
 					assert.False(t, connIndex.Has(wc3))
 					assert.False(t, connIndex.Has(wc4))
@@ -387,11 +388,11 @@ func TestHubConnIndex(t *testing.T) {
 		t.Run("ForChannel", func(t *testing.T) {
 			require.Len(t, connIndex.byChannelID, 1)
 			ids := make([]string, 0)
-			for _, c := range connIndex.ForChannel(th.BasicChannel.Id) {
+			for c := range connIndex.ForChannel(th.BasicChannel.Id) {
 				ids = append(ids, c.GetConnectionID())
 			}
 			require.ElementsMatch(t, []string{wc1ID, wc2ID, wc3ID}, ids)
-			require.Len(t, connIndex.ForChannel("notexist"), 0)
+			require.Nil(t, slices.Collect(connIndex.ForChannel("notexist")), 0)
 		})
 
 		ch := th.CreateChannel(th.BasicTeam)
@@ -407,14 +408,14 @@ func TestHubConnIndex(t *testing.T) {
 		t.Run("InvalidateCMCacheForUser", func(t *testing.T) {
 			require.NoError(t, connIndex.InvalidateCMCacheForUser(th.BasicUser2.Id))
 			require.Len(t, connIndex.byChannelID, 2)
-			require.Len(t, connIndex.ForChannel(th.BasicChannel.Id), 3)
-			require.Len(t, connIndex.ForChannel(ch.Id), 2)
+			require.Len(t, slices.Collect(connIndex.ForChannel(th.BasicChannel.Id)), 3)
+			require.Len(t, slices.Collect(connIndex.ForChannel(ch.Id)), 2)
 		})
 
 		t.Run("Remove", func(t *testing.T) {
 			connIndex.Remove(wc3)
 			require.Len(t, connIndex.byChannelID, 2)
-			require.Len(t, connIndex.ForChannel(th.BasicChannel.Id), 2)
+			require.Len(t, slices.Collect(connIndex.ForChannel(th.BasicChannel.Id)), 2)
 		})
 	})
 }
@@ -454,7 +455,7 @@ func TestHubConnIndexIncorrectRemoval(t *testing.T) {
 	connIndex.Add(wc3)
 	connIndex.Add(wc4)
 
-	for _, wc := range connIndex.ForUser(wc2.UserId) {
+	for wc := range connIndex.ForUser(wc2.UserId) {
 		if !connIndex.Has(wc) {
 			require.Failf(t, "Failed to find connection", "connection: %v", wc)
 			continue
@@ -508,20 +509,20 @@ func TestHubConnIndexInactive(t *testing.T) {
 	assert.Equal(t, connIndex.ForUserActiveCount(wc2.UserId), 1)
 	assert.Nil(t, connIndex.RemoveInactiveByConnectionID(wc1.UserId, "conn3"))
 	assert.False(t, connIndex.Has(wc3))
-	assert.Len(t, connIndex.ForUser(wc2.UserId), 1)
+	assert.Len(t, slices.Collect(connIndex.ForUser(wc2.UserId)), 1)
 
 	wc3.lastUserActivityAt = model.GetMillis()
 	connIndex.Add(wc3)
 	connIndex.RemoveInactiveConnections()
 	assert.True(t, connIndex.Has(wc3))
-	assert.Len(t, connIndex.ForUser(wc2.UserId), 2)
+	assert.Len(t, slices.Collect(connIndex.ForUser(wc2.UserId)), 2)
 	assert.Equal(t, connIndex.ForUserActiveCount(wc2.UserId), 1)
 	assert.Len(t, connIndex.All(), 3)
 
 	wc3.lastUserActivityAt = model.GetMillis() - (time.Minute).Milliseconds()
 	connIndex.RemoveInactiveConnections()
 	assert.False(t, connIndex.Has(wc3))
-	assert.Len(t, connIndex.ForUser(wc2.UserId), 1)
+	assert.Len(t, slices.Collect(connIndex.ForUser(wc2.UserId)), 1)
 	assert.Equal(t, connIndex.ForUserActiveCount(wc2.UserId), 1)
 	assert.Len(t, connIndex.All(), 2)
 }
