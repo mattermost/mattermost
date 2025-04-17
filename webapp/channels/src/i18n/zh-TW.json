@@ -5627,7 +5627,6 @@
   "user.settings.notifications.email.disabled_long": "電子郵件通知已被系統管理員停用。",
   "user.settings.notifications.email.everyHour": "每小時",
   "user.settings.notifications.email.everyXMinutes": "每 {count, number} 分鐘",
-  "user.settings.notifications.email.immediately": "立即",
   "user.settings.notifications.email.never": "永不",
   "user.settings.notifications.email.notifyForthreads": "我所關注的討論串中有回覆時，請通知我",
   "user.settings.notifications.email.send": "傳送電子郵件通知",
