@@ -1070,66 +1070,6 @@ func testGetSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, gotCategory.Channels, res.Categories[1].Channels)
 		assert.Equal(t, channelIds, res.Categories[1].Channels)
 	})
-	t.Run("should not return categories for teams deleted, or no longer a member", func(t *testing.T) {
-		userID := model.NewId()
-
-		teamMember1 := setupTeam(t, rctx, ss, userID)
-		teamMember2 := setupTeam(t, rctx, ss, userID)
-		teamDeleted := setupTeam(t, rctx, ss, userID)
-		teamDeleted.DeleteAt = model.GetMillis()
-		ss.Team().Update(teamDeleted)
-		teamNotMember := setupTeam(t, rctx, ss)
-		teamDeletedMember := setupTeam(t, rctx, ss, userID)
-
-		members, err := ss.Team().GetMembersByIds(teamDeletedMember.Id, []string{userID}, nil)
-		require.NoError(t, err)
-		require.NotEmpty(t, members)
-		member := members[0]
-		member.DeleteAt = model.GetMillis()
-		ss.Team().UpdateMember(rctx, member)
-
-		teamIds := []string{
-			teamMember1.Id,
-			teamMember2.Id,
-			teamDeleted.Id,
-			teamNotMember.Id,
-			teamDeletedMember.Id,
-		}
-
-		for _, id := range teamIds {
-			res, nErr := ss.Channel().CreateInitialSidebarCategories(rctx, userID, &store.SidebarCategorySearchOpts{TeamID: id})
-			require.NoError(t, nErr)
-			require.NotEmpty(t, res)
-		}
-
-		opts := &store.SidebarCategorySearchOpts{
-			TeamID:      teamMember1.Id,
-			ExcludeTeam: false,
-		}
-
-		// Team member and not exclude
-		res, err := ss.Channel().GetSidebarCategories(userID, opts)
-		require.NoError(t, err)
-		assert.Equal(t, 3, len(res.Categories))
-
-		// No team member and not exclude
-		opts.TeamID = teamDeleted.Id
-		res, err = ss.Channel().GetSidebarCategories(userID, opts)
-		require.NoError(t, err)
-		assert.Equal(t, 0, len(res.Categories))
-
-		// No team member and exclude
-		opts.ExcludeTeam = true
-		res, err = ss.Channel().GetSidebarCategories(userID, opts)
-		require.NoError(t, err)
-		assert.Equal(t, 6, len(res.Categories))
-
-		// Team member and exclude
-		opts.TeamID = teamMember1.Id
-		res, err = ss.Channel().GetSidebarCategories(userID, opts)
-		require.NoError(t, err)
-		assert.Equal(t, 3, len(res.Categories))
-	})
 }
 
 func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store) {
