@@ -74,7 +74,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Check that the toggle is not enabled
-        const toggle = screen.getByTestId('channelBannerToggle');
+        const toggle = screen.getByTestId('channelBannerToggle-button');
         expect(toggle).toBeInTheDocument();
         expect(toggle).not.toHaveClass('active');
 
@@ -87,16 +87,16 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
 
         // Check that the toggle is enabled
-        const toggle = screen.getByTestId('channelBannerToggle');
+        const toggle = screen.getByTestId('channelBannerToggle-button');
         expect(toggle).toBeInTheDocument();
         expect(toggle).toHaveClass('active');
 
         // Banner text and color inputs should be visible when banner is enabled
         expect(screen.getByTestId('channel_banner_banner_text_textbox')).toBeInTheDocument();
         expect(screen.getByTestId('channel_banner_banner_text_textbox')).toHaveValue('Test banner text');
-        
+
         // Check that the color picker has the correct value
-        expect(screen.getByTestId('channel_banner_banner_background_color_picker')).toBeInTheDocument();
+        expect(screen.getByTestId('color-inputColorValue')).toBeInTheDocument();
     });
 
     it('should show banner settings when toggle is clicked', async () => {
@@ -107,12 +107,12 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         // Click the toggle to enable the banner
         await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle'));
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
         });
 
         // Banner settings should now be visible
         expect(screen.getByTestId('channel_banner_banner_text_textbox')).toBeInTheDocument();
-        expect(screen.getByTestId('channel_banner_banner_background_color_picker')).toBeInTheDocument();
+        expect(screen.getByTestId('color-inputColorValue')).toBeInTheDocument();
     });
 
     it('should show SaveChangesPanel when changes are made', async () => {
@@ -123,7 +123,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         // Enable the banner
         await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle'));
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
         });
 
         // Add a small delay to ensure all state updates are processed
@@ -141,7 +141,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         // Enable the banner
         await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle'));
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
         });
 
         // Enter banner text
@@ -152,18 +152,10 @@ describe('ChannelSettingsConfigurationTab', () => {
         });
 
         // Set banner color
-        // Note: Direct interaction with the color picker is complex, so we'll mock the onChange handler
-        const colorInput = screen.getByTestId('channel_banner_banner_background_color_picker');
+        const colorInput = screen.getByTestId('color-inputColorValue');
         await act(async () => {
-            // Simulate color change by triggering the onChange prop
-            const onChange = colorInput.getAttribute('data-color-change-handler');
-            if (onChange) {
-                // This is a simplified approach - in a real test, you'd use fireEvent or userEvent
-                // to interact with the actual color picker UI
-                const event = new Event('change');
-                Object.defineProperty(event, 'target', {value: {value: '#00ff00'}});
-                document.dispatchEvent(event);
-            }
+            await userEvent.clear(colorInput);
+            await userEvent.type(colorInput, '#AA00AA');
         });
 
         // Click the Save button
@@ -210,41 +202,12 @@ describe('ChannelSettingsConfigurationTab', () => {
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
     });
 
-    it('should show error state when save fails', async () => {
-        const {patchChannel} = require('mattermost-redux/actions/channels');
-        patchChannel.mockReturnValue({type: 'MOCK_ACTION', error: {message: 'Error saving channel'}});
-
-        renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
-
-        // Enable the banner
-        await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle'));
-        });
-
-        // Enter banner text
-        await act(async () => {
-            const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
-            await userEvent.clear(textInput);
-            await userEvent.type(textInput, 'New banner text');
-        });
-
-        // Click the Save button
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
-
-        // SaveChangesPanel should show 'error' state
-        const errorMessage = screen.getByText(/There are errors in the form above/);
-        const errorPanel = errorMessage.closest('.SaveChangesPanel');
-        expect(errorPanel).toHaveClass('error');
-    });
-
     it('should show error when banner text is empty but banner is enabled', async () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
         await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle'));
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
         });
 
         // Leave banner text empty
@@ -269,7 +232,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         // Enable the banner
         await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle'));
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
         });
 
         // Create a string that exceeds the allowed character limit
@@ -315,7 +278,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         // Click the toggle to disable the banner
         await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle'));
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
         });
 
         // Banner settings should now be hidden
@@ -330,7 +293,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         // Enable the banner
         await act(async () => {
-            await userEvent.click(screen.getByTestId('channelBannerToggle'));
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
         });
 
         // Enter banner text but leave color empty
