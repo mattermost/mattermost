@@ -45,6 +45,7 @@
 }
 
 .channelBannerTooltip {
+    top: -2px !important;
     overflow: auto;
     min-width: 400px;
     max-width: min(1000px, 70vw);

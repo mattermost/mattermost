@@ -191,18 +191,18 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
         <div className='ChannelSettingsModal__configurationTab'>
             <div className='channel_banner_header'>
                 <div className='channel_banner_header__text'>
-                    <span
-                        className='heading'
+                    <label
+                        className='Input_legend'
                         aria-label={heading}
                     >
                         {heading}
-                    </span>
-                    <span
-                        className='subheading'
-                        aria-label={subHeading}
+                    </label>
+                    <label
+                        className='Input_subheading'
+                        aria-label={heading}
                     >
                         {subHeading}
-                    </span>
+                    </label>
                 </div>
 
                 <div className='channel_banner_header__toggle'>

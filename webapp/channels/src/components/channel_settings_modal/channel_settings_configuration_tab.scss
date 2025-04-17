@@ -18,8 +18,6 @@
             gap: 8px;
 
             span {
-                font-weight: 700;
-
                 &.heading {
                     color: rgb(var(--center-channel-color-rgb));
                     font-size: 16px;
@@ -54,13 +52,21 @@
         }
 
         #channel_banner_banner_text_textbox {
-            min-height: 100px;
+            min-height: 46px;
             max-height: 200px;
         }
 
         .textbox-preview-area {
-            height: 200px !important;
+            height: max-content !important;
+            max-height: 200px;
             overflow-y: auto;
+
+            .markdown__heading {
+                overflow: hidden;
+                margin: 2px;
+                font-size: 18px;
+                text-overflow: ellipsis;
+            }
         }
     }
 
@@ -75,6 +81,7 @@
 
         span.setting_title {
             flex: 1;
+            padding-top: 12px;
             color: rgb(var(--center-channel-color-rgb));
             font-size: 12px;
             font-weight: 600;
