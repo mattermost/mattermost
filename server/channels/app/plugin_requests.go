@@ -147,89 +147,11 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		token = r.URL.Query().Get("access_token")
 	}
 
-	// If MFA is required and user has not activated it, we wipe the token.
-	app := New(ServerConnector(ch))
-	rctx := request.EmptyContext(ch.srv.Log()).WithPath(r.URL.Path)
-
-	// The appErr is later used at L176 and L226.
-	session, appErr := app.GetSession(token)
-	if session != nil {
-		rctx = rctx.WithSession(session)
-	}
-
-	if mfaAppErr := app.MFARequired(rctx); mfaAppErr != nil {
-		pluginID := mux.Vars(r)["plugin_id"]
-		ch.srv.Log().Warn("Treating session as unauthenticated since MFA required",
-			mlog.String("plugin_id", pluginID),
-			mlog.String("url", r.URL.Path),
-			mlog.Err(mfaAppErr),
-		)
-		token = ""
-	}
-
 	// Mattermost-Plugin-ID can only be set by inter-plugin requests
 	r.Header.Del("Mattermost-Plugin-ID")
 
+	// Clean Mattermost-User-Id header. The server sets this header for authenticated requests
 	r.Header.Del("Mattermost-User-Id")
-	if token != "" {
-		csrfCheckPassed := false
-		if (session != nil && session.Id != "") && appErr == nil && cookieAuth && r.Method != "GET" {
-			sentToken := ""
-
-			if r.Header.Get(model.HeaderCsrfToken) == "" {
-				bodyBytes, _ := io.ReadAll(r.Body)
-				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-				if err := r.ParseForm(); err != nil {
-					mlog.Warn("Failed to parse form data for plugin request", mlog.Err(err))
-				}
-				sentToken = r.FormValue("csrf")
-				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-			} else {
-				sentToken = r.Header.Get(model.HeaderCsrfToken)
-			}
-
-			expectedToken := session.GetCSRF()
-
-			if sentToken == expectedToken {
-				csrfCheckPassed = true
-			}
-
-			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
-			if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML && !csrfCheckPassed {
-				csrfErrorMessage := "CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated"
-				sid := ""
-				userID := ""
-
-				if session.Id != "" {
-					sid = session.Id
-					userID = session.UserId
-				}
-
-				fields := []mlog.Field{
-					mlog.String("path", r.URL.Path),
-					mlog.String("ip", r.RemoteAddr),
-					mlog.String("session_id", sid),
-					mlog.String("user_id", userID),
-				}
-
-				if *ch.cfgSvc.Config().ServiceSettings.StrictCSRFEnforcement {
-					mlog.Warn(csrfErrorMessage, fields...)
-				} else {
-					mlog.Debug(csrfErrorMessage, fields...)
-					csrfCheckPassed = true
-				}
-			}
-		} else {
-			csrfCheckPassed = true
-		}
-
-		if (session != nil && session.Id != "") && appErr == nil && csrfCheckPassed {
-			r.Header.Set("Mattermost-User-Id", session.UserId)
-			context.SessionId = session.Id
-
-			r.Header.Del(model.HeaderAuth)
-		}
-	}
 
 	cookies := r.Cookies()
 	r.Header.Del("Cookie")
@@ -248,6 +170,91 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	newQuery.Del("access_token")
 	r.URL.RawQuery = newQuery.Encode()
 	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", params["plugin_id"]))
+
+	// Short path for un-authenticated requests
+	if token == "" {
+		handler(context, w, r)
+		return
+	}
+
+	// If MFA is required and user has not activated it, we wipe the token.
+	app := New(ServerConnector(ch))
+	rctx := request.EmptyContext(ch.srv.Log()).WithPath(r.URL.Path)
+
+	// The appErr is later used at L176 and L226.
+	session, appErr := app.GetSession(token)
+	if session != nil {
+		rctx = rctx.WithSession(session)
+	}
+
+	if mfaAppErr := app.MFARequired(rctx); mfaAppErr != nil {
+		pluginID := params["plugin_id"]
+		ch.srv.Log().Warn("Treating session as unauthenticated since MFA required",
+			mlog.String("plugin_id", pluginID),
+			mlog.String("url", r.URL.Path),
+			mlog.Err(mfaAppErr),
+		)
+		handler(context, w, r)
+		return
+	}
+
+	csrfCheckPassed := false
+	if (session != nil && session.Id != "") && appErr == nil && cookieAuth && r.Method != "GET" {
+		sentToken := ""
+
+		if r.Header.Get(model.HeaderCsrfToken) == "" {
+			bodyBytes, _ := io.ReadAll(r.Body)
+			r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+			if err := r.ParseForm(); err != nil {
+				mlog.Warn("Failed to parse form data for plugin request", mlog.Err(err))
+			}
+			sentToken = r.FormValue("csrf")
+			r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		} else {
+			sentToken = r.Header.Get(model.HeaderCsrfToken)
+		}
+
+		expectedToken := session.GetCSRF()
+
+		if sentToken == expectedToken {
+			csrfCheckPassed = true
+		}
+
+		// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
+		if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML && !csrfCheckPassed {
+			csrfErrorMessage := "CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated"
+			sid := ""
+			userID := ""
+
+			if session.Id != "" {
+				sid = session.Id
+				userID = session.UserId
+			}
+
+			fields := []mlog.Field{
+				mlog.String("path", r.URL.Path),
+				mlog.String("ip", r.RemoteAddr),
+				mlog.String("session_id", sid),
+				mlog.String("user_id", userID),
+			}
+
+			if *ch.cfgSvc.Config().ServiceSettings.StrictCSRFEnforcement {
+				mlog.Warn(csrfErrorMessage, fields...)
+			} else {
+				mlog.Debug(csrfErrorMessage, fields...)
+				csrfCheckPassed = true
+			}
+		}
+	} else {
+		csrfCheckPassed = true
+	}
+
+	if (session != nil && session.Id != "") && appErr == nil && csrfCheckPassed {
+		r.Header.Set("Mattermost-User-Id", session.UserId)
+		context.SessionId = session.Id
+
+		r.Header.Del(model.HeaderAuth)
+	}
 
 	handler(context, w, r)
 }
