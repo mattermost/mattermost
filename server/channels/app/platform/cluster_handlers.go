@@ -105,7 +105,7 @@ func (ps *PlatformService) invalidateWebConnSessionCacheForUserSkipClusterSend(u
 func (ps *PlatformService) InvalidateAllCachesSkipSend() *model.AppError {
 	ps.logger.Info("Purging all caches")
 	if err := ps.ClearAllUsersSessionCacheLocal(); err != nil {
-		ps.logger.Error("Failed to purge caches", mlog.Err(err))
+		ps.logger.Error("Failed to purge session cache", mlog.Err(err))
 	}
 	if err := ps.statusCache.Purge(); err != nil {
 		ps.logger.Warn("Failed to clear the status cache", mlog.Err(err))

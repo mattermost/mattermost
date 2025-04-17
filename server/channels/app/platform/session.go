@@ -42,10 +42,7 @@ func (ps *PlatformService) GetLRUSessions(c request.CTX, userID string, limit ui
 }
 
 func (ps *PlatformService) AddSessionToCache(session *model.Session) error {
-	if err := ps.sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*ps.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute); err != nil {
-		return err
-	}
-	return nil
+	return ps.sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*ps.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute)
 }
 
 func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
