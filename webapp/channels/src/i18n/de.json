@@ -264,6 +264,7 @@
   "admin.advance.metrics": "Performance Überwachung",
   "admin.announcement_banner_feature_discovery.copy": "Erstelle Ankündigungsbanner, um alle Mitglieder über wichtige Informationen zu informieren.",
   "admin.announcement_banner_feature_discovery.title": "Erstelle benutzerdefinierte Ankündigungsbanner mit Mattermost Professional",
+  "admin.audit_logging_experimental.certificate.uploading": "Lade Zertifikat hoch...",
   "admin.audit_logging_experimental.file_compress.help_text": "Wähle aus, ob du die Dateikomprimierung aktivieren oder deaktivieren willst.",
   "admin.audit_logging_experimental.file_compress.title": "Dateikomprimierung",
   "admin.audit_logging_experimental.file_enabled.help_text": "Lege fest, ob Audit-Protokolle lokal in eine Datei geschrieben werden sollen oder nicht.",
