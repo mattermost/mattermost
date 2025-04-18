@@ -232,7 +232,8 @@ function channelsInTeam(state: ChannelsState['channelsInTeam'] = {}, action: MMR
             [action.data.team_id]: nextSet,
         };
     }
-    case ChannelTypes.RECEIVED_CHANNELS: {
+    case ChannelTypes.RECEIVED_CHANNELS:
+    case ChannelTypes.RECEIVED_ALL_CHANNELS: {
         return channelListToSet(state, action);
     }
     case ChannelTypes.LEAVE_CHANNEL: {
