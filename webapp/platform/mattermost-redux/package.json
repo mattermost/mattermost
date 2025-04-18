@@ -13,8 +13,7 @@
   ],
   "exports": {
     "./*": [
-      "./lib/*/index.js",
-      "./lib/*.js"
+      "./lib/*"
     ]
   },
   "typesVersions": {
