@@ -41,23 +41,25 @@ const Header = ({channel, isArchived, isMobile, onClose}: Props) => {
                         />
                     </button>
                 )}
-                <HeaderTitle
-                    id='rhsPanelTitle'
-                >
-                    <FormattedMessage
-                        id='channel_info_rhs.header.title'
-                        defaultMessage='Info'
-                    />
-                </HeaderTitle>
+                <h2>
+                    <HeaderTitle
+                        id='rhsPanelTitle'
+                    >
+                        <FormattedMessage
+                            id='channel_info_rhs.header.title'
+                            defaultMessage='Info'
+                        />
+                    </HeaderTitle>
 
-                {channel.display_name &&
-                <span
-                    className='style--none sidebar--right__title__subtitle'
-                >
-                    {isArchived && (<Icon className='icon icon-archive-outline'/>)}
-                    {channel.display_name}
-                </span>
-                }
+                    {channel.display_name &&
+                    <span
+                        className='style--none sidebar--right__title__subtitle'
+                    >
+                        {isArchived && (<Icon className='icon icon-archive-outline'/>)}
+                        {channel.display_name}
+                    </span>
+                    }
+                </h2>
             </span>
 
             <WithTooltip

@@ -14,7 +14,7 @@ import type {SuggestionProps} from 'components/suggestion/suggestion';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
 
-const SuggestionsHeader = styled.div`
+const SuggestionsHeader = styled.h2`
     margin-top: 16px;
     padding: 8px 24px;
     color: rgba(var(--center-channel-color-rgb), 0.56);
@@ -22,6 +22,11 @@ const SuggestionsHeader = styled.div`
     line-height: 16px;
     font-weight: 600;
     text-transform: uppercase;
+    margin-bottom: 0;
+
+    && {
+        font-family: 'Open Sans', sans-serif;
+    }
 `;
 
 const SuggestionsBody = styled.div`

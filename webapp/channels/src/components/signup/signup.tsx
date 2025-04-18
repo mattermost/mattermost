@@ -788,9 +788,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                             onKeyDown={onEnterKeyDown}
                             tabIndex={0}
                         >
-                            <p className='signup-body-card-title'>
+                            <h2 className='signup-body-card-title'>
                                 {getCardTitle()}
-                            </p>
+                            </h2>
                             {enableCustomBrand && getMessageSubtitle()}
                             {alertBanner && (
                                 <AlertBanner

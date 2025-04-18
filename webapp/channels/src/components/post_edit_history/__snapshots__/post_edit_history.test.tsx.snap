@@ -20,7 +20,11 @@ exports[`components/post_edit_history should display error screen if errors are 
             class="sidebar--right__title"
             id="rhsPanelTitle"
           >
-            Edit History
+            <h2
+              id="rhsPanelTitle"
+            >
+              Edit History
+            </h2>
             <div
               class="sidebar--right__title__channel"
             >
@@ -184,7 +188,11 @@ exports[`components/post_edit_history should match snapshot 1`] = `
             class="sidebar--right__title"
             id="rhsPanelTitle"
           >
-            Edit History
+            <h2
+              id="rhsPanelTitle"
+            >
+              Edit History
+            </h2>
             <div
               class="sidebar--right__title__channel"
             >

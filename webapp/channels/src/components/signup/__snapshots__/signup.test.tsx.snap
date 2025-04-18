@@ -38,11 +38,11 @@ exports[`components/signup/Signup should match snapshot for all signup options e
           onKeyDown={[Function]}
           tabIndex={0}
         >
-          <p
+          <h2
             className="signup-body-card-title"
           >
             Create your account with one of the following:
-          </p>
+          </h2>
           <div
             className="signup-body-card-form-login-options column"
           >
@@ -110,11 +110,11 @@ exports[`components/signup/Signup should match snapshot for all signup options e
           onKeyDown={[Function]}
           tabIndex={0}
         >
-          <p
+          <h2
             className="signup-body-card-title"
           >
             Create your account
-          </p>
+          </h2>
           <div
             className="signup-body-card-form"
           >
@@ -278,11 +278,11 @@ exports[`components/signup/Signup should match snapshot for all signup options e
           onKeyDown={[Function]}
           tabIndex={0}
         >
-          <p
+          <h2
             className="signup-body-card-title"
           >
             Create your account
-          </p>
+          </h2>
           <div
             className="signup-body-card-form"
           >
