@@ -9,7 +9,7 @@ import {Permissions, Preferences} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {fireEvent, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
-import Constants, {ModalIdentifiers, A11yCustomEventTypes} from 'utils/constants';
+import Constants, {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
