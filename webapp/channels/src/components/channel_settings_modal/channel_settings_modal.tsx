@@ -12,6 +12,7 @@ import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import Permissions from 'mattermost-redux/constants/permissions';
+import {selectChannelBannerEnabled} from 'mattermost-redux/selectors/entities/channel_banner';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
@@ -47,6 +48,7 @@ const SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT = 3000;
 function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
+    const shouldShowConfigurationTab = useSelector(selectChannelBannerEnabled);
 
     const canArchivePrivateChannels = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DELETE_PRIVATE_CHANNEL),
@@ -137,7 +139,11 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
 
     const renderConfigurationTab = () => {
         return (
-            <ChannelSettingsConfigurationTab/>
+            <ChannelSettingsConfigurationTab
+                channel={channel}
+                setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                showTabSwitchError={showTabSwitchError}
+            />
         );
     };
 
@@ -163,7 +169,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             uiName: formatMessage({id: 'channel_settings.tab.configuration', defaultMessage: 'Configuration'}),
             icon: 'icon icon-cog-outline',
             iconTitle: formatMessage({id: 'generic_icons.settings', defaultMessage: 'Settings Icon'}),
-            display: false, // this tab is not implemented yet so hiding it
+            display: shouldShowConfigurationTab,
         },
         {
             name: ChannelSettingsTabs.ARCHIVE,

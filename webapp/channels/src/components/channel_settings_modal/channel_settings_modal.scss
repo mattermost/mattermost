@@ -2,6 +2,22 @@
 // See LICENSE.txt for license information.
 
 .ChannelSettingsModal {
+    label.Input_legend {
+        margin-bottom: 4px;
+        color: var(--center-channel-color);
+        font-family: Metropolis, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    label.Input_subheading {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-family: Open Sans, sans-serif;
+        font-size: 12px;
+        font-weight: 400;
+    }
+
     .GenericModal__wrapper {
         display: flex;
         overflow: visible;
@@ -59,14 +75,6 @@
         display: flex;
         flex-direction: column;
         padding-bottom: 60px;
-
-        label.Input_legend {
-            margin-bottom: 4px;
-            color: var(--center-channel-color);
-            font-size: 14px;
-            font-weight: 600;
-            line-height: 20px;
-        }
 
         #PreviewInputTextButton {
             position: absolute;
@@ -142,11 +150,11 @@
             background: transparent;
             color: rgba(var(--center-channel-color-rgb), 0.56);
             cursor: pointer;
-    
+
             &:hover {
                 color: rgba(var(--center-channel-color-rgb), 0.72);
             }
-    
+
             i {
                 font-size: 18px;
             }

@@ -5,7 +5,11 @@ import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {renderWithContext} from 'tests/react_testing_utils';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelSettingsModal from './channel_settings_modal';
 
@@ -89,6 +93,7 @@ jest.mock('components/settings_sidebar', () => {
             <div data-testid='settings-sidebar'>
                 {tabs.filter((tab) => tab.display !== false).map((tab) => (
                     <button
+                        data-testid={`${tab.name}-tab-button`}
                         key={tab.name}
                         role='tab'
                         aria-selected={activeTab === tab.name}
@@ -228,5 +233,61 @@ describe('ChannelSettingsModal', () => {
 
         // The archive tab should not be in the document
         expect(screen.queryByRole('tab', {name: 'archive'})).not.toBeInTheDocument();
+    });
+
+    it('should not show configuration tab with no license', async () => {
+        const baseState: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    license: {
+                        SkuShortName: '',
+                    },
+                },
+            },
+        };
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, baseState as GlobalState);
+        expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
+    });
+
+    it('should not show configuration tab with professional license', async () => {
+        const baseState: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    license: {
+                        SkuShortName: 'professional',
+                    },
+                },
+            },
+        };
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, baseState as GlobalState);
+        expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
+    });
+
+    it('should not show configuration tab with enterprise license', async () => {
+        const baseState: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    license: {
+                        SkuShortName: 'enterprise',
+                    },
+                },
+            },
+        };
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, baseState as GlobalState);
+        expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
+    });
+
+    it('should show configuration tab when premium license', async () => {
+        const baseState: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    license: {
+                        SkuShortName: 'premium',
+                    },
+                },
+            },
+        };
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, baseState as GlobalState);
+        expect(screen.getByTestId('configuration-tab-button')).toBeInTheDocument();
     });
 });

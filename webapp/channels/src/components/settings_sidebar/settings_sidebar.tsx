@@ -154,6 +154,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
             <React.Fragment key={key}>
                 {tab.newGroup && <hr/>}
                 <button
+                    data-testid={`${tab.name}-tab-button`}
                     ref={this.buttonRefs.get(tab.name)}
                     id={`${tab.name}Button`}
                     className={classNames('cursor--pointer style--none nav-pills__tab', {active: isActive})}

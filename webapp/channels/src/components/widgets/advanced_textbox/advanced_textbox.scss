@@ -52,7 +52,7 @@
         // forcing this styles since textarea has ohter styles that affect the post input, so keeping it here isolated inside advanced textbox
         .textarea--has-errors{
             border-color: var(--error-text) !important;
-            
+
             &:focus {
                 border-color: var(--error-text) !important;
                 box-shadow: 0 0 0 1px var(--error-text) !important;
@@ -69,7 +69,11 @@
             }
         }
     }
-    
+
+    &__error-wrapper {
+        display: flex;
+    }
+
     &__error-message {
         display: flex;
         width: 90%;
@@ -77,19 +81,18 @@
         margin-top: 4px;
         color: var(--error-text);
         font-size: 12px;
-        
+
         i {
             margin-right: 4px;
             font-size: 14px;
         }
     }
-    
+
     &__character-count {
-        position: absolute;
-        right: 0;
         margin-top: 4px;
+        margin-left: auto;
         font-size: 12px;
-        
+
         &.exceeds-limit {
             color: var(--error-text);
         }
@@ -111,4 +114,5 @@
         font-weight: 400;
         line-height: 16px;
     }
+
 }

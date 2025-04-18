@@ -5747,7 +5747,7 @@ func TestCanEditChannelBanner(t *testing.T) {
 		err := canEditChannelBanner(nil, channel)
 
 		require.NotNil(t, err)
-		assert.Equal(t, "license_error.feature_unavailable", err.Id)
+		assert.Equal(t, "license_error.feature_unavailable.specific", err.Id)
 		assert.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
 
@@ -5760,7 +5760,7 @@ func TestCanEditChannelBanner(t *testing.T) {
 		err := canEditChannelBanner(license, channel)
 
 		require.NotNil(t, err)
-		assert.Equal(t, "license_error.feature_unavailable", err.Id)
+		assert.Equal(t, "license_error.feature_unavailable.specific", err.Id)
 		assert.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
 
