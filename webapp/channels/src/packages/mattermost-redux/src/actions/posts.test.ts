@@ -1349,6 +1349,43 @@ describe('Actions.Posts', () => {
         expect(data).toEqual({});
     });
 
+    it('doPostActionWithCookie with trigger_id', async () => {
+        const postId = 'posth67ja7ntdkek6g13dp3wka';
+        const actionId = 'action7ja7ntdkek6g13dp3wka';
+        const triggerId = 'trigger7ja7ntdkek6g13dp3wka';
+        const channelId = 'channel7ja7ntdkek6g13dp3wka';
+
+        // Setup post in state
+        store = configureStore({
+            entities: {
+                posts: {
+                    posts: {
+                        [postId]: {id: postId, channel_id: channelId},
+                    },
+                },
+                integrations: {
+                    dialogArguments: {},
+                },
+            },
+        });
+
+        nock(Client4.getBaseRoute()).
+            post(`/posts/${postId}/actions/${actionId}`).
+            reply(200, {trigger_id: triggerId});
+
+        const {data} = await store.dispatch(Actions.doPostActionWithCookie(postId, actionId, '', 'option'));
+
+        // Verify the trigger_id was received and stored in state
+        const state = store.getState();
+        expect(data).toBeTruthy();
+        expect(data).toEqual({trigger_id: triggerId});
+        expect(data).toBeTruthy();
+
+        expect(state.entities.integrations.dialogArguments).toBeTruthy();
+        expect(state.entities.integrations.dialogTriggerId).toEqual(triggerId);
+        expect(state.entities.integrations.dialogArguments.channel_id).toEqual(channelId);
+    });
+
     it('addMessageIntoHistory', async () => {
         const {dispatch, getState} = store;
 
