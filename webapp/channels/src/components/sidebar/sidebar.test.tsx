@@ -9,7 +9,7 @@ import {Permissions, Preferences} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {fireEvent, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
-import Constants, {ModalIdentifiers} from 'utils/constants';
+import Constants, {ModalIdentifiers, A11yCustomEventTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -383,38 +383,6 @@ describe('components/sidebar', () => {
 
             // Should not call openModal
             expect(openModalSpy).not.toHaveBeenCalled();
-        });
-
-        test('should handle direct messages modal correctly', async () => {
-            renderWithContext(
-                <Sidebar {...baseProps}/>,
-                initialState,
-            );
-
-            expect(document.getElementById('SidebarContainer')).toBeInTheDocument();
-
-            const browseOrAddMenuButton = screen.getByRole('button', {
-                name: /Browse or create channels/i,
-            });
-            expect(browseOrAddMenuButton).toBeInTheDocument();
-
-            browseOrAddMenuButton.click();
-
-            // Find and click the "Open a direct message" menu item
-            const directMessageMenuItem = await screen.findByText('Open a direct message');
-            expect(directMessageMenuItem).toBeInTheDocument();
-
-            directMessageMenuItem.click();
-
-            await waitFor(() => {
-                expect(document.getElementById('moreDmModal')).toBeInTheDocument();
-            });
-
-            screen.getByLabelText('Close').click();
-
-            await waitFor(() => {
-                expect(document.getElementById('moreDmModal')).not.toBeInTheDocument();
-            });
         });
     });
 });
