@@ -12,7 +12,7 @@
     &__label {
         position: absolute;
         z-index: 1;
-        top: -8px;
+        top: -6px; // Adjusted from -8px to -6px to center with border
         left: 12px;
         display: flex;
         width: auto;
@@ -25,13 +25,26 @@
         opacity: 0;
         transform: translateY(8px);
         transition-duration: 0.15s;
-        transition-property: opacity, transform;
+        transition-property: opacity, transform, color;
         transition-timing-function: ease-in-out;
         white-space: nowrap;
 
         &--active {
             opacity: 1;
             transform: translateY(0);
+        }
+
+        &--focused {
+            color: var(--button-bg); // Change color to match the border when focused
+        }
+
+        &--error {
+            color: var(--error-text); // Change color to red when there's an error
+        }
+
+        // Error state takes precedence over focus state
+        &--focused.AdvancedTextbox__label--error {
+            color: var(--error-text);
         }
     }
 

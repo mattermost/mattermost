@@ -6,7 +6,7 @@ import React, {
     useRef,
 } from 'react';
 import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
@@ -15,6 +15,11 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {selectChannelBannerEnabled} from 'mattermost-redux/selectors/entities/channel_banner';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+
+import {
+    setShowPreviewOnChannelSettingsHeaderModal,
+    setShowPreviewOnChannelSettingsPurposeModal,
+} from 'actions/views/textbox';
 
 import {focusElement} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
@@ -47,6 +52,7 @@ const SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT = 3000;
 
 function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
     const shouldShowConfigurationTab = useSelector(selectChannelBannerEnabled);
 
@@ -100,6 +106,9 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     };
 
     const handleHideConfirm = () => {
+        // Reset preview states to false when closing the modal
+        dispatch(setShowPreviewOnChannelSettingsHeaderModal(false));
+        dispatch(setShowPreviewOnChannelSettingsPurposeModal(false));
         setShow(false);
     };
 

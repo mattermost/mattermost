@@ -117,7 +117,7 @@ const AdvancedTextbox = ({
         <div className='AdvancedTextbox'>
             <div className='AdvancedTextbox__wrapper'>
                 {name && (
-                    <div className={`AdvancedTextbox__label ${(value || isFocused) ? 'AdvancedTextbox__label--active' : ''}`}>
+                    <div className={`AdvancedTextbox__label ${(value || isFocused) ? 'AdvancedTextbox__label--active' : ''} ${isFocused ? 'AdvancedTextbox__label--focused' : ''} ${hasError || internalError ? 'AdvancedTextbox__label--error' : ''}`}>
                         {name}
                     </div>
                 )}
