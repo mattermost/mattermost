@@ -1,8 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {screen, fireEvent} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import DataGrid from './data_grid';
 
@@ -23,27 +26,42 @@ describe('components/admin_console/data_grid/DataGrid', () => {
         term: '',
     };
 
-    test('should match snapshot with no items found', () => {
-        const wrapper = shallow(
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('should render empty state when no items found', () => {
+        renderWithContext(
             <DataGrid
                 {...baseProps}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        // Verify empty state message is displayed
+        expect(screen.getByText('No items found')).toBeInTheDocument();
     });
 
-    test('should match snapshot while loading', () => {
-        const wrapper = shallow(
+    test('should render loading state', () => {
+        renderWithContext(
             <DataGrid
                 {...baseProps}
                 loading={true}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        // Verify loading message is displayed
+        expect(screen.getByText('Loading')).toBeInTheDocument();
     });
 
-    test('should match snapshot with content and custom styling on rows', () => {
-        const wrapper = shallow(
+    test('should render content with custom styling', () => {
+        // Use jest.spyOn on window.matchMedia to mock resize behavior
+        jest.spyOn(window, 'addEventListener').mockImplementation(() => {});
+        jest.spyOn(window, 'removeEventListener').mockImplementation(() => {});
+
+        // Mock clientWidth to ensure columns are shown
+        jest.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(1000);
+
+        renderWithContext(
             <DataGrid
                 {...baseProps}
                 rows={[
@@ -57,11 +75,16 @@ describe('components/admin_console/data_grid/DataGrid', () => {
                 ]}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        // Check for row data directly
+        expect(screen.getByText('Joe Schmoe')).toBeInTheDocument();
+        expect(screen.getByText('Foo Bar')).toBeInTheDocument();
+        expect(screen.getByText('Some Guy')).toBeInTheDocument();
+        expect(screen.getAllByText('Admin Team').length).toBe(3);
     });
 
-    test('should match snapshot with custom classes', () => {
-        const wrapper = shallow(
+    test('should render with custom class', () => {
+        const result = renderWithContext(
             <DataGrid
                 {...baseProps}
                 rows={[
@@ -76,6 +99,57 @@ describe('components/admin_console/data_grid/DataGrid', () => {
                 className={'customTable'}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        // Verify custom class is applied to the DataGrid
+        const dataGridElement = result.container.querySelector('div.DataGrid');
+        expect(dataGridElement).toHaveClass('customTable');
+    });
+
+    test('should render pagination and handle page navigation', () => {
+        const result = renderWithContext(
+            <DataGrid
+                {...baseProps}
+                startCount={1}
+                endCount={10}
+                total={20}
+            />,
+        );
+
+        // Verify pagination text is displayed
+        expect(screen.getByText('1 - 10 of 20')).toBeInTheDocument();
+
+        // Get next and previous buttons using container query
+        const prevButton = result.container.querySelector('.prev');
+        const nextButton = result.container.querySelector('.next');
+
+        // First page, prev should be disabled
+        expect(prevButton).toHaveClass('disabled');
+        expect(nextButton).not.toHaveClass('disabled');
+
+        // Click next page
+        userEvent.click(nextButton!);
+        expect(baseProps.nextPage).toHaveBeenCalledTimes(1);
+    });
+
+    test('should handle search when provided', async () => {
+        // Create a new mock function specifically for this test
+        const onSearchMock = jest.fn();
+
+        renderWithContext(
+            <DataGrid
+                {...baseProps}
+                onSearch={onSearchMock}
+            />,
+        );
+
+        // Find search input
+        const searchInput = screen.getByPlaceholderText('Search');
+
+        // Set value directly and trigger submit
+        fireEvent.change(searchInput, {target: {value: 'test search'}});
+        fireEvent.keyDown(searchInput, {key: 'Enter', code: 'Enter'});
+
+        // Check if onSearch was called with the search term
+        expect(onSearchMock).toHaveBeenCalledWith('test search');
     });
 });
