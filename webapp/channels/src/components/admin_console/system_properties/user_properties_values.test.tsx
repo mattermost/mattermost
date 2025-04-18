@@ -143,4 +143,77 @@ describe('UserPropertyValues', () => {
         const option = screen.getByText('Option 1');
         expect(option.closest('div[aria-disabled]')).toBeInTheDocument();
     });
+
+    it('shows LDAP sync information when field has LDAP attribute', () => {
+        const ldapField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                ldap: 'ldapAttribute',
+            },
+        };
+
+        renderComponent(ldapField);
+
+        // Check that the sync info is displayed
+        expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
+        const ldapLink = screen.getByText('AD/LDAP: ldapAttribute');
+        expect(ldapLink).toBeInTheDocument();
+
+        // Check that the link points to the correct location
+        const linkElement = screen.getByTestId(`user-property-field-values__ldap-${ldapField.name}`);
+        expect(linkElement).toBeInTheDocument();
+        expect(linkElement).toHaveAttribute('href', `/admin_console/authentication/ldap#custom_profile_attribute-${baseField.name}`);
+    });
+
+    it('shows SAML sync information when field has SAML attribute', () => {
+        const samlField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                saml: 'samlAttribute',
+            },
+        };
+
+        renderComponent(samlField);
+
+        // Check that the sync info is displayed
+        expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
+        const samlLink = screen.getByText('SAML: samlAttribute');
+        expect(samlLink).toBeInTheDocument();
+
+        // Check that the link points to the correct location
+        const linkElement = screen.getByTestId(`user-property-field-values__saml-${samlField.name}`);
+        expect(linkElement).toBeInTheDocument();
+        expect(linkElement).toHaveAttribute('href', `/admin_console/authentication/saml#custom_profile_attribute-${baseField.name}`);
+    });
+
+    it('shows both LDAP and SAML sync information when field has both attributes', () => {
+        const syncedField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                ldap: 'ldapAttribute',
+                saml: 'samlAttribute',
+            },
+        };
+
+        renderComponent(syncedField);
+
+        // Check that the sync info is displayed
+        expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
+
+        const ldapLink = screen.getByText('AD/LDAP: ldapAttribute');
+        expect(ldapLink).toBeInTheDocument();
+
+        const samlLink = screen.getByText('SAML: samlAttribute');
+        expect(samlLink).toBeInTheDocument();
+
+        // Check that both links point to the correct locations
+        const ldapLinkElement = screen.getByTestId(`user-property-field-values__ldap-${baseField.name}`);
+        expect(ldapLinkElement).toBeInTheDocument();
+
+        const samlLinkElement = screen.getByTestId(`user-property-field-values__ldap-${baseField.name}`);
+        expect(samlLinkElement).toBeInTheDocument();
+    });
 });

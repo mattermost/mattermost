@@ -101,7 +101,7 @@ const SelectTeam = (props: Props) => {
     // MUI Menu doesn't support fragments, and the recommended alternative is to use an array.
     const renderFilterArea = () => {
         const elements = [
-            <Menu.Input
+            <Menu.InputItem
                 key='filter_teams'
                 id='search_teams'
                 type='text'

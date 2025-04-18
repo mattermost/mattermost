@@ -53,6 +53,7 @@ describe('UserPropertiesTable', () => {
         },
     ];
 
+    const createField = jest.fn();
     const updateField = jest.fn();
     const deleteField = jest.fn();
     const reorderField = jest.fn();
@@ -67,6 +68,8 @@ describe('UserPropertiesTable', () => {
         return renderWithContext(
             <UserPropertiesTable
                 data={collection}
+                canCreate={true}
+                createField={createField}
                 updateField={updateField}
                 deleteField={deleteField}
                 reorderField={reorderField}
@@ -149,6 +152,8 @@ describe('UserPropertiesTable', () => {
         renderWithContext(
             <UserPropertiesTable
                 data={collection}
+                canCreate={true}
+                createField={createField}
                 updateField={updateField}
                 deleteField={deleteField}
                 reorderField={reorderField}
