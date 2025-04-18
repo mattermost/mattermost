@@ -10376,10 +10376,6 @@
     "translation": "Сеанс не знайдено."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "спроба змінити поле, яке не існує"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Неможливо отримати закладки для заархівованого каналу"
   },
@@ -10508,10 +10504,6 @@
     "translation": "Не вдалося перетворити поле властивості на поле атрибута кастомного профілю"
   },
   {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Не вдалося перетворити поле властивості на поле атрибута кастомного профілю"
-  },
-  {
     "id": "model.access_policy.is_valid.id.app_error",
     "translation": "Недійсний ідентифікатор політики."
   },
@@ -10546,5 +10538,13 @@
   {
     "id": "api.custom_profile_attributes.invalid_field_patch",
     "translation": "недійсний патч поля атрибута спеціального профілю"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix не може бути порожнім, якщо встановлено GlobalSearchPrefix."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} має бути префіксом IndexPrefix {{.IndexPrefix}}."
   }
 ]
