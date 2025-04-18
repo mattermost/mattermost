@@ -37,22 +37,23 @@ describe('Channel Settings', () => {
             // # Go to test channel
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
-            // # Go to channel dropdown > Rename channel
-            cy.get('#channelHeaderTitle').click();
-            cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
-            cy.findByText('Rename Channel').click();
+            // # Go to channel dropdown > Channel Settings Modal
+            cy.get('#channelHeaderDropdownButton').click();
+            cy.findByText('Channel Settings').click();
 
             // # Try to enter existing URL and save
-            cy.get('#channel_name').clear().type('town-square');
-            cy.get('#save-button').click();
+            cy.get('#input_channel-settings-name').clear().type('town-square');
+            cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
 
             // # Error is displayed and URL is unchanged
-            cy.get('.has-error').should('be.visible').and('contain', 'A channel with that name already exists on the same team.');
+            cy.get('.SaveChangesPanel').should('contain', 'There are errors in the form above');
+            cy.get('.url-input-error').should('be.visible').and('contain.text', 'A channel with that name already exists on the same team.');
+
             cy.url().should('include', `/${testTeam.name}/channels/${channel.name}`);
 
             // # Enter a new URL and save
-            cy.get('#channel_name').clear().type('another-town-square');
-            cy.get('#save-button').click();
+            cy.get('#input_channel-settings-name').clear().type('another-town-square');
+            cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
 
             // * URL is updated and no errors are displayed
             cy.url().should('include', `/${testTeam.name}/channels/another-town-square`);

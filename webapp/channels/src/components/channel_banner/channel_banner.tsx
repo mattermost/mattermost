@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -30,6 +30,19 @@ type Props = {
 export default function ChannelBanner({channelId}: Props) {
     const channelBannerInfo = useSelector((state: GlobalState) => getChannelBanner(state, channelId));
     const showChannelBanner = useSelector((state: GlobalState) => selectShowChannelBanner(state, channelId));
+    const textContainerRef = useRef<HTMLSpanElement>(null);
+    const [tooltipNeeded, setTooltipNeeded] = React.useState<boolean>(false);
+
+    useEffect(() => {
+        if (!textContainerRef.current) {
+            return;
+        }
+
+        const isOverflowingHorizontally = textContainerRef.current.offsetWidth < textContainerRef.current.scrollWidth;
+        const isOverflowingVertically = textContainerRef.current.offsetHeight < textContainerRef.current.scrollHeight;
+
+        setTooltipNeeded(isOverflowingHorizontally || isOverflowingVertically);
+    }, [channelBannerInfo?.text]);
 
     const intl = useIntl();
     const channelBannerTextAriaLabel = intl.formatMessage({id: 'channel_banner.aria_label', defaultMessage: 'Channel banner text'});
@@ -75,6 +88,7 @@ export default function ChannelBanner({channelId}: Props) {
             className='channelBannerTooltip'
             delayClose={true}
             forcedPlacement='bottom'
+            disabled={!tooltipNeeded}
         >
             <div
                 className='channel_banner'
@@ -86,6 +100,7 @@ export default function ChannelBanner({channelId}: Props) {
                     className='channel_banner_text'
                     aria-label={channelBannerTextAriaLabel}
                     style={channelBannerTextStyle}
+                    ref={textContainerRef}
                 >
                     {content}
                 </span>

@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+
+import {focusElement} from 'utils/a11y_utils';
 
 import './confirm_modal.scss';
 
@@ -81,6 +82,12 @@ type Props = {
      * Set to hide the cancel button
      */
     hideCancel?: boolean;
+
+    /*
+     * The element that triggered the modal
+     */
+    focusOriginElement?: string;
+
 };
 
 type State = {
@@ -121,6 +128,13 @@ export default class ConfirmModal extends React.Component<Props, State> {
 
     handleCancel = () => {
         this.props.onCancel?.(this.state.checked);
+    };
+
+    handleExited = () => {
+        this.props.onExited?.();
+        if (this.props.focusOriginElement) {
+            focusElement(this.props.focusOriginElement!, true);
+        }
     };
 
     render() {
@@ -169,11 +183,12 @@ export default class ConfirmModal extends React.Component<Props, State> {
 
         return (
             <GenericModal
-                id={classNames('confirmModal', this.props.id)}
+                id={this.props.id || 'confirmModal'}
                 className={`ConfirmModal a11y__modal ${this.props.modalClass}`}
                 show={this.props.show}
                 onHide={this.handleCancel}
-                onExited={this.props.onExited}
+                onExited={this.handleExited}
+                ariaLabelledby='confirmModalLabel'
                 compassDesign={true}
                 modalHeaderText={this.props.title}
             >
@@ -191,11 +206,11 @@ export default class ConfirmModal extends React.Component<Props, State> {
                         {this.props.checkboxInFooter && checkbox}
                         {cancelButton}
                         <button
-                            autoFocus={true}
                             type='button'
                             className={this.props.confirmButtonClass}
                             onClick={this.handleConfirm}
                             id='confirmModalButton'
+                            autoFocus={true}
                         >
                             {this.props.confirmButtonText}
                         </button>

@@ -139,6 +139,7 @@ type ChannelPatch struct {
 	Header           *string            `json:"header"`
 	Purpose          *string            `json:"purpose"`
 	GroupConstrained *bool              `json:"group_constrained"`
+	Type             ChannelType        `json:"type"`
 	BannerInfo       *ChannelBannerInfo `json:"banner_info"`
 }
 

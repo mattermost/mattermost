@@ -4,6 +4,7 @@
 import {expect, Page} from '@playwright/test';
 
 import {components} from '@/ui/components';
+import SettingsModal from '@/ui/components/channels/settings/settings_modal';
 
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -38,7 +39,7 @@ export default class ChannelsPage {
         // The main areas of the app
         this.globalHeader = new components.GlobalHeader(this, page.locator('#global-header'));
         this.searchPopover = new components.SearchPopover(page.locator('#searchPopover'));
-        this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'));
+        this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'), page);
         this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
         this.appBar = new components.ChannelsAppBar(page.locator('.app-bar'));
@@ -64,6 +65,8 @@ export default class ChannelsPage {
 
         // Posts
         this.postContainer = page.locator('div.post-message__text');
+
+        page.locator('#channelHeaderDropdownMenu');
     }
 
     async toBeVisible() {
@@ -92,6 +95,28 @@ export default class ChannelsPage {
      */
     async postMessage(message: string) {
         await this.centerView.postCreate.postMessage(message);
+    }
+
+    async openChannelSettings(): Promise<SettingsModal> {
+        await this.centerView.header.openChannelMenu();
+        await this.page.locator('#channelSettings[role="menuitem"]').click();
+        await this.settingsModal.toBeVisible();
+
+        return this.settingsModal;
+    }
+
+    async newChannel(name: string, channelType: string) {
+        await this.page.locator('#browseOrAddChannelMenuButton').click();
+        await this.page.locator('#createNewChannelMenuItem').click();
+        await this.page.locator('#input_new-channel-modal-name').fill(name);
+
+        if (channelType === 'P') {
+            await this.page.locator('#public-private-selector-button-P').click();
+        } else {
+            await this.page.locator('#public-private-selector-button-O').click();
+        }
+
+        await this.page.getByText('Create channel').click();
     }
 
     async openUserAccountMenu() {
