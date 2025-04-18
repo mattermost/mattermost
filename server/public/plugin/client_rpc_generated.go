@@ -7113,3 +7113,60 @@ func (s *apiRPCServer) GetGroups(args *Z_GetGroupsArgs, returns *Z_GetGroupsRetu
 	}
 	return nil
 }
+
+type Z_CreateDefaultSyncableMembershipsArgs struct {
+	A model.CreateDefaultMembershipParams
+}
+
+type Z_CreateDefaultSyncableMembershipsReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) error {
+	_args := &Z_CreateDefaultSyncableMembershipsArgs{params}
+	_returns := &Z_CreateDefaultSyncableMembershipsReturns{}
+	if err := g.client.Call("Plugin.CreateDefaultSyncableMemberships", _args, _returns); err != nil {
+		log.Printf("RPC call to CreateDefaultSyncableMemberships API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) CreateDefaultSyncableMemberships(args *Z_CreateDefaultSyncableMembershipsArgs, returns *Z_CreateDefaultSyncableMembershipsReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) error
+	}); ok {
+		returns.A = hook.CreateDefaultSyncableMemberships(args.A)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API CreateDefaultSyncableMemberships called but not implemented."))
+	}
+	return nil
+}
+
+type Z_DeleteGroupConstrainedMembershipsArgs struct {
+}
+
+type Z_DeleteGroupConstrainedMembershipsReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) DeleteGroupConstrainedMemberships() error {
+	_args := &Z_DeleteGroupConstrainedMembershipsArgs{}
+	_returns := &Z_DeleteGroupConstrainedMembershipsReturns{}
+	if err := g.client.Call("Plugin.DeleteGroupConstrainedMemberships", _args, _returns); err != nil {
+		log.Printf("RPC call to DeleteGroupConstrainedMemberships API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) DeleteGroupConstrainedMemberships(args *Z_DeleteGroupConstrainedMembershipsArgs, returns *Z_DeleteGroupConstrainedMembershipsReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeleteGroupConstrainedMemberships() error
+	}); ok {
+		returns.A = hook.DeleteGroupConstrainedMemberships()
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API DeleteGroupConstrainedMemberships called but not implemented."))
+	}
+	return nil
+}

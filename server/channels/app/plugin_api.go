@@ -1460,3 +1460,17 @@ func (api *PluginAPI) GetGroups(page, perPage int, opts model.GroupSearchOpts, v
 	}
 	return api.app.GetGroups(page, perPage, opts, viewRestrictions)
 }
+
+func (api *PluginAPI) CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) error {
+	if err := api.checkLDAPLicense(); err != nil {
+		return err
+	}
+	return api.app.CreateDefaultMemberships(api.ctx, params)
+}
+
+func (api *PluginAPI) DeleteGroupConstrainedMemberships() error {
+	if err := api.checkLDAPLicense(); err != nil {
+		return err
+	}
+	return api.app.DeleteGroupConstrainedMemberships(api.ctx)
+}

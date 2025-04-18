@@ -272,6 +272,24 @@ func (_m *API) CreateCommand(cmd *model.Command) (*model.Command, error) {
 	return r0, r1
 }
 
+// CreateDefaultSyncableMemberships provides a mock function with given fields: params
+func (_m *API) CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) error {
+	ret := _m.Called(params)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateDefaultSyncableMemberships")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.CreateDefaultMembershipParams) error); ok {
+		r0 = rf(params)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // CreateGroup provides a mock function with given fields: group
 func (_m *API) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	ret := _m.Called(group)
@@ -715,6 +733,24 @@ func (_m *API) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	}
 
 	return r0, r1
+}
+
+// DeleteGroupConstrainedMemberships provides a mock function with given fields:
+func (_m *API) DeleteGroupConstrainedMemberships() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteGroupConstrainedMemberships")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DeleteGroupMember provides a mock function with given fields: groupID, userID
