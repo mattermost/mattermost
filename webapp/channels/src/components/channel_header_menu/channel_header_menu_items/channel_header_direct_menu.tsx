@@ -8,9 +8,12 @@ import {CogOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {isGuest} from 'mattermost-redux/utils/user_utils';
+
 import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
 
+import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
 import CloseMessage from '../menu_items/close_message';
 import EditConversationHeader from '../menu_items/edit_conversation_header';
 import MenuItemPluginItems from '../menu_items/plugins_submenu';
@@ -26,9 +29,10 @@ interface Props extends Menu.FirstMenuItemProps {
     isMobile: boolean;
     isFavorite: boolean;
     pluginItems: ReactNode[];
+    isChannelBookmarksEnabled: boolean;
 }
 
-const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, ...rest}: Props) => {
+const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, isChannelBookmarksEnabled, ...rest}: Props) => {
     return (
         <>
             <MenuItemToggleInfo
@@ -56,6 +60,11 @@ const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, 
                 channel={channel}
             />
             <Menu.Separator/>
+            {!isGuest(user.roles) && isChannelBookmarksEnabled && (
+                <MenuItemChannelBookmarks
+                    channel={channel}
+                />
+            )}
             <ChannelMoveToSubMenu
                 channel={channel}
             />
