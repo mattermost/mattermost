@@ -3,7 +3,6 @@
 exports[`components/BrowseChannels should match snapshot and state 1`] = `
 <GenericModal
   aria-modal={true}
-  autoCloseOnCancelButton={true}
   autoCloseOnConfirmButton={false}
   bodyPadding={false}
   compassDesign={true}
@@ -32,18 +31,13 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
     </Memo(TeamPermissionGate)>
   }
   id="browseChannelsModal"
-  keyboardEscape={true}
   modalHeaderText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Browse Channels"
       id="more_channels.title"
     />
   }
-  modalLocation="center"
   onExited={[Function]}
-  show={true}
-  showCloseButton={true}
-  showHeader={true}
 >
   <injectIntl(SearchableChannelList)
     canShowArchivedChannels={true}
