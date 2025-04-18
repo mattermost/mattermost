@@ -325,7 +325,7 @@ describe('websocketclient', () => {
             },
             minWebSocketRetryTime: 1,
             reconnectJitterRange: 1,
-            clientPingInterval: 1,
+            clientPingInterval: 10,
         });
 
         let numPings = 0;
@@ -360,14 +360,16 @@ describe('websocketclient', () => {
             if (mockWebSocket.onclose) {
                 mockWebSocket.onclose();
             }
-            if ((mockWebSocket.close as jest.Mock).mock.calls.length > 2) {
-                client.close();
+            if ((mockWebSocket.close as jest.Mock).mock.calls.length === 3) {
+                setTimeout(() => {
+                    client.close();
+                }, 1);
             }
         });
 
         client.initialize('mock.url');
 
-        jest.advanceTimersByTime(30);
+        jest.advanceTimersByTime(100);
 
         client.close();
 

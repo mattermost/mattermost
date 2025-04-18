@@ -199,55 +199,7 @@ export default class WebSocketClient {
             this.conn = new WebSocket(websocketUrl);
         }
 
-        this.conn.onopen = () => {
-            if (token) {
-                this.sendMessage('authentication_challenge', {token});
-            }
-
-            if (this.connectFailCount > 0) {
-                console.log('websocket re-established connection'); //eslint-disable-line no-console
-
-                this.reconnectCallback?.();
-                this.reconnectListeners.forEach((listener) => listener());
-            } else if (this.firstConnectCallback || this.firstConnectListeners.size > 0) {
-                this.firstConnectCallback?.();
-                this.firstConnectListeners.forEach((listener) => listener());
-            }
-
-            this.stopPingInterval();
-
-            // Send a ping immediately to test the socket
-            this.waitingForPong = true;
-            this.ping(() => {
-                this.waitingForPong = false;
-            });
-
-            // And every 30 seconds after, checking to ensure
-            // we're getting responses from the server
-            this.pingInterval = setInterval(
-                () => {
-                    if (!this.waitingForPong) {
-                        this.waitingForPong = true;
-                        this.ping(() => {
-                            this.waitingForPong = false;
-                        });
-                        return;
-                    }
-
-                    console.log('ping received no response within time limit: re-establishing websocket'); //eslint-disable-line no-console
-
-                    // We are not calling this.close() because we need to auto-restart.
-                    this.connectFailCount = 0;
-                    this.responseSequence = 1;
-                    this.stopPingInterval();
-                    this.conn?.close(); // Will auto-reconnect after configured retry time
-                },
-                this.config.clientPingInterval);
-
-            this.connectFailCount = 0;
-        };
-
-        this.conn.onclose = () => {
+        const onclose = () => {
             this.conn = null;
             this.responseSequence = 1;
 
@@ -288,6 +240,68 @@ export default class WebSocketClient {
                 },
                 retryTime,
             );
+        };
+        this.conn.onclose = onclose;
+
+        this.conn.onopen = () => {
+            if (token) {
+                this.sendMessage('authentication_challenge', {token});
+            }
+
+            if (this.connectFailCount > 0) {
+                console.log('websocket re-established connection'); //eslint-disable-line no-console
+
+                this.reconnectCallback?.();
+                this.reconnectListeners.forEach((listener) => listener());
+            } else if (this.firstConnectCallback || this.firstConnectListeners.size > 0) {
+                this.firstConnectCallback?.();
+                this.firstConnectListeners.forEach((listener) => listener());
+            }
+
+            this.stopPingInterval();
+
+            // Send a ping immediately to test the socket
+            this.waitingForPong = true;
+            this.ping(() => {
+                this.waitingForPong = false;
+            });
+
+            // And every 30 seconds after, checking to ensure
+            // we're getting responses from the server
+            this.pingInterval = setInterval(
+                () => {
+                    if (!this.waitingForPong) {
+                        this.waitingForPong = true;
+                        this.ping(() => {
+                            this.waitingForPong = false;
+                        });
+                        return;
+                    }
+
+                    this.stopPingInterval();
+
+                    // If we aren't connected, we should already be trying to
+                    // re-connect the websocket. So there's nothing more to do here.
+                    if (!this.conn || this.conn.readyState !== WebSocket.OPEN) {
+                        return;
+                    }
+
+                    console.log('ping received no response within time limit: re-establishing websocket'); //eslint-disable-line no-console
+
+                    // Calling conn.close() will trigger the onclose callback,
+                    // but sometimes with a significant delay. So instead, we
+                    // call the onclose callback ourselves immediately. We also
+                    // unset the callback on the old connection to ensure it
+                    // is only called once.
+                    this.connectFailCount = 0;
+                    this.responseSequence = 1;
+                    this.conn.onclose = () => {};
+                    this.conn.close();
+                    onclose();
+                },
+                this.config.clientPingInterval);
+
+            this.connectFailCount = 0;
         };
 
         this.conn.onerror = (evt) => {
@@ -483,7 +497,7 @@ export default class WebSocketClient {
         this.closeListeners.delete(listener);
     }
 
-    closeConnection() {
+    close() {
         this.connectFailCount = 0;
         this.responseSequence = 1;
         this.clearReconnectTimeout();
@@ -495,10 +509,6 @@ export default class WebSocketClient {
             this.conn = null;
             console.log('websocket closed'); //eslint-disable-line no-console
         }
-    }
-
-    close() {
-        this.closeConnection();
 
         if (typeof window !== 'undefined') {
             if (this.onlineHandler) {
