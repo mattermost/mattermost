@@ -10480,5 +10480,9 @@
   {
     "id": "model.channel.is_valid.banner_info.text.empty.app_error",
     "translation": "频道横幅启用时，频道横幅信息文本不能为空"
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "添加证书失败。"
   }
 ]
