@@ -87,6 +87,10 @@ export const isThreadManuallyUnread = (state: GlobalState, threadId: UserThread[
     return state.views.threads.manuallyUnread[threadId] || false;
 };
 
+export const getThreadLastUpdateAt = (state: GlobalState, threadId: UserThread['id']): number => {
+    return state.views.threads.lastUpdateAt[threadId] || 0;
+};
+
 // Returns a selector that, given the state and an object containing an array of postIds and an optional
 // timestamp of when the channel was last read, returns a memoized array of postIds interspersed with
 // day indicators, an optional new message indicator and create comment.
