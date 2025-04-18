@@ -23,6 +23,10 @@ const SuggestionsHeader = styled.h2`
     font-weight: 600;
     text-transform: uppercase;
     margin-bottom: 0;
+
+    && {
+        font-family: 'Open Sans', sans-serif;
+    }
 `;
 
 const SuggestionsBody = styled.div`

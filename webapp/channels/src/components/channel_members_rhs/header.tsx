@@ -17,11 +17,8 @@ interface Props {
     goBack: () => void;
 }
 
-const HeaderTitle = styled.h2`
+const HeaderTitle = styled.span`
     line-height: 2.4rem;
-    font-size: inherit;
-    font-weight: inherit;
-    margin: 0;
 `;
 
 const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
@@ -42,23 +39,24 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                         />
                     </button>
                 )}
+                <h2>
+                    <HeaderTitle
+                        id='rhsPanelTitle'
+                    >
+                        <FormattedMessage
+                            id='channel_members_rhs.header.title'
+                            defaultMessage='Members'
+                        />
+                    </HeaderTitle>
 
-                <HeaderTitle
-                    id='rhsPanelTitle'
-                >
-                    <FormattedMessage
-                        id='channel_members_rhs.header.title'
-                        defaultMessage='Members'
-                    />
-                </HeaderTitle>
-
-                {channel.display_name &&
+                    {channel.display_name &&
                     <span
                         className='style--none sidebar--right__title__subtitle'
                     >
                         {channel.display_name}
                     </span>
-                }
+                    }
+                </h2>
             </span>
 
             <WithTooltip
