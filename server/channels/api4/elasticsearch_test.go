@@ -15,6 +15,9 @@ import (
 )
 
 func TestElasticsearchTest(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -56,6 +59,9 @@ func TestElasticsearchTest(t *testing.T) {
 }
 
 func TestElasticsearchPurgeIndexes(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 

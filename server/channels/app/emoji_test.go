@@ -12,6 +12,9 @@ import (
 )
 
 func TestGetMultipleEmojiByName(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	// The fact that we use mock store ensures that
 	// the call to the DB does not happen. If it did, we would have needed
 	// to provide the mock explicitly.

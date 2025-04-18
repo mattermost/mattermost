@@ -17,6 +17,11 @@ import (
 
 func TestBusySet(t *testing.T) {
 	t.Skip("https://mattermost.atlassian.net/browse/MM-63300")
+
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
+
 	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 
@@ -55,6 +60,9 @@ func TestBusySet(t *testing.T) {
 }
 
 func TestBusyExpires(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 
@@ -91,6 +99,9 @@ func TestBusyExpires(t *testing.T) {
 }
 
 func TestBusyRace(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 
@@ -146,12 +157,15 @@ func (c *ClusterMock) NotifyMsg(buf []byte)                  {}
 func (c *ClusterMock) GetClusterStats(rctx request.CTX) ([]*model.ClusterStats, *model.AppError) {
 	return nil, nil
 }
+
 func (c *ClusterMock) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
 	return nil, nil
 }
+
 func (c *ClusterMock) QueryLogs(rctx request.CTX, page, perPage int) (map[string][]string, *model.AppError) {
 	return nil, nil
 }
+
 func (c *ClusterMock) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error) {
 	return nil, nil
 }
@@ -163,6 +177,7 @@ func (c *ClusterMock) HealthScore() int { return 0 }
 func (c *ClusterMock) WebConnCountForUser(userID string) (int, *model.AppError) {
 	return 0, nil
 }
+
 func (c *ClusterMock) GetWSQueues(userID, connectionID string, seqNum int64) (map[string]*model.WSQueues, error) {
 	return nil, nil
 }

@@ -14,10 +14,13 @@ import (
 )
 
 func TestCheckForClientSideCert(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
-	var tests = []struct {
+	tests := []struct {
 		pem           string
 		subject       string
 		expectedEmail string
@@ -40,6 +43,9 @@ func TestCheckForClientSideCert(t *testing.T) {
 }
 
 func TestCWSLogin(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	license := model.NewTestLicense()
