@@ -2,9 +2,12 @@
 
 exports[`components/threading/global_threads/thread_item should report total number of replies 1`] = `
 <article
+  aria-label="Thread by Someone"
   className="ThreadItem"
   id=""
   onClick={[Function]}
+  onKeyDown={[Function]}
+  role="button"
   tabIndex={0}
 >
   <header>
@@ -21,7 +24,7 @@ exports[`components/threading/global_threads/thread_item should report total num
         text="Team name"
       />
     </div>
-    <Connect(injectIntl(Timestamp))
+    <MockTimestamp
       className="alt-hidden"
       day="numeric"
       units={
@@ -39,7 +42,7 @@ exports[`components/threading/global_threads/thread_item should report total num
   <div
     className="menu-anchor alt-visible"
   >
-    <Memo(ThreadMenu)
+    <MockThreadMenu
       hasUnreads={false}
       isFollowing={true}
       threadId="1y8hpek81byspd4enyk9mp1ncw"
@@ -62,29 +65,24 @@ exports[`components/threading/global_threads/thread_item should report total num
           />
         </Memo(Button)>
       </WithTooltip>
-    </Memo(ThreadMenu)>
+    </MockThreadMenu>
   </div>
   <div
-    aria-readonly="true"
     className="preview"
     dir="auto"
     onClick={[Function]}
-    tabIndex={0}
+    onKeyDown={[Function]}
+    role="button"
+    tabIndex={-1}
   >
-    <Connect(Markdown)
+    <MockMarkdown
       imageProps={
         Object {
           "onImageHeightChanged": [Function],
           "onImageLoaded": [Function],
         }
       }
-      mentionKeys={
-        Array [
-          Object {
-            "key": "@some-user",
-          },
-        ]
-      }
+      mentionKeys={Array []}
       message="test msg"
       options={
         Object {
@@ -98,7 +96,7 @@ exports[`components/threading/global_threads/thread_item should report total num
   <div
     className="activity"
   >
-    <Memo(Avatars)
+    <MockAvatars
       size="xs"
       userIds={
         Array [
@@ -123,9 +121,12 @@ exports[`components/threading/global_threads/thread_item should report total num
 
 exports[`components/threading/global_threads/thread_item should report unread mentions 1`] = `
 <article
+  aria-label="Thread by Someone"
   className="ThreadItem has-unreads"
   id=""
   onClick={[Function]}
+  onKeyDown={[Function]}
+  role="button"
   tabIndex={0}
 >
   <header>
@@ -151,7 +152,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
         text="Team name"
       />
     </div>
-    <Connect(injectIntl(Timestamp))
+    <MockTimestamp
       className="alt-hidden"
       day="numeric"
       units={
@@ -169,7 +170,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
   <div
     className="menu-anchor alt-visible"
   >
-    <Memo(ThreadMenu)
+    <MockThreadMenu
       hasUnreads={true}
       isFollowing={true}
       threadId="1y8hpek81byspd4enyk9mp1ncw"
@@ -192,29 +193,24 @@ exports[`components/threading/global_threads/thread_item should report unread me
           />
         </Memo(Button)>
       </WithTooltip>
-    </Memo(ThreadMenu)>
+    </MockThreadMenu>
   </div>
   <div
-    aria-readonly="true"
     className="preview"
     dir="auto"
     onClick={[Function]}
-    tabIndex={0}
+    onKeyDown={[Function]}
+    role="button"
+    tabIndex={-1}
   >
-    <Connect(Markdown)
+    <MockMarkdown
       imageProps={
         Object {
           "onImageHeightChanged": [Function],
           "onImageLoaded": [Function],
         }
       }
-      mentionKeys={
-        Array [
-          Object {
-            "key": "@some-user",
-          },
-        ]
-      }
+      mentionKeys={Array []}
       message="test msg"
       options={
         Object {
@@ -228,7 +224,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
   <div
     className="activity"
   >
-    <Memo(Avatars)
+    <MockAvatars
       size="xs"
       userIds={
         Array [
@@ -253,9 +249,12 @@ exports[`components/threading/global_threads/thread_item should report unread me
 
 exports[`components/threading/global_threads/thread_item should report unread messages 1`] = `
 <article
+  aria-label="Thread by Someone"
   className="ThreadItem has-unreads"
   id=""
   onClick={[Function]}
+  onKeyDown={[Function]}
+  role="button"
   tabIndex={0}
 >
   <header>
@@ -279,7 +278,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
         text="Team name"
       />
     </div>
-    <Connect(injectIntl(Timestamp))
+    <MockTimestamp
       className="alt-hidden"
       day="numeric"
       units={
@@ -297,7 +296,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
   <div
     className="menu-anchor alt-visible"
   >
-    <Memo(ThreadMenu)
+    <MockThreadMenu
       hasUnreads={true}
       isFollowing={true}
       threadId="1y8hpek81byspd4enyk9mp1ncw"
@@ -320,29 +319,24 @@ exports[`components/threading/global_threads/thread_item should report unread me
           />
         </Memo(Button)>
       </WithTooltip>
-    </Memo(ThreadMenu)>
+    </MockThreadMenu>
   </div>
   <div
-    aria-readonly="true"
     className="preview"
     dir="auto"
     onClick={[Function]}
-    tabIndex={0}
+    onKeyDown={[Function]}
+    role="button"
+    tabIndex={-1}
   >
-    <Connect(Markdown)
+    <MockMarkdown
       imageProps={
         Object {
           "onImageHeightChanged": [Function],
           "onImageLoaded": [Function],
         }
       }
-      mentionKeys={
-        Array [
-          Object {
-            "key": "@some-user",
-          },
-        ]
-      }
+      mentionKeys={Array []}
       message="test msg"
       options={
         Object {
@@ -356,7 +350,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
   <div
     className="activity"
   >
-    <Memo(Avatars)
+    <MockAvatars
       size="xs"
       userIds={
         Array [
