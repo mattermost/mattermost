@@ -4,10 +4,12 @@ exports[`components/marketplace/ doesn't show web marketplace banner in FeatureF
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-labelledby="genericModalLabel"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -32,7 +34,7 @@ exports[`components/marketplace/ doesn't show web marketplace banner in FeatureF
   show={true}
 >
   <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
+    className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
     tabIndex={0}
   >
@@ -94,10 +96,12 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-labelledby="genericModalLabel"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace with-web-marketplace-link"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace with-web-marketplace-link"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -122,7 +126,7 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
   show={true}
 >
   <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
+    className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
     tabIndex={0}
   >
@@ -185,10 +189,12 @@ exports[`components/marketplace/ should render default 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-labelledby="genericModalLabel"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -213,7 +219,7 @@ exports[`components/marketplace/ should render default 1`] = `
   show={true}
 >
   <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
+    className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
     tabIndex={0}
   >
@@ -327,10 +333,12 @@ exports[`components/marketplace/ should render with error banner 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-labelledby="genericModalLabel"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -355,7 +363,7 @@ exports[`components/marketplace/ should render with error banner 1`] = `
   show={true}
 >
   <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
+    className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
     tabIndex={0}
   >
@@ -486,10 +494,12 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-labelledby="genericModalLabel"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -514,7 +524,7 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
   show={true}
 >
   <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
+    className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
     tabIndex={0}
   >
@@ -636,10 +646,12 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-labelledby="genericModalLabel"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -664,7 +676,7 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
   show={true}
 >
   <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
+    className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
     tabIndex={0}
   >
@@ -804,10 +816,12 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-labelledby="genericModalLabel"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -832,7 +846,7 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
   show={true}
 >
   <div
-    className="GenericModal__wrapper-enter-key-press-catcher"
+    className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
     tabIndex={0}
   >

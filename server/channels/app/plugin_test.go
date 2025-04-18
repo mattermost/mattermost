@@ -1387,7 +1387,8 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.Len(t, transitionalPlugins, 1)
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", transitionalPlugins[0])
 
-		th.App.ch.RemovePlugin("testplugin")
+		appErr := th.App.ch.RemovePlugin("testplugin")
+		require.Nil(t, appErr)
 
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)

@@ -57,7 +57,7 @@ describe('Multi-user group messages', () => {
         cy.findByRole('dialog', {name: 'Direct Messages'}).should('be.visible').wait(TIMEOUTS.ONE_SEC);
 
         // # Start typing part of a username that matches previously created users
-        cy.findByRole('textbox', {name: 'Search for people'}).
+        cy.findByRole('combobox', {name: 'Search for people'}).
             typeWithForce(searchTerm).
             wait(TIMEOUTS.ONE_SEC);
 
@@ -108,7 +108,8 @@ describe('Multi-user group messages', () => {
         cy.postMessage('messages');
 
         // # Open channel menu and click Add Members
-        cy.uiOpenChannelMenu('Add Members');
+        cy.uiOpenChannelMenu('Members');
+        cy.uiGetButton('Add').click();
 
         // * Verify message says: "This will start a new conversation. If you're adding a lot of people, consider creating a private channel instead."
         cy.get('#moreDmModal').should('be.visible');
@@ -139,7 +140,6 @@ describe('Multi-user group messages', () => {
         cy.contains('p.channel-intro__text', 'This is the start of your group message history with');
 
         // * New user is added to the GM
-        cy.get('.member-rhs__trigger').click();
         cy.uiGetRHS().contains(testUser.username).should('be.visible');
 
         // * Other users are still there

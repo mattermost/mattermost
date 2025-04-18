@@ -1231,7 +1231,7 @@ func TestPluginAPIGetTeamIcon(t *testing.T) {
 	fileReader := bytes.NewReader(dataBytes)
 
 	// Set the Team Icon
-	appErr := th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	appErr := th.App.SetTeamIconFromFile(th.Context, th.BasicTeam, fileReader)
 	require.Nil(t, appErr)
 
 	// Get the team icon to check
@@ -1299,7 +1299,7 @@ func TestPluginAPIRemoveTeamIcon(t *testing.T) {
 	fileReader := bytes.NewReader(dataBytes)
 
 	// Set the Team Icon
-	err := th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	err := th.App.SetTeamIconFromFile(th.Context, th.BasicTeam, fileReader)
 	require.Nil(t, err)
 	err = api.RemoveTeamIcon(th.BasicTeam.Id)
 	require.Nil(t, err)
@@ -1602,7 +1602,7 @@ func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
 
 	actualPost, err := api.GetPost(post.Id)
 	require.Nil(t, err)
-	assert.Equal(t, "true", actualPost.GetProp("from_plugin"))
+	assert.Equal(t, "true", actualPost.GetProp(model.PostPropsFromPlugin))
 }
 
 func TestPluginAPIGetConfig(t *testing.T) {
@@ -1999,6 +1999,23 @@ func TestPluginHTTPConnHijack(t *testing.T) {
 	require.Equal(t, "OK", string(body))
 }
 
+func makePluginHTTPRequest(t *testing.T, pluginID string, port int, token string) string {
+	t.Helper()
+	client := &http.Client{}
+	reqURL := fmt.Sprintf("http://localhost:%d/plugins/%s", port, pluginID)
+	req, err := http.NewRequest("GET", reqURL, nil)
+	require.NoError(t, err)
+	req.Header.Set(model.HeaderAuth, model.HeaderToken+" "+token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	return string(body)
+}
+
 func TestPluginMFAEnforcement(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2045,22 +2062,6 @@ func TestPluginMFAEnforcement(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	client := &http.Client{}
-	makeRequest := func() string {
-		reqURL := fmt.Sprintf("http://localhost:%d/plugins/%s", th.Server.ListenAddr.Port, pluginID)
-		req, err := http.NewRequest("GET", reqURL, nil)
-		require.NoError(t, err)
-		req.Header.Set(model.HeaderAuth, model.HeaderToken+" "+session.Token)
-
-		resp, err := client.Do(req)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		body, err := io.ReadAll(resp.Body)
-		require.NoError(t, err)
-		return string(body)
-	}
-
 	t.Run("MFA not enforced", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableMultifactorAuthentication = true
@@ -2068,7 +2069,7 @@ func TestPluginMFAEnforcement(t *testing.T) {
 		})
 
 		// Should return user ID since MFA is not enforced
-		userID := makeRequest()
+		userID := makePluginHTTPRequest(t, pluginID, th.Server.ListenAddr.Port, session.Token)
 		assert.Equal(t, user.Id, userID)
 	})
 
@@ -2079,7 +2080,7 @@ func TestPluginMFAEnforcement(t *testing.T) {
 		})
 
 		// Should return empty string since MFA is enforced but not active
-		userID := makeRequest()
+		userID := makePluginHTTPRequest(t, pluginID, th.Server.ListenAddr.Port, session.Token)
 		assert.Empty(t, userID)
 	})
 }
@@ -2941,4 +2942,43 @@ func TestPluginPatchChannelMembersNotifications(t *testing.T) {
 
 		assert.Equal(t, "", updated.NotifyProps["test_field"])
 	})
+}
+
+func TestPluginServeHTTPCompatibility(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginCode := `
+	package main
+
+	import (
+		"net/http"
+		"github.com/mattermost/mattermost/server/public/plugin"
+	)
+
+	type MyPlugin struct {
+		plugin.MattermostPlugin
+	}
+
+	func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("plugin response"))
+	}
+
+	func main() {
+		plugin.ClientMain(&MyPlugin{})
+	}
+	`
+
+	for _, goVersion := range strings.Fields(os.Getenv("GO_COMPATIBILITY_TEST_VERSIONS")) {
+		t.Run(goVersion, func(t *testing.T) {
+			tearDown, ids, errs := SetAppEnvironmentWithPluginsGoVersion(t, []string{pluginCode}, th.App, th.NewPluginAPI, goVersion)
+			defer tearDown()
+			require.NoError(t, errs[0])
+			require.Len(t, ids, 1)
+			pluginID := ids[0]
+
+			res := makePluginHTTPRequest(t, pluginID, th.Server.ListenAddr.Port, "")
+			assert.Equal(t, "plugin response", res)
+		})
+	}
 }

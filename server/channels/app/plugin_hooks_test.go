@@ -31,6 +31,14 @@ import (
 )
 
 func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) (func(), []string, []error) {
+	return setAppEnvironmentWithPlugins(t, pluginCode, app, apiFunc, "")
+}
+
+func SetAppEnvironmentWithPluginsGoVersion(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API, goVersion string) (func(), []string, []error) {
+	return setAppEnvironmentWithPlugins(t, pluginCode, app, apiFunc, goVersion)
+}
+
+func setAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API, goVersion string) (func(), []string, []error) {
 	pluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	webappPluginDir, err := os.MkdirTemp("", "")
@@ -45,7 +53,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	for _, code := range pluginCode {
 		pluginID := model.NewId()
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-		utils.CompileGo(t, code, backend)
+		utils.CompileGoVersion(t, goVersion, code, backend)
 
 		err = os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
 		require.NoError(t, err)

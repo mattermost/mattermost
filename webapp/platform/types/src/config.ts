@@ -62,6 +62,7 @@ export type ClientConfig = {
     EnableUserStatuses: string;
     EnableLastActiveTime: string;
     EnableTimedDND: string;
+    EnableCrossTeamSearch: 'true' | 'false';
     EnableCustomTermsOfService: string;
     EnableDeveloper: string;
     EnableDiagnostics: string;
@@ -353,6 +354,7 @@ export type ServiceSettings = {
     GiphySdkKey: string;
     PostEditTimeLimit: number;
     TimeBetweenUserTypingUpdatesMilliseconds: number;
+    EnableCrossTeamSearch: boolean;
     EnablePostSearch: boolean;
     EnableFileSearch: boolean;
     MinimumHashtagLength: number;
@@ -401,6 +403,8 @@ export type ServiceSettings = {
     EnableDesktopLandingPage: boolean;
     MaximumURLLength: number;
     ScheduledPosts: boolean;
+    EnableWebHubChannelIteration: boolean;
+    FrameAncestors: string;
 };
 
 export type TeamSettings = {
@@ -709,6 +713,7 @@ export type LdapSettings = {
     LoginButtonColor: string;
     LoginButtonBorderColor: string;
     LoginButtonTextColor: string;
+    MaximumLoginAttempts: number;
 };
 
 export type ComplianceSettings = {
@@ -768,6 +773,9 @@ export type NativeAppSettings = {
     AndroidAppDownloadLink: string;
     IosAppDownloadLink: string;
     MobileExternalBrowser: boolean;
+    MobileEnableBiometrics: boolean;
+    MobilePreventScreenCapture: boolean;
+    MobileJailbreakProtection: boolean;
 };
 
 export type ClusterSettings = {
@@ -790,6 +798,7 @@ export type MetricsSettings = {
     ListenAddress: string;
     EnableClientMetrics: boolean;
     EnableNotificationMetrics: boolean;
+    ClientSideUserIds: string[];
 };
 
 export type ExperimentalSettings = {
@@ -816,6 +825,7 @@ export type CacheSettings = {
     RedisAddress: string;
     RedisPassword: string;
     RedisDB: number;
+    RedisCachePrefix: string;
     DisableClientCache: boolean;
 };
 
@@ -837,6 +847,7 @@ export type ElasticsearchSettings = {
     AggregatePostsAfterDays: number;
     PostsAggregatorJobStartTime: string;
     IndexPrefix: string;
+    GlobalSearchPrefix: string;
     LiveIndexingBatchSize: number;
     BatchSize: number;
     RequestTimeoutSeconds: number;

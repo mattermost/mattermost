@@ -351,12 +351,12 @@ func addPostToChannelExport(rctx request.CTX, channelExport *ChannelExport, post
 	if err != nil {
 		rctx.Logger().Warn("Failed to unmarshal post Props into JSON. Ignoring username override.", mlog.Err(err))
 	} else {
-		if overrideUsername, ok := postPropsLocal["override_username"]; ok {
+		if overrideUsername, ok := postPropsLocal[model.PostPropsOverrideUsername]; ok {
 			postUserName = overrideUsername.(string)
 		}
 
 		if postUserName == originalUsername {
-			if overrideUsername, ok := postPropsLocal["webhook_display_name"]; ok {
+			if overrideUsername, ok := postPropsLocal[model.PostPropsWebhookDisplayName]; ok {
 				postUserName = overrideUsername.(string)
 			}
 		}

@@ -1656,7 +1656,7 @@ func TestPushNotificationAttachment(t *testing.T) {
 	post := &model.Post{
 		Message: originalMessage,
 		Props: map[string]any{
-			"attachments": []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.SlackAttachment{
 				{
 					AuthorName: "testuser",
 					Text:       "test attachment",
