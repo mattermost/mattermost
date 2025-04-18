@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"iter"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -624,6 +625,84 @@ func TestHubWebConnCount(t *testing.T) {
 
 	assert.Equal(t, 1, th.Service.WebConnCountForUser(th.BasicUser.Id))
 	assert.Equal(t, 0, th.Service.WebConnCountForUser("none"))
+}
+
+var globalIter iter.Seq[*WebConn]
+
+func BenchmarkHubConnIndexIterator(b *testing.B) {
+	th := Setup(b)
+	defer th.TearDown()
+
+	connIndex := newHubConnectionIndex(2*time.Second, th.Service.Store, th.Service.logger, false)
+
+	// User1
+	wc1 := &WebConn{
+		Platform: th.Service,
+		UserId:   model.NewId(),
+	}
+	wc1.Active.Store(true)
+	wc1.SetConnectionID("conn1")
+	wc1.SetSession(&model.Session{})
+
+	// User2
+	wc2 := &WebConn{
+		Platform: th.Service,
+		UserId:   model.NewId(),
+	}
+	wc2.Active.Store(true)
+	wc2.SetConnectionID("conn2")
+	wc2.SetSession(&model.Session{})
+
+	wc3 := &WebConn{
+		Platform: th.Service,
+		UserId:   wc2.UserId,
+	}
+	wc3.Active.Store(false)
+	wc3.SetConnectionID("conn3")
+	wc3.SetSession(&model.Session{})
+
+	connIndex.Add(wc1)
+	connIndex.Add(wc2)
+	connIndex.Add(wc3)
+
+	b.ResetTimer()
+	b.Run("2 users", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			globalIter = connIndex.ForUser(wc2.UserId)
+		}
+	})
+
+	wc4 := &WebConn{
+		Platform: th.Service,
+		UserId:   wc2.UserId,
+	}
+	wc4.Active.Store(false)
+	wc4.SetConnectionID("conn4")
+	wc4.SetSession(&model.Session{})
+
+	connIndex.Add(wc4)
+	b.ResetTimer()
+	b.Run("3 users", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			globalIter = connIndex.ForUser(wc2.UserId)
+		}
+	})
+
+	wc5 := &WebConn{
+		Platform: th.Service,
+		UserId:   wc2.UserId,
+	}
+	wc5.Active.Store(false)
+	wc5.SetConnectionID("conn5")
+	wc5.SetSession(&model.Session{})
+
+	connIndex.Add(wc5)
+	b.ResetTimer()
+	b.Run("4 users", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			globalIter = connIndex.ForUser(wc2.UserId)
+		}
+	})
 }
 
 // Always run this with -benchtime=0.1s
