@@ -17,7 +17,7 @@ export type ExternalLinkQueryParams = {
     userId?: string;
 }
 
-export function useExternalLink(href: string, location: string = '', overwriteQueryParams: ExternalLinkQueryParams = {}): [string, Record<string, string>] {
+export function useExternalLink(href: string, location = '', overwriteQueryParams: ExternalLinkQueryParams = {}): [string, Record<string, string>] {
     const userId = useSelector(getCurrentUserId);
     const telemetryId = useSelector((state: GlobalState) => getConfig(state).TelemetryId || '');
     const isCloud = useSelector((state: GlobalState) => getLicense(state).Cloud === 'true');

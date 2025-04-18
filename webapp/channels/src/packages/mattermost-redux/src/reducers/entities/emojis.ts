@@ -75,7 +75,7 @@ function storeEmojisForPost(state: IDMappedObjects<CustomEmoji>, post: Post): ID
     return post.metadata.emojis.reduce(storeEmoji, state);
 }
 
-function nonExistentEmoji(state: Set<string> = new Set(), action: MMReduxAction): Set<string> {
+function nonExistentEmoji(state = new Set<string>(), action: MMReduxAction): Set<string> {
     switch (action.type) {
     case EmojiTypes.CUSTOM_EMOJI_DOES_NOT_EXIST: {
         if (!state.has(action.data)) {

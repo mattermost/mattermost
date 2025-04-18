@@ -121,7 +121,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
     try {
         const notificationPermission = await Notification.requestPermission();
         return notificationPermission;
-    } catch (error) {
+    } catch {
         return null;
     }
 }

@@ -42,7 +42,7 @@ export const getCustomEmojisByName: (state: GlobalState) => Map<string, CustomEm
     'getCustomEmojisByName',
     getCustomEmojis,
     (emojis: IDMappedObjects<CustomEmoji>): Map<string, CustomEmoji> => {
-        const map: Map<string, CustomEmoji> = new Map();
+        const map = new Map<string, CustomEmoji>();
 
         Object.keys(emojis).forEach((key: string) => {
             map.set(emojis[key].name, emojis[key]);

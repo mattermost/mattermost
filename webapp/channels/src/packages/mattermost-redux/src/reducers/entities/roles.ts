@@ -8,7 +8,7 @@ import type {Role} from '@mattermost/types/roles';
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {RoleTypes, UserTypes} from 'mattermost-redux/action_types';
 
-function pending(state: Set<string> = new Set(), action: MMReduxAction) {
+function pending(state = new Set<string>(), action: MMReduxAction) {
     switch (action.type) {
     case RoleTypes.SET_PENDING_ROLES:
         return action.data;

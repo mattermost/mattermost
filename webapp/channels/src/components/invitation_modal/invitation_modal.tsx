@@ -322,7 +322,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
         }
         try {
             this.debouncedSearchProfiles(term, callback);
-        } catch (error) {
+        } catch {
             callback([]);
         }
     };

@@ -172,7 +172,7 @@ export function completeDirectGroupInfo(usersState: UsersState, teammateNameDisp
 
     const usernames = gm.display_name.split(', ');
     const users = Object.keys(profiles).map((key) => profiles[key]);
-    const userIds: Set<string> = new Set();
+    const userIds = new Set<string>();
     usernames.forEach((username: string) => {
         const u = users.find((p): boolean => p.username === username);
         if (u) {
@@ -203,7 +203,7 @@ function newCompleteDirectGroupInfo(currentUserId: string, profiles: IDMappedObj
 
     const usernames = gm.display_name.split(', ');
     const users = Object.keys(profiles).map((key) => profiles[key]);
-    const userIds: Set<string> = new Set();
+    const userIds = new Set<string>();
     usernames.forEach((username: string) => {
         const u = users.find((p): boolean => p.username === username);
         if (u) {

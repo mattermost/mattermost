@@ -240,7 +240,7 @@ const PreparingWorkspace = ({
                     redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
                     return;
                 }
-            } catch (e) {
+            } catch {
                 redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
                 return;
             }
@@ -266,7 +266,7 @@ const PreparingWorkspace = ({
         try {
             await Client4.completeSetup(completeSetupRequest);
             dispatch({type: GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED, data: true});
-        } catch (e) {
+        } catch {
             redirectWithError(WizardSteps.Plugins, genericSubmitError);
             return;
         }

@@ -81,6 +81,7 @@ const mapDispatchToProps = {
     setAdminConsoleUsersManagementTableProperties,
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;

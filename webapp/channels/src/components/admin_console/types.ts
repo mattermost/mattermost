@@ -210,6 +210,7 @@ export type AdminDefinitionSection = {
 }
 
 /** From {@link IntlShape.formatMessage}. Cannot discriminate overloaded method signature. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 declare function formatMessageBasic(descriptor: MessageDescriptor, values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>): string;
 
 export type SearchableStrings = Array<string | MessageDescriptor | Parameters<typeof formatMessageBasic>>;

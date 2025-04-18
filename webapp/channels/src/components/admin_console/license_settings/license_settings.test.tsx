@@ -14,7 +14,7 @@ import LicenseSettings from './license_settings';
 const flushPromises = () => new Promise(setImmediate);
 
 describe('components/admin_console/license_settings/LicenseSettings', () => {
-    let resetFakeDate: {(): void};
+    let resetFakeDate: () => void;
 
     beforeAll(() => {
         resetFakeDate = fakeDate(new Date('2021-04-14T12:00:00Z'));

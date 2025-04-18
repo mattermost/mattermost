@@ -80,7 +80,7 @@ function RecentUsedCustomDate({handleOnSelect, userCurrentTimezone, nextMonday, 
         if (recentlyUsedCustomDate) {
             try {
                 return JSON.parse(recentlyUsedCustomDate) as RecentlyUsedCustomDate;
-            } catch (e) {
+            } catch {
                 return {};
             }
         }

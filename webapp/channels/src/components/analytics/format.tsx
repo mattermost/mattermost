@@ -38,7 +38,7 @@ export function formatPostsPerDayData(labels: string[], data: any) {
 // synchronizeChartLabels converges on a uniform set of labels for all entries in the given chart data.
 // If a given label wasn't already present in the chart data, a 0-valued data point at that label is added.
 export function synchronizeChartLabels(...datas: any) {
-    const labels: Set<string> = new Set();
+    const labels = new Set<string>();
     datas.forEach((data: any) => {
         if (data?.length) {
             data.forEach((e: any) => labels.add(e.name));

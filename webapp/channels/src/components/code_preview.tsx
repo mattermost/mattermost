@@ -84,7 +84,7 @@ export default class CodePreview extends React.PureComponent<Props, State> {
             const data = await fetch(this.props.fileUrl);
             const text = await data.text();
             this.handleReceivedCode(text);
-        } catch (e) {
+        } catch {
             this.handleReceivedError();
         }
     };

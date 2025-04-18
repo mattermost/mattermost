@@ -20,6 +20,9 @@
     "gen-lang-imports": "node scripts/gen_lang_imports.mjs"
   },
   "dependencies": {
+    "@stylistic/eslint-plugin-ts": "3.1.0",
+    "@typescript-eslint/eslint-plugin": "8.24.0",
+    "@typescript-eslint/parser": "8.24.0",
     "react-intl": "6.6.2",
     "typescript": "5.6.3"
   },

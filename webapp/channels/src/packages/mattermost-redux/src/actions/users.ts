@@ -104,7 +104,7 @@ export function logout(): ActionFuncAsync {
 
         try {
             await Client4.logout();
-        } catch (error) {
+        } catch {
             // nothing to do here
         }
 

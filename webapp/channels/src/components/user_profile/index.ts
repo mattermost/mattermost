@@ -41,6 +41,7 @@ function makeMapStateToProps() {
     };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const connector = connect(makeMapStateToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;

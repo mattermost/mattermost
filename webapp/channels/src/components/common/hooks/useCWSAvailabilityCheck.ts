@@ -25,7 +25,7 @@ export default function useCWSAvailabilityCheck(): CSWAvailabilityCheckTypes {
             try {
                 await Client4.cwsAvailabilityCheck();
                 setCSWAvailability(CSWAvailabilityCheckTypes.Available);
-            } catch (error) {
+            } catch {
                 setCSWAvailability(CSWAvailabilityCheckTypes.Unavailable);
             }
         }
