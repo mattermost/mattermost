@@ -4102,7 +4102,7 @@ func TestAddChannelMemberGuestAccessControl(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	// Create a guest user
-	guest, guestClient := th.CreateGuestAndClient()
+	guest, guestClient := th.CreateGuestAndClient(t)
 
 	// Create a public channel to which the guest doesn't belong
 	publicChannel := th.CreatePublicChannel()

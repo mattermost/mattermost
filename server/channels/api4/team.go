@@ -151,7 +151,16 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (!team.AllowOpenInvite || team.Type != model.TeamOpen) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+	isPublicTeam := team.AllowOpenInvite && team.Type == model.TeamOpen
+	hasPermissionViewTeam := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam)
+
+	if !isPublicTeam && !hasPermissionViewTeam {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	if isPublicTeam && !hasPermissionViewTeam && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPublicTeams) {
+		// Fail with PermissionViewTeam, not PermissionListPublicTeams.
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
