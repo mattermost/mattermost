@@ -231,7 +231,7 @@ func TestExportAllUsers(t *testing.T) {
 		defer th2.TearDown()
 	}
 
-	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	i, err := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
 	assert.EqualValues(t, 0, i)
 
@@ -286,7 +286,7 @@ func TestExportAllBots(t *testing.T) {
 
 	th2 := Setup(t)
 	defer th2.TearDown()
-	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	i, err := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	require.Nil(t, err)
 	assert.EqualValues(t, 0, i)
 
@@ -340,8 +340,7 @@ func TestExportDMChannel(t *testing.T) {
 		assert.Equal(t, 0, len(channels))
 
 		// import the exported channel
-		var i int
-		appErr, i = th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+		i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 		require.Nil(t, appErr)
 		assert.Equal(t, 0, i)
 
@@ -383,7 +382,7 @@ func TestExportDMChannel(t *testing.T) {
 		defer th2.TearDown()
 
 		// import the exported channel
-		appErr, _ = th2.App.BulkImport(th2.Context, &b, nil, true, 5)
+		_, appErr = th2.App.BulkImport(th2.Context, &b, nil, true, 5)
 		require.Nil(t, appErr)
 
 		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
@@ -419,7 +418,7 @@ func TestExportDMChannel(t *testing.T) {
 		defer th2.TearDown()
 
 		// import the exported channel
-		err, _ = th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+		_, err = th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 		require.Nil(t, err)
 
 		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
@@ -463,7 +462,7 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	assert.Equal(t, 0, len(channels))
 
 	// import the exported channel
-	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	i, err := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
 	assert.EqualValues(t, 0, i)
 
@@ -541,7 +540,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	assert.Equal(t, 0, len(channels))
 
 	// import the exported channel
-	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	i, err := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
@@ -627,7 +626,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	assert.Equal(t, 0, len(posts))
 
 	// import the exported posts
-	appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, appErr)
 	assert.Equal(t, 0, i)
 
@@ -669,7 +668,7 @@ func TestExportPostWithProps(t *testing.T) {
 		ChannelId: dmChannel.Id,
 		Message:   "aa" + model.NewId() + "a",
 		Props: map[string]any{
-			"attachments": attachments,
+			model.PostPropsAttachments: attachments,
 		},
 		UserId: th1.BasicUser.Id,
 	}
@@ -680,7 +679,7 @@ func TestExportPostWithProps(t *testing.T) {
 		ChannelId: gmChannel.Id,
 		Message:   "dd" + model.NewId() + "a",
 		Props: map[string]any{
-			"attachments": attachments,
+			model.PostPropsAttachments: attachments,
 		},
 		UserId: th1.BasicUser.Id,
 	}
@@ -707,7 +706,7 @@ func TestExportPostWithProps(t *testing.T) {
 	assert.Len(t, posts, 0)
 
 	// import the exported posts
-	appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, appErr)
 	assert.Equal(t, 0, i)
 
@@ -719,8 +718,8 @@ func TestExportPostWithProps(t *testing.T) {
 	assert.Len(t, posts, 2)
 	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)
 	assert.ElementsMatch(t, dmMembers, *posts[1].ChannelMembers)
-	assert.Contains(t, posts[0].Props["attachments"].([]any)[0], "footer")
-	assert.Contains(t, posts[1].Props["attachments"].([]any)[0], "footer")
+	assert.Contains(t, posts[0].Props[model.PostPropsAttachments].([]any)[0], "footer")
+	assert.Contains(t, posts[1].Props[model.PostPropsAttachments].([]any)[0], "footer")
 }
 
 func TestExportUserCustomStatus(t *testing.T) {
@@ -749,7 +748,7 @@ func TestExportUserCustomStatus(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+	i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
 	require.Nil(t, appErr)
 	assert.Equal(t, 0, i)
 
@@ -789,7 +788,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	assert.Equal(t, 0, len(posts))
 
 	// import the exported posts
-	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	i, err := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
@@ -977,7 +976,7 @@ func TestExportFileWarnings(t *testing.T) {
 			jsonFile := extractImportFile(filepath.Join(testsDir, "import_test.zip"))
 			defer jsonFile.Close()
 
-			appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, true, 1, dir)
+			_, appErr := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, true, 1, dir)
 			require.Nil(t, appErr)
 
 			// delete one of the files
@@ -996,27 +995,25 @@ func TestExportFileWarnings(t *testing.T) {
 
 			job, appErr := th.App.Srv().Jobs.CreateJob(th.Context, model.JobTypeExportProcess, nil)
 			require.Nil(t, appErr)
-			ok, appErr := th.App.Srv().Jobs.ClaimJob(job)
+			newJob, appErr := th.App.Srv().Jobs.ClaimJob(job)
 			require.Nil(t, appErr)
-			require.True(t, ok)
-			job, appErr = th.App.Srv().Jobs.GetJob(th.Context, job.Id)
-			require.Nil(t, appErr)
+			require.NotNil(t, newJob)
 
 			opts := model.BulkExportOpts{
 				IncludeAttachments: true,
 				CreateArchive:      true,
 			}
-			appErr = th.App.BulkExport(th.Context, exportFile, dir, job, opts)
+			appErr = th.App.BulkExport(th.Context, exportFile, dir, newJob, opts)
 			// should not get an error for the missing file
 			require.Nil(t, appErr)
 
 			// should get a warning instead:
 			testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Unable to export file attachment")
 
-			// should get info in the job data:
-			job, appErr = th.App.Srv().Jobs.GetJob(th.Context, job.Id)
+			// should get info in the newJob data:
+			newJob, appErr = th.App.Srv().Jobs.GetJob(th.Context, newJob.Id)
 			require.Nil(t, appErr)
-			warnings, ok := job.Data["num_warnings"]
+			warnings, ok := newJob.Data["num_warnings"]
 			require.True(t, ok)
 			require.Equal(t, "1", warnings)
 
@@ -1074,7 +1071,7 @@ func TestBulkExport(t *testing.T) {
 	jsonFile := extractImportFile(filepath.Join(testsDir, "import_test.zip"))
 	defer jsonFile.Close()
 
-	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, true, 1, dir)
+	_, appErr := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, true, 1, dir)
 	require.Nil(t, appErr)
 
 	exportFile, err := os.Create(filepath.Join(dir, "export.zip"))
@@ -1095,7 +1092,7 @@ func TestBulkExport(t *testing.T) {
 	jsonFile = extractImportFile(filepath.Join(dir, "export.zip"))
 	defer jsonFile.Close()
 
-	appErr, _ = th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, true, 1, filepath.Join(dir, "data"))
+	_, appErr = th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, true, 1, filepath.Join(dir, "data"))
 	require.Nil(t, appErr)
 }
 
@@ -1194,7 +1191,7 @@ func TestExportDeletedTeams(t *testing.T) {
 		defer th2.TearDown()
 	}
 
-	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	i, err := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
@@ -1237,7 +1234,7 @@ func TestExportArchivedChannels(t *testing.T) {
 
 	th2 := Setup(t)
 	defer th2.TearDown()
-	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	i, err := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
@@ -1273,7 +1270,7 @@ func TestExportRoles(t *testing.T) {
 
 		th2 := Setup(t)
 		defer th2.TearDown()
-		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
 		assert.Nil(t, appErr)
 		assert.Equal(t, 0, i)
 
@@ -1304,7 +1301,7 @@ func TestExportRoles(t *testing.T) {
 
 		th2 := Setup(t)
 		defer th2.TearDown()
-		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, i)
 
@@ -1341,7 +1338,7 @@ func TestExportRoles(t *testing.T) {
 
 		th2 := Setup(t)
 		defer th2.TearDown()
-		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, i)
 
@@ -1390,7 +1387,7 @@ func TestExportSchemes(t *testing.T) {
 		err = th2.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
-		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, i)
 
@@ -1430,7 +1427,7 @@ func TestExportSchemes(t *testing.T) {
 		err = th2.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
-		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, i)
 
@@ -1494,7 +1491,7 @@ func TestExportSchemes(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Len(t, roles, builtInRoles)
 
-		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, i)
 
@@ -1602,7 +1599,7 @@ func TestExportSchemes(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Len(t, roles, builtInRoles)
 
-		appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
+		i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 1)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, i)
 
@@ -1668,4 +1665,153 @@ func TestExportSchemes(t *testing.T) {
 		require.Equal(t, customTeamGuestRole.SchemeManaged, importedTeamGuestRole.SchemeManaged)
 		require.Equal(t, customTeamGuestRole.BuiltIn, importedTeamGuestRole.BuiltIn)
 	})
+}
+
+// TestExportDeactivatedUserDMs specifically tests the MM-43598 bug
+// by validating that direct messages from deactivated users are exported correctly
+func TestExportDeactivatedUserDMs(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+	defer th1.TearDown()
+
+	// Create a DM Channel
+	user2 := th1.BasicUser2
+	dmChannel := th1.CreateDmChannel(user2)
+
+	// 1. First basic user (active) sends a message to user2 (who will later be deactivated)
+	initialMessage := "initial_message_from_basic_user"
+	initialPost := &model.Post{
+		ChannelId: dmChannel.Id,
+		Message:   initialMessage,
+		UserId:    th1.BasicUser.Id,
+	}
+	initialPostCreated, appErr := th1.App.CreatePost(th1.Context, initialPost, dmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	// 2. Have user2 reply with TWO types of replies:
+
+	// 2a. User2 replies in a thread (to the initial message)
+	threadedReplyMessage := "threaded_reply_from_user2"
+	threadedReply := &model.Post{
+		ChannelId: dmChannel.Id,
+		Message:   threadedReplyMessage,
+		UserId:    user2.Id,
+		RootId:    initialPostCreated.Id, // This makes it a threaded reply
+	}
+	_, appErr = th1.App.CreatePost(th1.Context, threadedReply, dmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	// 2b. User2 sends a standalone reply (NOT in a thread)
+	nonThreadedReplyMessage := "non_threaded_reply_from_user2"
+	nonThreadedReply := &model.Post{
+		ChannelId: dmChannel.Id,
+		Message:   nonThreadedReplyMessage,
+		UserId:    user2.Id,
+		// No RootId, making it a standalone message, not a thread reply
+	}
+	_, appErr = th1.App.CreatePost(th1.Context, nonThreadedReply, dmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	// 3. Now deactivate user2
+	_, err := th1.App.UpdateActive(th1.Context, user2, false)
+	require.Nil(t, err)
+
+	// 4. Export data
+	var b bytes.Buffer
+	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+	require.Nil(t, appErr)
+
+	// 5. Make a copy of the buffer for export validation
+	var exportDataCopy bytes.Buffer
+	_, nErr := exportDataCopy.Write(b.Bytes())
+	require.NoError(t, nErr)
+
+	// 6. Validate export data directly to ensure both types of replies are present
+	scanner := bufio.NewScanner(&exportDataCopy)
+	foundThreadedReply := false
+	foundNonThreadedReply := false
+
+	for scanner.Scan() {
+		var line imports.LineImportData
+		err := json.Unmarshal(scanner.Bytes(), &line)
+		if err != nil {
+			continue
+		}
+
+		// Check for direct posts
+		if line.Type == "direct_post" && line.DirectPost != nil {
+			// Check for the non-threaded reply (the standalone message)
+			if line.DirectPost.Message != nil && *line.DirectPost.Message == nonThreadedReplyMessage {
+				foundNonThreadedReply = true
+				// Verify username is correctly preserved in export
+				require.Equal(t, user2.Username, *line.DirectPost.User,
+					"Deactivated user's username should be preserved in export for non-threaded reply")
+			}
+
+			// Check for the thread starter and its replies
+			if line.DirectPost.Message != nil && *line.DirectPost.Message == initialMessage {
+				// Check if the threaded reply is in the replies array
+				if line.DirectPost.Replies != nil {
+					for _, reply := range *line.DirectPost.Replies {
+						if reply.Message != nil && *reply.Message == threadedReplyMessage {
+							foundThreadedReply = true
+							require.Equal(t, user2.Username, *reply.User,
+								"Deactivated user's username should be preserved in export for threaded reply")
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// This is key for testing MM-43598
+	require.True(t, foundNonThreadedReply,
+		"Non-threaded reply from deactivated user must be present in export data")
+	require.True(t, foundThreadedReply,
+		"Threaded reply from deactivated user must be present in export data")
+
+	// 7. Import data into a new instance
+	th2 := Setup(t)
+	defer th2.TearDown()
+
+	i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	require.Nil(t, appErr)
+	require.Equal(t, 0, i)
+
+	// 8. Verify the DM channel was imported
+	channels, nErr := th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
+	require.NoError(t, nErr)
+	require.Equal(t, 1, len(channels), "Direct channel should be imported")
+
+	// 9. Verify all posts were imported
+	posts, nErr := th2.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{
+		ChannelId: channels[0].Id,
+		PerPage:   1000,
+	}, false, nil)
+	require.NoError(t, nErr)
+
+	// We should have exactly 3 posts
+	require.Equal(t, 3, len(posts.Posts), "Should have imported exactly 3 posts")
+
+	// 10. Specifically check that both types of replies are present
+	foundThreadedReplyInImport := false
+	foundNonThreadedReplyInImport := false
+
+	for _, post := range posts.Posts {
+		if post.Message == threadedReplyMessage {
+			foundThreadedReplyInImport = true
+			// Verify this is a reply in a thread
+			require.NotEmpty(t, post.RootId, "Threaded reply should have a RootId")
+		}
+		if post.Message == nonThreadedReplyMessage {
+			foundNonThreadedReplyInImport = true
+			// Verify this is NOT a reply in a thread
+			require.Empty(t, post.RootId, "Non-threaded reply should not have a RootId")
+		}
+	}
+
+	// This directly tests the issue in MM-43598
+	require.True(t, foundNonThreadedReplyInImport,
+		"Non-threaded reply from deactivated user should be imported")
+	require.True(t, foundThreadedReplyInImport,
+		"Threaded reply from deactivated user should be imported")
 }

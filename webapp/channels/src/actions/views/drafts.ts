@@ -6,12 +6,9 @@ import {batchActions} from 'redux-batched-actions';
 import type {Draft as ServerDraft} from '@mattermost/types/drafts';
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
-import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Client4} from 'mattermost-redux/client';
-import Preferences from 'mattermost-redux/constants/preferences';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -135,21 +132,6 @@ function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', c
     };
 
     return Client4.upsertDraft(newDraft, connectionId);
-}
-
-export function setDraftsTourTipPreference(initializationState: Record<string, boolean>): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        const state = getState();
-        const currentUserId = getCurrentUserId(state);
-        const preference: PreferenceType = {
-            user_id: currentUserId,
-            category: Preferences.CATEGORY_DRAFTS,
-            name: Preferences.DRAFTS_TOUR_TIP_SHOWED,
-            value: JSON.stringify(initializationState),
-        };
-        await dispatch(savePreferences(currentUserId, [preference]));
-        return {data: true};
-    };
 }
 
 export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean): ActionFunc {

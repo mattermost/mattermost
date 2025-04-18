@@ -201,10 +201,11 @@ func TestFilterInaccessiblePosts(t *testing.T) {
 	}
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	th.App.Srv().Store().System().Save(&model.System{
+	err := th.App.Srv().Store().System().Save(&model.System{
 		Name:  model.SystemLastAccessiblePostTime,
 		Value: "2",
 	})
+	require.NoError(t, err)
 
 	defer th.TearDown()
 
@@ -332,10 +333,11 @@ func TestGetFilteredAccessiblePosts(t *testing.T) {
 	}
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	th.App.Srv().Store().System().Save(&model.System{
+	err := th.App.Srv().Store().System().Save(&model.System{
 		Name:  model.SystemLastAccessiblePostTime,
 		Value: "2",
 	})
+	require.NoError(t, err)
 
 	defer th.TearDown()
 
@@ -376,10 +378,11 @@ func TestIsInaccessiblePost(t *testing.T) {
 	}
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	th.App.Srv().Store().System().Save(&model.System{
+	err := th.App.Srv().Store().System().Save(&model.System{
 		Name:  model.SystemLastAccessiblePostTime,
 		Value: "2",
 	})
+	require.NoError(t, err)
 
 	defer th.TearDown()
 

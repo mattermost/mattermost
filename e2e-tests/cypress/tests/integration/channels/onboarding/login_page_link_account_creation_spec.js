@@ -44,7 +44,7 @@ describe('Onboarding', () => {
 
     it('MM-T400 Create account from login page link using email-password', () => {
         // # Open team menu and click on "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {

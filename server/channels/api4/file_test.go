@@ -394,6 +394,19 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageMiniPreview:    []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
 		},
+		// 5MB+ JPEG
+		{
+			title:                       "Happy image thumbnail/preview 5MB+",
+			names:                       []string{"orientation_test_9.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_9_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_9_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{4000},
+			expectedImageHeights:        []int{2667},
+			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
 		// TIFF preview test
 		{
 			title:                       "Happy image thumbnail/preview 9",

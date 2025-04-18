@@ -226,18 +226,19 @@ const SidebarCategoryMenu = ({
         trackEvent('ui', 'ui_sidebar_category_menu_viewCategory');
     }, [dispatch, unreadsIds]);
 
-    const markAsReadMenuItem = showUnreadsCategory ?
-        null :
-        (
-            <MarkAsReadMenuItem
-                id={category.id}
-                handleViewCategory={handleViewCategory}
-                numChannels={unreadsIds.length}
-            />
-        );
+    const markAsReadMenuItem = showUnreadsCategory === false ? (
+        <MarkAsReadMenuItem
+            id={category.id}
+            handleViewCategory={handleViewCategory}
+            numChannels={unreadsIds.length}
+        />
+    ) : null;
 
     return (
-        <SidebarCategoryGenericMenu id={category.id}>
+        <SidebarCategoryGenericMenu
+            id={category.id}
+            name={category.display_name}
+        >
             {markAsReadMenuItem}
             {markAsReadMenuItem && <Menu.Separator/>}
             {muteUnmuteCategoryMenuItem}
