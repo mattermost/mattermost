@@ -87,6 +87,7 @@
         .textbox-preview-area, #channel_settings_purpose_textbox,  #channel_settings_header_textbox {
             height: 80px !important;
             box-shadow: none !important;
+            border: none !important;
         }
 
         // forcing z-index on the emoji list to be on top of the modal
