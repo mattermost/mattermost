@@ -10562,5 +10562,65 @@
   {
     "id": "app.submit_interactive_dialog.decode_json_error",
     "translation": "Виникла помилка при декодуванні JSON-відповіді з інтерактивного діалогу."
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Не вдалося видалити значення атрибутів спеціального профілю для користувача"
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "Порожнє значення атрибута LDAP"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Не вдалося перевірити значення властивості"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "Не вдалося отримати поля CPA"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "Помилки під час виправлення значення CPA"
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "Не вдалося отримати поля CPA"
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "Інструкція атрибута твердження SAML недійсна"
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Не вдалося проаналізувати форму для вебхука {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Не вдалося проаналізувати багатокомпонентну форму для вебхука {{.hook_id}}."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Забагато файлів під «сертифікатом» у запиті."
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "Не вдалося прочитати дані зображення профілю."
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Виникла помилка під час читання тіла відповіді з інтерактивного діалогового вікна."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Некорректний ідентифікатор AD/LDAP"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Некоректний ідентифікатор AD/LDAP"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "Помилки під час оновлення значень CPA"
   }
 ]
