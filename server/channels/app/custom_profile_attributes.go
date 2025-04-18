@@ -210,8 +210,8 @@ func (a *App) GetCPAValue(valueID string) (*model.PropertyValue, *model.AppError
 	return value, nil
 }
 
-func (a *App) PatchCPAValue(userID string, fieldID string, value json.RawMessage) (*model.PropertyValue, *model.AppError) {
-	values, appErr := a.PatchCPAValues(userID, map[string]json.RawMessage{fieldID: value})
+func (a *App) PatchCPAValue(userID string, fieldID string, value json.RawMessage, allowSynced bool) (*model.PropertyValue, *model.AppError) {
+	values, appErr := a.PatchCPAValues(userID, map[string]json.RawMessage{fieldID: value}, allowSynced)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -219,7 +219,7 @@ func (a *App) PatchCPAValue(userID string, fieldID string, value json.RawMessage
 	return values[0], nil
 }
 
-func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMessage) ([]*model.PropertyValue, *model.AppError) {
+func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMessage, allowSynced bool) ([]*model.PropertyValue, *model.AppError) {
 	groupID, err := a.CpaGroupID()
 	if err != nil {
 		return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -230,19 +230,23 @@ func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMes
 		// make sure field exists in this group
 		existingField, appErr := a.GetCPAField(fieldID)
 		if appErr != nil {
-			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+			return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 		} else if existingField.DeleteAt > 0 {
-			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
+			return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
 		}
 
 		cpaField, fErr := model.NewCPAFieldFromPropertyField(existingField)
 		if fErr != nil {
-			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(fErr)
+			return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(fErr)
+		}
+
+		if !allowSynced && cpaField.IsSynced() {
+			return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.property_field_is_synced.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		sanitizedValue, sErr := model.SanitizeAndValidatePropertyValue(cpaField, rawValue)
 		if sErr != nil {
-			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.validate_value.app_error", nil, "", http.StatusBadRequest).Wrap(sErr)
+			return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.validate_value.app_error", nil, "", http.StatusBadRequest).Wrap(sErr)
 		}
 
 		value := &model.PropertyValue{
