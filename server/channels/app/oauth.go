@@ -404,7 +404,7 @@ func (a *App) newSession(c request.CTX, app *model.OAuthApp, user *model.User) (
 	}
 
 	if err := a.ch.srv.platform.AddSessionToCache(session); err != nil {
-		c.Logger().Warn("error adding session to cache", mlog.Err(err))
+		c.Logger().Warn("Failed to add session to cache", mlog.Err(err))
 	}
 
 	return session, nil
