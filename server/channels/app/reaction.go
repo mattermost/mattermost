@@ -49,6 +49,16 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 		return nil, err
 	}
 
+	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(c, channel)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if restrictDM {
+		err := model.NewAppError("SaveReactionForPost", "api.reaction.save.restricted_dm.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	if channel.DeleteAt > 0 {
 		return nil, model.NewAppError("SaveReactionForPost", "api.reaction.save.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
@@ -139,6 +149,16 @@ func (a *App) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *mo
 
 	channel, err := a.GetChannel(c, post.ChannelId)
 	if err != nil {
+		return err
+	}
+
+	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(c, channel)
+	if appErr != nil {
+		return err
+	}
+
+	if restrictDM {
+		err := model.NewAppError("DeleteReactionForPost", "api.reaction.delete.restricted_dm.error", nil, "", http.StatusBadRequest)
 		return err
 	}
 
