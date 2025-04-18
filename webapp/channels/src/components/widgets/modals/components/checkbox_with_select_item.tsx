@@ -3,13 +3,14 @@
 
 import type {ReactNode} from 'react';
 import React from 'react';
+import {useIntl} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue} from 'react-select';
 
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
 import type {FieldsetCheckbox} from './checkbox_setting_item';
-import type {FieldsetReactSelect, Option} from './react_select_item';
+import {getOptionLabel, type FieldsetReactSelect, type Option} from './react_select_item';
 
 type Props = BaseSettingItemProps & {
     containerClassName?: string;
@@ -40,6 +41,8 @@ export default function CheckboxWithSelectSettingItem({
     isSelectDisabled,
     selectPlaceholder,
 }: Props) {
+    const intl = useIntl();
+
     const content = (
         <>
             <fieldset
@@ -73,6 +76,7 @@ export default function CheckboxWithSelectSettingItem({
                     onChange={(value) => handleSelectChange(value)}
                     value={selectFieldValue}
                     components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
+                    getOptionLabel={(option) => getOptionLabel(option, intl)}
                 />
             </fieldset>
         </>

@@ -3,7 +3,7 @@
 
 import React, {Fragment, useCallback, useEffect, useMemo, useRef, memo} from 'react';
 import type {ChangeEvent, ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, Options} from 'react-select';
 
@@ -14,6 +14,7 @@ import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 import NotificationPermissionSectionNotice from 'components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_section_notice';
 import NotificationPermissionTitleTag from 'components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_title_tag';
+import {getOptionLabel} from 'components/widgets/modals/components/react_select_item';
 
 import Constants, {NotificationLevels, UserSettingsNotificationSections} from 'utils/constants';
 
@@ -63,6 +64,7 @@ function DesktopAndMobileNotificationSettings({
 }: Props) {
     const editButtonRef = useRef<SettingItemMinComponent>(null);
     const previousActiveRef = useRef(active);
+    const intl = useIntl();
 
     // Focus back on the edit button, after this section was closed after it was opened
     useEffect(() => {
@@ -208,6 +210,8 @@ function DesktopAndMobileNotificationSettings({
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
                         value={getValueOfSendMobileNotificationForSelect(pushActivity)}
                         onChange={handleChangeForSendMobileNotificationsSelect}
+                        getOptionLabel={(option) => getOptionLabel(option, intl)}
+
                     />
                 </React.Fragment>
             );
@@ -261,6 +265,7 @@ function DesktopAndMobileNotificationSettings({
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
                         value={getValueOfSendMobileNotificationWhenSelect(pushStatus)}
                         onChange={handleChangeForTriggerMobileNotificationsSelect}
+                        getOptionLabel={(option) => getOptionLabel(option, intl)}
                     />
                 </React.Fragment>
             );
