@@ -386,7 +386,7 @@ function CreateTeamMenuItem({isCloud}: CreateTeamMenuItemProps) {
     const isTeamCreateRestricted = isCloud && (isFreeTrial || isTeamsLimitReached);
 
     const handleClick = useCallback(() => {
-        if (isTeamsLimitReached) {
+        if (isTeamsLimitReached || isTeamCreateRestricted) {
             return;
         }
 
