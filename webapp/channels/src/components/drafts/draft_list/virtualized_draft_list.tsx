@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import debounce from 'lodash/debounce';
 import type {CSSProperties} from 'react';
-import React, {useMemo, useRef, useCallback, useEffect} from 'react';
+import React, {useMemo, useRef, useCallback, useEffect, memo} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {VariableSizeList} from 'react-window';
 
@@ -14,11 +14,10 @@ import type {Draft} from 'selectors/drafts';
 
 import DraftRow from 'components/drafts/draft_row';
 
-const OVERSCAN_ROW_COUNT = 10; // no. of rows
-const ROW_HEIGHT_CHANGE_TOLERANCE = 2; // in px
+const OVERSCAN_ROW_COUNT = 6; // no. of rows
+const ROW_HEIGHT_CHANGE_TOLERANCE = 4; // in px
 
-const FRAME_RATE = 60; // in Hz
-const RESIZE_DEBOUNCE_TIME = Math.round(1000 / FRAME_RATE); // in ms
+const RESIZE_DEBOUNCE_TIME = 120; // in ms
 
 type Props = {
     drafts: Draft[];
@@ -38,7 +37,7 @@ export default function VirtualizedDraftList(props: Props) {
 
         // If current height is not cached or if there is a significant difference, update the cache
         // This prevents layout thrashing when the height variations are small
-        if (!currentItemHeight || Math.abs(currentItemHeight - size) > ROW_HEIGHT_CHANGE_TOLERANCE) {
+        if (!currentItemHeight || (Math.abs(currentItemHeight - size) > ROW_HEIGHT_CHANGE_TOLERANCE)) {
             itemHeightCacheMap.current.set(draftKey, size);
 
             // Reset the list UI in response to the row height changing
@@ -51,29 +50,6 @@ export default function VirtualizedDraftList(props: Props) {
     const getItemSize = useCallback((index: number) => {
         const draftKey = index < props.drafts.length ? props.drafts[index].key : '';
         return draftKey ? (itemHeightCacheMap.current.get(draftKey) || 0) : 0;
-    }, [props.drafts]);
-
-    // Update cached sizes when list items change
-    useEffect(() => {
-        if (itemHeightCacheMap.current.size > 0) {
-            const updatedItemHeightCacheMap = new Map<string, number>();
-
-            // Only keep height entries for items that still exist
-            for (const draft of props.drafts) {
-                const height = itemHeightCacheMap.current.get(draft.key);
-                if (height) {
-                    updatedItemHeightCacheMap.set(draft.key, height);
-                }
-            }
-
-            // Replace the old height cache with the new one
-            itemHeightCacheMap.current = updatedItemHeightCacheMap;
-        }
-
-        // Reset list UI in response to list items changing
-        if (listRef.current) {
-            listRef.current.resetAfterIndex(0);
-        }
     }, [props.drafts]);
 
     const itemData = useMemo(() => ({
@@ -121,14 +97,11 @@ interface RowProps {
 
 // Row component for dynamic height measurement
 // This component is rendered for each visible draft item by react-window's virtualization
-function Row({index, style, data: {drafts, userDisplayName, draftRemotes, currentUser, userStatus, setRowHeight}}: RowProps) {
+function RowComponent({index, style, data: {drafts, userDisplayName, draftRemotes, currentUser, userStatus, setRowHeight}}: RowProps) {
     const draft = drafts[index];
 
     // Reference to the DOM element we'll measure
     const rowRef = useRef<HTMLDivElement>(null);
-
-    // Cache the last measured height to avoid unnecessary updates
-    const lastMeasuredHeightRef = useRef<number | null>(null);
 
     // These refs store the current values for use in callbacks
     // This prevents stale closures in the ResizeObserver callback
@@ -144,7 +117,7 @@ function Row({index, style, data: {drafts, userDisplayName, draftRemotes, curren
     }, [index, draft.key, setRowHeight]);
 
     // This effect performs the initial height measurement on first render
-    // and whenever the draft content changes
+    // or whenever the draft content changes
     useEffect(() => {
         if (!rowRef.current) {
             return undefined;
@@ -156,9 +129,7 @@ function Row({index, style, data: {drafts, userDisplayName, draftRemotes, curren
                 return;
             }
 
-            // Get the rendered height and enforce minimum height
-            const height = Math.max(rowRef.current.getBoundingClientRect().height);
-            lastMeasuredHeightRef.current = height;
+            const height = rowRef.current.getBoundingClientRect().height;
 
             // Inform the virtualized list about this row's height
             setRowHeight(index, draft.key, height);
@@ -167,7 +138,7 @@ function Row({index, style, data: {drafts, userDisplayName, draftRemotes, curren
         return () => {
             cancelAnimationFrame(rafId);
         };
-    }, [draft, setRowHeight, index, draft.key]);
+    }, [draft, setRowHeight, index]);
 
     // This effect sets up a ResizeObserver to track height changes on the row element
     useEffect(() => {
@@ -181,20 +152,11 @@ function Row({index, style, data: {drafts, userDisplayName, draftRemotes, curren
         // Create a debounced function to update height measurements
         // This prevents excessive updates when height changes rapidly
         const debouncedUpdateHeight = debounce((height: number) => {
-            // Skip if component was unmounted or ref is gone
             if (!isObservingResize || !rowRef.current) {
                 return;
             }
 
-            // Skip if the height hasn't changed significantly
-            if (lastMeasuredHeightRef.current !== null && Math.abs((lastMeasuredHeightRef.current - height)) <= ROW_HEIGHT_CHANGE_TOLERANCE) {
-                return;
-            }
-
-            // Update our cached height
-            lastMeasuredHeightRef.current = height;
-
-            // Notify the parent list about the new height
+            // Notify the parent list about this row's height
             setRowHeightRef.current(
                 indexRef.current,
                 draftKeyRef.current,
@@ -203,21 +165,15 @@ function Row({index, style, data: {drafts, userDisplayName, draftRemotes, curren
         }, RESIZE_DEBOUNCE_TIME);
 
         // This ResizeObserver API notifies us when the element's size changes
-        const resizeObserver = new ResizeObserver((entries) => {
+        const resizeObserver = new ResizeObserver((resizeEntries) => {
             if (!isObservingResize || !rowRef.current) {
                 return;
             }
 
-            // Process all resize entries (typically just one)
-            for (const entry of entries) {
-                // Double-check that the entry is for our element
-                if (entry.target === rowRef.current) {
-                    // Get the new content height and enforce minimum
-                    const height = entry.borderBoxSize[0].blockSize;
-
-                    // Update height with debouncing to prevent layout thrashing
-                    debouncedUpdateHeight(height);
-                }
+            // Since we're observing a single row, we can safely assume that the first entry is the one we want
+            if (resizeEntries.length === 1 && resizeEntries[0].target === rowRef.current) {
+                const height = resizeEntries[0].borderBoxSize[0].blockSize;
+                debouncedUpdateHeight(height);
             }
         });
 
@@ -251,3 +207,5 @@ function Row({index, style, data: {drafts, userDisplayName, draftRemotes, curren
         </div>
     );
 }
+
+const Row = memo(RowComponent);

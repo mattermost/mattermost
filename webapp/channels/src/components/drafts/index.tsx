@@ -12,6 +12,7 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {selectLhsItem} from 'actions/views/lhs';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
+import type {Draft} from 'selectors/drafts';
 import {makeGetDrafts} from 'selectors/drafts';
 
 import DraftList from 'components/drafts/draft_list';
@@ -23,6 +24,8 @@ import DraftsAndSchedulePostsPageHeader from './drafts_and_schedule_posts_page_h
 import DraftsAndSchedulePostsTabs from './drafts_and_schedule_posts_tabs';
 
 import './drafts_and_schedule_posts.scss';
+
+const EMPTY_DRAFTS: Draft[] = [];
 
 function Drafts() {
     const dispatch = useDispatch();
@@ -54,7 +57,7 @@ function Drafts() {
         return (
             <DraftsAndSchedulePostsPageHeader>
                 <DraftsAndSchedulePostsTabs
-                    drafts={drafts}
+                    drafts={drafts || EMPTY_DRAFTS}
                     currentUser={currentUser}
                     userDisplayName={userDisplayName}
                     userStatus={userStatus}
@@ -66,7 +69,7 @@ function Drafts() {
     return (
         <DraftsAndSchedulePostsPageHeader>
             <DraftList
-                drafts={drafts}
+                drafts={drafts || EMPTY_DRAFTS}
                 currentUser={currentUser}
                 userDisplayName={userDisplayName}
                 userStatus={userStatus}

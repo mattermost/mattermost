@@ -34,10 +34,12 @@ export default function ScheduledPostList(props: Props) {
     const scheduledPostsHasError = useSelector((state: GlobalState) => hasScheduledPostError(state, currentTeamId));
 
     useEffect(() => {
-        dispatch(fetchMissingChannels(props.scheduledPosts.map((post) => post.channel_id)));
+        if (props.scheduledPosts.length > 0) {
+            dispatch(fetchMissingChannels(props.scheduledPosts.map((post) => post.channel_id)));
+        }
     }, [dispatch, props.scheduledPosts]);
 
-    if (props.scheduledPosts?.length === 0) {
+    if (props.scheduledPosts.length === 0) {
         return (
             <EmptyScheduledPostList/>
         );
@@ -46,6 +48,7 @@ export default function ScheduledPostList(props: Props) {
     return (
         <div className='ScheduledPostList nonVirtualizedScheduledPostList'>
             {scheduledPostsHasError && (<ScheduledPostError/>)}
+
             <NonVirtualizedScheduledPostList
                 scheduledPosts={props.scheduledPosts}
                 currentUser={props.currentUser}

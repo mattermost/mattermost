@@ -12,7 +12,7 @@ import EmptyDraftList from './empty_draft_list';
 import VirtualizedDraftList from './virtualized_draft_list';
 
 type Props = {
-    drafts?: Draft[];
+    drafts: Draft[];
     currentUser: UserProfile;
     userDisplayName: string;
     userStatus: UserStatus['status'];
@@ -21,13 +21,13 @@ type Props = {
 export default function DraftList(props: Props) {
     const draftRemotes = useSelector(getDraftRemotes);
 
-    if (props.drafts?.length === 0) {
+    if (props.drafts.length === 0) {
         return <EmptyDraftList/>;
     }
 
     return (
         <VirtualizedDraftList
-            drafts={props.drafts as Draft[]}
+            drafts={props.drafts}
             currentUser={props.currentUser}
             userDisplayName={props.userDisplayName}
             userStatus={props.userStatus}

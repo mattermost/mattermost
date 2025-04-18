@@ -68,7 +68,7 @@ describe('components/drafts/draft_list', () => {
                 drafts={[]}
                 currentUser={currentUser}
                 userDisplayName='User One'
-                userStatus={currentUser.status || 'online'}
+                userStatus='online'
             />,
             initialState,
         );
@@ -82,7 +82,7 @@ describe('components/drafts/draft_list', () => {
                 drafts={[]}
                 currentUser={currentUser}
                 userDisplayName='User One'
-                userStatus={currentUser.status || 'online'}
+                userStatus='online'
             />,
             initialState,
         );
@@ -96,7 +96,7 @@ describe('components/drafts/draft_list', () => {
                 drafts={mockDrafts}
                 currentUser={currentUser}
                 userDisplayName='User One'
-                userStatus={currentUser.status || 'online'}
+                userStatus='online'
             />,
             initialState,
         );

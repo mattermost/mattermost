@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {useHistory, useLocation} from 'react-router-dom';
 
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {makeGetScheduledPostsByTeam} from 'mattermost-redux/selectors/entities/scheduled_posts';
@@ -22,6 +23,8 @@ import Tabs from 'components/tabs/tabs';
 import {DRAFT_URL_SUFFIX, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
+
+const EMPTY_SCHEDULED_POSTS: ScheduledPost[] = [];
 
 const TAB_KEYS = {
     DRAFTS: 'drafts',
@@ -128,7 +131,7 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
                 tabClassName='drafts_tab'
             >
                 <ScheduledPostList
-                    scheduledPosts={scheduledPosts}
+                    scheduledPosts={scheduledPosts || EMPTY_SCHEDULED_POSTS}
                     currentUser={props.currentUser}
                     userDisplayName={props.userDisplayName}
                     userStatus={props.userStatus}
