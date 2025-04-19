@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -95,37 +96,45 @@ func TestEnsureInstallationDate(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
 			sqlStore := th.GetSqlStore()
-			sqlStore.GetMaster().Exec("DELETE FROM Users")
+			_, err := sqlStore.GetMaster().Exec("DELETE FROM Users")
+			assert.NoError(t, err)
 
 			for _, createAt := range tc.UsersCreationDates {
 				user := th.CreateUser()
 				user.CreateAt = createAt
-				sqlStore.GetMaster().Exec("UPDATE Users SET CreateAt = ? WHERE Id = ?", createAt, user.Id)
+				_, err = sqlStore.GetMaster().Exec("UPDATE Users SET CreateAt = ? WHERE Id = ?", createAt, user.Id)
+				assert.NoError(t, err)
 			}
 
 			if tc.PrevInstallationDate == nil {
-				th.App.Srv().Store().System().PermanentDeleteByName(model.SystemInstallationDateKey)
+				_, err = th.App.Srv().Store().System().PermanentDeleteByName(model.SystemInstallationDateKey)
+				assert.NoError(t, err)
 			} else {
-				th.App.Srv().Store().System().SaveOrUpdate(&model.System{
+				err = th.App.Srv().Store().System().SaveOrUpdate(&model.System{
 					Name:  model.SystemInstallationDateKey,
 					Value: strconv.FormatInt(*tc.PrevInstallationDate, 10),
 				})
+				assert.NoError(t, err)
 			}
 
-			err := th.App.Srv().ensureInstallationDate()
+			err = th.App.Srv().ensureInstallationDate()
 
 			if tc.ExpectedInstallationDate == nil {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
 
-				data, err := th.App.Srv().Store().System().GetByName(model.SystemInstallationDateKey)
+				var data *model.System
+				data, err = th.App.Srv().Store().System().GetByName(model.SystemInstallationDateKey)
 				assert.NoError(t, err)
-				value, _ := strconv.ParseInt(data.Value, 10, 64)
+				var value int64
+				value, err = strconv.ParseInt(data.Value, 10, 64)
+				require.NoError(t, err)
 				assert.True(t, *tc.ExpectedInstallationDate <= value && *tc.ExpectedInstallationDate+1000 >= value)
 			}
 
-			sqlStore.GetMaster().Exec("DELETE FROM Users")
+			_, err = sqlStore.GetMaster().Exec("DELETE FROM Users")
+			assert.NoError(t, err)
 		})
 	}
 }
