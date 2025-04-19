@@ -48,13 +48,14 @@ func getSharedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.MemberId = c.AppContext.Session().UserId
 	}
 
-	channels, appErr := c.App.GetSharedChannels(c.Params.Page, c.Params.PerPage, opts)
+	// Use GetSharedChannelsWithRemotes to get both channels and their remote information
+	channelsWithRemotes, appErr := c.App.GetSharedChannelsWithRemotes(c.Params.Page, c.Params.PerPage, opts)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	b, err := json.Marshal(channels)
+	b, err := json.Marshal(channelsWithRemotes)
 	if err != nil {
 		c.SetJSONEncodingError(err)
 		return

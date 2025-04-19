@@ -5,10 +5,14 @@ import classNames from 'classnames';
 import React from 'react';
 import {type WrappedComponentProps, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
+import {connect} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {mark, trackEvent} from 'actions/telemetry_actions';
+import {fetchSharedChannelsWithRemotes} from 'mattermost-redux/actions/shared_channels';
+import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
@@ -28,7 +32,7 @@ import ChannelPencilIcon from '../channel_pencil_icon';
 import SidebarChannelIcon from '../sidebar_channel_icon';
 import SidebarChannelMenu from '../sidebar_channel_menu';
 
-type Props = WrappedComponentProps & {
+type OwnProps = WrappedComponentProps & {
     channel: Channel;
     link: string;
     label: string;
@@ -74,12 +78,22 @@ type Props = WrappedComponentProps & {
     };
 };
 
+type StateProps = {
+    remoteNames: string[];
+};
+
+type DispatchProps = {
+    fetchSharedChannelsWithRemotes: (teamId: string) => void;
+};
+
+type Props = OwnProps & StateProps & DispatchProps;
+
 type State = {
     isMenuOpen: boolean;
     showTooltip: boolean;
 };
 
-export class SidebarChannelLink extends React.PureComponent<Props, State> {
+export class SidebarChannelLink extends React.PureComponent<OwnProps & StateProps & DispatchProps, State> {
     labelRef: React.RefObject<HTMLDivElement>;
 
     constructor(props: Props) {
@@ -95,11 +109,22 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
 
     componentDidMount(): void {
         this.enableToolTipIfNeeded();
+        
+        // Fetch shared channel information if this is a shared channel
+        if (this.props.isSharedChannel && this.props.channel?.team_id) {
+            this.props.fetchSharedChannelsWithRemotes(this.props.channel.team_id);
+        }
     }
 
     componentDidUpdate(prevProps: Props): void {
         if (prevProps.label !== this.props.label) {
             this.enableToolTipIfNeeded();
+        }
+        
+        // Fetch shared channel information if this is a shared channel and the channel changed
+        if (this.props.isSharedChannel && 
+            (prevProps.channel?.id !== this.props.channel?.id || prevProps.channel?.team_id !== this.props.channel?.team_id)) {
+            this.props.fetchSharedChannelsWithRemotes(this.props.channel.team_id);
         }
     }
 
@@ -227,6 +252,7 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
             <SharedChannelIndicator
                 className='icon'
                 withTooltip={true}
+                remoteNames={this.props.remoteNames}
             />
         ) : null;
 
@@ -297,4 +323,18 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
     }
 }
 
-export default injectIntl(SidebarChannelLink);
+const mapStateToProps = (state: GlobalState, ownProps: OwnProps) => {
+    return {
+        remoteNames: getRemoteNamesForChannel(state, ownProps.channel?.id || ''),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        fetchSharedChannelsWithRemotes: (teamId: string) => {
+            dispatch(fetchSharedChannelsWithRemotes(teamId));
+        },
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(injectIntl(SidebarChannelLink));

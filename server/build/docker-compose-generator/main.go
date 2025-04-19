@@ -29,6 +29,7 @@ func main() {
 		"minio":              9000,
 		"inbucket":           9001,
 		"openldap":           389,
+		"phpldapadmin":       6443,
 		"elasticsearch":      9200,
 		"opensearch":         9201,
 		"redis":              6379,
@@ -45,6 +46,9 @@ func main() {
 		port, ok := validServices[arg]
 		if !ok {
 			panic(fmt.Sprintf("Unknown service %s", arg))
+		}
+		if arg == "phpldapadmin" {
+			continue
 		}
 		command = append(command, fmt.Sprintf("%s:%d", arg, port))
 	}

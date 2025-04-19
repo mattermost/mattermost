@@ -86,6 +86,13 @@ services:
       LDAP_ORGANISATION: "Mattermost Test"
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
+  phpldapadmin:
+    image: "osixia/phpldapadmin:0.9.0"
+    restart: always
+    networks:
+      - mm-test
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: openldap
   elasticsearch:
     image: "mattermostdevelopment/mattermost-elasticsearch:8.9.0"
     networks:
@@ -129,7 +136,7 @@ services:
   keycloak:
     image: "quay.io/keycloak/keycloak:23.0.7"
     restart: always
-    entrypoint: /opt/keycloak/bin/kc.sh start --import-realm
+    entrypoint: /opt/keycloak/bin/kc.sh start --import-realm --hostname keycloak-ctomai.ngrok.dev --hostname-strict-https=true --hostname-strict=true --https-port=443 --proxy=edge
     networks:
       - mm-test
     environment:

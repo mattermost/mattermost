@@ -9,16 +9,19 @@ import {useIntl} from 'react-intl';
 import WithTooltip from 'components/with_tooltip';
 
 type Props = {
-
     /**
      * If not provided, the default title 'From trusted organizations' will be used for the tooltip.
     */
     title?: string;
     ariaLabel?: AriaAttributes['aria-label'];
     role?: AriaRole;
-
     className?: string;
     withTooltip?: boolean;
+    
+    /**
+     * List of remote workspace names to display in the tooltip
+     */
+    remoteNames?: string[];
 };
 
 const SharedUserIndicator = (props: Props) => {
@@ -36,9 +39,33 @@ const SharedUserIndicator = (props: Props) => {
         return sharedIcon;
     }
 
+    // If a title is explicitly provided, use it
+    if (props.title) {
+        return (
+            <WithTooltip title={props.title}>
+                {sharedIcon}
+            </WithTooltip>
+        );
+    }
+
+    // If we have remote names, use them in the tooltip
+    if (props.remoteNames && props.remoteNames.length > 0) {
+        return (
+            <WithTooltip
+                title={intl.formatMessage(
+                    {id: 'shared_user_indicator.tooltip_with_names', defaultMessage: 'From: {remoteNames}'},
+                    {remoteNames: props.remoteNames.join(', ')}
+                )}
+            >
+                {sharedIcon}
+            </WithTooltip>
+        );
+    }
+
+    // Fallback to the generic message
     return (
         <WithTooltip
-            title={props.title || intl.formatMessage({id: 'shared_user_indicator.tooltip', defaultMessage: 'From trusted organizations'})}
+            title={intl.formatMessage({id: 'shared_user_indicator.tooltip', defaultMessage: 'From trusted organizations'})}
         >
             {sharedIcon}
         </WithTooltip>

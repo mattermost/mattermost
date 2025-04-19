@@ -44,6 +44,15 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: openldap
+
+  phpldapadmin:
+    container_name: mattermost-phpldapadmin
+    ports:
+      - "6443:443"
+    extends:
+      file: build/docker-compose.common.yml
+      service: phpldapadmin
+
   elasticsearch:
     container_name: mattermost-elasticsearch
     ports:
