@@ -84,6 +84,69 @@ func (a *App) GetSharedChannels(page int, perPage int, opts model.SharedChannelF
 	return channels, nil
 }
 
+func (a *App) GetSharedChannelsWithRemotes(page int, perPage int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannelWithRemotes, *model.AppError) {
+	channels, appErr := a.GetSharedChannels(page, perPage, opts)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	result := make([]*model.SharedChannelWithRemotes, 0, len(channels))
+	for _, channel := range channels {
+		remotes := make([]model.RemoteClusterInfo, 0)
+
+		// For home channels, get remotes this channel is shared with
+		if channel.Home {
+			remoteOpts := model.SharedChannelRemoteFilterOpts{
+				ChannelId: channel.ChannelId,
+			}
+
+			// Get the remotes for this channel
+			scRemotes, err := a.GetSharedChannelRemotes(0, 100, remoteOpts)
+			if err != nil {
+				a.Log().Warn("Error getting remotes for shared channel",
+					mlog.String("channel_id", channel.ChannelId),
+					mlog.Err(err),
+				)
+				continue
+			}
+
+			// Get the remote cluster info for each remote
+			for _, scRemote := range scRemotes {
+				rc, err := a.GetRemoteCluster(scRemote.RemoteId, true)
+				if err != nil {
+					a.Log().Warn("Error getting remote cluster",
+						mlog.String("remote_id", scRemote.RemoteId),
+						mlog.Err(err),
+					)
+					continue
+				}
+				remotes = append(remotes, rc.ToRemoteClusterInfo())
+			}
+		} else {
+			// For non-home channels, get the remote this channel is from
+			if channel.RemoteId != "" {
+				rc, err := a.GetRemoteCluster(channel.RemoteId, true)
+				if err != nil {
+					a.Log().Warn("Error getting remote cluster for non-home channel",
+						mlog.String("remote_id", channel.RemoteId),
+						mlog.String("channel_id", channel.ChannelId),
+						mlog.Err(err),
+					)
+				} else {
+					remotes = append(remotes, rc.ToRemoteClusterInfo())
+				}
+			}
+		}
+
+		result = append(result, &model.SharedChannelWithRemotes{
+			SharedChannel: channel,
+			Remotes:       remotes,
+		})
+	}
+
+	return result, nil
+}
+
 func (a *App) GetSharedChannelsCount(opts model.SharedChannelFilterOpts) (int64, error) {
 	return a.Srv().Store().SharedChannel().GetAllCount(opts)
 }

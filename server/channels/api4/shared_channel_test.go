@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -621,4 +622,124 @@ func TestUninviteRemoteClusterToChannel(t *testing.T) {
 	t.Run("should do nothing but return 204 if the remote cluster is not sharing the channel", func(t *testing.T) {
 		t.Skip("Requires server2server communication: ToBeImplemented")
 	})
+}
+
+func TestGetSharedChannelsWithRemotes(t *testing.T) {
+	th := setupForSharedChannels(t).InitBasic()
+	defer th.TearDown()
+
+	// Create remote clusters
+	remote1 := &model.RemoteCluster{
+		Name:        "remote1",
+		DisplayName: "Remote Cluster 1",
+		SiteURL:     "http://example.com",
+		CreatorId:   th.BasicUser.Id,
+		Token:       model.NewId(),
+		LastPingAt:  model.GetMillis(),
+	}
+	remote1, appErr := th.App.AddRemoteCluster(remote1)
+	require.Nil(t, appErr)
+
+	remote2 := &model.RemoteCluster{
+		Name:        "remote2",
+		DisplayName: "Remote Cluster 2",
+		SiteURL:     "http://example.org",
+		CreatorId:   th.BasicUser.Id,
+		Token:       model.NewId(),
+		LastPingAt:  model.GetMillis(),
+	}
+	remote2, appErr = th.App.AddRemoteCluster(remote2)
+	require.Nil(t, appErr)
+
+	// Create shared channels
+	channel1 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+	sc1 := &model.SharedChannel{
+		ChannelId:        channel1.Id,
+		TeamId:           th.BasicTeam.Id,
+		Home:             true,
+		ReadOnly:         false,
+		ShareName:        channel1.Name,
+		ShareDisplayName: channel1.DisplayName,
+		SharePurpose:     channel1.Purpose,
+		ShareHeader:      channel1.Header,
+		CreatorId:        th.BasicUser.Id,
+	}
+
+	_, sErr := th.App.ShareChannel(th.Context, sc1)
+	require.NoError(t, sErr)
+
+	channel2 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+	sc2 := &model.SharedChannel{
+		ChannelId:        channel2.Id,
+		TeamId:           th.BasicTeam.Id,
+		Home:             false,
+		ReadOnly:         false,
+		ShareName:        channel2.Name,
+		ShareDisplayName: channel2.DisplayName,
+		SharePurpose:     channel2.Purpose,
+		ShareHeader:      channel2.Header,
+		CreatorId:        th.BasicUser.Id,
+		RemoteId:         remote1.RemoteId,
+	}
+	_, sErr = th.App.ShareChannel(th.Context, sc2)
+	require.NoError(t, sErr)
+
+	// Add remotes to channel1
+	scr1 := &model.SharedChannelRemote{
+		ChannelId:         sc1.ChannelId,
+		RemoteId:          remote1.RemoteId,
+		CreatorId:         th.BasicUser.Id,
+		IsInviteAccepted:  true,
+		IsInviteConfirmed: true,
+	}
+	_, sErr = th.App.SaveSharedChannelRemote(scr1)
+	require.NoError(t, sErr)
+
+	scr2 := &model.SharedChannelRemote{
+		ChannelId:         sc1.ChannelId,
+		RemoteId:          remote2.RemoteId,
+		CreatorId:         th.BasicUser.Id,
+		IsInviteAccepted:  true,
+		IsInviteConfirmed: true,
+	}
+	_, sErr = th.App.SaveSharedChannelRemote(scr2)
+	require.NoError(t, sErr)
+
+	// Test the API endpoint
+	url := "/sharedchannels/" + th.BasicTeam.Id
+	resp, sErr := th.Client.DoAPIGet(context.Background(), url, "")
+	require.NoError(t, sErr)
+
+	// Parse response
+	var result []*model.SharedChannelWithRemotes
+	sErr = json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, sErr)
+
+	// Verify response
+	require.NotNil(t, result)
+	require.Len(t, result, 2)
+
+	// Sort results to ensure consistent testing
+	sortChannels := func(c1, c2 *model.SharedChannelWithRemotes) bool {
+		return c1.SharedChannel.ChannelId < c2.SharedChannel.ChannelId
+	}
+
+	if sortChannels(result[1], result[0]) {
+		// Swap if not in expected order
+		result[0], result[1] = result[1], result[0]
+	}
+
+	// Verify channel1 (home channel) with two remotes
+	assert.Equal(t, sc1.ChannelId, result[0].SharedChannel.ChannelId)
+	assert.Len(t, result[0].Remotes, 2)
+
+	// Verify remotes for channel1
+	remoteNames := []string{result[0].Remotes[0].DisplayName, result[0].Remotes[1].DisplayName}
+	assert.Contains(t, remoteNames, remote1.DisplayName)
+	assert.Contains(t, remoteNames, remote2.DisplayName)
+
+	// Verify channel2 (non-home channel) with one remote
+	assert.Equal(t, sc2.ChannelId, result[1].SharedChannel.ChannelId)
+	assert.Len(t, result[1].Remotes, 1)
+	assert.Equal(t, remote1.DisplayName, result[1].Remotes[0].DisplayName)
 }

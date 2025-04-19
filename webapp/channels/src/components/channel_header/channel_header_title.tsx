@@ -2,13 +2,15 @@
 // See LICENSE.txt for license information.
 
 import type {ReactNode} from 'react';
-import React, {memo} from 'react';
-import {useSelector} from 'react-redux';
+import React, {memo, useEffect} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
+import {fetchSharedChannelsWithRemotes} from 'mattermost-redux/actions/shared_channels';
 
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
@@ -32,7 +34,16 @@ const ChannelHeaderTitle = ({
     dmUser,
     gmMembers,
 }: Props) => {
+    const dispatch = useDispatch();
     const channel = useSelector(getCurrentChannel);
+    const remoteNames = useSelector((state) => getRemoteNamesForChannel(state, channel?.id || ''));
+
+    // Fetch shared channel information when the component mounts or the channel changes
+    useEffect(() => {
+        if (channel?.shared && channel.team_id) {
+            dispatch(fetchSharedChannelsWithRemotes(channel.team_id));
+        }
+    }, [dispatch, channel?.id, channel?.team_id, channel?.shared]);
 
     if (!channel) {
         return null;
@@ -53,6 +64,7 @@ const ChannelHeaderTitle = ({
             <SharedChannelIndicator
                 className='shared-channel-icon'
                 withTooltip={true}
+                remoteNames={remoteNames}
             />
         );
     }

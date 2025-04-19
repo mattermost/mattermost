@@ -166,6 +166,12 @@ type SharedChannelRemoteStatus struct {
 	Token            string `json:"token"`
 }
 
+// SharedChannelWithRemotes represents a shared channel with its connected remote clusters
+type SharedChannelWithRemotes struct {
+	SharedChannel *SharedChannel      `json:"shared_channel"`
+	Remotes       []RemoteClusterInfo `json:"remotes"`
+}
+
 // SharedChannelUser stores a lastSyncAt timestamp on behalf of a remote cluster for
 // each user that has been synchronized.
 type SharedChannelUser struct {
