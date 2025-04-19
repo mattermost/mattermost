@@ -360,7 +360,6 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 
 	post.RemoteId = model.NewPointer(rc.RemoteId)
 	rctx := request.EmptyContext(scs.server.Log())
-
 	rpost, err := scs.server.GetStore().Post().GetSingle(rctx, post.Id, true)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
@@ -389,8 +388,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId),
-			)
+				mlog.String("channel_id", post.ChannelId))
 		}
 	} else if post.DeleteAt > 0 {
 		// delete post
@@ -401,14 +399,110 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 				mlog.String("channel_id", post.ChannelId),
 			)
 		}
-	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message {
-		// update post
-		rpost, appErr = scs.app.UpdatePost(request.EmptyContext(scs.server.Log()), post, nil)
-		if appErr == nil {
+	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.Metadata != nil {
+		// Save a copy of the original priority before calling UpdatePost to preserve it
+		var originalPriority *model.PostPriority
+		if post.Metadata != nil && post.Metadata.Priority != nil {
+			originalPriority = post.Metadata.Priority.Clone()
+		}
+
+		// First update the post
+
+		rpost, appErr = scs.app.UpdatePost(rctx, post, nil)
+
+		// Always handle priority metadata updates separately regardless of whether UpdatePost preserved them
+		if appErr == nil && originalPriority != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post",
 				mlog.String("post_id", post.Id),
 				mlog.String("channel_id", post.ChannelId),
 			)
+
+			// Create a post clone specifically for priority update to ensure it's saved properly
+			priorityPost := post.Clone()
+			if priorityPost.Metadata == nil {
+				priorityPost.Metadata = &model.PostMetadata{}
+			}
+			priorityPost.Metadata.Priority = originalPriority
+
+			// Use the app's SavePriorityForPost method to save priorities
+			_, priorityErr := scs.app.SavePriorityForPost(rctx, priorityPost)
+
+			if priorityErr != nil {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error saving post priority",
+					mlog.String("post_id", post.Id),
+					mlog.String("channel_id", post.ChannelId),
+					mlog.Err(priorityErr),
+				)
+			} else {
+				// If the priority is successfully saved, ensure it's in the returned post
+				if rpost.Metadata == nil {
+					rpost.Metadata = &model.PostMetadata{}
+				}
+				// Copy the original priority directly to ensure it's preserved
+				rpost.Metadata.Priority = post.Metadata.Priority
+			}
+		}
+
+		// Handle any acknowledgements metadata updates separately
+		if appErr == nil && post.Metadata != nil && post.Metadata.Acknowledgements != nil {
+			// For metadata-only updates, we want to completely replace the existing acknowledgements
+			// So first, clear all existing acknowledgements
+
+			_, appErrGet := scs.app.GetAcknowledgementsForPost(post.Id)
+			if appErrGet != nil {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error getting existing acknowledgements",
+					mlog.String("post_id", post.Id),
+					mlog.Err(appErrGet),
+				)
+			}
+
+			appErrDel := scs.app.DeleteAllAcknowledgementsForPost(request.EmptyContext(scs.server.Log()), post.Id)
+			if appErrDel != nil {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error deleting all acknowledgements",
+					mlog.String("post_id", post.Id),
+					mlog.Err(appErrDel),
+				)
+			}
+
+			_, appErrVerify := scs.app.GetAcknowledgementsForPost(post.Id)
+			if appErrVerify != nil {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error getting acknowledgements after deletion",
+					mlog.String("post_id", post.Id),
+					mlog.Err(appErrVerify),
+				)
+			}
+
+			// Save all acknowledgements from the remote post in a deterministic order
+			for _, ack := range post.Metadata.Acknowledgements {
+				userId := ack.UserId // Store in a local variable to ensure consistency
+
+				_, appErrAck := scs.app.SaveAcknowledgementForPost(rctx, post.Id, userId)
+				if appErrAck != nil {
+					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error saving acknowledgement",
+						mlog.String("post_id", post.Id),
+						mlog.String("user_id", userId),
+						mlog.Err(appErrAck),
+					)
+				}
+			}
+
+			// Update acknowledgements in the returned post by fetching actual saved values from database
+			if rpost.Metadata == nil {
+				rpost.Metadata = &model.PostMetadata{}
+			}
+
+			// Get the actual acknowledgements from the database to ensure we have the correct data
+			actualAcks, appErrGetAcks := scs.app.GetAcknowledgementsForPost(post.Id)
+			if appErrGetAcks != nil {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error fetching saved acknowledgements",
+					mlog.String("post_id", post.Id),
+					mlog.Err(appErrGetAcks),
+				)
+				// Fall back to original acknowledgements if we can't get the updated ones
+				rpost.Metadata.Acknowledgements = post.Metadata.Acknowledgements
+			} else {
+				rpost.Metadata.Acknowledgements = actualAcks
+			}
 		}
 	} else {
 		// nothing to update
