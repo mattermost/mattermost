@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {DynamicSizeList} from 'dynamic-virtualized-list';
 import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
+
+import type {DynamicSizeList} from '@mattermost/dynamic-virtualized-list';
 
 import {DATE_LINE} from 'mattermost-redux/utils/post_list';
 

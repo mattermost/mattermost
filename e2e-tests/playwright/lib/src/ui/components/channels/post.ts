@@ -51,6 +51,12 @@ export default class ChannelsPost {
         return this.profileIcon.getByAltText(`${username} profile image`);
     }
 
+    async openRhs() {
+        await this.container.hover();
+        await this.postMenu.toBeVisible();
+        await this.postMenu.reply();
+    }
+
     /**
      * Clicks on the deleted post's remove 'x' button.
      * Also verifies that the post is a deleted post.
