@@ -258,9 +258,10 @@ jobs:
           # Extract cycle's dashboard URL, if present
           TEST_CYCLE_ID=$(sed -nE "s/^.*id: '([^']+)'.*$/\1/p"  <generate-test-cycle.out)
           if [ -n "$TEST_CYCLE_ID" ]; then
-            echo "status_check_url=https://automation-dashboard.vercel.app/cycles/${TEST_CYCLE_ID}" >> $GITHUB_OUTPUT
+            # Include the test type in the URL to make it unique
+            echo "status_check_url=https://automation-dashboard.vercel.app/cycles/${TEST_CYCLE_ID}?test=${TEST}" >> $GITHUB_OUTPUT
           else
-            echo "status_check_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+            echo "status_check_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}?test=${TEST}" >> $GITHUB_OUTPUT
           fi
 
   test:
