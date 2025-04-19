@@ -15,7 +15,7 @@ import {openModal} from 'actions/views/modals';
 import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
 
 import {ModalIdentifiers, CloudProducts} from 'utils/constants';
@@ -35,7 +35,7 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
     const isFreeTrial = subscription?.is_free_trial === 'true';
     const freeTrialEndDay = moment(subscription?.trial_end_at).format('MMMM DD');
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
-    const openPricingModal = useOpenPricingModal();
+    const openPricingDetails = useOpenPricingDetails();
 
     const openTrialBenefitsModal = async () => {
         await dispatch(openModal({
@@ -82,7 +82,9 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
                             openModalLink: (msg: string) => (
                                 <a
                                     className='open-trial-benefits-modal style-link'
-                                    onClick={isAdmin ? openTrialBenefitsModal : () => openPricingModal({trackingLocation: 'menu_cloud_trial'})}
+                                    onClick={isAdmin ? openTrialBenefitsModal : () => {
+                                        openPricingDetails({trackingLocation: 'menu_cloud_trial'});
+                                    }}
                                 >
                                     {msg}
                                 </a>
@@ -104,7 +106,9 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
                     openModalLink: (msg: string) => (
                         <a
                             className='open-see-plans-modal style-link'
-                            onClick={() => openPricingModal({trackingLocation: 'menu_cloud_trial'})}
+                            onClick={() => {
+                                openPricingDetails({trackingLocation: 'menu_cloud_trial_post_trial'});
+                            }}
                         >
                             {msg}
                         </a>

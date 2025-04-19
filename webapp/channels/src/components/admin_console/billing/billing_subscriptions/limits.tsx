@@ -13,7 +13,7 @@ import {
 
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingDetails from 'components/common/hooks/useOpenPricingDetails';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 import {CloudProducts} from 'utils/constants';
@@ -31,7 +31,7 @@ const Limits = (): JSX.Element | null => {
     const [cloudLimits, limitsLoaded] = useGetLimits();
     const usage = useGetUsage();
     const [openSalesLink] = useOpenSalesLink();
-    const openPricingModal = useOpenPricingModal();
+    const openPricingDetails = useOpenPricingDetails();
 
     if (!subscriptionProduct || !limitsLoaded || !hasSomeLimits(cloudLimits)) {
         return null;
@@ -134,7 +134,7 @@ const Limits = (): JSX.Element | null => {
                 {subscriptionProduct.sku === CloudProducts.STARTER && (
                     <>
                         <button
-                            onClick={() => openPricingModal({trackingLocation: 'billing_subscriptions_limits_dashboard'})}
+                            onClick={() => openPricingDetails({trackingLocation: 'billing_subscriptions_limits_dashboard'})}
                             className='btn btn-primary'
                         >
                             {intl.formatMessage({
