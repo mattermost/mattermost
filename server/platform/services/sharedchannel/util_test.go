@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -70,7 +71,230 @@ func Test_mungUsernameFuzz(t *testing.T) {
 	}
 }
 
+func Test_fixMention(t *testing.T) {
+	tests := []struct {
+		name       string
+		post       *model.Post
+		mentionMap model.UserMentionMap
+		user       *model.User
+		expected   string
+	}{
+		{
+			name:       "nil post",
+			post:       nil,
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "",
+		},
+		{
+			name:       "empty mentionMap",
+			post:       &model.Post{Message: "hello @user:remote"},
+			mentionMap: model.UserMentionMap{},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello @user:remote",
+		},
+		{
+			name:       "no RemoteUsername prop",
+			post:       &model.Post{Message: "hello @user:remote"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello @user:remote",
+		},
+		{
+			name:       "simple mention",
+			post:       &model.Post{Message: "hello @user:remote"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			expected:   "hello @realuser",
+		},
+		{
+			name:       "mention at start",
+			post:       &model.Post{Message: "@user:remote hello"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			expected:   "@realuser hello",
+		},
+		{
+			name:       "mention at end",
+			post:       &model.Post{Message: "hello @user:remote"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			expected:   "hello @realuser",
+		},
+		{
+			name:       "multiple mentions of same user",
+			post:       &model.Post{Message: "hello @user:remote and @user:remote again"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			expected:   "hello @realuser and @realuser again",
+		},
+		{
+			name:       "multiple different mentions",
+			post:       &model.Post{Message: "hello @user:remote and @other:remote"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid", "other:remote": "otherid"},
+			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			expected:   "hello @realuser and @other:remote",
+		},
+		{
+			name:       "mention without colon",
+			post:       &model.Post{Message: "hello @user"},
+			mentionMap: model.UserMentionMap{"user": "userid"},
+			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			expected:   "hello @user",
+		},
+		{
+			name:       "mention different user id",
+			post:       &model.Post{Message: "hello @user:remote"},
+			mentionMap: model.UserMentionMap{"user:remote": "different"},
+			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			expected:   "hello @user:remote",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fixMention(tt.post, tt.mentionMap, tt.user)
+			if tt.post != nil {
+				require.Equal(t, tt.expected, tt.post.Message)
+			}
+		})
+	}
+}
+
+func Test_removeMention(t *testing.T) {
+	tests := []struct {
+		name       string
+		post       *model.Post
+		mentionMap model.UserMentionMap
+		user       *model.User
+		expected   string
+	}{
+		{
+			name:       "nil post",
+			post:       nil,
+			mentionMap: model.UserMentionMap{"user": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "",
+		},
+		{
+			name:       "empty mentionMap",
+			post:       &model.Post{Message: "hello @user"},
+			mentionMap: model.UserMentionMap{},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello @user",
+		},
+		{
+			name:       "simple mention",
+			post:       &model.Post{Message: "hello @user"},
+			mentionMap: model.UserMentionMap{"user": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello user",
+		},
+		{
+			name:       "mention at start",
+			post:       &model.Post{Message: "@user hello"},
+			mentionMap: model.UserMentionMap{"user": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "user hello",
+		},
+		{
+			name:       "mention at end",
+			post:       &model.Post{Message: "hello @user"},
+			mentionMap: model.UserMentionMap{"user": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello user",
+		},
+		{
+			name:       "multiple mentions of same user",
+			post:       &model.Post{Message: "hello @user and @user again"},
+			mentionMap: model.UserMentionMap{"user": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello user and user again",
+		},
+		{
+			name:       "multiple different mentions",
+			post:       &model.Post{Message: "hello @user and @other"},
+			mentionMap: model.UserMentionMap{"user": "userid", "other": "otherid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello user and @other",
+		},
+		{
+			name:       "mention with colon",
+			post:       &model.Post{Message: "hello @user:remote"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello user:remote",
+		},
+		{
+			name:       "mention different user id",
+			post:       &model.Post{Message: "hello @user"},
+			mentionMap: model.UserMentionMap{"user": "different"},
+			user:       &model.User{Id: "userid"},
+			expected:   "hello @user",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			removeMention(tt.post, tt.mentionMap, tt.user)
+			if tt.post != nil {
+				require.Equal(t, tt.expected, tt.post.Message)
+			}
+		})
+	}
+}
+
 // R returns a string with the specified string repeated `count` times.
 func R(count int, s string) string {
 	return strings.Repeat(s, count)
+}
+
+func TestHandleUserMentions(t *testing.T) {
+	t.Run("should handle mentions correctly for target remote users", func(t *testing.T) {
+		// Create a post with two mentions: one with colon (from autocomplete) and one without
+		post := &model.Post{
+			Message: "Hello @user and @user:remote",
+		}
+
+		// Mention map with both formats of mentions
+		mentionMap := model.UserMentionMap{
+			"user":        "userid",
+			"user:remote": "userid",
+		}
+
+		// Create a remote user object
+		remoteId := "remoteid"
+		user := &model.User{
+			Id:       "userid",
+			RemoteId: &remoteId,
+			Props:    model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"},
+		}
+
+		// Case 1: User from target remote with autocomplete mention should keep the mention (fixMention)
+		postCopy1 := &model.Post{Message: post.Message}
+		hasSelectedMention := true
+		if hasSelectedMention {
+			fixMention(postCopy1, mentionMap, user)
+		} else {
+			removeMention(postCopy1, mentionMap, user)
+		}
+		require.Equal(t, "Hello @user and @realuser", postCopy1.Message, "Should fix only the colon mention")
+
+		// Case 2: User from target remote without autocomplete mention should remove mention (removeMention)
+		postCopy2 := &model.Post{Message: post.Message}
+		hasSelectedMention = false
+		if hasSelectedMention {
+			fixMention(postCopy2, mentionMap, user)
+		} else {
+			removeMention(postCopy2, mentionMap, user)
+		}
+		require.Equal(t, "Hello user and user:remote", postCopy2.Message, "Should remove mentions for user")
+
+		// Case 3: User from different remote should always remove the mention
+		differentRemoteId := "differentremoteid"
+		user.RemoteId = &differentRemoteId
+		postCopy3 := &model.Post{Message: post.Message}
+		removeMention(postCopy3, mentionMap, user)
+		require.Equal(t, "Hello user and user:remote", postCopy3.Message, "Should remove mentions for different remote user")
+	})
 }

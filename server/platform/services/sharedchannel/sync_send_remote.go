@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -428,10 +429,26 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 			sd.profileImages[user.Id] = user
 		}
 
-		// if this was a mention then put the real username in place of the username+remotename, but only
-		// when sending to the remote that the user belongs to.
-		if v.post != nil && user.RemoteId != nil && *user.RemoteId == sd.rc.RemoteId {
-			fixMention(v.post, v.mentionMap, user)
+		// Handle user mentions in shared channels
+		if v.post != nil && user.RemoteId != nil {
+			if *user.RemoteId == sd.rc.RemoteId {
+				// Check if mention has colon (was selected from autocomplete)
+				hasSelectedMention := hasColonInMention(v.mentionMap, user.Id)
+
+				if hasSelectedMention {
+					// For remote users from the target remote, fix the mention format
+					// when sending back to their origin server (only if explicitly mentioned)
+					fixMention(v.post, v.mentionMap, user)
+				} else {
+					// Remove mentions that weren't explicitly selected from autocomplete
+					// This prevents mentioning both local and remote users with the same name
+					removeMention(v.post, v.mentionMap, user)
+				}
+			} else {
+				// For remote users from other servers, remove the mention completely
+				// This ensures only local users get mentioned, not remote users with the same username
+				removeMention(v.post, v.mentionMap, user)
+			}
 		}
 	}
 	return merr.ErrorOrNil()
@@ -741,4 +758,15 @@ func sanitizeSyncData(sd *syncData) {
 	for id, user := range sd.profileImages {
 		sd.profileImages[id] = sanitizeUserForSync(user)
 	}
+}
+
+// hasColonInMention checks if a user was mentioned with a colon format (selected from autocomplete)
+// Returns true if the user has at least one mention containing a colon
+func hasColonInMention(mentionMap model.UserMentionMap, userID string) bool {
+	for mention, id := range mentionMap {
+		if id == userID && strings.Contains(mention, ":") {
+			return true
+		}
+	}
+	return false
 }
