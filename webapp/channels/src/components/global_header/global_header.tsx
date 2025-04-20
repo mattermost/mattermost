@@ -41,7 +41,7 @@ export default function GlobalHeader() {
                 id='global-header'
                 className='globalHeader-container'
             >
-                <LeftControls/>
+                <LeftControls productId={currentProductID}/>
                 <CenterControls productId={currentProductID}/>
                 <RightControls productId={currentProductID}/>
             </div>

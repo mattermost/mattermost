@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useSelector} from 'react-redux';
 
-import {getIsMobileView} from 'selectors/views/browser';
+import type {ProductIdentifier} from '@mattermost/types/products';
 
 import {isDesktopApp} from 'utils/user_agent';
 
@@ -14,16 +13,14 @@ import ProductSwitcherMenu from './product_switcher_menu';
 
 import './left_controls.scss';
 
-export default function LeftControls() {
-    const isMobileView = useSelector(getIsMobileView);
+type Props = {
+    productId: ProductIdentifier;
+}
 
-    if (isMobileView) {
-        return null;
-    }
-
+export default function LeftControls(props: Props) {
     return (
         <div className='globalHeader-left-controls-container'>
-            <ProductSwitcherMenu/>
+            <ProductSwitcherMenu productId={props.productId}/>
             <ProductBranding/>
             {isDesktopApp() && <HistoryButtons/>}
         </div>

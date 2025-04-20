@@ -73,6 +73,8 @@ type MenuProps = {
     onToggle?: (isOpen: boolean) => void;
     onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
     width?: string;
+    minWidth?: string;
+    maxWidth?: string;
     isMenuOpen?: boolean;
 }
 
@@ -286,7 +288,9 @@ export function Menu(props: Props) {
                         aria-labelledby={props.menu['aria-labelledby']}
                         className={props.menu.className}
                         style={{
-                            width: props.menu.width,
+                            width: props.menu?.width,
+                            minWidth: props.menu?.minWidth,
+                            maxWidth: props.menu?.maxWidth,
                         }}
                         autoFocusItem={isMenuOpen}
                     >

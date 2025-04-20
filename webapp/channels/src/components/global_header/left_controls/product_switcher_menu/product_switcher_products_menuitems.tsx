@@ -21,7 +21,7 @@ export default function ProductSwitcherProductsMenuItems(props: Props) {
     const products = useSelector(selectProducts);
 
     if (products.length === 0) {
-        return null;
+        return <></>;
     }
 
     return (
@@ -65,15 +65,13 @@ function ProductSwitcherProductMenuItem(props: ProductSwitcherProductMenuItemPro
                 />
             )}
             labels={<span>{props.label}</span>}
-            trailingElements={
-                props.isActive && (
-                    <CheckIcon
-                        size={18}
-                        className='product-switcher-menu-item-checked'
-                        aria-hidden='true'
-                    />
-                )
-            }
+            trailingElements={props.isActive && (
+                <CheckIcon
+                    size={18}
+                    className='product-switcher-menu-item-checked'
+                    aria-hidden='true'
+                />
+            )}
             onClick={handleClick}
         />
     );

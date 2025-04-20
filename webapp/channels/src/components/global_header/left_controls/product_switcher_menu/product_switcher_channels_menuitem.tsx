@@ -15,7 +15,7 @@ interface Props extends Menu.FirstMenuItemProps {
     currentProductID: ProductIdentifier;
 }
 
-export default function ProductChannelsMenuItem({currentProductID, ...rest}: Props) {
+export default function ProductChannelsMenuItem({currentProductID, ...firstMenuItemProps}: Props) {
     const history = useHistory();
 
     const isChannelsProductActive = isChannels(currentProductID);
@@ -46,7 +46,7 @@ export default function ProductChannelsMenuItem({currentProductID, ...rest}: Pro
                 />
             )}
             onClick={handleClick}
-            {...rest}
+            {...firstMenuItemProps}
         />
     );
 }

@@ -5,10 +5,9 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 
 import {ProductsIcon} from '@mattermost/compass-icons/components';
+import type {ProductIdentifier} from '@mattermost/types/products';
 
 import * as Menu from 'components/menu';
-
-import {useCurrentProductId, isChannels} from 'utils/products';
 
 import ProductSwitcherChannelsMenuItem from './product_switcher_channels_menuitem';
 import ProductSwitcherProductsMenuItems from './product_switcher_products_menuitems';
@@ -18,11 +17,12 @@ import ProductSwitcherCloudTrialMenuItem from './product_switcher_trial_menuitem
 export const ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU = 'productSwitcherMenu';
 export const ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU_BUTTON = 'productSwitcherMenuButton';
 
-export default function ProductMenu() {
-    const {formatMessage} = useIntl();
+type Props = {
+    productId: ProductIdentifier;
+}
 
-    const currentProductID = useCurrentProductId();
-    const isProductChannels = isChannels(currentProductID);
+export default function ProductMenu(props: Props) {
+    const {formatMessage} = useIntl();
 
     return (
         <Menu.Container
@@ -42,10 +42,10 @@ export default function ProductMenu() {
             }}
         >
             <ProductSwitcherChannelsMenuItem
-                currentProductID={currentProductID}
+                currentProductID={props.productId}
             />
             <ProductSwitcherProductsMenuItems
-                currentProductID={currentProductID}
+                currentProductID={props.productId}
             />
             <ProductSwitcherCloudTrialMenuItem/>
             <Menu.Separator/>

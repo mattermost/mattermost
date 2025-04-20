@@ -7,8 +7,6 @@ import {useHistory} from 'react-router-dom';
 
 import {ArrowRightIcon, ArrowLeftIcon} from '@mattermost/compass-icons/components';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import type {
     KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
@@ -16,7 +14,7 @@ import WithTooltip from 'components/with_tooltip';
 
 import DesktopApp from 'utils/desktop_api';
 
-const HistoryButtons = () => {
+export default function HistoryButtons() {
     const history = useHistory();
     const intl = useIntl();
 
@@ -32,13 +30,11 @@ const HistoryButtons = () => {
     );
 
     const goBack = () => {
-        trackEvent('ui', 'ui_history_back');
         history.goBack();
         requestButtons();
     };
 
     const goForward = () => {
-        trackEvent('ui', 'ui_history_forward');
         history.goForward();
         requestButtons();
     };
@@ -86,6 +82,4 @@ const HistoryButtons = () => {
             </WithTooltip>
         </nav>
     );
-};
-
-export default HistoryButtons;
+}
