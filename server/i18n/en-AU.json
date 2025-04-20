@@ -8192,7 +8192,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Failed to apply new trial licence. You have previously applied a trial license to this Mattermost instance. If you would like to extend your trial period please [contact the sales team](https://mattermost.com/contact-us/)."
+    "translation": "Failed to apply new trial licence as your workspace has already applied a trial licence. If you would like to extend your trial period please [contact the sales team](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -10487,5 +10487,25 @@
   {
     "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
     "translation": "Invalid maximum login attempts for LDAP settings. Must be a positive number."
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Unable to delete Custom Profile Attribute Values for user"
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Failed to add certificate."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Too many files under 'certificate' in request."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Failed to remove certificate."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Unable to convert the property field to a custom profile attribute field"
   }
 ]
