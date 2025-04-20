@@ -11,6 +11,11 @@
     padding: 4px;
     border: 1px solid transparent;
     border-radius: 4px;
+
+    // Counteract the margins added to ul in _typography.scss
+    margin-top: 0;
+    margin-bottom: 0;
+
     list-style: none;
     white-space: normal;
 }

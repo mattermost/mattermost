@@ -16,8 +16,8 @@ const (
 	passwordAllChars         = passwordSpecialChars + passwordNumbers + passwordUpperCaseLetters + passwordLowerCaseLetters
 )
 
-func randInt(max int) (int, error) {
-	val, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
+func randInt(maxInt int) (int, error) {
+	val, err := rand.Int(rand.Reader, big.NewInt(int64(maxInt)))
 	if err != nil {
 		return 0, err
 	}

@@ -28,6 +28,7 @@ export interface Item extends UserProfile {
     name: string;
     isCurrentUser: boolean;
     type: string;
+    textboxId?: string;
 }
 
 interface Group extends Item {
@@ -52,7 +53,10 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
             />
         );
         icon = (
-            <span className='suggestion-list__icon suggestion-list__icon--large'>
+            <span
+                className='suggestion-list__icon suggestion-list__icon--large'
+                aria-hidden='true'
+            >
                 <i
                     className='icon icon-account-multiple-outline'
                     title={intl.formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})}
@@ -68,7 +72,10 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
             />
         );
         icon = (
-            <span className='suggestion-list__icon suggestion-list__icon--large'>
+            <span
+                className='suggestion-list__icon suggestion-list__icon--large'
+                aria-hidden='true'
+            >
                 <i
                     className='icon icon-account-multiple-outline'
                     title={intl.formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})}
@@ -84,7 +91,10 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
             />
         );
         icon = (
-            <span className='suggestion-list__icon suggestion-list__icon--large'>
+            <span
+                className='suggestion-list__icon suggestion-list__icon--large'
+                aria-hidden='true'
+            >
                 <i
                     className='icon icon-account-multiple-outline'
                     title={intl.formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})}
@@ -97,7 +107,10 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
             <span className='ml-1'>{'- '}{item.display_name}</span>
         );
         icon = (
-            <span className='suggestion-list__icon suggestion-list__icon--large'>
+            <span
+                className='suggestion-list__icon suggestion-list__icon--large'
+                aria-hidden='true'
+            >
                 <i
                     className='icon icon-account-multiple-outline'
                     title={intl.formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})}
@@ -175,8 +188,10 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
     return (
         <SuggestionContainer
             ref={ref}
+            role='option'
             {...props}
             data-testid={`mentionSuggestion_${itemname}`}
+            id={`${item.textboxId}_@${itemname}`}
         >
             {icon}
             <span className='suggestion-list__ellipsis'>

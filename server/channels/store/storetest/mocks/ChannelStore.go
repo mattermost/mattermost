@@ -20,6 +20,36 @@ type ChannelStore struct {
 	mock.Mock
 }
 
+// AnalyticsCountAll provides a mock function with given fields: teamID
+func (_m *ChannelStore) AnalyticsCountAll(teamID string) (map[model.ChannelType]int64, error) {
+	ret := _m.Called(teamID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AnalyticsCountAll")
+	}
+
+	var r0 map[model.ChannelType]int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (map[model.ChannelType]int64, error)); ok {
+		return rf(teamID)
+	}
+	if rf, ok := ret.Get(0).(func(string) map[model.ChannelType]int64); ok {
+		r0 = rf(teamID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[model.ChannelType]int64)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(teamID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AnalyticsDeletedTypeCount provides a mock function with given fields: teamID, channelType
 func (_m *ChannelStore) AnalyticsDeletedTypeCount(teamID string, channelType model.ChannelType) (int64, error) {
 	ret := _m.Called(teamID, channelType)

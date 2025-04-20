@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -19,6 +20,7 @@ type Props = {
     groupID: string;
     members: UserProfile[];
     total: number;
+    source?: string;
     getMembers: (
         id: string,
         page?: number,
@@ -154,23 +156,42 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
         );
     };
 
+    renderHeader = () => {
+        if (this.props.source === GroupSource.Ldap) {
+            return (
+                <FormattedMessage
+                    id='admin.group_settings.group_profile.group_users.ldapConnectorText'
+                    defaultMessage={
+                        'AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>'
+                    }
+                    values={{
+                        a: (chunks: string) => (
+                            <Link to='/admin_console/authentication/ldap'>
+                                {chunks}
+                            </Link>
+                        ),
+                    }}
+                />
+            );
+        }
+
+        if (this.props.source?.startsWith(PluginGroupSourcePrefix.Plugin)) {
+            return (
+                <FormattedMessage
+                    id='admin.group_settings.group_profile.group_users.pluginGroupText'
+                    defaultMessage='This group is managed by a plugin.'
+                />
+            );
+        }
+
+        return null;
+    };
+
     render = () => {
         return (
             <div className='group-users'>
                 <div className='group-users--header'>
-                    <FormattedMessage
-                        id='admin.group_settings.group_profile.group_users.ldapConnectorText'
-                        defaultMessage={
-                            'AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>'
-                        }
-                        values={{
-                            a: (chunks: string) => (
-                                <Link to='/admin_console/authentication/ldap'>
-                                    {chunks}
-                                </Link>
-                            ),
-                        }}
-                    />
+                    {this.renderHeader()}
                 </div>
                 <div className='group-users--body'>
                     <div

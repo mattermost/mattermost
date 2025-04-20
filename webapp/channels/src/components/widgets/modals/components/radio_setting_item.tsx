@@ -54,7 +54,12 @@ function RadioSettingItem({
     });
 
     const content = (
-        <fieldset className='mm-modal-generic-section-item__fieldset-radio'>
+        <fieldset
+            className='mm-modal-generic-section-item__fieldset-radio'
+        >
+            <legend className='hidden-label'>
+                {title}
+            </legend>
             {[...fields]}
         </fieldset>
     );

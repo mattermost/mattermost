@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -16,10 +17,21 @@ import (
 type SqlTermsOfServiceStore struct {
 	*SqlStore
 	metrics einterfaces.MetricsInterface
+
+	termsOfServiceSelectQuery sq.SelectBuilder
 }
 
 func newSqlTermsOfServiceStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
-	return SqlTermsOfServiceStore{sqlStore, metrics}
+	s := SqlTermsOfServiceStore{
+		SqlStore: sqlStore,
+		metrics:  metrics,
+	}
+
+	s.termsOfServiceSelectQuery = s.getQueryBuilder().
+		Select("Id", "CreateAt", "UserId", "Text").
+		From("TermsOfService")
+
+	return s
 }
 
 func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error) {
@@ -48,18 +60,11 @@ func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*mod
 func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, error) {
 	var termsOfService model.TermsOfService
 
-	query := s.getQueryBuilder().
-		Select("*").
-		From("TermsOfService").
+	query := s.termsOfServiceSelectQuery.
 		OrderBy("CreateAt DESC").
 		Limit(uint64(1))
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "could not build sql query to get latest TOS")
-	}
-
-	if err := s.GetReplica().Get(&termsOfService, queryString, args...); err != nil {
+	if err := s.GetReplica().GetBuilder(&termsOfService, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TermsOfService", "CreateAt=latest")
 		}
@@ -71,18 +76,11 @@ func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfSe
 
 func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, error) {
 	var termsOfService model.TermsOfService
-	queryString, _, err := s.getQueryBuilder().
-		Select("*").
-		From("TermsOfService").
-		Where("id = ?").
-		ToSql()
 
-	if err != nil {
-		return nil, errors.Wrap(err, "terms_of_service_to_sql")
-	}
+	query := s.termsOfServiceSelectQuery.
+		Where(sq.Eq{"Id": id})
 
-	err = s.GetReplica().Get(&termsOfService, queryString, id)
-	if err != nil {
+	if err := s.GetReplica().GetBuilder(&termsOfService, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TermsOfService", "id")
 		}

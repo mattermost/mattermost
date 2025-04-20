@@ -70,6 +70,12 @@ describe('Verify Accessibility keyboard usability across different regions in th
         cy.get('body').type('{leftarrow}').wait(100);
         cy.get('#messagesTab').should('have.class', 'a11y--active a11y--focused');
 
+        // # move focus to the team selector
+        cy.focused().tab();
+
+        // * Ensures the focus item has test-id of searchTeamsSelectorMenuButton
+        cy.get('#searchTeamsSelectorMenuButton').should('have.class', 'a11y--active a11y--focused');
+
         // # move focus to search results items
         cy.focused().tab();
 
@@ -156,8 +162,6 @@ describe('Verify Accessibility keyboard usability across different regions in th
                 cy.get(region).should('have.attr', 'role', 'application');
             });
             cy.get('.search__form').should('have.attr', 'role', 'search');
-            cy.get(`#post_${postId}`).children('.post__content').eq(0).should('have.attr', 'role', 'application');
-            cy.get(`#rhsPost_${postId}`).children('.post__content').eq(0).should('have.attr', 'role', 'application');
         });
     });
 });

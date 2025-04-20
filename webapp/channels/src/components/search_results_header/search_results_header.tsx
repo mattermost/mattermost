@@ -52,7 +52,10 @@ function SearchResultsHeader(props: Props) {
 
     return (
         <div className='sidebar--right__header'>
-            <span className='sidebar--right__title'>
+            <span
+                className='sidebar--right__title'
+                id='rhsPanelTitle'
+            >
                 {props.canGoBack && (
                     <button
                         className='sidebar--right__back btn btn-icon btn-sm'

@@ -6,11 +6,12 @@ import isEmpty from 'lodash/isEmpty';
 import {useMemo} from 'react';
 
 import type {ClientError} from '@mattermost/client';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {FieldValueType, FieldVisibility, UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldPatch} from '@mattermost/types/properties';
 import {collectionAddItem, collectionFromArray, collectionRemoveItem, collectionReplaceItem, collectionToArray} from '@mattermost/types/utilities';
-import type {PartialExcept, IDMappedCollection, IDMappedObjects} from '@mattermost/types/utilities';
+import type {IDMappedCollection, IDMappedObjects} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
+import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 
 import {generateId} from 'utils/utils';
 
@@ -26,7 +27,8 @@ export const useUserPropertyFields = () => {
     const [fieldCollection, readIO] = useThing<UserPropertyFields>(useMemo(() => ({
         get: async () => {
             const data = await Client4.getCustomProfileAttributeFields();
-            return collectionFromArray(data);
+            const sorted = data.sort((a, b) => (a.attrs?.sort_order ?? 0) - (b.attrs?.sort_order ?? 0));
+            return collectionFromArray(sorted);
         },
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         select: (state) => {
@@ -54,6 +56,7 @@ export const useUserPropertyFields = () => {
                     break;
                 case item !== prevCollection.data[item.id]:
                     ops.edit.push(item);
+                    break;
                 }
 
                 return ops;
@@ -65,7 +68,7 @@ export const useUserPropertyFields = () => {
                 errors: {}, // start with errors cleared; don't keep stale errors
             };
 
-            // delete - all
+            // delete
             await Promise.all(process.delete.map(async ({id}) => {
                 return Client4.deleteCustomProfileAttributeField(id).
                     then(() => {
@@ -80,11 +83,20 @@ export const useUserPropertyFields = () => {
                     });
             }));
 
-            // update - all
+            // update
             await Promise.all(process.edit.map(async (pendingItem) => {
-                const {id, name, type} = pendingItem;
+                const {id, name, type, attrs} = pendingItem;
+                let patch = {name, type, attrs};
 
-                return Client4.patchCustomProfileAttributeField(id, {name, type}).
+                // clear options if not select/multiselect
+                if (type !== 'select' && type !== 'multiselect') {
+                    const attrs = {...patch.attrs};
+                    Reflect.deleteProperty(attrs, 'options');
+
+                    patch = {...patch, attrs};
+                }
+
+                return Client4.patchCustomProfileAttributeField(id, patch).
                     then((nextItem) => {
                         // data:updated
                         next.data[id] = nextItem;
@@ -94,12 +106,11 @@ export const useUserPropertyFields = () => {
                     });
             }));
 
-            // create - each, to preserve created/sort ordering
-            for (const pendingItem of process.create) {
-                const {id, name, type} = pendingItem;
+            // create
+            await Promise.all(process.create.map(async (pendingItem) => {
+                const {id, name, type, attrs} = pendingItem;
 
-                // eslint-disable-next-line no-await-in-loop
-                await Client4.createCustomProfileAttributeField({name, type}).
+                return Client4.createCustomProfileAttributeField({name, type, attrs}).
                     then((newItem) => {
                         // data:created (delete pending data)
                         Reflect.deleteProperty(next.data, id);
@@ -111,7 +122,7 @@ export const useUserPropertyFields = () => {
                     catch((reason: ClientError) => {
                         next.errors = {...next.errors, [id]: reason};
                     });
-            }
+            }));
 
             if (isEmpty(next.errors)) {
                 Reflect.deleteProperty(next, 'errors');
@@ -152,6 +163,13 @@ export const useUserPropertyFields = () => {
                     }
                 }
 
+                if (field.type === 'select' || field.type === 'multiselect') {
+                    const options = field.attrs?.options;
+                    if (!options?.length) {
+                        acc[field.id] = {attrs: ValidationWarningOptionsRequired};
+                    }
+                }
+
                 return acc;
             }, {});
 
@@ -175,9 +193,32 @@ export const useUserPropertyFields = () => {
         },
         create: () => {
             pendingIO.apply((pending) => {
+                const nextOrder = Object.values(pending.data).filter((x) => !isDeletePending(x)).length;
                 const name = getIncrementedName('Text', pending);
-                const field = newPendingField({name, type: 'text'});
+                const field = newPendingField({name, type: 'text', attrs: {sort_order: nextOrder, visibility: 'when_set', value_type: ''}});
                 return collectionAddItem(pending, field);
+            });
+        },
+        reorder: ({id}, nextItemOrder) => {
+            pendingIO.apply((pending) => {
+                const nextOrder = insertWithoutDuplicates(pending.order, id, nextItemOrder);
+
+                if (nextOrder === pending.order) {
+                    return pending;
+                }
+
+                const nextItems = Object.values(pending.data).reduce<UserPropertyField[]>((changedItems, item) => {
+                    const itemCurrentOrder = item.attrs?.sort_order;
+                    const itemNextOrder = nextOrder.indexOf(item.id);
+
+                    if (itemNextOrder !== itemCurrentOrder) {
+                        changedItems.push({...item, attrs: {...item.attrs, sort_order: itemNextOrder}});
+                    }
+
+                    return changedItems;
+                }, []);
+
+                return collectionReplaceItem({...pending, order: nextOrder}, ...nextItems);
             });
         },
         delete: (id: string) => {
@@ -200,6 +241,7 @@ export const useUserPropertyFields = () => {
 export const ValidationWarningNameRequired = 'user_properties.validation.name_required';
 export const ValidationWarningNameUnique = 'user_properties.validation.name_unique';
 export const ValidationWarningNameTaken = 'user_properties.validation.name_taken';
+export const ValidationWarningOptionsRequired = 'user_properties.validation.options_required';
 
 const getIncrementedName = (desiredName: string, collection: UserPropertyFields) => {
     const names = new Set(Object.values(collection.data).map(({name}) => name));
@@ -225,14 +267,21 @@ export const isDeletePending = <T extends {delete_at: number; create_at: number}
 
 export const newPendingId = () => `${PENDING}${generateId()}`;
 
-export const newPendingField = (patch: PartialExcept<UserPropertyField, 'name'>): UserPropertyField => {
+export const newPendingField = (patch: UserPropertyFieldPatch & Pick<UserPropertyField, 'name'>): UserPropertyField => {
     return {
         ...patch,
         type: 'text',
-        group_id: 'custom_profile_attributes',
+        group_id: 'custom_profile_attributes' satisfies UserPropertyFieldGroupID,
         id: newPendingId(),
         create_at: 0,
         delete_at: 0,
         update_at: 0,
+        attrs: {
+            visibility: 'when_set' satisfies FieldVisibility,
+            sort_order: 0,
+            value_type: '' satisfies FieldValueType,
+            ...patch.attrs,
+        },
+
     };
 };

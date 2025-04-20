@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {TrackPropertyUser} from 'mattermost-webapp/src/packages/mattermost-redux/src/constants/telemetry';
-
 import type {Channel, ChannelType} from './channels';
 import type {CustomEmoji} from './emojis';
 import type {FileInfo} from './files';
@@ -201,7 +199,7 @@ export declare type TeamsUsageResponse = {
 export type PostAnalytics = {
     channel_id: string;
     post_id: string;
-    [TrackPropertyUser]: string;
+    user_actual_id: string;
     root_id: string;
     priority?: PostPriority|'';
     requested_ack?: boolean;
