@@ -50,6 +50,10 @@ export default class ChannelsCenterView {
         await this.postCreate.toBeVisible();
     }
 
+    async postMessage(message: string, files?: string[]) {
+        await this.postCreate.postMessage(message, files);
+    }
+
     /**
      * Click on "See all scheduled messages"
      */

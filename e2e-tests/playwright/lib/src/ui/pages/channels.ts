@@ -3,7 +3,7 @@
 
 import {expect, Page} from '@playwright/test';
 
-import {components} from '@/ui/components';
+import {ChannelsPost, components} from '@/ui/components';
 
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -89,9 +89,10 @@ export default class ChannelsPage {
     /**
      * `postMessage` posts a message in the current channel
      * @param message Message to post
+     * @param files Files to attach to the message
      */
-    async postMessage(message: string) {
-        await this.centerView.postCreate.postMessage(message);
+    async postMessage(message: string, files?: string[]) {
+        await this.centerView.postMessage(message, files);
     }
 
     async openUserAccountMenu() {
@@ -105,5 +106,17 @@ export default class ChannelsPage {
         await this.userAccountMenu.profile.click();
         await expect(this.profileModal.container).toBeVisible();
         return this.profileModal;
+    }
+
+    async openProfilePopover(post: ChannelsPost) {
+        // Find and click the post's user avatar to open the profile popover
+        await post.hover();
+        await post.profileIcon.click();
+
+        // Wait for the profile popover to be visible
+        const popover = this.userProfilePopover;
+        await expect(popover.container).toBeVisible();
+
+        return popover;
     }
 }
