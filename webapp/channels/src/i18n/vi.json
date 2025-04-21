@@ -4615,7 +4615,6 @@
   "user.settings.notifications.email.disabled_long": "Quản trị viên hệ thống của bạn chưa bật thông báo qua email.",
   "user.settings.notifications.email.everyHour": "Mỗi giờ",
   "user.settings.notifications.email.everyXMinutes": "Mỗi {count, số nhiều, một {phút} khác {{count, number} phút}}",
-  "user.settings.notifications.email.immediately": "Ngay lập tức",
   "user.settings.notifications.email.never": "Không Bao Giờ",
   "user.settings.notifications.email.send": "Gửi thông báo qua email",
   "user.settings.notifications.emailBatchingInfo": "Các thông báo nhận được trong khoảng thời gian đã chọn được kết hợp và gửi trong một email.",

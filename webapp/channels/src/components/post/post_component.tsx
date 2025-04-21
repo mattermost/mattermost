@@ -505,7 +505,7 @@ function PostComponent(props: Props) {
     };
 
     let priority;
-    if (post.metadata?.priority && props.isPostPriorityEnabled) {
+    if (post.metadata?.priority && props.isPostPriorityEnabled && post.state !== Posts.POST_DELETED) {
         priority = <span className='d-flex mr-2 ml-1'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
     }
 
