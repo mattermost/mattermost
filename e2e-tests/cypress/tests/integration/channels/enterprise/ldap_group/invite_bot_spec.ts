@@ -54,7 +54,7 @@ describe('Group Synced Team - Bot invitation flow', () => {
         cy.visit(`/${groupConstrainedTeam.name}`);
 
         // # Click 'Invite People' at team menu
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Type the first letters of a bot
         cy.get('.users-emails-input__control input').typeWithForce(bot.username);
@@ -75,7 +75,7 @@ describe('Group Synced Team - Bot invitation flow', () => {
         cy.visit(`/${groupConstrainedTeam.name}`);
 
         // # Click 'Manage Members' at team menu
-        cy.uiOpenTeamMenu('Manage Members');
+        cy.uiOpenTeamMenu('Manage members');
 
         // # Search for the bot that we want to remove
         cy.get('#searchUsersInput').should('be.visible').type(bot.username);

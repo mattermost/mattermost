@@ -5743,7 +5743,6 @@
   "user.settings.notifications.email.disabled_long": "您的系统管理员未启用邮件通知。",
   "user.settings.notifications.email.everyHour": "每小时",
   "user.settings.notifications.email.everyXMinutes": "每{count, plural, one {分钟} other { {count, number} 分钟}}",
-  "user.settings.notifications.email.immediately": "立刻",
   "user.settings.notifications.email.never": "从不",
   "user.settings.notifications.email.notifyForthreads": "我关注的话题中有回复时通知我",
   "user.settings.notifications.email.send": "发送邮件通知",

@@ -10392,10 +10392,6 @@
     "translation": "Kanal yer imi güncellenemedi."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "var olmayan bir alana eklenmeye çalışılıyor"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Arşivlenmiş bir kanalın yer imleri alınamaz"
   },
