@@ -10428,10 +10428,6 @@
     "translation": "Het is niet gelukt om het opslaggebruik van alle bestanden op te halen."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "proberen een veld te patchen dat niet bestaat"
-  },
-  {
     "id": "api.context.get_session.app_error",
     "translation": "Sessie niet gevonden."
   },
@@ -10508,10 +10504,6 @@
     "translation": "Ongeldige maximale aanmeldpogingen voor ldap-instellingen. Moet een positief getal zijn."
   },
   {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Kan het eigenschapveld niet converteren naar een aangepast profielattribuutveld"
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
     "translation": "Kan het eigenschapveld niet converteren naar een aangepast profielattribuutveld"
   },
@@ -10554,5 +10546,13 @@
   {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Ongeldige beleidsherziening."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix kan niet leeg zijn als GlobalSearchPrefix is ingesteld."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} moet een prefix zijn van IndexPrefix {{.IndexPrefix}}."
   }
 ]
