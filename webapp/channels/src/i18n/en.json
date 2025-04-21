@@ -5449,6 +5449,7 @@
   "threading.threadHeader.menu": "More Actions",
   "threading.threadItem.menu": "Actions",
   "threading.threadList.markRead": "Mark all threads as read",
+  "threading.threadList.tabsLabel": "Filter visible threads",
   "threading.threadMenu.copy": "Copy link",
   "threading.threadMenu.follow": "Follow thread",
   "threading.threadMenu.followExtra": "You will be notified about replies",
