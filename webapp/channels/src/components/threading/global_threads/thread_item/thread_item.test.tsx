@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
+import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
@@ -280,7 +280,7 @@ describe('components/threading/global_threads/thread_item', () => {
                 isSelected={true}
             />,
         );
-        expect(wrapper.find('article').prop('tabIndex')).toBe(-1);
+        expect(wrapper.find('div.ThreadItem').prop('tabIndex')).toBe(-1);
     });
 
     test('should set article tabIndex to 0 when thread is not selected', () => {
@@ -290,52 +290,6 @@ describe('components/threading/global_threads/thread_item', () => {
                 isSelected={false}
             />,
         );
-        expect(wrapper.find('article').prop('tabIndex')).toBe(0);
-    });
-
-    test('should set preview div tabIndex to 0 when content contains links', () => {
-        mockPost.message = 'Check out this [link](https://example.com)';
-        const wrapper = mount(
-            <ThreadItem
-                {...props}
-                post={mockPost}
-            />,
-        );
-        console.log(wrapper.debug());
-        expect(wrapper.find('.preview').prop('tabIndex')).toBe(0);
-    });
-
-    test('should set preview div tabIndex to -1 when content does not contain links', () => {
-        mockPost.message = 'This is a regular message without links';
-        const wrapper = mount(
-            <ThreadItem
-                {...props}
-                post={mockPost}
-            />,
-        );
-        expect(wrapper.find('.preview').prop('tabIndex')).toBe(-1);
-    });
-
-    test('should set preview div tabIndex to -1 when post is deleted', () => {
-        mockPost.message = 'Check out this [link](https://example.com)';
-        mockPost.state = 'DELETED' as Post['state'];
-        const wrapper = mount(
-            <ThreadItem
-                {...props}
-                post={mockPost}
-            />,
-        );
-        expect(wrapper.find('.preview').prop('tabIndex')).toBe(-1);
-    });
-
-    test('should set preview div tabIndex to -1 when post message is empty', () => {
-        mockPost.message = '';
-        const wrapper = mount(
-            <ThreadItem
-                {...props}
-                post={mockPost}
-            />,
-        );
-        expect(wrapper.find('.preview').prop('tabIndex')).toBe(-1);
+        expect(wrapper.find('div.ThreadItem').prop('tabIndex')).toBe(0);
     });
 });

@@ -1,13 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/threading/global_threads/thread_item should report total number of replies 1`] = `
-<article
+<div
   aria-label="Thread by Someone"
   className="ThreadItem"
   id=""
   onClick={[Function]}
   onKeyDown={[Function]}
-  role="button"
+  role="link"
   tabIndex={0}
 >
   <header>
@@ -72,8 +72,6 @@ exports[`components/threading/global_threads/thread_item should report total num
     dir="auto"
     onClick={[Function]}
     onKeyDown={[Function]}
-    role="button"
-    tabIndex={-1}
   >
     <MockMarkdown
       imageProps={
@@ -116,17 +114,17 @@ exports[`components/threading/global_threads/thread_item should report total num
       }
     />
   </div>
-</article>
+</div>
 `;
 
 exports[`components/threading/global_threads/thread_item should report unread mentions 1`] = `
-<article
+<div
   aria-label="Thread by Someone"
   className="ThreadItem has-unreads"
   id=""
   onClick={[Function]}
   onKeyDown={[Function]}
-  role="button"
+  role="link"
   tabIndex={0}
 >
   <header>
@@ -200,8 +198,6 @@ exports[`components/threading/global_threads/thread_item should report unread me
     dir="auto"
     onClick={[Function]}
     onKeyDown={[Function]}
-    role="button"
-    tabIndex={-1}
   >
     <MockMarkdown
       imageProps={
@@ -244,17 +240,17 @@ exports[`components/threading/global_threads/thread_item should report unread me
       }
     />
   </div>
-</article>
+</div>
 `;
 
 exports[`components/threading/global_threads/thread_item should report unread messages 1`] = `
-<article
+<div
   aria-label="Thread by Someone"
   className="ThreadItem has-unreads"
   id=""
   onClick={[Function]}
   onKeyDown={[Function]}
-  role="button"
+  role="link"
   tabIndex={0}
 >
   <header>
@@ -326,8 +322,6 @@ exports[`components/threading/global_threads/thread_item should report unread me
     dir="auto"
     onClick={[Function]}
     onKeyDown={[Function]}
-    role="button"
-    tabIndex={-1}
   >
     <MockMarkdown
       imageProps={
@@ -370,5 +364,5 @@ exports[`components/threading/global_threads/thread_item should report unread me
       }
     />
   </div>
-</article>
+</div>
 `;
