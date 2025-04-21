@@ -10,10 +10,10 @@ import type {ProductIdentifier} from '@mattermost/types/products';
 import * as Menu from 'components/menu';
 
 import ProductSwitcherChannelsMenuItem from './product_switcher_channels_menuitem';
+import ProductSwitcherIntegrationsMenuItem from './product_switcher_integrations_menuitem';
 import ProductSwitcherProductsMenuItems from './product_switcher_products_menuitems';
 import ProductSwitcherSystemConsoleMenuItem from './product_switcher_system_console_menuitem';
 import ProductSwitcherCloudTrialMenuItem from './product_switcher_trial_menuitem';
-
 export const ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU = 'productSwitcherMenu';
 export const ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU_BUTTON = 'productSwitcherMenuButton';
 
@@ -49,6 +49,7 @@ export default function ProductMenu(props: Props) {
             />
             <ProductSwitcherCloudTrialMenuItem/>
             <Menu.Separator/>
+            <ProductSwitcherIntegrationsMenuItem/>
             <ProductSwitcherSystemConsoleMenuItem/>
         </Menu.Container>
     );
