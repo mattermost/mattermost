@@ -21,6 +21,102 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
+func TestSessionHasPermissionTo(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	localSession := model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+		Local:  true,
+	}
+
+	adminSession := model.Session{
+		UserId: th.SystemAdminUser.Id,
+		Roles:  model.SystemAdminRoleId,
+	}
+
+	session := model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+	}
+
+	t.Run("basic user cannot manage system", func(t *testing.T) {
+		require.False(t, th.App.SessionHasPermissionTo(session, model.PermissionManageSystem))
+	})
+
+	t.Run("basic user generally has no global permissions", func(t *testing.T) {
+		require.False(t, th.App.SessionHasPermissionTo(session, model.PermissionReadPublicChannel))
+	})
+
+	t.Run("system admin can manage system", func(t *testing.T) {
+		require.True(t, th.App.SessionHasPermissionTo(adminSession, model.PermissionManageSystem))
+	})
+
+	t.Run("unrestricted session has all permissions", func(t *testing.T) {
+		require.True(t, th.App.SessionHasPermissionTo(localSession, model.PermissionManageSystem))
+		require.True(t, th.App.SessionHasPermissionTo(localSession, model.PermissionCreateBot))
+		require.True(t, th.App.SessionHasPermissionTo(localSession, model.PermissionReadPublicChannel))
+	})
+}
+
+func TestSessionHasPermissionToAndNotRestrictedAdmin(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	localSession := model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+		Local:  true,
+	}
+
+	adminSession := model.Session{
+		UserId: th.SystemAdminUser.Id,
+		Roles:  model.SystemAdminRoleId,
+	}
+
+	session := model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+	}
+
+	t.Run("basic user cannot manage system", func(t *testing.T) {
+		require.False(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(session, model.PermissionManageSystem))
+	})
+
+	t.Run("allow system admin when not restricted", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = false
+		})
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(adminSession, model.PermissionManageSystem))
+	})
+
+	t.Run("reject system admin when restricted", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = true
+		})
+		require.False(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(adminSession, model.PermissionManageSystem))
+	})
+
+	t.Run("always allow unrestricted session", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = false
+		})
+
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionManageSystem))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionCreateBot))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionReadPublicChannel))
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = true
+		})
+
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionManageSystem))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionCreateBot))
+		require.True(t, th.App.SessionHasPermissionToAndNotRestrictedAdmin(localSession, model.PermissionReadPublicChannel))
+	})
+}
+
 func TestCheckIfRolesGrantPermission(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -187,6 +283,15 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 		// If there's an error returned from the GetChannel call the code should continue to cascade and since there
 		// are no session level permissions in this test case, the permission should be denied.
 		assert.False(t, th.App.SessionHasPermissionToChannel(th.Context, session, th.BasicUser.Id, model.PermissionAddReaction))
+
+		// MM-63624, check with TeamSettings.ExperimentalViewArchivedChannels off
+		th.App.Srv().SetStore(mainHelper.GetStore())
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
+		})
+
+		th.App.Srv().SetStore(&mockStore)
+		assert.False(t, th.App.SessionHasPermissionToChannel(th.Context, session, th.BasicUser.Id, model.PermissionAddReaction))
 	})
 }
 
@@ -326,6 +431,14 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 		session := model.Session{
 			UserId: th.BasicUser.Id,
 		}
+		assert.False(t, th.App.SessionHasPermissionToChannels(th.Context, session, allChannels, model.PermissionReadChannel))
+
+		// MM-63624, check with TeamSettings.ExperimentalViewArchivedChannels off
+		th.App.Srv().SetStore(mainHelper.GetStore())
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
+		})
+		th.App.Srv().SetStore(&mockStore)
 		assert.False(t, th.App.SessionHasPermissionToChannels(th.Context, session, allChannels, model.PermissionReadChannel))
 	})
 }

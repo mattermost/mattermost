@@ -122,13 +122,13 @@ type Post struct {
 	Metadata     *PostMetadata `json:"metadata,omitempty"`
 }
 
-func (o *Post) Auditable() map[string]interface{} {
+func (o *Post) Auditable() map[string]any {
 	var metaData map[string]any
 	if o.Metadata != nil {
 		metaData = o.Metadata.Auditable()
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"id":              o.Id,
 		"create_at":       o.CreateAt,
 		"update_at":       o.UpdateAt,
@@ -211,8 +211,8 @@ type SearchParameter struct {
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
 }
 
-func (sp SearchParameter) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (sp SearchParameter) Auditable() map[string]any {
+	return map[string]any{
 		"terms":                    sp.Terms,
 		"is_or_search":             sp.IsOrSearch,
 		"time_zone_offset":         sp.TimeZoneOffset,
@@ -240,8 +240,8 @@ func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
 	return &pCopy
 }
 
-func (o *PostPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *PostPatch) Auditable() map[string]any {
+	return map[string]any{
 		"is_pinned":     o.IsPinned,
 		"props":         o.Props,
 		"file_ids":      o.FileIds,

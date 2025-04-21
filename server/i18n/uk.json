@@ -1509,7 +1509,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nКанали додані:\n"
+    "translation": "\nДодані канали:\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -10376,10 +10376,6 @@
     "translation": "Сеанс не знайдено."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "спроба змінити поле, яке не існує"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Неможливо отримати закладки для заархівованого каналу"
   },
@@ -10498,5 +10494,57 @@
   {
     "id": "license_error.feature_unavailable",
     "translation": "Функція недоступна для поточної ліцензії"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Некоректні атрибути значень властивостей : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Не вдалося перетворити поле властивості на поле атрибута кастомного профілю"
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Недійсний ідентифікатор політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Недійсний імпорт для політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Недійсна назва політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Недійсна версія політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Правила недійсні."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Політика має імпортувати або визначати правила."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Недійсний тип політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Версія недійсна для цієї політики контролю доступу."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "недійсний патч поля атрибута спеціального профілю"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix не може бути порожнім, якщо встановлено GlobalSearchPrefix."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} має бути префіксом IndexPrefix {{.IndexPrefix}}."
   }
 ]
