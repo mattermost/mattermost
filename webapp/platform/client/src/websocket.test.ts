@@ -360,7 +360,7 @@ describe('websocketclient', () => {
             if (mockWebSocket.onclose) {
                 mockWebSocket.onclose();
             }
-            if ((mockWebSocket.close as jest.Mock).mock.calls.length === 3) {
+            if (jest.mocked(mockWebSocket.close).mock.calls.length === 3) {
                 setTimeout(() => {
                     client.close();
                 }, 1);
