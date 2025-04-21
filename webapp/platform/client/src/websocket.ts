@@ -141,53 +141,51 @@ export default class WebSocketClient {
         }
 
         // Setup network event listener
-        if (typeof window !== 'undefined') {
-            // Remove existing listeners if any
-            if (this.onlineHandler) {
-                window.removeEventListener('online', this.onlineHandler);
-            }
-            if (this.offlineHandler) {
-                window.removeEventListener('offline', this.offlineHandler);
-            }
-
-            this.onlineHandler = () => {
-                // If we're already connected, don't need to do anything
-                if (this.conn && this.conn.readyState === WebSocket.OPEN) {
-                    return;
-                }
-
-                console.log('network online event received, scheduling reconnect'); // eslint-disable-line no-console
-
-                // Set a timer to reconnect after a delay to avoid rapid connection attempts
-                this.clearReconnectTimeout();
-                this.reconnectTimeout = setTimeout(
-                    () => {
-                        this.reconnectTimeout = null;
-                        this.initialize(connectionUrl, token, this.postedAck);
-                    },
-                    this.config.minWebSocketRetryTime,
-                );
-            };
-
-            this.offlineHandler = () => {
-                // If we've detected a full disconnection, don't need to do anything more
-                if (this.conn && this.conn.readyState !== WebSocket.OPEN) {
-                    return;
-                }
-
-                console.log('network offline event received, checking connection'); // eslint-disable-line no-console
-
-                // If we haven't detected a full disconnection,
-                // send a ping immediately to test the socket
-                this.waitingForPong = true;
-                this.ping(() => {
-                    this.waitingForPong = false;
-                });
-            };
-
-            window.addEventListener('online', this.onlineHandler);
-            window.addEventListener('offline', this.offlineHandler);
+        // Remove existing listeners if any
+        if (this.onlineHandler) {
+            window.removeEventListener('online', this.onlineHandler);
         }
+        if (this.offlineHandler) {
+            window.removeEventListener('offline', this.offlineHandler);
+        }
+
+        this.onlineHandler = () => {
+            // If we're already connected, don't need to do anything
+            if (this.conn && this.conn.readyState === WebSocket.OPEN) {
+                return;
+            }
+
+            console.log('network online event received, scheduling reconnect'); // eslint-disable-line no-console
+
+            // Set a timer to reconnect after a delay to avoid rapid connection attempts
+            this.clearReconnectTimeout();
+            this.reconnectTimeout = setTimeout(
+                () => {
+                    this.reconnectTimeout = null;
+                    this.initialize(connectionUrl, token, this.postedAck);
+                },
+                this.config.minWebSocketRetryTime,
+            );
+        };
+
+        this.offlineHandler = () => {
+            // If we've detected a full disconnection, don't need to do anything more
+            if (this.conn && this.conn.readyState !== WebSocket.OPEN) {
+                return;
+            }
+
+            console.log('network offline event received, checking connection'); // eslint-disable-line no-console
+
+            // If we haven't detected a full disconnection,
+            // send a ping immediately to test the socket
+            this.waitingForPong = true;
+            this.ping(() => {
+                this.waitingForPong = false;
+            });
+        };
+
+        window.addEventListener('online', this.onlineHandler);
+        window.addEventListener('offline', this.offlineHandler);
 
         // Add connection id, and last_sequence_number to the query param.
         // We cannot use a cookie because it will bleed across tabs.
@@ -510,15 +508,13 @@ export default class WebSocketClient {
             console.log('websocket closed'); //eslint-disable-line no-console
         }
 
-        if (typeof window !== 'undefined') {
-            if (this.onlineHandler) {
-                window.removeEventListener('online', this.onlineHandler);
-                this.onlineHandler = null;
-            }
-            if (this.offlineHandler) {
-                window.removeEventListener('offline', this.offlineHandler);
-                this.offlineHandler = null;
-            }
+        if (this.onlineHandler) {
+            window.removeEventListener('online', this.onlineHandler);
+            this.onlineHandler = null;
+        }
+        if (this.offlineHandler) {
+            window.removeEventListener('offline', this.offlineHandler);
+            this.offlineHandler = null;
         }
     }
 
