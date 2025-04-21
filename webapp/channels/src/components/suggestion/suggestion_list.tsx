@@ -3,7 +3,6 @@
 
 import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
-import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
@@ -44,7 +43,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
     };
     contentRef: React.RefObject<HTMLUListElement>;
     wrapperRef: React.RefObject<HTMLDivElement>;
-    itemRefs: Map<string, any>;
     maxHeight: number;
 
     constructor(props: Props) {
@@ -52,7 +50,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
 
         this.contentRef = React.createRef();
         this.wrapperRef = React.createRef();
-        this.itemRefs = new Map();
         this.maxHeight = 0;
     }
 
@@ -105,7 +102,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
             const contentTopPadding = this.getComputedCssProperty(content, 'paddingTop');
             const contentBottomPadding = this.getComputedCssProperty(content, 'paddingTop');
 
-            const item = ReactDOM.findDOMNode(this.itemRefs.get(term));
+            const item = document.getElementById(`suggestionList_item_${term}`);
             if (!item) {
                 return;
             }
