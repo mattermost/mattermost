@@ -483,6 +483,7 @@ export type ExperimentalAuditSettings = {
     FileCompress: boolean;
     FileMaxQueueSize: number;
     AdvancedLoggingJSON: Record<string, any>;
+    Certificate: string;
 };
 
 export type NotificationLogSettings = {
@@ -963,6 +964,11 @@ export type ExportSettings = {
     RetentionDays: number;
 };
 
+export type AccessControlSettings = {
+    EnableAttributeBasedAccessControl: boolean;
+    EnableChannelScopeAccessControl: boolean;
+};
+
 export type AdminConfig = {
     ServiceSettings: ServiceSettings;
     TeamSettings: TeamSettings;
@@ -1008,6 +1014,7 @@ export type AdminConfig = {
     ExportSettings: ExportSettings;
     WranglerSettings: WranglerSettings;
     ConnectedWorkspacesSettings: ConnectedWorkspacesSettings;
+    AccessControlSettings: AccessControlSettings;
 };
 
 export type ReplicaLagSetting = {

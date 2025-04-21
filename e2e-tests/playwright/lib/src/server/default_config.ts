@@ -276,6 +276,7 @@ const defaultServerConfig: AdminConfig = {
         FileCompress: false,
         FileMaxQueueSize: 1000,
         AdvancedLoggingJSON: {},
+        Certificate: '',
     },
     NotificationLogSettings: {
         EnableConsole: true,
@@ -779,5 +780,9 @@ const defaultServerConfig: AdminConfig = {
         EnableRemoteClusterService: false,
         DisableSharedChannelsStatusSync: false,
         MaxPostsPerSync: 50,
+    },
+    AccessControlSettings: {
+        EnableAttributeBasedAccessControl: false,
+        EnableChannelScopeAccessControl: false,
     },
 };

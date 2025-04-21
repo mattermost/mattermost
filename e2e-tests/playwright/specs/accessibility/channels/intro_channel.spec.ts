@@ -14,7 +14,7 @@ test.fixme('Base channel accessibility', async ({pw, pages, axe}) => {
     const channelsPage = new pages.ChannelsPage(page);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage('hello');
+    await channelsPage.postMessage('hello');
 
     // # Analyze the page
     // Disable 'color-contrast' to be addressed by MM-53814
@@ -37,7 +37,7 @@ test('Post actions tab support', async ({pw, pages, axe}) => {
     const channelsPage = new pages.ChannelsPage(page);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage('hello');
+    await channelsPage.postMessage('hello');
 
     const post = await channelsPage.centerView.getLastPost();
     await post.hover();

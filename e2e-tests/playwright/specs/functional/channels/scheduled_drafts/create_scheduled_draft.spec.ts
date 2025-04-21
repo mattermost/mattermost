@@ -61,7 +61,7 @@ test.fixme('MM-T5643_6 should create a scheduled message under a thread post ', 
     await channelPage.goto();
     await channelPage.toBeVisible();
 
-    await channelPage.centerView.postCreate.postMessage('Root Message');
+    await channelsPage.postMessage('Root Message');
 
     // # Start a thread by clicking on reply menuitem from post options menu
     const post = await channelPage.centerView.getLastPost();
@@ -71,7 +71,7 @@ test.fixme('MM-T5643_6 should create a scheduled message under a thread post ', 
     await sidebarRight.toBeVisible();
 
     // # Post a message in the thread
-    await sidebarRight.postCreate.postMessage('Replying to a thread');
+    await sidebarRight.postMessage('Replying to a thread');
 
     // # Write a message in the reply thread but don't send it
     await sidebarRight.postCreate.writeMessage(draftMessage);

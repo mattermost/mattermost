@@ -55,7 +55,7 @@ test.fixme(
         await channelPage.toBeVisible();
 
         // # Send a message
-        await channelPage.centerView.postCreate.postMessage('Message to open RHS');
+        await channelsPage.postMessage('Message to open RHS');
 
         // # Open the last post sent in RHS
         const lastPost = await channelPage.centerView.getLastPost();

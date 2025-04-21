@@ -41,6 +41,10 @@ export default class ChannelsSidebarRight {
         await expect(this.container).toBeVisible();
     }
 
+    async postMessage(message: string) {
+        await this.postCreate.postMessage(message);
+    }
+
     /**
      * Returns the RHS post by post id
      * @param postId Just the ID without the prefix
