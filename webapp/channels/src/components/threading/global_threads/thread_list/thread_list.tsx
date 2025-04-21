@@ -233,11 +233,15 @@ const ThreadList = ({
                         <WithTooltip
                             title={formatMessage({
                                 id: 'threading.threadList.markRead',
-                                defaultMessage: 'Mark all as read',
+                                defaultMessage: 'Mark all threads as read',
                             })}
                         >
                             <Button
                                 id={'threads-list__mark-all-as-read'}
+                                aria-label={formatMessage({
+                                    id: 'threading.threadList.markRead',
+                                    defaultMessage: 'Mark all threads as read',
+                                })}
                                 className={'Button___large Button___icon'}
                                 onClick={handleOpenMarkAllAsReadModal}
                                 marginTop={true}

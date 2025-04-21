@@ -47,9 +47,10 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
         className="right-anchor"
       >
         <WithTooltip
-          title="Mark all as read"
+          title="Mark all threads as read"
         >
           <Memo(Button)
+            aria-label="Mark all threads as read"
             className="Button___large Button___icon"
             id="threads-list__mark-all-as-read"
             marginTop={true}
