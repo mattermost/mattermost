@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {MouseEvent, KeyboardEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -94,8 +94,6 @@ function ThreadItem({
     const postAuthor = ensureString(post.props?.override_username) || displayName;
     const getMentionKeysForPost = useMemo(() => makeGetMentionKeysForPost(), []);
     const mentionsKeys = useSelector((state: GlobalState) => getMentionKeysForPost(state, post, channel));
-    const previewRef = useRef<HTMLDivElement>(null);
-    const [hasLink, setHasLink] = useState(false);
 
     useEffect(() => {
         if (channel?.teammate_id) {
@@ -108,12 +106,6 @@ function ThreadItem({
             dispatch(fetchChannel(thread.post.channel_id));
         }
     }, [channel, thread?.post.channel_id]);
-
-    useEffect(() => {
-        if (previewRef.current) {
-            setHasLink(previewRef.current.querySelector('a') !== null);
-        }
-    }, [post.message, post.state]);
 
     const participantIds = useMemo(() => {
         const ids = (thread?.participants || []).flatMap(({id}) => {
@@ -272,12 +264,12 @@ function ThreadItem({
                     </WithTooltip>
                 </ThreadMenu>
             </div>
+
+            {/* The strange interaction here where we need a click/keydown handler messes with the ESLint rules, so we just disable it */}
+            {/*eslint-disable-next-line jsx-a11y/no-static-element-interactions*/}
             <div
-                ref={previewRef}
                 className='preview'
                 dir='auto'
-                tabIndex={hasLink ? 0 : -1}
-                role='button'
                 onClick={handleFormattedTextClick}
                 onKeyDown={handleFormattedTextClick}
             >
