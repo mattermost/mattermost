@@ -5447,6 +5447,7 @@
   "threading.numNewReplies": "{newReplies, plural, =1 {# new reply} other {# new replies}}",
   "threading.numReplies": "{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}",
   "threading.threadHeader.menu": "More Actions",
+  "threading.threadItem.ariaLabel": "Thread by {author}",
   "threading.threadItem.menu": "Actions",
   "threading.threadList.markRead": "Mark all as read",
   "threading.threadMenu.copy": "Copy link",

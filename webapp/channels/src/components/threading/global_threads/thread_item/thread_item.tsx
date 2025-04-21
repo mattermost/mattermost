@@ -196,14 +196,14 @@ function ThreadItem({
     }
 
     return (
-        <article
+        <div
             style={style}
             className={classNames('ThreadItem', {
                 'has-unreads': newReplies,
                 'is-selected': isSelected,
             })}
             tabIndex={isSelected ? -1 : 0}
-            role='button'
+            role='link'
             aria-label={formatMessage(
                 {id: 'threading.threadItem.ariaLabel', defaultMessage: 'Thread by {author}'},
                 {author: postAuthor},
@@ -319,7 +319,7 @@ function ThreadItem({
                 )}
             </div>
             {showListTutorialTip && isFirstThreadInList && isMobileView && (<CRTListTutorialTip/>)}
-        </article>
+        </div>
     );
 }
 
