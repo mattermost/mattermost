@@ -5733,7 +5733,6 @@
   "user.settings.notifications.email.disabled_long": "E-posta bildirimleri sistem yöneticiniz tarafından kapatılmış.",
   "user.settings.notifications.email.everyHour": "Saat başı",
   "user.settings.notifications.email.everyXMinutes": "Her {count, plural, one {dakikada} other {{count, number} dakikada}} bir",
-  "user.settings.notifications.email.immediately": "Anında",
   "user.settings.notifications.email.never": "Bildirim yok",
   "user.settings.notifications.email.notifyForthreads": "İzlediğim konulara gelen yanıtlar bana bildirilsin",
   "user.settings.notifications.email.send": "E-posta bildirimleri gönderilsin",

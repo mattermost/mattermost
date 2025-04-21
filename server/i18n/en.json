@@ -2329,6 +2329,10 @@
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Failed to compute monthly active users."
+  },
+  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Failed to send the disable license email successfully."
   },
@@ -8363,6 +8367,10 @@
   {
     "id": "ent.saml.license_disable.app_error",
     "translation": "Your license does not support SAML authentication."
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "No user registered on AD/LDAP server that matches the SAML user."
   },
   {
     "id": "ent.saml.metadata.app_error",
