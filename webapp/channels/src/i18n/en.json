@@ -5454,7 +5454,6 @@
   "threading.threadMenu.follow": "Follow thread",
   "threading.threadMenu.followExtra": "You will be notified about replies",
   "threading.threadMenu.followMessage": "Follow message",
-  "threading.threadMenu.label": "More options",
   "threading.threadMenu.markRead": "Mark as read",
   "threading.threadMenu.markUnread": "Mark as unread",
   "threading.threadMenu.openInChannel": "Open in channel",
