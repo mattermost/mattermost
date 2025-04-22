@@ -1107,6 +1107,7 @@ type PropertyValueStore interface {
 	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Delete(groupID string, id string) error
 	DeleteForField(id string) error
+	DeleteForTarget(groupID string, targetType string, targetID string) error
 }
 
 type AccessControlPolicyStore interface {
