@@ -24,7 +24,26 @@ func newSqlCommandStore(sqlStore *SqlStore) store.CommandStore {
 	s := &SqlCommandStore{SqlStore: sqlStore}
 
 	s.commandsQuery = s.getQueryBuilder().
-		Select("*").
+		Select(
+			"Id",
+			"Token",
+			"CreateAt",
+			"UpdateAt",
+			"DeleteAt",
+			"CreatorId",
+			"TeamId",
+			s.toReserveCase("trigger"),
+			"Method",
+			"Username",
+			"IconURL",
+			"AutoComplete",
+			"AutoCompleteDesc",
+			"AutoCompleteHint",
+			"DisplayName",
+			"Description",
+			"URL",
+			"PluginId",
+		).
 		From("Commands")
 	return s
 }

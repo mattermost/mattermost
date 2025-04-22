@@ -16,10 +16,28 @@ import (
 
 type SqlCommandWebhookStore struct {
 	*SqlStore
+
+	commandWebhookQuery sq.SelectBuilder
 }
 
 func newSqlCommandWebhookStore(sqlStore *SqlStore) store.CommandWebhookStore {
-	return &SqlCommandWebhookStore{sqlStore}
+	s := &SqlCommandWebhookStore{
+		SqlStore: sqlStore,
+	}
+
+	s.commandWebhookQuery = s.getQueryBuilder().
+		Select(
+			"Id",
+			"CreateAt",
+			"CommandId",
+			"UserId",
+			"ChannelId",
+			"RootId",
+			"UseCount",
+		).
+		From("CommandWebhooks")
+
+	return s
 }
 
 func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
@@ -47,9 +65,7 @@ func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 
 	exptime := model.GetMillis() - model.CommandWebhookLifetime
 
-	query := s.getQueryBuilder().
-		Select("*").
-		From("CommandWebhooks").
+	query := s.commandWebhookQuery.
 		Where(sq.Eq{"Id": id}).
 		Where(sq.Gt{"CreateAt": exptime})
 
