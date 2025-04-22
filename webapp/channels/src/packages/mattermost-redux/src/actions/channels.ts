@@ -513,7 +513,7 @@ export function fetchAllMyTeamsChannels(): ActionFuncAsync {
         }
 
         dispatch({
-            type: ChannelTypes.RECEIVED_ALL_CHANNELS,
+            type: ChannelTypes.RECEIVED_CHANNELS,
             data: channels,
         });
         return {data: channels};
