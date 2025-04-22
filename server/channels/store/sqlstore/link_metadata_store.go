@@ -16,10 +16,26 @@ import (
 
 type SqlLinkMetadataStore struct {
 	*SqlStore
+
+	linkMetadataQuery sq.SelectBuilder
 }
 
 func newSqlLinkMetadataStore(sqlStore *SqlStore) store.LinkMetadataStore {
-	return &SqlLinkMetadataStore{sqlStore}
+	s := &SqlLinkMetadataStore{
+		SqlStore: sqlStore,
+	}
+
+	s.linkMetadataQuery = s.getQueryBuilder().
+		Select(
+			"Hash",
+			"URL",
+			"Timestamp",
+			"Type",
+			"Data",
+		).
+		From("LinkMetadata")
+
+	return s
 }
 
 func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMetadata, error) {
@@ -62,9 +78,7 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 
 func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, error) {
 	var metadata model.LinkMetadata
-	query, args, err := s.getQueryBuilder().
-		Select("*").
-		From("LinkMetadata").
+	query, args, err := s.linkMetadataQuery.
 		Where(sq.Eq{"URL": url, "Timestamp": timestamp}).
 		ToSql()
 	if err != nil {
