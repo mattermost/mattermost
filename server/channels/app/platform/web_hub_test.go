@@ -629,7 +629,7 @@ func TestHubWebConnCount(t *testing.T) {
 
 var globalIter iter.Seq[*WebConn]
 
-func BenchmarkHubConnIndexIterator(b *testing.B) {
+func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	th := Setup(b)
 	defer th.TearDown()
 
@@ -703,6 +703,68 @@ func BenchmarkHubConnIndexIterator(b *testing.B) {
 			globalIter = connIndex.ForUser(wc2.UserId)
 		}
 	})
+}
+
+func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
+	th := Setup(b).InitBasic()
+	defer th.TearDown()
+
+	_, err := th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   th.BasicChannel.Id,
+		UserId:      th.BasicUser.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeGuest: th.BasicUser.IsGuest(),
+		SchemeUser:  !th.BasicUser.IsGuest(),
+	})
+	require.NoError(b, err)
+	_, err = th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   th.BasicChannel.Id,
+		UserId:      th.BasicUser2.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeGuest: th.BasicUser2.IsGuest(),
+		SchemeUser:  !th.BasicUser2.IsGuest(),
+	})
+	require.NoError(b, err)
+
+	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, true)
+
+	// User1
+	wc1ID := model.NewId()
+	wc1 := &WebConn{
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   th.BasicUser.Id,
+	}
+	wc1.SetConnectionID(wc1ID)
+	wc1.SetSession(&model.Session{})
+
+	// User2
+	wc2ID := model.NewId()
+	wc2 := &WebConn{
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   th.BasicUser2.Id,
+	}
+	wc2.SetConnectionID(wc2ID)
+	wc2.SetSession(&model.Session{})
+
+	wc3ID := model.NewId()
+	wc3 := &WebConn{
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   wc2.UserId,
+	}
+	wc3.SetConnectionID(wc3ID)
+	wc3.SetSession(&model.Session{})
+
+	connIndex.Add(wc1)
+	connIndex.Add(wc2)
+	connIndex.Add(wc3)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		globalIter = connIndex.ForChannel(th.BasicChannel.Id)
+	}
 }
 
 // Always run this with -benchtime=0.1s
