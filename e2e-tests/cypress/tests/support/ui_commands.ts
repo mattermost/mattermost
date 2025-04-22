@@ -393,8 +393,8 @@ function getCurrentTeamURL(siteURL: string): ChainableT<string> {
 Cypress.Commands.add('getCurrentTeamURL', getCurrentTeamURL);
 
 function leaveTeam() {
-    // # Open team menu and click "Leave Team"
-    cy.uiOpenTeamMenu('Leave Team');
+    // # Open team menu and click "Leave team"
+    cy.uiOpenTeamMenu('Leave team');
 
     // * Check that the "leave team modal" opened up
     cy.get('#leaveTeamModal').should('be.visible');

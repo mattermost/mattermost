@@ -95,10 +95,10 @@ describe('Team Permissions', () => {
         cy.uiOpenTeamMenu().wait(TIMEOUTS.HALF_SEC);
 
         // * Verify `Invite People` menu item is not present
-        cy.get('#invitePeople').should('not.exist');
+        cy.get("#sidebarTeamMenu li:contains('Invite people')").should('not.exist');
 
         // # Click `View Members` menu item
-        cy.get('#viewMembers').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get("#sidebarTeamMenu li:contains('View members')").should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // * Verify team members modal opens
         cy.get('#teamMembersModal').should('be.visible');
