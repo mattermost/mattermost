@@ -130,6 +130,78 @@ func (a *App) GetAcknowledgementsForPostList(postList *model.PostList) (map[stri
 	return acknowledgementsMap, nil
 }
 
+// SaveBatchAcknowledgementsForPost saves multiple acknowledgements for a post in a single operation.
+// This is more efficient than calling SaveAcknowledgementForPost multiple times.
+func (a *App) SaveBatchAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
+	if len(userIDs) == 0 {
+		return []*model.PostAcknowledgement{}, nil
+	}
+
+	// Check that the post and channel exist and are valid
+	post, err := a.GetSinglePost(c, postID, false)
+	if err != nil {
+		return nil, err
+	}
+
+	channel, err := a.GetChannel(c, post.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if channel.DeleteAt > 0 {
+		return nil, model.NewAppError("SaveBatchAcknowledgementsForPost", "api.acknowledgement.save.archived_channel.app_error", nil, "", http.StatusForbidden)
+	}
+
+	// Create acknowledgements with current timestamp
+	acknowledgedAt := model.GetMillis()
+	var acknowledgements []*model.PostAcknowledgement
+
+	for _, userID := range userIDs {
+		acknowledgements = append(acknowledgements, &model.PostAcknowledgement{
+			PostId:         postID,
+			UserId:         userID,
+			AcknowledgedAt: acknowledgedAt,
+		})
+	}
+
+	// Save all acknowledgements in a single batch operation
+	savedAcks, nErr := a.Srv().Store().PostAcknowledgement().BatchSave(acknowledgements)
+	if nErr != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("SaveBatchAcknowledgementsForPost", "app.acknowledgement.batch_save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+	}
+
+	// Resolve persistent notifications for each user
+	for _, userID := range userIDs {
+		if appErr := a.ResolvePersistentNotification(c, post, userID); appErr != nil {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
+			a.NotificationsLog().Error("Error resolving persistent notification",
+				mlog.String("sender_id", userID),
+				mlog.String("post_id", post.RootId),
+				mlog.String("status", model.NotificationStatusError),
+				mlog.String("reason", model.NotificationReasonResolvePersistentNotificationError),
+				mlog.Err(appErr),
+			)
+			// We continue processing other acknowledgements even if one fails
+		}
+	}
+
+	// The post is always modified since the UpdateAt always changes
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
+
+	// Send WebSocket events for each acknowledgement
+	for _, ack := range savedAcks {
+		a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementAdded, ack, post)
+	}
+
+	return savedAcks, nil
+}
+
 // DeleteAllAcknowledgementsForPost deletes all acknowledgements for a post.
 // This is useful for when we need to replace all acknowledgements in a post during sync operations.
 func (a *App) DeleteAllAcknowledgementsForPost(c request.CTX, postID string) *model.AppError {

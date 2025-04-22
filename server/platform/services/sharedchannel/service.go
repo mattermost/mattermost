@@ -74,6 +74,7 @@ type AppIface interface {
 	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 	Publish(message *model.WebSocketEvent)
 	SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError)
+	SaveBatchAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError)
 	GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError)
 	DeleteAllAcknowledgementsForPost(c request.CTX, postID string) *model.AppError
 	SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post, *model.AppError)

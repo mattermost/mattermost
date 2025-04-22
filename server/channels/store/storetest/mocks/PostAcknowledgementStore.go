@@ -152,6 +152,36 @@ func (_m *PostAcknowledgementStore) Save(postID string, userID string, acknowled
 	return r0, r1
 }
 
+// BatchSave provides a mock function with given fields: acknowledgements
+func (_m *PostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAcknowledgement) ([]*model.PostAcknowledgement, error) {
+	ret := _m.Called(acknowledgements)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BatchSave")
+	}
+
+	var r0 []*model.PostAcknowledgement
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]*model.PostAcknowledgement) ([]*model.PostAcknowledgement, error)); ok {
+		return rf(acknowledgements)
+	}
+	if rf, ok := ret.Get(0).(func([]*model.PostAcknowledgement) []*model.PostAcknowledgement); ok {
+		r0 = rf(acknowledgements)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]*model.PostAcknowledgement) error); ok {
+		r1 = rf(acknowledgements)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewPostAcknowledgementStore creates a new instance of PostAcknowledgementStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewPostAcknowledgementStore(t interface {

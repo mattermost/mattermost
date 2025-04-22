@@ -558,6 +558,38 @@ func (_m *MockAppIface) SaveAcknowledgementForPost(c request.CTX, postID string,
 	return r0, r1
 }
 
+// SaveBatchAcknowledgementsForPost provides a mock function with given fields: c, postID, userIDs
+func (_m *MockAppIface) SaveBatchAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
+	ret := _m.Called(c, postID, userIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveBatchAcknowledgementsForPost")
+	}
+
+	var r0 []*model.PostAcknowledgement
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) ([]*model.PostAcknowledgement, *model.AppError)); ok {
+		return rf(c, postID, userIDs)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) []*model.PostAcknowledgement); ok {
+		r0 = rf(c, postID, userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, []string) *model.AppError); ok {
+		r1 = rf(c, postID, userIDs)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SaveAndBroadcastStatus provides a mock function with given fields: status
 func (_m *MockAppIface) SaveAndBroadcastStatus(status *model.Status) {
 	_m.Called(status)
