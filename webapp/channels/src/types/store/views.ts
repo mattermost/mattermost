@@ -207,6 +207,7 @@ export type ViewsState = {
     threads: {
         selectedThreadIdInTeam: RelationOneToOne<Team, UserThread['id'] | null>;
         lastViewedAt: {[id: string]: number};
+        lastUpdateAt: {[id: string]: number};
         manuallyUnread: {[id: string]: boolean};
         toastStatus: boolean;
     };
