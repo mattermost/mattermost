@@ -178,6 +178,14 @@ export default class WebSocketClient {
 
             // If we haven't detected a full disconnection,
             // send a ping immediately to test the socket
+            //
+            // NOTE: There is a potential race condition here with the regular ping interval.
+            // If we send this ping close to when the interval check occurs (e.g., at 29.5s of the 30s interval),
+            // the server might not have enough time to respond before the interval executes.
+            // When the interval runs, it will see we're still waiting for a pong and close the connection,
+            // even though the network might be fine and the server just needs a bit more time to respond.
+            // This race condition is rare and the impact is just an unnecessary reconnect,
+            // so we accept this limitation to keep the implementation simple.
             this.waitingForPong = true;
             this.ping(() => {
                 this.waitingForPong = false;
