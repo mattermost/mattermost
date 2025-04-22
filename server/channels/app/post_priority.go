@@ -56,16 +56,20 @@ func (a *App) SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post,
 		}
 	}
 
-	// For remote posts or when dealing with updates to just priority metadata,
-	// use the enhanced PostPriorityStore.Save method that handles all priority aspects
-	if post.IsRemote() || currentPost.IsRemote() {
-		// Create priority object with all necessary fields
+	// Transfer priority metadata from post to currentPost
+	if currentPost.Metadata == nil {
+		currentPost.Metadata = &model.PostMetadata{}
+	}
+	currentPost.Metadata.Priority = post.Metadata.Priority
+
+	if currentPost.IsRemote() {
+		// Create priority object with all necessary fields from currentPost
 		postPriority := &model.PostPriority{
 			PostId:                  currentPost.Id,
 			ChannelId:               currentPost.ChannelId,
-			Priority:                post.Metadata.Priority.Priority,
-			RequestedAck:            post.Metadata.Priority.RequestedAck,
-			PersistentNotifications: post.Metadata.Priority.PersistentNotifications,
+			Priority:                currentPost.Metadata.Priority.Priority,
+			RequestedAck:            currentPost.Metadata.Priority.RequestedAck,
+			PersistentNotifications: currentPost.Metadata.Priority.PersistentNotifications,
 		}
 
 		// Use the enhanced store method to save priority and handle persistent notifications

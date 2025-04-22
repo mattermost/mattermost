@@ -190,8 +190,10 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 
 	// Check if user already exists
 	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)
-	if err != nil && !isNotFoundError(err) {
-		return nil, fmt.Errorf("error checking sync user: %w", err)
+	if err != nil {
+		if _, ok := err.(errNotFound); !ok {
+			return nil, fmt.Errorf("error checking sync user: %w", err)
+		}
 	}
 
 	var userSaved *model.User
@@ -359,8 +361,10 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 	post.RemoteId = model.NewPointer(rc.RemoteId)
 	rctx := request.EmptyContext(scs.server.Log())
 	rpost, err := scs.server.GetStore().Post().GetSingle(rctx, post.Id, true)
-	if err != nil && !isNotFoundError(err) {
-		return nil, fmt.Errorf("error checking sync post: %w", err)
+	if err != nil {
+		if _, ok := err.(errNotFound); !ok {
+			return nil, fmt.Errorf("error checking sync post: %w", err)
+		}
 	}
 
 	// ensure the post is in the target channel. This ensures the post can only be associated with a channel
