@@ -6731,6 +6731,38 @@ func (s *TimerLayerPostStore) Update(rctx request.CTX, newPost *model.Post, oldP
 	return result, err
 }
 
+func (s *TimerLayerPostAcknowledgementStore) BatchDelete(acknowledgements []*model.PostAcknowledgement) error {
+	start := time.Now()
+
+	err := s.PostAcknowledgementStore.BatchDelete(acknowledgements)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.BatchDelete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAcknowledgement) ([]*model.PostAcknowledgement, error) {
+	start := time.Now()
+
+	result, err := s.PostAcknowledgementStore.BatchSave(acknowledgements)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.BatchSave", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
 	start := time.Now()
 

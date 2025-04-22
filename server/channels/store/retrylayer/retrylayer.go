@@ -8455,6 +8455,48 @@ func (s *RetryLayerPostStore) Update(rctx request.CTX, newPost *model.Post, oldP
 
 }
 
+func (s *RetryLayerPostAcknowledgementStore) BatchDelete(acknowledgements []*model.PostAcknowledgement) error {
+
+	tries := 0
+	for {
+		err := s.PostAcknowledgementStore.BatchDelete(acknowledgements)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAcknowledgement) ([]*model.PostAcknowledgement, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostAcknowledgementStore.BatchSave(acknowledgements)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
 
 	tries := 0
