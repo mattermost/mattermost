@@ -17,7 +17,8 @@ import (
 type SqlCommandWebhookStore struct {
 	*SqlStore
 
-	commandWebhookQuery sq.SelectBuilder
+	commandWebhookColumns []string
+	commandWebhookQuery   sq.SelectBuilder
 }
 
 func newSqlCommandWebhookStore(sqlStore *SqlStore) store.CommandWebhookStore {
@@ -25,16 +26,18 @@ func newSqlCommandWebhookStore(sqlStore *SqlStore) store.CommandWebhookStore {
 		SqlStore: sqlStore,
 	}
 
+	s.commandWebhookColumns = []string{
+		"Id",
+		"CreateAt",
+		"CommandId",
+		"UserId",
+		"ChannelId",
+		"RootId",
+		"UseCount",
+	}
+
 	s.commandWebhookQuery = s.getQueryBuilder().
-		Select(
-			"Id",
-			"CreateAt",
-			"CommandId",
-			"UserId",
-			"ChannelId",
-			"RootId",
-			"UseCount",
-		).
+		Select(s.commandWebhookColumns...).
 		From("CommandWebhooks")
 
 	return s
@@ -50,10 +53,25 @@ func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comm
 		return nil, err
 	}
 
-	if _, err := s.GetMaster().NamedExec(`INSERT INTO CommandWebhooks
-		(Id,CreateAt,CommandId,UserId,ChannelId,RootId,UseCount)
-		Values
-		(:Id, :CreateAt, :CommandId, :UserId, :ChannelId, :RootId, :UseCount)`, webhook); err != nil {
+	insertQuery := s.getQueryBuilder().
+		Insert("CommandWebhooks").
+		Columns(s.commandWebhookColumns...).
+		Values(
+			webhook.Id,
+			webhook.CreateAt,
+			webhook.CommandId,
+			webhook.UserId,
+			webhook.ChannelId,
+			webhook.RootId,
+			webhook.UseCount,
+		)
+
+	sql, args, err := insertQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "commandwebhook_tosql: id=%s", webhook.Id)
+	}
+
+	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
 		return nil, errors.Wrapf(err, "save: id=%s", webhook.Id)
 	}
 

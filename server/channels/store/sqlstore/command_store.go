@@ -17,33 +17,36 @@ import (
 type SqlCommandStore struct {
 	*SqlStore
 
-	commandsQuery sq.SelectBuilder
+	commandColumns []string
+	commandsQuery  sq.SelectBuilder
 }
 
 func newSqlCommandStore(sqlStore *SqlStore) store.CommandStore {
 	s := &SqlCommandStore{SqlStore: sqlStore}
 
+	s.commandColumns = []string{
+		"Id",
+		"Token",
+		"CreateAt",
+		"UpdateAt",
+		"DeleteAt",
+		"CreatorId",
+		"TeamId",
+		s.toReserveCase("trigger"),
+		"Method",
+		"Username",
+		"IconURL",
+		"AutoComplete",
+		"AutoCompleteDesc",
+		"AutoCompleteHint",
+		"DisplayName",
+		"Description",
+		"URL",
+		"PluginId",
+	}
+
 	s.commandsQuery = s.getQueryBuilder().
-		Select(
-			"Id",
-			"Token",
-			"CreateAt",
-			"UpdateAt",
-			"DeleteAt",
-			"CreatorId",
-			"TeamId",
-			s.toReserveCase("trigger"),
-			"Method",
-			"Username",
-			"IconURL",
-			"AutoComplete",
-			"AutoCompleteDesc",
-			"AutoCompleteHint",
-			"DisplayName",
-			"Description",
-			"URL",
-			"PluginId",
-		).
+		Select(s.commandColumns...).
 		From("Commands")
 	return s
 }
@@ -58,16 +61,36 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
 		return nil, err
 	}
 
-	// Trigger is a keyword
-	trigger := s.toReserveCase("trigger")
+	insertQuery := s.getQueryBuilder().
+		Insert("Commands").
+		Columns(s.commandColumns...).
+		Values(
+			command.Id,
+			command.Token,
+			command.CreateAt,
+			command.UpdateAt,
+			command.DeleteAt,
+			command.CreatorId,
+			command.TeamId,
+			command.Trigger,
+			command.Method,
+			command.Username,
+			command.IconURL,
+			command.AutoComplete,
+			command.AutoCompleteDesc,
+			command.AutoCompleteHint,
+			command.DisplayName,
+			command.Description,
+			command.URL,
+			command.PluginId,
+		)
 
-	if _, err := s.GetMaster().NamedExec(`INSERT INTO Commands (Id, Token, CreateAt,
-		UpdateAt, DeleteAt, CreatorId, TeamId, `+trigger+`, Method, Username,
-		IconURL, AutoComplete, AutoCompleteDesc, AutoCompleteHint, DisplayName, Description,
-		URL, PluginId)
-	VALUES (:Id, :Token, :CreateAt, :UpdateAt, :DeleteAt, :CreatorId, :TeamId, :Trigger, :Method,
-		:Username, :IconURL, :AutoComplete, :AutoCompleteDesc, :AutoCompleteHint, :DisplayName,
-		:Description, :URL, :PluginId)`, command); err != nil {
+	sql, args, err := insertQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "command_tosql: id=%s", command.Id)
+	}
+
+	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
 		return nil, errors.Wrapf(err, "insert: command_id=%s", command.Id)
 	}
 
