@@ -214,21 +214,6 @@ export async function editMultiselectAttribute(
 }
 
 /**
- * Helper function to open the profile popover for the test user
- * @param {ChannelsPage} channelsPage - The Playwright channels page object
- */
-export async function openProfilePopover(channelsPage: ChannelsPage): Promise<void> {
-    // Find and click the last post's user avatar to open the profile popover
-    const lastPost = await channelsPage.getLastPost();
-    await lastPost.hover();
-    await lastPost.profileIcon.click();
-
-    // Wait for the profile popover to be visible
-    const popover = channelsPage.userProfilePopover;
-    await expect(popover.container).toBeVisible();
-}
-
-/**
  * Helper function to verify an attribute exists in the profile settings
  * @param {Page} page - The Playwright page object
  * @param {Array} attributes - Array of attribute objects with name

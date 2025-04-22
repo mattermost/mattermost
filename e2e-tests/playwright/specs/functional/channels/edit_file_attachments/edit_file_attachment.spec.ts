@@ -13,7 +13,7 @@ test('MM-T5654_1 should be able to add attachments while editing a post', async 
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage);
+    await channelsPage.postMessage(originalMessage);
 
     const post = await channelsPage.getLastPost();
     await post.toBeVisible();
@@ -41,7 +41,7 @@ test('MM-T5654_2 should be able to add attachments while editing a threaded post
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage);
+    await channelsPage.postMessage(originalMessage);
 
     const post = await channelsPage.getLastPost();
     await post.toBeVisible();
@@ -54,7 +54,7 @@ test('MM-T5654_2 should be able to add attachments while editing a threaded post
     await channelsPage.postDotMenu.replyMenuItem.click();
     await channelsPage.sidebarRight.toBeVisible();
     await channelsPage.sidebarRight.postCreate.toBeVisible();
-    await channelsPage.sidebarRight.postCreate.postMessage('Replying to the post');
+    await channelsPage.sidebarRight.postMessage('Replying to the post');
     await channelsPage.sidebarRight.toContainText('Replying to the post');
 
     const replyPost = await channelsPage.sidebarRight.getLastPost();
@@ -119,7 +119,7 @@ test('MM-T5654_3 should be able to edit post message originally containing files
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage, ['sample_text_file.txt']);
+    await channelsPage.postMessage(originalMessage, ['sample_text_file.txt']);
 
     const post = await channelsPage.getLastPost();
     await post.toBeVisible();
@@ -147,7 +147,7 @@ test('MM-T5654_4 should be able to add files when editing a post', async ({pw}) 
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage);
+    await channelsPage.postMessage(originalMessage);
 
     const post = await channelsPage.getLastPost();
     await post.toBeVisible();
@@ -192,11 +192,7 @@ test('MM-5654_5 should be able to remove attachments while editing a post', asyn
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage, [
-        'sample_text_file.txt',
-        'mattermost.png',
-        'archive.zip',
-    ]);
+    await channelsPage.postMessage(originalMessage, ['sample_text_file.txt', 'mattermost.png', 'archive.zip']);
 
     const post = await channelsPage.getLastPost();
     await post.toBeVisible();
@@ -232,7 +228,7 @@ test('MM-T5655_1 removing message content and files should delete the post', asy
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage, ['sample_text_file.txt']);
+    await channelsPage.postMessage(originalMessage, ['sample_text_file.txt']);
 
     const post = await channelsPage.getLastPost();
     await post.toBeVisible();
@@ -266,11 +262,7 @@ test('MM-T5655_2 should be able to remove all files when editing a post', async 
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage, [
-        'sample_text_file.txt',
-        'mattermost.png',
-        'archive.zip',
-    ]);
+    await channelsPage.postMessage(originalMessage, ['sample_text_file.txt', 'mattermost.png', 'archive.zip']);
 
     const post = await channelsPage.getLastPost();
     await post.toBeVisible();
@@ -309,7 +301,7 @@ test('MM-T5656_1 should be able to restore previously edited post version that c
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.postMessage(originalMessage, ['sample_text_file.txt']);
+    await channelsPage.postMessage(originalMessage, ['sample_text_file.txt']);
 
     const post = await channelsPage.getLastPost();
     await post.toBeVisible();
