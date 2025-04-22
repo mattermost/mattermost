@@ -72,34 +72,19 @@ func (a *App) SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post,
 			PersistentNotifications: currentPost.Metadata.Priority.PersistentNotifications,
 		}
 
-		// Use the enhanced store method to save priority and handle persistent notifications
 		savedPriority, nErr := a.Srv().Store().PostPriority().Save(postPriority)
 		if nErr != nil {
 			return nil, model.NewAppError("SavePriorityForPost", "app.post.save_priority.store_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 
-		// Ensure the metadata is properly set in the returned post
-		if currentPost.Metadata == nil {
-			currentPost.Metadata = &model.PostMetadata{}
-		}
+		// Update with the saved priority
 		currentPost.Metadata.Priority = savedPriority
 
 		return currentPost, nil
 	}
 
-	// For non-remote regular posts, use the standard approach
-	postCopy := currentPost.Clone()
-
-	// Create metadata if it doesn't exist
-	if postCopy.Metadata == nil {
-		postCopy.Metadata = &model.PostMetadata{}
-	}
-
-	// Update the priority metadata
-	postCopy.Metadata.Priority = post.Metadata.Priority
-
 	// Save the post with updated metadata
-	savedPost, nErr := a.Srv().Store().Post().Save(c, postCopy)
+	savedPost, nErr := a.Srv().Store().Post().Save(c, currentPost)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -111,7 +96,7 @@ func (a *App) SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post,
 	}
 
 	// The post is always modified since the UpdateAt always changes
-	channel, channelErr := a.GetChannel(c, postCopy.ChannelId)
+	channel, channelErr := a.GetChannel(c, currentPost.ChannelId)
 	if channelErr == nil {
 		a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 	}

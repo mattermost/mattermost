@@ -400,7 +400,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			)
 		}
 	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.Metadata != nil {
-		// Save a copy of the original priority before calling UpdatePost to preserve it
+		// Save a copy of the original priority before calling UpdatePost
 		var originalPriority *model.PostPriority
 		if post.Metadata != nil && post.Metadata.Priority != nil {
 			originalPriority = post.Metadata.Priority.Clone()
