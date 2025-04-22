@@ -14,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
@@ -192,8 +191,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 	// Check if user already exists
 	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := err.(errNotFound); !ok {
 			return nil, fmt.Errorf("error checking sync user: %w", err)
 		}
 	}
@@ -364,8 +362,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 	rctx := request.EmptyContext(scs.server.Log())
 	rpost, err := scs.server.GetStore().Post().GetSingle(rctx, post.Id, true)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := err.(errNotFound); !ok {
 			return nil, fmt.Errorf("error checking sync post: %w", err)
 		}
 	}
@@ -506,8 +503,7 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 
 	existingReaction, err := scs.server.GetStore().Reaction().GetSingle(reaction.UserId, reaction.PostId, rc.RemoteId, reaction.EmojiName)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := err.(errNotFound); !ok {
 			return nil, fmt.Errorf("error fetching reaction for sync: %w", err)
 		}
 	}

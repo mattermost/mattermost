@@ -18,13 +18,9 @@ import (
 )
 
 func TestProcessPermalinkToRemote(t *testing.T) {
-	mockApp := &MockAppIface{}
-	// Add mock expectation for SaveBatchAcknowledgementsForPost (not called in these tests)
-	mockApp.On("SaveBatchAcknowledgementsForPost", mock.Anything, mock.Anything, mock.Anything).Return([]*model.PostAcknowledgement{}, nil).Maybe()
-
 	scs := &Service{
 		server: &MockServerIface{},
-		app:    mockApp,
+		app:    &MockAppIface{},
 	}
 
 	mockStore := &mocks.Store{}
@@ -41,7 +37,7 @@ func TestProcessPermalinkToRemote(t *testing.T) {
 	mockServer.On("GetStore").Return(mockStore)
 	mockServer.On("Log").Return(logger)
 
-	mockApp = scs.app.(*MockAppIface)
+	mockApp := scs.app.(*MockAppIface)
 	mockApp.On("SendEphemeralPost", mock.Anything, "user", mock.AnythingOfType("*model.Post")).Return(&model.Post{}).Times(1)
 	defer mockApp.AssertExpectations(t)
 
@@ -89,14 +85,9 @@ func TestProcessPermalinkToRemote(t *testing.T) {
 func TestProcessPermalinkFromRemote(t *testing.T) {
 	t.Run("has match", func(t *testing.T) {
 		parsed, _ := url.Parse("http://mysite.com")
-		mockApp := &MockAppIface{}
-		// Add mock expectation for SaveBatchAcknowledgementsForPost (not called in these tests)
-		mockApp.On("SaveBatchAcknowledgementsForPost", mock.Anything, mock.Anything, mock.Anything).Return([]*model.PostAcknowledgement{}, nil).Maybe()
-
 		scs := &Service{
 			server:  &MockServerIface{},
 			siteURL: parsed,
-			app:     mockApp,
 		}
 
 		out := scs.processPermalinkFromRemote(&model.Post{Message: "hello world https://comm.matt.com/team/plshared/postID link"},
@@ -108,14 +99,9 @@ func TestProcessPermalinkFromRemote(t *testing.T) {
 
 	t.Run("does not match", func(t *testing.T) {
 		parsed, _ := url.Parse("http://mysite.com")
-		mockApp := &MockAppIface{}
-		// Add mock expectation for SaveBatchAcknowledgementsForPost (not called in these tests)
-		mockApp.On("SaveBatchAcknowledgementsForPost", mock.Anything, mock.Anything, mock.Anything).Return([]*model.PostAcknowledgement{}, nil).Maybe()
-
 		scs := &Service{
 			server:  &MockServerIface{},
 			siteURL: parsed,
-			app:     mockApp,
 		}
 
 		out := scs.processPermalinkFromRemote(&model.Post{Message: "hello world https://comm.matt.com/team/pl/postID link"},

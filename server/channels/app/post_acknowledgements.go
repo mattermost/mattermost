@@ -131,7 +131,6 @@ func (a *App) GetAcknowledgementsForPostList(postList *model.PostList) (map[stri
 }
 
 // SaveBatchAcknowledgementsForPost saves multiple acknowledgements for a post in a single operation.
-// This is more efficient than calling SaveAcknowledgementForPost multiple times.
 func (a *App) SaveBatchAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
 	if len(userIDs) == 0 {
 		return []*model.PostAcknowledgement{}, nil
@@ -203,7 +202,6 @@ func (a *App) SaveBatchAcknowledgementsForPost(c request.CTX, postID string, use
 }
 
 // DeleteAllAcknowledgementsForPost deletes all acknowledgements for a post.
-// This is useful for when we need to replace all acknowledgements in a post during sync operations.
 func (a *App) DeleteAllAcknowledgementsForPost(c request.CTX, postID string) *model.AppError {
 	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
@@ -225,21 +223,24 @@ func (a *App) DeleteAllAcknowledgementsForPost(c request.CTX, postID string) *mo
 		return appErr
 	}
 
-	// Delete each acknowledgement one by one
-	for _, ack := range acknowledgements {
-		nErr := a.Srv().Store().PostAcknowledgement().Delete(ack)
-		if nErr != nil {
-			return model.NewAppError("DeleteAllAcknowledgementsForPost", "app.acknowledgement.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-		}
+	// No acknowledgements to delete
+	if len(acknowledgements) == 0 {
+		return nil
+	}
 
-		// Trigger an event for each deleted acknowledgement
+	// Delete all acknowledgements in a single operation
+	nErr := a.Srv().Store().PostAcknowledgement().BatchDelete(acknowledgements)
+	if nErr != nil {
+		return model.NewAppError("DeleteAllAcknowledgementsForPost", "app.acknowledgement.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	// Trigger events for each deleted acknowledgement
+	for _, ack := range acknowledgements {
 		a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementRemoved, ack, post)
 	}
 
-	// Invalidate the last post time cache if we deleted any acknowledgements
-	if len(acknowledgements) > 0 {
-		a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
-	}
+	// Invalidate the last post time cache
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
 	return nil
 }
