@@ -17,22 +17,24 @@ import (
 type SqlLinkMetadataStore struct {
 	*SqlStore
 
-	linkMetadataQuery sq.SelectBuilder
+	linkMetadataColumns []string
+	linkMetadataQuery   sq.SelectBuilder
 }
 
 func newSqlLinkMetadataStore(sqlStore *SqlStore) store.LinkMetadataStore {
 	s := &SqlLinkMetadataStore{
 		SqlStore: sqlStore,
-	}
-
-	s.linkMetadataQuery = s.getQueryBuilder().
-		Select(
+		linkMetadataColumns: []string{
 			"Hash",
 			"URL",
 			"Timestamp",
 			"Type",
 			"Data",
-		).
+		},
+	}
+
+	s.linkMetadataQuery = s.getQueryBuilder().
+		Select(s.linkMetadataColumns...).
 		From("LinkMetadata")
 
 	return s
@@ -54,7 +56,7 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 
 	query := s.getQueryBuilder().
 		Insert("LinkMetadata").
-		Columns("Hash", "URL", "Timestamp", "Type", "Data").
+		Columns(s.linkMetadataColumns...).
 		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, metadataBytes)
 
 	if s.DriverName() == model.DatabaseDriverMysql {
