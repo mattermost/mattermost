@@ -253,3 +253,52 @@ func (s *SqlPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAc
 
 	return acknowledgements, nil
 }
+
+func (s *SqlPostAcknowledgementStore) BatchDelete(acknowledgements []*model.PostAcknowledgement) error {
+	if len(acknowledgements) == 0 {
+		return nil
+	}
+
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Keep track of which posts need to be updated
+	postsToUpdate := make(map[string]bool)
+
+	// Set AcknowledgedAt to 0 for all acknowledgements in a single transaction
+	for _, ack := range acknowledgements {
+		query := s.getQueryBuilder().
+			Update("PostAcknowledgements").
+			Set("AcknowledgedAt", 0).
+			Where(sq.And{
+				sq.Eq{"PostId": ack.PostId},
+				sq.Eq{"UserId": ack.UserId},
+			})
+
+		_, err = transaction.ExecBuilder(query)
+		if err != nil {
+			return err
+		}
+
+		// Add this post to the list of posts that need their UpdateAt field updated
+		postsToUpdate[ack.PostId] = true
+	}
+
+	// Update the UpdateAt timestamp for all affected posts
+	for postID := range postsToUpdate {
+		err = updatePost(transaction, postID)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = transaction.Commit()
+	if err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
+	return nil
+}

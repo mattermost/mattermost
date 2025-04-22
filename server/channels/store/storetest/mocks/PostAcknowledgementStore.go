@@ -182,6 +182,24 @@ func (_m *PostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAckn
 	return r0, r1
 }
 
+// BatchDelete provides a mock function with given fields: acknowledgements
+func (_m *PostAcknowledgementStore) BatchDelete(acknowledgements []*model.PostAcknowledgement) error {
+	ret := _m.Called(acknowledgements)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BatchDelete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]*model.PostAcknowledgement) error); ok {
+		r0 = rf(acknowledgements)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewPostAcknowledgementStore creates a new instance of PostAcknowledgementStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewPostAcknowledgementStore(t interface {

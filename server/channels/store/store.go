@@ -1052,6 +1052,7 @@ type PostAcknowledgementStore interface {
 	Save(postID, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error)
 	BatchSave(acknowledgements []*model.PostAcknowledgement) ([]*model.PostAcknowledgement, error)
 	Delete(acknowledgement *model.PostAcknowledgement) error
+	BatchDelete(acknowledgements []*model.PostAcknowledgement) error
 }
 
 type PostPersistentNotificationStore interface {
