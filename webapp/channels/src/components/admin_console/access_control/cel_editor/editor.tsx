@@ -77,11 +77,9 @@ interface CELEditorProps {
 
 // TODO: this is just a sample schema for the editor, we need to get the actual schema from the server
 const schemas = {
-    user: ['attributes', 'profile', 'program'],
+    user: ['attributes'],
     channel: ['attributes'],
-    'user.attributes': ['clearance', 'level', 'role'],
-    'user.profile': ['location', 'region', 'name', 'email'],
-    'user.profile.location': ['country', 'city', 'zipcode'],
+    'user.attributes': ['Clearance', 'Department', 'Program', 'Teams'],
     'channel.attributes': ['required_level', 'restricted', 'visibility'],
 };
 
