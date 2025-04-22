@@ -5091,6 +5091,23 @@ func (c *Client4) RemoveLicenseFile(ctx context.Context) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
+// GetLicenseLoadMetric retrieves the license load metric from the server.
+// The load is calculated as (monthly active users / licensed users) * 1000.
+func (c *Client4) GetLicenseLoadMetric(ctx context.Context) (map[string]int, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.licenseRoute()+"/load_metric", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var loadData map[string]int
+	if err := json.NewDecoder(r.Body).Decode(&loadData); err != nil {
+		return nil, BuildResponse(r), NewAppError("GetLicenseLoadMetric", "api.unmarshal_error", nil, "", r.StatusCode).Wrap(err)
+	}
+
+	return loadData, BuildResponse(r), nil
+}
+
 // GetAnalyticsOld will retrieve analytics using the old format. New format is not
 // available but the "/analytics" endpoint is reserved for it. The "name" argument is optional
 // and defaults to "standard". The "teamId" argument is optional and will limit results

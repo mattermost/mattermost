@@ -5753,7 +5753,6 @@
   "user.settings.notifications.email.disabled_long": "Emailová upozornění byla zakázána vaším systémovým administrátorem.",
   "user.settings.notifications.email.everyHour": "Každou hodinu",
   "user.settings.notifications.email.everyXMinutes": "Každý {count, plural, one {minute} other {{count, number} minutes}}",
-  "user.settings.notifications.email.immediately": "Okamžitě",
   "user.settings.notifications.email.never": "Nikdy",
   "user.settings.notifications.email.notifyForthreads": "Informovat mě o odpovědích na vlákna, která sleduji",
   "user.settings.notifications.email.send": "Zasílat emailové upozornění",
