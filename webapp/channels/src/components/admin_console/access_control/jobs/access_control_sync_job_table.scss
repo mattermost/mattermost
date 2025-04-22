@@ -1,0 +1,52 @@
+.AccessControlSyncJobTable {
+    overflow: auto;
+
+    .policy-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        
+        &-text {
+            h1 {
+                margin-bottom: 8px;
+                font-size: 20px;
+                font-weight: 600;
+            }
+        }
+        
+        .btn-primary {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            gap: 8px;
+            
+            .icon {
+                font-size: 18px;
+            }
+        }
+    }
+
+    .job-table__access-control {
+        .job-table__table {
+            border: none;
+        }
+
+        .table > thead > tr > th,
+        .table > tbody > tr > th,
+        .table > tfoot > tr > th,
+        .table > thead > tr > td,
+        .table > tbody > tr > td,
+        .table > tfoot > tr > td {
+            border-top: none;
+        }
+
+        .table > thead > tr > th {
+            border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
+        }
+
+        .cancel-button-field {
+            width: 30px;
+        }
+    }
+} 

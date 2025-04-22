@@ -42,6 +42,7 @@ import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 
 import PolicyList from './access_control';
+import AccessControlPolicyJobs from './access_control/jobs';
 import PolicyDetails from './access_control/policy_details';
 import * as DefinitionConstants from './admin_definition_constants';
 import AuditLoggingCertificateUploadSetting from './audit_logging';
@@ -731,6 +732,17 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'custom',
                                     component: PolicyList,
                                     key: 'PolicyListPanel',
+                                },
+                            ],
+                        },
+                        {
+                            key: 'admin.accesscontrol.policyjobs',
+                            isHidden: it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
+                            settings: [
+                                {
+                                    type: 'custom',
+                                    component: AccessControlPolicyJobs,
+                                    key: 'AcessControlPolicyJobs',
                                 },
                             ],
                         },
