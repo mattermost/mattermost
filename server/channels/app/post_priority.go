@@ -5,7 +5,6 @@ package app
 
 import (
 	"database/sql"
-	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -62,46 +61,31 @@ func (a *App) SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post,
 	}
 	currentPost.Metadata.Priority = post.Metadata.Priority
 
-	if currentPost.IsRemote() {
-		// Create priority object with all necessary fields from currentPost
-		postPriority := &model.PostPriority{
-			PostId:                  currentPost.Id,
-			ChannelId:               currentPost.ChannelId,
-			Priority:                currentPost.Metadata.Priority.Priority,
-			RequestedAck:            currentPost.Metadata.Priority.RequestedAck,
-			PersistentNotifications: currentPost.Metadata.Priority.PersistentNotifications,
-		}
-
-		savedPriority, nErr := a.Srv().Store().PostPriority().Save(postPriority)
-		if nErr != nil {
-			return nil, model.NewAppError("SavePriorityForPost", "app.post.save_priority.store_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-		}
-
-		// Update with the saved priority
-		currentPost.Metadata.Priority = savedPriority
-
-		return currentPost, nil
+	// Create priority object with all necessary fields from currentPost
+	postPriority := &model.PostPriority{
+		PostId:                  currentPost.Id,
+		ChannelId:               currentPost.ChannelId,
+		Priority:                currentPost.Metadata.Priority.Priority,
+		RequestedAck:            currentPost.Metadata.Priority.RequestedAck,
+		PersistentNotifications: currentPost.Metadata.Priority.PersistentNotifications,
 	}
 
-	// Save the post with updated metadata
-	savedPost, nErr := a.Srv().Store().Post().Save(c, currentPost)
+	// Save priority to the PostsPriority table
+	savedPriority, nErr := a.Srv().Store().PostPriority().Save(postPriority)
 	if nErr != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("SavePriorityForPost", "app.post.save_priority.save_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-		}
+		return nil, model.NewAppError("SavePriorityForPost", "app.post.save_priority.store_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	// The post is always modified since the UpdateAt always changes
+	// Update the post's metadata with the saved priority
+	currentPost.Metadata.Priority = savedPriority
+
+	// Invalidate the cache if needed
 	channel, channelErr := a.GetChannel(c, currentPost.ChannelId)
 	if channelErr == nil {
 		a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 	}
 
-	return savedPost, nil
+	return currentPost, nil
 }
 
 func (a *App) IsPostPriorityEnabled() bool {

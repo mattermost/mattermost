@@ -476,13 +476,13 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 				rpost.Metadata = &model.PostMetadata{}
 			}
 			rpost.Metadata.Acknowledgements = savedAcks
-		} else {
-			// nothing to update
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Update to sync post ignored",
-				mlog.String("post_id", post.Id),
-				mlog.String("channel_id", post.ChannelId),
-			)
 		}
+	} else {
+		// nothing to update
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Update to sync post ignored",
+			mlog.String("post_id", post.Id),
+			mlog.String("channel_id", post.ChannelId),
+		)
 	}
 
 	var rerr error
