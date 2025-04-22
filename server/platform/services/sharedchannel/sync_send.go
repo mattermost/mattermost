@@ -407,12 +407,12 @@ func (scs *Service) processTask(task syncTask) error {
 
 	// Filter out channel metadata system posts that don't need to be synchronized
 	if task.existingMsg != nil && task.existingMsg.Posts != nil {
-		task.existingMsg.Posts = filterMetadataSystemPosts(task.existingMsg.Posts)
+		task.existingMsg.Posts = filterChannelMetadataSystemPosts(task.existingMsg.Posts)
 	}
 
 	// Similarly for retry messages with posts
 	if task.retryMsg != nil && task.retryMsg.Posts != nil {
-		task.retryMsg.Posts = filterMetadataSystemPosts(task.retryMsg.Posts)
+		task.retryMsg.Posts = filterChannelMetadataSystemPosts(task.retryMsg.Posts)
 	}
 
 	for _, rc := range remotesMap {

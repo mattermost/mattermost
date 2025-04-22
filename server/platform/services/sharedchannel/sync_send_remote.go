@@ -292,7 +292,7 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	}
 
 	// Filter out channel metadata system posts that shouldn't be synchronized
-	posts = filterMetadataSystemPosts(posts)
+	posts = filterChannelMetadataSystemPosts(posts)
 
 	count := len(posts)
 	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt, scs.server.Log())
@@ -309,7 +309,7 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		}
 
 		// Filter out channel metadata system posts from the updated posts as well
-		posts = filterMetadataSystemPosts(posts)
+		posts = filterChannelMetadataSystemPosts(posts)
 
 		posts = reducePostsSliceInCache(posts, cache)
 		count += len(posts)

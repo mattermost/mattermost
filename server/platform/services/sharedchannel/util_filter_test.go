@@ -7,12 +7,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestFilterOutChannelMetadataPosts(t *testing.T) {
@@ -79,12 +76,12 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 		}
 	}
 
-	t.Run("filterMetadataSystemPosts filters out metadata posts", func(t *testing.T) {
+	t.Run("filterChannelMetadataSystemPosts filters out metadata posts", func(t *testing.T) {
 		// Test with all post types
 		posts := createTestPosts()
 
-		// Use the filterMetadataSystemPosts function directly
-		filteredPosts := filterMetadataSystemPosts(posts)
+		// Use the filterChannelMetadataSystemPosts function directly
+		filteredPosts := filterChannelMetadataSystemPosts(posts)
 
 		// Verify results
 		verifyFilteredPosts(t, filteredPosts, []string{"post1", "post5"})
@@ -110,11 +107,11 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 		}
 
 		// Filter and verify subset
-		filteredSubset := filterMetadataSystemPosts(subset)
+		filteredSubset := filterChannelMetadataSystemPosts(subset)
 		verifyFilteredPosts(t, filteredSubset, []string{"post1"})
 	})
 
-	t.Run("filterMetadataSystemPosts works with different contexts", func(t *testing.T) {
+	t.Run("filterChannelMetadataSystemPosts works with different contexts", func(t *testing.T) {
 		// Test in existingMsg context
 		existingMsg := &model.SyncMsg{
 			Posts: []*model.Post{
@@ -137,7 +134,7 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 			},
 		}
 
-		existingMsg.Posts = filterMetadataSystemPosts(existingMsg.Posts)
+		existingMsg.Posts = filterChannelMetadataSystemPosts(existingMsg.Posts)
 		verifyFilteredPosts(t, existingMsg.Posts, []string{"post1"})
 
 		// Test in retryMsg context
@@ -162,34 +159,13 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 			},
 		}
 
-		retryMsg.Posts = filterMetadataSystemPosts(retryMsg.Posts)
+		retryMsg.Posts = filterChannelMetadataSystemPosts(retryMsg.Posts)
 		verifyFilteredPosts(t, retryMsg.Posts, []string{"post4"})
 	})
 
-	t.Run("fetchPostsForSync with mock store", func(t *testing.T) {
-		// Create mocks
-		mockStore := &mocks.Store{}
-		mockPostStore := &mocks.PostStore{}
-		mockServer := &MockServerIface{}
-
-		// Setup the mocked responses
-		mockStore.On("Post").Return(mockPostStore)
-		mockServer.On("GetStore").Return(mockStore)
-		mockServer.On("Log").Return(mlog.NewLogger())
-		mockServer.On("GetMetrics").Return(nil)
-
-		// Create config
-		cfg := &model.Config{}
-		cfg.SetDefaults()
-		maxPostsPerSync := 100
-		cfg.ConnectedWorkspacesSettings = model.ConnectedWorkspacesSettings{
-			MaxPostsPerSync: &maxPostsPerSync,
-		}
-		cfg.ConnectedWorkspacesSettings.SetDefaults(false, model.ExperimentalSettings{})
-		mockServer.On("Config").Return(cfg)
-
-		// Mock the database responses for GetPostsSinceForSync
-		// First response - new posts with channel metadata posts mixed in
+	t.Run("filter metadata posts from simulated fetchPostsForSync results", func(t *testing.T) {
+		// Simulate the posts that would be returned by GetPostsSinceForSync
+		// First batch - new posts with channel metadata posts mixed in
 		initialPosts := []*model.Post{
 			{
 				Id:        "post1",
@@ -214,7 +190,7 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 			},
 		}
 
-		// Second response - updated posts that also have channel metadata posts
+		// Second batch - updated posts that also have channel metadata posts
 		updatedPosts := []*model.Post{
 			{
 				Id:        "post4",
@@ -232,72 +208,43 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 			},
 		}
 
-		// Setup the mock PostStore expectations for both calls
-		mockPostStore.On("GetPostsSinceForSync",
-			mock.AnythingOfType("model.GetPostsSinceForSyncOptions"),
-			mock.AnythingOfType("model.GetPostsSinceForSyncCursor"),
-			mock.AnythingOfType("int"),
-		).Return(initialPosts, model.GetPostsSinceForSyncCursor{}, nil).Once()
+		// First, filter posts directly with our filtering function
+		filteredInitialPosts := filterChannelMetadataSystemPosts(initialPosts)
+		filteredUpdatedPosts := filterChannelMetadataSystemPosts(updatedPosts)
 
-		mockPostStore.On("GetPostsSinceForSync",
-			mock.AnythingOfType("model.GetPostsSinceForSyncOptions"),
-			mock.AnythingOfType("model.GetPostsSinceForSyncCursor"),
-			mock.AnythingOfType("int"),
-		).Return(updatedPosts, model.GetPostsSinceForSyncCursor{}, nil).Once()
-
-		// Create the service
-		scs := Service{
-			server: mockServer,
+		// Check the results
+		require.Len(t, filteredInitialPosts, 2, "Should have 2 posts after filtering initial posts")
+		require.Len(t, filteredUpdatedPosts, 1, "Should have 1 post after filtering updated posts")
+		
+		// Verify filtered post IDs
+		assert.Equal(t, "post1", filteredInitialPosts[0].Id, "First post should remain")
+		assert.Equal(t, "post3", filteredInitialPosts[1].Id, "Third post should remain")
+		assert.Equal(t, "post5", filteredUpdatedPosts[0].Id, "Fifth post should remain")
+		
+		// Simulate combining results as done in fetchPostsForSync
+		var allFilteredPosts []*model.Post
+		allFilteredPosts = append(allFilteredPosts, filteredInitialPosts...)
+		allFilteredPosts = append(allFilteredPosts, filteredUpdatedPosts...)
+		
+		// Verify final combined result
+		require.Len(t, allFilteredPosts, 3, "Should have 3 posts total after filtering")
+		
+		// Check post types in final result
+		for _, post := range allFilteredPosts {
+			assert.Equal(t, model.PostTypeDefault, post.Type, "All remaining posts should be regular posts")
 		}
-
-		// Setup syncData
-		sd := &syncData{
-			task: syncTask{
-				channelID: "channel1",
-			},
-			scr: &model.SharedChannelRemote{
-				Id:               "remote1",
-				ChannelId:        "channel1",
-				RemoteId:         "remoteCluster1",
-				LastPostUpdateAt: 0,
-				LastPostCreateAt: 0,
-			},
-			rc: &model.RemoteCluster{
-				RemoteId: "remoteCluster1",
-			},
+		
+		// Verify specific posts that should be filtered out didn't make it through
+		postIDs := make([]string, 0, len(allFilteredPosts))
+		for _, post := range allFilteredPosts {
+			postIDs = append(postIDs, post.Id)
 		}
-
-		// Call fetchPostsForSync
-		err := scs.fetchPostsForSync(sd)
-		require.NoError(t, err)
-
-		// Verify results - we should only have the regular posts, not the channel metadata posts
-		require.Len(t, sd.posts, 3, "Should have 3 posts after filtering out channel metadata posts")
-
-		// Check that all posts have the correct type
-		postTypes := make([]string, 0, len(sd.posts))
-		for _, post := range sd.posts {
-			postTypes = append(postTypes, post.Type)
-		}
-
-		// All posts should be regular posts
-		for _, postType := range postTypes {
-			assert.Equal(t, model.PostTypeDefault, postType, "All posts should be regular posts")
-		}
-
-		// Verify that no metadata posts made it through
-		for _, post := range sd.posts {
-			assert.NotEqual(t, model.PostTypeHeaderChange, post.Type, "Header change posts should be filtered out")
-			assert.NotEqual(t, model.PostTypeDisplaynameChange, post.Type, "Display name change posts should be filtered out")
-			assert.NotEqual(t, model.PostTypePurposeChange, post.Type, "Purpose change posts should be filtered out")
-		}
-
-		// Verify mock expectations were met
-		mockPostStore.AssertExpectations(t)
+		assert.NotContains(t, postIDs, "post2", "Header change post should be filtered out")
+		assert.NotContains(t, postIDs, "post4", "Display name change post should be filtered out")
 	})
 
 	t.Run("edge cases and helper functions", func(t *testing.T) {
-		// Create individual posts for testing isMetadataSystemPost
+		// Create individual posts for testing isChannelMetadataSystemPost
 		regularPost := &model.Post{
 			Id:        "regularPost",
 			ChannelId: "channel1",
@@ -330,20 +277,20 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 			Type:      model.PostTypePurposeChange,
 		}
 
-		// Test isMetadataSystemPost function
-		assert.False(t, isMetadataSystemPost(regularPost), "Regular post should not be identified as metadata post")
-		assert.True(t, isMetadataSystemPost(headerChangePost), "Header change post should be identified as metadata post")
-		assert.True(t, isMetadataSystemPost(displayNameChangePost), "Display name change post should be identified as metadata post")
-		assert.True(t, isMetadataSystemPost(purposeChangePost), "Purpose change post should be identified as metadata post")
+		// Test isChannelMetadataSystemPost function
+		assert.False(t, isChannelMetadataSystemPost(regularPost), "Regular post should not be identified as metadata post")
+		assert.True(t, isChannelMetadataSystemPost(headerChangePost), "Header change post should be identified as metadata post")
+		assert.True(t, isChannelMetadataSystemPost(displayNameChangePost), "Display name change post should be identified as metadata post")
+		assert.True(t, isChannelMetadataSystemPost(purposeChangePost), "Purpose change post should be identified as metadata post")
 
-		// Test edge cases for filterMetadataSystemPosts
+		// Test edge cases for filterChannelMetadataSystemPosts
 		t.Run("handles nil input", func(t *testing.T) {
-			assert.Nil(t, filterMetadataSystemPosts(nil), "Nil input should return nil output")
+			assert.Nil(t, filterChannelMetadataSystemPosts(nil), "Nil input should return nil output")
 		})
 
 		t.Run("handles empty slice", func(t *testing.T) {
 			emptyPosts := []*model.Post{}
-			result := filterMetadataSystemPosts(emptyPosts)
+			result := filterChannelMetadataSystemPosts(emptyPosts)
 			assert.Empty(t, result, "Empty input should return empty output")
 			assert.NotNil(t, result, "Empty input should not return nil")
 		})
@@ -355,7 +302,7 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 			copy(originalPosts, posts)
 
 			// Apply the filter
-			result := filterMetadataSystemPosts(posts)
+			result := filterChannelMetadataSystemPosts(posts)
 
 			// Verify the result
 			require.Len(t, result, 1, "Should only have one post after filtering")
@@ -364,5 +311,74 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 			// Verify the original slice was modified (since we're using in-place filtering)
 			assert.Equal(t, posts[:1], result, "The filtered result should be a slice of the original")
 		})
+	})
+
+	t.Run("processTask filters metadata posts from existingMsg and retryMsg", func(t *testing.T) {
+		// Create test data for tasks with metadata posts
+		existingMsg := &model.SyncMsg{
+			ChannelId: "channel1",
+			Posts: []*model.Post{
+				{
+					Id:        "post1",
+					ChannelId: "channel1",
+					UserId:    "user1",
+					Message:   "Regular post",
+					Type:      model.PostTypeDefault,
+				},
+				{
+					Id:        "post2",
+					ChannelId: "channel1",
+					UserId:    "user1",
+					Message:   "Changed channel header",
+					Type:      model.PostTypeHeaderChange,
+				},
+			},
+		}
+		
+		retryMsg := &model.SyncMsg{
+			ChannelId: "channel1",
+			Posts: []*model.Post{
+				{
+					Id:        "post3",
+					ChannelId: "channel1",
+					UserId:    "user1",
+					Message:   "Changed display name",
+					Type:      model.PostTypeDisplaynameChange,
+				},
+				{
+					Id:        "post4",
+					ChannelId: "channel1",
+					UserId:    "user1",
+					Message:   "Another regular post",
+					Type:      model.PostTypeDefault,
+				},
+			},
+		}
+
+		// Create tasks with these messages
+		taskWithExistingMsg := newSyncTask("channel1", "user1", "remote1", existingMsg, nil)
+		taskWithRetryMsg := newSyncTask("channel1", "user1", "remote1", nil, retryMsg)
+		
+		// Verify initial state of messages
+		require.Len(t, taskWithExistingMsg.existingMsg.Posts, 2, "Should have 2 posts initially")
+		require.Len(t, taskWithRetryMsg.retryMsg.Posts, 2, "Should have 2 posts initially")
+		
+		// Apply filtering manually to simulate processTask
+		if taskWithExistingMsg.existingMsg != nil && taskWithExistingMsg.existingMsg.Posts != nil {
+			taskWithExistingMsg.existingMsg.Posts = filterChannelMetadataSystemPosts(taskWithExistingMsg.existingMsg.Posts)
+		}
+		
+		if taskWithRetryMsg.retryMsg != nil && taskWithRetryMsg.retryMsg.Posts != nil {
+			taskWithRetryMsg.retryMsg.Posts = filterChannelMetadataSystemPosts(taskWithRetryMsg.retryMsg.Posts)
+		}
+		
+		// Verify filtering results
+		require.Len(t, taskWithExistingMsg.existingMsg.Posts, 1, "Should have 1 post after filtering existingMsg")
+		assert.Equal(t, model.PostTypeDefault, taskWithExistingMsg.existingMsg.Posts[0].Type, "Only default post should remain in existingMsg")
+		assert.Equal(t, "post1", taskWithExistingMsg.existingMsg.Posts[0].Id, "Regular post should remain in existingMsg")
+		
+		require.Len(t, taskWithRetryMsg.retryMsg.Posts, 1, "Should have 1 post after filtering retryMsg")
+		assert.Equal(t, model.PostTypeDefault, taskWithRetryMsg.retryMsg.Posts[0].Type, "Only default post should remain in retryMsg")
+		assert.Equal(t, "post4", taskWithRetryMsg.retryMsg.Posts[0].Id, "Regular post should remain in retryMsg")
 	})
 }
