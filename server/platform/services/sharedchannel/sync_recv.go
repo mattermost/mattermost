@@ -190,10 +190,8 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 
 	// Check if user already exists
 	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)
-	if err != nil {
-		if _, ok := err.(errNotFound); !ok {
-			return nil, fmt.Errorf("error checking sync user: %w", err)
-		}
+	if err != nil && !isNotFoundError(err) {
+		return nil, fmt.Errorf("error checking sync user: %w", err)
 	}
 
 	var userSaved *model.User
@@ -361,10 +359,8 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 	post.RemoteId = model.NewPointer(rc.RemoteId)
 	rctx := request.EmptyContext(scs.server.Log())
 	rpost, err := scs.server.GetStore().Post().GetSingle(rctx, post.Id, true)
-	if err != nil {
-		if _, ok := err.(errNotFound); !ok {
-			return nil, fmt.Errorf("error checking sync post: %w", err)
-		}
+	if err != nil && !isNotFoundError(err) {
+		return nil, fmt.Errorf("error checking sync post: %w", err)
 	}
 
 	// ensure the post is in the target channel. This ensures the post can only be associated with a channel
@@ -440,9 +436,9 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		if appErr == nil && post.Metadata != nil && post.Metadata.Acknowledgements != nil {
 			// For metadata-only updates, we want to completely replace the existing acknowledgements
 			// So first, clear all existing acknowledgements
-			appErrDel := scs.app.DeleteAllAcknowledgementsForPost(rctx, post.Id)
+			appErrDel := scs.app.DeleteAcknowledgementsForPostWithPost(rctx, post)
 			if appErrDel != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error deleting all acknowledgements",
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error deleting acknowledgements",
 					mlog.String("post_id", post.Id),
 					mlog.Err(appErrDel),
 				)
@@ -459,9 +455,9 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			var appErrAck *model.AppError
 
 			if len(userIDs) > 0 {
-				savedAcks, appErrAck = scs.app.SaveBatchAcknowledgementsForPost(rctx, post.Id, userIDs)
+				savedAcks, appErrAck = scs.app.SaveAcknowledgementsForPostWithPost(rctx, post, userIDs)
 				if appErrAck != nil {
-					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error batch saving acknowledgements",
+					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error saving acknowledgements",
 						mlog.String("post_id", post.Id),
 						mlog.Int("count", len(userIDs)),
 						mlog.Err(appErrAck),
@@ -502,10 +498,8 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 	}
 
 	existingReaction, err := scs.server.GetStore().Reaction().GetSingle(reaction.UserId, reaction.PostId, rc.RemoteId, reaction.EmojiName)
-	if err != nil {
-		if _, ok := err.(errNotFound); !ok {
-			return nil, fmt.Errorf("error fetching reaction for sync: %w", err)
-		}
+	if err != nil && !isNotFoundError(err) {
+		return nil, fmt.Errorf("error fetching reaction for sync: %w", err)
 	}
 
 	if existingReaction == nil {

@@ -166,17 +166,37 @@ func (_m *MockAppIface) CreateUploadSession(c request.CTX, us *model.UploadSessi
 	return r0, r1
 }
 
-// DeleteAllAcknowledgementsForPost provides a mock function with given fields: c, postID
-func (_m *MockAppIface) DeleteAllAcknowledgementsForPost(c request.CTX, postID string) *model.AppError {
+// DeleteAcknowledgementsForPost provides a mock function with given fields: c, postID
+func (_m *MockAppIface) DeleteAcknowledgementsForPost(c request.CTX, postID string) *model.AppError {
 	ret := _m.Called(c, postID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for DeleteAllAcknowledgementsForPost")
+		panic("no return value specified for DeleteAcknowledgementsForPost")
 	}
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.AppError); ok {
 		r0 = rf(c, postID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// DeleteAcknowledgementsForPostWithPost provides a mock function with given fields: c, post
+func (_m *MockAppIface) DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError {
+	ret := _m.Called(c, post)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAcknowledgementsForPostWithPost")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) *model.AppError); ok {
+		r0 = rf(c, post)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -558,12 +578,44 @@ func (_m *MockAppIface) SaveAcknowledgementForPost(c request.CTX, postID string,
 	return r0, r1
 }
 
-// SaveBatchAcknowledgementsForPost provides a mock function with given fields: c, postID, userIDs
-func (_m *MockAppIface) SaveBatchAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
+// SaveAcknowledgementForPostWithPost provides a mock function with given fields: c, post, userID
+func (_m *MockAppIface) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string) (*model.PostAcknowledgement, *model.AppError) {
+	ret := _m.Called(c, post, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveAcknowledgementForPostWithPost")
+	}
+
+	var r0 *model.PostAcknowledgement
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, string) (*model.PostAcknowledgement, *model.AppError)); ok {
+		return rf(c, post, userID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, string) *model.PostAcknowledgement); ok {
+		r0 = rf(c, post, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, string) *model.AppError); ok {
+		r1 = rf(c, post, userID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SaveAcknowledgementsForPost provides a mock function with given fields: c, postID, userIDs
+func (_m *MockAppIface) SaveAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
 	ret := _m.Called(c, postID, userIDs)
 
 	if len(ret) == 0 {
-		panic("no return value specified for SaveBatchAcknowledgementsForPost")
+		panic("no return value specified for SaveAcknowledgementsForPost")
 	}
 
 	var r0 []*model.PostAcknowledgement
@@ -581,6 +633,38 @@ func (_m *MockAppIface) SaveBatchAcknowledgementsForPost(c request.CTX, postID s
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, []string) *model.AppError); ok {
 		r1 = rf(c, postID, userIDs)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SaveAcknowledgementsForPostWithPost provides a mock function with given fields: c, post, userIDs
+func (_m *MockAppIface) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Post, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
+	ret := _m.Called(c, post, userIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveAcknowledgementsForPostWithPost")
+	}
+
+	var r0 []*model.PostAcknowledgement
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, []string) ([]*model.PostAcknowledgement, *model.AppError)); ok {
+		return rf(c, post, userIDs)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, []string) []*model.PostAcknowledgement); ok {
+		r0 = rf(c, post, userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, []string) *model.AppError); ok {
+		r1 = rf(c, post, userIDs)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

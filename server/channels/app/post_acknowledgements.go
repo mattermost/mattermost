@@ -14,13 +14,22 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
-	post, err := a.GetSinglePost(c, postID, false)
-	if err != nil {
-		return nil, err
+func (a *App) SaveAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string) (*model.PostAcknowledgement, *model.AppError) {
+	var currentPost *model.Post
+	var err *model.AppError
+
+	if post.CreateAt > 0 {
+		// We have a complete post, use it directly
+		currentPost = post
+	} else {
+		// Retrieve the current post to ensure we have the latest version
+		currentPost, err = a.GetSinglePost(c, post.Id, false)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	channel, err := a.GetChannel(c, post.ChannelId)
+	channel, err := a.GetChannel(c, currentPost.ChannelId)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +39,7 @@ func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (
 	}
 
 	acknowledgedAt := model.GetMillis()
-	acknowledgement, nErr := a.Srv().Store().PostAcknowledgement().Save(postID, userID, acknowledgedAt)
+	acknowledgement, nErr := a.Srv().Store().PostAcknowledgement().Save(currentPost.Id, userID, acknowledgedAt)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -41,11 +50,11 @@ func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (
 		}
 	}
 
-	if appErr := a.ResolvePersistentNotification(c, post, userID); appErr != nil {
+	if appErr := a.ResolvePersistentNotification(c, currentPost, userID); appErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Error resolving persistent notification",
 			mlog.String("sender_id", userID),
-			mlog.String("post_id", post.RootId),
+			mlog.String("post_id", currentPost.RootId),
 			mlog.String("status", model.NotificationStatusError),
 			mlog.String("reason", model.NotificationReasonResolvePersistentNotificationError),
 			mlog.Err(appErr),
@@ -56,18 +65,36 @@ func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (
 	// The post is always modified since the UpdateAt always changes
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
-	a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementAdded, acknowledgement, post)
+	a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementAdded, acknowledgement, currentPost)
 
 	return acknowledgement, nil
 }
 
-func (a *App) DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError {
+func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
 	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	channel, err := a.GetChannel(c, post.ChannelId)
+	return a.SaveAcknowledgementForPostWithPost(c, post, userID)
+}
+
+func (a *App) DeleteAcknowledgementForPostWithPost(c request.CTX, post *model.Post, userID string) *model.AppError {
+	var currentPost *model.Post
+	var err *model.AppError
+
+	if post.CreateAt > 0 {
+		// We have a complete post, use it directly
+		currentPost = post
+	} else {
+		// Retrieve the current post to ensure we have the latest version
+		currentPost, err = a.GetSinglePost(c, post.Id, false)
+		if err != nil {
+			return err
+		}
+	}
+
+	channel, err := a.GetChannel(c, currentPost.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -76,7 +103,7 @@ func (a *App) DeleteAcknowledgementForPost(c request.CTX, postID, userID string)
 		return model.NewAppError("DeleteAcknowledgementForPost", "api.acknowledgement.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
-	oldAck, nErr := a.Srv().Store().PostAcknowledgement().Get(postID, userID)
+	oldAck, nErr := a.Srv().Store().PostAcknowledgement().Get(currentPost.Id, userID)
 
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -100,9 +127,18 @@ func (a *App) DeleteAcknowledgementForPost(c request.CTX, postID, userID string)
 	// The post is always modified since the UpdateAt always changes
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
-	a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementRemoved, oldAck, post)
+	a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementRemoved, oldAck, currentPost)
 
 	return nil
+}
+
+func (a *App) DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError {
+	post, err := a.GetSinglePost(c, postID, false)
+	if err != nil {
+		return err
+	}
+
+	return a.DeleteAcknowledgementForPostWithPost(c, post, userID)
 }
 
 func (a *App) GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError) {
@@ -130,25 +166,34 @@ func (a *App) GetAcknowledgementsForPostList(postList *model.PostList) (map[stri
 	return acknowledgementsMap, nil
 }
 
-// SaveBatchAcknowledgementsForPost saves multiple acknowledgements for a post in a single operation.
-func (a *App) SaveBatchAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
+// SaveAcknowledgementsForPostWithPost saves multiple acknowledgements for a post in a single operation.
+func (a *App) SaveAcknowledgementsForPostWithPost(c request.CTX, post *model.Post, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
 	if len(userIDs) == 0 {
 		return []*model.PostAcknowledgement{}, nil
 	}
 
-	// Check that the post and channel exist and are valid
-	post, err := a.GetSinglePost(c, postID, false)
-	if err != nil {
-		return nil, err
+	// Check if we have a complete post, otherwise retrieve it
+	var currentPost *model.Post
+	var err *model.AppError
+
+	if post.CreateAt > 0 {
+		// We have a complete post, use it directly
+		currentPost = post
+	} else {
+		// Retrieve the current post to ensure we have the latest version
+		currentPost, err = a.GetSinglePost(c, post.Id, false)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	channel, err := a.GetChannel(c, post.ChannelId)
+	channel, err := a.GetChannel(c, currentPost.ChannelId)
 	if err != nil {
 		return nil, err
 	}
 
 	if channel.DeleteAt > 0 {
-		return nil, model.NewAppError("SaveBatchAcknowledgementsForPost", "api.acknowledgement.save.archived_channel.app_error", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError("SaveAcknowledgementsForPost", "api.acknowledgement.save.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
 	// Create acknowledgements with current timestamp
@@ -157,7 +202,7 @@ func (a *App) SaveBatchAcknowledgementsForPost(c request.CTX, postID string, use
 
 	for _, userID := range userIDs {
 		acknowledgements = append(acknowledgements, &model.PostAcknowledgement{
-			PostId:         postID,
+			PostId:         currentPost.Id,
 			UserId:         userID,
 			AcknowledgedAt: acknowledgedAt,
 		})
@@ -171,17 +216,17 @@ func (a *App) SaveBatchAcknowledgementsForPost(c request.CTX, postID string, use
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("SaveBatchAcknowledgementsForPost", "app.acknowledgement.batch_save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			return nil, model.NewAppError("SaveAcknowledgementsForPost", "app.acknowledgement.batch_save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
 	// Resolve persistent notifications for each user
 	for _, userID := range userIDs {
-		if appErr := a.ResolvePersistentNotification(c, post, userID); appErr != nil {
+		if appErr := a.ResolvePersistentNotification(c, currentPost, userID); appErr != nil {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("Error resolving persistent notification",
 				mlog.String("sender_id", userID),
-				mlog.String("post_id", post.RootId),
+				mlog.String("post_id", currentPost.RootId),
 				mlog.String("status", model.NotificationStatusError),
 				mlog.String("reason", model.NotificationReasonResolvePersistentNotificationError),
 				mlog.Err(appErr),
@@ -195,30 +240,53 @@ func (a *App) SaveBatchAcknowledgementsForPost(c request.CTX, postID string, use
 
 	// Send WebSocket events for each acknowledgement
 	for _, ack := range savedAcks {
-		a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementAdded, ack, post)
+		a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementAdded, ack, currentPost)
 	}
 
 	return savedAcks, nil
 }
 
-// DeleteAllAcknowledgementsForPost deletes all acknowledgements for a post.
-func (a *App) DeleteAllAcknowledgementsForPost(c request.CTX, postID string) *model.AppError {
-	post, err := a.GetSinglePost(c, postID, false)
-	if err != nil {
-		return err
+// SaveAcknowledgementsForPost saves multiple acknowledgements for a post in a single operation.
+func (a *App) SaveAcknowledgementsForPost(c request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
+	if len(userIDs) == 0 {
+		return []*model.PostAcknowledgement{}, nil
 	}
 
-	channel, err := a.GetChannel(c, post.ChannelId)
+	post, err := a.GetSinglePost(c, postID, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.SaveAcknowledgementsForPostWithPost(c, post, userIDs)
+}
+
+// DeleteAcknowledgementsForPost deletes all acknowledgements for a post.
+func (a *App) DeleteAcknowledgementsForPostWithPost(c request.CTX, post *model.Post) *model.AppError {
+	var currentPost *model.Post
+	var err *model.AppError
+
+	if post.CreateAt > 0 {
+		// We have a complete post, use it directly
+		currentPost = post
+	} else {
+		// Retrieve the current post to ensure we have the latest version
+		currentPost, err = a.GetSinglePost(c, post.Id, false)
+		if err != nil {
+			return err
+		}
+	}
+
+	channel, err := a.GetChannel(c, currentPost.ChannelId)
 	if err != nil {
 		return err
 	}
 
 	if channel.DeleteAt > 0 {
-		return model.NewAppError("DeleteAllAcknowledgementsForPost", "api.acknowledgement.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
+		return model.NewAppError("DeleteAcknowledgementsForPost", "api.acknowledgement.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
 	// Get all current acknowledgements
-	acknowledgements, appErr := a.GetAcknowledgementsForPost(postID)
+	acknowledgements, appErr := a.GetAcknowledgementsForPost(currentPost.Id)
 	if appErr != nil {
 		return appErr
 	}
@@ -231,18 +299,27 @@ func (a *App) DeleteAllAcknowledgementsForPost(c request.CTX, postID string) *mo
 	// Delete all acknowledgements in a single operation
 	nErr := a.Srv().Store().PostAcknowledgement().BatchDelete(acknowledgements)
 	if nErr != nil {
-		return model.NewAppError("DeleteAllAcknowledgementsForPost", "app.acknowledgement.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		return model.NewAppError("DeleteAcknowledgementsForPost", "app.acknowledgement.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	// Trigger events for each deleted acknowledgement
 	for _, ack := range acknowledgements {
-		a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementRemoved, ack, post)
+		a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementRemoved, ack, currentPost)
 	}
 
 	// Invalidate the last post time cache
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
 	return nil
+}
+
+func (a *App) DeleteAcknowledgementsForPost(c request.CTX, postID string) *model.AppError {
+	post, err := a.GetSinglePost(c, postID, false)
+	if err != nil {
+		return err
+	}
+
+	return a.DeleteAcknowledgementsForPostWithPost(c, post)
 }
 
 func (a *App) sendAcknowledgementEvent(rctx request.CTX, event model.WebsocketEventType, acknowledgement *model.PostAcknowledgement, post *model.Post) {
