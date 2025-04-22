@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 /* eslint-disable react/prop-types */
-/* eslint-disable react/require-optimization */
 /* eslint-disable no-underscore-dangle */
-/* eslint-disable no-warning-comments */
+/* eslint-disable react/require-optimization */
 
 import React, {Component} from 'react';
 import {findDOMNode} from 'react-dom';
@@ -76,6 +75,20 @@ export default class ItemMeasurer extends Component {
     _positionScrollbarsRef = null;
     _measureItemAnimFrame = null;
 
+    _measureItem = (forceScrollCorrection) => {
+        const {handleNewMeasurements, size: oldSize, itemId} = this.props;
+
+        const node = this._node;
+
+        if (node && node.ownerDocument && node.ownerDocument.defaultView && node instanceof node.ownerDocument.defaultView.HTMLElement) {
+            const newSize = Math.ceil(node.offsetHeight);
+
+            if (oldSize !== newSize) {
+                handleNewMeasurements(itemId, newSize, forceScrollCorrection);
+            }
+        }
+    };
+
     componentDidMount() {
         this._node = findDOMNode(this);
 
@@ -97,21 +110,17 @@ export default class ItemMeasurer extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (
-            (prevProps.size === 0 && this.props.size !== 0) ||
-      prevProps.size !== this.props.size
-        ) {
+        if ((prevProps.size === 0 && this.props.size !== 0) || prevProps.size !== this.props.size) {
             this.positionScrollBars();
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    positionScrollBars = (height = this.props.size, width = this.props.width) => {
-    //we are position these hiiden div scroll bars to the end so they can emit
-    //scroll event when height in the div changes
-    //Heavily inspired from https://github.com/marcj/css-element-queries/blob/master/src/ResizeSensor.js
-    //and https://github.com/wnr/element-resize-detector/blob/master/src/detection-strategy/scroll.js
-    //For more info http://www.backalleycoder.com/2013/03/18/cross-browser-event-based-element-resize-detection/#comment-244
+    positionScrollBars = (height = this.props.size) => {
+        // we are position these hidden div scroll bars to the end so they can emit
+        // scroll event when height in the div changes
+        // Heavily inspired from https://github.com/marcj/css-element-queries/blob/master/src/ResizeSensor.js
+        // and https://github.com/wnr/element-resize-detector/blob/master/src/detection-strategy/scroll.js
+        // For more info http://www.backalleycoder.com/2013/03/18/cross-browser-event-based-element-resize-detection/#comment-244
         if (this._positionScrollbarsRef) {
             window.cancelAnimationFrame(this._positionScrollbarsRef);
         }
@@ -131,6 +140,7 @@ export default class ItemMeasurer extends Component {
         }
 
         const {onUnmount, itemId, index} = this.props;
+
         if (onUnmount) {
             onUnmount(itemId, index);
         }
@@ -190,23 +200,4 @@ export default class ItemMeasurer extends Component {
     render() {
         return this.renderItems();
     }
-
-    _measureItem = (forceScrollCorrection) => {
-        const {handleNewMeasurements, size: oldSize, itemId} = this.props;
-
-        const node = this._node;
-
-        if (
-            node &&
-      node.ownerDocument &&
-      node.ownerDocument.defaultView &&
-      node instanceof node.ownerDocument.defaultView.HTMLElement
-        ) {
-            const newSize = Math.ceil(node.offsetHeight);
-
-            if (oldSize !== newSize) {
-                handleNewMeasurements(itemId, newSize, forceScrollCorrection);
-            }
-        }
-    };
 }

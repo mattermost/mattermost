@@ -12,7 +12,12 @@ import {getNewMessagesIndex, isDateLine, isStartOfNewMessages} from 'mattermost-
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
 import type {CanLoadMorePosts} from 'actions/views/channel';
 
-import {DynamicSizeList} from 'components/dynamic_virtualized_list';
+// eslint-disable-next-line import/order
+import DynamicSizeList from 'components/dynamic_virtualized_list';
+
+// eslint-disable-next-line import/order
+// import {DynamicSizeList} from 'dynamic-virtualized-list';
+
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
 import PostListRow from 'components/post_view/post_list_row';
 import ScrollToBottomArrows from 'components/post_view/scroll_to_bottom_arrows';
