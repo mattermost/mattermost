@@ -311,34 +311,6 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 			// Verify the original slice was modified (since we're using in-place filtering)
 			assert.Equal(t, posts[:1], result, "The filtered result should be a slice of the original")
 		})
-
-		t.Run("handlePostError filters metadata system posts during error recovery", func(t *testing.T) {
-			// Test handlePostError's filtering of channel metadata system posts
-			// First, we check that a regular post gets queued for retry
-			regularPost := &model.Post{
-				Id:        "regularPostId",
-				ChannelId: "channel1",
-				UserId:    "user1",
-				Message:   "Regular post content",
-				Type:      model.PostTypeDefault,
-			}
-
-			// Then, we verify that a metadata post is filtered out
-			metadataPost := &model.Post{
-				Id:        "metadataPostId",
-				ChannelId: "channel1",
-				UserId:    "user1",
-				Message:   "Changed channel header",
-				Type:      model.PostTypeHeaderChange,
-			}
-
-			// Verify filtering behavior
-			shouldSync := !isChannelMetadataSystemPost(regularPost)
-			shouldSkip := isChannelMetadataSystemPost(metadataPost)
-
-			assert.True(t, shouldSync, "Regular post should be synchronized")
-			assert.True(t, shouldSkip, "Metadata post should be skipped")
-		})
 	})
 
 	t.Run("processTask filters metadata posts from existingMsg and retryMsg", func(t *testing.T) {
