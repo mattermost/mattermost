@@ -212,7 +212,7 @@ func (s *SqlPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAc
 	// Keep track of which posts need to be updated
 	postsToUpdate := make(map[string]bool)
 
-	// Insert all acknowledgements in a single transaction
+	// Insert all acknowledgements
 	for _, ack := range acknowledgements {
 		if ack.AcknowledgedAt == 0 {
 			ack.AcknowledgedAt = model.GetMillis()

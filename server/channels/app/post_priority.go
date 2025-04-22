@@ -61,15 +61,15 @@ func (a *App) SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post,
 	if post.IsRemote() || currentPost.IsRemote() {
 		// Create priority object with all necessary fields
 		postPriority := &model.PostPriority{
-			PostId:                  post.Id,
-			ChannelId:               post.ChannelId,
+			PostId:                  currentPost.Id,
+			ChannelId:               currentPost.ChannelId,
 			Priority:                post.Metadata.Priority.Priority,
 			RequestedAck:            post.Metadata.Priority.RequestedAck,
 			PersistentNotifications: post.Metadata.Priority.PersistentNotifications,
 		}
 
 		// Use the enhanced store method to save priority and handle persistent notifications
-		_, nErr := a.Srv().Store().PostPriority().Save(postPriority)
+		savedPriority, nErr := a.Srv().Store().PostPriority().Save(postPriority)
 		if nErr != nil {
 			return nil, model.NewAppError("SavePriorityForPost", "app.post.save_priority.store_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -78,7 +78,7 @@ func (a *App) SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post,
 		if currentPost.Metadata == nil {
 			currentPost.Metadata = &model.PostMetadata{}
 		}
-		currentPost.Metadata.Priority = post.Metadata.Priority
+		currentPost.Metadata.Priority = savedPriority
 
 		return currentPost, nil
 	}
