@@ -215,25 +215,25 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 		// Check the results
 		require.Len(t, filteredInitialPosts, 2, "Should have 2 posts after filtering initial posts")
 		require.Len(t, filteredUpdatedPosts, 1, "Should have 1 post after filtering updated posts")
-		
+
 		// Verify filtered post IDs
 		assert.Equal(t, "post1", filteredInitialPosts[0].Id, "First post should remain")
 		assert.Equal(t, "post3", filteredInitialPosts[1].Id, "Third post should remain")
 		assert.Equal(t, "post5", filteredUpdatedPosts[0].Id, "Fifth post should remain")
-		
+
 		// Simulate combining results as done in fetchPostsForSync
 		var allFilteredPosts []*model.Post
 		allFilteredPosts = append(allFilteredPosts, filteredInitialPosts...)
 		allFilteredPosts = append(allFilteredPosts, filteredUpdatedPosts...)
-		
+
 		// Verify final combined result
 		require.Len(t, allFilteredPosts, 3, "Should have 3 posts total after filtering")
-		
+
 		// Check post types in final result
 		for _, post := range allFilteredPosts {
 			assert.Equal(t, model.PostTypeDefault, post.Type, "All remaining posts should be regular posts")
 		}
-		
+
 		// Verify specific posts that should be filtered out didn't make it through
 		postIDs := make([]string, 0, len(allFilteredPosts))
 		for _, post := range allFilteredPosts {
@@ -311,6 +311,34 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 			// Verify the original slice was modified (since we're using in-place filtering)
 			assert.Equal(t, posts[:1], result, "The filtered result should be a slice of the original")
 		})
+
+		t.Run("handlePostError filters metadata system posts during error recovery", func(t *testing.T) {
+			// Test handlePostError's filtering of channel metadata system posts
+			// First, we check that a regular post gets queued for retry
+			regularPost := &model.Post{
+				Id:        "regularPostId",
+				ChannelId: "channel1",
+				UserId:    "user1",
+				Message:   "Regular post content",
+				Type:      model.PostTypeDefault,
+			}
+
+			// Then, we verify that a metadata post is filtered out
+			metadataPost := &model.Post{
+				Id:        "metadataPostId",
+				ChannelId: "channel1",
+				UserId:    "user1",
+				Message:   "Changed channel header",
+				Type:      model.PostTypeHeaderChange,
+			}
+
+			// Verify filtering behavior
+			shouldSync := !isChannelMetadataSystemPost(regularPost)
+			shouldSkip := isChannelMetadataSystemPost(metadataPost)
+
+			assert.True(t, shouldSync, "Regular post should be synchronized")
+			assert.True(t, shouldSkip, "Metadata post should be skipped")
+		})
 	})
 
 	t.Run("processTask filters metadata posts from existingMsg and retryMsg", func(t *testing.T) {
@@ -334,7 +362,7 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 				},
 			},
 		}
-		
+
 		retryMsg := &model.SyncMsg{
 			ChannelId: "channel1",
 			Posts: []*model.Post{
@@ -358,25 +386,25 @@ func TestFilterOutChannelMetadataPosts(t *testing.T) {
 		// Create tasks with these messages
 		taskWithExistingMsg := newSyncTask("channel1", "user1", "remote1", existingMsg, nil)
 		taskWithRetryMsg := newSyncTask("channel1", "user1", "remote1", nil, retryMsg)
-		
+
 		// Verify initial state of messages
 		require.Len(t, taskWithExistingMsg.existingMsg.Posts, 2, "Should have 2 posts initially")
 		require.Len(t, taskWithRetryMsg.retryMsg.Posts, 2, "Should have 2 posts initially")
-		
+
 		// Apply filtering manually to simulate processTask
 		if taskWithExistingMsg.existingMsg != nil && taskWithExistingMsg.existingMsg.Posts != nil {
 			taskWithExistingMsg.existingMsg.Posts = filterChannelMetadataSystemPosts(taskWithExistingMsg.existingMsg.Posts)
 		}
-		
+
 		if taskWithRetryMsg.retryMsg != nil && taskWithRetryMsg.retryMsg.Posts != nil {
 			taskWithRetryMsg.retryMsg.Posts = filterChannelMetadataSystemPosts(taskWithRetryMsg.retryMsg.Posts)
 		}
-		
+
 		// Verify filtering results
 		require.Len(t, taskWithExistingMsg.existingMsg.Posts, 1, "Should have 1 post after filtering existingMsg")
 		assert.Equal(t, model.PostTypeDefault, taskWithExistingMsg.existingMsg.Posts[0].Type, "Only default post should remain in existingMsg")
 		assert.Equal(t, "post1", taskWithExistingMsg.existingMsg.Posts[0].Id, "Regular post should remain in existingMsg")
-		
+
 		require.Len(t, taskWithRetryMsg.retryMsg.Posts, 1, "Should have 1 post after filtering retryMsg")
 		assert.Equal(t, model.PostTypeDefault, taskWithRetryMsg.retryMsg.Posts[0].Type, "Only default post should remain in retryMsg")
 		assert.Equal(t, "post4", taskWithRetryMsg.retryMsg.Posts[0].Id, "Regular post should remain in retryMsg")

@@ -459,6 +459,16 @@ func (scs *Service) handlePostError(postId string, task syncTask, rc *model.Remo
 		return
 	}
 
+	// Skip retrying channel metadata system posts that don't need to be synchronized
+	if isChannelMetadataSystemPost(post) {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "skipping retry for channel metadata system post",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("post_id", postId),
+			mlog.String("post_type", post.Type),
+		)
+		return
+	}
+
 	syncMsg := model.NewSyncMsg(task.channelID)
 	syncMsg.Posts = []*model.Post{post}
 
