@@ -481,6 +481,31 @@ func TestCPAField_SanitizeAndValidate(t *testing.T) {
 			expectError: true,
 			errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
 		},
+		{
+			name: "clear options on non select field",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							Name:  "Option 1",
+							Color: "opt1",
+						},
+						{
+							Name:  "Option 1",
+							Color: "opt2",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				Options:    PropertyOptions[*CustomProfileAttributesSelectOption]{},
+			},
+		},
 	}
 
 	for _, tt := range tests {

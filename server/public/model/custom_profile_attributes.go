@@ -158,6 +158,7 @@ func (c *CPAField) SanitizeAndValidate() *AppError {
 			}
 			c.Attrs.ValueType = valueType
 		}
+		c.Attrs.Options = PropertyOptions[*CustomProfileAttributesSelectOption]{}
 
 	case PropertyFieldTypeSelect, PropertyFieldTypeMultiselect:
 		options := c.Attrs.Options
