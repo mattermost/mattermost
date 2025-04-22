@@ -66,12 +66,7 @@ func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comm
 			webhook.UseCount,
 		)
 
-	sql, args, err := insertQuery.ToSql()
-	if err != nil {
-		return nil, errors.Wrapf(err, "commandwebhook_tosql: id=%s", webhook.Id)
-	}
-
-	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(insertQuery); err != nil {
 		return nil, errors.Wrapf(err, "save: id=%s", webhook.Id)
 	}
 

@@ -85,12 +85,7 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
 			command.PluginId,
 		)
 
-	sql, args, err := insertQuery.ToSql()
-	if err != nil {
-		return nil, errors.Wrapf(err, "command_tosql: id=%s", command.Id)
-	}
-
-	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(insertQuery); err != nil {
 		return nil, errors.Wrapf(err, "insert: command_id=%s", command.Id)
 	}
 
