@@ -17,7 +17,7 @@ jobs:
     if: github.repository_owner == 'mattermost' && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-22.04
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+      - uses: mattermost/actions/delivery/update-commit-status@d5174b860704729f4c14ef8489ae075742bfa08a
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -155,7 +155,7 @@ jobs:
     needs:
       - build-docker
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+      - uses: mattermost/actions/delivery/update-commit-status@d5174b860704729f4c14ef8489ae075742bfa08a
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -171,7 +171,7 @@ jobs:
     needs:
       - build-docker
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+      - uses: mattermost/actions/delivery/update-commit-status@d5174b860704729f4c14ef8489ae075742bfa08a
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:

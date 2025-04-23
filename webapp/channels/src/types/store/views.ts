@@ -207,6 +207,7 @@ export type ViewsState = {
     threads: {
         selectedThreadIdInTeam: RelationOneToOne<Team, UserThread['id'] | null>;
         lastViewedAt: {[id: string]: number};
+        lastUpdateAt: {[id: string]: number};
         manuallyUnread: {[id: string]: boolean};
         toastStatus: boolean;
     };
@@ -216,5 +217,7 @@ export type ViewsState = {
         shouldShowPreviewOnCreatePost: boolean;
         shouldShowPreviewOnEditChannelHeaderModal: boolean;
         shouldShowPreviewOnEditPostModal: boolean;
+        shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
+        shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
     };
 };

@@ -431,7 +431,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     role='application'
                     aria-label={Utils.localizeMessage({id: 'accessibility.sections.rhsContent', defaultMessage: 'message details complimentary region'})}
                     className='post-right__content a11y__region'
-                    style={{height: '100%'}}
+                    style={{height: '100%', position: 'relative'}}
                     data-a11y-sort-order='3'
                     data-a11y-focus-child={true}
                     data-a11y-order-reversed={true}
