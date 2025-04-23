@@ -3,6 +3,7 @@
 
 import {fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
+import type {ComponentProps} from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -30,19 +31,23 @@ describe('UserPropertyDotMenu', () => {
 
     const updateField = jest.fn();
     const deleteField = jest.fn();
+    const createField = jest.fn();
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    const renderComponent = (field: UserPropertyField = baseField) => {
+    const renderComponent = (field: UserPropertyField = baseField, dotMenuProps?: Partial<ComponentProps<typeof DotMenu>>) => {
         return renderWithContext(
             (
                 <div>
                     <DotMenu
                         field={field}
+                        canCreate={true}
+                        {...dotMenuProps}
                         updateField={updateField}
                         deleteField={deleteField}
+                        createField={createField}
                     />
                     <ModalController/>
                 </div>
@@ -103,6 +108,51 @@ describe('UserPropertyDotMenu', () => {
                 visibility: 'always',
             },
         });
+    });
+
+    it('displays LDAP and SAML link menu options', async () => {
+        renderComponent();
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
+        fireEvent.click(menuButton);
+
+        // Verify both link options are shown
+        expect(screen.getByText('Link property to AD/LDAP')).toBeInTheDocument();
+        expect(screen.getByText('Link property to SAML')).toBeInTheDocument();
+
+        // TODO mock history and verify the link actions
+    });
+
+    it('handles field duplication', async () => {
+        renderComponent();
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
+        fireEvent.click(menuButton);
+
+        // Click the duplicate option
+        fireEvent.click(screen.getByText(/Duplicate property/));
+
+        // Wait for createField to be called
+        await waitFor(() => {
+            // Verify createField was called with the correct parameters
+            expect(createField).toHaveBeenCalledWith(expect.objectContaining({
+                id: baseField.id,
+                name: 'Test Field (copy)',
+            }));
+        });
+    });
+
+    it('hides field duplication when at field limit', async () => {
+        renderComponent(undefined, {canCreate: false});
+
+        // Open the menu
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
+        fireEvent.click(menuButton);
+
+        // Verify duplicate option is not shown
+        expect(screen.queryByText(/Duplicate property/)).not.toBeInTheDocument();
     });
 
     it('handles field deletion with confirmation when field exists in DB', async () => {
