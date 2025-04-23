@@ -22,6 +22,12 @@ ifeq ($(shell uname)/$(shell uname -m),Darwin/arm64)
   ARM_BASED_MAC = true
 endif
 
+# Helper function to run tools through Docker
+# Usage: $(call run_tool_docker,toolname,arguments)
+define run_tool_docker
+	docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH --entrypoint /root/go/bin/$(1) cgr.dev/mattermost.com/go-msft-fips:1.22-dev $(2)
+endef
+
 define LICENSE_HEADER
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
@@ -108,7 +114,7 @@ GOFLAGS ?= $(GOFLAGS:)
 # We need to export GOBIN to allow it to be set
 # for processes spawned from the Makefile
 export GOBIN ?= $(PWD)/bin
-GO ?= docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH cgr.dev/mattermost.com/go-msft-fips:1.22-dev
+GO ?= docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH cgr.dev/mattermost.com/go-msft-fips:1.22-dev
 DELVE ?= dlv
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildNumber=$(BUILD_NUMBER)"
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)"
@@ -296,39 +302,39 @@ golangci-lint: ## Run golangci-lint on codebase
 	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57.1
 
 	@echo Running golangci-lint
-	$(GOBIN)/golangci-lint run ./...
-	$(GOBIN)/golangci-lint run ./public/...
+	$(call run_tool_docker,golangci-lint,run ./...)
+	$(call run_tool_docker,golangci-lint,run ./public/...)
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-		$(GOBIN)/golangci-lint run $(BUILD_ENTERPRISE_DIR)/...
+		$(call run_tool_docker,golangci-lint,run $(BUILD_ENTERPRISE_DIR)/...)
   endif
 endif
 
 app-layers: ## Extract interface from App struct
 	$(GO) install github.com/reflog/struct2interface@v0.6.1
-	$(GOBIN)/struct2interface -f "channels/app" -o "channels/app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./channels/app/layer_generators/app_iface.go.tmpl
+	$(call run_tool_docker,struct2interface,-f "channels/app" -o "channels/app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./channels/app/layer_generators/app_iface.go.tmpl)
 	$(GO) run ./channels/app/layer_generators -in ./channels/app/app_iface.go -out ./channels/app/opentracing/opentracing_layer.go -template ./channels/app/layer_generators/opentracing_layer.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
 	cd ../tools/mmgotool && $(GO) install .
-	$(GOBIN)/mmgotool i18n extract --portal-dir=""
+	$(call run_tool_docker,mmgotool,i18n extract --portal-dir="")
 
 i18n-check: ## Exit on empty translation strings and translation source strings
 	cd ../tools/mmgotool && $(GO) install .
-	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
-	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
+	$(call run_tool_docker,mmgotool,i18n clean-empty --portal-dir="" --check)
+	$(call run_tool_docker,mmgotool,i18n check-empty-src --portal-dir="")
 
 store-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --config channels/store/.mockery.yaml
+	$(call run_tool_docker,mockery,--config channels/store/.mockery.yaml)
 
 cache-mocks:
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --config platform/services/cache/.mockery.yaml
+	$(call run_tool_docker,mockery,--config platform/services/cache/.mockery.yaml)
 
 telemetry-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --config platform/services/telemetry/.mockery.yaml
+	$(call run_tool_docker,mockery,--config platform/services/telemetry/.mockery.yaml)
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./channels/store
@@ -336,50 +342,50 @@ store-layers: ## Generate layers for the store
 new-migration: ## Creates a new migration. Run with make new-migration name=<>
 	$(GO) install github.com/mattermost/morph/cmd/morph@1e0640c
 	@echo "Generating new migration for mysql"
-	$(GOBIN)/morph new script $(name) --driver mysql --dir channels/db/migrations --sequence
+	$(call run_tool_docker,morph,new script $(name) --driver mysql --dir channels/db/migrations --sequence)
 
 	@echo "Generating new migration for postgres"
-	$(GOBIN)/morph new script $(name) --driver postgres --dir channels/db/migrations --sequence
+	$(call run_tool_docker,morph,new script $(name) --driver postgres --dir channels/db/migrations --sequence)
 
 filestore-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --config platform/shared/filestore/.mockery.yaml
+	$(call run_tool_docker,mockery,--config platform/shared/filestore/.mockery.yaml)
 
 ldap-mocks: ## Creates mock files for ldap.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --dir $(BUILD_ENTERPRISE_DIR)/ldap --all --inpackage --note 'Regenerate this file using `make ldap-mocks`.'
+	$(call run_tool_docker,mockery,--dir $(BUILD_ENTERPRISE_DIR)/ldap --all --inpackage --note 'Regenerate this file using `make ldap-mocks`.')
 
 plugin-mocks: ## Creates mock files for plugins.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --config public/plugin/.mockery.yaml
+	$(call run_tool_docker,mockery,--config public/plugin/.mockery.yaml)
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --config einterfaces/.mockery.yaml
+	$(call run_tool_docker,mockery,--config einterfaces/.mockery.yaml)
 
 searchengine-mocks: ## Creates mock files for searchengines.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --config platform/services/searchengine/.mockery.yaml
+	$(call run_tool_docker,mockery,--config platform/services/searchengine/.mockery.yaml)
 
 sharedchannel-mocks: ## Creates mock files for shared channels.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --config platform/services/sharedchannel/.mockery.yaml
+	$(call run_tool_docker,mockery,--config platform/services/sharedchannel/.mockery.yaml)
 
 misc-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --config channels/utils/.mockery.yaml
+	$(call run_tool_docker,mockery,--config channels/utils/.mockery.yaml)
 
 email-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --config channels/app/email/.mockery.yaml
+	$(call run_tool_docker,mockery,--config channels/app/email/.mockery.yaml)
 
 platform-mocks: ## Creates mocks for platform interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --config channels/app/platform/.mockery.yaml
+	$(call run_tool_docker,mockery,--config channels/app/platform/.mockery.yaml)
 
 mmctl-mocks: ## Creates mocks for mmctl
 	$(GO) install github.com/golang/mock/mockgen@v1.6.0
-	$(GOBIN)/mockgen -destination=cmd/mmctl/mocks/client_mock.go -copyright_file=cmd/mmctl/mocks/copyright.txt -package=mocks github.com/mattermost/mattermost/server/v8/cmd/mmctl/client Client
+	$(call run_tool_docker,mockgen,-destination=cmd/mmctl/mocks/client_mock.go -copyright_file=cmd/mmctl/mocks/copyright.txt -package=mocks github.com/mattermost/mattermost/server/v8/cmd/mmctl/client Client)
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
@@ -525,28 +531,28 @@ test-mmctl-unit: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-unit: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-mmctl-unit: gotestsum
 	@echo Running mmctl unit tests
-	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
+	$(call run_tool_docker,gotestsum,--packages="$(MMCTL_PACKAGES)" -- -tags 'unit $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS))
 
 test-mmctl-e2e: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl-e2e: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-e2e: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-mmctl-e2e: gotestsum start-docker
 	@echo Running mmctl e2e tests
-	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
+	$(call run_tool_docker,gotestsum,--packages="$(MMCTL_PACKAGES)" -- -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS))
 
 test-mmctl: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-mmctl: gotestsum start-docker
 	@echo Running all mmctl tests
-	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
+	$(call run_tool_docker,gotestsum,--packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS))
 
 test-mmctl-coverage: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl-coverage: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-coverage: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-mmctl-coverage: gotestsum start-docker
 	@echo Running all mmctl tests with coverage
-	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' -coverprofile=mmctlcover.out $(MMCTL_TESTFLAGS)
+	$(call run_tool_docker,gotestsum,--packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' -coverprofile=mmctlcover.out $(MMCTL_TESTFLAGS))
 	$(GO) tool cover -html=mmctlcover.out
 
 validate-go-version: ## Validates the installed version of go against Mattermost's minimum requirement.
@@ -765,10 +771,10 @@ vet: ## Run mattermost go vet specific checks
 	## Note that it is pinned to a specific commit, rather than a branch. This is to prevent
 	## having to backport the fix to multiple release branches for any new change.
 	$(GO) install github.com/mattermost/mattermost-govet/v2@72e7752bcf59b57688fcb41173a6a1583c405adf
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go ./...
+	$(GO) vet -vettool=$(call run_tool_docker,mattermost-govet,-) -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go ./...
  ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
+	$(GO) vet -vettool=$(call run_tool_docker,mattermost-govet,-) -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
 
@@ -790,19 +796,19 @@ gen-serialized: ## Generates serialization methods for hot structs
 	# would be to temporarily move all the structs to the same file,
 	# but that involves a lot of manual work.
 	$(GO) install github.com/tinylib/msgp@v1.1.6
-	$(GOBIN)/msgp -file=./public/model/utils.go -tests=false -o=./public/model/utils_serial_gen.go
+	$(call run_tool_docker,msgp,-file=./public/model/utils.go -tests=false -o=./public/model/utils_serial_gen.go)
 	@echo "$$LICENSE_HEADER" > tmp.go
 	@cat ./public/model/utils_serial_gen.go >> tmp.go
 	@mv tmp.go ./public/model/utils_serial_gen.go
-	$(GOBIN)/msgp -file=./public/model/session.go -tests=false -o=./public/model/session_serial_gen.go
+	$(call run_tool_docker,msgp,-file=./public/model/session.go -tests=false -o=./public/model/session_serial_gen.go)
 	@echo "$$LICENSE_HEADER" > tmp.go
 	@cat ./public/model/session_serial_gen.go >> tmp.go
 	@mv tmp.go ./public/model/session_serial_gen.go
-	$(GOBIN)/msgp -file=./public/model/user.go -tests=false -o=./public/model/user_serial_gen.go
+	$(call run_tool_docker,msgp,-file=./public/model/user.go -tests=false -o=./public/model/user_serial_gen.go)
 	@echo "$$LICENSE_HEADER" > tmp.go
 	@cat ./public/model/user_serial_gen.go >> tmp.go
 	@mv tmp.go ./public/model/user_serial_gen.go
-	$(GOBIN)/msgp -file=./public/model/team_member.go -tests=false -o=./public/model/team_member_serial_gen.go
+	$(call run_tool_docker,msgp,-file=./public/model/team_member.go -tests=false -o=./public/model/team_member_serial_gen.go)
 	@echo "$$LICENSE_HEADER" > tmp.go
 	@cat ./public/model/team_member_serial_gen.go >> tmp.go
 	@mv tmp.go ./public/model/team_member_serial_gen.go
@@ -835,7 +841,7 @@ migrations-extract:
 test-migration:
 	$(GO) install github.com/mattermost/morph/cmd/morph@latest
 	# apply postgres migrations to the new db
-	bin/morph apply up --driver postgres --dsn "${POSTGRES_DSN}" --path ${POSTGRES_MIGRATIONS_PATH} --number -1
+	$(call run_tool_docker,morph,apply up --driver postgres --dsn "${POSTGRES_DSN}" --path ${POSTGRES_MIGRATIONS_PATH} --number -1)
 
 	# create temporary file for the config
 	@cp tests/template.load tests/temp.load
@@ -852,11 +858,11 @@ test-migration:
 	@sed -i'' -e 's|{{ .source_schema }}|${MYSQL_SCHEMA}|g' tests/temp.load
 
 	# run pgloader and save the logs
-	pgloader --debug tests/temp.load > migration.log
+	$(call run_tool_docker,pgloader,tests/temp.load)
 
 	$(GO) install github.com/mattermost/dbcmp/cmd/dbcmp@latest
 	# compare two database contents
 	# db_migrations differ due to a typo in the 92. migration name
 	# for now we exclude plugins such as playbooks and focalboard
 	# we also exlude systems table temporarily due to adding some keys while running the initial migration
-	bin/dbcmp --source "${MYSQL_DSN}" --target "${POSTGRES_DSN}" --exclude="db_migrations","ir_","focalboard","systems"
+	$(call run_tool_docker,dbcmp,bin/dbcmp --source "${MYSQL_DSN}" --target "${POSTGRES_DSN}" --exclude="db_migrations","ir_","focalboard","systems")
