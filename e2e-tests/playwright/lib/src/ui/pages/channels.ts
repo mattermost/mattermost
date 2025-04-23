@@ -3,7 +3,8 @@
 
 import {expect, Page} from '@playwright/test';
 
-import {components} from '@/ui/components';
+import {ChannelsPost, components} from '@/ui/components';
+import SettingsModal from '@/ui/components/channels/settings/settings_modal';
 
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -36,9 +37,9 @@ export default class ChannelsPage {
         this.page = page;
 
         // The main areas of the app
-        this.globalHeader = new components.GlobalHeader(page.locator('#global-header'));
+        this.globalHeader = new components.GlobalHeader(this, page.locator('#global-header'));
         this.searchPopover = new components.SearchPopover(page.locator('#searchPopover'));
-        this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'));
+        this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'), page);
         this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
         this.appBar = new components.ChannelsAppBar(page.locator('.app-bar'));
@@ -64,6 +65,8 @@ export default class ChannelsPage {
 
         // Posts
         this.postContainer = page.locator('div.post-message__text');
+
+        page.locator('#channelHeaderDropdownMenu');
     }
 
     async toBeVisible() {
@@ -89,9 +92,32 @@ export default class ChannelsPage {
     /**
      * `postMessage` posts a message in the current channel
      * @param message Message to post
+     * @param files Files to attach to the message
      */
-    async postMessage(message: string) {
-        await this.centerView.postCreate.postMessage(message);
+    async postMessage(message: string, files?: string[]) {
+        await this.centerView.postMessage(message, files);
+    }
+
+    async openChannelSettings(): Promise<SettingsModal> {
+        await this.centerView.header.openChannelMenu();
+        await this.page.locator('#channelSettings[role="menuitem"]').click();
+        await this.settingsModal.toBeVisible();
+
+        return this.settingsModal;
+    }
+
+    async newChannel(name: string, channelType: string) {
+        await this.page.locator('#browseOrAddChannelMenuButton').click();
+        await this.page.locator('#createNewChannelMenuItem').click();
+        await this.page.locator('#input_new-channel-modal-name').fill(name);
+
+        if (channelType === 'P') {
+            await this.page.locator('#public-private-selector-button-P').click();
+        } else {
+            await this.page.locator('#public-private-selector-button-O').click();
+        }
+
+        await this.page.getByText('Create channel').click();
     }
 
     async openUserAccountMenu() {
@@ -105,5 +131,17 @@ export default class ChannelsPage {
         await this.userAccountMenu.profile.click();
         await expect(this.profileModal.container).toBeVisible();
         return this.profileModal;
+    }
+
+    async openProfilePopover(post: ChannelsPost) {
+        // Find and click the post's user avatar to open the profile popover
+        await post.hover();
+        await post.profileIcon.click();
+
+        // Wait for the profile popover to be visible
+        const popover = this.userProfilePopover;
+        await expect(popover.container).toBeVisible();
+
+        return popover;
     }
 }

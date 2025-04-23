@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled, {css} from 'styled-components';
@@ -137,7 +137,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     }, []);
 
     const open = useSelector(((state: GlobalState) => getBool(state, OnboardingTaskCategory, OnboardingTaskList.ONBOARDING_TASK_LIST_OPEN)));
-    const trigger = useRef<HTMLButtonElement>(null);
+    const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null);
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
     const handleTaskTrigger = useHandleOnBoardingTaskTrigger();
@@ -253,7 +253,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
             <CompletedAnimation completed={showAnimation}/>
             <Button
                 onClick={toggleTaskList}
-                ref={trigger}
+                ref={(element) => setTrigger(element)}
                 open={open}
                 data-cy='onboarding-task-list-action-button'
                 aria-label={formatMessage({id: 'onboardingTask.checklist.start_onboarding_process', defaultMessage: 'Start the onboarding process.'})}
