@@ -70,6 +70,19 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
         loadPage();
     }, [policyId]);
 
+    // Check if expression is simple enough for table mode
+    const isSimpleExpression = (expr: string): boolean => {
+        if (!expr) {
+            return true;
+        }
+        // Expression is simple if it only contains user.attributes.X == "Y" or user.attributes.X in ["Y", "Z"]
+        return expr.split('&&').every((condition) => {
+            const trimmed = condition.trim();
+            return trimmed.match(/^user\.attributes\.\w+\s*==\s*['"][^'"]+['"]$/) ||
+                   trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/);
+        });
+    };
+
     const loadPage = async () => {
         if (policyId) {
             const result = await actions.fetchPolicy(policyId);
@@ -94,7 +107,7 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
             const updatedPolicy = await actions.createPolicy({
                 id: policyId || '',
                 name: policyName,
-                rules: [{expression, actions: []}] as AccessControlPolicyRule[],
+                rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
                 type: 'parent',
                 version: 'v0.1',
             });
@@ -232,29 +245,29 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
                             <TitleAndButtonCardHeader
                                 title={'Attribute based access rules'}
                                 subtitle={'Select user attributes and values as rules to restrict channel membership.'}
+                                buttonText={
+                                    editorMode === 'table' ? (
+                                        <FormattedMessage
+                                            id='admin.access_control.policy.edit_policy.switch_to_advanced'
+                                            defaultMessage='Switch to Advanced Mode'
+                                        />
+                                    ) : (
+                                        <FormattedMessage
+                                            id='admin.access_control.policy.edit_policy.switch_to_simple'
+                                            defaultMessage='Switch to Simple Mode'
+                                        />
+                                    )
+                                }
+                                onClick={() => setEditorMode(editorMode === 'table' ? 'cel' : 'table')}
+                                isDisabled={editorMode === 'cel' && !isSimpleExpression(expression)}
+                                tooltipText={
+                                    editorMode === 'cel' && !isSimpleExpression(expression) ?
+                                        'Complex expression detected. Simple expressions editor is not available at the moment.' :
+                                        undefined
+                                }
                             />
                         </Card.Header>
                         <Card.Body>
-                            <div className='editor-tabs'>
-                                <button
-                                    className={`editor-tab ${editorMode === 'table' ? 'active' : ''}`}
-                                    onClick={() => setEditorMode('table')}
-                                >
-                                    <FormattedMessage
-                                        id='admin.access_control.editor.table'
-                                        defaultMessage='Simple Expressions'
-                                    />
-                                </button>
-                                <button
-                                    className={`editor-tab ${editorMode === 'cel' ? 'active' : ''}`}
-                                    onClick={() => setEditorMode('cel')}
-                                >
-                                    <FormattedMessage
-                                        id='admin.access_control.editor.cel'
-                                        defaultMessage='Advanced Expressions'
-                                    />
-                                </button>
-                            </div>
                             {editorMode === 'cel' ? (
                                 <CELEditor
                                     value={expression}
