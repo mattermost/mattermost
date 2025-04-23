@@ -609,7 +609,7 @@ func (a *OpenTracingAppLayer) AddUserToTeamByToken(c request.CTX, userID string,
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
+func (a *OpenTracingAppLayer) AdjustImage(rctx request.CTX, file io.ReadSeeker) (*bytes.Buffer, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AdjustImage")
 
@@ -621,7 +621,7 @@ func (a *OpenTracingAppLayer) AdjustImage(file io.Reader) (*bytes.Buffer, *model
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AdjustImage(file)
+	resultVar0, resultVar1 := a.app.AdjustImage(rctx, file)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16856,7 +16856,7 @@ func (a *OpenTracingAppLayer) SetProfileImage(c request.CTX, userID string, imag
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetProfileImageFromFile(c request.CTX, userID string, file io.Reader) *model.AppError {
+func (a *OpenTracingAppLayer) SetProfileImageFromFile(c request.CTX, userID string, file io.ReadSeeker) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetProfileImageFromFile")
 
@@ -17079,7 +17079,7 @@ func (a *OpenTracingAppLayer) SetStatusOutOfOffice(userID string) {
 	a.app.SetStatusOutOfOffice(userID)
 }
 
-func (a *OpenTracingAppLayer) SetTeamIcon(teamID string, imageData *multipart.FileHeader) *model.AppError {
+func (a *OpenTracingAppLayer) SetTeamIcon(rctx request.CTX, teamID string, imageData *multipart.FileHeader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetTeamIcon")
 
@@ -17091,7 +17091,7 @@ func (a *OpenTracingAppLayer) SetTeamIcon(teamID string, imageData *multipart.Fi
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetTeamIcon(teamID, imageData)
+	resultVar0 := a.app.SetTeamIcon(rctx, teamID, imageData)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -17101,7 +17101,7 @@ func (a *OpenTracingAppLayer) SetTeamIcon(teamID string, imageData *multipart.Fi
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError {
+func (a *OpenTracingAppLayer) SetTeamIconFromFile(rctx request.CTX, team *model.Team, file io.ReadSeeker) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetTeamIconFromFile")
 
@@ -17113,7 +17113,7 @@ func (a *OpenTracingAppLayer) SetTeamIconFromFile(team *model.Team, file io.Read
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetTeamIconFromFile(team, file)
+	resultVar0 := a.app.SetTeamIconFromFile(rctx, team, file)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -17123,7 +17123,7 @@ func (a *OpenTracingAppLayer) SetTeamIconFromFile(team *model.Team, file io.Read
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError {
+func (a *OpenTracingAppLayer) SetTeamIconFromMultiPartFile(rctx request.CTX, teamID string, file multipart.File) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetTeamIconFromMultiPartFile")
 
@@ -17135,7 +17135,7 @@ func (a *OpenTracingAppLayer) SetTeamIconFromMultiPartFile(teamID string, file m
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetTeamIconFromMultiPartFile(teamID, file)
+	resultVar0 := a.app.SetTeamIconFromMultiPartFile(rctx, teamID, file)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
