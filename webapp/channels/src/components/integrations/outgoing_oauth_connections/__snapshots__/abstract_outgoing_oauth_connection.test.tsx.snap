@@ -498,6 +498,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             title="Save Outgoing OAuth Connection"
           >
             <GenericModal
+              ariaLabelledby="confirmModalLabel"
               className="ConfirmModal a11y__modal "
               compassDesign={true}
               id="confirmModal"
@@ -508,7 +509,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             >
               <Modal
                 animation={true}
-                aria-labelledby="genericModalLabel"
+                aria-labelledby="confirmModalLabel"
                 aria-modal="true"
                 autoFocus={true}
                 backdrop={true}
@@ -1093,6 +1094,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             title="Save Outgoing OAuth Connection"
           >
             <GenericModal
+              ariaLabelledby="confirmModalLabel"
               className="ConfirmModal a11y__modal "
               compassDesign={true}
               id="confirmModal"
@@ -1103,7 +1105,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             >
               <Modal
                 animation={true}
-                aria-labelledby="genericModalLabel"
+                aria-labelledby="confirmModalLabel"
                 aria-modal="true"
                 autoFocus={true}
                 backdrop={true}

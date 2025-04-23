@@ -164,7 +164,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
 
         if (this.exitToChannel) {
             getHistory().push(this.exitToChannel);
-        } else {
+        } else if (this.props.focusOriginElement) {
             setTimeout(() => {
                 focusElement(this.props.focusOriginElement, true);
             }, 0);
