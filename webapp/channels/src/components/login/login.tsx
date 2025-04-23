@@ -840,7 +840,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
                             className='login-body-card-content'
-                            tabIndex={0}
                         >
                             <p className='login-body-card-title'>
                                 {getCardTitle()}

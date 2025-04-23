@@ -390,12 +390,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         setBrandImageError(true);
     };
 
-    const onEnterKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === Constants.KeyCodes.ENTER[0] && canSubmit) {
-            handleSubmit(e);
-        }
-    };
-
     const getCardTitle = () => {
         if (CustomDescriptionText) {
             return CustomDescriptionText;
@@ -806,8 +800,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     <div className={classNames('signup-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
                             className='signup-body-card-content'
-                            onKeyDown={onEnterKeyDown}
-                            tabIndex={0}
                         >
                             <p className='signup-body-card-title'>
                                 {getCardTitle()}
@@ -822,7 +814,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                 />
                             )}
                             {enableSignUpWithEmail && (
-                                <div className='signup-body-card-form'>
+                                <form className='signup-body-card-form'>
                                     <Input
                                         data-testid='signup-body-card-form-email-input'
                                         ref={emailInput}
@@ -886,7 +878,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         defaultMessage={formatMessage({id: 'signup_user_completed.create', defaultMessage: 'Create account'})}
                                         savingMessage={formatMessage({id: 'signup_user_completed.saving', defaultMessage: 'Creating account…'})}
                                     />
-                                </div>
+                                </form>
                             )}
                             {enableSignUpWithEmail && enableExternalSignup && (
                                 <div className='signup-body-card-form-divider'>
