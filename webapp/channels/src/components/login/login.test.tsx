@@ -277,6 +277,30 @@ describe('components/login/Login', () => {
         });
     });
 
+    it('should focus username field when there is an error', async () => {
+        const state = mergeObjects(baseState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableSignInWithEmail: 'true',
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <Login/>,
+            state,
+        );
+
+        // Try to submit without entering username
+        screen.getByRole('button', {name: 'Log in'}).click();
+
+        // Verify username field is focused
+        const usernameInput = screen.getByLabelText('Email');
+        expect(usernameInput).toHaveFocus();
+    });
+
     it('should handle openid text and color props', () => {
         const state = mergeObjects(baseState, {
             entities: {

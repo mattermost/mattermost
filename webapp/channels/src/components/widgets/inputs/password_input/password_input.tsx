@@ -40,6 +40,7 @@ const PasswordInput = React.forwardRef((
         createMode,
         disabled,
         inputSize,
+        ...otherProps
     }: PasswordInputProps,
     ref?: React.Ref<HTMLInputElement>,
 ) => {
@@ -86,6 +87,7 @@ const PasswordInput = React.forwardRef((
             customMessage={error || info ? customMessage : undefined}
             disabled={disabled}
             ref={ref}
+            {...otherProps}
         />
     );
 });

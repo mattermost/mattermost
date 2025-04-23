@@ -122,6 +122,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               autoFocus={true}
               className="signup-body-card-form-email-input"
               customMessage={null}
+              data-testid="signup-body-card-form-email-input"
               disabled={false}
               inputSize="large"
               name="email"
@@ -140,6 +141,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                   "value": "You can use lowercase letters, numbers, periods, dashes, and underscores.",
                 }
               }
+              data-testid="signup-body-card-form-name-input"
               disabled={false}
               inputSize="large"
               name="name"
@@ -152,6 +154,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
             <ForwardRef
               className="signup-body-card-form-password-input"
               createMode={true}
+              data-testid="signup-body-card-form-password-input"
               disabled={false}
               error=""
               info="Must be 5-72 characters long."
@@ -290,6 +293,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               autoFocus={true}
               className="signup-body-card-form-email-input"
               customMessage={null}
+              data-testid="signup-body-card-form-email-input"
               disabled={false}
               inputSize="large"
               name="email"
@@ -308,6 +312,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                   "value": "You can use lowercase letters, numbers, periods, dashes, and underscores.",
                 }
               }
+              data-testid="signup-body-card-form-name-input"
               disabled={false}
               inputSize="large"
               name="name"
@@ -320,6 +325,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
             <ForwardRef
               className="signup-body-card-form-password-input"
               createMode={true}
+              data-testid="signup-body-card-form-password-input"
               disabled={false}
               error=""
               info="Must be 5-72 characters long."
