@@ -135,7 +135,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_incoming_webhook.url'
                     defaultMessage='<b>URL</b>: {url}'
                     values={{
-                        url: '`' + incomingHookToken + '`',
+                        url: <span><code style={{display: 'inline'}}>{incomingHookToken}</code></span>,
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
@@ -356,9 +356,9 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <p className='word-break--all'>
                     <FormattedMessage
                         id='add_outgoing_oauth_connection.token_url'
-                        defaultMessage='<b>Token URL</b>: `{url}`'
+                        defaultMessage='<b>Token URL</b>: {url}'
                         values={{
-                            url: outgoingOAuthConnection.oauth_token_url,
+                            url: <span><code style={{display: 'inline'}}>{outgoingOAuthConnection.oauth_token_url}</code></span>,
                             b: (chunks: string) => <b>{chunks}</b>,
                         }}
                     />
@@ -366,9 +366,9 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <p className='word-break--all'>
                     <FormattedMessage
                         id='add_outgoing_oauth_connection.audience_urls'
-                        defaultMessage='<b>Audience URL(s)</b>: `{url}`'
+                        defaultMessage='<b>Audience URL(s)</b>: {url}'
                         values={{
-                            url: outgoingOAuthConnection.audiences.join(', '),
+                            url: <span><code style={{display: 'inline'}}>{outgoingOAuthConnection.audiences.join(', ')}</code></span>,
                             b: (chunks: string) => <b>{chunks}</b>,
                         }}
                     />

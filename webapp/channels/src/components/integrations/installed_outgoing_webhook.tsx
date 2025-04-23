@@ -230,7 +230,7 @@ export default class InstalledOutgoingWebhook extends React.PureComponent<Props>
                                 id='installed_integrations.token'
                                 defaultMessage='Token: {token}'
                                 values={{
-                                    token: outgoingWebhook.token,
+                                    token: <span><code style={{display: 'inline'}}>{outgoingWebhook.token}</code></span>,
                                 }}
                             />
                             <CopyText
