@@ -56,8 +56,6 @@ type FeatureFlags struct {
 
 	ExperimentalAuditSettingsSystemConsoleUI bool
 
-	ExperimentalCrossTeamSearch bool
-
 	CustomProfileAttributes bool
 }
 
@@ -82,7 +80,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = false
-	f.ExperimentalCrossTeamSearch = false
 	f.CustomProfileAttributes = false
 }
 

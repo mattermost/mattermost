@@ -86,24 +86,6 @@
 
         .modal-header {
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-
-            .adminModeBadge {
-                display: flex;
-                width: 86px;
-                min-width: 86px;
-                height: 22px;
-                align-items: center;
-                padding: 2px var(--spacing-xxxs, 6px);
-                border-radius: 4px;
-                margin-top: 10px;
-                margin-bottom: auto;
-                margin-left: 24px;
-                background: var(--error-text);
-                color: white;
-                font-size: 12px;
-                font-weight: 600;
-                gap: 6px;
-            }
         }
 
         li {
@@ -371,9 +353,11 @@
                             white-space: nowrap;
                         }
 
-                        .premadeThemeButton{
+                        .premadeThemeButton {
+                            padding: 0;
                             border: none;
                             background: none;
+                            text-align: start;
                         }
 
                         label {
@@ -720,6 +704,11 @@
 
 .no-resize {
     resize: none;
+}
+
+.user-settings__radio-group-inline {
+    // Counteract the margin-left added by Bootstrap's radio-inline class
+    margin-left: -20px;
 }
 
 .user-settings__submit-checkbox {

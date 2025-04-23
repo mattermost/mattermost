@@ -48,6 +48,7 @@ const defaultProps: Props = deepFreeze({
     townSquareDisplayName: '',
     onExited: jest.fn(),
     roleForTrackFlow: {started_by_role: General.SYSTEM_USER_ROLE},
+    focusOriginElement: 'elementId',
 });
 
 let props = defaultProps;

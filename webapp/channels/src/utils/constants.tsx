@@ -265,6 +265,8 @@ export const ActionTypes = keyMirror({
     SET_SHOW_PREVIEW_ON_CREATE_COMMENT: null,
     SET_SHOW_PREVIEW_ON_CREATE_POST: null,
     SET_SHOW_PREVIEW_ON_EDIT_CHANNEL_HEADER_MODAL: null,
+    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL: null,
+    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL: null,
 
     TOGGLE_RHS_MENU: null,
     OPEN_RHS_MENU: null,
@@ -340,6 +342,7 @@ export const ModalIdentifiers = {
     CHANNEL_NOTIFICATIONS: 'channel_notifications',
     CHANNEL_INVITE: 'channel_invite',
     CHANNEL_MEMBERS: 'channel_members',
+    CHANNEL_SETTINGS: 'channel_settings',
     TEAM_MEMBERS: 'team_members',
     ADD_USER_TO_CHANNEL: 'add_user_to_channel',
     ADD_USER_TO_ROLE: 'add_user_to_role',
@@ -467,6 +470,7 @@ export const ModalIdentifiers = {
     SECURE_CONNECTION_ACCEPT_INVITE: 'secure_connection_accept_invite',
     SHARED_CHANNEL_REMOTE_INVITE: 'shared_channel_remote_invite',
     SHARED_CHANNEL_REMOTE_UNINVITE: 'shared_channel_remote_uninvite',
+    CONFIRM_RESET_FAILED_ATTEMPTS_MODAL: 'confirm_reset_failed_attempts_modal',
     USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
 };
 
@@ -538,6 +542,20 @@ export enum LicenseSkus {
     Starter = 'starter',
     Professional = 'professional',
     Enterprise = 'enterprise',
+    Premium = 'premium',
+}
+
+export function getLicenseTier(licenseSku: string): number {
+    switch (licenseSku) {
+    case LicenseSkus.Professional:
+        return 10;
+    case LicenseSkus.Enterprise:
+        return 20;
+    case LicenseSkus.Premium:
+        return 30;
+    default:
+        return 0;
+    }
 }
 
 export const CloudProductToSku = {
@@ -732,6 +750,7 @@ export const Threads = {
     CHANGED_SELECTED_THREAD: 'changed_selected_thread',
     CHANGED_LAST_VIEWED_AT: 'changed_last_viewed_at',
     MANUALLY_UNREAD_THREAD: 'manually_unread_thread',
+    CHANGED_LAST_UPDATE_AT: 'changed_last_update_at',
 };
 
 export const CloudBanners = {
@@ -2233,6 +2252,7 @@ export const PageLoadContext = {
     RECONNECT: 'reconnect',
 } as const;
 
+export const DRAFT_URL_SUFFIX = 'drafts';
 export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
 
 export const scheduledPosts = {
