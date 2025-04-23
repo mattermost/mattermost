@@ -1867,6 +1867,8 @@
   "admin.openid.off": "Do not allow sign-in via an OpenID provider.",
   "admin.openid.office365": "Entra ID",
   "admin.openid.select": "Select service provider:",
+  "admin.openid.usePreferredUsernameDescription": "When true, use the OIDC `preferred_username` claim as the Mattermost username for the user. The OIDC scope must include `profile` to use this feature.",
+  "admin.openid.usePreferredUsernameTitle": "Use Preferred Username:",
   "admin.openIdConvert.help": "Learn more",
   "admin.openIdConvert.message": "You can now convert your OAuth2.0 configuration to OpenID Connect.",
   "admin.openIdConvert.text": "Convert to OpenID Connect",
