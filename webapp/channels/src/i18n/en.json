@@ -567,7 +567,7 @@
   "admin.cluster.unknown": "unknown",
   "admin.cluster.UseIPAddress": "Use IP Address:",
   "admin.cluster.UseIPAddressDesc": "When true, the cluster will attempt to communicate via IP Address vs using the hostname.",
-  "admin.cluster.version_mismatch_warning": "WARNING: Multiple versions of Mattermost has been detected in your HA cluster. Unless you are currently performing an upgrade please ensure all nodes in your cluster are running the same Mattermost version to avoid platform disruption.",
+  "admin.cluster.version_mismatch_warning": "WARNING: Your HA cluster may be running multiple versions, or we may not be able to properly detect the running versions. Unless you are currently performing an upgrade please ensure all nodes in your cluster are running the same Mattermost version to avoid platform disruption. Also ensure all nodes in the cluster are able to communicate with each other over Gossip.",
   "admin.compliance_export_feature_discovery.copy": "Run daily compliance reports and export them to a variety of formats consumable by third-party integration tools such as Smarsh (Actiance).",
   "admin.compliance_export_feature_discovery.title": "Run compliance exports with Mattermost Enterprise",
   "admin.compliance_reports.desc": "Job Name:",
