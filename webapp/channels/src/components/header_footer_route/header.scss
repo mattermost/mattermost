@@ -36,8 +36,8 @@
             }
 
             &:focus {
-                border: 2px solid var(--sidebar-text-active-border);
                 padding: 8px;
+                border: 2px solid var(--sidebar-text-active-border);
                 margin-left: -10px;
             }
 
