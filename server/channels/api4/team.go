@@ -1660,7 +1660,6 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	team, err := c.App.GetTeam(c.Params.TeamId)
-
 	if err != nil {
 		c.Err = err
 		return
@@ -1738,7 +1737,7 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	imageData := imageArray[0]
 
-	if err := c.App.SetTeamIcon(c.Params.TeamId, imageData); err != nil {
+	if err := c.App.SetTeamIcon(c.AppContext, c.Params.TeamId, imageData); err != nil {
 		c.Err = err
 		return
 	}
