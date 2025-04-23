@@ -10,6 +10,7 @@ require (
 	github.com/anthonynsimon/bild v0.14.0
 	github.com/avct/uasurfer v0.0.0-20240501094946-ca0c4d1e541b
 	github.com/aws/aws-sdk-go v1.55.6
+	github.com/bep/imagemeta v0.8.4
 	github.com/blang/semver/v4 v4.0.0
 	github.com/blevesearch/bleve/v2 v2.4.4-0.20250115090822-cbafdca08538
 	github.com/cespare/xxhash/v2 v2.3.0
@@ -59,7 +60,6 @@ require (
 	github.com/reflog/dateconstraints v0.2.1
 	github.com/rs/cors v1.11.1
 	github.com/rudderlabs/analytics-go v3.3.3+incompatible
-	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
