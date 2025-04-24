@@ -742,19 +742,14 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 		}
 	}
 
-	var insert sq.InsertBuilder
-	if s.DriverName() == model.DatabaseDriverMysql {
-		insert = s.getQueryBuilder().
+	insert := s.getQueryBuilder().
 			Insert("Channels").
-			Options("IGNORE").
 			Columns(channelSliceColumns()...).
 			Values(channelToSlice(channel)...)
+	if s.DriverName() == model.DatabaseDriverMysql {
+		insert = insert.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Id=Id"))
 	} else {
-		insert = s.getQueryBuilder().
-			Insert("Channels").
-			Columns(channelSliceColumns()...).
-			Values(channelToSlice(channel)...).
-			SuffixExpr(sq.Expr("ON CONFLICT (TeamId, Name) DO NOTHING"))
+		insert = insert.SuffixExpr(sq.Expr("ON CONFLICT (TeamId, Name) DO NOTHING"))
 	}
 
 	query, params, err := insert.ToSql()
