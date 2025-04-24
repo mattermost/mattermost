@@ -58,17 +58,9 @@ exports[`components/integrations/InstalledIncomingWebhook should match snapshot 
           id="installed_integrations.url"
           values={
             Object {
-              "url": <span>
-                <code
-                  style={
-                    Object {
-                      "display": "inline",
-                    }
-                  }
-                >
-                  http://localhost:8065/hooks/9w96t4nhbfdiij64wfqors4i1r
-                </code>
-              </span>,
+              "url": <code>
+                http://localhost:8065/hooks/9w96t4nhbfdiij64wfqors4i1r
+              </code>,
             }
           }
         />

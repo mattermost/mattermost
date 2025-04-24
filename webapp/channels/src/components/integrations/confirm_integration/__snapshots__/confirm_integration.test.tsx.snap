@@ -52,7 +52,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, comma
         values={
           Object {
             "b": [Function],
-            "token": "jb6oyqh95irpbx8fo9zmndkp1r",
+            "token": <code>
+              jb6oyqh95irpbx8fo9zmndkp1r
+            </code>,
           }
         }
       />
@@ -135,17 +137,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, incom
         values={
           Object {
             "b": [Function],
-            "url": <span>
-              <code
-                style={
-                  Object {
-                    "display": "inline",
-                  }
-                }
-              >
-                http://localhost:8065/hooks/r5tpgt4iepf45jt768jz84djic
-              </code>
-            </span>,
+            "url": <code>
+              http://localhost:8065/hooks/r5tpgt4iepf45jt768jz84djic
+            </code>,
           }
         }
       />
@@ -230,7 +224,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
         values={
           Object {
             "b": [Function],
-            "id": "r5tpgt4iepf45jt768jz84djic",
+            "id": <code>
+              r5tpgt4iepf45jt768jz84djic
+            </code>,
           }
         }
       />
@@ -250,7 +246,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
         values={
           Object {
             "b": [Function],
-            "secret": "<==secret==>",
+            "secret": <code>
+              &lt;==secret==&gt;
+            </code>,
           }
         }
       />
@@ -357,7 +355,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
         values={
           Object {
             "b": [Function],
-            "token": "jb6oyqh95irpbx8fo9zmndkp1r",
+            "token": <code>
+              jb6oyqh95irpbx8fo9zmndkp1r
+            </code>,
           }
         }
       />
@@ -442,7 +442,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
         values={
           Object {
             "b": [Function],
-            "id": "someid",
+            "id": <code>
+              someid
+            </code>,
           }
         }
       />
@@ -467,17 +469,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
         values={
           Object {
             "b": [Function],
-            "url": <span>
-              <code
-                style={
-                  Object {
-                    "display": "inline",
-                  }
-                }
-              >
-                https://tokenurl.com
-              </code>
-            </span>,
+            "url": <code>
+              https://tokenurl.com
+            </code>,
           }
         }
       />
@@ -491,17 +485,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
         values={
           Object {
             "b": [Function],
-            "url": <span>
-              <code
-                style={
-                  Object {
-                    "display": "inline",
-                  }
-                }
-              >
-                https://myaudience.com
-              </code>
-            </span>,
+            "url": <code>
+              https://myaudience.com
+            </code>,
           }
         }
       />
