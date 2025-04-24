@@ -743,9 +743,9 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 	}
 
 	insert := s.getQueryBuilder().
-			Insert("Channels").
-			Columns(channelSliceColumns()...).
-			Values(channelToSlice(channel)...)
+		Insert("Channels").
+		Columns(channelSliceColumns()...).
+		Values(channelToSlice(channel)...)
 	if s.DriverName() == model.DatabaseDriverMysql {
 		insert = insert.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Id=Id"))
 	} else {
