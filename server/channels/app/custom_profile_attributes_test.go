@@ -779,7 +779,7 @@ func TestDeleteCPAValues(t *testing.T) {
 		createdFields = append(createdFields, createdField)
 
 		// Create a value for this field
-		value, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(fmt.Sprintf(`"Value %d"`, i)))
+		value, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(fmt.Sprintf(`"Value %d"`, i)), false)
 		require.Nil(t, appErr)
 		require.NotNil(t, value)
 	}
@@ -808,7 +808,7 @@ func TestDeleteCPAValues(t *testing.T) {
 	t.Run("should not affect values for other users", func(t *testing.T) {
 		// Create values for another user
 		for _, field := range createdFields {
-			value, appErr := th.App.PatchCPAValue(otherUserID, field.ID, json.RawMessage(`"Other user value"`))
+			value, appErr := th.App.PatchCPAValue(otherUserID, field.ID, json.RawMessage(`"Other user value"`), false)
 			require.Nil(t, appErr)
 			require.NotNil(t, value)
 		}
