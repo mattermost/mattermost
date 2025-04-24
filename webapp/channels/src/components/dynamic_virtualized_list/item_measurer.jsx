@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 /* eslint-disable react/prop-types */
-/* eslint-disable no-underscore-dangle */
 /* eslint-disable react/require-optimization */
 
 import React, {Component} from 'react';
@@ -69,16 +68,16 @@ const shrinkScrollDelta = (2 * scrollBarWidth) + 1; // 17 = 2* scrollbar width(8
 const expandScrollDelta = shrinkScrollDelta + 10;
 
 export default class ItemMeasurer extends Component {
-    _node = null;
-    _resizeSensorExpand = React.createRef();
-    _resizeSensorShrink = React.createRef();
-    _positionScrollbarsRef = null;
-    _measureItemAnimFrame = null;
+    node = null;
+    resizeSensorExpand = React.createRef();
+    resizeSensorShrink = React.createRef();
+    positionScrollbarsRef = null;
+    measureItemAnimFrame = null;
 
-    _measureItem = (forceScrollCorrection) => {
+    measureItem = (forceScrollCorrection) => {
         const {handleNewMeasurements, size: oldSize, itemId} = this.props;
 
-        const node = this._node;
+        const node = this.node;
 
         if (node && node.ownerDocument && node.ownerDocument.defaultView && node instanceof node.ownerDocument.defaultView.HTMLElement) {
             const newSize = Math.ceil(node.offsetHeight);
@@ -90,16 +89,16 @@ export default class ItemMeasurer extends Component {
     };
 
     componentDidMount() {
-        this._node = findDOMNode(this);
+        this.node = findDOMNode(this);
 
         // Force sync measure for the initial mount.
         // This is necessary to support the DynamicSizeList layout logic.
         if (isSafari() && this.props.size) {
-            this._measureItemAnimFrame = window.requestAnimationFrame(() => {
-                this._measureItem(false);
+            this.measureItemAnimFrame = window.requestAnimationFrame(() => {
+                this.measureItem(false);
             });
         } else {
-            this._measureItem(false);
+            this.measureItem(false);
         }
 
         if (this.props.size) {
@@ -121,22 +120,22 @@ export default class ItemMeasurer extends Component {
         // Heavily inspired from https://github.com/marcj/css-element-queries/blob/master/src/ResizeSensor.js
         // and https://github.com/wnr/element-resize-detector/blob/master/src/detection-strategy/scroll.js
         // For more info http://www.backalleycoder.com/2013/03/18/cross-browser-event-based-element-resize-detection/#comment-244
-        if (this._positionScrollbarsRef) {
-            window.cancelAnimationFrame(this._positionScrollbarsRef);
+        if (this.positionScrollbarsRef) {
+            window.cancelAnimationFrame(this.positionScrollbarsRef);
         }
-        this._positionScrollbarsRef = window.requestAnimationFrame(() => {
-            this._resizeSensorExpand.current.scrollTop = height + expandScrollDelta;
-            this._resizeSensorShrink.current.scrollTop = (2 * height) + shrinkScrollDelta;
+        this.positionScrollbarsRef = window.requestAnimationFrame(() => {
+            this.resizeSensorExpand.current.scrollTop = height + expandScrollDelta;
+            this.resizeSensorShrink.current.scrollTop = (2 * height) + shrinkScrollDelta;
         });
     };
 
     componentWillUnmount() {
-        if (this._positionScrollbarsRef) {
-            window.cancelAnimationFrame(this._positionScrollbarsRef);
+        if (this.positionScrollbarsRef) {
+            window.cancelAnimationFrame(this.positionScrollbarsRef);
         }
 
-        if (this._measureItemAnimFrame) {
-            window.cancelAnimationFrame(this._measureItemAnimFrame);
+        if (this.measureItemAnimFrame) {
+            window.cancelAnimationFrame(this.measureItemAnimFrame);
         }
 
         const {onUnmount, itemId, index} = this.props;
@@ -148,7 +147,7 @@ export default class ItemMeasurer extends Component {
 
     scrollingDiv = (event) => {
         if (event.target.offsetHeight !== this.props.size) {
-            this._measureItem(event.target.offsetWidth !== this.props.width);
+            this.measureItem(event.target.offsetWidth !== this.props.width);
         }
     };
 
@@ -177,14 +176,14 @@ export default class ItemMeasurer extends Component {
                         <div style={expandShrinkContainerStyles}>
                             <div
                                 style={expandShrinkStyles}
-                                ref={this._resizeSensorExpand}
+                                ref={this.resizeSensorExpand}
                                 onScroll={this.scrollingDiv}
                             >
                                 <div style={expandChildStyle}/>
                             </div>
                             <div
                                 style={expandShrinkStyles}
-                                ref={this._resizeSensorShrink}
+                                ref={this.resizeSensorShrink}
                                 onScroll={this.scrollingDiv}
                             >
                                 <div style={shrinkChildStyle}/>

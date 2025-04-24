@@ -434,7 +434,7 @@ export default class PostList extends React.PureComponent<Props, State> {
 
         if (scrollUpdateWasRequested) { //if scroll change is programatically requested i.e by calling scrollTo
             //This is a private method on virtlist
-            const postsRenderedRange = this.listRef.current?._getRangeToRender(); //eslint-disable-line no-underscore-dangle
+            const postsRenderedRange = this.listRef.current?.getRangeToRender();
 
             // postsRenderedRange[3] is the visibleStopIndex which is post at the bottom of the screen
             if (postsRenderedRange && postsRenderedRange[3] <= 1 && !this.props.atLatestPost) {
