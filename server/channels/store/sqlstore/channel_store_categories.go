@@ -77,7 +77,8 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrap
 		// Use deterministic IDs for default categories to prevent potentially creating multiple copies of a default category
 		favoritesCategoryId := fmt.Sprintf("%s_%s_%s", model.SidebarCategoryFavorites, userId, teamId)
 		// Create the SidebarChannels first since there's more opportunity for something to fail here
-		if err := s.migrateFavoritesToSidebarT(transaction, userId, teamId, favoritesCategoryId); err != nil {
+		err = s.migrateFavoritesToSidebarT(transaction, userId, teamId, favoritesCategoryId)
+		if err != nil {
 			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to migrate favorites to sidebar")
 		}
 
