@@ -50,8 +50,6 @@ import PanelBody from './panel/panel_body';
 import Header from './panel/panel_header';
 import {getErrorStringFromCode} from './utils';
 
-import './draft_row.scss';
-
 type Props = {
     user: UserProfile;
     status: UserStatus['status'];
@@ -59,6 +57,7 @@ type Props = {
     item: PostDraft | ScheduledPost;
     isRemote?: boolean;
     scrollIntoView?: boolean;
+    containerClassName?: string;
 }
 
 const mockLastBlurAt = {current: 0};
@@ -70,6 +69,7 @@ function DraftRow({
     displayName,
     isRemote,
     scrollIntoView,
+    containerClassName,
 }: Props) {
     const [isEditing, setIsEditing] = useState(false);
 
@@ -366,6 +366,7 @@ function DraftRow({
             hasError={Boolean(postError)}
             innerRef={scrollIntoView ? alertRef : undefined}
             isHighlighted={scrollIntoView}
+            className={containerClassName}
         >
             {({hover}) => (
                 <>

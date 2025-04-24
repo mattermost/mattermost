@@ -10,7 +10,7 @@ import {
 
 export const allowOnlyUserFromSpecificDomain = (domain) => {
     // # Open 'Team Settings' modal
-    cy.uiOpenTeamMenu('Team Settings');
+    cy.uiOpenTeamMenu('Team settings');
 
     // * Check that the 'Team Settings' modal was opened
     cy.get('#teamSettingsModal').should('exist').within(() => {
@@ -31,7 +31,7 @@ export const allowOnlyUserFromSpecificDomain = (domain) => {
 
 export const inviteUserByEmail = (email) => {
     // # Open team menu and click 'Invite People'
-    cy.uiOpenTeamMenu('Invite People');
+    cy.uiOpenTeamMenu('Invite people');
 
     // # Wait half a second to ensure that the modal has been fully loaded
     cy.wait(TIMEOUTS.HALF_SEC);
