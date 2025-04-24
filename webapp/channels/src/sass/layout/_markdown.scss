@@ -381,23 +381,33 @@ ol.markdown__list {
 
 blockquote {
     position: relative;
-    padding: 10px 10px 10px 38px;
+    padding: 2px 12px 2px 16px;
     border: none;
-    margin-bottom: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.7);
+    margin: 6px 0 0 0;
     font-size: inherit;
 
+    &:first-child {
+        margin-top: 0;
+    }
+
     &::before {
+        content: "\201C";
+        font-family: "Open Sans", sans-serif;
+        font-size: 2em;
+        font-weight: 500;
         position: absolute;
-        top: 5px;
-        left: 8px;
-        display: inline-block;
-        content: '\f10d';
-        font-family: FontAwesome, sans-serif;
-        font-size: 20px;
-        font-style: normal;
-        font-weight: normal;
-        opacity: 0.73;
-        text-decoration: inherit;
+        left: 1px;
+        top: -3px;
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+    }
+    
+    +p {
+        margin-top: 8px;
+
+        .post & {
+            margin-top: 8px;
+        }
     }
 }
 
