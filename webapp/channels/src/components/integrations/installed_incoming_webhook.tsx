@@ -155,7 +155,7 @@ export default class InstalledIncomingWebhook extends React.PureComponent<Props>
                                 id='installed_integrations.url'
                                 defaultMessage='URL: {url}'
                                 values={{
-                                    url: <span><code style={{display: 'inline'}}>{incomingWebhookId}</code></span>,
+                                    url: <code>{incomingWebhookId}</code>,
                                 }}
                             />
                             <span>
