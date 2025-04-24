@@ -116,30 +116,30 @@ exports[`components/threading/global_threads/thread_item should report total num
         }
       />
     </div>
+    <span
+      className="sr-only"
+      id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Last reply "
+        id="threading.threadItem.timestamp"
+      />
+      <MockTimestamp
+        className="alt-hidden"
+        day="numeric"
+        units={
+          Array [
+            "now",
+            "minute",
+            "hour",
+            "day",
+            "week",
+          ]
+        }
+        useTime={false}
+      />
+    </span>
   </div>
-  <span
-    className="sr-only"
-    id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="Last reply "
-      id="threading.threadItem.timestamp"
-    />
-    <MockTimestamp
-      className="alt-hidden"
-      day="numeric"
-      units={
-        Array [
-          "now",
-          "minute",
-          "hour",
-          "day",
-          "week",
-        ]
-      }
-      useTime={false}
-    />
-  </span>
 </Fragment>
 `;
 
@@ -268,30 +268,30 @@ exports[`components/threading/global_threads/thread_item should report unread me
         }
       />
     </div>
+    <span
+      className="sr-only"
+      id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Last reply "
+        id="threading.threadItem.timestamp"
+      />
+      <MockTimestamp
+        className="alt-hidden"
+        day="numeric"
+        units={
+          Array [
+            "now",
+            "minute",
+            "hour",
+            "day",
+            "week",
+          ]
+        }
+        useTime={false}
+      />
+    </span>
   </div>
-  <span
-    className="sr-only"
-    id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="Last reply "
-      id="threading.threadItem.timestamp"
-    />
-    <MockTimestamp
-      className="alt-hidden"
-      day="numeric"
-      units={
-        Array [
-          "now",
-          "minute",
-          "hour",
-          "day",
-          "week",
-        ]
-      }
-      useTime={false}
-    />
-  </span>
 </Fragment>
 `;
 
@@ -418,29 +418,29 @@ exports[`components/threading/global_threads/thread_item should report unread me
         }
       />
     </div>
+    <span
+      className="sr-only"
+      id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Last reply "
+        id="threading.threadItem.timestamp"
+      />
+      <MockTimestamp
+        className="alt-hidden"
+        day="numeric"
+        units={
+          Array [
+            "now",
+            "minute",
+            "hour",
+            "day",
+            "week",
+          ]
+        }
+        useTime={false}
+      />
+    </span>
   </div>
-  <span
-    className="sr-only"
-    id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="Last reply "
-      id="threading.threadItem.timestamp"
-    />
-    <MockTimestamp
-      className="alt-hidden"
-      day="numeric"
-      units={
-        Array [
-          "now",
-          "minute",
-          "hour",
-          "day",
-          "week",
-        ]
-      }
-      useTime={false}
-    />
-  </span>
 </Fragment>
 `;

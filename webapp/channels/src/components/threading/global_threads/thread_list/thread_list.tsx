@@ -119,6 +119,7 @@ const ThreadList = ({
             }
         }
         select(data[threadIdToSelect]);
+        e.preventDefault();
     }, [selectedThreadId, data]);
 
     useEffect(() => {

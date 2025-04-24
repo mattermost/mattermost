@@ -321,21 +321,21 @@ function ThreadItem({
                     )}
                 </div>
                 {showListTutorialTip && isFirstThreadInList && isMobileView && (<CRTListTutorialTip/>)}
+                <span
+                    className='sr-only'
+                    id={`ThreadItem__timestamp_${threadId}`}
+                >
+                    <FormattedMessage
+                        id='threading.threadItem.timestamp'
+                        defaultMessage='Last reply '
+                    />
+                    <Timestamp
+                        {...THREADING_TIME}
+                        className='alt-hidden'
+                        value={lastReplyAt}
+                    />
+                </span>
             </div>
-            <span
-                className='sr-only'
-                id={`ThreadItem__timestamp_${threadId}`}
-            >
-                <FormattedMessage
-                    id='threading.threadItem.timestamp'
-                    defaultMessage='Last reply '
-                />
-                <Timestamp
-                    {...THREADING_TIME}
-                    className='alt-hidden'
-                    value={lastReplyAt}
-                />
-            </span>
         </>
     );
 }
