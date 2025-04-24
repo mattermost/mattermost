@@ -4,8 +4,8 @@
 import nock from 'nock';
 
 import Client4, {ClientError, HEADER_X_VERSION_ID} from './client4';
-import type {TelemetryHandler} from './telemetry';
 import {buildQueryString} from './helpers';
+import type {TelemetryHandler} from './telemetry';
 
 describe('Client4', () => {
     beforeAll(() => {
@@ -47,7 +47,7 @@ describe('Client4', () => {
             client.setUrl('http://mattermost.example.com');
 
             const userId = 'dummy-user-id';
-            const page = -1;  // Special value to trigger NDJSON response
+            const page = -1; // Special value to trigger NDJSON response
 
             // Sample NDJSON data with multiple channel memberships on separate lines
             const ndjsonData = '{"user_id":"dummy-user-id","channel_id":"channel1","roles":"channel_user"}\n' +
@@ -65,9 +65,9 @@ describe('Client4', () => {
             // Verify the response was parsed as an array of objects
             expect(Array.isArray(result)).toBe(true);
             expect(result).toHaveLength(3);
-            expect(result[0]).toEqual({"user_id": "dummy-user-id", "channel_id": "channel1", "roles": "channel_user"});
-            expect(result[1]).toEqual({"user_id": "dummy-user-id", "channel_id": "channel2", "roles": "channel_user channel_admin"});
-            expect(result[2]).toEqual({"user_id": "dummy-user-id", "channel_id": "channel3", "roles": "channel_user"});
+            expect(result[0]).toEqual({user_id: 'dummy-user-id', channel_id: 'channel1', roles: 'channel_user'});
+            expect(result[1]).toEqual({user_id: 'dummy-user-id', channel_id: 'channel2', roles: 'channel_user channel_admin'});
+            expect(result[2]).toEqual({user_id: 'dummy-user-id', channel_id: 'channel3', roles: 'channel_user'});
         });
     });
 });

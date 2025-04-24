@@ -3713,14 +3713,14 @@ func (c *Client4) GetChannelMembersWithTeamData(ctx context.Context, userID stri
 				}
 
 				var member ChannelMemberWithTeamData
-				if err := json.Unmarshal([]byte(line), &member); err != nil {
-					return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				if err2 := json.Unmarshal([]byte(line), &member); err2 != nil {
+					return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err2)
 				}
 				ch = append(ch, member)
 			}
 
-			if err := scanner.Err(); err != nil {
-				return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.scanner_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			if err2 := scanner.Err(); err2 != nil {
+				return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err2)
 			}
 
 			return ch, BuildResponse(r), nil
