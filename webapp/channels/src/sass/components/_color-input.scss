@@ -5,8 +5,15 @@
 
     input {
         height: 36px;
+
+        &:not(:focus) {
+            border-right: none !important;
+            border-bottom-right-radius: 0 !important;
+            border-top-right-radius: 0 !important;
+        }
     }
 }
+
 
 .color-icon {
     display: inline-block;
@@ -19,8 +26,8 @@
 
 .color-pad {
     padding: 5px;
-    border-color: rgba(var(--center-channel-color-rgb), 0.32) !important;
-    border-radius: 0 2px 2px 0;
+    border: var(--border-default);
+    border-radius: 0 4px 4px 0;
     background: functions.v(center-channel-bg) !important;
     line-height: 0;
 }
