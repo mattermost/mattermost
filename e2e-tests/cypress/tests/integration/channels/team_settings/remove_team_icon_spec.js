@@ -61,7 +61,7 @@ describe('Teams Settings', () => {
 
 function openTeamSettingsDialog() {
     // # Open team menu and click 'Team Settings'
-    cy.uiOpenTeamMenu('Team Settings');
+    cy.uiOpenTeamMenu('Team settings');
 
     // * Verify the team settings dialog is open
     cy.get('#teamSettingsModalLabel').should('be.visible').and('contain', 'Team Settings');

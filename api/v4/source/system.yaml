@@ -611,6 +611,37 @@
           $ref: "#/components/responses/BadRequest"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/license/load_metric:
+    get:
+      tags:
+        - system
+      summary: Get license load metric
+      description: >
+        Get the current license load metric, calculated based on monthly active users
+        against the licensed user count. Returns a value of 0 when there is no license loaded or
+        the license doesn't have a user count.
+
+        __Minimum server version__: 10.8
+
+        ##### Permissions
+
+        Must be logged in.
+      operationId: GetLicenseLoadMetric
+      responses:
+        "200":
+          description: License load metric retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  load:
+                    type: integer
+                    description: Current license load metric as an integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/license/renewal:
     get:
       tags:
