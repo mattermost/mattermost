@@ -3112,20 +3112,12 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// The new model streams data all in one shot.
+	// The new model streams data using NDJSON format (each JSON object on a new line)
 	pageSize := 100
 	fromChannelID := ""
 
-	// We have to write `[` and `]` separately because we want to stream the response.
-	// The internal API is paginated, but the client always needs to get the full data.
-	// Therefore, to avoid forcing the client to go through all the pages,
-	// we stream the full data from server side itself.
-	//
-	// Note that this means if an error occurs in mid-stream, the response won't be
-	// fully JSON.
-	if _, err := w.Write([]byte(`[`)); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
+	// Set the correct content type for NDJSON
+	w.Header().Set("Content-Type", "application/x-ndjson")
 
 	enc := json.NewEncoder(w)
 
@@ -3147,21 +3139,9 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 			return
 		}
 
-		// intermediary comma between sets
-		if fromChannelID != "" {
-			if _, err := w.Write([]byte(`,`)); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-		}
-
-		for i, member := range members {
+		for _, member := range members {
 			if err := enc.Encode(member); err != nil {
 				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			if i < len(members)-1 {
-				if _, err := w.Write([]byte(`,`)); err != nil {
-					c.Logger.Warn("Error while writing response", mlog.Err(err))
-				}
 			}
 		}
 
@@ -3170,10 +3150,6 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		}
 
 		fromChannelID = members[len(members)-1].ChannelId
-	}
-
-	if _, err := w.Write([]byte(`]`)); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
