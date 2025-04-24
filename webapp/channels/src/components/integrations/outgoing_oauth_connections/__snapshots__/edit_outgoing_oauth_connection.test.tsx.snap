@@ -549,6 +549,7 @@ https://myothersite.com/api/v2"
                     }
                   >
                     <GenericModal
+                      ariaLabelledby="confirmModalLabel"
                       autoCloseOnCancelButton={true}
                       autoCloseOnConfirmButton={true}
                       bodyPadding={true}
@@ -564,6 +565,7 @@ https://myothersite.com/api/v2"
                         />
                       }
                       modalLocation="center"
+                      onExited={[Function]}
                       onHide={[Function]}
                       show={false}
                       showCloseButton={true}
@@ -571,7 +573,7 @@ https://myothersite.com/api/v2"
                     >
                       <Modal
                         animation={true}
-                        aria-labelledby="genericModalLabel"
+                        aria-labelledby="confirmModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
@@ -593,6 +595,7 @@ https://myothersite.com/api/v2"
                             "remove": [Function],
                           }
                         }
+                        onExited={[Function]}
                         onHide={[Function]}
                         renderBackdrop={[Function]}
                         restoreFocus={true}
@@ -669,6 +672,7 @@ https://myothersite.com/api/v2"
               title="Save Outgoing OAuth Connection"
             >
               <GenericModal
+                ariaLabelledby="confirmModalLabel"
                 autoCloseOnCancelButton={true}
                 autoCloseOnConfirmButton={true}
                 bodyPadding={true}
@@ -687,7 +691,7 @@ https://myothersite.com/api/v2"
               >
                 <Modal
                   animation={true}
-                  aria-labelledby="genericModalLabel"
+                  aria-labelledby="confirmModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
@@ -1305,6 +1309,7 @@ https://myothersite.com/api/v2"
                     }
                   >
                     <GenericModal
+                      ariaLabelledby="confirmModalLabel"
                       autoCloseOnCancelButton={true}
                       autoCloseOnConfirmButton={true}
                       bodyPadding={true}
@@ -1320,6 +1325,7 @@ https://myothersite.com/api/v2"
                         />
                       }
                       modalLocation="center"
+                      onExited={[Function]}
                       onHide={[Function]}
                       show={false}
                       showCloseButton={true}
@@ -1327,7 +1333,7 @@ https://myothersite.com/api/v2"
                     >
                       <Modal
                         animation={true}
-                        aria-labelledby="genericModalLabel"
+                        aria-labelledby="confirmModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
@@ -1349,6 +1355,7 @@ https://myothersite.com/api/v2"
                             "remove": [Function],
                           }
                         }
+                        onExited={[Function]}
                         onHide={[Function]}
                         renderBackdrop={[Function]}
                         restoreFocus={true}
@@ -1425,6 +1432,7 @@ https://myothersite.com/api/v2"
               title="Save Outgoing OAuth Connection"
             >
               <GenericModal
+                ariaLabelledby="confirmModalLabel"
                 autoCloseOnCancelButton={true}
                 autoCloseOnConfirmButton={true}
                 bodyPadding={true}
@@ -1443,7 +1451,7 @@ https://myothersite.com/api/v2"
               >
                 <Modal
                   animation={true}
-                  aria-labelledby="genericModalLabel"
+                  aria-labelledby="confirmModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
@@ -2060,6 +2068,7 @@ https://myothersite.com/api/v2"
                     }
                   >
                     <GenericModal
+                      ariaLabelledby="confirmModalLabel"
                       autoCloseOnCancelButton={true}
                       autoCloseOnConfirmButton={true}
                       bodyPadding={true}
@@ -2075,6 +2084,7 @@ https://myothersite.com/api/v2"
                         />
                       }
                       modalLocation="center"
+                      onExited={[Function]}
                       onHide={[Function]}
                       show={false}
                       showCloseButton={true}
@@ -2082,7 +2092,7 @@ https://myothersite.com/api/v2"
                     >
                       <Modal
                         animation={true}
-                        aria-labelledby="genericModalLabel"
+                        aria-labelledby="confirmModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
@@ -2104,6 +2114,7 @@ https://myothersite.com/api/v2"
                             "remove": [Function],
                           }
                         }
+                        onExited={[Function]}
                         onHide={[Function]}
                         renderBackdrop={[Function]}
                         restoreFocus={true}
@@ -2180,6 +2191,7 @@ https://myothersite.com/api/v2"
               title="Save Outgoing OAuth Connection"
             >
               <GenericModal
+                ariaLabelledby="confirmModalLabel"
                 autoCloseOnCancelButton={true}
                 autoCloseOnConfirmButton={true}
                 bodyPadding={true}
@@ -2198,7 +2210,7 @@ https://myothersite.com/api/v2"
               >
                 <Modal
                   animation={true}
-                  aria-labelledby="genericModalLabel"
+                  aria-labelledby="confirmModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
