@@ -557,6 +557,8 @@ func (h *Hub) Start() {
 				}
 
 				conns := connIndex.ForUser(webConn.UserId)
+				// areAllInactive also returns true if there are no connections,
+				// which is intentional.
 				if areAllInactive(conns) {
 					userID := webConn.UserId
 					h.platform.Go(func() {
