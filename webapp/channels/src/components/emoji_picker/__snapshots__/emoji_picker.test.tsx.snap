@@ -138,20 +138,6 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
       <div
         style="overflow: visible; height: 0px; width: 0px;"
       />
-      <div
-        class="resize-triggers"
-      >
-        <div
-          class="expand-trigger"
-        >
-          <div
-            style="width: 1px; height: 1px;"
-          />
-        </div>
-        <div
-          class="contract-trigger"
-        />
-      </div>
     </div>
   </div>
   <div
