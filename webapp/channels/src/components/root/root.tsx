@@ -26,7 +26,6 @@ import LoggedIn from 'components/logged_in';
 import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
-import SidebarMobileRightMenu from 'components/sidebar_mobile_right_menu';
 
 import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
@@ -84,7 +83,9 @@ const Pluggable = makeAsyncPluggableComponent();
 
 const noop = () => {};
 
-export type Props = PropsFromRedux & RouteComponentProps;
+export type Props = PropsFromRedux & RouteComponentProps & {
+    customProfileAttributesEnabled?: boolean;
+}
 
 interface State {
     shouldMountAppRoutes?: boolean;
@@ -185,8 +186,6 @@ export default class Root extends React.PureComponent<Props, State> {
 
         this.props.actions.migrateRecentEmojis();
         this.props.actions.loadRecentlyUsedCustomEmojis();
-        this.props.actions.getCustomProfileAttributeFields();
-
         this.showLandingPageIfNecessary();
 
         this.applyTheme();
@@ -286,6 +285,9 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (!prevProps.isConfigLoaded && this.props.isConfigLoaded) {
             this.setRudderConfig();
+            if (this.props.customProfileAttributesEnabled) {
+                this.props.actions.getCustomProfileAttributeFields();
+            }
         }
 
         if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
@@ -581,7 +583,6 @@ export default class Root extends React.PureComponent<Props, State> {
                         </div>
                         <Pluggable pluggableName='Global'/>
                         <AppBar/>
-                        <SidebarMobileRightMenu/>
                     </CompassThemeProvider>
                 </Switch>
             </RootProvider>

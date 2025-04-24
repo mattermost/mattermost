@@ -191,12 +191,20 @@ const Search = ({
     }, [isMobileView, searchTerms]);
 
     const getMorePostsForSearchCallback = useCallback(() => {
-        getMorePostsForSearch(searchTeam);
-    }, [searchTeam, getMorePostsForSearch]);
+        let team = searchTeam;
+        if (isMentionSearch) {
+            team = '';
+        }
+        getMorePostsForSearch(team);
+    }, [searchTeam, isMentionSearch, getMorePostsForSearch]);
 
     const getMoreFilesForSearchCallback = useCallback(() => {
-        getMoreFilesForSearch(searchTeam);
-    }, [searchTeam, getMoreFilesForSearch]);
+        let team = searchTeam;
+        if (isMentionSearch) {
+            team = '';
+        }
+        getMoreFilesForSearch(team);
+    }, [searchTeam, isMentionSearch, getMoreFilesForSearch]);
 
     // handle cloding of rhs-flyout
     const handleClose = (): void => closeRightHandSide();

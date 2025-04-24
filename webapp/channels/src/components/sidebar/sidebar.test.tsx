@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {Preferences} from 'mattermost-redux/constants';
+import {Permissions, Preferences} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -18,14 +17,61 @@ import type {GlobalState} from 'types/store';
 import Sidebar from './sidebar';
 
 describe('components/sidebar', () => {
-    const currentTeamId = 'fake_team_id';
+    const currentTeam = TestHelper.getTeamMock({
+        id: 'current_team_id',
+        display_name: 'Current Test Team',
+    });
+
+    const initialState: DeepPartial<GlobalState> = {
+        entities: {
+            teams: {
+                currentTeamId: currentTeam.id,
+                teams: {
+                    [currentTeam.id]: currentTeam,
+                },
+                myMembers: {
+                    [currentTeam.id]: {
+                        roles: 'team_user',
+                    },
+                },
+            },
+            users: {
+                currentUserId: 'current_user_id',
+                profiles: {
+                    current_user_id: {
+                        id: 'current_user_id',
+                        roles: 'system_user system_admin',
+                    },
+                },
+            },
+            roles: {
+                roles: {
+                    system_admin: {
+                        permissions: [Permissions.MANAGE_TEAM],
+                    },
+                    system_user: {
+                        permissions: [],
+                    },
+                    team_user: {
+                        permissions: [],
+                    },
+                },
+            },
+            preferences: {
+                myPreferences: {},
+            },
+            general: {
+                config: {},
+            },
+        },
+    };
 
     const baseProps = {
         canCreatePublicChannel: true,
         canCreatePrivateChannel: true,
         canJoinPublicChannel: true,
         isOpen: false,
-        teamId: currentTeamId,
+        teamId: currentTeam.id,
         hasSeenModal: true,
         isCloud: false,
         unreadFilterEnabled: false,
@@ -43,94 +89,36 @@ describe('components/sidebar', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
+    test('should render the sidebar components correctly', () => {
+        renderWithContext(
             <Sidebar {...baseProps}/>,
+            initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        // Check for SidebarContainer that is the parent of the sidebar
+        expect(document.getElementById('SidebarContainer')).toBeInTheDocument();
+
+        expect(screen.getByRole('application', {name: /channel sidebar region/i})).toBeInTheDocument();
     });
 
-    test('should match snapshot when direct channels modal is open', () => {
-        const wrapper = shallow(
-            <Sidebar {...baseProps}/>,
-        );
-
-        wrapper.instance().setState({showDirectChannelsModal: true});
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot when more channels modal is open', () => {
-        const wrapper = shallow(
-            <Sidebar {...baseProps}/>,
-        );
-
-        wrapper.instance().setState({showMoreChannelsModal: true});
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('Should call Shortcut modal on FORWARD_SLASH+ctrl/meta', () => {
-        const wrapper = shallow<Sidebar>(
-            <Sidebar {...baseProps}/>,
-        );
-        const instance = wrapper.instance();
-
-        let key = Constants.KeyCodes.BACK_SLASH[0] as string;
-        let keyCode = Constants.KeyCodes.BACK_SLASH[1] as number;
-        instance.handleKeyDownEvent({ctrlKey: true, preventDefault: jest.fn(), key, keyCode} as any);
-        expect(wrapper.instance().props.actions.openModal).not.toHaveBeenCalled();
-
-        key = 'ù';
-        keyCode = Constants.KeyCodes.FORWARD_SLASH[1] as number;
-        instance.handleKeyDownEvent({ctrlKey: true, preventDefault: jest.fn(), key, keyCode} as any);
-        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalledWith(expect.objectContaining({modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL}));
-
-        key = '/';
-        keyCode = Constants.KeyCodes.SEVEN[1] as number;
-        instance.handleKeyDownEvent({ctrlKey: true, preventDefault: jest.fn(), key, keyCode} as any);
-        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalledWith(expect.objectContaining({modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL}));
-
-        key = Constants.KeyCodes.FORWARD_SLASH[0] as string;
-        keyCode = Constants.KeyCodes.FORWARD_SLASH[1] as number;
-        instance.handleKeyDownEvent({ctrlKey: true, preventDefault: jest.fn(), key, keyCode} as any);
-        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalledWith(expect.objectContaining({modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL}));
-    });
-
-    test('should toggle direct messages modal correctly', () => {
-        const wrapper = shallow<Sidebar>(
-            <Sidebar {...baseProps}/>,
-        );
-        const instance = wrapper.instance();
-        const mockEvent: Partial<Event> = {preventDefault: jest.fn()};
-
-        instance.hideMoreDirectChannelsModal = jest.fn();
-        instance.showMoreDirectChannelsModal = jest.fn();
-
-        instance.handleOpenMoreDirectChannelsModal(mockEvent as any);
-        expect(instance.showMoreDirectChannelsModal).toHaveBeenCalled();
-
-        instance.setState({showDirectChannelsModal: true});
-        instance.handleOpenMoreDirectChannelsModal(mockEvent as any);
-        expect(instance.hideMoreDirectChannelsModal).toHaveBeenCalled();
-    });
-
-    test('should match empty div snapshot when teamId is missing', () => {
+    test('should not rendering anything when teamId is missing', () => {
         const props = {
             ...baseProps,
             teamId: '',
         };
-        const wrapper = shallow(
+        renderWithContext(
             <Sidebar {...props}/>,
+            initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.queryByRole('application', {name: /channel sidebar region/i})).toBeNull();
     });
 
     describe('unreads category', () => {
         const currentUserId = 'current_user_id';
 
-        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: currentTeamId});
-        const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: currentTeamId});
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: currentTeam.id});
+        const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: currentTeam.id});
 
         const baseState: DeepPartial<GlobalState> = {
             entities: {
@@ -141,7 +129,7 @@ describe('components/sidebar', () => {
                         channel2,
                     },
                     channelsInTeam: {
-                        [currentTeamId]: new Set([channel1.id, channel2.id]),
+                        [currentTeam.id]: new Set([channel1.id, channel2.id]),
                     },
                     messageCounts: {
                         channel1: {total: 10},
@@ -153,13 +141,40 @@ describe('components/sidebar', () => {
                     },
                 },
                 teams: {
-                    currentTeamId,
+                    currentTeamId: currentTeam.id,
                     teams: {
-                        [currentTeamId]: TestHelper.getTeamMock({id: currentTeamId}),
+                        [currentTeam.id]: currentTeam,
+                    },
+                    myMembers: {
+                        [currentTeam.id]: {
+                            roles: 'team_user',
+                        },
                     },
                 },
                 users: {
                     currentUserId,
+                    profiles: {
+                        [currentUserId]: {
+                            id: currentUserId,
+                            roles: 'system_user system_admin',
+                        },
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_admin: {
+                            permissions: [Permissions.MANAGE_TEAM],
+                        },
+                        system_user: {
+                            permissions: [],
+                        },
+                        team_user: {
+                            permissions: [],
+                        },
+                    },
+                },
+                general: {
+                    config: {},
                 },
             },
         };
@@ -261,6 +276,113 @@ describe('components/sidebar', () => {
             await waitFor(() => {
                 expect(screen.queryByText('UNREADS')).toBeInTheDocument();
             });
+        });
+    });
+
+    describe('modals', () => {
+        test('should call Shortcut modal on FORWARD_SLASH+ctrl/meta', () => {
+            const openModalSpy = jest.fn();
+            const closeModalSpy = jest.fn();
+
+            const props = {
+                ...baseProps,
+                isKeyBoardShortcutModalOpen: false,
+                actions: {
+                    ...baseProps.actions,
+                    openModal: openModalSpy,
+                    closeModal: closeModalSpy,
+                },
+            };
+
+            renderWithContext(
+                <Sidebar {...props}/>,
+                initialState,
+            );
+            expect(document.getElementById('SidebarContainer')).toBeInTheDocument();
+
+            // Test with backslash key (should not trigger the modal)
+            fireEvent.keyDown(document, {
+                key: '\\',
+                code: 'Backslash',
+                keyCode: Constants.KeyCodes.BACK_SLASH[1],
+                ctrlKey: true,
+            });
+            expect(openModalSpy).not.toHaveBeenCalled();
+
+            // Test with 'ù' key but with forward slash keyCode (should trigger the modal)
+            fireEvent.keyDown(document, {
+                key: 'ù',
+                code: 'Slash',
+                keyCode: Constants.KeyCodes.FORWARD_SLASH[1],
+                ctrlKey: true,
+            });
+            expect(openModalSpy).toHaveBeenCalledWith(expect.objectContaining({
+                modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL,
+            }));
+
+            // Reset the spy
+            openModalSpy.mockClear();
+
+            // Test with '/' key but with seven keyCode (should trigger the modal)
+            fireEvent.keyDown(document, {
+                key: '/',
+                code: 'Digit7',
+                keyCode: Constants.KeyCodes.SEVEN[1],
+                ctrlKey: true,
+            });
+            expect(openModalSpy).toHaveBeenCalledWith(expect.objectContaining({
+                modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL,
+            }));
+
+            // Reset the spy
+            openModalSpy.mockClear();
+
+            // Test with forward slash key (should trigger the modal)
+            fireEvent.keyDown(document, {
+                key: '/',
+                code: 'Slash',
+                keyCode: Constants.KeyCodes.FORWARD_SLASH[1],
+                ctrlKey: true,
+            });
+            expect(openModalSpy).toHaveBeenCalledWith(expect.objectContaining({
+                modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL,
+            }));
+        });
+
+        test('should close Shortcut modal on FORWARD_SLASH+ctrl/meta when already open', () => {
+            const openModalSpy = jest.fn();
+            const closeModalSpy = jest.fn();
+
+            const props = {
+                ...baseProps,
+                isKeyBoardShortcutModalOpen: true, // Modal is already open
+                actions: {
+                    ...baseProps.actions,
+                    openModal: openModalSpy,
+                    closeModal: closeModalSpy,
+                },
+            };
+
+            renderWithContext(
+                <Sidebar {...props}/>,
+                initialState,
+            );
+
+            expect(document.getElementById('SidebarContainer')).toBeInTheDocument();
+
+            // Test with forward slash key (should close the modal since it's already open)
+            fireEvent.keyDown(document, {
+                key: '/',
+                code: 'Slash',
+                keyCode: Constants.KeyCodes.FORWARD_SLASH[1],
+                ctrlKey: true,
+            });
+
+            // Should call closeModal with the keyboard shortcuts modal ID
+            expect(closeModalSpy).toHaveBeenCalledWith(ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL);
+
+            // Should not call openModal
+            expect(openModalSpy).not.toHaveBeenCalled();
         });
     });
 });

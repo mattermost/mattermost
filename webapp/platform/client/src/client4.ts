@@ -2106,8 +2106,8 @@ export default class Client4 {
         );
     };
 
-    updateCustomProfileAttributeValues = (attributeValues: Record<string, string>) => {
-        return this.doFetch<Record<string, string>>(
+    updateCustomProfileAttributeValues = (attributeValues: Record<string, string | string[]>) => {
+        return this.doFetch<Record<string, string | string[]>>(
             `${this.getCustomProfileAttributeValuesRoute()}`,
             {method: 'PATCH', body: JSON.stringify(attributeValues)},
         );
@@ -2596,6 +2596,15 @@ export default class Client4 {
     getClientLicenseOld = () => {
         return this.doFetch<ClientLicense>(
             `${this.getBaseRoute()}/license/client?format=old`,
+            {method: 'get'},
+        );
+    };
+
+    getLicenseLoadMetric = () => {
+        return this.doFetch<{
+            load: number;
+        }>(
+            `${this.getBaseRoute()}/license/load_metric`,
             {method: 'get'},
         );
     };
@@ -3382,6 +3391,26 @@ export default class Client4 {
                 method: 'post',
                 body: formData,
             },
+        );
+    };
+
+    uploadAuditLogCertificate = (fileData: File) => {
+        const formData = new FormData();
+        formData.append('certificate', fileData);
+
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/audit_logs/certificate`,
+            {
+                method: 'post',
+                body: formData,
+            },
+        );
+    };
+
+    removeAuditLogCertificate = () => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/audit_logs/certificate`,
+            {method: 'delete'},
         );
     };
 
