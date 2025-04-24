@@ -80,7 +80,7 @@ describe('Profile', () => {
         // # Save
         cy.uiSave();
 
-        // * Verify for error message: "Must be 5-72 characters long."
+        // * Verify for error message: "Your password must be 5-72 characters long."
         cy.get('#clientError').should('be.visible').should('have.text', 'Your password must be 5-72 characters long.');
     });
 
