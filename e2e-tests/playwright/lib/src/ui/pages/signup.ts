@@ -40,7 +40,7 @@ export default class SignupPage {
         this.emailInput = page.locator('#input_email');
         this.usernameInput = page.locator('#input_name');
         this.passwordInput = page.locator('#input_password-input');
-        this.passwordToggleButton = page.getByRole('button', {name: 'Show or hide password'});
+        this.passwordToggleButton = page.locator('#password_toggle');
         this.createAccountButton = page.locator('button:has-text("Create Account")');
         this.emailError = page.locator('text=Please enter a valid email address');
         this.usernameError = page.locator(
