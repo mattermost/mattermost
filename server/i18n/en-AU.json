@@ -10611,5 +10611,17 @@
   {
     "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} should be a prefix of IndexPrefix {{.IndexPrefix}}."
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Failed to compute monthly active users."
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "No user registered on AD/LDAP server that matches the SAML user."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "invalid custom profile attribute field patch"
   }
 ]
