@@ -16,6 +16,7 @@ import Constants, {WindowSizes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+jest.unmock('react-intl');
 jest.unmock('react-router-dom');
 
 describe('components/login/Login', () => {
@@ -291,6 +292,11 @@ describe('components/login/Login', () => {
         renderWithContext(
             <Login/>,
             state,
+            {
+                intlMessages: {
+                    'login.noEmail': 'Please enter your email',
+                },
+            },
         );
 
         // Try to submit without entering username
