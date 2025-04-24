@@ -392,6 +392,7 @@ type ServiceSettings struct {
 	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
 	PostEditTimeLimit                                 *int    `access:"user_management_permissions"`
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnableCrossTeamSearch                             *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnableFileSearch                                  *bool   `access:"write_restrictable"`
 	MinimumHashtagLength                              *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
@@ -618,6 +619,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.TimeBetweenUserTypingUpdatesMilliseconds == nil {
 		s.TimeBetweenUserTypingUpdatesMilliseconds = NewPointer(int64(5000))
+	}
+
+	if s.EnableCrossTeamSearch == nil {
+		s.EnableCrossTeamSearch = NewPointer(true)
 	}
 
 	if s.EnablePostSearch == nil {
@@ -1533,6 +1538,7 @@ type ExperimentalAuditSettings struct {
 	FileCompress        *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileMaxQueueSize    *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	AdvancedLoggingJSON json.RawMessage `access:"experimental_features"`
+	Certificate         *string         `access:"experimental_features"` // telemetry: none
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -1566,6 +1572,10 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		s.AdvancedLoggingJSON = []byte("{}")
+	}
+
+	if s.Certificate == nil {
+		s.Certificate = NewPointer("")
 	}
 }
 
@@ -2911,6 +2921,7 @@ type ElasticsearchSettings struct {
 	AggregatePostsAfterDays       *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 	PostsAggregatorJobStartTime   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 	IndexPrefix                   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	GlobalSearchPrefix            *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	LiveIndexingBatchSize         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	BulkIndexingTimeWindowSeconds *int    `json:",omitempty"` // telemetry: none
 	BatchSize                     *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
@@ -3002,6 +3013,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.IndexPrefix == nil {
 		s.IndexPrefix = NewPointer(ElasticsearchSettingsDefaultIndexPrefix)
+	}
+
+	if s.GlobalSearchPrefix == nil {
+		s.GlobalSearchPrefix = NewPointer("")
 	}
 
 	if s.LiveIndexingBatchSize == nil {
@@ -3643,11 +3658,28 @@ func (s *ExportSettings) SetDefaults() {
 	}
 }
 
+type AccessControlSettings struct {
+	EnableAttributeBasedAccessControl *bool `access:"write_restrictable,cloud_restrictable"`
+	EnableChannelScopeAccessControl   *bool `access:"cloud_restrictable"`
+}
+
+func (s *AccessControlSettings) SetDefaults() {
+	if s.EnableAttributeBasedAccessControl == nil {
+		s.EnableAttributeBasedAccessControl = NewPointer(false)
+	}
+
+	if s.EnableChannelScopeAccessControl == nil {
+		s.EnableChannelScopeAccessControl = NewPointer(false)
+	}
+}
+
 type ConfigFunc func() *Config
 
-const ConfigAccessTagType = "access"
-const ConfigAccessTagWriteRestrictable = "write_restrictable"
-const ConfigAccessTagCloudRestrictable = "cloud_restrictable"
+const (
+	ConfigAccessTagType              = "access"
+	ConfigAccessTagWriteRestrictable = "write_restrictable"
+	ConfigAccessTagCloudRestrictable = "cloud_restrictable"
+)
 
 // Allows read access if any PermissionSysconsoleRead* is allowed
 const ConfigAccessTagAnySysConsoleRead = "*_read"
@@ -3665,7 +3697,8 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 // The 'access' tag '*_read' checks for any Sysconsole read permission and grants access if any read permission is allowed.
 //
 // By default config values can be written with PermissionManageSystem, but if ExperimentalSettings.RestrictSystemAdmin is true
-// and the access tag contains the value 'write_restrictable', then even PermissionManageSystem, does not grant write access.
+// and the access tag contains the value 'write_restrictable', then even PermissionManageSystem, does not grant write access
+// unless the request is made using local mode.
 //
 // PermissionManageSystem always grants read access.
 //
@@ -3732,10 +3765,11 @@ type Config struct {
 	ExportSettings              ExportSettings
 	WranglerSettings            WranglerSettings
 	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
+	AccessControlSettings       AccessControlSettings
 }
 
-func (o *Config) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *Config) Auditable() map[string]any {
+	return map[string]any{
 		// TODO
 	}
 }
@@ -3849,6 +3883,7 @@ func (o *Config) SetDefaults() {
 	o.ExportSettings.SetDefaults()
 	o.WranglerSettings.SetDefaults()
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
+	o.AccessControlSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -4358,7 +4393,7 @@ func (s *ServiceSettings) isValid() *AppError {
 		parent := filepath.Dir(*s.LocalModeSocketLocation)
 		_, err := os.Stat(parent)
 		if err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.app_error", nil, err.Error(), http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
 		}
 	}
 
@@ -4418,6 +4453,16 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 
 	if *s.Backend != ElasticsearchSettingsOSBackend && *s.Backend != ElasticsearchSettingsESBackend {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.invalid_backend.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.GlobalSearchPrefix != "" && *s.IndexPrefix == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.empty_index_prefix.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.GlobalSearchPrefix != "" && *s.IndexPrefix != "" {
+		if !strings.HasPrefix(*s.IndexPrefix, *s.GlobalSearchPrefix) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error", map[string]any{"IndexPrefix": *s.IndexPrefix, "GlobalSearchPrefix": *s.GlobalSearchPrefix}, "", http.StatusBadRequest)
+		}
 	}
 
 	return nil

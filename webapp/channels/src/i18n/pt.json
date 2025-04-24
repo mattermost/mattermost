@@ -40,7 +40,6 @@
   "accessibility.sections.centerContent": "área principal da lista de mensagens",
   "accessibility.sections.centerFooter": "área complementar da entrada de mensagens",
   "accessibility.sections.channelHeader": "área de cabeçalho do canal",
-  "accessibility.sections.lhsHeader": "área de menu da equipe",
   "accessibility.sections.lhsList": "área da barra lateral do canal",
   "accessibility.sections.lhsNavigator": "área da navegação do canal",
   "accessibility.sections.rhs": "{regionTitle} área complementar",

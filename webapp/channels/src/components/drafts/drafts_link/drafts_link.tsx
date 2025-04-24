@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useEffect, useMemo, useRef} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {NavLink, useRouteMatch} from 'react-router-dom';
@@ -63,7 +63,9 @@ function DraftsLink() {
     const isDraftUrlMatch = useRouteMatch('/:team/drafts');
     const isScheduledPostUrlMatch = useRouteMatch('/:team/' + SCHEDULED_POST_URL_SUFFIX);
 
-    const urlMatches = isDraftUrlMatch || isScheduledPostUrlMatch;
+    const urlMatches = Boolean(isDraftUrlMatch || isScheduledPostUrlMatch);
+
+    const isNavLinkActive = useCallback(() => urlMatches, [urlMatches]);
 
     useEffect(() => {
         if (syncedDraftsAllowedAndEnabled) {
@@ -123,6 +125,7 @@ function DraftsLink() {
                     draggable='false'
                     className='SidebarLink sidebar-item'
                     tabIndex={0}
+                    isActive={isNavLinkActive}
                 >
                     <i
                         data-testid='sendPostIcon'

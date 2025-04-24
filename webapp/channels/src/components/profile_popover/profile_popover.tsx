@@ -33,7 +33,6 @@ import ProfilePopoverLastActive from './profile_popover_last_active';
 import ProfilePopoverName from './profile_popover_name';
 import ProfilePopoverOtherUserRow from './profile_popover_other_user_row';
 import ProfilePopoverOverrideDisclaimer from './profile_popover_override_disclaimer';
-import ProfilePopoverPosition from './profile_popover_position';
 import ProfilePopoverSelfUserRow from './profile_popover_self_user_row';
 import ProfilePopoverTimezone from './profile_popover_timezone';
 import ProfilePopoverTitle from './profile_popover_title';
@@ -80,7 +79,7 @@ const ProfilePopover = ({
     const status = useSelector((state: GlobalState) => getStatusForUserId(state, userId) || UserStatuses.OFFLINE);
     const currentUserTimezone = useSelector(getCurrentTimezone);
     const currentUserId = useSelector(getCurrentUserId);
-    const enableCustomProfileAttributes = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true');
+    const enableCustomProfileAttributes = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true' && !fromWebhook);
 
     const [loadingDMChannel, setLoadingDMChannel] = useState<string>();
 
@@ -182,17 +181,7 @@ const ProfilePopover = ({
                     email={user.email}
                     haveOverrideProp={haveOverrideProp}
                     isBot={user.is_bot}
-                    userId={user.id}
                 />
-                <ProfilePopoverPosition
-                    position={user.position}
-                    haveOverrideProp={haveOverrideProp}
-                />
-                {enableCustomProfileAttributes && (
-                    <ProfilePopoverCustomAttributes
-                        userID={userId}
-                    />
-                )}
                 <div className='user-profile-popover-pluggables'>
                     <Pluggable
                         pluggableName={PLUGGABLE_COMPONENT_NAME_PROFILE_POPOVER}
@@ -202,6 +191,13 @@ const ProfilePopover = ({
                         fromWebhook={fromWebhook}
                     />
                 </div>
+
+                {enableCustomProfileAttributes && !user.is_bot && (
+                    <ProfilePopoverCustomAttributes
+                        userID={userId}
+                        hideStatus={hideStatus}
+                    />
+                )}
                 <ProfilePopoverTimezone
                     currentUserTimezone={currentUserTimezone}
                     profileUserTimezone={user.timezone}

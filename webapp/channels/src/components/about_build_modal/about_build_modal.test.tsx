@@ -5,9 +5,11 @@ import React from 'react';
 
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 
+import {Client4} from 'mattermost-redux/client';
+
 import AboutBuildModal from 'components/about_build_modal/about_build_modal';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {AboutLinks} from 'utils/constants';
 
 import AboutBuildModalCloud from './about_build_modal_cloud/about_build_modal_cloud';
@@ -38,10 +40,14 @@ describe('components/AboutBuildModal', () => {
             connected: false,
             serverHostname: '',
         };
+        jest.restoreAllMocks();
     });
 
     beforeEach(() => {
         mockDate(new Date(2017, 6, 1));
+
+        // Mock the license load metric API call for all tests to prevent errors
+        jest.spyOn(Client4, 'getLicenseLoadMetric').mockResolvedValue({load: 0});
 
         config = {
             BuildEnterpriseReady: 'true',
@@ -213,6 +219,54 @@ describe('components/AboutBuildModal', () => {
 
         expect(screen.getByRole('link', {name: 'Terms of Use'})).not.toHaveAttribute('href', config?.TermsOfServiceLink);
         expect(screen.getByRole('link', {name: 'Privacy Policy'})).not.toHaveAttribute('href', config?.PrivacyPolicyLink);
+    });
+
+    test('should show load metric when license is loaded and API returns data', async () => {
+        // Override the global mock for this specific test
+        jest.spyOn(Client4, 'getLicenseLoadMetric').mockResolvedValue({load: 75});
+
+        renderAboutBuildModal({
+            license: {
+                IsLicensed: 'true',
+                Company: 'Mattermost Inc',
+            },
+        });
+
+        await waitFor(() => {
+            expect(screen.getByTestId('aboutModalLoadMetric')).toBeInTheDocument();
+            expect(screen.getByTestId('aboutModalLoadMetric')).toHaveTextContent('Load Metric: 75');
+        });
+    });
+
+    test('should not show load metric when API returns zero', async () => {
+        // This uses the mock set in beforeEach that returns load: 0
+        renderAboutBuildModal();
+
+        // Wait for any async operations to complete
+        await waitFor(() => {
+            expect(Client4.getLicenseLoadMetric).toHaveBeenCalled();
+        });
+
+        expect(screen.queryByTestId('aboutModalLoadMetric')).not.toBeInTheDocument();
+    });
+
+    test('should handle API errors gracefully', async () => {
+        // Temporarily suppress console.error for this test
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        // Mock the API call to throw an error
+        jest.spyOn(Client4, 'getLicenseLoadMetric').mockRejectedValue(new Error('API error'));
+
+        renderAboutBuildModal();
+
+        // Wait for the API call to be made
+        await waitFor(() => {
+            expect(Client4.getLicenseLoadMetric).toHaveBeenCalled();
+        });
+
+        // The error should be logged but not cause the component to crash
+        expect(console.error).toHaveBeenCalled();
+        expect(screen.queryByTestId('aboutModalLoadMetric')).not.toBeInTheDocument();
     });
 
     function renderAboutBuildModal(props = {}) {
