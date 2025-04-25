@@ -4,6 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
+import {act} from 'react-dom/test-utils';
 
 import GetLinkModal from 'components/get_link_modal';
 
@@ -84,16 +85,22 @@ describe('components/GetLinkModal', () => {
 
         // Initial state
         expect(wrapper.find('#linkModalCopyLink').text()).toContain('Copy Link');
+        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-primary')).toBe(true);
         expect(wrapper.find('#linkModalCopyLink').hasClass('btn-success')).toBe(false);
 
         // After copying
         wrapper.find('#linkModalCopyLink').simulate('click');
         expect(wrapper.find('#linkModalCopyLink').text()).toContain('Copied');
+        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-primary')).toBe(true);
         expect(wrapper.find('#linkModalCopyLink').hasClass('btn-success')).toBe(true);
 
         // After timeout
-        jest.advanceTimersByTime(1000);
+        act(() => {
+            jest.advanceTimersByTime(1000);
+        });
+        wrapper.update();
         expect(wrapper.find('#linkModalCopyLink').text()).toContain('Copy Link');
+        expect(wrapper.find('#linkModalCopyLink').hasClass('btn-primary')).toBe(true);
         expect(wrapper.find('#linkModalCopyLink').hasClass('btn-success')).toBe(false);
     });
 
