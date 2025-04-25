@@ -71,7 +71,6 @@ export type CommandArgs = {
 
 export type DialogArgs = {
     channel_id: string;
-    team_id?: string;
 }
 
 export type CommandResponse = {
