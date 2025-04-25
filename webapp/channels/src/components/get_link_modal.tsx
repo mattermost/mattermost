@@ -5,8 +5,6 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import SuccessIcon from 'components/widgets/icons/fa_success_icon';
-
 type Props = {
     show: boolean;
     onHide: () => void;
@@ -62,7 +60,7 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                 }
                 this.resetTimeout = setTimeout(() => {
                     this.setState({copiedLink: false});
-                }, 2000);
+                }, 1000);
             } catch (err) {
                 this.setState({copiedLink: false});
             }
@@ -92,20 +90,20 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                     className={`btn ${this.state.copiedLink ? 'btn-primary btn-success' : 'btn-primary'} pull-left`}
                     onClick={this.copyLink}
                 >
-                    {!this.state.copiedLink ? (
-                        <>
-                            <i className='icon icon-link-variant'/>
-                            <FormattedMessage
-                                id='get_link.copy'
-                                defaultMessage='Copy Link'
-                            />
-                        </>
-                    ) : (
+                    {this.state.copiedLink ? (
                         <>
                             <i className='icon icon-check'/>
                             <FormattedMessage
                                 id='get_link.clipboard'
                                 defaultMessage='Copied'
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <i className='icon icon-link-variant'/>
+                            <FormattedMessage
+                                id='get_link.copy'
+                                defaultMessage='Copy Link'
                             />
                         </>
                     )}
@@ -138,7 +136,7 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                     id='getLinkModalLabel'
                     closeButton={true}
                 >
-                    <h4 className='modal-title'>{this.props.title}</h4>
+                    <h2 className='modal-title'>{this.props.title}</h2>
                 </Modal.Header>
                 <Modal.Body>
                     {helpText}
