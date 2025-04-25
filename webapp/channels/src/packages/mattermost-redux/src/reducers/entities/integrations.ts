@@ -3,7 +3,7 @@
 
 import {combineReducers} from 'redux';
 
-import type {Command, IncomingWebhook, OutgoingWebhook, OAuthApp, OutgoingOAuthConnection} from '@mattermost/types/integrations';
+import type {Command, IncomingWebhook, OutgoingWebhook, OAuthApp, OutgoingOAuthConnection, DialogArgs} from '@mattermost/types/integrations';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
@@ -296,7 +296,7 @@ function appsBotIDs(state: string[] = [], action: MMReduxAction) {
     }
 }
 
-function dialogArguments(state = '', action: MMReduxAction) {
+function dialogArguments(state: DialogArgs | null = null, action: MMReduxAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS:
         return action.data;

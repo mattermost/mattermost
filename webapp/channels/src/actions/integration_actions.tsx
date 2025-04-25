@@ -9,7 +9,7 @@ import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getDialogArguments} from 'mattermost-redux/selectors/entities/integrations';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import type {ActionFuncAsync, GlobalState} from 'types/store';
+import type {ActionFuncAsync} from 'types/store';
 
 const DEFAULT_PAGE_SIZE = 100;
 
@@ -173,13 +173,12 @@ export function loadProfilesForOutgoingOAuthConnections(connections: OutgoingOAu
     };
 }
 
-// webapp/channels/src/actions/integration_actions.tsx
 /**
  * Proxy action for submitting an interactive dialog
  * This enhances the base Redux action by checking for dialog arguments in the state
  * before falling back to the current channel ID
  */
-export function submitInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<SubmitDialogResponse, GlobalState> {
+export function submitInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<SubmitDialogResponse> {
     return async (dispatch, getState) => {
         const state = getState();
 
