@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {MemoryRouter, Route} from 'react-router-dom';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -12,7 +12,7 @@ import BrowserStore from 'stores/browser_store';
 import LoggedIn from 'components/logged_in/logged_in';
 import type {Props} from 'components/logged_in/logged_in';
 
-import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 
 jest.mock('actions/websocket_actions.jsx', () => ({
     initialize: jest.fn(),
@@ -23,12 +23,32 @@ jest.mock('utils/timezone', () => ({
     getBrowserTimezone: jest.fn().mockReturnValue('America/New_York'),
 }));
 
+// Mock the Redirect component since we want to verify it's rendered with specific props
+jest.mock('react-router-dom', () => {
+    const actual = jest.requireActual('react-router-dom');
+    return {
+        ...actual,
+        Redirect: jest.fn(({to}) => (
+            <div
+                data-testid='redirect'
+                data-to={to}
+            />
+        )),
+    };
+});
+
+// Mock the LoadingScreen component
+jest.mock('components/loading_screen', () => {
+    return () => <div data-testid='loading-screen'/>;
+});
+
 BrowserStore.signalLogin = jest.fn();
 
 describe('components/logged_in/LoggedIn', () => {
     const originalFetch = global.fetch;
     const originalSetInterval = window.setInterval;
     const originalClearInterval = window.clearInterval;
+    const originalHasFocus = document.hasFocus;
 
     beforeAll(() => {
         global.fetch = jest.fn();
@@ -40,6 +60,7 @@ describe('components/logged_in/LoggedIn', () => {
         global.fetch = originalFetch;
         window.setInterval = originalSetInterval;
         window.clearInterval = originalClearInterval;
+        document.hasFocus = originalHasFocus;
     });
 
     const children = <span>{'Test'}</span>;
@@ -63,15 +84,24 @@ describe('components/logged_in/LoggedIn', () => {
         jest.clearAllMocks();
     });
 
+    const renderComponent = (props: Props) => {
+        return renderWithContext(
+            <MemoryRouter initialEntries={[props.location?.pathname || '/']}>
+                <Route path='*'>
+                    <LoggedIn {...props}>{children}</LoggedIn>
+                </Route>
+            </MemoryRouter>,
+        );
+    };
+
     it('should render loading state without user', () => {
         const props = {
             ...baseProps,
             currentUser: undefined,
         };
 
-        const wrapper = shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-
-        expect(wrapper).toMatchInlineSnapshot('<LoadingScreen />');
+        renderComponent(props);
+        expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
     });
 
     it('should redirect to mfa when required and not on /mfa/setup', () => {
@@ -80,13 +110,8 @@ describe('components/logged_in/LoggedIn', () => {
             mfaRequired: true,
         };
 
-        const wrapper = shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-
-        expect(wrapper).toMatchInlineSnapshot(`
-            <Redirect
-              to="/mfa/setup"
-            />
-        `);
+        renderComponent(props);
+        expect(screen.getByTestId('redirect')).toHaveAttribute('data-to', '/mfa/setup');
     });
 
     it('should render children when mfa required and already on /mfa/setup', () => {
@@ -99,13 +124,8 @@ describe('components/logged_in/LoggedIn', () => {
             },
         };
 
-        const wrapper = shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-
-        expect(wrapper).toMatchInlineSnapshot(`
-            <span>
-              Test
-            </span>
-        `);
+        renderComponent(props);
+        expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
     it('should render children when mfa is not required and on /mfa/confirm', () => {
@@ -118,13 +138,8 @@ describe('components/logged_in/LoggedIn', () => {
             },
         };
 
-        const wrapper = shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-
-        expect(wrapper).toMatchInlineSnapshot(`
-            <span>
-              Test
-            </span>
-        `);
+        renderComponent(props);
+        expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
     it('should redirect to terms of service when mfa not required and terms of service required but not on /terms_of_service', () => {
@@ -134,13 +149,8 @@ describe('components/logged_in/LoggedIn', () => {
             showTermsOfService: true,
         };
 
-        const wrapper = shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-
-        expect(wrapper).toMatchInlineSnapshot(`
-            <Redirect
-              to="/terms_of_service?redirect_to=%2F"
-            />
-        `);
+        renderComponent(props);
+        expect(screen.getByTestId('redirect')).toHaveAttribute('data-to', '/terms_of_service?redirect_to=%2F');
     });
 
     it('should render children when mfa is not required and terms of service required and on /terms_of_service', () => {
@@ -154,13 +164,8 @@ describe('components/logged_in/LoggedIn', () => {
             },
         };
 
-        const wrapper = shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-
-        expect(wrapper).toMatchInlineSnapshot(`
-            <span>
-              Test
-            </span>
-        `);
+        renderComponent(props);
+        expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
     it('should render children when neither mfa nor terms of service required', () => {
@@ -170,13 +175,8 @@ describe('components/logged_in/LoggedIn', () => {
             showTermsOfService: false,
         };
 
-        const wrapper = shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-
-        expect(wrapper).toMatchInlineSnapshot(`
-            <span>
-              Test
-            </span>
-        `);
+        renderComponent(props);
+        expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
     it('should signal to other tabs when login is successful', () => {
@@ -186,25 +186,22 @@ describe('components/logged_in/LoggedIn', () => {
             showTermsOfService: true,
         };
 
-        shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-
-        expect(BrowserStore.signalLogin).toBeCalledTimes(1);
+        renderComponent(props);
+        expect(BrowserStore.signalLogin).toHaveBeenCalledTimes(1);
     });
 
     it('should set state to unfocused if it starts in the background', () => {
         document.hasFocus = jest.fn(() => false);
-
-        const obj = Object.assign(GlobalActions);
-        obj.emitBrowserFocus = jest.fn();
+        jest.spyOn(GlobalActions, 'emitBrowserFocus');
 
         const props = {
             ...baseProps,
             mfaRequired: false,
-            showTermsOfService: true,
+            showTermsOfService: false,
         };
 
-        shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-        expect(obj.emitBrowserFocus).toBeCalledTimes(1);
+        renderComponent(props);
+        expect(GlobalActions.emitBrowserFocus).toHaveBeenCalledWith(false);
     });
 
     it('should not make viewChannel call on unload', () => {
@@ -214,7 +211,7 @@ describe('components/logged_in/LoggedIn', () => {
             showTermsOfService: false,
         };
 
-        renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+        renderComponent(props);
         expect(screen.getByText('Test')).toBeInTheDocument();
 
         fireEvent(window, new Event('beforeunload'));
@@ -231,7 +228,7 @@ describe('components/logged_in/LoggedIn', () => {
             },
         };
 
-        shallow(<LoggedIn {...props}>{children}</LoggedIn>);
+        renderComponent(props);
 
         // Called once on mount
         expect(autoUpdateTimezone).toHaveBeenCalledTimes(1);
@@ -246,13 +243,16 @@ describe('components/logged_in/LoggedIn', () => {
             ...baseProps,
         };
 
-        const wrapper = shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-        wrapper.unmount();
+        const {unmount} = renderComponent(props);
+
+        act(() => {
+            unmount();
+        });
 
         expect(window.clearInterval).toHaveBeenCalledWith(123);
     });
 
-    it('should update timezone on window focus', () => {
+    it('should update timezone on window focus', async () => {
         const autoUpdateTimezone = jest.fn();
         const props = {
             ...baseProps,
@@ -262,15 +262,19 @@ describe('components/logged_in/LoggedIn', () => {
             },
         };
 
-        shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-        
+        renderComponent(props);
+
         // Clear initial call count
         autoUpdateTimezone.mockClear();
 
         // Simulate focus event
-        fireEvent(window, new Event('focus'));
-        
-        expect(GlobalActions.emitBrowserFocus).toHaveBeenCalledWith(true);
-        expect(autoUpdateTimezone).toHaveBeenCalledWith('America/New_York');
+        act(() => {
+            fireEvent(window, new Event('focus'));
+        });
+
+        await waitFor(() => {
+            expect(GlobalActions.emitBrowserFocus).toHaveBeenCalledWith(true);
+            expect(autoUpdateTimezone).toHaveBeenCalledWith('America/New_York');
+        });
     });
 });
