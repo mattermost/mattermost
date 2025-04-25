@@ -108,19 +108,21 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
         cy.uiOpenProductMenu('About Mattermost');
         verifyEmojiPickerNotOpen();
 
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
         verifyEmojiPickerNotOpen();
 
         cy.uiOpenProfileModal('Profile Settings');
         verifyEmojiPickerNotOpen();
 
-        ['Edit Channel Header', 'Rename Channel'].forEach((modal) => {
-            // # Click on the channel name in the channel header to open the channel menu options
-            cy.get('#channelHeaderTitle').click();
+        // # Open Channel Settings Modal
+        cy.uiOpenChannelMenu('Channel Settings');
+        verifyEmojiPickerNotOpen();
 
-            // # Select the "Edit Channel Header" option from the dropdown
-            cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
-            cy.findByText(modal).click();
+        ['Channel Purpose', 'Channel Header'].forEach((modal) => {
+            // # Open channel menu and click View Info
+            cy.uiOpenChannelMenu('View Info');
+
+            cy.findByText(modal).parent().findAllByRole('button', {name: 'Edit'}).click();
 
             doReactToLastMessageShortcut();
 
@@ -129,6 +131,9 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
 
             // # Close the modal
             pressEscapeKey();
+
+            // # Close channel info
+            cy.uiOpenChannelMenu('Close Info');
         });
     });
 
@@ -166,9 +171,6 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
 
         // # Close the expanded RHS
         cy.findByLabelText('Collapse Sidebar Icon').click();
-
-        // # Open the pinned posts
-        cy.uiGetChannelPinButton().click();
 
         // # Expand RHS
         cy.findByLabelText('Expand Sidebar Icon').click();

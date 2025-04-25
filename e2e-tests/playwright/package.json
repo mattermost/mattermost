@@ -24,15 +24,15 @@
     "@mattermost/client": "file:../../webapp/platform/client",
     "@mattermost/playwright-lib": "*",
     "@mattermost/types": "file:../../webapp/platform/types",
-    "@playwright/test": "1.51.1",
+    "@playwright/test": "1.52.0",
     "cross-env": "7.0.3",
     "dayjs": "1.11.13",
-    "zod": "3.24.2"
+    "zod": "3.24.3"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "8.29.0",
-    "eslint": "9.24.0",
-    "eslint-import-resolver-typescript": "4.3.2",
+    "@typescript-eslint/eslint-plugin": "8.30.1",
+    "eslint": "9.25.0",
+    "eslint-import-resolver-typescript": "4.3.3",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.31.0",
     "prettier": "3.5.3",
