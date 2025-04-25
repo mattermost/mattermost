@@ -244,11 +244,17 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             formatMessage(
                 {
                     id: 'login.session_expired.title',
-                    defaultMessage: '* {siteName} - Session Expired',
+                    defaultMessage: '* Session Expired | {siteName}',
                 },
                 {siteName},
             )
-        ) : siteName;
+        ) : formatMessage(
+            {
+                id: 'login.pageTitle',
+                defaultMessage: 'Log in | {siteName}',
+            },
+            {siteName},
+        );
     }, [sessionExpired, siteName]);
 
     const showSessionExpiredNotificationIfNeeded = useCallback(() => {
