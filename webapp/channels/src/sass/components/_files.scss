@@ -331,6 +331,7 @@
     overflow: hidden;
     width: 320px;
     max-width: 100%;
+    min-width: 100px;
     height: 6.4rem;
     align-items: center;
     border: 1px solid rgba(functions.v(center-channel-color-rgb), 0.16);
@@ -353,6 +354,7 @@
     &:focus-within,
     &.keep-open {
         box-shadow: 0 2px 3px 0 rgba(variables.$black, 0.1), 0 2px 3px 0 rgba(variables.$black, 0.1);
+        overflow: visible;
 
         .file-dropdown-icon {
             display: flex;
@@ -530,8 +532,10 @@
         .post-image__detail {
             width: 100%;
             min-width: 0;
-            height: 100%;
+            height: 36px;
             line-height: normal;
+            overflow: hidden;
+            text-overflow: ellipsis;
 
             .post-image__name {
                 display: block;
@@ -577,6 +581,8 @@
             .post-image__size {
                 margin-left: 4px;
                 opacity: 0.73;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
         }
     }
