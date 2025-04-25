@@ -168,6 +168,9 @@ export type ClientConfig = {
     PostEditTimeLimit: string;
     PrivacyPolicyLink: string;
     ReportAProblemLink: string;
+    ReportAProblemType: string;
+    ReportAProblemMail: string;
+    AllowDownloadLogs: string;
     RequireEmailVerification: string;
     RestrictDirectMessage: string;
     RunJobs: string;
@@ -627,6 +630,9 @@ export type SupportSettings = {
     AboutLink: string;
     HelpLink: string;
     ReportAProblemLink: string;
+    ReportAProblemType: string;
+    ReportAProblemMail: string;
+    AllowDownloadLogs: boolean;
     ForgotPasswordLink: string;
     SupportEmail: string;
     CustomTermsOfServiceEnabled: boolean;
