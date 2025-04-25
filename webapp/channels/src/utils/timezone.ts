@@ -4,8 +4,8 @@
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
 
-export function getBrowserTimezone() {
-    return moment.tz.guess();
+export function getBrowserTimezone(ignoreCache: boolean = false) {
+    return moment.tz.guess(ignoreCache);
 }
 
 export function getBrowserUtcOffset() {

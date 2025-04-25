@@ -19,15 +19,27 @@ jest.mock('actions/websocket_actions.jsx', () => ({
     close: jest.fn(),
 }));
 
+jest.mock('utils/timezone', () => ({
+    getBrowserTimezone: jest.fn().mockReturnValue('America/New_York'),
+}));
+
 BrowserStore.signalLogin = jest.fn();
 
 describe('components/logged_in/LoggedIn', () => {
     const originalFetch = global.fetch;
+    const originalSetInterval = window.setInterval;
+    const originalClearInterval = window.clearInterval;
+
     beforeAll(() => {
         global.fetch = jest.fn();
+        window.setInterval = jest.fn().mockReturnValue(123);
+        window.clearInterval = jest.fn();
     });
+
     afterAll(() => {
         global.fetch = originalFetch;
+        window.setInterval = originalSetInterval;
+        window.clearInterval = originalClearInterval;
     });
 
     const children = <span>{'Test'}</span>;
@@ -46,6 +58,10 @@ describe('components/logged_in/LoggedIn', () => {
             search: '',
         },
     };
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
 
     it('should render loading state without user', () => {
         const props = {
@@ -203,5 +219,58 @@ describe('components/logged_in/LoggedIn', () => {
 
         fireEvent(window, new Event('beforeunload'));
         expect(fetch).not.toHaveBeenCalledWith('/api/v4/channels/members/me/view');
+    });
+
+    it('should setup timezone update interval on mount', () => {
+        const autoUpdateTimezone = jest.fn();
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                autoUpdateTimezone,
+            },
+        };
+
+        shallow(<LoggedIn {...props}>{children}</LoggedIn>);
+
+        // Called once on mount
+        expect(autoUpdateTimezone).toHaveBeenCalledTimes(1);
+        expect(autoUpdateTimezone).toHaveBeenCalledWith('America/New_York');
+
+        // Setup interval to check every 30 minutes
+        expect(window.setInterval).toHaveBeenCalledWith(expect.any(Function), 1800000);
+    });
+
+    it('should clear timezone update interval on unmount', () => {
+        const props = {
+            ...baseProps,
+        };
+
+        const wrapper = shallow(<LoggedIn {...props}>{children}</LoggedIn>);
+        wrapper.unmount();
+
+        expect(window.clearInterval).toHaveBeenCalledWith(123);
+    });
+
+    it('should update timezone on window focus', () => {
+        const autoUpdateTimezone = jest.fn();
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                autoUpdateTimezone,
+            },
+        };
+
+        shallow(<LoggedIn {...props}>{children}</LoggedIn>);
+        
+        // Clear initial call count
+        autoUpdateTimezone.mockClear();
+
+        // Simulate focus event
+        fireEvent(window, new Event('focus'));
+        
+        expect(GlobalActions.emitBrowserFocus).toHaveBeenCalledWith(true);
+        expect(autoUpdateTimezone).toHaveBeenCalledWith('America/New_York');
     });
 });

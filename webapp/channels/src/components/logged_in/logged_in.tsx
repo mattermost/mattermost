@@ -48,6 +48,7 @@ export type Props = {
 
 export default class LoggedIn extends React.PureComponent<Props> {
     private cleanupDesktopListeners?: () => void;
+    private timezoneUpdateInterval?: number;
 
     constructor(props: Props) {
         super(props);
@@ -67,6 +68,11 @@ export default class LoggedIn extends React.PureComponent<Props> {
         WebSocketActions.initialize();
 
         this.updateTimeZone();
+
+        // Set up a timer to periodically update timezone
+        this.timezoneUpdateInterval = window.setInterval(() => {
+            this.updateTimeZone();
+        }, 1000 * 60 * 30); // Check every 30 minutes
 
         // Make sure the websockets close and reset version
         window.addEventListener('beforeunload', this.handleBeforeUnload);
@@ -121,6 +127,10 @@ export default class LoggedIn extends React.PureComponent<Props> {
         window.removeEventListener('focus', this.onFocusListener);
         window.removeEventListener('blur', this.onBlurListener);
 
+        if (this.timezoneUpdateInterval) {
+            clearInterval(this.timezoneUpdateInterval);
+        }
+
         this.cleanupDesktopListeners?.();
     }
 
@@ -151,16 +161,18 @@ export default class LoggedIn extends React.PureComponent<Props> {
     };
 
     private updateTimeZone(): void {
-        this.props.actions.autoUpdateTimezone(getBrowserTimezone());
+        const ignoreCache = true;
+        this.props.actions.autoUpdateTimezone(getBrowserTimezone(ignoreCache));
     }
 
-    private onFocusListener(): void {
+    private onFocusListener = (): void => {
         GlobalActions.emitBrowserFocus(true);
-    }
+        this.updateTimeZone();
+    };
 
-    private onBlurListener(): void {
+    private onBlurListener = (): void => {
         GlobalActions.emitBrowserFocus(false);
-    }
+    };
 
     private updateActiveStatus = (userIsActive: boolean, idleTime: number, manual: boolean) => {
         if (!this.props.currentUser) {
