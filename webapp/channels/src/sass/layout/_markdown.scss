@@ -383,7 +383,7 @@ blockquote {
     position: relative;
     padding: 2px 12px 2px 16px;
     border: none;
-    color: rgba(var(--center-channel-color-rgb), 0.7);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     margin: 6px 0 0 0;
     font-size: inherit;
 
@@ -397,8 +397,8 @@ blockquote {
         font-size: 2em;
         font-weight: 500;
         position: absolute;
-        left: 1px;
-        top: -3px;
+        left: 0px;
+        top: -3.5px;
         color: rgba(var(--center-channel-color-rgb), 0.48);
     }
     
