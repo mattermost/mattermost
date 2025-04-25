@@ -60,11 +60,6 @@ func (scs *Service) SendChannelUnshare(channelID, userId string, rc *model.Remot
 			)
 			return
 		}
-
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Channel unshare notification sent successfully",
-			mlog.String("remote", rc.DisplayName),
-			mlog.String("channel_id", channelID),
-		)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
@@ -82,11 +77,6 @@ func (scs *Service) onReceiveChannelUnshare(msg model.RemoteClusterMsg, rc *mode
 	if err := json.Unmarshal(msg.Payload, &unshare); err != nil {
 		return fmt.Errorf("invalid channel unshare message: %w", err)
 	}
-
-	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Channel unshare notification received",
-		mlog.String("remote", rc.DisplayName),
-		mlog.String("channel_id", unshare.ChannelId),
-	)
 
 	// Check if the channel exists
 	rcvChannel, err := scs.server.GetStore().Channel().Get(unshare.ChannelId, true)
