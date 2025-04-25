@@ -2207,12 +2207,96 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                         },
                         {
+                            type: 'dropdown',
+                            key: 'SupportSettings.ReportAProblemType',
+                            label: defineMessage({id: 'admin.support.reportAProblemTypeTitle', defaultMessage: 'Report a Problem:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemTypeDescription', defaultMessage: 'Select how the ‘Report a Problem’ option behaves. Choosing ‘Custom link’ or ‘Email address’ allows you to provide a URL or address in the next field. ‘Hide link’ removes the ‘Report a Problem’ option from the app.'}),
+                            options: [
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.defaultLink', defaultMessage: 'Default link'}),
+                                    value: 'default',
+                                },
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.email', defaultMessage: 'Email address'}),
+                                    value: 'email',
+                                },
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.customLink', defaultMessage: 'Custom link'}),
+                                    value: 'link',
+                                },
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.hide', defaultMessage: 'Hide link'}),
+                                    value: 'hidden',
+                                },
+                            ],
+                        },
+                        {
+                            type: 'text',
+                            key: 'defaultLicensedReportAProblemLink',
+                            label: defineMessage({id: 'admin.support.reportAProblemDefaultLinkTitle', defaultMessage: 'Default Report a Problem Link:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemDefaultLinkDescription', defaultMessage: 'Users will be directed to this link when they choose ‘Report a Problem’.'}),
+                            default: 'https://mattermost.com/pl/report_a_problem_licensed',
+                            isDisabled: it.all(),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /default/)),
+                                it.not(it.licensed),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'defaultUnlicensedReportAProblemLink',
+                            label: defineMessage({id: 'admin.support.reportAProblemDefaultLinkTitle', defaultMessage: 'Default Report a Problem Link:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemDefaultLinkDescription', defaultMessage: 'Users will be directed to this link when they choose ‘Report a Problem’.'}),
+                            default: 'https://mattermost.com/pl/report_a_problem_unlicensed',
+                            isDisabled: it.all(),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /default/)),
+                                it.licensed,
+                            ),
+                        },
+                        {
                             type: 'text',
                             key: 'SupportSettings.ReportAProblemLink',
-                            label: defineMessage({id: 'admin.support.problemTitle', defaultMessage: 'Report a Problem Link:'}),
-                            help_text: defineMessage({id: 'admin.support.problemDesc', defaultMessage: 'The URL for the Report a Problem link in the Help Menu. If this field is empty, the link is removed from the Help Menu.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
-                            isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                            label: defineMessage({id: 'admin.support.reportAProblemLinkTitle', defaultMessage: 'Custom Report a Problem Link:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemLinkDescription', defaultMessage: 'Enter the URL that users will be directed to when they choose ‘Report a Problem’.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                            ),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /link/)),
+                            ),
+                            validate: (value) => {
+                                if (!value) {
+                                    return new ValidationResult(false, defineMessage({id: 'admin.support.reportAProblemLinkError', defaultMessage: 'Link is required'}));
+                                }
+                                return new ValidationResult(true, '');
+                            },
+                        },
+                        {
+                            type: 'text',
+                            key: 'SupportSettings.ReportAProblemMail',
+                            label: defineMessage({id: 'admin.support.reportAProblemEmailTitle', defaultMessage: 'Report a Problem Email Address:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemEmailDescription', defaultMessage: 'Enter the email address that users will be prompted to send a message to when they choose ‘Report a Problem’.'}),
+                            isDisabled: (it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION))),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /email/)),
+                            ),
+                            validate: (value) => {
+                                if (!value) {
+                                    return new ValidationResult(false, defineMessage({id: 'admin.support.reportAProblemEmailError', defaultMessage: 'Email is required'}));
+                                }
+                                return new ValidationResult(true, '');
+                            },
+                        },
+                        {
+                            type: 'bool',
+                            key: 'SupportSettings.AllowDownloadLogs',
+                            label: defineMessage({id: 'admin.support.problemAllowDownloadTitle', defaultMessage: 'Allow Mobile App Log Downloads:'}),
+                            help_text: defineMessage({id: 'admin.support.problemAllowDownloadDescription', defaultMessage: 'When enabled, users can download app logs for troubleshooting. If a ‘Report a Problem’ link is shown, logs can be downloaded as part of that flow; if the ‘Report a Problem’ link is hidden, logs remain accessible as a separate option.'}),
                         },
                         {
                             type: 'text',
