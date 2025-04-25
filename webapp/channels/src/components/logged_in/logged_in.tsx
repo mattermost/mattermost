@@ -20,6 +20,9 @@ import {getBrowserTimezone} from 'utils/timezone';
 import {isAndroid, isIos} from 'utils/user_agent';
 import {doesCookieContainsMMUserId} from 'utils/utils';
 
+// Timezone update frequency in milliseconds (30 minutes)
+const TIMEZONE_UPDATE_INTERVAL = 30 * 60 * 1000;
+
 declare global {
     interface Window {
         desktop: {
@@ -72,7 +75,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
         // Set up a timer to periodically update timezone
         this.timezoneUpdateInterval = window.setInterval(() => {
             this.updateTimeZone();
-        }, 1000 * 60 * 30); // Check every 30 minutes
+        }, TIMEZONE_UPDATE_INTERVAL);
 
         // Make sure the websockets close and reset version
         window.addEventListener('beforeunload', this.handleBeforeUnload);
@@ -154,22 +157,39 @@ export default class LoggedIn extends React.PureComponent<Props> {
         return this.props.children;
     }
 
+    /**
+     * Handle changes in page visibility - update timezone when page becomes visible
+     * This helps detect timezone changes when the tab was in the background
+     */
     private handleVisibilityChange = (): void => {
         if (!document.hidden) {
             this.updateTimeZone();
         }
     };
 
+    /**
+     * Updates the timezone in the application
+     * Always ignores the momentjs cache to ensure we get the current timezone
+     */
     private updateTimeZone(): void {
         const ignoreCache = true;
         this.props.actions.autoUpdateTimezone(getBrowserTimezone(ignoreCache));
     }
 
+    /**
+     * Handles window focus events
+     * Updates the timezone when the window regains focus, which helps detect timezone changes
+     * that occurred while the window was not focused
+     */
     private onFocusListener = (): void => {
         GlobalActions.emitBrowserFocus(true);
         this.updateTimeZone();
     };
 
+    /**
+     * Handles window blur events
+     * Notifies the application that the window has lost focus
+     */
     private onBlurListener = (): void => {
         GlobalActions.emitBrowserFocus(false);
     };
