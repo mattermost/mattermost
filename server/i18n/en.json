@@ -4479,6 +4479,10 @@
     "translation": "Failed to parse request"
   },
   {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": ""
+  },
+  {
     "id": "app.acknowledgement.delete.app_error",
     "translation": "Unable to delete acknowledgement."
   },
@@ -6545,10 +6549,6 @@
   {
     "id": "app.post.save.thread_membership.app_error",
     "translation": "Unable to save thread membership for post."
-  },
-  {
-    "id": "app.post.save_priority.save_error",
-    "translation": "Unable to save the post with updated metadata"
   },
   {
     "id": "app.post.save_priority.store_error",
