@@ -14,15 +14,13 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {getRandomId} from '../../../utils';
 
 describe('Channel routing', () => {
-    let testTeam: Cypress.Team;
-    let testUser: Cypress.UserProfile;
-    let testChannel: Cypress.Channel;
+    let testTeam: any;
+    let testUser: any;
 
     before(() => {
-        cy.apiInitSetup().then(({team, user, channel}) => {
+        cy.apiInitSetup().then(({team, user}) => {
             testTeam = team;
             testUser = user;
-            testChannel = channel;
 
             // # Login as test user and go to town square
             cy.apiLogin(testUser);
@@ -34,24 +32,25 @@ describe('Channel routing', () => {
         // # Create new test channel
         cy.uiCreateChannel({name: 'Test__Channel'});
 
-        // # Click on channel menu and press rename channel
-        cy.get('#channelHeaderTitle').click();
+        // # Open channel settings modal from channel header dropdown
+        cy.get('#channelHeaderDropdownButton').click();
+        cy.findByText('Channel Settings').click();
 
-        // * Channel Settings menu option should be visible
-        cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
-        cy.findByText('Rename Channel').click();
+        // # Assert if the channel settings modal is present
+        cy.get('.ChannelSettingsModal').should('be.visible');
 
-        // # Assert if the rename modal present
-        cy.get('[aria-labelledby="renameChannelModalLabel"').should('be.visible').within(() => {
-            // # type the two 26 character strings with 2 underscores between them and click on save
-            cy.get('#channel_name').clear().type('uzsfmtmniifsjgesce4u7yznyh__uzsfmtmniifsjgesce5u7yznyh', {force: true}).wait(TIMEOUTS.HALF_SEC);
-            cy.get('#save-button').should('be.visible').click();
+        // # Click on the URL input button to edit the URL
+        cy.get('.url-input-button').should('be.visible').click({force: true});
 
-            // # Assert the error occurred with the appropriate message
-            cy.get('.input__help').should('have.class', 'error');
-            cy.get('.input__help').should('have.text', 'User IDs are not allowed in channel URLs.');
-            cy.findByText('Cancel').click();
-        });
+        // # Type the two 26 character strings with 2 underscores between them
+        cy.get('.url-input-container input').clear().type('uzsfmtmniifsjgesce4u7yznyh__uzsfmtmniifsjgesce5u7yznyh', {force: true}).wait(TIMEOUTS.HALF_SEC);
+
+        // # Assert the error occurred with the appropriate message
+        cy.get('.SaveChangesPanel').should('contain', 'There are errors in the form above');
+        cy.get('.url-input-error').should('contain', 'User IDs are not allowed in channel URLs.');
+
+        // # Close the modal
+        cy.get('.GenericModal .modal-header button[aria-label="Close"]').click();
     });
 
     it('MM-T884_2 Creating new channel validates against two user IDs being used as channel name', () => {
@@ -97,41 +96,33 @@ describe('Channel routing', () => {
     it('MM-T883 Channel URL validation for spaces between characters', () => {
         const firstWord = getRandomId(26);
         const secondWord = getRandomId(26);
+        const channelName = 'test-channel-' + getRandomId(8);
 
-        // # In a test channel, click the "v" to the right of the channel name in the header
-        cy.findByText(`${testChannel.display_name}`).click();
-        cy.get('#channelHeaderTitle').click();
+        // # Create a new test channel and navigate to it
+        cy.apiCreateChannel(testTeam.id, channelName, 'Test Channel for URL Validation').then(({channel}) => {
+            cy.apiAddUserToChannel(channel.id, testUser.id);
+            cy.visit(`/${testTeam.name}/channels/${channel.name}`);
+        });
 
-        // * Channel Settings menu option should be visible
-        cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
-
-        // # Select "Rename Channel"
-        cy.findByText('Rename Channel').click();
+        // # Open channel settings modal from channel header dropdown
+        cy.get('#channelHeaderDropdownButton').click();
+        cy.findByText('Channel Settings').click();
 
         // # Change the channel name to {26 alphanumeric characters}[insert 2 spaces]{26 alphanumeric characters}
         //   i.e. a total of 54 characters separated by 2 spaces
-        cy.get('#display_name').clear().type(`${firstWord}${Cypress._.repeat(' ', 2)}${secondWord}`);
+        cy.get('#input_channel-settings-name').clear().type(`${firstWord}${Cypress._.repeat(' ', 2)}${secondWord}`);
 
-        // # Hit Save
-        cy.findByText('Save').click();
+        // # Save changes
+        cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+
+        // * Verify changes are saved
+        cy.get('.SaveChangesPanel').should('contain', 'Settings saved');
+
+        // # Close the modal
+        cy.get('.GenericModal .modal-header button[aria-label="Close"]').click();
 
         // * The channel name should be updated to the characters you typed with only 1 space between the characters (extra spaces are trimmed)
         cy.get('#channelHeaderTitle').contains(`${firstWord} ${secondWord}`);
-
-        // # In a test channel, click the "v" to the right of the channel name in the header
-        cy.get('#channelHeaderTitle').click();
-
-        // * Channel Settings menu option should be visible
-        cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
-
-        // # Select "Rename Channel"
-        cy.findByText('Rename Channel').click();
-
-        // # Change the URL to {26 alphanumeric characters}--{26 alphanumeric characters}
-        cy.get('#channel_name').clear().type(`${firstWord}${Cypress._.repeat('-', 2)}${secondWord}`);
-
-        // # Hit Save
-        cy.findByText('Save').click();
 
         // * The channel URL should be updated to the characters you typed, separated by 2 dashes
         cy.url().should('equal', `${Cypress.config('baseUrl')}/${testTeam.name}/channels/${firstWord}${Cypress._.repeat('-', 2)}${secondWord}`);
