@@ -52,7 +52,6 @@ func (scs *Service) SendChannelUnshare(channelID, userId string, rc *model.Remot
 	// onSent is called after unshare notification is sent
 	onSent := func(_ model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
 		if err != nil || !resp.IsSuccess() {
-			// Simplified error handling
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error sending channel unshare notification",
 				mlog.String("remote", rc.DisplayName),
 				mlog.String("channel_id", channelID),

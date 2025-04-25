@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
 // ShareChannel marks a local channel as shared. If the channel is already shared this method has
@@ -114,7 +115,7 @@ func (scs *Service) unshareChannelWithOptions(channelID string, notifyRemotes bo
 		opts := model.SharedChannelRemoteFilterOpts{
 			ChannelId: channelID,
 		}
-		remotes, remoteErr := scs.server.GetStore().SharedChannel().GetRemotes(0, 100, opts)
+		remotes, remoteErr := scs.server.GetStore().SharedChannel().GetRemotes(0, 999999, opts)
 		if remoteErr == nil && len(remotes) > 0 {
 			rcs := scs.server.GetRemoteClusterService()
 			if rcs != nil && rcs.Active() {
@@ -331,4 +332,9 @@ func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
 		return model.ErrChannelHomedOnRemote
 	}
 	return nil
+}
+
+// OnReceiveChannelUnshare processes an unshare message from a remote cluster
+func (scs *Service) OnReceiveChannelUnshare(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response) error {
+	return scs.onReceiveChannelUnshare(msg, rc, resp)
 }

@@ -6,6 +6,7 @@ package app
 // TODO: platform: remove this and use from platform package
 import (
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
@@ -26,6 +27,7 @@ type SharedChannelServiceIFace interface {
 	CheckChannelNotShared(channelID string) error
 	CheckChannelIsShared(channelID string) error
 	CheckCanInviteToSharedChannel(channelId string) error
+	OnReceiveChannelUnshare(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response) error
 }
 
 func NewMockSharedChannelService(service SharedChannelServiceIFace) *mockSharedChannelService {

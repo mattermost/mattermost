@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -162,4 +163,106 @@ func TestApp_UnshareChannelMessage(t *testing.T) {
 	assert.Equal(t, "This channel is no longer shared.", systemPost.Message, "message should match unshare message")
 	assert.Equal(t, channel.Id, systemPost.ChannelId, "post should be in the correct channel")
 	assert.Equal(t, th.BasicUser.Id, systemPost.UserId, "post should be from the creator")
+}
+
+func TestApp_RemoteChannelUnshareMessage(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic()
+
+	// Create a shared channel, but set it as remote (not home)
+	channel := th.CreateChannel(th.Context, th.BasicTeam)
+	remoteId := model.NewId()
+	
+	sc := &model.SharedChannel{
+		ChannelId:        channel.Id,
+		TeamId:           channel.TeamId,
+		Home:             false, // This is a remote channel, not home
+		ReadOnly:         false,
+		ShareName:        channel.Name,
+		ShareDisplayName: channel.DisplayName,
+		SharePurpose:     channel.Purpose,
+		ShareHeader:      channel.Header,
+		CreatorId:        th.BasicUser.Id,
+		RemoteId:         remoteId, // Set a remote ID
+	}
+	
+	_, err := th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+	
+	// Verify channel is shared
+	err = th.App.checkChannelIsShared(channel.Id)
+	assert.NoError(t, err, "channel should be shared")
+	
+	// Create a remote cluster for testing
+	rc := &model.RemoteCluster{
+		RemoteId:  remoteId,
+		Name:      "test_remote",
+		SiteURL:   "http://example.com",
+		CreatorId: th.BasicUser.Id,
+	}
+	
+	_, err = th.App.Srv().Store().RemoteCluster().Save(rc)
+	require.NoError(t, err)
+	
+	// Get post count before unshare
+	postsBeforeUnshare, appErr := th.App.GetPostsPage(model.GetPostsOptions{
+		ChannelId: channel.Id,
+		Page:      0,
+		PerPage:   10,
+	})
+	require.Nil(t, appErr)
+	postCountBefore := len(postsBeforeUnshare.Posts)
+	
+	// Simulate an unshare message from remote by directly calling the handler
+	sharedSvc := th.App.Srv().GetSharedChannelSyncService()
+	require.NotNil(t, sharedSvc, "Shared channel service should be available")
+	
+	// Create unshare message payload
+	unshareMsg := struct {
+		ChannelId string `json:"channel_id"`
+		RemoteId  string `json:"remote_id"`
+	}{
+		ChannelId: channel.Id,
+		RemoteId:  remoteId,
+	}
+	
+	jsonData, err := json.Marshal(unshareMsg)
+	require.NoError(t, err)
+	
+	// Create remote cluster message
+	remoteMsg := model.RemoteClusterMsg{
+		Topic:   "sharedchannel_unshare",
+		Payload: jsonData,
+	}
+	
+	// Process the message
+	err = sharedSvc.OnReceiveChannelUnshare(remoteMsg, rc, nil)
+	assert.NoError(t, err, "unshare message processing should not error")
+	
+	// Verify channel is no longer shared
+	err = th.App.checkChannelIsShared(channel.Id)
+	assert.Error(t, err, "channel should no longer be shared")
+	
+	// Verify a system message was posted
+	postsAfterUnshare, appErr := th.App.GetPostsPage(model.GetPostsOptions{
+		ChannelId: channel.Id,
+		Page:      0,
+		PerPage:   10,
+	})
+	require.Nil(t, appErr)
+	
+	// Should be exactly one more post
+	assert.Equal(t, postCountBefore+1, len(postsAfterUnshare.Posts), "there should be one new post")
+	
+	// Find the system post and verify its content
+	var systemPost *model.Post
+	for _, post := range postsAfterUnshare.Posts {
+		if post.Type == model.PostTypeSystemGeneric {
+			systemPost = post
+			break
+		}
+	}
+	
+	assert.NotNil(t, systemPost, "system post should be created")
+	assert.Equal(t, "This channel is no longer shared.", systemPost.Message, "message should match unshare message")
+	assert.Equal(t, channel.Id, systemPost.ChannelId, "post should be in the correct channel")
 }
