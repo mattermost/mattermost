@@ -114,6 +114,7 @@ describe('components/GetLinkModal', () => {
 
         wrapper.unmount();
         jest.advanceTimersByTime(1000);
+
         // If we get here without errors, the timeout was properly cleaned up
     });
 });
