@@ -156,3 +156,15 @@ func processLabel(labels map[string]string, name string, acceptedValues map[stri
 
 	return value
 }
+
+// IsValidPlatform checks if the given platform is valid
+func IsValidPlatform(platform string) bool {
+	_, ok := acceptedPlatforms[platform]
+	return ok
+}
+
+// IsValidAgent checks if the given agent is valid
+func IsValidAgent(agent string) bool {
+	_, ok := acceptedAgents[agent]
+	return ok
+}
