@@ -498,25 +498,18 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             title="Save Outgoing OAuth Connection"
           >
             <GenericModal
-              autoCloseOnCancelButton={true}
-              autoCloseOnConfirmButton={true}
-              bodyPadding={true}
+              ariaLabelledby="confirmModalLabel"
               className="ConfirmModal a11y__modal "
               compassDesign={true}
-              enforceFocus={true}
               id="confirmModal"
-              keyboardEscape={true}
               modalHeaderText="Save Outgoing OAuth Connection"
-              modalLocation="center"
               onExited={[Function]}
               onHide={[Function]}
               show={false}
-              showCloseButton={true}
-              showHeader={true}
             >
               <Modal
                 animation={true}
-                aria-labelledby="genericModalLabel"
+                aria-labelledby="confirmModalLabel"
                 aria-modal="true"
                 autoFocus={true}
                 backdrop={true}
@@ -1101,25 +1094,18 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             title="Save Outgoing OAuth Connection"
           >
             <GenericModal
-              autoCloseOnCancelButton={true}
-              autoCloseOnConfirmButton={true}
-              bodyPadding={true}
+              ariaLabelledby="confirmModalLabel"
               className="ConfirmModal a11y__modal "
               compassDesign={true}
-              enforceFocus={true}
               id="confirmModal"
-              keyboardEscape={true}
               modalHeaderText="Save Outgoing OAuth Connection"
-              modalLocation="center"
               onExited={[Function]}
               onHide={[Function]}
               show={false}
-              showCloseButton={true}
-              showHeader={true}
             >
               <Modal
                 animation={true}
-                aria-labelledby="genericModalLabel"
+                aria-labelledby="confirmModalLabel"
                 aria-modal="true"
                 autoFocus={true}
                 backdrop={true}
