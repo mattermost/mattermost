@@ -1,103 +1,234 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, mount} from 'enzyme';
 import React from 'react';
 
 import ShowMore from 'components/post_view/show_more/show_more';
+
+import {renderWithContext, screen, fireEvent, act} from 'tests/react_testing_utils';
 
 describe('components/post_view/ShowMore', () => {
     const children = (<div><p>{'text'}</p></div>);
     const baseProps = {
         checkOverflow: 0,
         isAttachmentText: false,
-        isRHSExpanded: false,
-        isRHSOpen: false,
         maxHeight: 200,
         text: 'text',
         compactDisplay: false,
     };
 
+    // Helper function to mock the text container's scrollHeight
+    const mockTextContainerScrollHeight = (scrollHeight: number) => {
+        // Mock the scrollHeight property
+        Object.defineProperty(HTMLElement.prototype, 'scrollHeight', {
+            configurable: true,
+            value: scrollHeight,
+        });
+    };
+
+    // Helper function to restore the original scrollHeight behavior
+    const restoreTextContainerScrollHeight = () => {
+        // Delete the mocked scrollHeight property
+        delete (HTMLElement.prototype as any).scrollHeight;
+    };
+
+    afterEach(() => {
+        restoreTextContainerScrollHeight();
+    });
+
     test('should match snapshot', () => {
-        const wrapper = shallow(<ShowMore {...baseProps}>{children}</ShowMore>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ShowMore {...baseProps}>{children}</ShowMore>);
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, PostMessageView on collapsed view', () => {
-        const wrapper = shallow(<ShowMore {...baseProps}/>);
-        wrapper.setState({isOverflow: true, isCollapsed: true});
-        expect(wrapper).toMatchSnapshot();
+    test('should render collapsed view when content overflows', () => {
+        // Setup fake timers
+        jest.useFakeTimers();
+        try {
+            // Mock scrollHeight to be greater than maxHeight to simulate overflow
+            mockTextContainerScrollHeight(baseProps.maxHeight + 50);
+
+            const {container} = renderWithContext(
+                <ShowMore {...baseProps}>
+                    <div style={{height: '300px'}}>{'Tall content that will overflow'}</div>
+                </ShowMore>,
+            );
+
+            // Manually trigger the overflow check
+            act(() => {
+                // Run the requestAnimationFrame callback
+                jest.runOnlyPendingTimers();
+            });
+
+            // Verify the "Show more" button is rendered
+            const showMoreButton = screen.getByText('Show more');
+            expect(showMoreButton).toBeInTheDocument();
+
+            // Verify the collapsed class is applied
+            expect(container.querySelector('.post-message--collapsed')).toBeInTheDocument();
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
-    test('should match snapshot, PostMessageView on expanded view', () => {
-        const wrapper = shallow(<ShowMore {...baseProps}/>);
-        wrapper.setState({isOverflow: true, isCollapsed: false});
-        expect(wrapper).toMatchSnapshot();
+    test('should render expanded view when show more button is clicked', () => {
+        // Setup fake timers
+        jest.useFakeTimers();
+        try {
+            // Mock scrollHeight to be greater than maxHeight to simulate overflow
+            mockTextContainerScrollHeight(baseProps.maxHeight + 50);
+
+            const {container} = renderWithContext(
+                <ShowMore {...baseProps}>
+                    <div style={{height: '300px'}}>{'Tall content that will overflow'}</div>
+                </ShowMore>,
+            );
+
+            // Manually trigger the overflow check
+            act(() => {
+                // Run the requestAnimationFrame callback
+                jest.runOnlyPendingTimers();
+            });
+
+            // Find and click the "Show more" button
+            const showMoreButton = screen.getByText('Show more');
+            fireEvent.click(showMoreButton);
+
+            // Verify the "Show less" button is now rendered
+            const showLessButton = screen.getByText('Show less');
+            expect(showLessButton).toBeInTheDocument();
+
+            // Verify the expanded class is applied
+            expect(container.querySelector('.post-message--expanded')).toBeInTheDocument();
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
-    test('should match snapshot, PostAttachment on collapsed view', () => {
-        const wrapper = shallow(
-            <ShowMore
-                {...baseProps}
-                isAttachmentText={true}
-            />,
-        );
-        wrapper.setState({isOverflow: true, isCollapsed: true});
-        expect(wrapper).toMatchSnapshot();
+    test('should render attachment text in collapsed view', () => {
+        // Setup fake timers
+        jest.useFakeTimers();
+        try {
+            // Mock scrollHeight to be greater than maxHeight to simulate overflow
+            mockTextContainerScrollHeight(baseProps.maxHeight + 50);
+
+            const {container} = renderWithContext(
+                <ShowMore
+                    {...baseProps}
+                    isAttachmentText={true}
+                >
+                    <div style={{height: '300px'}}>{'Attachment text that will overflow'}</div>
+                </ShowMore>,
+            );
+
+            // Manually trigger the overflow check
+            act(() => {
+                // Run the requestAnimationFrame callback
+                jest.runOnlyPendingTimers();
+            });
+
+            // Verify the "Show more" button is rendered
+            const showMoreButton = screen.getByText('Show more');
+            expect(showMoreButton).toBeInTheDocument();
+
+            // Verify the attachment-specific class is applied
+            expect(container.querySelector('.post-attachment-collapse__show-more')).toBeInTheDocument();
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
-    test('should match snapshot, PostAttachment on expanded view', () => {
-        const wrapper = shallow(
-            <ShowMore
-                {...baseProps}
-                isAttachmentText={true}
-            />,
-        );
-        wrapper.setState({isOverflow: true, isCollapsed: false});
-        expect(wrapper).toMatchSnapshot();
+    test('should render with compactDisplay', () => {
+        // Setup fake timers
+        jest.useFakeTimers();
+        try {
+            // Mock scrollHeight to be greater than maxHeight to simulate overflow
+            mockTextContainerScrollHeight(baseProps.maxHeight + 50);
+
+            const {container} = renderWithContext(
+                <ShowMore
+                    {...baseProps}
+                    compactDisplay={true}
+                >
+                    <div style={{height: '300px'}}>{'Content with compact display'}</div>
+                </ShowMore>,
+            );
+
+            // Manually trigger the overflow check
+            act(() => {
+                // Run the requestAnimationFrame callback
+                jest.runOnlyPendingTimers();
+            });
+
+            // Expand the content
+            const showMoreButton = screen.getByText('Show more');
+            fireEvent.click(showMoreButton);
+
+            // Verify the component renders correctly with compact display
+            expect(container.querySelector('.post-message--expanded')).toBeInTheDocument();
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
-    test('should match snapshot, PostMessageView on expanded view with compactDisplay', () => {
-        const wrapper = shallow(
-            <ShowMore
-                {...baseProps}
-                compactDisplay={true}
-            />,
-        );
-        wrapper.setState({isOverflow: true, isCollapsed: false});
-        expect(wrapper).toMatchSnapshot();
-    });
+    test('should check overflow only when text or checkOverflow props change', () => {
+        // Create a spy for requestAnimationFrame
+        const originalRAF = window.requestAnimationFrame;
+        const rafSpy = jest.fn((cb) => {
+            cb(0);
+            return 0;
+        });
+        window.requestAnimationFrame = rafSpy;
 
-    test('should call checkTextOverflow', () => {
-        const wrapper = shallow(<ShowMore {...baseProps}/>);
-        const instance = wrapper.instance() as ShowMore;
-        instance.checkTextOverflow = jest.fn();
+        try {
+            // Initial render with no overflow
+            mockTextContainerScrollHeight(baseProps.maxHeight - 50);
+            const {rerender} = renderWithContext(<ShowMore {...baseProps}>{children}</ShowMore>);
 
-        expect(instance.checkTextOverflow).not.toBeCalled();
+            // Reset the RAF spy count
+            rafSpy.mockClear();
 
-        wrapper.setProps({isRHSExpanded: true});
-        expect(instance.checkTextOverflow).toBeCalledTimes(1);
+            // Change props that SHOULD trigger overflow check
+            rafSpy.mockClear();
+            rerender(
+                <ShowMore
+                    {...baseProps}
+                    text={'text change'}
+                >{children}</ShowMore>,
+            );
+            expect(rafSpy).toHaveBeenCalled();
 
-        wrapper.setProps({isRHSExpanded: false});
-        expect(instance.checkTextOverflow).toBeCalledTimes(2);
+            rafSpy.mockClear();
+            rerender(
+                <ShowMore
+                    {...baseProps}
+                    text={'text another change'}
+                >{children}</ShowMore>,
+            );
+            expect(rafSpy).toHaveBeenCalled();
 
-        wrapper.setProps({isRHSOpen: true});
-        expect(instance.checkTextOverflow).toBeCalledTimes(3);
+            rafSpy.mockClear();
+            rerender(
+                <ShowMore
+                    {...baseProps}
+                    checkOverflow={1}
+                >{children}</ShowMore>,
+            );
+            expect(rafSpy).toHaveBeenCalled();
 
-        wrapper.setProps({isRHSOpen: false});
-        expect(instance.checkTextOverflow).toBeCalledTimes(4);
-
-        wrapper.setProps({text: 'text change'});
-        expect(instance.checkTextOverflow).toBeCalledTimes(5);
-
-        wrapper.setProps({text: 'text another change'});
-        expect(instance.checkTextOverflow).toBeCalledTimes(6);
-
-        wrapper.setProps({checkOverflow: 1});
-        expect(instance.checkTextOverflow).toBeCalledTimes(7);
-
-        wrapper.setProps({checkOverflow: 1});
-        expect(instance.checkTextOverflow).toBeCalledTimes(7);
+            // Same checkOverflow value should not trigger another check
+            rafSpy.mockClear();
+            rerender(
+                <ShowMore
+                    {...baseProps}
+                    checkOverflow={1}
+                >{children}</ShowMore>,
+            );
+            expect(rafSpy).not.toHaveBeenCalled();
+        } finally {
+            // Restore original requestAnimationFrame
+            window.requestAnimationFrame = originalRAF;
+        }
     });
 
     describe('ResizeObserver functionality', () => {
@@ -121,70 +252,76 @@ describe('components/post_view/ShowMore', () => {
 
         test('should set up ResizeObserver on mount', () => {
             // Track observer creation
-            let observerCallback: ResizeObserverCallback | null = null;
-            let observedElement: Element | null = null;
+            const observeMock = jest.fn();
+            const disconnectMock = jest.fn();
 
             // Mock ResizeObserver
-            window.ResizeObserver = jest.fn((callback) => {
-                observerCallback = callback;
-                return {
-                    observe: (element: Element) => {
-                        observedElement = element;
-                    },
-                    disconnect: jest.fn(),
-                } as unknown as ResizeObserver;
-            }) as unknown as typeof ResizeObserver;
+            window.ResizeObserver = jest.fn().mockImplementation(() => ({
+                observe: observeMock,
+                disconnect: disconnectMock,
+            })) as unknown as typeof ResizeObserver;
 
-            // Mount component
-            const wrapper = mount(<ShowMore {...baseProps}>{children}</ShowMore>);
-
-            // Get the text container ref from the DOM
-            const textContainer = wrapper.find('.post-message__text-container').getDOMNode();
+            // Render component
+            renderWithContext(<ShowMore {...baseProps}>{children}</ShowMore>);
 
             // Verify ResizeObserver was created
             expect(window.ResizeObserver).toHaveBeenCalled();
-            expect(observerCallback).not.toBeNull();
 
-            // Verify the text container is being observed
-            expect(observedElement).toBe(textContainer);
+            // Verify observe was called (meaning the text container is being observed)
+            expect(observeMock).toHaveBeenCalled();
         });
 
         test('should check overflow when ResizeObserver detects size changes', () => {
-            // Create a spy for the checkTextOverflow method
-            const checkTextOverflowSpy = jest.fn();
-
-            // Mock ResizeObserver to call our spy when triggered
-            window.ResizeObserver = jest.fn(() => {
+            // Create a mock ResizeObserver that can be triggered manually
+            let resizeCallback: ResizeObserverCallback | undefined;
+            window.ResizeObserver = jest.fn().mockImplementation((callback) => {
+                resizeCallback = callback;
                 return {
                     observe: jest.fn(),
                     disconnect: jest.fn(),
-
-                    // When the callback is triggered, call our spy
-                    simulateResize: () => {
-                        checkTextOverflowSpy();
-                    },
-                } as any;
+                };
             }) as unknown as typeof ResizeObserver;
 
-            // Replace the ShowMore's checkTextOverflow method with our spy
-            const originalMethod = ShowMore.prototype.checkTextOverflow;
-            ShowMore.prototype.checkTextOverflow = checkTextOverflowSpy;
+            // Mock requestAnimationFrame to execute callback immediately
+            const originalRAF = window.requestAnimationFrame;
+            window.requestAnimationFrame = (cb) => {
+                cb(0);
+                return 0;
+            };
 
             try {
-                // Mount component
-                mount(<ShowMore {...baseProps}>{children}</ShowMore>);
+                // Mock scrollHeight to be greater than maxHeight after resize
+                mockTextContainerScrollHeight(baseProps.maxHeight - 50);
 
-                // Get the ResizeObserver instance
-                const resizeObserverInstance = (window.ResizeObserver as jest.Mock).mock.results[0].value;
+                // Render component
+                const {container} = renderWithContext(<ShowMore {...baseProps}>{children}</ShowMore>);
 
-                // Manually trigger the resize
-                resizeObserverInstance.simulateResize();
+                // Verify no overflow initially
+                expect(container.querySelector('.post-message--overflow')).not.toBeInTheDocument();
 
-                // Verify checkTextOverflow was called
-                expect(checkTextOverflowSpy).toHaveBeenCalled();
+                // Now simulate a resize that causes overflow
+                mockTextContainerScrollHeight(baseProps.maxHeight + 50);
+
+                // Trigger the ResizeObserver callback
+                if (resizeCallback && container.querySelector('.post-message__text-container')) {
+                    const mockEntry = [{
+                        target: container.querySelector('.post-message__text-container') as Element,
+                        contentRect: {} as DOMRectReadOnly,
+                        borderBoxSize: [] as ResizeObserverSize[],
+                        contentBoxSize: [] as ResizeObserverSize[],
+                        devicePixelContentBoxSize: [] as ResizeObserverSize[],
+                    }];
+
+                    act(() => {
+                        resizeCallback!(mockEntry, {} as ResizeObserver);
+                    });
+                }
+
+                // Verify overflow is detected
+                expect(container.querySelector('.post-message--overflow')).toBeInTheDocument();
             } finally {
-                // Restore the original method
-                ShowMore.prototype.checkTextOverflow = originalMethod;
+                // Restore original requestAnimationFrame
+                window.requestAnimationFrame = originalRAF;
             }
         });
 
@@ -196,9 +333,9 @@ describe('components/post_view/ShowMore', () => {
                 disconnect: disconnectSpy,
             })) as unknown as typeof ResizeObserver;
 
-            // Mount and unmount component
-            const wrapper = mount(<ShowMore {...baseProps}>{children}</ShowMore>);
-            wrapper.unmount();
+            // Render and unmount component
+            const {unmount} = renderWithContext(<ShowMore {...baseProps}>{children}</ShowMore>);
+            unmount();
 
             // Verify disconnect was called
             expect(disconnectSpy).toHaveBeenCalled();
@@ -208,13 +345,21 @@ describe('components/post_view/ShowMore', () => {
             // Remove ResizeObserver
             delete (window as any).ResizeObserver;
 
-            // Mount component should not throw error
+            // Render component should not throw error
             expect(() => {
-                mount(<ShowMore {...baseProps}>{children}</ShowMore>);
+                renderWithContext(<ShowMore {...baseProps}>{children}</ShowMore>);
             }).not.toThrow();
         });
 
         test('should update isOverflow state when content height changes', () => {
+            // Mock ResizeObserver before rendering
+            window.ResizeObserver = jest.fn().mockImplementation(() => {
+                return {
+                    observe: jest.fn(),
+                    disconnect: jest.fn(),
+                };
+            }) as unknown as typeof ResizeObserver;
+
             // Mock requestAnimationFrame to execute callback immediately
             const originalRAF = window.requestAnimationFrame;
             window.requestAnimationFrame = (cb) => {
@@ -223,57 +368,29 @@ describe('components/post_view/ShowMore', () => {
             };
 
             try {
-                // Create a component with a mocked textContainer
-                const wrapper = shallow(<ShowMore {...baseProps}>{children}</ShowMore>);
-                const instance = wrapper.instance() as ShowMore;
+                // Initial render with no overflow
+                mockTextContainerScrollHeight(baseProps.maxHeight - 50);
+                const {container, rerender} = renderWithContext(<ShowMore {...baseProps}>{children}</ShowMore>);
 
-                // Spy on setState
-                const setStateSpy = jest.spyOn(instance, 'setState');
+                // Verify no overflow initially
+                expect(container.querySelector('.post-message--overflow')).not.toBeInTheDocument();
 
-                // Mock the textContainer ref
-                const mockTextContainer = {
-                    scrollHeight: baseProps.maxHeight - 50, // Initially less than maxHeight
-                };
+                // Now simulate content that overflows
+                mockTextContainerScrollHeight(baseProps.maxHeight + 50);
 
-                // Replace the textContainer ref with our mock
-                Object.defineProperty(instance, 'textContainer', {
-                    get: () => ({
-                        current: mockTextContainer,
-                    }),
-                });
+                // Force a re-render to trigger checkTextOverflow
+                rerender(
+                    <ShowMore
+                        {...baseProps}
+                        checkOverflow={1}
+                    >{children}</ShowMore>,
+                );
 
-                // Call checkTextOverflow directly
-                instance.checkTextOverflow();
-
-                // Force the requestAnimationFrame callback to execute
-                jest.runAllTimers();
-
-                // Verify setState was not called with isOverflow: true (since scrollHeight < maxHeight)
-                expect(wrapper.state('isOverflow')).toBe(false);
-
-                // Now change the scrollHeight to be greater than maxHeight
-                mockTextContainer.scrollHeight = baseProps.maxHeight + 50;
-
-                // Call checkTextOverflow again
-                instance.checkTextOverflow();
-
-                // Force the requestAnimationFrame callback to execute
-                jest.runAllTimers();
-
-                // Verify setState was called with isOverflow: true
-                expect(setStateSpy).toHaveBeenCalledWith({isOverflow: true});
-
-                // Update the wrapper to reflect state changes
-                wrapper.update();
-
-                // Verify state was updated
-                expect(wrapper.state('isOverflow')).toBe(true);
+                // Verify overflow is detected
+                expect(container.querySelector('.post-message--overflow')).toBeInTheDocument();
             } finally {
                 // Restore original requestAnimationFrame
                 window.requestAnimationFrame = originalRAF;
-
-                // Make sure all timers are cleared
-                jest.clearAllTimers();
             }
         });
     });

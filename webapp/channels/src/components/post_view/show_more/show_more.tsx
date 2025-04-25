@@ -13,8 +13,6 @@ type Props = {
     children?: React.ReactNode;
     checkOverflow?: number;
     isAttachmentText?: boolean;
-    isRHSExpanded: boolean;
-    isRHSOpen: boolean;
     text?: string;
     compactDisplay: boolean;
     overflowType?: AttachmentTextOverflowType;
@@ -44,16 +42,16 @@ export default class ShowMore extends React.PureComponent<Props, State> {
 
     componentDidMount() {
         this.setupResizeObserver();
-        this.checkTextOverflow();
 
-        window.addEventListener('resize', this.handleResize);
+        // Initial check for overflow
+        this.checkTextOverflow();
     }
 
     componentDidUpdate(prevProps: Props) {
+        // Only manually check for overflow when text content changes or when explicitly requested
+        // ResizeObserver will handle size changes caused by other factors
         if (
             this.props.text !== prevProps.text ||
-            this.props.isRHSExpanded !== prevProps.isRHSExpanded ||
-            this.props.isRHSOpen !== prevProps.isRHSOpen ||
             this.props.checkOverflow !== prevProps.checkOverflow
         ) {
             this.checkTextOverflow();
@@ -61,7 +59,6 @@ export default class ShowMore extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
-        window.removeEventListener('resize', this.handleResize);
         if (this.overflowRef) {
             window.cancelAnimationFrame(this.overflowRef);
         }
@@ -74,6 +71,8 @@ export default class ShowMore extends React.PureComponent<Props, State> {
             return;
         }
 
+        // Clean up any existing observer before creating a new one
+        // This prevents multiple observers in case setupResizeObserver is called more than once
         this.cleanupResizeObserver();
 
         // Create a new ResizeObserver to watch for size changes in the text container
@@ -120,10 +119,6 @@ export default class ShowMore extends React.PureComponent<Props, State> {
                 });
             }
         });
-    };
-
-    handleResize = () => {
-        this.checkTextOverflow();
     };
 
     render() {
