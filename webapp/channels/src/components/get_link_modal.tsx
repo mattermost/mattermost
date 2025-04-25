@@ -22,6 +22,7 @@ type State = {
 
 export default class GetLinkModal extends React.PureComponent<Props, State> {
     private textAreaRef = React.createRef<HTMLTextAreaElement>();
+    private resetTimeout: NodeJS.Timeout | null = null;
     public static defaultProps = {
         helpText: null,
     };
@@ -33,7 +34,16 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
         };
     }
 
+    public componentWillUnmount(): void {
+        if (this.resetTimeout) {
+            clearTimeout(this.resetTimeout);
+        }
+    }
+
     public onHide = (): void => {
+        if (this.resetTimeout) {
+            clearTimeout(this.resetTimeout);
+        }
         this.setState({copiedLink: false});
         this.props.onHide();
     };
@@ -47,6 +57,12 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
 
             try {
                 this.setState({copiedLink: document.execCommand('copy')});
+                if (this.resetTimeout) {
+                    clearTimeout(this.resetTimeout);
+                }
+                this.resetTimeout = setTimeout(() => {
+                    this.setState({copiedLink: false});
+                }, 2000);
             } catch (err) {
                 this.setState({copiedLink: false});
             }
@@ -73,13 +89,26 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                     id='linkModalCopyLink'
                     data-copy-btn='true'
                     type='button'
-                    className='btn btn-primary pull-left'
+                    className={`btn ${this.state.copiedLink ? 'btn-primary btn-success' : 'btn-primary'} pull-left`}
                     onClick={this.copyLink}
                 >
-                    <FormattedMessage
-                        id='get_link.copy'
-                        defaultMessage='Copy Link'
-                    />
+                    {!this.state.copiedLink ? (
+                        <>
+                            <i className='icon icon-link-variant'/>
+                            <FormattedMessage
+                                id='get_link.copy'
+                                defaultMessage='Copy Link'
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <i className='icon icon-check'/>
+                            <FormattedMessage
+                                id='get_link.clipboard'
+                                defaultMessage='Copied'
+                            />
+                        </>
+                    )}
                 </button>
             );
         }
@@ -95,19 +124,6 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                 readOnly={true}
             />
         );
-
-        let copyLinkConfirm = null;
-        if (this.state.copiedLink) {
-            copyLinkConfirm = (
-                <p className='alert alert-success alert--confirm'>
-                    <SuccessIcon/>
-                    <FormattedMessage
-                        id='get_link.clipboard'
-                        defaultMessage=' Link copied'
-                    />
-                </p>
-            );
-        }
 
         return (
             <Modal
@@ -141,7 +157,6 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                         />
                     </button>
                     {copyLink}
-                    {copyLinkConfirm}
                 </Modal.Footer>
             </Modal>
         );
