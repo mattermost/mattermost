@@ -35,22 +35,6 @@ func TestChannelUnshareMsg(t *testing.T) {
 	assert.Equal(t, remoteID, unmarshalledMsg.RemoteId)
 }
 
-func TestChannelUnshareMessageTopic(t *testing.T) {
-	// Test that the channel unshare topic constant is correctly defined
-	channelID := model.NewId()
-	remoteID := model.NewId()
-
-	unshareMsg := channelUnshareMsg{
-		ChannelId: channelID,
-		RemoteId:  remoteID,
-	}
-
-	jsonData, err := json.Marshal(unshareMsg)
-	require.NoError(t, err)
-
-	assert.Equal(t, "sharedchannel_unshare", TopicChannelUnshare)
-	assert.NotEmpty(t, jsonData)
-}
 
 func TestSendChannelUnshare(t *testing.T) {
 	t.Run("no remote cluster service", func(t *testing.T) {

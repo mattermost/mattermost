@@ -94,3 +94,72 @@ func TestApp_CheckCanInviteToSharedChannel(t *testing.T) {
 		assert.Error(t, err, "invalid channel should not allow invites")
 	})
 }
+
+func TestApp_UnshareChannelMessage(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic()
+
+	// Create a shared channel
+	channel := th.CreateChannel(th.Context, th.BasicTeam)
+	sc := &model.SharedChannel{
+		ChannelId:        channel.Id,
+		TeamId:           channel.TeamId,
+		Home:             true,
+		ReadOnly:         false,
+		ShareName:        channel.Name,
+		ShareDisplayName: channel.DisplayName,
+		SharePurpose:     channel.Purpose,
+		ShareHeader:      channel.Header,
+		CreatorId:        th.BasicUser.Id,
+		RemoteId:         "",
+	}
+	
+	_, err := th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+	
+	// Verify channel is shared
+	err = th.App.checkChannelIsShared(channel.Id)
+	assert.NoError(t, err, "channel should be shared")
+	
+	// Get post count before unshare
+	postsBeforeUnshare, appErr := th.App.GetPostsPage(model.GetPostsOptions{
+		ChannelId: channel.Id,
+		Page:      0,
+		PerPage:   10,
+	})
+	require.Nil(t, appErr)
+	postCountBefore := len(postsBeforeUnshare.Posts)
+	
+	// Unshare the channel
+	success, err := th.App.UnshareChannel(channel.Id)
+	assert.True(t, success, "unshare should be successful")
+	assert.NoError(t, err, "unshare should not error")
+	
+	// Verify channel is no longer shared
+	err = th.App.checkChannelIsShared(channel.Id)
+	assert.Error(t, err, "unshared channel should error when checking if shared")
+	
+	// Verify a system message was posted
+	postsAfterUnshare, appErr := th.App.GetPostsPage(model.GetPostsOptions{
+		ChannelId: channel.Id,
+		Page:      0,
+		PerPage:   10,
+	})
+	require.Nil(t, appErr)
+	
+	// Should be exactly one more post
+	assert.Equal(t, postCountBefore+1, len(postsAfterUnshare.Posts), "there should be one new post")
+	
+	// Find the system post and verify its content
+	var systemPost *model.Post
+	for _, post := range postsAfterUnshare.Posts {
+		if post.Type == model.PostTypeSystemGeneric {
+			systemPost = post
+			break
+		}
+	}
+	
+	assert.NotNil(t, systemPost, "system post should be created")
+	assert.Equal(t, "This channel is no longer shared.", systemPost.Message, "message should match unshare message")
+	assert.Equal(t, channel.Id, systemPost.ChannelId, "post should be in the correct channel")
+	assert.Equal(t, th.BasicUser.Id, systemPost.UserId, "post should be from the creator")
+}
