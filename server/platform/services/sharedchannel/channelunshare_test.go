@@ -35,7 +35,6 @@ func TestChannelUnshareMsg(t *testing.T) {
 	assert.Equal(t, remoteID, unmarshalledMsg.RemoteId)
 }
 
-
 func TestSendChannelUnshare(t *testing.T) {
 	t.Run("no remote cluster service", func(t *testing.T) {
 		// Minimal setup to test when remote cluster service is not available
