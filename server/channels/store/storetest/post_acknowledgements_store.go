@@ -385,7 +385,7 @@ func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss
 
 	t.Run("batch delete with empty list should not error", func(t *testing.T) {
 		// Delete with empty list should not error
-		err = ss.PostAcknowledgement().BatchDelete([]*model.PostAcknowledgement{})
+		err := ss.PostAcknowledgement().BatchDelete([]*model.PostAcknowledgement{})
 		require.NoError(t, err)
 	})
 
@@ -398,7 +398,7 @@ func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss
 		}
 
 		// Delete non-existent acknowledgement should not error
-		err = ss.PostAcknowledgement().BatchDelete([]*model.PostAcknowledgement{nonExistentAck})
+		err := ss.PostAcknowledgement().BatchDelete([]*model.PostAcknowledgement{nonExistentAck})
 		require.NoError(t, err)
 	})
 }

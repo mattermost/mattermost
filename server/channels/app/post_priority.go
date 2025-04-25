@@ -59,7 +59,13 @@ func (a *App) SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post,
 	if currentPost.Metadata == nil {
 		currentPost.Metadata = &model.PostMetadata{}
 	}
-	currentPost.Metadata.Priority = post.Metadata.Priority
+
+	// Create a deep copy of the Priority to avoid race conditions
+	if post.Metadata.Priority != nil {
+		currentPost.Metadata.Priority = post.Metadata.Priority.Clone()
+	} else {
+		currentPost.Metadata.Priority = nil
+	}
 
 	// Create priority object with all necessary fields from currentPost
 	postPriority := &model.PostPriority{

@@ -372,6 +372,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 func (o *Post) Clone() *Post {
 	pCopy := &Post{} //nolint:revive
 	o.ShallowCopy(pCopy)
+
 	return pCopy
 }
 
