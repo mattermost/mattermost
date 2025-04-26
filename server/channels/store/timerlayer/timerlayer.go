@@ -7275,6 +7275,22 @@ func (s *TimerLayerPropertyFieldStore) Get(groupID string, id string) (*model.Pr
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) GetFieldByName(groupID string, name string) (*model.PropertyField, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetFieldByName(groupID, name)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetFieldByName", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
 	start := time.Now()
 
