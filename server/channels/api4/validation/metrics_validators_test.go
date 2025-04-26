@@ -271,31 +271,28 @@ func TestValidatePerformanceReport(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var req *http.Request
-			var err error
 
 			if tt.rawBody != "" {
 				// Use raw body if provided (for malformed JSON test)
+				var err error
 				req, err = http.NewRequest(http.MethodPost, "/api/v4/metrics/performance", bytes.NewBufferString(tt.rawBody))
+				require.NoError(t, err)
 			} else {
 				// Create request body from struct
 				body, err := json.Marshal(tt.request)
 				require.NoError(t, err)
 				req, err = http.NewRequest(http.MethodPost, "/api/v4/metrics/performance", bytes.NewReader(body))
+				require.NoError(t, err)
 			}
-			require.NoError(t, err)
 
 			// Validate request
-			err = ValidatePerformanceReport(req)
+			appErr := ValidatePerformanceReport(req)
 
 			if tt.expectedError {
-				require.Error(t, err, "Expected an error for invalid request")
-				if err != nil {
-					appErr, ok := err.(*model.AppError)
-					require.True(t, ok, "Expected error to be *model.AppError, got %T", err)
-					require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-				}
+				require.NotNil(t, appErr, "Expected an error for invalid request")
+				require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 			} else {
-				require.NoError(t, err, "Expected no error for valid request")
+				require.Nil(t, appErr, "Expected no error for valid request")
 			}
 		})
 	}
