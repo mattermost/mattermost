@@ -20,7 +20,6 @@ func (api *API) InitBrand() {
 }
 
 func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Validate request parameters
 	if err := validation.ValidateBrandImageGet(r); err != nil {
 		c.Err = err
 		return
@@ -44,7 +43,6 @@ func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Validate request parameters and file
 	maxFileSize := *c.App.Config().FileSettings.MaxFileSize
 	if err := validation.ValidateBrandImageUpload(r, maxFileSize); err != nil {
 		c.Err = err
@@ -81,7 +79,6 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Validate request parameters
 	if err := validation.ValidateBrandImageGet(r); err != nil {
 		c.Err = err
 		return
