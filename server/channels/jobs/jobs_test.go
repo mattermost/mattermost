@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -64,6 +65,10 @@ func makeTeamEditionJobServer(t *testing.T) (*JobServer, *storetest.Store) {
 }
 
 func TestClaimJob(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	t.Run("error claiming job", func(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 
@@ -141,6 +146,10 @@ func TestClaimJob(t *testing.T) {
 }
 
 func TestSetJobProgress(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	t.Run("error setting progress", func(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 
@@ -180,6 +189,10 @@ func TestSetJobProgress(t *testing.T) {
 }
 
 func TestSetJobWarning(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	t.Run("error setting status", func(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 
@@ -216,6 +229,10 @@ func TestSetJobWarning(t *testing.T) {
 }
 
 func TestSetJobSuccess(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	t.Run("error setting status", func(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 
@@ -261,6 +278,10 @@ func TestSetJobSuccess(t *testing.T) {
 }
 
 func TestSetJobError(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	t.Run("nil provided job error", func(t *testing.T) {
 		t.Run("error setting status", func(t *testing.T) {
 			jobServer, mockStore, _ := makeJobServer(t)
@@ -448,6 +469,10 @@ func TestSetJobError(t *testing.T) {
 }
 
 func TestSetJobCanceled(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	t.Run("error setting status", func(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 
@@ -493,6 +518,10 @@ func TestSetJobCanceled(t *testing.T) {
 }
 
 func TestUpdateInProgressJobData(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	t.Run("error updating", func(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)
 
@@ -527,6 +556,10 @@ func TestUpdateInProgressJobData(t *testing.T) {
 }
 
 func TestHandleJobPanic(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	t.Run("no panic", func(t *testing.T) {
 		logger := mlog.CreateConsoleTestLogger(t)
 		jobServer, _, _ := makeJobServer(t)
@@ -589,6 +622,10 @@ func TestHandleJobPanic(t *testing.T) {
 }
 
 func TestRequestCancellation(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	ctx := request.TestContext(t)
 	t.Run("error cancelling", func(t *testing.T) {
 		jobServer, mockStore, _ := makeJobServer(t)

@@ -13,7 +13,10 @@ import (
 )
 
 func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
-	var postFromCreateAt = func(at int64) *model.Post {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
+	postFromCreateAt := func(at int64) *model.Post {
 		return &model.Post{CreateAt: at}
 	}
 
@@ -193,6 +196,9 @@ func TestGetTimeSortedPostAccessibleBounds(t *testing.T) {
 }
 
 func TestFilterInaccessiblePosts(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 	err := th.App.Srv().Store().System().Save(&model.System{
@@ -203,7 +209,7 @@ func TestFilterInaccessiblePosts(t *testing.T) {
 
 	defer th.TearDown()
 
-	var postFromCreateAt = func(at int64) *model.Post {
+	postFromCreateAt := func(at int64) *model.Post {
 		return &model.Post{CreateAt: at}
 	}
 
@@ -322,6 +328,9 @@ func TestFilterInaccessiblePosts(t *testing.T) {
 }
 
 func TestGetFilteredAccessiblePosts(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 	err := th.App.Srv().Store().System().Save(&model.System{
@@ -332,7 +341,7 @@ func TestGetFilteredAccessiblePosts(t *testing.T) {
 
 	defer th.TearDown()
 
-	var postFromCreateAt = func(at int64) *model.Post {
+	postFromCreateAt := func(at int64) *model.Post {
 		return &model.Post{CreateAt: at}
 	}
 
@@ -364,6 +373,9 @@ func TestGetFilteredAccessiblePosts(t *testing.T) {
 }
 
 func TestIsInaccessiblePost(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 	err := th.App.Srv().Store().System().Save(&model.System{
@@ -386,6 +398,9 @@ func TestIsInaccessiblePost(t *testing.T) {
 }
 
 func Test_getInaccessibleRange(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	type test struct {
 		label         string
 		bounds        accessibleBounds

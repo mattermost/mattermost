@@ -11,12 +11,17 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync"
 
 	"github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/go-i18n/i18n/bundle"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
+
+// mut is used to protect other global variables from concurrent access.
+// This should only be a concern in parallel tests.
+var mut sync.Mutex
 
 const defaultLocale = "en"
 
@@ -26,11 +31,34 @@ type TranslateFunc func(translationID string, args ...any) string
 // TranslationFuncByLocal is the type of function that takes local as a string and returns the translation function
 type TranslationFuncByLocal func(locale string) TranslateFunc
 
+var (
+	t        TranslateFunc
+	tDefault TranslateFunc
+)
+
 // T is the translate function using the default server language as fallback language
-var T TranslateFunc
+var T TranslateFunc = func(translationID string, args ...any) string {
+	mut.Lock()
+	defer mut.Unlock()
+
+	if t == nil {
+		return translationID
+	}
+
+	return t(translationID, args...)
+}
 
 // TDefault is the translate function using english as fallback language
-var TDefault TranslateFunc
+var TDefault TranslateFunc = func(translationID string, args ...any) string {
+	mut.Lock()
+	defer mut.Unlock()
+
+	if tDefault == nil {
+		return translationID
+	}
+
+	return t(translationID, args...)
+}
 
 var locales = make(map[string]string)
 
@@ -60,20 +88,25 @@ var supportedLocales = []string{
 	"zh-TW",
 	"ja",
 }
-var defaultServerLocale string
-var defaultClientLocale string
+
+var (
+	defaultServerLocale string
+	defaultClientLocale string
+)
 
 // TranslationsPreInit loads translations from filesystem if they are not
 // loaded already and assigns english while loading server config
 func TranslationsPreInit(translationsDir string) error {
-	if T != nil {
+	mut.Lock()
+	defer mut.Unlock()
+	if t != nil {
 		return nil
 	}
 
 	// Set T even if we fail to load the translations. Lots of shutdown handling code will
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
-	T = tfuncWithFallback(defaultLocale)
-	TDefault = tfuncWithFallback(defaultLocale)
+	t = tfuncWithFallback(defaultLocale)
+	tDefault = tfuncWithFallback(defaultLocale)
 
 	return initTranslationsWithDir(translationsDir)
 }
@@ -81,14 +114,16 @@ func TranslationsPreInit(translationsDir string) error {
 // TranslationsPreInitFromFileBytes loads translations from a buffer -- useful if
 // we need to initialize i18n from an embedded i18n file (e.g., from a CLI tool)
 func TranslationsPreInitFromFileBytes(filename string, buf []byte) error {
-	if T != nil {
+	mut.Lock()
+	defer mut.Unlock()
+	if t != nil {
 		return nil
 	}
 
 	// Set T even if we fail to load the translations. Lots of shutdown handling code will
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
-	T = tfuncWithFallback(defaultLocale)
-	TDefault = tfuncWithFallback(defaultLocale)
+	t = tfuncWithFallback(defaultLocale)
+	tDefault = tfuncWithFallback(defaultLocale)
 
 	locale := strings.Split(filename, ".")[0]
 	if !isSupportedLocale(locale) {
@@ -103,11 +138,17 @@ func TranslationsPreInitFromFileBytes(filename string, buf []byte) error {
 // InitTranslations set the defaults configured in the server and initialize
 // the T function using the server default as fallback language
 func InitTranslations(serverLocale, clientLocale string) error {
+	mut.Lock()
 	defaultServerLocale = serverLocale
 	defaultClientLocale = clientLocale
+	mut.Unlock()
 
-	var err error
-	T, err = GetTranslationsBySystemLocale()
+	tfn, err := GetTranslationsBySystemLocale()
+
+	mut.Lock()
+	t = tfn
+	mut.Unlock()
+
 	return err
 }
 
@@ -136,7 +177,7 @@ func initTranslationsWithDir(dir string) error {
 // GetTranslationFuncForDir loads translations from the filesystem into a new instance of the bundle.
 // It returns a function to access loaded translations.
 func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
-	var availableLocals = make(map[string]string)
+	availableLocals := make(map[string]string)
 	bundle := bundle.New()
 	files, _ := os.ReadDir(dir)
 	for _, f := range files {
@@ -174,6 +215,8 @@ func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
 }
 
 func GetTranslationsBySystemLocale() (TranslateFunc, error) {
+	mut.Lock()
+	defer mut.Unlock()
 	locale := defaultServerLocale
 	if _, ok := locales[locale]; !ok {
 		mlog.Warn("Failed to load system translations for selected locale, attempting to fall back to default", mlog.String("locale", locale), mlog.String("default_locale", defaultLocale))
@@ -200,6 +243,8 @@ func GetTranslationsBySystemLocale() (TranslateFunc, error) {
 
 // GetUserTranslations get the translation function for an specific locale
 func GetUserTranslations(locale string) TranslateFunc {
+	mut.Lock()
+	defer mut.Unlock()
 	if _, ok := locales[locale]; !ok {
 		locale = defaultLocale
 	}
@@ -211,6 +256,8 @@ func GetUserTranslations(locale string) TranslateFunc {
 // GetTranslationsAndLocaleFromRequest return the translation function and the
 // locale based on a request headers
 func GetTranslationsAndLocaleFromRequest(r *http.Request) (TranslateFunc, string) {
+	mut.Lock()
+	defer mut.Unlock()
 	// This is for checking against locales like pt_BR or zn_CN
 	headerLocaleFull := strings.Split(r.Header.Get("Accept-Language"), ",")[0]
 	// This is for checking against locales like en, es
@@ -234,6 +281,8 @@ func GetTranslationsAndLocaleFromRequest(r *http.Request) (TranslateFunc, string
 // GetSupportedLocales return a map of locale code and the file path with the
 // translations
 func GetSupportedLocales() map[string]string {
+	mut.Lock()
+	defer mut.Unlock()
 	return locales
 }
 

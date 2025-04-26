@@ -58,6 +58,9 @@ func registerDummyWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *
 }
 
 func TestHubStopWithMultipleConnections(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -81,6 +84,9 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 // TestHubStopRaceCondition verifies that attempts to use the hub after it has shutdown does not
 // block the caller indefinitely.
 func TestHubStopRaceCondition(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.Service.Store.Close()
 	// We do not call TearDown because th.TearDown shuts down the hub again. And hub close is not idempotent.
@@ -127,6 +133,9 @@ func TestHubStopRaceCondition(t *testing.T) {
 }
 
 func TestHubSessionRevokeRace(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -178,6 +187,9 @@ func TestHubSessionRevokeRace(t *testing.T) {
 }
 
 func TestHubConnIndex(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -420,6 +432,9 @@ func TestHubConnIndex(t *testing.T) {
 }
 
 func TestHubConnIndexIncorrectRemoval(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -467,6 +482,9 @@ func TestHubConnIndexIncorrectRemoval(t *testing.T) {
 }
 
 func TestHubConnIndexInactive(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -527,6 +545,9 @@ func TestHubConnIndexInactive(t *testing.T) {
 }
 
 func TestReliableWebSocketSend(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	testCluster := &testlib.FakeClusterInterface{}
 
 	th := SetupWithCluster(t, testCluster)
@@ -562,6 +583,9 @@ func TestReliableWebSocketSend(t *testing.T) {
 }
 
 func TestHubIsRegistered(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -597,6 +621,9 @@ func TestHubIsRegistered(t *testing.T) {
 }
 
 func TestHubWebConnCount(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -672,6 +699,9 @@ func BenchmarkHubConnIndex(b *testing.B) {
 }
 
 func TestHubConnIndexRemoveMemLeak(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -722,6 +752,9 @@ func BenchmarkGetHubForUserId(b *testing.B) {
 }
 
 func TestClusterBroadcast(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	testCluster := &testlib.FakeClusterInterface{}
 
 	th := SetupWithCluster(t, testCluster)
@@ -750,6 +783,9 @@ func TestClusterBroadcast(t *testing.T) {
 }
 
 func TestClusterBroadcastHooks(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("should send broadcast hook information across cluster", func(t *testing.T) {
 		testCluster := &testlib.FakeClusterInterface{}
 
