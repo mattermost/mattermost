@@ -95,10 +95,10 @@ describe('Team Permissions', () => {
         cy.uiOpenTeamMenu().wait(TIMEOUTS.HALF_SEC);
 
         // * Verify `Invite People` menu item is not present
-        cy.get('#invitePeople').should('not.exist');
+        cy.get("#sidebarTeamMenu li:contains('Invite people')").should('not.exist');
 
         // # Click `View Members` menu item
-        cy.get('#viewMembers').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get("#sidebarTeamMenu li:contains('View members')").should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // * Verify team members modal opens
         cy.get('#teamMembersModal').should('be.visible');
@@ -202,22 +202,33 @@ describe('Team Permissions', () => {
             // # Visit the `Off-Topic` channel in the new team
             cy.visit(`/${team.name}/channels/off-topic`);
 
-            // # Open channel header menu
-            cy.uiOpenChannelMenu().wait(TIMEOUTS.HALF_SEC);
+            // # Open channel header dropdown
+            cy.get('#channelHeaderDropdownButton').click();
 
-            // * Verify dropdown opens
-            cy.get('#channelHeaderDropdownMenu').should('be.visible');
-            cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
+            // * Verify Channel Settings option is visible
+            cy.findByText('Channel Settings').should('be.visible');
 
-            // * Verify `Edit Channel Header` menu item is visible
-            cy.get('#channelEditHeader').should('be.visible');
+            // # Click on Channel Settings
+            cy.findByText('Channel Settings').click();
 
-            // * Verify `Edit Channel Purpose` menu item is visible
-            cy.get('#channelEditPurpose').should('be.visible');
+            // * Verify Channel Settings modal opens
+            cy.get('.ChannelSettingsModal').should('be.visible');
 
-            // * Verify `Rename Channel` menu item is visible
-            cy.get('#channelRename').should('be.visible');
+            // * Verify user can edit channel name
+            cy.get('#input_channel-settings-name').should('be.visible').and('not.be.disabled');
+
+            // * Verify user can edit channel URL
+            cy.get('.url-input-button').should('be.visible').and('not.be.disabled');
+
+            // * Verify user can edit channel purpose
+            cy.get('#channel_settings_purpose_textbox').should('be.visible').and('not.be.disabled');
+
+            // * Verify user can edit channel header
+            cy.get('#channel_settings_header_textbox').should('be.visible').and('not.be.disabled');
+
+            // # Close the modal
+            cy.get('.GenericModal .modal-header button[aria-label="Close"]').click();
+            cy.get('.ChannelSettingsModal').should('not.exist');
         });
     });
 });
-

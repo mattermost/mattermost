@@ -99,6 +99,7 @@ type TrackSKU string
 const (
 	TrackProfessionalSKU TrackSKU = "professional"
 	TrackEnterpriseSKU   TrackSKU = "enterprise"
+	TrackPremiumSKU      TrackSKU = "premium"
 )
 
 type TrackFeature string
@@ -526,6 +527,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_channel_viewed_messages":                          *cfg.ServiceSettings.EnableChannelViewedMessages,
 		"time_between_user_typing_updates_milliseconds":           *cfg.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds,
 		"cluster_log_timeout_milliseconds":                        *cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
+		"enable_cross_team_search":                                *cfg.ServiceSettings.EnableCrossTeamSearch,
 		"enable_post_search":                                      *cfg.ServiceSettings.EnablePostSearch,
 		"minimum_hashtag_length":                                  *cfg.ServiceSettings.MinimumHashtagLength,
 		"enable_user_statuses":                                    *cfg.ServiceSettings.EnableUserStatuses,
@@ -744,6 +746,8 @@ func (ts *TelemetryService) trackConfig() {
 		"custom_terms_of_service_enabled":              *cfg.SupportSettings.CustomTermsOfServiceEnabled,
 		"custom_terms_of_service_re_acceptance_period": *cfg.SupportSettings.CustomTermsOfServiceReAcceptancePeriod,
 		"enable_ask_community_link":                    *cfg.SupportSettings.EnableAskCommunityLink,
+		"report_a_problem_type":                        *cfg.SupportSettings.ReportAProblemType,
+		"allow_download_logs":                          *cfg.SupportSettings.AllowDownloadLogs,
 	}
 
 	configs[TrackConfigLDAP] = map[string]any{
