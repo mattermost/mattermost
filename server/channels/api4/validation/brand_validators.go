@@ -19,7 +19,6 @@ type BrandImageGetRequest struct {
 type BrandImageUploadRequest struct {
 	ClientVersion string `validate:"required"`
 	ClientHash    string `validate:"required"`
-	MaxFileSize   int64  `validate:"required"`
 }
 
 // ValidateBrandImageGet validates the request parameters for getting brand image
@@ -42,7 +41,6 @@ func ValidateBrandImageUpload(r *http.Request, maxFileSize int64) *model.AppErro
 	req := &BrandImageUploadRequest{
 		ClientVersion: r.URL.Query().Get("client_version"),
 		ClientHash:    r.URL.Query().Get("client_hash"),
-		MaxFileSize:   maxFileSize,
 	}
 
 	if err := validate.Struct(req); err != nil {
