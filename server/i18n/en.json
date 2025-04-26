@@ -2377,6 +2377,10 @@
     "translation": "Failed to marshal."
   },
   {
+    "id": "api.metrics.submit_performance_report.invalid_body.app_error",
+    "translation": "Invalid performance report"
+  }
+  {
     "id": "api.migrate_to_saml.error",
     "translation": "Unable to migrate SAML."
   },
