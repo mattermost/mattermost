@@ -57,7 +57,6 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	// Get the image file from the multipart form
 	m := r.MultipartForm
 	imageArray := m.File["image"]
 
