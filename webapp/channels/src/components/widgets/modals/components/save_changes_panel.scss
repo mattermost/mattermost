@@ -1,4 +1,4 @@
-.mm-save-changes-panel {
+.SaveChangesPanel {
     position: fixed;
     z-index: 1000;
     display: flex;
@@ -56,6 +56,7 @@
         }
 
         svg {
+            margin-right: 10px;
             color: rgba(var(--center-channel-color-rgb), 0.56);
         }
 
@@ -123,6 +124,11 @@
         &.error {
             background-color: var(--button-color);
             color: var(--denim-button-bg);
+        }
+
+        &:disabled {
+            background: var(--center-channel-bg);
+            opacity: 0.32; 
         }
     }
 }

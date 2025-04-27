@@ -8908,10 +8908,6 @@
     "translation": "Ocurrió un error al actualizar la conexión OAuth saliente."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "intentando modificar un campo que no existe"
-  },
-  {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
     "translation": "No se pudo actualizar el orden de clasificación del marcador del canal."
   },

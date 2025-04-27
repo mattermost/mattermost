@@ -98,6 +98,14 @@ export const getAppBarPluginComponents = createSelector(
     },
 );
 
+export const getMainMenuPluginComponents = createSelector(
+    'getMainMenuPluginComponents',
+    (state: GlobalState) => state.plugins.components.MainMenu,
+    (components = []) => {
+        return components;
+    },
+);
+
 export const shouldShowAppBar = createSelector(
     'shouldShowAppBar',
     appBarEnabled,

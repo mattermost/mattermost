@@ -25,6 +25,7 @@ func TestChannelMemberHistoryStore(t *testing.T, rctx request.CTX, ss store.Stor
 	t.Run("TestPermanentDeleteBatch", func(t *testing.T) { testPermanentDeleteBatch(t, rctx, ss) })
 	t.Run("TestPermanentDeleteBatchForRetentionPolicies", func(t *testing.T) { testPermanentDeleteBatchForRetentionPolicies(t, rctx, ss) })
 	t.Run("TestGetChannelsLeftSince", func(t *testing.T) { testGetChannelsLeftSince(t, rctx, ss) })
+	t.Run("TestDeleteOrphanedRows", func(t *testing.T) { testDeleteOrphanedRows(t, rctx, ss) })
 }
 
 func testLogJoinEvent(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -354,7 +355,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, rctx request.CTX, ss st
 	user = *userPtr
 
 	// clear any existing ChannelMemberHistory data that might interfere with our test
-	var tableDataTruncated = false
+	tableDataTruncated := false
 	for !tableDataTruncated {
 		var count int64
 		count, _, err = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
@@ -599,4 +600,83 @@ func testGetChannelsLeftSince(t *testing.T, rctx request.CTX, ss store.Store) {
 	ids, err = ss.ChannelMemberHistory().GetChannelsLeftSince(userID, joinTime+300)
 	require.NoError(t, err)
 	assert.Equal(t, []string{channel.Id}, ids)
+}
+
+func testDeleteOrphanedRows(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Create a channel
+	channelToKeep := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Channel to keep",
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	channelToKeep, err := ss.Channel().Save(rctx, channelToKeep, -1)
+	require.NoError(t, err)
+
+	// Create a user
+	user := model.User{
+		Email:    MakeEmail(),
+		Nickname: model.NewId(),
+		Username: model.NewUsername(),
+	}
+	userPtr, err := ss.User().Save(rctx, &user)
+	require.NoError(t, err)
+	user = *userPtr
+
+	// Add user to channel (via channel member history)
+	joinTime := model.GetMillis()
+	err = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channelToKeep.Id, joinTime)
+	require.NoError(t, err)
+
+	// Create multiple orphaned channel member history entries
+	// We'll use an ID that doesn't exist in the Channels table
+	nonExistentChannelId := model.NewId()
+
+	// Create 3 orphaned entries
+	err = ss.ChannelMemberHistory().LogJoinEvent(user.Id, nonExistentChannelId, joinTime)
+	require.NoError(t, err)
+
+	err = ss.ChannelMemberHistory().LogJoinEvent(model.NewId(), nonExistentChannelId, joinTime+100)
+	require.NoError(t, err)
+
+	err = ss.ChannelMemberHistory().LogJoinEvent(model.NewId(), nonExistentChannelId, joinTime+200)
+	require.NoError(t, err)
+
+	// Verify the data is setup correctly
+	channelIds, err := ss.ChannelMemberHistory().GetChannelsWithActivityDuring(joinTime-100, joinTime+300)
+	require.NoError(t, err)
+	assert.Contains(t, channelIds, channelToKeep.Id, "Channel to keep should still have history")
+	assert.Contains(t, channelIds, nonExistentChannelId, "Orphaned channel should still have history")
+
+	// Test with limit of 0 (should delete nothing)
+	deletedCount, err := ss.ChannelMemberHistory().DeleteOrphanedRows(0)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), deletedCount, "Should delete nothing with limit of 0")
+
+	// Verify the data is unchanged
+	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(joinTime-100, joinTime+300)
+	require.NoError(t, err)
+	assert.Contains(t, channelIds, channelToKeep.Id, "Channel to keep should still have history")
+	assert.Contains(t, channelIds, nonExistentChannelId, "Orphaned channel should still have history")
+
+	// Test limit parameter by deleting only 2 of the 3 orphaned rows
+	deletedCount, err = ss.ChannelMemberHistory().DeleteOrphanedRows(2)
+	require.NoError(t, err)
+	require.Equal(t, int64(2), deletedCount, "Should have deleted exactly 2 orphaned rows due to limit")
+
+	// Delete the remaining orphaned row
+	deletedCount, err = ss.ChannelMemberHistory().DeleteOrphanedRows(100)
+	require.NoError(t, err)
+	require.Equal(t, int64(1), deletedCount, "Should have deleted the remaining orphaned row")
+
+	// Verify the orphaned entries are removed and valid entries remain
+	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(joinTime-100, joinTime+300)
+	require.NoError(t, err)
+	assert.Contains(t, channelIds, channelToKeep.Id, "Channel to keep should still have history")
+	assert.NotContains(t, channelIds, nonExistentChannelId, "Orphaned channel should not have history")
+
+	// Calling it again should delete nothing since orphans are gone
+	deletedCount, err = ss.ChannelMemberHistory().DeleteOrphanedRows(100)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), deletedCount, "No rows should be deleted when no orphans exist")
 }

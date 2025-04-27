@@ -28,7 +28,7 @@ test('MM-T5139: Message Priority - Standard message priority and system setting'
     await channelsPage.postMessage(testMessage);
 
     // # Verify message posts without priority label
-    const lastPost = await channelsPage.centerView.getLastPost();
+    const lastPost = await channelsPage.getLastPost();
     await lastPost.toBeVisible();
     await lastPost.toContainText(testMessage);
     await expect(lastPost.container.locator('.post-priority')).not.toBeVisible();

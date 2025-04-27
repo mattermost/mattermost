@@ -30,7 +30,7 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    const lastPostByAdmin = await channelsPage.centerView.getLastPost();
+    const lastPostByAdmin = await channelsPage.getLastPost();
     await lastPostByAdmin.toBeVisible();
 
     // # Open the last post sent by admin in RHS
@@ -41,7 +41,7 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
     // # Post a message as a user
     const sidebarRight = channelsPage.sidebarRight;
     await sidebarRight.toBeVisible();
-    await sidebarRight.postCreate.postMessage('Replying to a thread');
+    await sidebarRight.postMessage('Replying to a thread');
 
     // # Write a message in the reply thread but don't send it now so that it becomes a draft
     const draftMessageByUser = 'I should be in drafts by User';
@@ -86,10 +86,10 @@ test('MM-T5435_2 Global Drafts link in sidebar should be hidden when user delete
     await channelsPage.toBeVisible();
 
     // # Post a message in the channel
-    await channelsPage.centerView.postCreate.postMessage('Message which will be deleted');
+    await channelsPage.postMessage('Message which will be deleted');
 
     // # Start a thread by clicking on reply menuitem from post options menu
-    const post = await channelsPage.centerView.getLastPost();
+    const post = await channelsPage.getLastPost();
     await post.hover();
     await post.postMenu.toBeVisible();
     await post.postMenu.reply();
@@ -98,7 +98,7 @@ test('MM-T5435_2 Global Drafts link in sidebar should be hidden when user delete
     await sidebarRight.toBeVisible();
 
     // # Post a message in the thread
-    await sidebarRight.postCreate.postMessage('Replying to a thread');
+    await sidebarRight.postMessage('Replying to a thread');
 
     // # Write a message in the reply thread but don't send it
     await sidebarRight.postCreate.writeMessage('I should be in drafts');

@@ -10400,10 +10400,6 @@
     "translation": "Kunde inte uppdatera sorteringsordningen av bokmärken i kanalen."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "försöker korrigera ett fält som inte finns"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Det går inte att hämta bokmärken för en arkiverad kanal"
   },
@@ -10472,10 +10468,6 @@
     "translation": "Du har inte behörighet att uppdatera denna resurs."
   },
   {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Det går inte att konvertera egenskapsfältet till ett attributfält för anpassad profil"
-  },
-  {
     "id": "model.access_policy.is_valid.id.app_error",
     "translation": "Ogiltigt policy-id."
   },
@@ -10542,5 +10534,13 @@
   {
     "id": "app.drafts.permanent_delete_by_user.app_error",
     "translation": "Kunde inte radera användarens utkast."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix kan inte vara tom om GlobalSearchPrefix har ett innehåll."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} ska vara ett prefix från IndexPrefix {{.IndexPrefix}}."
   }
 ]

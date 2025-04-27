@@ -10396,10 +10396,6 @@
     "translation": "Nie udało się zaktualizować kolejności sortowania zakładki kanału."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "próba załatania pola, które nie istnieje"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Nie można pobrać zakładek dla zarchiwizowanego kanału"
   },
@@ -10504,10 +10500,6 @@
     "translation": "Nie można przekonwertować pola właściwości na niestandardowe pole atrybutu profilu"
   },
   {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Nie można przekonwertować pola właściwości na niestandardowe pole atrybutu profilu"
-  },
-  {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
     "translation": "Nieprawidłowe atrybuty wartości właściwości: {{.AttributeName}} ({{.Reason}})."
   },
@@ -10546,5 +10538,13 @@
   {
     "id": "model.access_policy.is_valid.rules_imports.app_error",
     "translation": "Polityka musi importować lub definiować reguły."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "IndexPrefix nie może być pusty, jeśli ustawiony jest GlobalSearchPrefix."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} powinien być prefiksem IndexPrefix {{.IndexPrefix}}."
   }
 ]

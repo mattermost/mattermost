@@ -80,6 +80,7 @@ export type Props = {
 
 type State = {
     pickerExtended: boolean;
+    pickerMounted: boolean;
 }
 
 export class EmojiPickerSkin extends React.PureComponent<Props, State> {
@@ -88,6 +89,7 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
 
         this.state = {
             pickerExtended: false,
+            pickerMounted: false,
         };
     }
 
@@ -109,7 +111,16 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
     };
 
     showSkinTonePicker = () => {
-        this.setState({pickerExtended: true});
+        this.setState({
+            pickerExtended: true,
+            pickerMounted: true,
+        });
+    };
+
+    handleSkinToneHidden = () => {
+        this.setState({
+            pickerMounted: false,
+        });
     };
 
     skinTonePickerButton() {
@@ -194,16 +205,17 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
         return (
             <CSSTransition
                 in={this.state.pickerExtended}
+                onExited={this.handleSkinToneHidden}
                 classNames='skin-tones-animation'
                 timeout={200}
             >
-                <div className={classNames('skin-tones', {'skin-tones--active': this.state.pickerExtended})}>
+                <div className={classNames('skin-tones', {'skin-tones--active': this.state.pickerMounted})}>
                     <div
-                        className={classNames('skin-tones__content', {'skin-tones__content__single': !this.state.pickerExtended}, {'skin-tones__close': this.state.pickerExtended})}
+                        className={classNames('skin-tones__content', {'skin-tones__content__single': !this.state.pickerMounted}, {'skin-tones__close': this.state.pickerMounted})}
                         aria-orientation='horizontal'
                     >
                         {this.skinTonePickerButton()}
-                        {this.state.pickerExtended &&
+                        {this.state.pickerMounted &&
                         <>
                             <div className='skin-tones__close-text'>
                                 <FormattedMessage

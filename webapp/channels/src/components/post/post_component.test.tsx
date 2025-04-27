@@ -3,7 +3,10 @@
 
 import React from 'react';
 
+import {PostPriority} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {Posts} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
@@ -457,6 +460,94 @@ describe('PostComponent', () => {
 
             // additionally, files should not be visible outside the advanced text editor
             expect(screen.queryByTestId('fileAttachmentList')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('priority labels', () => {
+        test('should show priority label for non-deleted post with priority metadata', () => {
+            const post = TestHelper.getPostMock({
+                metadata: {
+                    priority: {
+                        priority: PostPriority.URGENT,
+                    },
+                },
+            });
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.getByTestId('post-priority-label')).toBeInTheDocument();
+        });
+
+        test('should show priority label for non-deleted post with important priority metadata', () => {
+            const post = TestHelper.getPostMock({
+                metadata: {
+                    priority: {
+                        priority: PostPriority.IMPORTANT,
+                    },
+                },
+            });
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.getByTestId('post-priority-label')).toBeInTheDocument();
+        });
+
+        test('should not show priority label for deleted post with priority metadata', () => {
+            const post = TestHelper.getPostMock({
+                state: Posts.POST_DELETED as 'DELETED',
+                metadata: {
+                    priority: {
+                        priority: PostPriority.URGENT,
+                    },
+                },
+            });
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
+        });
+
+        test('should not show priority label for deleted post with important priority metadata', () => {
+            const post = TestHelper.getPostMock({
+                state: Posts.POST_DELETED as 'DELETED',
+                metadata: {
+                    priority: {
+                        priority: PostPriority.IMPORTANT,
+                    },
+                },
+            });
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
+        });
+
+        test('should not show priority label for post without priority metadata', () => {
+            const post = TestHelper.getPostMock();
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
         });
     });
 });

@@ -1209,7 +1209,7 @@ func (s *SqlGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSea
 
 	if opts.PageOpts != nil {
 		offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
-		builder = builder.OrderBy("ug.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
+		builder = builder.OrderBy("UserGroups.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
 	}
 
 	groups := groupsWithSchemeAdmin{}
@@ -1279,7 +1279,7 @@ func (s *SqlGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.Chan
 
 func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t selectType, syncableID string, opts model.GroupSearchOpts) sq.SelectBuilder {
 	selectStrs := map[selectType]string{
-		selectGroups:      "ug.*, gs.SchemeAdmin AS SyncableSchemeAdmin",
+		selectGroups:      "UserGroups.*, gs.SchemeAdmin AS SyncableSchemeAdmin",
 		selectCountGroups: "COUNT(*)",
 	}
 
@@ -1296,21 +1296,21 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 	query := s.getQueryBuilder().
 		Select(selectStrs[t]).
 		From(fmt.Sprintf("%s gs", table)).
-		LeftJoin("UserGroups ug ON gs.GroupId = ug.Id").
-		Where(fmt.Sprintf("ug.DeleteAt = 0 AND gs.%s = ? AND gs.DeleteAt = 0", idCol), syncableID)
+		LeftJoin("UserGroups ON gs.GroupId = UserGroups.Id").
+		Where(fmt.Sprintf("UserGroups.DeleteAt = 0 AND gs.%s = ? AND gs.DeleteAt = 0", idCol), syncableID)
 
 	if opts.IncludeMemberCount && t == selectGroups {
 		query = s.getQueryBuilder().
-			Select(fmt.Sprintf("ug.*, coalesce(Members.MemberCount, 0) AS MemberCount, Group%ss.SchemeAdmin AS SyncableSchemeAdmin", st)).
-			From("UserGroups ug").
-			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
-			LeftJoin(fmt.Sprintf("%[1]s ON %[1]s.GroupId = ug.Id", table)).
-			Where(fmt.Sprintf("ug.DeleteAt = 0 AND %[1]s.DeleteAt = 0 AND %[1]s.%[2]s = ?", table, idCol), syncableID).
-			OrderBy("ug.DisplayName")
+			Select(fmt.Sprintf("UserGroups.*, coalesce(Members.MemberCount, 0) AS MemberCount, Group%ss.SchemeAdmin AS SyncableSchemeAdmin", st)).
+			From("UserGroups").
+			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = UserGroups.Id").
+			LeftJoin(fmt.Sprintf("%[1]s ON %[1]s.GroupId = UserGroups.Id", table)).
+			Where(fmt.Sprintf("UserGroups.DeleteAt = 0 AND %[1]s.DeleteAt = 0 AND %[1]s.%[2]s = ?", table, idCol), syncableID).
+			OrderBy("UserGroups.DisplayName")
 	}
 
 	if opts.FilterAllowReference && t == selectGroups {
-		query = query.Where("ug.AllowReference = true")
+		query = query.Where("UserGroups.AllowReference = true")
 	}
 
 	if opts.Q != "" {
@@ -1319,7 +1319,7 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 		if s.DriverName() == model.DatabaseDriverMysql {
 			operatorKeyword = "LIKE"
 		}
-		query = query.Where(fmt.Sprintf("(ug.Name %[1]s ? OR ug.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
+		query = query.Where(fmt.Sprintf("(UserGroups.Name %[1]s ? OR UserGroups.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
 	}
 
 	return query
@@ -1327,8 +1327,8 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 
 func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(teamID string, opts model.GroupSearchOpts) sq.SelectBuilder {
 	query := s.getQueryBuilder().
-		Select("gc.ChannelId, ug.*, gc.SchemeAdmin AS SyncableSchemeAdmin").
-		From("UserGroups ug").
+		Select("gc.ChannelId, UserGroups.*, gc.SchemeAdmin AS SyncableSchemeAdmin").
+		From("UserGroups").
 		LeftJoin(`
 			(SELECT
 				GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin
@@ -1339,14 +1339,14 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(teamID string, opts 
 			WHERE
 				GroupChannels.DeleteAt = 0
 				AND Channels.DeleteAt = 0
-				AND Channels.TeamId = ?) AS gc ON gc.GroupId = ug.Id`, teamID).
-		Where("ug.DeleteAt = 0 AND gc.DeleteAt = 0").
-		OrderBy("ug.DisplayName")
+				AND Channels.TeamId = ?) AS gc ON gc.GroupId = UserGroups.Id`, teamID).
+		Where("UserGroups.DeleteAt = 0 AND gc.DeleteAt = 0").
+		OrderBy("UserGroups.DisplayName")
 
 	if opts.IncludeMemberCount {
 		query = s.getQueryBuilder().
-			Select("gc.ChannelId, ug.*, coalesce(Members.MemberCount, 0) AS MemberCount, gc.SchemeAdmin AS SyncableSchemeAdmin").
-			From("UserGroups ug").
+			Select("gc.ChannelId, UserGroups.*, coalesce(Members.MemberCount, 0) AS MemberCount, gc.SchemeAdmin AS SyncableSchemeAdmin").
+			From("UserGroups").
 			LeftJoin(`
 				(SELECT
 					GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.GroupId, GroupChannels.SchemeAdmin
@@ -1357,7 +1357,7 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(teamID string, opts 
 				WHERE
 					GroupChannels.DeleteAt = 0
 					AND Channels.DeleteAt = 0
-					AND Channels.TeamId = ?) AS gc ON gc.GroupId = ug.Id`, teamID).
+					AND Channels.TeamId = ?) AS gc ON gc.GroupId = UserGroups.Id`, teamID).
 			LeftJoin(`(
 				SELECT
 					GroupMembers.GroupId, COUNT(*) AS MemberCount
@@ -1369,13 +1369,13 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(teamID string, opts 
 					GroupMembers.DeleteAt = 0
 					AND Users.DeleteAt = 0
 				GROUP BY GroupId) AS Members
-			ON Members.GroupId = ug.Id`).
-			Where("ug.DeleteAt = 0 AND gc.DeleteAt = 0").
-			OrderBy("ug.DisplayName")
+			ON Members.GroupId = UserGroups.Id`).
+			Where("UserGroups.DeleteAt = 0 AND gc.DeleteAt = 0").
+			OrderBy("UserGroups.DisplayName")
 	}
 
 	if opts.FilterAllowReference {
-		query = query.Where("ug.AllowReference = true")
+		query = query.Where("UserGroups.AllowReference = true")
 	}
 
 	if opts.Q != "" {
@@ -1384,7 +1384,7 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(teamID string, opts 
 		if s.DriverName() == model.DatabaseDriverMysql {
 			operatorKeyword = "LIKE"
 		}
-		query = query.Where(fmt.Sprintf("(ug.Name %[1]s ? OR ug.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
+		query = query.Where(fmt.Sprintf("(UserGroups.Name %[1]s ? OR UserGroups.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
 	}
 
 	return query
@@ -1406,7 +1406,7 @@ func (s *SqlGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpt
 
 	if opts.PageOpts != nil {
 		offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
-		builder = builder.OrderBy("ug.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
+		builder = builder.OrderBy("UserGroups.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
 	}
 
 	groups := groupsWithSchemeAdmin{}
@@ -1422,7 +1422,7 @@ func (s *SqlGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts 
 
 	if opts.PageOpts != nil {
 		offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
-		builder = builder.OrderBy("ug.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
+		builder = builder.OrderBy("UserGroups.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
 	}
 
 	tgroups := groupsAssociatedToChannelWithSchemeAdmin{}

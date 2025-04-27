@@ -94,11 +94,20 @@ async function printClientInfo(client: Client4) {
   - TelemetryId                 = ${config.TelemetryId}
   - ServiceEnvironment          = ${config.ServiceEnvironment}`);
 
-    const {LogSettings, ServiceSettings} = await client.getConfig();
+    const {LogSettings, ServiceSettings, FeatureFlags} = await client.getConfig();
     // eslint-disable-next-line no-console
     console.log(`Notable Server Config:
   - ServiceSettings.EnableSecurityFixAlert  = ${ServiceSettings?.EnableSecurityFixAlert}
   - LogSettings.EnableDiagnostics           = ${LogSettings?.EnableDiagnostics}`);
+
+    // eslint-disable-next-line no-console
+    console.log('Feature Flags:');
+    // eslint-disable-next-line no-console
+    console.log(
+        Object.entries(FeatureFlags)
+            .map(([key, value]) => `  - ${key} = ${value}`)
+            .join('\n'),
+    );
 }
 
 async function printPluginDetails(client: Client4) {

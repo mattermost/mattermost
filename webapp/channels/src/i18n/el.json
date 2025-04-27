@@ -461,7 +461,6 @@
   "user.settings.notifications.comments": "Ειδοποιήσεις απαντήσεων",
   "user.settings.notifications.email.disabled": "Οι ειδοποιήσεις μέσω email δεν είναι ενεργοποιημένες",
   "user.settings.notifications.email.everyHour": "Κάθε ώρα",
-  "user.settings.notifications.email.immediately": "Άμεσα",
   "user.settings.notifications.email.never": "Ποτέ",
   "user.settings.notifications.email.send": "Αποστολή ειδοποιήσεων μέσω email",
   "user.settings.notifications.emailInfo": "Οι ειδοποιήσεις μέσω email αποστέλλονται για αναφορές και απευθείας μηνύματα όταν είστε εκτός σύνδεσης ή εκτός για περισσότερο από 5 λεπτά.",

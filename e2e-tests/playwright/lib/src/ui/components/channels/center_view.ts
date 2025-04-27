@@ -1,18 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import {Locator, expect, Page} from '@playwright/test';
 
 import ChannelsHeader from './header';
 import ChannelsPostCreate from './post_create';
 import ChannelsPostEdit from './post_edit';
 import ChannelsPost from './post';
 
-import {duration} from '@/util';
+import {duration, hexToRgb} from '@/util';
 import {waitUntil} from '@/test_action';
 
 export default class ChannelsCenterView {
     readonly container: Locator;
+    readonly page: Page;
 
     readonly header;
     readonly postCreate;
@@ -21,14 +22,20 @@ export default class ChannelsCenterView {
     readonly scheduledDraftChannelIcon;
     readonly scheduledDraftChannelInfoMessage;
     readonly scheduledDraftChannelInfoMessageLocator;
+    readonly scheduledDraftDMChannelLocator;
     readonly scheduledDraftChannelInfoMessageText;
+    readonly scheduledDraftDMChannelLocatorString;
     readonly scheduledDraftSeeAllLink;
     readonly postEdit;
     readonly editedPostIcon;
+    readonly channelBanner;
 
-    constructor(container: Locator) {
+    constructor(container: Locator, page: Page) {
         this.container = container;
+        this.page = page;
+
         this.scheduledDraftChannelInfoMessageLocator = 'span:has-text("Message scheduled for")';
+        this.scheduledDraftDMChannelLocatorString = 'div.ScheduledPostIndicator span a';
         this.header = new ChannelsHeader(this.container.locator('.channel-header'));
         this.postCreate = new ChannelsPostCreate(container.getByTestId('post-create'));
         this.scheduledDraftOptions = new ChannelsPostCreate(container.locator('#dropdown_send_post_options'));
@@ -37,13 +44,19 @@ export default class ChannelsCenterView {
         this.scheduledDraftChannelIcon = container.locator('#create_post i.icon-draft-indicator');
         this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
         this.scheduledDraftChannelInfoMessageText = container.locator(this.scheduledDraftChannelInfoMessageLocator);
+        this.scheduledDraftDMChannelLocator = container.locator(this.scheduledDraftDMChannelLocatorString);
         this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all")');
         this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
+        this.channelBanner = container.getByTestId('channel_banner_container');
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
         await this.postCreate.toBeVisible();
+    }
+
+    async postMessage(message: string, files?: string[]) {
+        await this.postCreate.postMessage(message, files);
     }
 
     /**
@@ -127,6 +140,15 @@ export default class ChannelsCenterView {
         );
     }
 
+    async goToScheduledDraftsFromDMChannel() {
+        if (await this.scheduledDraftDMChannelLocator.isVisible()) {
+            await this.scheduledDraftDMChannelLocator.click();
+            return;
+        }
+        await this.scheduledDraftSeeAllLink.isVisible();
+        await this.scheduledDraftSeeAllLink.click();
+    }
+
     async verifyscheduledDraftChannelInfo() {
         await this.postBoxIndicator.isVisible();
         await this.scheduledDraftChannelIcon.isVisible();
@@ -138,5 +160,46 @@ export default class ChannelsCenterView {
         if (postID) {
             await this.editedPostIcon(postID).click();
         }
+    }
+
+    async assertChannelBanner(text: string, backgroundColor: string) {
+        await expect(this.channelBanner).toBeVisible();
+
+        const actualText = await this.channelBanner.textContent();
+        expect(actualText).toBe(text);
+
+        const actualBackgroundColor = await this.channelBanner.evaluate((el) => {
+            return window.getComputedStyle(el).getPropertyValue('background-color');
+        });
+
+        expect(actualBackgroundColor).toBe(hexToRgb(backgroundColor));
+    }
+
+    async assertChannelBannerNotVisible() {
+        await expect(this.channelBanner).not.toBeVisible();
+    }
+
+    async assertChannelBannerHasBoldText(text: string) {
+        const boldText = await this.channelBanner.locator('strong');
+        expect(boldText).toBeVisible();
+
+        const actualText = await boldText.textContent();
+        expect(actualText).toBe(text);
+    }
+
+    async assertChannelBannerHasItalicText(text: string) {
+        const italicText = await this.channelBanner.locator('em');
+        expect(italicText).toBeVisible();
+
+        const actualText = await italicText.textContent();
+        expect(actualText).toBe(text);
+    }
+
+    async assertChannelBannerHasStrikethroughText(text: string) {
+        const strikethroughText = await this.channelBanner.locator('del');
+        expect(strikethroughText).toBeVisible();
+
+        const actualText = await strikethroughText.textContent();
+        expect(actualText).toBe(text);
     }
 }

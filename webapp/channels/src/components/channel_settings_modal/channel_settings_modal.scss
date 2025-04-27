@@ -1,0 +1,232 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ChannelSettingsModal {
+    label.Input_legend {
+        margin-bottom: 4px;
+        color: var(--center-channel-color);
+        font-family: Metropolis, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    label.Input_subheading {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-family: Open Sans, sans-serif;
+        font-size: 12px;
+        font-weight: 400;
+    }
+
+    .GenericModal__wrapper {
+        display: flex;
+        overflow: visible;
+        max-width: 1200px;
+        max-height: 90vh;
+        flex-direction: column;
+        border: var(--border-default);
+        border-radius: var(--radius-l);
+        box-shadow: var(--elevation-6);
+
+        .modal-body {
+            display: flex;
+            overflow: visible;
+            width: auto;
+            min-height: 150px;
+            flex-direction: column;
+            margin: 0;
+            gap: 24px;
+        }
+    }
+
+    &__bodyWrapper {
+        display: flex;
+        width: 100%;
+        max-width: 1024px;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .settings-table {
+        display: flex;
+        flex-direction: row;
+
+        .settings-links {
+            min-width: 200px;
+        }
+
+        .settings-content {
+            display: flex;
+            overflow: visible !important; // This is necessary to override the overflow hidden from the modal for emoji list
+            flex: 1;
+            flex-direction: column;
+
+            .AdvancedTextbox {
+                position: relative;
+            }
+
+            .channel-settings-name-container, .AdvancedTextbox {
+                margin-top: 24px;
+            }
+        }
+    }
+
+    &__infoTab {
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 60px;
+
+        #PreviewInputTextButton {
+            position: absolute;
+            z-index: 10;
+            top: 5px;
+            right: 5px;
+        }
+
+        // This is a workaround forcing styles to override the ones from the textbox component that affect post input
+        .textbox-preview-area, #channel_settings_purpose_textbox,  #channel_settings_header_textbox {
+            height: 80px !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        // forcing z-index on the emoji list to be on top of the modal
+        .suggestion-list {
+            z-index: 100000;
+        }
+
+        .textbox-preview-area {
+            box-shadow: none;
+        }
+    }
+
+    &__typeSelector {
+        margin-top: 16px;
+    }
+
+    &__purposeContainer, &__headerContainer {
+        margin-top: 28px;
+
+        textarea {
+            width: 100%;
+            min-height: 8em;
+            max-height: 60vh;
+            box-sizing: border-box;
+            padding: 12px 16px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: 4px;
+            background: var(--center-channel-bg);
+            color: var(--center-channel-color);
+            font-size: 14px;
+            line-height: 20px;
+            resize: none;
+
+            &:hover {
+                border-color: rgba(var(--center-channel-color-rgb), 0.48);
+            }
+
+            &:focus {
+                border-color: var(--button-bg);
+                box-shadow: inset 0 0 0 1px var(--button-bg);
+            }
+
+            &.with-error {
+                border-color: var(--error-text);
+
+                &:focus {
+                    box-shadow: inset 0 0 0 1px var(--error-text);
+                }
+            }
+        }
+    }
+
+    &__headerContainer {
+        margin-top: 28px;
+
+        &--preview-button {
+            display: flex;
+            align-items: center;
+            padding: 4px 8px;
+            border: none;
+            background: transparent;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            cursor: pointer;
+
+            &:hover {
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+            }
+
+            i {
+                font-size: 18px;
+            }
+        }
+
+        .markdown-preview-wrapper {
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        }
+    }
+
+    &__archiveTab {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        .btn-danger {
+            align-self: flex-start;
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        max-width: 100%;
+        margin: 0;
+
+        .modal-content {
+            display: flex;
+            height: 100vh;
+            max-height: unset;
+            flex-direction: column;
+            border-radius: unset;
+        }
+    }
+
+    @media screen and (max-height: 900px) and (min-width: 768px) {
+        .modal-content {
+            max-height: 90vh;
+        }
+    }
+
+    @media screen and (max-height: 600px) {
+        .modal-content,
+        .GenericModal__wrapper {
+            max-height: 85vh !important;
+        }
+    }
+}
+
+// styles for the archive channel confirm modal
+.archiveChannelConfirmModal {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    .GenericModal__header {
+        display: flex;
+        justify-content: center;
+
+        h1#genericModalLabel {
+            width: auto;
+        }
+    }
+
+    .GenericModal__body {
+        .ConfirmModal__body {
+            text-align: center;
+        }
+    }
+
+    .ConfirmModal__footer {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+    }
+}

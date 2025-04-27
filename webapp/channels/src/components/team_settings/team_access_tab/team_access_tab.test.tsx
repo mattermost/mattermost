@@ -110,7 +110,7 @@ describe('components/TeamSettings', () => {
         const newDomainText = screen.getByText(newDomain);
         expect(newDomainText).toBeInTheDocument();
 
-        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await act(async () => {
             userEvent.click(saveButton);
         });

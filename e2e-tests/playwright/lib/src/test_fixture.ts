@@ -18,6 +18,7 @@ import {
 } from './flag';
 import {getBlobFromAsset, getFileFromAsset} from './file';
 import {
+    createNewUserProfile,
     createRandomChannel,
     createRandomPost,
     createRandomTeam,
@@ -87,6 +88,9 @@ export class PlaywrightExtended {
     readonly stubNotification;
     readonly waitForNotification;
 
+    // ./server
+    readonly createNewUserProfile;
+
     // ./visual
     readonly matchSnapshot;
 
@@ -142,6 +146,9 @@ export class PlaywrightExtended {
         // ./mock_browser_api
         this.stubNotification = stubNotification;
         this.waitForNotification = waitForNotification;
+
+        // ./server
+        this.createNewUserProfile = createNewUserProfile;
 
         // ./visual
         this.matchSnapshot = matchSnapshot;

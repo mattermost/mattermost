@@ -25,6 +25,7 @@ func TestPreferenceStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	t.Run("PreferenceDeleteCategory", func(t *testing.T) { testPreferenceDeleteCategory(t, rctx, ss) })
 	t.Run("PreferenceDeleteCategoryAndName", func(t *testing.T) { testPreferenceDeleteCategoryAndName(t, rctx, ss) })
 	t.Run("PreferenceDeleteOrphanedRows", func(t *testing.T) { testPreferenceDeleteOrphanedRows(t, rctx, ss) })
+	t.Run("PreferenceCleanupFlagsBatch", func(t *testing.T) { testPreferenceCleanupFlagsBatch(t, rctx, ss) })
 	t.Run("PreferenceDeleteInvalidVisibleDmsGms", func(t *testing.T) { testDeleteInvalidVisibleDmsGms(t, rctx, ss, s) })
 }
 
@@ -467,6 +468,101 @@ func testPreferenceDeleteOrphanedRows(t *testing.T, rctx request.CTX, ss store.S
 
 	_, nErr = ss.Preference().Get(userId, category, preference2.Name)
 	assert.NoError(t, nErr, "newer preference should not have been deleted")
+}
+
+func testPreferenceCleanupFlagsBatch(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("Normal cleanup case", func(t *testing.T) {
+		const limit = 100
+		team, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "team" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      team.Id,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+		category := model.PreferenceCategoryFlaggedPost
+		userId := model.NewId()
+
+		// Create two posts: one to delete, one to keep
+		olderPost, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userId,
+			Message:   "message",
+			CreateAt:  1000,
+		})
+		require.NoError(t, err)
+		newerPost, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userId,
+			Message:   "message",
+			CreateAt:  3000,
+		})
+		require.NoError(t, err)
+
+		// Create a third post ID that doesn't exist in the Posts table
+		nonExistentPostId := model.NewId()
+
+		// Create preferences flagging all three posts
+		preferences := model.Preferences{
+			{
+				UserId:   userId,
+				Category: category,
+				Name:     olderPost.Id,
+				Value:    "true",
+			},
+			{
+				UserId:   userId,
+				Category: category,
+				Name:     newerPost.Id,
+				Value:    "true",
+			},
+			{
+				UserId:   userId,
+				Category: category,
+				Name:     nonExistentPostId,
+				Value:    "true",
+			},
+		}
+
+		err = ss.Preference().Save(preferences)
+		require.NoError(t, err)
+
+		// Instead of just deleting (soft delete), we'll permanently delete the post
+		// to create a truly orphaned preference
+		err = ss.Post().PermanentDelete(rctx, olderPost.Id)
+		require.NoError(t, err)
+
+		// Verify we have 3 preferences before cleanup
+		prefs, err := ss.Preference().GetCategory(userId, category)
+		require.NoError(t, err)
+		require.Equal(t, 3, len(prefs))
+
+		// Run CleanupFlagsBatch to remove orphaned preferences
+		rowsDeleted, err := ss.Preference().CleanupFlagsBatch(limit)
+		require.NoError(t, err)
+		require.Equal(t, int64(2), rowsDeleted, "should have deleted 2 preferences (one with permanently deleted post and one with non-existent post)")
+
+		// Check that only the preference for the existing post remains
+		prefs, err = ss.Preference().GetCategory(userId, category)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(prefs), "should only have 1 preference left")
+		require.Equal(t, newerPost.Id, prefs[0].Name, "remaining preference should be for the undeleted post")
+	})
+
+	t.Run("Invalid limit case", func(t *testing.T) {
+		// Test with a negative limit which should return an error
+		rowsDeleted, err := ss.Preference().CleanupFlagsBatch(-1)
+		require.Error(t, err, "Expected error for negative limit")
+		require.Equal(t, int64(0), rowsDeleted, "Should not delete any rows when limit is negative")
+		require.Contains(t, err.Error(), "negative limit", "Error message should mention negative limit")
+	})
 }
 
 func testDeleteInvalidVisibleDmsGms(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {

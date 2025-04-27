@@ -222,7 +222,6 @@
   "user.settings.notifications.comments": "Përgjigju njoftimeve",
   "user.settings.notifications.email.disabled": "Njoftimet e emailit nuk janë aktivizuar",
   "user.settings.notifications.email.everyHour": "Çdo orë",
-  "user.settings.notifications.email.immediately": "Menjëherë",
   "user.settings.notifications.email.never": "Asnjëherë",
   "user.settings.notifications.email.send": "Dërgo njoftimet e emailit",
   "user.settings.notifications.emailInfo": "Njoftimet me email dërgohen për përmendje dhe mesazhe të drejtpërdrejta kur jeni jashtë linje ose jeni larg për më shumë se 5 minuta.",

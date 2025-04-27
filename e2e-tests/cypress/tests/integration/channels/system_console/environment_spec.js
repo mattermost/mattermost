@@ -35,7 +35,7 @@ describe('Environment', () => {
         cy.visit(townsquareLink);
 
         // # Open team menu and click "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
@@ -79,7 +79,7 @@ describe('Environment', () => {
         cy.visit(townsquareLink);
 
         // # Open team menu and click "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
@@ -123,7 +123,7 @@ describe('Environment', () => {
         cy.visit(townsquareLink);
 
         // # Open team menu and click "Team Settings"
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {

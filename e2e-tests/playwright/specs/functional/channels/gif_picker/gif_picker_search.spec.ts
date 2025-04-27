@@ -34,7 +34,7 @@ test.fixme(
         await channelsPage.centerView.postCreate.sendMessage();
 
         // * Verify that last message has the gif
-        const lastPost = await channelsPage.centerView.getLastPost();
+        const lastPost = await channelsPage.getLastPost();
         await lastPost.toBeVisible();
         await expect(lastPost.body.getByLabel('file thumbnail')).toHaveAttribute('alt', altOfFirstSearchGifResult);
     },
@@ -53,10 +53,10 @@ test.fixme(
         await channelsPage.toBeVisible();
 
         // # Send a message
-        await channelsPage.centerView.postCreate.postMessage('Message to open RHS');
+        await channelsPage.postMessage('Message to open RHS');
 
         // # Open the last post sent in RHS
-        const lastPost = await channelsPage.centerView.getLastPost();
+        const lastPost = await channelsPage.getLastPost();
         await lastPost.hover();
         await lastPost.postMenu.toBeVisible();
         await lastPost.postMenu.reply();

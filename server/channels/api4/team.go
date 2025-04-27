@@ -151,7 +151,16 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (!team.AllowOpenInvite || team.Type != model.TeamOpen) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+	isPublicTeam := team.AllowOpenInvite && team.Type == model.TeamOpen
+	hasPermissionViewTeam := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam)
+
+	if !isPublicTeam && !hasPermissionViewTeam {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	if isPublicTeam && !hasPermissionViewTeam && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPublicTeams) {
+		// Fail with PermissionViewTeam, not PermissionListPublicTeams.
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
@@ -379,6 +388,11 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
 		audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
 		c.SetPermissionError(model.PermissionManageTeam)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteUser) {
+		c.SetPermissionError(model.PermissionInviteUser)
 		return
 	}
 

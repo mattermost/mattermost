@@ -10408,10 +10408,6 @@
     "translation": "Nepodařilo se aktualizovat pořadí záložek kanálu."
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "pokoušíte se upravit pole, které neexistuje"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "Nelze načíst záložky pro archivovaný kanál"
   },
@@ -10498,10 +10494,6 @@
   {
     "id": "app.user.reset_password_failed_attempts.app_error",
     "translation": "Nepodařilo se zresetovat pokusy o přihlášení uživatele."
-  },
-  {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Nelze převést pole vlastnosti na pole vlastního atributu profilu"
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",

@@ -109,7 +109,6 @@ func init() {
 			PermissionGetAnalytics,
 		},
 		PermissionSysconsoleReadReportingTeamStatistics.Id: {
-			PermissionViewTeam,
 			PermissionGetAnalytics,
 		},
 		PermissionSysconsoleWriteUserManagementUsers.Id: {

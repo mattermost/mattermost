@@ -2600,6 +2600,15 @@ export default class Client4 {
         );
     };
 
+    getLicenseLoadMetric = () => {
+        return this.doFetch<{
+            load: number;
+        }>(
+            `${this.getBaseRoute()}/license/load_metric`,
+            {method: 'get'},
+        );
+    };
+
     setFirstAdminVisitMarketplaceStatus = async () => {
         return this.doFetch<StatusOK>(
             `${this.getPluginsRoute()}/marketplace/first_admin_visit`,
@@ -3382,6 +3391,26 @@ export default class Client4 {
                 method: 'post',
                 body: formData,
             },
+        );
+    };
+
+    uploadAuditLogCertificate = (fileData: File) => {
+        const formData = new FormData();
+        formData.append('certificate', fileData);
+
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/audit_logs/certificate`,
+            {
+                method: 'post',
+                body: formData,
+            },
+        );
+    };
+
+    removeAuditLogCertificate = () => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/audit_logs/certificate`,
+            {method: 'delete'},
         );
     };
 

@@ -96,6 +96,34 @@ describe('UserPropertyTypeMenu', () => {
         expect(screen.getAllByRole('menuitemradio')).toHaveLength(1);
     });
 
+    it('disables non-supported options when ldap-linked', () => {
+        renderComponent({...baseField, attrs: {...baseField.attrs, ldap: 'ldapPropName'}});
+
+        // Open the menu
+        fireEvent.click(screen.getByText('Text'));
+
+        // Non-text should be disabled
+        expect(screen.getByRole('menuitemradio', {name: 'Phone'})).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getByRole('menuitemradio', {name: 'URL'})).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getByRole('menuitemradio', {name: 'Select'})).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getByRole('menuitemradio', {name: 'Multi-select'})).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getByRole('menuitemradio', {name: 'Select'})).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('disables non-supported options when saml-linked', () => {
+        renderComponent({...baseField, attrs: {...baseField.attrs, saml: 'samlPropName'}});
+
+        // Open the menu
+        fireEvent.click(screen.getByText('Text'));
+
+        // Non-text should be disabled
+        expect(screen.getByRole('menuitemradio', {name: 'Phone'})).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getByRole('menuitemradio', {name: 'URL'})).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getByRole('menuitemradio', {name: 'Select'})).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getByRole('menuitemradio', {name: 'Multi-select'})).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getByRole('menuitemradio', {name: 'Select'})).toHaveAttribute('aria-disabled', 'true');
+    });
+
     it('shows check icon for current type', () => {
         const selectField = {
             ...baseField,

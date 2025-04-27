@@ -5,7 +5,7 @@ import {Locator, Page} from '@playwright/test';
 export {waitUntil} from 'async-wait-until';
 
 const visibilityHidden = 'visibility: hidden !important;';
-const hideTeamHeader = `.test-team-header {${visibilityHidden}} `;
+const hideTeamHeader = `#sidebarTeamMenuButton {${visibilityHidden}} `;
 const hidePostHeaderTime = `.post__time {${visibilityHidden}} `;
 const hidePostProfileIcon = `.profile-icon {${visibilityHidden}} `;
 

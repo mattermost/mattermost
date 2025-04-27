@@ -481,6 +481,192 @@ func TestCPAField_SanitizeAndValidate(t *testing.T) {
 			expectError: true,
 			errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
 		},
+
+		// Test options cleaning for types that don't support options
+		{
+			name: "text field with options should clean options",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							ID:    NewId(),
+							Name:  "Option 1",
+							Color: "#123456",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				Options:    nil, // Options should be cleaned
+			},
+		},
+		{
+			name: "date field with options should clean options",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeDate,
+				},
+				Attrs: CPAAttrs{
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							ID:    NewId(),
+							Name:  "Option 1",
+							Color: "#123456",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				Options:    nil, // Options should be cleaned
+			},
+		},
+		{
+			name: "user field with options should clean options",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeUser,
+				},
+				Attrs: CPAAttrs{
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							ID:    NewId(),
+							Name:  "Option 1",
+							Color: "#123456",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				Options:    nil, // Options should be cleaned
+			},
+		},
+
+		// Test options preservation for types that support options
+		{
+			name: "select field with options should preserve options",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeSelect,
+				},
+				Attrs: CPAAttrs{
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							ID:    NewId(),
+							Name:  "Option 1",
+							Color: "#123456",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
+					{Name: "Option 1", Color: "#123456"},
+				},
+			},
+		},
+		{
+			name: "multiselect field with options should preserve options",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeMultiselect,
+				},
+				Attrs: CPAAttrs{
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							ID:    NewId(),
+							Name:  "Option 1",
+							Color: "#123456",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
+					{Name: "Option 1", Color: "#123456"},
+				},
+			},
+		},
+
+		// Test syncing attributes cleaning for types that don't support syncing
+		{
+			name: "select field with LDAP and SAML should clean syncing attributes",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeSelect,
+				},
+				Attrs: CPAAttrs{
+					LDAP: "ldap_attribute",
+					SAML: "saml_attribute",
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							ID:    NewId(),
+							Name:  "Option 1",
+							Color: "#123456",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				LDAP:       "", // Should be cleaned
+				SAML:       "", // Should be cleaned
+				Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
+					{Name: "Option 1", Color: "#123456"},
+				},
+			},
+		},
+		{
+			name: "date field with LDAP and SAML should clean syncing attributes",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeDate,
+				},
+				Attrs: CPAAttrs{
+					LDAP: "ldap_attribute",
+					SAML: "saml_attribute",
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				LDAP:       "", // Should be cleaned
+				SAML:       "", // Should be cleaned
+			},
+		},
+
+		// Test syncing attributes preservation for types that support syncing
+		{
+			name: "text field with LDAP and SAML should preserve syncing attributes",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					LDAP: "ldap_attribute",
+					SAML: "saml_attribute",
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				LDAP:       "ldap_attribute", // Should be preserved
+				SAML:       "saml_attribute", // Should be preserved
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -538,6 +724,13 @@ func TestSanitizeAndValidatePropertyValue(t *testing.T) {
 			_, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeText}}, json.RawMessage(`123`))
 			require.Error(t, err)
 			require.Contains(t, err.Error(), "json: cannot unmarshal number into Go value of type string")
+		})
+
+		t.Run("value too long", func(t *testing.T) {
+			longValue := strings.Repeat("a", CPAValueTypeTextMaxLength+1)
+			_, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeText}}, json.RawMessage(fmt.Sprintf(`"%s"`, longValue)))
+			require.Error(t, err)
+			require.Equal(t, "value too long", err.Error())
 		})
 	})
 

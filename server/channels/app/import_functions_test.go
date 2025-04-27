@@ -522,7 +522,8 @@ func TestImportImportTeam(t *testing.T) {
 	require.NoError(t, err, "Failed to get team count.")
 
 	// we also assert that the team name can be upper case
-	teamName := "A" + model.NewId()
+	// Note there are no reserved team names starting with `Z`, making this flake-free.
+	teamName := "Z" + model.NewId()
 	sanitizedTeamName := strings.ToLower(teamName)
 
 	data := imports.TeamImportData{
