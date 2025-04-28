@@ -22,6 +22,9 @@ jobs:
     env:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        with:
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f            
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Calculate Golang Version
@@ -54,7 +57,8 @@ jobs:
           docker compose --ansi never ps
       - name: Run mmctl Tests
         env:
-          BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
+          # BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
+          BUILD_IMAGE: BUILD_IMAGE: cgr.dev/mattermost.com/go-msft-fips:1.22-dev
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
             export TESTFLAGS="-timeout 90m -race"
@@ -62,16 +66,16 @@ jobs:
             export TESTFLAGS="-timeout 30m"
           fi
           docker run --net ghactions_mm-test \
+            --entrypoint make \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
             --env MMCTL_TESTFLAGS="$TESTFLAGS" \
-            -v $(go env GOCACHE):/go/cache \
-            -e GOCACHE=/go/cache \
+            --env GOBIN=/root/go/bin \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
-            make test-mmctl BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+            test-mmctl BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
       - name: Stop docker compose
         run: |
           cd server/build
