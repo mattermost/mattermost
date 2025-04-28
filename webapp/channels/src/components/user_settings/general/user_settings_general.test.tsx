@@ -573,4 +573,78 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(await screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
         expect(screen.queryByRole('textbox', {name: customProfileAttribute.name})).toBeInTheDocument();
     });
+
+    test('should validate URL custom attribute field value', async () => {
+        const urlAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                value_type: 'url',
+            },
+        };
+
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [urlAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'ftp://invalid-url');
+        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(await screen.findByText('Please enter a valid url.')).toBeInTheDocument();
+        expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
+
+        userEvent.clear(screen.getByRole('textbox', {name: urlAttribute.name}));
+        userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'https://example.com');
+        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'https://example.com');
+    });
+
+    test('should validate email custom attribute field value', async () => {
+        const emailAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                value_type: 'email',
+            },
+        };
+
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [emailAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        userEvent.type(screen.getByRole('textbox', {name: emailAttribute.name}), 'invalid-email');
+        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(await screen.findByText('Please enter a valid email address.')).toBeInTheDocument();
+        expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
+
+        userEvent.clear(screen.getByRole('textbox', {name: emailAttribute.name}));
+        userEvent.type(screen.getByRole('textbox', {name: emailAttribute.name}), 'test@example.com');
+        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'test@example.com');
+    });
 });
