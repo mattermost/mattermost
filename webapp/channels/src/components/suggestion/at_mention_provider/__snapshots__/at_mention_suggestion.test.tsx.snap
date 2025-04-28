@@ -9,7 +9,6 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
       "id": "userid2",
       "last_name": "b",
       "nickname": "c",
-      "textboxId": "post_textbox",
       "username": "user2",
     }
   }
@@ -27,7 +26,6 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
         "id": "userid2",
         "last_name": "b",
         "nickname": "c",
-        "textboxId": "post_textbox",
         "username": "user2",
       }
     }
@@ -105,7 +103,6 @@ exports[`at mention suggestion Should not display nick name of the signed in use
       "isCurrentUser": true,
       "last_name": "b",
       "nickname": "c",
-      "textboxId": "post_textbox",
       "username": "user",
     }
   }
@@ -124,7 +121,6 @@ exports[`at mention suggestion Should not display nick name of the signed in use
         "isCurrentUser": true,
         "last_name": "b",
         "nickname": "c",
-        "textboxId": "post_textbox",
         "username": "user",
       }
     }
