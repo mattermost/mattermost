@@ -168,8 +168,7 @@
 
         &:focus:not(.Input) {
             border-color: #66afe9;
-            box-shadow:
-                inset 0 1px 1px rgba(0, 0, 0, 0.075),
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075),
                 0 0 8px rgba(102, 175, 233, 0.75);
             outline: 0;
         }
@@ -201,6 +200,12 @@
         border: variables.$border-gray;
         margin-top: 14px;
         background-color: white;
+
+        &:has(.LoadingSpinner) {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     }
 
     &.admin {
@@ -228,6 +233,10 @@
 
         .help-text {
             white-space: pre-line;
+
+            .help-text-warning {
+                color: var(--error-text)
+            }
         }
 
         .form-group {
@@ -437,7 +446,7 @@
 
         button,
         select {
-            font-family: 'Open Sans', sans-serif;
+            font-family: "Open Sans", sans-serif;
             letter-spacing: normal;
         }
 
@@ -459,7 +468,8 @@
                 height: 64px;
                 align-items: center;
                 justify-content: center;
-                border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+                border-right: 1px solid
+                    rgba(var(--center-channel-color-rgb), 0.12);
                 margin-right: 20px;
                 font-size: 3.2rem;
                 text-decoration: none;
@@ -470,7 +480,10 @@
                 }
 
                 &:hover {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+                    background-color: rgba(
+                        var(--center-channel-color-rgb),
+                        0.04
+                    );
                 }
             }
         }
@@ -1102,6 +1115,28 @@
     // We keep the banner the same width and only expand the content box.
     .banner {
         max-width: 920px;
+    }
+
+    .banner-buttons {
+        display: flex;
+
+        .banner-buttons__log-format {
+            display: flex;
+            align-items: center;
+            margin-right: 28px;
+            gap: 8px;
+
+            label {
+                display: inline-flex;
+                align-items: center;
+                margin-bottom: 0;
+                gap: 8px;
+
+                input[type="radio"] {
+                    margin-top: 0;
+                }
+            }
+        }
     }
 
     > .btn {
