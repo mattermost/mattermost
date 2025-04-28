@@ -58,6 +58,7 @@ exports[`components/widgets/inputs/DropdownInputHybrid should match snapshot 1`]
         }
         hideSelectedOptions={true}
         id="DropdownInput_channel_message_retention"
+        isMulti={false}
         isSearchable={false}
         menuPortalTarget={<body />}
         onChange={[Function]}
