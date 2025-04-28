@@ -16,7 +16,7 @@ endif
 # Helper function to run tools through Docker
 # Usage: $(call run_tool_docker,toolname,arguments)
 define run_tool_docker
-	docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH --entrypoint /root/go/bin/$(1) cgr.dev/mattermost.com/go-msft-fips:1.22-dev $(2)
+	docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH -e OUTPUT_CONFIG --entrypoint /root/go/bin/$(1) cgr.dev/mattermost.com/go-msft-fips:1.22-dev $(2)
 endef
 
 define LICENSE_HEADER
@@ -105,7 +105,7 @@ GOFLAGS ?= $(GOFLAGS:)
 # We need to export GOBIN to allow it to be set
 # for processes spawned from the Makefile
 export GOBIN ?= $(PWD)/bin
-GO ?= docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH cgr.dev/mattermost.com/go-msft-fips:1.22-dev
+GO ?= docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH -e OUTPUT_CONFIG cgr.dev/mattermost.com/go-msft-fips:1.22-dev
 DELVE ?= dlv
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildNumber=$(BUILD_NUMBER)"
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)"
@@ -320,16 +320,13 @@ i18n-check: ## Exit on empty translation strings and translation source strings
 	$(call run_tool_docker,mmgotool,i18n clean-empty --portal-dir="" --check)
 	$(call run_tool_docker,mmgotool,i18n check-empty-src --portal-dir="")
 
-store-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+store-mocks: $(MOCKERY_BIN) ## Creates mock files.
 	$(call run_tool_docker,mockery,--config channels/store/.mockery.yaml)
 
-cache-mocks:
-	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+cache-mocks: $(MOCKERY_BIN) ## Creates mock files.
 	$(call run_tool_docker,mockery,--config platform/services/cache/.mockery.yaml)
 
-telemetry-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+telemetry-mocks: $(MOCKERY_BIN) ## Creates mock files.
 	$(call run_tool_docker,mockery,--config platform/services/telemetry/.mockery.yaml)
 
 store-layers: ## Generate layers for the store
@@ -343,50 +340,47 @@ new-migration: ## Creates a new migration. Run with make new-migration name=<>
 	@echo "Generating new migration for postgres"
 	$(call run_tool_docker,morph,new script $(name) --driver postgres --dir channels/db/migrations --sequence)
 
-filestore-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+filestore-mocks: $(MOCKERY_BIN) ## Creates mock files.
 	$(call run_tool_docker,mockery,--config platform/shared/filestore/.mockery.yaml)
 
-ldap-mocks: ## Creates mock files for ldap.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+ldap-mocks: $(MOCKERY_BIN) ## Creates mock files for ldap.
 	$(call run_tool_docker,mockery,--dir $(BUILD_ENTERPRISE_DIR)/ldap --all --inpackage --note 'Regenerate this file using `make ldap-mocks`.')
 
-plugin-mocks: ## Creates mock files for plugins.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+plugin-mocks: $(MOCKERY_BIN) ## Creates mock files for plugins.
 	$(call run_tool_docker,mockery,--config public/plugin/.mockery.yaml)
 
-einterfaces-mocks: ## Creates mock files for einterfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+einterfaces-mocks: $(MOCKERY_BIN) ## Creates mock files for einterfaces.
 	$(call run_tool_docker,mockery,--config einterfaces/.mockery.yaml)
 
-searchengine-mocks: ## Creates mock files for searchengines.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+searchengine-mocks: $(MOCKERY_BIN) ## Creates mock files for searchengines.
 	$(call run_tool_docker,mockery,--config platform/services/searchengine/.mockery.yaml)
 
-sharedchannel-mocks: ## Creates mock files for shared channels.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+sharedchannel-mocks: $(MOCKERY_BIN) ## Creates mock files for shared channels.
 	$(call run_tool_docker,mockery,--config platform/services/sharedchannel/.mockery.yaml)
 
-misc-mocks: ## Creates mocks for misc interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+misc-mocks: $(MOCKERY_BIN) ## Creates mocks for misc interfaces.
 	$(call run_tool_docker,mockery,--config channels/utils/.mockery.yaml)
 
-email-mocks: ## Creates mocks for misc interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+email-mocks: $(MOCKERY_BIN) ## Creates mocks for misc interfaces.
 	$(call run_tool_docker,mockery,--config channels/app/email/.mockery.yaml)
 
-platform-mocks: ## Creates mocks for platform interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+platform-mocks: $(MOCKERY_BIN) ## Creates mocks for platform interfaces.
 	$(call run_tool_docker,mockery,--config channels/app/platform/.mockery.yaml)
 
-mmctl-mocks: ## Creates mocks for mmctl
-	$(GO) install github.com/golang/mock/mockgen@v1.6.0
+mmctl-mocks: $(MOCKGEN_BIN) ## Creates mocks for mmctl
 	$(call run_tool_docker,mockgen,-destination=cmd/mmctl/mocks/client_mock.go -copyright_file=cmd/mmctl/mocks/copyright.txt -package=mocks github.com/mattermost/mattermost/server/v8/cmd/mmctl/client Client)
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
 
-mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks
+$(MOCKERY_BIN):
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+
+$(MOCKGEN_BIN):
+	$(GO) install github.com/golang/mock/mockgen@v1.6.0
+
+mocks: $(MOCKERY_BIN) $(MOCKGEN_BIN) ## Generate all mocks
+	$(MAKE) -j store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks
 
 layers: store-layers pluginapi
 
@@ -708,8 +702,7 @@ config-openid: ## Configures OpenID.
 
 config-reset: ## Resets the config/config.json file to the default production values.
 	@echo Resetting configuration to production default
-	rm -f config/config.json
-	OUTPUT_CONFIG=$(PWD)/config/config.json $(GO) $(GOFLAGS) run -tags production ./scripts/config_generator
+	OUTPUT_CONFIG=config/config.json $(GO) $(GOFLAGS) run -tags production ./scripts/config_generator
 
 diff-config: ## Compares default configuration between two mattermost versions
 	@./scripts/diff-config.sh
@@ -767,10 +760,10 @@ vet: ## Run mattermost go vet specific checks
 	## Note that it is pinned to a specific commit, rather than a branch. This is to prevent
 	## having to backport the fix to multiple release branches for any new change.
 	$(GO) install github.com/mattermost/mattermost-govet/v2@72e7752bcf59b57688fcb41173a6a1583c405adf
-	$(GO) vet -vettool=$(call run_tool_docker,mattermost-govet,-) -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go ./...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go ./...
  ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(call run_tool_docker,mattermost-govet,-) -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
 
@@ -780,7 +773,8 @@ vet-api: export ROOT := $(ROOT)
 vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
 	$(GO) install github.com/mattermost/mattermost-govet/v2@8e4d46e3fad88497dbfe073788a87e75bbae717c
 	make -C ../api build
-	./scripts/vet-api-check.sh
+	# Run the script through Docker
+	docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH -e GO -e GOBIN -e ROOT cgr.dev/mattermost.com/go-msft-fips:1.22-dev /bin/bash ./scripts/vet-api-check.sh
 
 gen-serialized:	export LICENSE_HEADER:=$(LICENSE_HEADER)
 gen-serialized: ## Generates serialization methods for hot structs
