@@ -7,11 +7,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func setupSharedChannels(tb testing.TB) *TestHelper {
@@ -98,117 +96,88 @@ func TestApp_CheckCanInviteToSharedChannel(t *testing.T) {
 }
 
 func TestGetSharedChannelsWithRemotes(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := setupSharedChannels(t).InitBasic()
 	defer th.TearDown()
-
-	// Create mock store to use in our test
-	mockStore := &storemocks.Store{}
-	mockSharedChannelStore := &storemocks.SharedChannelStore{}
-	mockRemoteClusterStore := &storemocks.RemoteClusterStore{}
-
-	// Replace the app's store with our mocked version
-	originalStore := th.App.Srv().Store()
-	th.App.Srv().SetStore(mockStore)
-	defer func() { th.App.Srv().SetStore(originalStore) }()
-
-	mockStore.On("SharedChannel").Return(mockSharedChannelStore)
-	mockStore.On("RemoteCluster").Return(mockRemoteClusterStore)
-
-	// Setup test data
-	teamId := model.NewId()
-
-	// Create shared channels
-	channel1 := &model.SharedChannel{
-		ChannelId:        model.NewId(),
-		TeamId:           teamId,
-		Home:             true,
-		ShareName:        "channel1",
-		ShareDisplayName: "Channel 1",
-		CreatorId:        th.BasicUser.Id,
-		RemoteId:         "",
-		CreateAt:         model.GetMillis(),
-		UpdateAt:         model.GetMillis(),
-	}
-
-	channel2 := &model.SharedChannel{
-		ChannelId:        model.NewId(),
-		TeamId:           teamId,
-		Home:             false,
-		ShareName:        "channel2",
-		ShareDisplayName: "Channel 2",
-		CreatorId:        th.BasicUser.Id,
-		RemoteId:         model.NewId(),
-		CreateAt:         model.GetMillis(),
-		UpdateAt:         model.GetMillis(),
-	}
 
 	// Create remote clusters
 	remote1 := &model.RemoteCluster{
-		RemoteId:    model.NewId(),
 		Name:        "remote1",
-		DisplayName: "Remote 1",
-		SiteURL:     "http://remote1.example.com",
+		DisplayName: "Remote Cluster 1",
+		SiteURL:     "http://example.com",
 		CreatorId:   th.BasicUser.Id,
-		CreateAt:    model.GetMillis(),
+		Token:       model.NewId(),
 		LastPingAt:  model.GetMillis(),
 	}
+	remote1, appErr := th.App.AddRemoteCluster(remote1)
+	require.Nil(t, appErr)
 
 	remote2 := &model.RemoteCluster{
-		RemoteId:    model.NewId(),
 		Name:        "remote2",
-		DisplayName: "Remote 2",
-		SiteURL:     "http://remote2.example.com",
+		DisplayName: "Remote Cluster 2",
+		SiteURL:     "http://example.org",
 		CreatorId:   th.BasicUser.Id,
-		CreateAt:    model.GetMillis(),
+		Token:       model.NewId(),
 		LastPingAt:  model.GetMillis(),
 	}
+	remote2, appErr = th.App.AddRemoteCluster(remote2)
+	require.Nil(t, appErr)
 
-	// Create shared channel remotes
-	sharedChannelRemote1 := &model.SharedChannelRemote{
-		Id:        model.NewId(),
-		ChannelId: channel1.ChannelId,
-		RemoteId:  remote1.RemoteId,
-		CreatorId: th.BasicUser.Id,
-		CreateAt:  model.GetMillis(),
-		UpdateAt:  model.GetMillis(),
+	// Create shared channels
+	channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+	sc1 := &model.SharedChannel{
+		ChannelId:        channel1.Id,
+		TeamId:           th.BasicTeam.Id,
+		Home:             true,
+		ReadOnly:         false,
+		ShareName:        channel1.Name,
+		ShareDisplayName: channel1.DisplayName,
+		SharePurpose:     channel1.Purpose,
+		ShareHeader:      channel1.Header,
+		CreatorId:        th.BasicUser.Id,
 	}
+	sc1, err := th.App.ShareChannel(th.Context, sc1)
+	require.NoError(t, err)
 
-	sharedChannelRemote2 := &model.SharedChannelRemote{
-		Id:        model.NewId(),
-		ChannelId: channel1.ChannelId,
-		RemoteId:  remote2.RemoteId,
-		CreatorId: th.BasicUser.Id,
-		CreateAt:  model.GetMillis(),
-		UpdateAt:  model.GetMillis(),
+	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+	sc2 := &model.SharedChannel{
+		ChannelId:        channel2.Id,
+		TeamId:           th.BasicTeam.Id,
+		Home:             false,
+		ReadOnly:         false,
+		ShareName:        channel2.Name,
+		ShareDisplayName: channel2.DisplayName,
+		SharePurpose:     channel2.Purpose,
+		ShareHeader:      channel2.Header,
+		CreatorId:        th.BasicUser.Id,
+		RemoteId:         remote1.RemoteId,
 	}
+	sc2, err = th.App.ShareChannel(th.Context, sc2)
+	require.NoError(t, err)
 
-	channels := []*model.SharedChannel{channel1, channel2}
-
-	// Setup mock expectations
-	mockSharedChannelStore.On("GetAll", mock.Anything, mock.Anything, mock.Anything).Return(channels, nil)
-
-	// Return channel1's remotes
-	remoteFilter1 := model.SharedChannelRemoteFilterOpts{
-		ChannelId: channel1.ChannelId,
+	// Add remotes to channel1
+	scr1 := &model.SharedChannelRemote{
+		ChannelId:         sc1.ChannelId,
+		RemoteId:          remote1.RemoteId,
+		CreatorId:         th.BasicUser.Id,
+		IsInviteAccepted:  true,
+		IsInviteConfirmed: true,
 	}
-	mockSharedChannelStore.On("GetRemotes", mock.Anything, mock.Anything, remoteFilter1).
-		Return([]*model.SharedChannelRemote{sharedChannelRemote1, sharedChannelRemote2}, nil)
+	_, err = th.App.SaveSharedChannelRemote(scr1)
+	require.NoError(t, err)
 
-	// Return an empty list for channel2's remotes since it's not a home channel
-	remoteFilter2 := model.SharedChannelRemoteFilterOpts{
-		ChannelId: channel2.ChannelId,
+	scr2 := &model.SharedChannelRemote{
+		ChannelId:         sc1.ChannelId,
+		RemoteId:          remote2.RemoteId,
+		CreatorId:         th.BasicUser.Id,
+		IsInviteAccepted:  true,
+		IsInviteConfirmed: true,
 	}
-	mockSharedChannelStore.On("GetRemotes", mock.Anything, mock.Anything, remoteFilter2).
-		Return([]*model.SharedChannelRemote{}, nil)
-
-	// Return the remote clusters when requested
-	mockRemoteClusterStore.On("Get", remote1.RemoteId, true).Return(remote1, nil)
-	mockRemoteClusterStore.On("Get", remote2.RemoteId, true).Return(remote2, nil)
-	mockRemoteClusterStore.On("Get", channel2.RemoteId, true).Return(remote2, nil)
+	_, err = th.App.SaveSharedChannelRemote(scr2)
+	require.NoError(t, err)
 
 	// Execute the function
 	opts := model.SharedChannelFilterOpts{
-		TeamId: teamId,
+		TeamId: th.BasicTeam.Id,
 	}
 	result, appErr := th.App.GetSharedChannelsWithRemotes(0, 10, opts)
 
@@ -217,15 +186,27 @@ func TestGetSharedChannelsWithRemotes(t *testing.T) {
 	require.NotNil(t, result)
 	require.Len(t, result, 2)
 
-	// Check channel1
-	assert.Equal(t, channel1.ChannelId, result[0].SharedChannel.ChannelId)
+	// Sort results to ensure consistent testing
+	sortChannels := func(c1, c2 *model.SharedChannelWithRemotes) bool {
+		return c1.SharedChannel.ChannelId < c2.SharedChannel.ChannelId
+	}
+
+	if sortChannels(result[1], result[0]) {
+		// Swap if not in expected order
+		result[0], result[1] = result[1], result[0]
+	}
+
+	// Verify channel1 (home channel) with two remotes
+	assert.Equal(t, sc1.ChannelId, result[0].SharedChannel.ChannelId)
 	assert.Len(t, result[0].Remotes, 2)
 
+	// Verify remotes for channel1
 	remoteNames := []string{result[0].Remotes[0].DisplayName, result[0].Remotes[1].DisplayName}
 	assert.Contains(t, remoteNames, remote1.DisplayName)
 	assert.Contains(t, remoteNames, remote2.DisplayName)
 
-	// Check channel2
-	assert.Equal(t, channel2.ChannelId, result[1].SharedChannel.ChannelId)
+	// Verify channel2 (non-home channel) with one remote
+	assert.Equal(t, sc2.ChannelId, result[1].SharedChannel.ChannelId)
 	assert.Len(t, result[1].Remotes, 1, "Non-home channel should have 1 remote (the one it's from)")
+	assert.Equal(t, remote1.DisplayName, result[1].Remotes[0].DisplayName)
 }
