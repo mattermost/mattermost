@@ -213,6 +213,7 @@ export default class SuggestionBox extends React.PureComponent {
             focused: false,
             cleared: true,
             matchedPretext: [],
+            suggestionGroups: [],
             items: [],
             terms: [],
             components: [],
@@ -634,11 +635,15 @@ export default class SuggestionBox extends React.PureComponent {
     handleReceivedSuggestions = (suggestions) => {
         let newComponents = [];
         const newPretext = [];
+
         if (this.props.onSuggestionsReceived) {
-            this.props.onSuggestionsReceived(suggestions);
+            this.props.onSuggestionsReceived(suggestions); // TODO
         }
 
-        for (let i = 0; i < suggestions.terms.length; i++) {
+        const items = suggestions.groups.flatMap((group) => group.items);
+        const terms = suggestions.groups.flatMap((group) => group.terms);
+
+        for (let i = 0; i < terms.length; i++) {
             newComponents.push(suggestions.component);
             newPretext.push(suggestions.matchedPretext);
         }
@@ -647,8 +652,6 @@ export default class SuggestionBox extends React.PureComponent {
             newComponents = suggestions.components;
         }
 
-        const terms = suggestions.terms;
-        const items = suggestions.items;
         let selection = this.state.selection;
         const selectionIndex = terms.indexOf(selection);
         if (selectionIndex !== this.state.selectionIndex) {
@@ -662,8 +665,12 @@ export default class SuggestionBox extends React.PureComponent {
         this.setState({
             cleared: false,
             selection,
+
+            // Flattened versions of suggestionGroups to more easily handle selection and keyboard input
             terms,
             items,
+
+            suggestionGroups: suggestions.groups,
             components: newComponents,
             matchedPretext: newPretext,
         });
@@ -843,8 +850,7 @@ export default class SuggestionBox extends React.PureComponent {
                         onItemHover={this.setSelection}
                         cleared={this.state.cleared}
                         matchedPretext={this.state.matchedPretext}
-                        items={this.state.items}
-                        terms={this.state.terms}
+                        suggestionGroups={this.state.suggestionGroups}
                         suggestionBoxAlgn={this.state.suggestionBoxAlgn}
                         selection={this.state.selection}
                         components={this.state.components}

@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
+
+import type {SuggestionGroup} from './provider';
 
 export interface Props {
     inputRef?: React.RefObject<HTMLDivElement>;
@@ -15,14 +17,13 @@ export interface Props {
     position?: 'top' | 'bottom';
     renderDividers?: string[];
     renderNoResults?: boolean;
-    onCompleteWord: (term: string, matchedPretext: string, e?: React.KeyboardEventHandler<HTMLDivElement>) => boolean;
+    onCompleteWord: (term: string, matchedPretext: string, e?: Event) => boolean;
     preventClose?: () => void;
     onItemHover: (term: string) => void;
     pretext: string;
     cleared: boolean;
     matchedPretext: string[];
-    items: any[];
-    terms: string[];
+    suggestionGroups: Array<SuggestionGroup<any>>;
     selection: string;
     components: Array<React.ComponentType<any>>;
     wrapperHeight?: number;
@@ -64,7 +65,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
             this.scrollToItem(this.props.selection);
         }
 
-        if (this.props.items.length > 0 && prevProps.items.length === 0) {
+        if (this.props.suggestionGroups.length > 0 && prevProps.suggestionGroups.length === 0) {
             this.updateMaxHeight();
         }
     }
@@ -187,54 +188,61 @@ export default class SuggestionList extends React.PureComponent<Props> {
     }
 
     render() {
-        const {renderDividers} = this.props;
+        // const {renderDividers} = this.props; // TODO
 
         if (!this.props.open || this.props.cleared) {
             return null;
         }
 
-        const clonedItems = cloneDeep(this.props.items);
+        const contents = [];
 
-        const items = [];
-        if (clonedItems.length === 0) {
+        for (const group of this.props.suggestionGroups) {
+            if ('items' in group) {
+                const items = [];
+
+                for (let i = 0; i < group.items.length; i++) {
+                    const Component = this.props.components[0]; // TODO
+
+                    const item = group.items[i];
+                    const term = group.terms[i];
+                    const isSelection = term === this.props.selection;
+
+                    items.push(
+                        <Component
+                            key={term}
+                            id={`suggestionList_item_${term}`}
+                            item={item}
+                            term={term}
+                            matchedPretext={this.props.matchedPretext[i]}
+                            isSelection={isSelection}
+                            onClick={this.props.onCompleteWord}
+                            onMouseMove={this.props.onItemHover}
+                        />,
+                    );
+                }
+
+                contents.push(
+                    <SuggestionListGroup
+                        key={group.label.id}
+                        labelDescriptor={group.label}
+                        renderDivider={true} // TODO
+                    >
+                        {items}
+                    </SuggestionListGroup>,
+                );
+            } else {
+                contents.push(<LoadingSpinner key={group.label.id}/>);
+            }
+        }
+
+        if (contents.length === 0) {
             if (!this.props.renderNoResults) {
                 return null;
             }
-            items.push(this.renderNoResults());
+
+            contents.push(this.renderNoResults());
         }
 
-        let prevItemType = null;
-        for (let i = 0; i < this.props.items.length; i++) {
-            const item = this.props.items[i];
-            const term = this.props.terms[i];
-            const isSelection = term === this.props.selection;
-
-            // ReactComponent names need to be upper case when used in JSX
-            const Component = this.props.components[i];
-            if ((renderDividers?.includes('all') || renderDividers?.includes(item.type)) && prevItemType !== item.type) {
-                items.push(this.renderDivider(item.type));
-                prevItemType = item.type;
-            }
-
-            if (item.loading) {
-                items.push(<LoadingSpinner key={item.type}/>);
-                continue;
-            }
-
-            items.push(
-                <Component
-                    key={term}
-                    ref={(ref: any) => this.itemRefs.set(term, ref)}
-                    id={`suggestionList_item_${term}`}
-                    item={this.props.items[i]}
-                    term={term}
-                    matchedPretext={this.props.matchedPretext[i]}
-                    isSelection={isSelection}
-                    onClick={this.props.onCompleteWord}
-                    onMouseMove={this.props.onItemHover}
-                />,
-            );
-        }
         const mainClass = 'suggestion-list suggestion-list--' + this.props.position;
         const contentClass = 'suggestion-list__content suggestion-list__content--' + this.props.position;
 
@@ -255,7 +263,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                     className={contentClass}
                     onMouseDown={this.props.preventClose}
                 >
-                    {items}
+                    {contents}
                 </SuggestionListList>
                 <SuggestionListStatus items={this.props.items}/>
             </div>
@@ -275,7 +283,7 @@ const SuggestionListList = React.forwardRef<HTMLUListElement, React.HTMLAttribut
     );
 });
 
-function SuggestionListStatus({items}: Pick<Props, 'items'>) {
+function SuggestionListStatus({suggestionGroups}: Pick<Props, 'suggestionGroups'>) {
     const {formatMessage} = useIntl();
 
     const statusText = formatMessage(
@@ -284,7 +292,7 @@ function SuggestionListStatus({items}: Pick<Props, 'items'>) {
             defaultMessage: '{count, number} {count, plural, one {suggestion} other {suggestions}} available',
         },
         {
-            count: items.length,
+            count: suggestionGroups.reduce((groupLength, group) => groupLength + group.items.length, 0),
         },
     );
 
@@ -296,6 +304,47 @@ function SuggestionListStatus({items}: Pick<Props, 'items'>) {
             role='status'
         >
             {statusText}
+        </div>
+    );
+}
+
+function SuggestionListGroup({
+    children,
+    labelDescriptor,
+    renderDivider,
+}: {
+    children: React.ReactNode;
+    labelDescriptor: MessageDescriptor;
+    renderDivider: boolean;
+}) {
+    const {formatMessage} = useIntl();
+
+    if (!renderDivider) {
+        return (
+            <div
+                role='group'
+                aria-label={formatMessage(labelDescriptor)}
+            >
+                {children}
+            </div>
+        );
+    }
+
+    const labelId = labelDescriptor.id?.split('.').join('');
+
+    return (
+        <div
+            role='group'
+            aria-labelledby={labelId}
+        >
+            <li
+                id={labelId}
+                className='suggestion-list__divider'
+                role='presentation'
+            >
+                <FormattedMessage {...labelDescriptor}/>
+            </li>
+            {children}
         </div>
     );
 }
