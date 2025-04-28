@@ -105,7 +105,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@channel',
                 '@all',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid10,
                     userid3,
@@ -143,7 +143,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@all',
                 '',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid10,
                     userid3,
@@ -183,7 +183,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                     '@user5',
                     '@user6.six-split',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -263,7 +263,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@channel',
                 '@all',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid11,
                     userid12,
@@ -305,7 +305,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@all',
                 '',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid11,
                     userid12,
@@ -349,7 +349,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                     '@user5',
                     '@user6.six-split',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -429,7 +429,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@channel',
                 '@all',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid11,
                     userid12,
@@ -471,7 +471,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@all',
                 '',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid11,
                     userid12,
@@ -515,7 +515,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                     '@user5',
                     '@user6.six-split',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -595,7 +595,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@channel',
                 '@all',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid11,
                     userid12,
@@ -637,7 +637,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@all',
                 '',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid11,
                     userid12,
@@ -724,7 +724,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@channel',
                 '@all',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid10,
                     userid3,
@@ -765,7 +765,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                     '@user5',
                     '@user6.six-split',
                 ],
-                items: itemsCall2,
+                groups: itemsCall2,
                 component: AtMentionSuggestion,
             });
         });
@@ -806,7 +806,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             terms: [
                 '@here',
             ],
-            items: [
+            groups: [
                 specialMentionsGroup([
                     {username: 'here'},
                 ]),
@@ -822,7 +822,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@here',
                 '',
             ],
-            items: [
+            groups: [
                 specialMentionsGroup([
                     {username: 'here'},
                 ]),
@@ -837,7 +837,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 terms: [
                     '@here',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -885,7 +885,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@user',
                 '@user2',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid1,
                     userid2,
@@ -902,7 +902,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@user2',
                 '',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid1,
                     userid2,
@@ -922,7 +922,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                     '@user5',
                     '@user6.six-split',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -961,7 +961,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
             terms: [],
-            items: [],
+            groups: [],
             component: AtMentionSuggestion,
         });
 
@@ -972,7 +972,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             terms: [
                 '',
             ],
-            items: [
+            groups: [
                 otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
@@ -984,7 +984,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 terms: [
                     '@user6.six-split',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -1023,7 +1023,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
             terms: [],
-            items: [],
+            groups: [],
             component: AtMentionSuggestion,
         });
 
@@ -1034,7 +1034,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             terms: [
                 '',
             ],
-            items: [
+            groups: [
                 otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
@@ -1046,7 +1046,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 terms: [
                     '@user6.six-split',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -1085,7 +1085,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
             terms: [],
-            items: [],
+            groups: [],
             component: AtMentionSuggestion,
         });
 
@@ -1095,7 +1095,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             terms: [
                 '',
             ],
-            items: [
+            groups: [
                 otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
@@ -1107,7 +1107,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 terms: [
                     '@user6.six-split',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -1146,7 +1146,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
             terms: [],
-            items: [],
+            groups: [],
             component: AtMentionSuggestion,
         });
 
@@ -1157,7 +1157,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             terms: [
                 '',
             ],
-            items: [
+            groups: [
                 otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
@@ -1169,7 +1169,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 terms: [
                     '@user6.six-split',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -1211,7 +1211,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             terms: [
                 '@other',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid3,
                 ]),
@@ -1227,7 +1227,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@other',
                 '',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid3,
                 ]),
@@ -1243,7 +1243,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                     '@other',
                     '@user4',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -1285,7 +1285,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             terms: [
                 '@other',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid3,
                 ]),
@@ -1301,7 +1301,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@other',
                 '',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid3,
                 ]),
@@ -1317,7 +1317,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                     '@other',
                     '@user4',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -1361,7 +1361,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@nicknamer',
                 '@other',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid10,
                     userid3,
@@ -1379,7 +1379,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@other',
                 '',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid10,
                     userid3,
@@ -1397,7 +1397,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                     '@other',
                     '@user4',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -1445,7 +1445,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@user',
                 '@user2',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid1,
                     userid2,
@@ -1463,7 +1463,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@user2',
                 '',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid1,
                     userid2,
@@ -1483,7 +1483,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                     '@user5',
                     '@user6.six-split',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -1526,7 +1526,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             terms: [
                 '@other',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid3,
                 ]),
@@ -1542,7 +1542,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@other',
                 '',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid3,
                 ]),
@@ -1559,7 +1559,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                     '@other',
                     '@user4',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -1604,7 +1604,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             terms: [
                 '@other',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid3,
                 ]),
@@ -1620,7 +1620,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@other',
                 '',
             ],
-            items: [
+            groups: [
                 membersGroup([
                     userid3,
                 ]),
@@ -1637,7 +1637,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                     '@xuser7',
                     '@user4',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -1676,7 +1676,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
             terms: [],
-            items: [],
+            groups: [],
             component: AtMentionSuggestion,
         });
 
@@ -1686,7 +1686,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             terms: [
                 '',
             ],
-            items: [
+            groups: [
                 otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
@@ -1698,7 +1698,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 terms: [
                     '@xuser8',
                 ],
-                items: itemsCall3,
+                groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
         });
@@ -1736,7 +1736,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@developers',
                 '@software-engineers',
             ],
-            items: [
+            groups: [
                 groupsGroup([
                     groupid1,
                     groupid2,
@@ -1780,7 +1780,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
             terms: ['@software-engineers'],
-            items: [
+            groups: [
                 groupsGroup([
                     groupid3,
                 ]),
