@@ -28,7 +28,6 @@ export interface Item extends UserProfile {
     name: string;
     isCurrentUser: boolean;
     type: string;
-    textboxId?: string;
 }
 
 interface Group extends Item {
