@@ -29,7 +29,7 @@ jobs:
     - name: Run build
       run: make build
 
-    - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: mattermost-api-reference
         path: api/v4/html
