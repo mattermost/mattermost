@@ -99,7 +99,10 @@ jobs:
       - name: Run plugin-checker
         run: make plugin-checker
       - name: Run mattermost-vet
-        run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}' MM_NO_ENTERPRISE_LINT=true
+        env:
+          GOBIN: /root/go/bin
+          MM_NO_ENTERPRISE_LINT: true
+        run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}'
   check-mattermost-vet-api:
     name: Vet API
     runs-on: ubuntu-latest
