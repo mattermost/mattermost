@@ -6,15 +6,13 @@
 import React from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
-import {DynamicSizeList} from '@mattermost/dynamic-virtualized-list';
-import type {OnItemsRenderedArgs} from '@mattermost/dynamic-virtualized-list';
-
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 import {getNewMessagesIndex, isDateLine, isStartOfNewMessages} from 'mattermost-redux/utils/post_list';
 
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
 import type {CanLoadMorePosts} from 'actions/views/channel';
 
+import DynamicVirtualizedList from 'components/dynamic_virtualized_list';
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
 import PostListRow from 'components/post_view/post_list_row';
 import ScrollToBottomArrows from 'components/post_view/scroll_to_bottom_arrows';
@@ -147,7 +145,7 @@ type State = {
 }
 
 export default class PostList extends React.PureComponent<Props, State> {
-    listRef: React.RefObject<DynamicSizeList>;
+    listRef: React.RefObject<DynamicVirtualizedList>;
     postListRef: React.RefObject<HTMLDivElement>;
     scrollStopAction: DelayedAction | null = null;
     initRangeToRender: number[];
@@ -431,7 +429,7 @@ export default class PostList extends React.PureComponent<Props, State> {
 
         if (scrollUpdateWasRequested) { //if scroll change is programatically requested i.e by calling scrollTo
             //This is a private method on virtlist
-            const postsRenderedRange = this.listRef.current?._getRangeToRender(); //eslint-disable-line no-underscore-dangle
+            const postsRenderedRange = this.listRef.current?.getRangeToRender();
 
             // postsRenderedRange[3] is the visibleStopIndex which is post at the bottom of the screen
             if (postsRenderedRange && postsRenderedRange[3] <= 1 && !this.props.atLatestPost) {
@@ -562,7 +560,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         });
     };
 
-    onItemsRendered = ({visibleStartIndex, visibleStopIndex}: Pick<OnItemsRenderedArgs, 'visibleStartIndex' | 'visibleStopIndex'>) => {
+    onItemsRendered = ({visibleStartIndex, visibleStopIndex}: {visibleStartIndex: number; visibleStopIndex: number}) => {
         this.updateFloatingTimestamp(visibleStartIndex);
 
         if (
@@ -717,11 +715,11 @@ export default class PostList extends React.PureComponent<Props, State> {
                                             {this.renderToasts(width)}
                                         </div>
 
-                                        <DynamicSizeList
+                                        <DynamicVirtualizedList
+                                            id='postListScrollContainer'
                                             ref={this.listRef}
                                             height={height}
                                             width={width}
-                                            id='postListScrollContainer'
                                             className='post-list__dynamic'
                                             itemData={this.state.postListIds}
                                             overscanCountForward={OVERSCAN_COUNT_FORWARD}
@@ -739,7 +737,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                                             scrollToFailed={this.scrollToFailed}
                                         >
                                             {this.renderRow}
-                                        </DynamicSizeList>
+                                        </DynamicVirtualizedList>
                                     </>
                                 )}
                             </AutoSizer>
