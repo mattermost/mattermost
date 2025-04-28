@@ -10,7 +10,7 @@ require (
 	github.com/anthonynsimon/bild v0.14.0
 	github.com/avct/uasurfer v0.0.0-20240501094946-ca0c4d1e541b
 	github.com/aws/aws-sdk-go v1.55.6
-	github.com/bep/imagemeta v0.10.0
+	github.com/bep/imagemeta v0.11.0
 	github.com/blang/semver/v4 v4.0.0
 	github.com/blevesearch/bleve/v2 v2.4.4-0.20250115090822-cbafdca08538
 	github.com/cespare/xxhash/v2 v2.3.0
@@ -21,7 +21,7 @@ require (
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/getsentry/sentry-go v0.31.1
 	github.com/go-sql-driver/mysql v1.8.1
-	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/golang-migrate/migrate/v4 v4.18.2
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/mock v1.6.0
@@ -75,7 +75,7 @@ require (
 	golang.org/x/crypto v0.35.0
 	golang.org/x/image v0.23.0
 	golang.org/x/net v0.36.0
-	golang.org/x/sync v0.12.0
+	golang.org/x/sync v0.13.0
 	golang.org/x/term v0.29.0
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -222,7 +222,7 @@ require (
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/tools v0.29.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250124145028-65684f501c47 // indirect
 	google.golang.org/grpc v1.70.0 // indirect

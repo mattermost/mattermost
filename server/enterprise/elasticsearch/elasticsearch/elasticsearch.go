@@ -549,7 +549,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 	}
 
 	search := es.client.Search().
-		Index(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts + "*").
+		Index(common.SearchIndexName(es.Platform.Config().ElasticsearchSettings, common.IndexBasePosts+"*")).
 		Request(&search.Request{
 			Query:     query,
 			Highlight: highlight,
@@ -822,7 +822,7 @@ func (es *ElasticsearchInterfaceImpl) SearchChannels(teamId, userID string, term
 	}
 
 	search := es.client.Search().
-		Index(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels).
+		Index(common.SearchIndexName(es.Platform.Config().ElasticsearchSettings, common.IndexBaseChannels)).
 		Request(&search.Request{
 			Query: &types.Query{Bool: query},
 		}).
@@ -996,7 +996,7 @@ func (es *ElasticsearchInterfaceImpl) autocompleteUsers(contextCategory string, 
 	}
 
 	search := es.client.Search().
-		Index(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers).
+		Index(common.SearchIndexName(es.Platform.Config().ElasticsearchSettings, common.IndexBaseUsers)).
 		Request(&search.Request{
 			Query: &types.Query{Bool: query},
 		}).
@@ -1116,7 +1116,7 @@ func (es *ElasticsearchInterfaceImpl) autocompleteUsersNotInChannel(teamId, chan
 	}
 
 	search := es.client.Search().
-		Index(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers).
+		Index(common.SearchIndexName(es.Platform.Config().ElasticsearchSettings, common.IndexBaseUsers)).
 		Request(&search.Request{
 			Query: &types.Query{Bool: query},
 		}).
@@ -1664,7 +1664,7 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 	}
 
 	search := es.client.Search().
-		Index(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles).
+		Index(common.SearchIndexName(es.Platform.Config().ElasticsearchSettings, common.IndexBaseFiles)).
 		Request(&search.Request{
 			Query: query,
 		}).
