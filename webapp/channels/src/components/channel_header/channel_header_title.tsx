@@ -38,12 +38,12 @@ const ChannelHeaderTitle = ({
     const channel = useSelector(getCurrentChannel);
     const remoteNames = useSelector((state) => getRemoteNamesForChannel(state, channel?.id || ''));
 
-    // Fetch shared channel information when the component mounts or the channel changes
+    // Fetch shared channel information only when needed
     useEffect(() => {
-        if (channel?.shared && channel.team_id) {
+        if (channel?.shared && channel.team_id && remoteNames.length === 0) {
             dispatch(fetchSharedChannelsWithRemotes(channel.team_id));
         }
-    }, [dispatch, channel?.id, channel?.team_id, channel?.shared]);
+    }, [dispatch, channel?.id, channel?.team_id, channel?.shared, remoteNames]);
 
     if (!channel) {
         return null;

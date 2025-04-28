@@ -72,6 +72,36 @@ func (_m *RemoteClusterStore) Get(remoteClusterID string, includeDeleted bool) (
 	return r0, r1
 }
 
+// GetByIDs provides a mock function with given fields: remoteIDs
+func (_m *RemoteClusterStore) GetByIDs(remoteIDs []string) ([]*model.RemoteCluster, error) {
+	ret := _m.Called(remoteIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByIDs")
+	}
+
+	var r0 []*model.RemoteCluster
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string) ([]*model.RemoteCluster, error)); ok {
+		return rf(remoteIDs)
+	}
+	if rf, ok := ret.Get(0).(func([]string) []*model.RemoteCluster); ok {
+		r0 = rf(remoteIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.RemoteCluster)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(remoteIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAll provides a mock function with given fields: offset, limit, filter
 func (_m *RemoteClusterStore) GetAll(offset int, limit int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
 	ret := _m.Called(offset, limit, filter)

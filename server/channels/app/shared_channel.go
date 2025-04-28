@@ -91,57 +91,92 @@ func (a *App) GetSharedChannelsWithRemotes(page int, perPage int, opts model.Sha
 	}
 
 	result := make([]*model.SharedChannelWithRemotes, 0, len(channels))
-	for _, channel := range channels {
-		remotes := make([]model.RemoteClusterInfo, 0)
 
-		// For home channels, get remotes this channel is shared with
+	// Create a map of channel IDs -> channel for faster access
+	channelMap := make(map[string]*model.SharedChannel)
+
+	// Map to collect unique remote IDs to fetch in a single batch
+	remoteIDs := make(map[string]bool)
+
+	// Track channels that need remotes data
+	homeChannels := make([]string, 0, len(channels))
+
+	// First pass - organize channels and collect remote IDs from non-home channels
+	for _, channel := range channels {
+		channelMap[channel.ChannelId] = channel
 		if channel.Home {
+			homeChannels = append(homeChannels, channel.ChannelId)
+		} else if channel.RemoteId != "" {
+			remoteIDs[channel.RemoteId] = true
+		}
+	}
+
+	// Batch fetch all remotes for home channels
+	allRemotes := make([]*model.SharedChannelRemote, 0)
+	if len(homeChannels) > 0 {
+		// Get remotes for each home channel
+		for _, channelID := range homeChannels {
 			remoteOpts := model.SharedChannelRemoteFilterOpts{
-				ChannelId: channel.ChannelId,
+				ChannelId: channelID,
 			}
 
 			// Get the remotes for this channel
-			scRemotes, err := a.GetSharedChannelRemotes(0, 100, remoteOpts)
+			channelRemotes, err := a.GetSharedChannelRemotes(0, 100, remoteOpts)
 			if err != nil {
 				a.Log().Warn("Error getting remotes for shared channel",
-					mlog.String("channel_id", channel.ChannelId),
+					mlog.String("channel_id", channelID),
 					mlog.Err(err),
 				)
 				continue
 			}
 
-			// Get the remote cluster info for each remote
-			for _, scRemote := range scRemotes {
-				rc, err := a.GetRemoteCluster(scRemote.RemoteId, true)
-				if err != nil {
-					a.Log().Warn("Error getting remote cluster",
-						mlog.String("remote_id", scRemote.RemoteId),
-						mlog.Err(err),
-					)
-					continue
-				}
-				remotes = append(remotes, rc.ToRemoteClusterInfo())
+			allRemotes = append(allRemotes, channelRemotes...)
+
+			// Collect remote IDs for batch fetching
+			for _, remote := range channelRemotes {
+				remoteIDs[remote.RemoteId] = true
 			}
-		} else {
-			// For non-home channels, get the remote this channel is from
-			if channel.RemoteId != "" {
-				rc, err := a.GetRemoteCluster(channel.RemoteId, true)
-				if err != nil {
-					a.Log().Warn("Error getting remote cluster for non-home channel",
-						mlog.String("remote_id", channel.RemoteId),
-						mlog.String("channel_id", channel.ChannelId),
-						mlog.Err(err),
-					)
-				} else {
-					remotes = append(remotes, rc.ToRemoteClusterInfo())
+		}
+	}
+
+	// Fetch all remote clusters at once
+	remoteClusters := make(map[string]*model.RemoteCluster)
+	for remoteID := range remoteIDs {
+		rc, err := a.GetRemoteCluster(remoteID, true)
+		if err != nil {
+			a.Log().Warn("Error getting remote cluster",
+				mlog.String("remote_id", remoteID),
+				mlog.Err(err),
+			)
+			continue
+		}
+		remoteClusters[remoteID] = rc
+	}
+
+	// Now build the results
+	for _, channel := range channels {
+		scwr := &model.SharedChannelWithRemotes{
+			SharedChannel: channel,
+			Remotes:       make([]model.RemoteClusterInfo, 0),
+		}
+
+		if channel.Home {
+			// Find remotes for this channel from our batch fetch
+			for _, remote := range allRemotes {
+				if remote.ChannelId == channel.ChannelId {
+					if rc, ok := remoteClusters[remote.RemoteId]; ok {
+						scwr.Remotes = append(scwr.Remotes, rc.ToRemoteClusterInfo())
+					}
 				}
+			}
+		} else if channel.RemoteId != "" {
+			// Add remote for non-home channel
+			if rc, ok := remoteClusters[channel.RemoteId]; ok {
+				scwr.Remotes = append(scwr.Remotes, rc.ToRemoteClusterInfo())
 			}
 		}
 
-		result = append(result, &model.SharedChannelWithRemotes{
-			SharedChannel: channel,
-			Remotes:       remotes,
-		})
+		result = append(result, scwr)
 	}
 
 	return result, nil

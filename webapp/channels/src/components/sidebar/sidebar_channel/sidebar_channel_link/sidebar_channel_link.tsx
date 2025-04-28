@@ -112,7 +112,7 @@ export class SidebarChannelLink extends React.PureComponent<OwnProps & StateProp
         
         // Fetch shared channel information if this is a shared channel
         if (this.props.isSharedChannel && this.props.channel?.team_id) {
-            this.props.fetchSharedChannelsWithRemotes(this.props.channel.team_id);
+            this.fetchSharedChannelsIfNeeded();
         }
     }
 
@@ -121,9 +121,15 @@ export class SidebarChannelLink extends React.PureComponent<OwnProps & StateProp
             this.enableToolTipIfNeeded();
         }
         
-        // Fetch shared channel information if this is a shared channel and the channel changed
+        // Fetch shared channel information when channel changes
         if (this.props.isSharedChannel && 
             (prevProps.channel?.id !== this.props.channel?.id || prevProps.channel?.team_id !== this.props.channel?.team_id)) {
+            this.fetchSharedChannelsIfNeeded();
+        }
+    }
+    
+    fetchSharedChannelsIfNeeded = (): void => {
+        if (this.props.remoteNames.length === 0 && this.props.channel?.team_id) {
             this.props.fetchSharedChannelsWithRemotes(this.props.channel.team_id);
         }
     }

@@ -310,3 +310,30 @@ func (s sqlRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 	}
 	return nil
 }
+
+func (s sqlRemoteClusterStore) GetByIDs(remoteIDs []string) ([]*model.RemoteCluster, error) {
+	if len(remoteIDs) == 0 {
+		return []*model.RemoteCluster{}, nil
+	}
+
+	query := s.getQueryBuilder().
+		Select(remoteClusterFields("")...).
+		From("RemoteClusters").
+		Where(sq.Eq{"RemoteId": remoteIDs}).
+		Where(sq.Eq{"DeleteAt": 0})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "remote_clusters_get_by_ids_tosql")
+	}
+
+	remoteClusters := []*model.RemoteCluster{}
+	if err := s.GetReplica().Select(&remoteClusters, queryString, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return []*model.RemoteCluster{}, nil
+		}
+		return nil, errors.Wrap(err, "failed to find RemoteClusters")
+	}
+
+	return remoteClusters, nil
+}

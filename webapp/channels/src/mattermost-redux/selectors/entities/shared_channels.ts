@@ -15,11 +15,16 @@ export const getRemoteNamesForChannel = createSelector(
     getSharedChannelsWithRemotes,
     (state: GlobalState, channelId: string) => channelId,
     (sharedChannelsWithRemotes, channelId) => {
-        if (!sharedChannelsWithRemotes || !sharedChannelsWithRemotes[channelId] || !sharedChannelsWithRemotes[channelId].remotes) {
+        if (!channelId || !sharedChannelsWithRemotes) {
             return [];
         }
-        
-        return sharedChannelsWithRemotes[channelId].remotes.map((remote: RemoteClusterInfo) => remote.display_name);
+
+        const data = sharedChannelsWithRemotes[channelId];
+        if (!data || !data.remotes || !Array.isArray(data.remotes)) {
+            return [];
+        }
+
+        return data.remotes.map((remote: RemoteClusterInfo) => remote.display_name || remote.name);
     },
 );
 
@@ -28,10 +33,15 @@ export const getRemoteInfoForChannel = createSelector(
     getSharedChannelsWithRemotes,
     (state: GlobalState, channelId: string) => channelId,
     (sharedChannelsWithRemotes, channelId) => {
-        if (!sharedChannelsWithRemotes || !sharedChannelsWithRemotes[channelId] || !sharedChannelsWithRemotes[channelId].remotes) {
+        if (!channelId || !sharedChannelsWithRemotes) {
+            return [];
+        }
+
+        const data = sharedChannelsWithRemotes[channelId];
+        if (!data || !data.remotes || !Array.isArray(data.remotes)) {
             return [];
         }
         
-        return sharedChannelsWithRemotes[channelId].remotes;
+        return data.remotes;
     },
 );
