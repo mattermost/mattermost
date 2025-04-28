@@ -748,20 +748,14 @@ export default class DynamicVirtualizedList extends PureComponent {
     };
 
     render() {
-        const {
-            className,
-            innerRef,
-            style,
-            innerListStyle,
-        } = this.props;
-
         const onScroll = this.onScrollVertical;
 
         const items = this.renderItems();
 
         return (
             <div
-                className={className}
+                id={this.props.id}
+                className={this.props.className}
                 onScroll={onScroll}
                 ref={this.outerRefSetter}
                 style={{
@@ -770,13 +764,13 @@ export default class DynamicVirtualizedList extends PureComponent {
                     overflowAnchor: 'none',
                     willChange: 'transform',
                     width: '100%',
-                    ...style,
+                    ...this.props.style,
                 }}
             >
                 <div
-                    ref={innerRef}
+                    ref={this.props.innerRef}
                     role='list'
-                    style={innerListStyle}
+                    style={this.props.innerListStyle}
                 >
                     {items}
                 </div>
