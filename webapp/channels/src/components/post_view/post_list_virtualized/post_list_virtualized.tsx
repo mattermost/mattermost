@@ -3,10 +3,11 @@
 
 /* eslint-disable max-lines */
 
-import {DynamicSizeList} from 'dynamic-virtualized-list';
-import type {OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 import React from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
+
+import {DynamicSizeList} from '@mattermost/dynamic-virtualized-list';
+import type {OnItemsRenderedArgs} from '@mattermost/dynamic-virtualized-list';
 
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 import {getNewMessagesIndex, isDateLine, isStartOfNewMessages} from 'mattermost-redux/utils/post_list';
@@ -720,6 +721,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                                             ref={this.listRef}
                                             height={height}
                                             width={width}
+                                            id='postListScrollContainer'
                                             className='post-list__dynamic'
                                             itemData={this.state.postListIds}
                                             overscanCountForward={OVERSCAN_COUNT_FORWARD}
