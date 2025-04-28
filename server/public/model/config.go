@@ -147,6 +147,12 @@ const (
 	SupportSettingsDefaultSupportEmail       = ""
 	SupportSettingsDefaultReAcceptancePeriod = 365
 
+	SupportSettingsReportAProblemTypeLink    = "link"
+	SupportSettingsReportAProblemTypeMail    = "email"
+	SupportSettingsReportAProblemTypeHidden  = "hidden"
+	SupportSettingsReportAProblemTypeDefault = "default"
+	SupportSettingsDefaultReportAProblemType = SupportSettingsReportAProblemTypeDefault
+
 	LdapSettingsDefaultFirstNameAttribute        = ""
 	LdapSettingsDefaultLastNameAttribute         = ""
 	LdapSettingsDefaultEmailAttribute            = ""
@@ -1538,6 +1544,7 @@ type ExperimentalAuditSettings struct {
 	FileCompress        *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileMaxQueueSize    *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	AdvancedLoggingJSON json.RawMessage `access:"experimental_features"`
+	Certificate         *string         `access:"experimental_features"` // telemetry: none
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -1571,6 +1578,10 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		s.AdvancedLoggingJSON = []byte("{}")
+	}
+
+	if s.Certificate == nil {
+		s.Certificate = NewPointer("")
 	}
 }
 
@@ -2141,6 +2152,9 @@ type SupportSettings struct {
 	AboutLink                              *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	HelpLink                               *string `access:"site_customization"`
 	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	ReportAProblemType                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	ReportAProblemMail                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	AllowDownloadLogs                      *bool   `access:"site_customization,write_restrictable,cloud_restrictable"`
 	ForgotPasswordLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	SupportEmail                           *string `access:"site_notifications"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
@@ -2187,6 +2201,18 @@ func (s *SupportSettings) SetDefaults() {
 
 	if s.ReportAProblemLink == nil {
 		s.ReportAProblemLink = NewPointer(SupportSettingsDefaultReportAProblemLink)
+	}
+
+	if s.ReportAProblemType == nil {
+		s.ReportAProblemType = NewPointer(SupportSettingsDefaultReportAProblemType)
+	}
+
+	if s.ReportAProblemMail == nil {
+		s.ReportAProblemMail = NewPointer("")
+	}
+
+	if s.AllowDownloadLogs == nil {
+		s.AllowDownloadLogs = NewPointer(true)
 	}
 
 	if !isSafeLink(s.ForgotPasswordLink) {
@@ -3980,6 +4006,26 @@ func (o *Config) IsValid() *AppError {
 
 	if appErr := o.WranglerSettings.IsValid(); appErr != nil {
 		return appErr
+	}
+
+	if o.SupportSettings.ReportAProblemType != nil {
+		if *o.SupportSettings.ReportAProblemType == SupportSettingsReportAProblemTypeMail {
+			if o.SupportSettings.ReportAProblemMail == nil {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_mail.missing.app_error", nil, "", http.StatusBadRequest)
+			}
+			if !IsValidEmail(*o.SupportSettings.ReportAProblemMail) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_mail.invalid.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+		if *o.SupportSettings.ReportAProblemType == SupportSettingsReportAProblemTypeLink {
+			if o.SupportSettings.ReportAProblemLink == nil {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.missing.app_error", nil, "", http.StatusBadRequest)
+			}
+
+			if !IsValidHTTPURL(*o.SupportSettings.ReportAProblemLink) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.invalid.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil

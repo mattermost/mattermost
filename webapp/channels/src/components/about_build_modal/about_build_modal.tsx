@@ -7,6 +7,8 @@ import {FormattedMessage} from 'react-intl';
 
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 
+import {Client4} from 'mattermost-redux/client';
+
 import ExternalLink from 'components/external_link';
 import Nbsp from 'components/html_entities/nbsp';
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
@@ -42,6 +44,7 @@ type Props = {
 
 type State = {
     show: boolean;
+    loadMetric: number | null;
 };
 
 export default class AboutBuildModal extends React.PureComponent<Props, State> {
@@ -50,7 +53,24 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
 
         this.state = {
             show: true,
+            loadMetric: 0,
         };
+    }
+
+    componentDidMount() {
+        const fetchLoadMetric = async () => {
+            try {
+                const result = await Client4.getLicenseLoadMetric();
+                if (result?.load) {
+                    this.setState({loadMetric: result.load});
+                }
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.error('Error fetching load metric:', e);
+            }
+        };
+
+        fetchLoadMetric();
     }
 
     doHide = () => {
@@ -231,6 +251,19 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
             );
         }
 
+        let loadMetricComponent: JSX.Element | null = null;
+        if (this.state.loadMetric !== null && this.state.loadMetric > 0) {
+            loadMetricComponent = (
+                <div data-testid='aboutModalLoadMetric'>
+                    <FormattedMessage
+                        id='about.loadmetric'
+                        defaultMessage='Load Metric:'
+                    />
+                    <span>{'\u00a0' + this.state.loadMetric}</span>
+                </div>
+            );
+        }
+
         return (
             <Modal
                 dialogClassName='a11y__modal about-modal'
@@ -278,6 +311,7 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                                         {'\u00a0' + mmversion}
                                     </span>
                                 </div>
+                                {loadMetricComponent}
                                 <div data-testid='aboutModalDBVersionString'>
                                     <FormattedMessage
                                         id='about.dbversion'
