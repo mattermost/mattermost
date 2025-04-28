@@ -4,7 +4,7 @@
 /* eslint-disable react/prop-types */
 
 import memoizeOne from 'memoize-one';
-import {createElement, PureComponent} from 'react';
+import React, {createElement, PureComponent} from 'react';
 
 import ItemMeasurer from './item_measurer';
 
@@ -751,8 +751,6 @@ export default class DynamicVirtualizedList extends PureComponent {
         const {
             className,
             innerRef,
-            innerTagName,
-            outerTagName,
             style,
             innerListStyle,
         } = this.props;
@@ -761,49 +759,28 @@ export default class DynamicVirtualizedList extends PureComponent {
 
         const items = this.renderItems();
 
-        return createElement(
-            outerTagName,
-            {
-                className,
-                onScroll,
-                ref: this.outerRefSetter,
-                style: {
+        return (
+            <div
+                className={className}
+                onScroll={onScroll}
+                ref={this.outerRefSetter}
+                style={{
                     WebkitOverflowScrolling: 'touch',
                     overflowY: 'auto',
                     overflowAnchor: 'none',
                     willChange: 'transform',
                     width: '100%',
                     ...style,
-                },
-            },
-            // eslint-disable-next-line react/no-children-prop
-            createElement(innerTagName, {
-                children: items,
-                ref: innerRef,
-                role: 'list',
-                style: innerListStyle,
-            }),
+                }}
+            >
+                <div
+                    ref={innerRef}
+                    role='list'
+                    style={innerListStyle}
+                >
+                    {items}
+                </div>
+            </div>
         );
     }
 }
-
-// NOTE: I considered further wrapping individual items with a pure ListItem component.
-// This would avoid ever calling the render function for the same index more than once,
-// But it would also add the overhead of a lot of components/fibers.
-// I assume people already do this (render function returning a class component),
-// So my doing it would just unnecessarily double the wrappers.
-// const validateProps = ({ children, itemSize }) => {
-//   if (process.env.NODE_ENV !== 'production') {
-//     if (children == null) {
-//       throw Error(
-//         'An invalid "children" prop has been specified. ' +
-//           'Value should be a React component. ' +
-//           `"${children === null ? 'null' : typeof children}" was specified.`
-//       );
-//     }
-
-//     if (itemSize !== undefined) {
-//       throw Error('An unexpected "itemSize" prop has been provided.');
-//     }
-//   }
-// };

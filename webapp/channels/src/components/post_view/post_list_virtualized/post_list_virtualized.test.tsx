@@ -5,6 +5,8 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
+import type {DynamicSizeList} from '@mattermost/dynamic-virtualized-list';
+
 import {DATE_LINE} from 'mattermost-redux/utils/post_list';
 
 import PostListRow from 'components/post_view/post_list_row';
@@ -131,7 +133,7 @@ describe('PostList', () => {
             const scrollHeight = 1000;
             const clientHeight = 500;
 
-            instance.listRef = {current: {getRangeToRender: () => [0, 70, 12, 1]} as any};
+            instance.listRef = {current: {_getRangeToRender: () => [0, 70, 12, 1]} as unknown as DynamicSizeList};
             instance.onScroll({
                 scrollDirection: 'forward',
                 scrollOffset,
@@ -151,7 +153,7 @@ describe('PostList', () => {
             const scrollHeight = 1000;
             const clientHeight = 500;
 
-            instance.listRef = {current: {getRangeToRender: () => [0, 70, 12, 2]} as any};
+            instance.listRef = {current: {_getRangeToRender: () => [0, 70, 12, 2]} as unknown as DynamicSizeList};
             instance.onScroll({
                 scrollDirection: 'forward',
                 scrollOffset,

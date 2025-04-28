@@ -3,6 +3,7 @@
 
 /* eslint-disable max-lines */
 
+import {DynamicSizeList} from 'dynamic-virtualized-list';
 import React from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
@@ -11,12 +12,6 @@ import {getNewMessagesIndex, isDateLine, isStartOfNewMessages} from 'mattermost-
 
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
 import type {CanLoadMorePosts} from 'actions/views/channel';
-
-// eslint-disable-next-line import/order
-import DynamicSizeList from 'components/dynamic_virtualized_list';
-
-// eslint-disable-next-line import/order
-// import {DynamicSizeList} from 'dynamic-virtualized-list';
 
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
 import PostListRow from 'components/post_view/post_list_row';
@@ -434,7 +429,7 @@ export default class PostList extends React.PureComponent<Props, State> {
 
         if (scrollUpdateWasRequested) { //if scroll change is programatically requested i.e by calling scrollTo
             //This is a private method on virtlist
-            const postsRenderedRange = this.listRef.current?.getRangeToRender();
+            const postsRenderedRange = this.listRef.current?._getRangeToRender(); //eslint-disable-line no-underscore-dangle
 
             // postsRenderedRange[3] is the visibleStopIndex which is post at the bottom of the screen
             if (postsRenderedRange && postsRenderedRange[3] <= 1 && !this.props.atLatestPost) {
