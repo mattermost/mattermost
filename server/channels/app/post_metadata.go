@@ -111,60 +111,6 @@ func (a *App) OverrideIconURLIfEmoji(c request.CTX, post *model.Post) {
 	}
 }
 
-// GetPostWithCompleteMetadata returns a post with all its metadata including priority, acknowledgements,
-// reactions, files, and embeds. This is useful when you need all metadata for a post that may be
-// stored in separate tables.
-func (a *App) GetPostWithCompleteMetadata(c request.CTX, postId string) (*model.Post, *model.AppError) {
-	// Get the post initially without complete metadata
-	post, appErr := a.GetSinglePost(c, postId, false)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	// Initialize metadata if it doesn't exist
-	if post.Metadata == nil {
-		post.Metadata = &model.PostMetadata{}
-	}
-
-	// Emojis and reaction counts
-	if emojis, reactions, err := a.getEmojisAndReactionsForPost(c, post); err != nil {
-		c.Logger().Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", postId), mlog.Err(err))
-	} else {
-		post.Metadata.Emojis = emojis
-		post.Metadata.Reactions = reactions
-	}
-
-	// Files
-	if fileInfos, _, err := a.getFileMetadataForPost(c, post, false); err != nil {
-		c.Logger().Warn("Failed to get files for a post", mlog.String("post_id", postId), mlog.Err(err))
-	} else {
-		post.Metadata.Files = fileInfos
-	}
-
-	// Get the Priority metadata if post priority is enabled
-	if a.IsPostPriorityEnabled() {
-		priority, pErr := a.GetPriorityForPost(postId)
-		if pErr != nil {
-			c.Logger().Warn("Failed to get post priority for a post", mlog.String("post_id", postId), mlog.Err(pErr))
-		} else {
-			post.Metadata.Priority = priority
-		}
-
-		// Get the Acknowledgements metadata
-		acknowledgements, aErr := a.GetAcknowledgementsForPost(postId)
-		if aErr != nil {
-			c.Logger().Warn("Failed to get post acknowledgements for a post", mlog.String("post_id", postId), mlog.Err(aErr))
-		} else {
-			post.Metadata.Acknowledgements = acknowledgements
-		}
-	}
-
-	// Get embeds and images
-	post = a.getEmbedsAndImages(c, post, false)
-
-	return post, nil
-}
-
 func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNewPost, isEditPost, includePriority bool) *model.Post {
 	post := originalPost.Clone()
 

@@ -55,26 +55,22 @@ func (a *App) SavePriorityForPost(c request.CTX, post *model.Post) (*model.Post,
 		}
 	}
 
-	// Transfer priority metadata from post to currentPost
+	// Ensure the current post has metadata
 	if currentPost.Metadata == nil {
 		currentPost.Metadata = &model.PostMetadata{}
 	}
 
-	// Create a deep copy of the Priority to avoid race conditions
-	if post.Metadata.Priority != nil {
-		currentPost.Metadata.Priority = post.Metadata.Priority.Clone()
-	} else {
-		currentPost.Metadata.Priority = nil
-	}
+	// Create a deep copy of the priority from the input post
+	currentPost.Metadata.Priority = post.Metadata.Priority.Copy()
 
-	// Create priority object with all necessary fields from currentPost
+	// Create priority object for database save with just the IDs
 	postPriority := &model.PostPriority{
-		PostId:                  currentPost.Id,
-		ChannelId:               currentPost.ChannelId,
-		Priority:                currentPost.Metadata.Priority.Priority,
-		RequestedAck:            currentPost.Metadata.Priority.RequestedAck,
-		PersistentNotifications: currentPost.Metadata.Priority.PersistentNotifications,
+		PostId:    currentPost.Id,
+		ChannelId: currentPost.ChannelId,
 	}
+	postPriority.Priority = currentPost.Metadata.Priority.Priority
+	postPriority.RequestedAck = currentPost.Metadata.Priority.RequestedAck
+	postPriority.PersistentNotifications = currentPost.Metadata.Priority.PersistentNotifications
 
 	// Save priority to the PostsPriority table
 	savedPriority, nErr := a.Srv().Store().PostPriority().Save(postPriority)

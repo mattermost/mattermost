@@ -184,8 +184,8 @@ type PostPriority struct {
 	ChannelId string `json:",omitempty"`
 }
 
-// Clone creates a deep copy of the PostPriority
-func (p *PostPriority) Clone() *PostPriority {
+// Copy creates a deep copy of the PostPriority
+func (p *PostPriority) Copy() *PostPriority {
 	if p == nil {
 		return nil
 	}
@@ -372,7 +372,6 @@ func (o *Post) ShallowCopy(dst *Post) error {
 func (o *Post) Clone() *Post {
 	pCopy := &Post{} //nolint:revive
 	o.ShallowCopy(pCopy)
-
 	return pCopy
 }
 

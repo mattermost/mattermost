@@ -250,7 +250,10 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		require.NotNil(t, ack)
 
 		// Get the post with complete metadata
-		postWithAcks, appErr := th.App.GetPostWithCompleteMetadata(th.Context, post.Id)
+		// First get the post, then prepare it with all metadata
+		postFetch, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
+		require.Nil(t, appErr)
+		postWithAcks := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, postFetch, false, false, true)
 		require.Nil(t, appErr)
 		require.NotNil(t, postWithAcks)
 
@@ -308,7 +311,10 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		require.NotNil(t, updatedPost)
 
 		// Get the actual post from the database with full metadata
-		dbPost, appErr := th.App.GetPostWithCompleteMetadata(th.Context, updatedPost.Id)
+		// First get the post, then prepare it with all metadata
+		postFetch, appErr := th.App.GetSinglePost(th.Context, updatedPost.Id, false)
+		require.Nil(t, appErr)
+		dbPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, postFetch, false, false, true)
 		require.Nil(t, appErr)
 		require.NotNil(t, dbPost)
 
@@ -364,7 +370,10 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		require.NotNil(t, updatedPost)
 
 		// Get the actual post from the database with full metadata
-		dbPost, appErr := th.App.GetPostWithCompleteMetadata(th.Context, updatedPost.Id)
+		// First get the post, then prepare it with all metadata
+		postFetch, appErr := th.App.GetSinglePost(th.Context, updatedPost.Id, false)
+		require.Nil(t, appErr)
+		dbPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, postFetch, false, false, true)
 		require.Nil(t, appErr)
 		require.NotNil(t, dbPost)
 
@@ -399,7 +408,10 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		require.NotNil(t, ack)
 
 		// Get complete post with metadata
-		fullPost, appErr := th.App.GetPostWithCompleteMetadata(th.Context, createdPlainPost.Id)
+		// First get the post, then prepare it with all metadata
+		postFetch, appErr := th.App.GetSinglePost(th.Context, createdPlainPost.Id, false)
+		require.Nil(t, appErr)
+		fullPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, postFetch, false, false, true)
 		require.Nil(t, appErr)
 
 		metadataOnlyPost := fullPost.Clone() // Clone the post with complete metadata
