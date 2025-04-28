@@ -421,8 +421,6 @@ type allChannelMember struct {
 	ChannelSchemeDefaultAdminRole sql.NullString
 }
 
-type allChannelMembers []allChannelMember
-
 func (db allChannelMember) Process() (string, string) {
 	roles := strings.Fields(db.Roles)
 
@@ -470,17 +468,6 @@ func (db allChannelMember) Process() (string, string) {
 	}
 
 	return db.ChannelId, strings.Join(roles, " ")
-}
-
-func (db allChannelMembers) ToMapStringString() map[string]string {
-	result := make(map[string]string)
-
-	for _, item := range db {
-		key, value := item.Process()
-		result[key] = value
-	}
-
-	return result
 }
 
 // publicChannel is a subset of the metadata corresponding to public channels only.
@@ -2288,8 +2275,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId st
 	}
 	defer deferClose(rows, &err)
 
-	var data allChannelMembers
-	for rows.Next() {
+	scanner := func(rows *sql.Rows) (string, string, error) {
 		var cm allChannelMember
 		err = rows.Scan(
 			&cm.ChannelId, &cm.Roles, &cm.SchemeGuest, &cm.SchemeUser,
@@ -2297,17 +2283,10 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId st
 			&cm.TeamSchemeDefaultAdminRole, &cm.ChannelSchemeDefaultGuestRole,
 			&cm.ChannelSchemeDefaultUserRole, &cm.ChannelSchemeDefaultAdminRole,
 		)
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to scan columns")
-		}
-		data = append(data, cm)
+		k, v := cm.Process()
+		return k, v, errors.Wrap(err, "unable to scan columns")
 	}
-	if err = rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "error while iterating over rows")
-	}
-	ids := data.ToMapStringString()
-
-	return ids, nil
+	return scanRowsIntoMap(rows, scanner, nil)
 }
 
 func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[string]int64, err error) {
@@ -2326,33 +2305,26 @@ func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[stri
 		return nil, errors.Wrap(err, "channels_member_count_tosql")
 	}
 
-	rows, err := s.GetReplica().DB.Query(queryString, args...)
-
+	rows, err := s.GetReplica().Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to fetch member counts")
 	}
 	defer rows.Close()
 
-	memberCounts := make(map[string]int64)
-	// Initialize member counts for channels with zero members
+	// Initialize default values map
+	defaults := make(map[string]int64, len(channelIDs))
 	for _, channelID := range channelIDs {
-		memberCounts[channelID] = 0
+		defaults[channelID] = 0
 	}
-	for rows.Next() {
+
+	scanner := func(rows *sql.Rows) (string, int64, error) {
 		var channelID string
 		var count int64
-		errScan := rows.Scan(&channelID, &count)
-		if errScan != nil {
-			return nil, errors.Wrap(err, "failed to scan row")
-		}
-		memberCounts[channelID] = count
+		err := rows.Scan(&channelID, &count)
+		return channelID, count, errors.Wrap(err, "failed to scan row")
 	}
 
-	if err = rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "error while iterating rows")
-	}
-
-	return memberCounts, nil
+	return scanRowsIntoMap(rows, scanner, defaults)
 }
 
 func (s SqlChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
@@ -3050,28 +3022,25 @@ func (s SqlChannelStore) AnalyticsCountAll(teamId string) (map[model.ChannelType
 		query = query.Where(sq.Eq{"TeamId": teamId})
 	}
 
-	sql, args, err := query.ToSql()
+	sqlStr, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "AnalyticsCountAll_ToSql")
 	}
 
-	rows, err := s.GetReplica().Query(sql, args...)
+	rows, err := s.GetReplica().Query(sqlStr, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to count Channels by type")
 	}
 	defer rows.Close()
 
-	counts := make(map[model.ChannelType]int64)
-	for rows.Next() {
+	scanner := func(rows *sql.Rows) (model.ChannelType, int64, error) {
 		var channelType model.ChannelType
 		var count int64
-		if err := rows.Scan(&channelType, &count); err != nil {
-			return nil, errors.Wrap(err, "unable to scan row")
-		}
-		counts[channelType] = count
+		err := rows.Scan(&channelType, &count)
+		return channelType, count, errors.Wrap(err, "unable to scan row")
 	}
 
-	return counts, nil
+	return scanRowsIntoMap(rows, scanner, nil)
 }
 
 func (s SqlChannelStore) GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error) {
