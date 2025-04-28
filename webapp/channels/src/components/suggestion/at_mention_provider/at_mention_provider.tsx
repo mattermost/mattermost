@@ -36,7 +36,7 @@ type CreatedProfile = UserProfile & {
 type Results = {
     matchedPretext: string;
     terms: string[];
-    items: any;
+    groups: any[];
     component: React.ElementType;
 };
 
@@ -362,14 +362,14 @@ export default class AtMentionProvider extends Provider {
     }
 
     // updateMatches invokes the resultCallback with the metadata for rendering at mentions
-    updateMatches(resultCallback: ResultsCallback, items: Array<SuggestionGroup<any>>) {
-        if (items.length === 0) {
+    updateMatches(resultCallback: ResultsCallback, groups: Array<SuggestionGroup<any>>) {
+        if (groups.length === 0) {
             this.lastPrefixWithNoResults = this.latestPrefix;
         } else if (this.lastPrefixWithNoResults === this.latestPrefix) {
             this.lastPrefixWithNoResults = '';
         }
 
-        const mentions = items.flatMap((group) => {
+        const mentions = groups.flatMap((group) => {
             if (!('items' in group)) {
                 return [''];
             }
@@ -387,7 +387,7 @@ export default class AtMentionProvider extends Provider {
         resultCallback({
             matchedPretext: `@${this.latestPrefix}`,
             terms: mentions,
-            items,
+            groups,
             component: AtMentionSuggestion,
         });
     }
