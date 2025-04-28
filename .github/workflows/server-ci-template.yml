@@ -24,6 +24,8 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Run setup-go-work
         run: make setup-go-work
+      - name: Install mock deps
+        run: make install-mock-deps
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
@@ -95,6 +97,8 @@ jobs:
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Reset config
+        env:
+          OUTPUT_CONFIG: config/config.json
         run: make config-reset
       - name: Run plugin-checker
         run: make plugin-checker
@@ -269,6 +273,8 @@ jobs:
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Build
+        env:
+          OUTPUT_CONFIG: config/config.json
         run: |
           make config-reset
           make build-cmd BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'

@@ -300,7 +300,8 @@ endif
 
 golangci-lint: ## Run golangci-lint on codebase
 	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57.1
-
+	@echo Adding safe.directory to git config
+	@docker run --rm -v /Users/toninis/mattermost/mattermost/server/../../:/build -v /Users/toninis/mattermost/mattermost/server/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH -e OUTPUT_CONFIG --entrypoint /usr/bin/git cgr.dev/mattermost.com/go-msft-fips:1.22-dev  config --global --add safe.directory /build/mattermost/server
 	@echo Running golangci-lint
 	$(call run_tool_docker,golangci-lint,run ./...)
 	$(call run_tool_docker,golangci-lint,run ./public/...)
@@ -376,6 +377,10 @@ mmctl-mocks: $(MOCKGEN_BIN) ## Creates mocks for mmctl
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
+
+install-mock-deps: ## Install manual mock dependencies
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+	$(GO) install github.com/golang/mock/mockgen@v1.6.0
 
 $(MOCKERY_BIN):
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
@@ -706,7 +711,8 @@ config-openid: ## Configures OpenID.
 
 config-reset: ## Resets the config/config.json file to the default production values.
 	@echo Resetting configuration to production default
-	OUTPUT_CONFIG=config/config.json $(GO) $(GOFLAGS) run -tags production ./scripts/config_generator
+	rm -rf config/config.json
+	$(GO) $(GOFLAGS) run -tags production ./scripts/config_generator
 
 diff-config: ## Compares default configuration between two mattermost versions
 	@./scripts/diff-config.sh
@@ -778,7 +784,7 @@ vet-api: ## Run mattermost go vet to verify api4 documentation, currently not pa
 	$(GO) install github.com/mattermost/mattermost-govet/v2@72e7752bcf59b57688fcb41173a6a1583c405adf
 	make -C ../api build
 	# Run the script through Docker
-	docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH -e GO -e GOBIN -e ROOT cgr.dev/mattermost.com/go-msft-fips:1.22-dev /bin/bash ./scripts/vet-api-check.sh
+	docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server --entrypoint /bin/bash -e GOOS -e GOARCH -e GO -e GOBIN -e ROOT cgr.dev/mattermost.com/go-msft-fips:1.22-dev ./scripts/vet-api-check.sh
 
 gen-serialized:	export LICENSE_HEADER:=$(LICENSE_HEADER)
 gen-serialized: ## Generates serialization methods for hot structs
