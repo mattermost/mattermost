@@ -24,30 +24,37 @@ jobs:
     steps:
       - uses: chainguard-dev/setup-chainctl@main
         with:
-          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f            
+          identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f       
+               
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
       - name: Calculate Golang Version
         id: go
         working-directory: ./server
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+
       - name: Store required variables for publishing results
         run: |
           echo "${{ inputs.name }}" > server/test-name
-          echo "${{ github.event.pull_request.number }}" > server/pr-number        
+          echo "${{ github.event.pull_request.number }}" > server/pr-number    
+
       - name: Setup Go
         uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: server/go.sum
+
       - name: Run setup-go-work
         run: |
           cd server
           make setup-go-work
+
       - name: Setup needed prepackaged plugins
         run: |
           cd server
           make prepackaged-plugins PLUGIN_PACKAGES=mattermost-plugin-jira-v3.2.5
+
       - name: Run docker compose
         run: |
           cd server/build
@@ -55,10 +62,11 @@ jobs:
           cat ../tests/test-data.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
+
       - name: Run mmctl Tests
         env:
           # BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
-          BUILD_IMAGE: BUILD_IMAGE: cgr.dev/mattermost.com/go-msft-fips:1.22-dev
+          BUILD_IMAGE: cgr.dev/mattermost.com/go-msft-fips:1.22-dev
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
             export TESTFLAGS="-timeout 90m -race"
@@ -76,10 +84,12 @@ jobs:
             -w /mattermost/server \
             $BUILD_IMAGE \
             test-mmctl BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+
       - name: Stop docker compose
         run: |
           cd server/build
           docker compose --ansi never stop
+
       - name: Archive logs
         if: ${{ always() }}
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
