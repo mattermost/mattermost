@@ -1,6 +1,8 @@
 module github.com/mattermost/mattermost/server/public
 
-go 1.20
+go 1.23
+
+toolchain go1.23.8
 
 require (
 	github.com/blang/semver/v4 v4.0.0
@@ -15,7 +17,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
-	github.com/mattermost/logr/v2 v2.0.21
+	github.com/mattermost/logr/v2 v2.0.22
 	github.com/nicksnyder/go-i18n/v2 v2.3.0
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
