@@ -25,7 +25,7 @@ endif
 # Helper function to run tools through Docker
 # Usage: $(call run_tool_docker,toolname,arguments)
 define run_tool_docker
-	docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH -e OUTPUT_CONFIG --entrypoint /root/go/bin/$(1) cgr.dev/mattermost.com/go-msft-fips:1.22-dev $(2)
+	docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH -e GOFLAGS -e OUTPUT_CONFIG --entrypoint /root/go/bin/$(1) cgr.dev/mattermost.com/go-msft-fips:1.22-dev $(2)
 endef
 
 define LICENSE_HEADER
@@ -114,7 +114,7 @@ GOFLAGS ?= $(GOFLAGS:)
 # We need to export GOBIN to allow it to be set
 # for processes spawned from the Makefile
 export GOBIN ?= $(PWD)/bin
-GO ?= docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH -e OUTPUT_CONFIG cgr.dev/mattermost.com/go-msft-fips:1.22-dev
+GO ?= docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH -e GOFLAGS -e OUTPUT_CONFIG cgr.dev/mattermost.com/go-msft-fips:1.22-dev
 DELVE ?= dlv
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildNumber=$(BUILD_NUMBER)"
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)"

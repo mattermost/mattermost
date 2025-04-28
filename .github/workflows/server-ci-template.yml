@@ -63,9 +63,9 @@ jobs:
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run golangci
-        run: |
-          rm -rf .git/
-          make golangci-lint
+        env:
+          GOFLAGS: -buildvcs=false
+        run: make golangci-lint
   check-gen-serialized:
     name: Check serialization methods for hot structs
     runs-on: ubuntu-latest
