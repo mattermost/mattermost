@@ -2289,7 +2289,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId st
 			&cm.ChannelSchemeDefaultUserRole, &cm.ChannelSchemeDefaultAdminRole,
 		)
 		k, v := cm.Process()
-		return k, v, err
+		return k, v, errors.Wrap(err, "unable to scan columns")
 	}
 	return scanRowsIntoMap(rows, scanner, nil)
 }
@@ -2317,7 +2317,7 @@ func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[stri
 	defer rows.Close()
 
 	// Initialize default values map
-	defaults := make(map[string]int64)
+	defaults := make(map[string]int64, len(channelIDs))
 	for _, channelID := range channelIDs {
 		defaults[channelID] = 0
 	}
@@ -2326,7 +2326,7 @@ func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[stri
 		var channelID string
 		var count int64
 		err := rows.Scan(&channelID, &count)
-		return channelID, count, err
+		return channelID, count, errors.Wrap(err, "failed to scan row")
 	}
 
 	return scanRowsIntoMap(rows, scanner, defaults)
@@ -3042,7 +3042,7 @@ func (s SqlChannelStore) AnalyticsCountAll(teamId string) (map[model.ChannelType
 		var channelType model.ChannelType
 		var count int64
 		err := rows.Scan(&channelType, &count)
-		return channelType, count, err
+		return channelType, count, errors.Wrap(err, "unable to scan row")
 	}
 
 	return scanRowsIntoMap(rows, scanner, nil)

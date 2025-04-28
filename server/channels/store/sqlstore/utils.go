@@ -199,7 +199,7 @@ func quoteColumnName(driver string, columnName string) string {
 
 // scanRowsIntoMap scans SQL rows into a map, using a provided scanner function to extract key-value pairs
 func scanRowsIntoMap[K comparable, V any](rows *sql.Rows, scanner func(rows *sql.Rows) (K, V, error), defaults map[K]V) (map[K]V, error) {
-	results := make(map[K]V)
+	results := make(map[K]V, len(defaults))
 
 	// Initialize with default values if provided
 	for k, v := range defaults {
