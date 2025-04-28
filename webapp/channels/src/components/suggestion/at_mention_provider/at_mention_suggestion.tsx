@@ -187,7 +187,6 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
     return (
         <SuggestionContainer
             ref={ref}
-            role='option'
             {...props}
             data-testid={`mentionSuggestion_${itemname}`}
         >

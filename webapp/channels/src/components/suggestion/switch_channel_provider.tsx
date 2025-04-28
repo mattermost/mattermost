@@ -260,7 +260,6 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, r
         <SuggestionContainer
             ref={ref}
             data-testid={channel.name}
-            role='option'
             aria-labelledby={`${name.toLowerCase().replaceAll(' ', '-')}-item-name`}
             {...props}
         >
