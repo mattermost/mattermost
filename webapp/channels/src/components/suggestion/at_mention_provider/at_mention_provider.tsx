@@ -35,7 +35,6 @@ type CreatedProfile = UserProfile & {
 
 type Results = {
     matchedPretext: string;
-    terms: string[];
     groups: any[];
     component: React.ElementType;
 };
@@ -369,24 +368,8 @@ export default class AtMentionProvider extends Provider {
             this.lastPrefixWithNoResults = '';
         }
 
-        const mentions = groups.flatMap((group) => {
-            if (!('items' in group)) {
-                return [''];
-            }
-
-            return group.items.map((item) => {
-                if (item.username) {
-                    return '@' + item.username;
-                } else if (item.name) {
-                    return '@' + item.name;
-                }
-                return '';
-            });
-        });
-
         resultCallback({
             matchedPretext: `@${this.latestPrefix}`,
-            terms: mentions,
             groups,
             component: AtMentionSuggestion,
         });
@@ -464,6 +447,7 @@ export function membersGroup(items: CreatedProfile[]) {
     return {
         label: defineMessage({id: 'suggestion.mention.members', defaultMessage: 'Channel Members'}),
         items,
+        terms: items.map((profile) => '@' + profile.username),
     };
 }
 
@@ -471,6 +455,7 @@ export function groupsGroup(items: Group[]) {
     return {
         label: defineMessage({id: 'suggestion.search.group', defaultMessage: 'Group Mentions'}),
         items,
+        terms: items.map((group) => '@' + group.name),
     };
 }
 
@@ -478,6 +463,7 @@ export function specialMentionsGroup(items: Array<{username: string}>) {
     return {
         label: defineMessage({id: 'suggestion.mention.special', defaultMessage: 'Special Mentions'}),
         items,
+        terms: items.map((item) => '@' + item.username),
     };
 }
 
@@ -485,6 +471,7 @@ export function nonMembersGroup(items: CreatedProfile[]) {
     return {
         label: defineMessage({id: 'suggestion.mention.nonmembers', defaultMessage: 'Not in Channel'}),
         items,
+        terms: items.map((item) => '@' + item.username),
     };
 }
 
