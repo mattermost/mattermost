@@ -1846,6 +1846,13 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Security check: if the user is a guest, they must have access to the channel
+	// to view its members
+	if c.AppContext.Session().IsGuest() && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		c.Err = model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 		return
@@ -2454,7 +2461,7 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 
 func canEditChannelBanner(license *model.License, originalChannel *model.Channel) *model.AppError {
 	if !model.MinimumPremiumLicense(license) {
-		return model.NewAppError("", "license_error.feature_unavailable", nil, "feature is not available for the current license", http.StatusForbidden)
+		return model.NewAppError("", "license_error.feature_unavailable.specific", map[string]any{"Feature": "Channel Banner"}, "feature is not available for the current license", http.StatusForbidden)
 	}
 
 	if originalChannel.Type != model.ChannelTypeOpen && originalChannel.Type != model.ChannelTypePrivate {

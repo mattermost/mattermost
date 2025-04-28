@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
 import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
@@ -12,9 +12,10 @@ import * as Menu from 'components/menu';
 import './user_properties_dot_menu.scss';
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
 import {isCreatePending} from './user_properties_utils';
-
 type Props = {
     field: UserPropertyField;
+    canCreate: boolean;
+    createField: (field: UserPropertyField) => void;
     updateField: (field: UserPropertyField) => void;
     deleteField: (id: string) => void;
 }
@@ -23,10 +24,22 @@ const menuId = 'user-property-field_dotmenu';
 
 const DotMenu = ({
     field,
+    canCreate,
+    createField,
     updateField,
     deleteField,
 }: Props) => {
+    const {formatMessage} = useIntl();
     const {promptDelete} = useUserPropertyFieldDelete();
+
+    const handleDuplicate = () => {
+        const name = formatMessage({
+            id: 'admin.system_properties.user_properties.dotmenu.duplicate.name_copy',
+            defaultMessage: '{fieldName} (copy)',
+        }, {fieldName: field.name});
+
+        createField({...field, attrs: {...field.attrs}, name});
+    };
 
     const handleDelete = () => {
         if (isCreatePending(field)) {
@@ -161,18 +174,53 @@ const DotMenu = ({
                     )}
                 />
             </Menu.SubMenu>
+            <Menu.LinkItem
+                id={`${menuId}_link_ad-ldap`}
+                to={`/admin_console/authentication/ldap#custom_profile_attribute-${field.name}`}
+                leadingElement={<SyncIcon size={18}/>}
+                labels={(
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.ad_ldap.link_property.label'
+                        defaultMessage={'Link property to AD/LDAP'}
+                    />
+                )}
+            />
+            <Menu.LinkItem
+                id={`${menuId}_link_ad-ldap`}
+                to={`/admin_console/authentication/saml#custom_profile_attribute-${field.name}`}
+                leadingElement={<SyncIcon size={18}/>}
+                labels={(
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.saml.link_property.label'
+                        defaultMessage={'Link property to SAML'}
+                    />
+                )}
+            />
             <Menu.Separator/>
+            {canCreate && (
+                <Menu.Item
+                    id={`${menuId}_duplicate`}
+                    onClick={handleDuplicate}
+                    leadingElement={<ContentCopyIcon size={18}/>}
+                    labels={(
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.dotmenu.duplicate.label'
+                            defaultMessage={'Duplicate property'}
+                        />
+                    )}
+                />
+            )}
             <Menu.Item
                 id={`${menuId}_delete`}
                 onClick={handleDelete}
                 isDestructive={true}
+                leadingElement={<TrashCanOutlineIcon size={18}/>}
                 labels={(
                     <FormattedMessage
                         id='admin.system_properties.user_properties.dotmenu.delete.label'
                         defaultMessage={'Delete property'}
                     />
                 )}
-                leadingElement={<TrashCanOutlineIcon size={18}/>}
             />
         </Menu.Container>
     );
