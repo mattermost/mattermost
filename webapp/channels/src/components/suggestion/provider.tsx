@@ -9,6 +9,7 @@ export type SuggestionGroup<Item> = {
     label: MessageDescriptor;
 } & ({
     items: Item[];
+    terms: string[];
 } | {
     loading: true;
 });
