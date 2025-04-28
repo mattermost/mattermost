@@ -131,14 +131,15 @@ func (a *App) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *mo
 	return a.Srv().GetLogsSkipSend(rctx, page, perPage, logFilter)
 }
 
-func (a *App) GetClusterStatus(rctx request.CTX) []*model.ClusterInfo {
+func (a *App) GetClusterStatus(rctx request.CTX) ([]*model.ClusterInfo, error) {
 	infos := make([]*model.ClusterInfo, 0)
+	var err error
 
 	if a.Cluster() != nil {
-		infos = a.Cluster().GetClusterInfos()
+		infos, err = a.Cluster().GetClusterInfos()
 	}
 
-	return infos
+	return infos, err
 }
 
 func (s *Server) InvalidateAllCaches() *model.AppError {
