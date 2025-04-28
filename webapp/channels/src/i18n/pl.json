@@ -1663,7 +1663,7 @@
   "admin.permissions.group.manage_public_channel_members_and_read_groups.description": "Dodawaj i usuwaj członków kanału publicznego (w tym administratorów kanału).",
   "admin.permissions.group.manage_public_channel_members_and_read_groups.name": "Zarządzaj Członkami Kanału",
   "admin.permissions.group.manage_shared_channels.description": "Zarządzaj udostępnionymi kanałami",
-  "admin.permissions.group.manage_shared_channels.name": "Kanały udostępnione",
+  "admin.permissions.group.manage_shared_channels.name": "Kanały Udostępnione",
   "admin.permissions.group.playbook_private.description": "Zarządzaj prywatnymi playbookami.",
   "admin.permissions.group.playbook_private.name": "Zarządzaj prywatnymi playbookami",
   "admin.permissions.group.playbook_public.description": "Zarządzaj publicznymi playbookami.",
