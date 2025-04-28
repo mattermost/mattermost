@@ -166,8 +166,7 @@ func TestScanRowsIntoMap(t *testing.T) {
 			scanner := func(rows *sql.Rows) (string, int, error) {
 				var key string
 				var value int
-				err := rows.Scan(&key, &value)
-				return key, value, err
+				return key, value, rows.Scan(&key, &value)
 			}
 
 			// Call the function under test
@@ -206,15 +205,14 @@ func TestScanRowsIntoMap(t *testing.T) {
 			scanner := func(rows *sql.Rows) (string, int, error) {
 				var key string
 				var value int
-				err := rows.Scan(&key, &value)
-				return key, value, err
+				return key, value, rows.Scan(&key, &value)
 			}
 
 			// Define defaults
 			defaults := map[string]int{
-				"key1": 100,    // Should be overwritten
-				"key2": 200,    // Should remain
-				"key3": 300,    // Should remain
+				"key1": 100, // Should be overwritten
+				"key2": 200, // Should remain
+				"key3": 300, // Should remain
 			}
 
 			// Call the function under test
@@ -247,8 +245,7 @@ func TestScanRowsIntoMap(t *testing.T) {
 			scanner := func(rows *sql.Rows) (string, int, error) {
 				var key string
 				var value int
-				err := rows.Scan(&key, &value)
-				return key, value, err
+				return key, value, rows.Scan(&key, &value)
 			}
 
 			// Define defaults
