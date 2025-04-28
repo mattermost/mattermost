@@ -53,6 +53,7 @@ jobs:
             export RACE_MODE="-race"
           fi
           docker run --net ghactions_mm-test \
+            --entrypoint make \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
             --env MM_SQLSETTINGS_DRIVERNAME="${{ inputs.drivername }}" \
@@ -63,7 +64,7 @@ jobs:
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
-            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+            test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
       - name: Stop docker compose
         run: |
           cd server/build
