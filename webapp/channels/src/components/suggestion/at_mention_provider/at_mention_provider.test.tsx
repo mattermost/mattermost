@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import AtMentionProvider, {type Props} from 'components/suggestion/at_mention_provider/at_mention_provider';
+import AtMentionProvider, {groupsGroup, membersGroup, nonMembersGroup, otherMembersGroup, specialMentionsGroup, type Props} from 'components/suggestion/at_mention_provider/at_mention_provider';
 import AtMentionSuggestion from 'components/suggestion/at_mention_provider/at_mention_suggestion';
 
-import {Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 jest.useFakeTimers();
@@ -48,19 +47,27 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@';
         const matchedPretext = '@';
         const itemsCall3 = [
-            {type: Constants.MENTION_MEMBERS, ...userid10},
-            {type: Constants.MENTION_MEMBERS, ...userid3},
-            {type: Constants.MENTION_MEMBERS, ...userid1},
-            {type: Constants.MENTION_MEMBERS, ...userid2},
-            {type: Constants.MENTION_MEMBERS, ...userid4},
-            {type: Constants.MENTION_GROUPS, ...groupid1},
-            {type: Constants.MENTION_GROUPS, ...groupid2},
-            {type: Constants.MENTION_GROUPS, ...groupid3},
-            {type: Constants.MENTION_SPECIAL, username: 'here'},
-            {type: Constants.MENTION_SPECIAL, username: 'channel'},
-            {type: Constants.MENTION_SPECIAL, username: 'all'},
-            {type: Constants.MENTION_NONMEMBERS, ...userid5},
-            {type: Constants.MENTION_NONMEMBERS, ...userid6},
+            membersGroup([
+                userid10,
+                userid3,
+                userid1,
+                userid2,
+                userid4,
+            ]),
+            groupsGroup([
+                groupid1,
+                groupid2,
+                groupid3,
+            ]),
+            specialMentionsGroup([
+                {username: 'here'},
+                {username: 'channel'},
+                {username: 'all'},
+            ]),
+            nonMembersGroup([
+                userid5,
+                userid6,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -99,16 +106,22 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@all',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid10},
-                {type: Constants.MENTION_MEMBERS, ...userid3},
-                {type: Constants.MENTION_MEMBERS, ...userid1},
-                {type: Constants.MENTION_MEMBERS, ...userid2},
-                {type: Constants.MENTION_GROUPS, ...groupid1},
-                {type: Constants.MENTION_GROUPS, ...groupid2},
-                {type: Constants.MENTION_GROUPS, ...groupid3},
-                {type: Constants.MENTION_SPECIAL, username: 'here'},
-                {type: Constants.MENTION_SPECIAL, username: 'channel'},
-                {type: Constants.MENTION_SPECIAL, username: 'all'},
+                membersGroup([
+                    userid10,
+                    userid3,
+                    userid1,
+                    userid2,
+                ]),
+                groupsGroup([
+                    groupid1,
+                    groupid2,
+                    groupid3,
+                ]),
+                specialMentionsGroup([
+                    {username: 'here'},
+                    {username: 'channel'},
+                    {username: 'all'},
+                ]),
             ],
             component: AtMentionSuggestion,
         });
@@ -131,17 +144,23 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid10},
-                {type: Constants.MENTION_MEMBERS, ...userid3},
-                {type: Constants.MENTION_MEMBERS, ...userid1},
-                {type: Constants.MENTION_MEMBERS, ...userid2},
-                {type: Constants.MENTION_GROUPS, ...groupid1},
-                {type: Constants.MENTION_GROUPS, ...groupid2},
-                {type: Constants.MENTION_GROUPS, ...groupid3},
-                {type: Constants.MENTION_SPECIAL, username: 'here'},
-                {type: Constants.MENTION_SPECIAL, username: 'channel'},
-                {type: Constants.MENTION_SPECIAL, username: 'all'},
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                membersGroup([
+                    userid10,
+                    userid3,
+                    userid1,
+                    userid2,
+                ]),
+                groupsGroup([
+                    groupid1,
+                    groupid2,
+                    groupid3,
+                ]),
+                specialMentionsGroup([
+                    {username: 'here'},
+                    {username: 'channel'},
+                    {username: 'all'},
+                ]),
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -177,21 +196,29 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@';
         const matchedPretext = '@';
         const itemsCall3 = [
-            {type: Constants.MENTION_MEMBERS, ...userid11},
-            {type: Constants.MENTION_MEMBERS, ...userid12},
-            {type: Constants.MENTION_MEMBERS, ...userid10},
-            {type: Constants.MENTION_MEMBERS, ...userid3},
-            {type: Constants.MENTION_MEMBERS, ...userid1},
-            {type: Constants.MENTION_MEMBERS, ...userid2},
-            {type: Constants.MENTION_MEMBERS, ...userid4},
-            {type: Constants.MENTION_GROUPS, ...groupid1},
-            {type: Constants.MENTION_GROUPS, ...groupid2},
-            {type: Constants.MENTION_GROUPS, ...groupid3},
-            {type: Constants.MENTION_SPECIAL, username: 'here'},
-            {type: Constants.MENTION_SPECIAL, username: 'channel'},
-            {type: Constants.MENTION_SPECIAL, username: 'all'},
-            {type: Constants.MENTION_NONMEMBERS, ...userid5},
-            {type: Constants.MENTION_NONMEMBERS, ...userid6},
+            membersGroup([
+                userid11,
+                userid12,
+                userid10,
+                userid3,
+                userid1,
+                userid2,
+                userid4,
+            ]),
+            groupsGroup([
+                groupid1,
+                groupid2,
+                groupid3,
+            ]),
+            specialMentionsGroup([
+                {username: 'here'},
+                {username: 'channel'},
+                {username: 'all'},
+            ]),
+            nonMembersGroup([
+                userid5,
+                userid6,
+            ]),
         ];
 
         const params = {
@@ -237,18 +264,24 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@all',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid11},
-                {type: Constants.MENTION_MEMBERS, ...userid12},
-                {type: Constants.MENTION_MEMBERS, ...userid10},
-                {type: Constants.MENTION_MEMBERS, ...userid3},
-                {type: Constants.MENTION_MEMBERS, ...userid1},
-                {type: Constants.MENTION_MEMBERS, ...userid2},
-                {type: Constants.MENTION_GROUPS, ...groupid1},
-                {type: Constants.MENTION_GROUPS, ...groupid2},
-                {type: Constants.MENTION_GROUPS, ...groupid3},
-                {type: Constants.MENTION_SPECIAL, username: 'here'},
-                {type: Constants.MENTION_SPECIAL, username: 'channel'},
-                {type: Constants.MENTION_SPECIAL, username: 'all'},
+                membersGroup([
+                    userid11,
+                    userid12,
+                    userid10,
+                    userid3,
+                    userid1,
+                    userid2,
+                ]),
+                groupsGroup([
+                    groupid1,
+                    groupid2,
+                    groupid3,
+                ]),
+                specialMentionsGroup([
+                    {username: 'here'},
+                    {username: 'channel'},
+                    {username: 'all'},
+                ]),
             ],
             component: AtMentionSuggestion,
         });
@@ -273,19 +306,25 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid11},
-                {type: Constants.MENTION_MEMBERS, ...userid12},
-                {type: Constants.MENTION_MEMBERS, ...userid10},
-                {type: Constants.MENTION_MEMBERS, ...userid3},
-                {type: Constants.MENTION_MEMBERS, ...userid1},
-                {type: Constants.MENTION_MEMBERS, ...userid2},
-                {type: Constants.MENTION_GROUPS, ...groupid1},
-                {type: Constants.MENTION_GROUPS, ...groupid2},
-                {type: Constants.MENTION_GROUPS, ...groupid3},
-                {type: Constants.MENTION_SPECIAL, username: 'here'},
-                {type: Constants.MENTION_SPECIAL, username: 'channel'},
-                {type: Constants.MENTION_SPECIAL, username: 'all'},
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                membersGroup([
+                    userid11,
+                    userid12,
+                    userid10,
+                    userid3,
+                    userid1,
+                    userid2,
+                ]),
+                groupsGroup([
+                    groupid1,
+                    groupid2,
+                    groupid3,
+                ]),
+                specialMentionsGroup([
+                    {username: 'here'},
+                    {username: 'channel'},
+                    {username: 'all'},
+                ]),
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -323,21 +362,29 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@';
         const matchedPretext = '@';
         const itemsCall3 = [
-            {type: Constants.MENTION_MEMBERS, ...userid11},
-            {type: Constants.MENTION_MEMBERS, ...userid12},
-            {type: Constants.MENTION_MEMBERS, ...userid10},
-            {type: Constants.MENTION_MEMBERS, ...userid3},
-            {type: Constants.MENTION_MEMBERS, ...userid1},
-            {type: Constants.MENTION_MEMBERS, ...userid2},
-            {type: Constants.MENTION_MEMBERS, ...userid4},
-            {type: Constants.MENTION_GROUPS, ...groupid1},
-            {type: Constants.MENTION_GROUPS, ...groupid2},
-            {type: Constants.MENTION_GROUPS, ...groupid3},
-            {type: Constants.MENTION_SPECIAL, username: 'here'},
-            {type: Constants.MENTION_SPECIAL, username: 'channel'},
-            {type: Constants.MENTION_SPECIAL, username: 'all'},
-            {type: Constants.MENTION_NONMEMBERS, ...userid5},
-            {type: Constants.MENTION_NONMEMBERS, ...userid6},
+            membersGroup([
+                userid11,
+                userid12,
+                userid10,
+                userid3,
+                userid1,
+                userid2,
+                userid4,
+            ]),
+            groupsGroup([
+                groupid1,
+                groupid2,
+                groupid3,
+            ]),
+            specialMentionsGroup([
+                {username: 'here'},
+                {username: 'channel'},
+                {username: 'all'},
+            ]),
+            nonMembersGroup([
+                userid5,
+                userid6,
+            ]),
         ];
 
         const params = {
@@ -383,18 +430,24 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@all',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid11},
-                {type: Constants.MENTION_MEMBERS, ...userid12},
-                {type: Constants.MENTION_MEMBERS, ...userid10},
-                {type: Constants.MENTION_MEMBERS, ...userid3},
-                {type: Constants.MENTION_MEMBERS, ...userid1},
-                {type: Constants.MENTION_MEMBERS, ...userid2},
-                {type: Constants.MENTION_GROUPS, ...groupid1},
-                {type: Constants.MENTION_GROUPS, ...groupid2},
-                {type: Constants.MENTION_GROUPS, ...groupid3},
-                {type: Constants.MENTION_SPECIAL, username: 'here'},
-                {type: Constants.MENTION_SPECIAL, username: 'channel'},
-                {type: Constants.MENTION_SPECIAL, username: 'all'},
+                membersGroup([
+                    userid11,
+                    userid12,
+                    userid10,
+                    userid3,
+                    userid1,
+                    userid2,
+                ]),
+                groupsGroup([
+                    groupid1,
+                    groupid2,
+                    groupid3,
+                ]),
+                specialMentionsGroup([
+                    {username: 'here'},
+                    {username: 'channel'},
+                    {username: 'all'},
+                ]),
             ],
             component: AtMentionSuggestion,
         });
@@ -419,19 +472,25 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid11},
-                {type: Constants.MENTION_MEMBERS, ...userid12},
-                {type: Constants.MENTION_MEMBERS, ...userid10},
-                {type: Constants.MENTION_MEMBERS, ...userid3},
-                {type: Constants.MENTION_MEMBERS, ...userid1},
-                {type: Constants.MENTION_MEMBERS, ...userid2},
-                {type: Constants.MENTION_GROUPS, ...groupid1},
-                {type: Constants.MENTION_GROUPS, ...groupid2},
-                {type: Constants.MENTION_GROUPS, ...groupid3},
-                {type: Constants.MENTION_SPECIAL, username: 'here'},
-                {type: Constants.MENTION_SPECIAL, username: 'channel'},
-                {type: Constants.MENTION_SPECIAL, username: 'all'},
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                membersGroup([
+                    userid11,
+                    userid12,
+                    userid10,
+                    userid3,
+                    userid1,
+                    userid2,
+                ]),
+                groupsGroup([
+                    groupid1,
+                    groupid2,
+                    groupid3,
+                ]),
+                specialMentionsGroup([
+                    {username: 'here'},
+                    {username: 'channel'},
+                    {username: 'all'},
+                ]),
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -469,21 +528,29 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@';
         const matchedPretext = '@';
         const itemsCall3 = [
-            {type: Constants.MENTION_MEMBERS, ...userid11},
-            {type: Constants.MENTION_MEMBERS, ...userid12},
-            {type: Constants.MENTION_MEMBERS, ...userid10},
-            {type: Constants.MENTION_MEMBERS, ...userid3},
-            {type: Constants.MENTION_MEMBERS, ...userid1},
-            {type: Constants.MENTION_MEMBERS, ...userid2},
-            {type: Constants.MENTION_MEMBERS, ...userid4},
-            {type: Constants.MENTION_GROUPS, ...groupid1},
-            {type: Constants.MENTION_GROUPS, ...groupid2},
-            {type: Constants.MENTION_GROUPS, ...groupid3},
-            {type: Constants.MENTION_SPECIAL, username: 'here'},
-            {type: Constants.MENTION_SPECIAL, username: 'channel'},
-            {type: Constants.MENTION_SPECIAL, username: 'all'},
-            {type: Constants.MENTION_NONMEMBERS, ...userid5},
-            {type: Constants.MENTION_NONMEMBERS, ...userid6},
+            membersGroup([
+                userid11,
+                userid12,
+                userid10,
+                userid3,
+                userid1,
+                userid2,
+                userid4,
+            ]),
+            groupsGroup([
+                groupid1,
+                groupid2,
+                groupid3,
+            ]),
+            specialMentionsGroup([
+                {username: 'here'},
+                {username: 'channel'},
+                {username: 'all'},
+            ]),
+            nonMembersGroup([
+                userid5,
+                userid6,
+            ]),
         ];
 
         const params = {
@@ -529,18 +596,24 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@all',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid11},
-                {type: Constants.MENTION_MEMBERS, ...userid12},
-                {type: Constants.MENTION_MEMBERS, ...userid1, last_viewed_at: 11},
-                {type: Constants.MENTION_MEMBERS, ...userid3, last_viewed_at: 10},
-                {type: Constants.MENTION_MEMBERS, ...userid10},
-                {type: Constants.MENTION_MEMBERS, ...userid2},
-                {type: Constants.MENTION_GROUPS, ...groupid1},
-                {type: Constants.MENTION_GROUPS, ...groupid2},
-                {type: Constants.MENTION_GROUPS, ...groupid3},
-                {type: Constants.MENTION_SPECIAL, username: 'here'},
-                {type: Constants.MENTION_SPECIAL, username: 'channel'},
-                {type: Constants.MENTION_SPECIAL, username: 'all'},
+                membersGroup([
+                    userid11,
+                    userid12,
+                    {...userid1, last_viewed_at: 11},
+                    {...userid3, last_viewed_at: 10},
+                    userid10,
+                    userid2,
+                ]),
+                groupsGroup([
+                    groupid1,
+                    groupid2,
+                    groupid3,
+                ]),
+                specialMentionsGroup([
+                    {username: 'here'},
+                    {username: 'channel'},
+                    {username: 'all'},
+                ]),
             ],
             component: AtMentionSuggestion,
         });
@@ -565,19 +638,25 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid11},
-                {type: Constants.MENTION_MEMBERS, ...userid12},
-                {type: Constants.MENTION_MEMBERS, ...userid1, last_viewed_at: 11},
-                {type: Constants.MENTION_MEMBERS, ...userid3, last_viewed_at: 10},
-                {type: Constants.MENTION_MEMBERS, ...userid10},
-                {type: Constants.MENTION_MEMBERS, ...userid2},
-                {type: Constants.MENTION_GROUPS, ...groupid1},
-                {type: Constants.MENTION_GROUPS, ...groupid2},
-                {type: Constants.MENTION_GROUPS, ...groupid3},
-                {type: Constants.MENTION_SPECIAL, username: 'here'},
-                {type: Constants.MENTION_SPECIAL, username: 'channel'},
-                {type: Constants.MENTION_SPECIAL, username: 'all'},
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                membersGroup([
+                    userid11,
+                    userid12,
+                    {...userid1, last_viewed_at: 11},
+                    {...userid3, last_viewed_at: 10},
+                    userid10,
+                    userid2,
+                ]),
+                groupsGroup([
+                    groupid1,
+                    groupid2,
+                    groupid3,
+                ]),
+                specialMentionsGroup([
+                    {username: 'here'},
+                    {username: 'channel'},
+                    {username: 'all'},
+                ]),
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -587,19 +666,27 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@';
         const matchedPretext = '@';
         const itemsCall2 = [
-            {type: Constants.MENTION_MEMBERS, ...userid10},
-            {type: Constants.MENTION_MEMBERS, ...userid3},
-            {type: Constants.MENTION_MEMBERS, ...userid1},
-            {type: Constants.MENTION_MEMBERS, ...userid2},
-            {type: Constants.MENTION_MEMBERS, ...userid4},
-            {type: Constants.MENTION_GROUPS, ...groupid1},
-            {type: Constants.MENTION_GROUPS, ...groupid2},
-            {type: Constants.MENTION_GROUPS, ...groupid3},
-            {type: Constants.MENTION_SPECIAL, username: 'here'},
-            {type: Constants.MENTION_SPECIAL, username: 'channel'},
-            {type: Constants.MENTION_SPECIAL, username: 'all'},
-            {type: Constants.MENTION_NONMEMBERS, ...userid5},
-            {type: Constants.MENTION_NONMEMBERS, ...userid6},
+            membersGroup([
+                userid10,
+                userid3,
+                userid1,
+                userid2,
+                userid4,
+            ]),
+            groupsGroup([
+                groupid1,
+                groupid2,
+                groupid3,
+            ]),
+            specialMentionsGroup([
+                {username: 'here'},
+                {username: 'channel'},
+                {username: 'all'},
+            ]),
+            nonMembersGroup([
+                userid5,
+                userid6,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -638,16 +725,22 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@all',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid10},
-                {type: Constants.MENTION_MEMBERS, ...userid3},
-                {type: Constants.MENTION_MEMBERS, ...userid1},
-                {type: Constants.MENTION_MEMBERS, ...userid2},
-                {type: Constants.MENTION_GROUPS, ...groupid1},
-                {type: Constants.MENTION_GROUPS, ...groupid2},
-                {type: Constants.MENTION_GROUPS, ...groupid3},
-                {type: Constants.MENTION_SPECIAL, username: 'here'},
-                {type: Constants.MENTION_SPECIAL, username: 'channel'},
-                {type: Constants.MENTION_SPECIAL, username: 'all'},
+                membersGroup([
+                    userid10,
+                    userid3,
+                    userid1,
+                    userid2,
+                ]),
+                groupsGroup([
+                    groupid1,
+                    groupid2,
+                    groupid3,
+                ]),
+                specialMentionsGroup([
+                    {username: 'here'},
+                    {username: 'channel'},
+                    {username: 'all'},
+                ]),
             ],
             component: AtMentionSuggestion,
         });
@@ -682,7 +775,9 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@h';
         const matchedPretext = '@h';
         const itemsCall3 = [
-            {type: Constants.MENTION_SPECIAL, username: 'here'},
+            specialMentionsGroup([
+                {username: 'here'},
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -712,7 +807,9 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@here',
             ],
             items: [
-                {type: Constants.MENTION_SPECIAL, username: 'here'},
+                specialMentionsGroup([
+                    {username: 'here'},
+                ]),
             ],
             component: AtMentionSuggestion,
         });
@@ -726,8 +823,10 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_SPECIAL, username: 'here'},
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                specialMentionsGroup([
+                    {username: 'here'},
+                ]),
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -748,11 +847,15 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@user';
         const matchedPretext = '@user';
         const itemsCall3 = [
-            {type: Constants.MENTION_MEMBERS, ...userid1},
-            {type: Constants.MENTION_MEMBERS, ...userid2},
-            {type: Constants.MENTION_MEMBERS, ...userid4},
-            {type: Constants.MENTION_NONMEMBERS, ...userid5},
-            {type: Constants.MENTION_NONMEMBERS, ...userid6},
+            membersGroup([
+                userid1,
+                userid2,
+                userid4,
+            ]),
+            nonMembersGroup([
+                userid5,
+                userid6,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -783,8 +886,10 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@user2',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid1},
-                {type: Constants.MENTION_MEMBERS, ...userid2},
+                membersGroup([
+                    userid1,
+                    userid2,
+                ]),
             ],
             component: AtMentionSuggestion,
         });
@@ -798,9 +903,11 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid1},
-                {type: Constants.MENTION_MEMBERS, ...userid2},
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                membersGroup([
+                    userid1,
+                    userid2,
+                ]),
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -825,7 +932,9 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@six';
         const matchedPretext = '@six';
         const itemsCall3 = [
-            {type: Constants.MENTION_NONMEMBERS, ...userid6},
+            nonMembersGroup([
+                userid6,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -864,7 +973,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -885,7 +994,9 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@split';
         const matchedPretext = '@split';
         const itemsCall3 = [
-            {type: Constants.MENTION_NONMEMBERS, ...userid6},
+            nonMembersGroup([
+                userid6,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -924,7 +1035,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -945,7 +1056,9 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@-split';
         const matchedPretext = '@-split';
         const itemsCall3 = [
-            {type: Constants.MENTION_NONMEMBERS, ...userid6},
+            nonMembersGroup([
+                userid6,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -983,7 +1096,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -1004,7 +1117,9 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@junior';
         const matchedPretext = '@junior';
         const itemsCall3 = [
-            {type: Constants.MENTION_NONMEMBERS, ...userid6},
+            nonMembersGroup([
+                userid6,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -1043,7 +1158,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -1064,8 +1179,10 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@X';
         const matchedPretext = '@x';
         const itemsCall3 = [
-            {type: Constants.MENTION_MEMBERS, ...userid3},
-            {type: Constants.MENTION_MEMBERS, ...userid4},
+            membersGroup([
+                userid3,
+                userid4,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -1095,7 +1212,9 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@other',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid3},
+                membersGroup([
+                    userid3,
+                ]),
             ],
             component: AtMentionSuggestion,
         });
@@ -1109,8 +1228,10 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid3},
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                membersGroup([
+                    userid3,
+                ]),
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -1132,8 +1253,10 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@Y';
         const matchedPretext = '@y';
         const itemsCall3 = [
-            {type: Constants.MENTION_MEMBERS, ...userid3},
-            {type: Constants.MENTION_MEMBERS, ...userid4},
+            membersGroup([
+                userid3,
+                userid4,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -1163,7 +1286,9 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@other',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid3},
+                membersGroup([
+                    userid3,
+                ]),
             ],
             component: AtMentionSuggestion,
         });
@@ -1177,8 +1302,10 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid3},
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                membersGroup([
+                    userid3,
+                ]),
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -1200,9 +1327,11 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@Z';
         const matchedPretext = '@z';
         const itemsCall3 = [
-            {type: Constants.MENTION_MEMBERS, ...userid10},
-            {type: Constants.MENTION_MEMBERS, ...userid3},
-            {type: Constants.MENTION_MEMBERS, ...userid4},
+            membersGroup([
+                userid10,
+                userid3,
+                userid4,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -1233,8 +1362,10 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@other',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid10},
-                {type: Constants.MENTION_MEMBERS, ...userid3},
+                membersGroup([
+                    userid10,
+                    userid3,
+                ]),
             ],
             component: AtMentionSuggestion,
         });
@@ -1249,9 +1380,11 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid10},
-                {type: Constants.MENTION_MEMBERS, ...userid3},
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                membersGroup([
+                    userid10,
+                    userid3,
+                ]),
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -1274,11 +1407,15 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@user';
         const matchedPretext = '@user';
         const itemsCall3 = [
-            {type: Constants.MENTION_MEMBERS, ...userid1},
-            {type: Constants.MENTION_MEMBERS, ...userid2},
-            {type: Constants.MENTION_MEMBERS, ...userid4},
-            {type: Constants.MENTION_NONMEMBERS, ...userid5},
-            {type: Constants.MENTION_NONMEMBERS, ...userid6},
+            membersGroup([
+                userid1,
+                userid2,
+                userid4,
+            ]),
+            nonMembersGroup([
+                userid5,
+                userid6,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -1309,8 +1446,10 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@user2',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid1},
-                {type: Constants.MENTION_MEMBERS, ...userid2},
+                membersGroup([
+                    userid1,
+                    userid2,
+                ]),
             ],
             component: AtMentionSuggestion,
         });
@@ -1325,9 +1464,11 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid1},
-                {type: Constants.MENTION_MEMBERS, ...userid2},
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                membersGroup([
+                    userid1,
+                    userid2,
+                ]),
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -1352,9 +1493,11 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@x';
         const matchedPretext = '@x';
         const itemsCall3 = [
-            {type: Constants.MENTION_MEMBERS, ...userid7},
-            {type: Constants.MENTION_MEMBERS, ...userid3},
-            {type: Constants.MENTION_MEMBERS, ...userid4},
+            membersGroup([
+                userid7,
+                userid3,
+                userid4,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -1384,7 +1527,9 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@other',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid3},
+                membersGroup([
+                    userid3,
+                ]),
             ],
             component: AtMentionSuggestion,
         });
@@ -1398,8 +1543,10 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid3},
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                membersGroup([
+                    userid3,
+                ]),
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -1422,9 +1569,13 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@x';
         const matchedPretext = '@x';
         const itemsCall3 = [
-            {type: Constants.MENTION_MEMBERS, ...userid3},
-            {type: Constants.MENTION_NONMEMBERS, ...userid7},
-            {type: Constants.MENTION_NONMEMBERS, ...userid4},
+            membersGroup([
+                userid3,
+            ]),
+            nonMembersGroup([
+                userid7,
+                userid4,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -1454,7 +1605,9 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@other',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid3},
+                membersGroup([
+                    userid3,
+                ]),
             ],
             component: AtMentionSuggestion,
         });
@@ -1468,8 +1621,10 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MEMBERS, ...userid3},
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                membersGroup([
+                    userid3,
+                ]),
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -1492,7 +1647,9 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@robert ward';
         const matchedPretext = '@robert ward';
         const itemsCall3 = [
-            {type: Constants.MENTION_NONMEMBERS, ...userid8},
+            nonMembersGroup([
+                userid8,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -1530,7 +1687,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '',
             ],
             items: [
-                {type: Constants.MENTION_MORE_MEMBERS, loading: true},
+                otherMembersGroup(),
             ],
             component: AtMentionSuggestion,
         });
@@ -1580,9 +1737,11 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 '@software-engineers',
             ],
             items: [
-                {type: Constants.MENTION_GROUPS, ...groupid1},
-                {type: Constants.MENTION_GROUPS, ...groupid2},
-                {type: Constants.MENTION_GROUPS, ...groupid3},
+                groupsGroup([
+                    groupid1,
+                    groupid2,
+                    groupid3,
+                ]),
             ],
             component: AtMentionSuggestion,
         });
@@ -1592,7 +1751,9 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         const pretext = '@software engineers';
         const matchedPretext = '@software engineers';
         const itemsCall3 = [
-            {type: Constants.MENTION_GROUPS, ...groupid3},
+            groupsGroup([
+                groupid3,
+            ]),
         ];
         const params = {
             ...baseParams,
@@ -1620,7 +1781,9 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             matchedPretext,
             terms: ['@software-engineers'],
             items: [
-                {type: Constants.MENTION_GROUPS, ...groupid3},
+                groupsGroup([
+                    groupid3,
+                ]),
             ],
             component: AtMentionSuggestion,
         });
