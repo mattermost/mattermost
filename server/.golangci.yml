@@ -90,11 +90,9 @@ issues:
         channels/api4/websocket_test.go|\
         channels/app/bot_test.go|\
         channels/app/brand.go|\
-        channels/app/config_test.go|\
         channels/app/file.go|\
         channels/app/file_test.go|\
         channels/app/helper_test.go|\
-        channels/app/import_functions.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\
@@ -110,7 +108,6 @@ issues:
         channels/jobs/batch_worker_test.go|\
         channels/jobs/helper_test.go|\
         channels/jobs/hosted_purchase_screening/worker.go|\
-        channels/jobs/jobs.go|\
         channels/store/localcachelayer/channel_layer.go|\
         channels/store/localcachelayer/channel_layer_test.go|\
         channels/store/localcachelayer/emoji_layer.go|\
@@ -157,7 +154,6 @@ issues:
         channels/store/storetest/thread_store.go|\
         channels/store/storetest/user_store.go|\
         channels/web/oauth_test.go|\
-        channels/web/saml.go|\
         channels/web/web_test.go|\
         cmd/mattermost/commands/cmdtestlib.go|\
         cmd/mattermost/commands/db.go|\

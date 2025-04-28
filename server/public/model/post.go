@@ -403,7 +403,9 @@ type GetPostsOptions struct {
 	CollapsedThreadsExtended bool
 	FromPost                 string // PostId after which to send the items
 	FromCreateAt             int64  // CreateAt after which to send the items
+	FromUpdateAt             int64  // UpdateAt after which to send the items. This cannot be used with FromCreateAt.
 	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
+	UpdatesOnly              bool   // This flag is used to make the API work with the updateAt value.
 	IncludeDeleted           bool
 	IncludePostPriority      bool
 }

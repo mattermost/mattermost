@@ -11,7 +11,7 @@ type Props = {
 
 const EmojiPickerHeader = ({handleEmojiPickerClose}: Props) => {
     return (
-        <div className='emoji-picker__header modal-header'>
+        <div className='emoji-picker__header'>
             <button
                 type='button'
                 className='close emoji-picker__header-close-button'

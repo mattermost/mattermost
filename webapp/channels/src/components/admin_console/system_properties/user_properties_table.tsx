@@ -25,11 +25,8 @@ import UserPropertyValues from './user_properties_values';
 
 import {AdminConsoleListTable} from '../list_table';
 
-type Props = {
-    data: UserPropertyFields;
-}
-
 type FieldActions = {
+    createField: (field: UserPropertyField) => void;
     updateField: (field: UserPropertyField) => void;
     deleteField: (id: string) => void;
     reorderField: (field: UserPropertyField, nextOrder: number) => void;
@@ -38,6 +35,12 @@ type FieldActions = {
 export const useUserPropertiesTable = (): SectionHook => {
     const [userPropertyFields, readIO, pendingIO, itemOps] = useUserPropertyFields();
     const nonDeletedCount = Object.values(userPropertyFields.data).filter((f) => f.delete_at === 0).length;
+
+    const canCreate = nonDeletedCount < Constants.MAX_CUSTOM_ATTRIBUTES;
+
+    const create = () => {
+        itemOps.create();
+    };
 
     const save = async () => {
         const newData = await pendingIO.commit();
@@ -54,12 +57,14 @@ export const useUserPropertiesTable = (): SectionHook => {
         <>
             <UserPropertiesTable
                 data={userPropertyFields}
+                canCreate={canCreate}
+                createField={itemOps.create}
                 updateField={itemOps.update}
                 deleteField={itemOps.delete}
                 reorderField={itemOps.reorder}
             />
-            {nonDeletedCount < Constants.MAX_CUSTOM_ATTRIBUTES && (
-                <LinkButton onClick={itemOps.create}>
+            {canCreate && (
+                <LinkButton onClick={create}>
                     <PlusIcon size={16}/>
                     <FormattedMessage
                         id='admin.system_properties.user_properties.add_property'
@@ -82,7 +87,19 @@ export const useUserPropertiesTable = (): SectionHook => {
     };
 };
 
-export function UserPropertiesTable({data: collection, updateField, deleteField, reorderField}: Props & FieldActions) {
+type Props = {
+    data: UserPropertyFields;
+    canCreate: boolean;
+}
+
+export function UserPropertiesTable({
+    data: collection,
+    canCreate,
+    createField,
+    updateField,
+    deleteField,
+    reorderField,
+}: Props & FieldActions) {
     const {formatMessage} = useIntl();
     const data = collectionToArray(collection);
     const col = createColumnHelper<UserPropertyField>();
@@ -216,6 +233,8 @@ export function UserPropertiesTable({data: collection, updateField, deleteField,
                     <ActionsRoot>
                         <DotMenu
                             field={row.original}
+                            canCreate={canCreate}
+                            createField={createField}
                             updateField={updateField}
                             deleteField={deleteField}
                         />
@@ -225,7 +244,7 @@ export function UserPropertiesTable({data: collection, updateField, deleteField,
                 enableSorting: false,
             }),
         ];
-    }, [updateField, deleteField, collection.warnings]);
+    }, [createField, updateField, deleteField, collection.warnings, canCreate]);
 
     const table = useReactTable({
         data,
