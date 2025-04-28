@@ -771,7 +771,6 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, updateP
 	}
 	// Always use incoming metadata when provided, otherwise retain existing
 	if receivedUpdatedPost.Metadata != nil {
-		// Make a deep copy to avoid race conditions when multiple goroutines access the same post
 		newPost.Metadata = receivedUpdatedPost.Metadata.Copy()
 	} else {
 		// Restore the post metadata that was stripped by the plugin. Set it to

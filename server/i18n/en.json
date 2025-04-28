@@ -4480,7 +4480,7 @@
   },
   {
     "id": "app.acknowledgement.batch_save.app_error",
-    "translation": ""
+    "translation": "Failed to save the batch of acknowledgement objects"
   },
   {
     "id": "app.acknowledgement.delete.app_error",
