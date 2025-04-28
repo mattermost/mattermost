@@ -300,8 +300,6 @@ endif
 
 golangci-lint: ## Run golangci-lint on codebase
 	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57.1
-	@echo Adding safe.directory to git config
-	@docker run --rm -v /Users/toninis/mattermost/mattermost/server/../../:/build -v /Users/toninis/mattermost/mattermost/server/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH -e OUTPUT_CONFIG --entrypoint /usr/bin/git cgr.dev/mattermost.com/go-msft-fips:1.22-dev  config --global --add safe.directory /build/mattermost/server
 	@echo Running golangci-lint
 	$(call run_tool_docker,golangci-lint,run ./...)
 	$(call run_tool_docker,golangci-lint,run ./public/...)
