@@ -3,7 +3,7 @@
 
 import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -242,7 +242,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 ref={this.wrapperRef}
                 className={mainClass}
             >
-                <ul
+                <SuggestionListList
                     id='suggestionList'
                     data-testid='suggestionList'
                     role='listbox'
@@ -255,8 +255,20 @@ export default class SuggestionList extends React.PureComponent<Props> {
                     onMouseDown={this.props.preventClose}
                 >
                     {items}
-                </ul>
+                </SuggestionListList>
             </div>
         );
     }
 }
+
+const SuggestionListList = React.forwardRef<HTMLUListElement, React.HTMLAttributes<HTMLUListElement>>((props, ref) => {
+    const {formatMessage} = useIntl();
+
+    return (
+        <ul
+            ref={ref}
+            aria-label={formatMessage({id: 'suggestionList.label', defaultMessage: 'Suggestions'})}
+            {...props}
+        />
+    );
+});
