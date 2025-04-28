@@ -93,18 +93,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [
-                '@nicknamer',
-                '@other',
-                '@user',
-                '@user2',
-                '@board',
-                '@developers',
-                '@software-engineers',
-                '@here',
-                '@channel',
-                '@all',
-            ],
             groups: [
                 membersGroup([
                     userid10,
@@ -130,19 +118,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '@nicknamer',
-                '@other',
-                '@user',
-                '@user2',
-                '@board',
-                '@developers',
-                '@software-engineers',
-                '@here',
-                '@channel',
-                '@all',
-                '',
-            ],
             groups: [
                 membersGroup([
                     userid10,
@@ -168,21 +143,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@nicknamer',
-                    '@other',
-                    '@user',
-                    '@user2',
-                    '@user4',
-                    '@board',
-                    '@developers',
-                    '@software-engineers',
-                    '@here',
-                    '@channel',
-                    '@all',
-                    '@user5',
-                    '@user6.six-split',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -249,20 +209,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [
-                '@user11',
-                '@user12',
-                '@nicknamer',
-                '@other',
-                '@user',
-                '@user2',
-                '@board',
-                '@developers',
-                '@software-engineers',
-                '@here',
-                '@channel',
-                '@all',
-            ],
             groups: [
                 membersGroup([
                     userid11,
@@ -290,21 +236,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '@user11',
-                '@user12',
-                '@nicknamer',
-                '@other',
-                '@user',
-                '@user2',
-                '@board',
-                '@developers',
-                '@software-engineers',
-                '@here',
-                '@channel',
-                '@all',
-                '',
-            ],
             groups: [
                 membersGroup([
                     userid11,
@@ -332,23 +263,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@user11',
-                    '@user12',
-                    '@nicknamer',
-                    '@other',
-                    '@user',
-                    '@user2',
-                    '@user4',
-                    '@board',
-                    '@developers',
-                    '@software-engineers',
-                    '@here',
-                    '@channel',
-                    '@all',
-                    '@user5',
-                    '@user6.six-split',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -415,20 +329,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [
-                '@user11',
-                '@user12',
-                '@nicknamer',
-                '@other',
-                '@user',
-                '@user2',
-                '@board',
-                '@developers',
-                '@software-engineers',
-                '@here',
-                '@channel',
-                '@all',
-            ],
             groups: [
                 membersGroup([
                     userid11,
@@ -456,21 +356,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '@user11',
-                '@user12',
-                '@nicknamer',
-                '@other',
-                '@user',
-                '@user2',
-                '@board',
-                '@developers',
-                '@software-engineers',
-                '@here',
-                '@channel',
-                '@all',
-                '',
-            ],
             groups: [
                 membersGroup([
                     userid11,
@@ -498,23 +383,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@user11',
-                    '@user12',
-                    '@nicknamer',
-                    '@other',
-                    '@user',
-                    '@user2',
-                    '@user4',
-                    '@board',
-                    '@developers',
-                    '@software-engineers',
-                    '@here',
-                    '@channel',
-                    '@all',
-                    '@user5',
-                    '@user6.six-split',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -581,20 +449,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [
-                '@user11',
-                '@user12',
-                '@user',
-                '@other',
-                '@nicknamer',
-                '@user2',
-                '@board',
-                '@developers',
-                '@software-engineers',
-                '@here',
-                '@channel',
-                '@all',
-            ],
             groups: [
                 membersGroup([
                     userid11,
@@ -622,21 +476,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '@user11',
-                '@user12',
-                '@user',
-                '@other',
-                '@nicknamer',
-                '@user2',
-                '@board',
-                '@developers',
-                '@software-engineers',
-                '@here',
-                '@channel',
-                '@all',
-                '',
-            ],
             groups: [
                 membersGroup([
                     userid11,
@@ -712,18 +551,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [
-                '@nicknamer',
-                '@other',
-                '@user',
-                '@user2',
-                '@board',
-                '@developers',
-                '@software-engineers',
-                '@here',
-                '@channel',
-                '@all',
-            ],
             groups: [
                 membersGroup([
                     userid10,
@@ -750,21 +577,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
             expect(resultCallback).toHaveBeenNthCalledWith(2, {
                 matchedPretext,
-                terms: [
-                    '@nicknamer',
-                    '@other',
-                    '@user',
-                    '@user2',
-                    '@user4',
-                    '@board',
-                    '@developers',
-                    '@software-engineers',
-                    '@here',
-                    '@channel',
-                    '@all',
-                    '@user5',
-                    '@user6.six-split',
-                ],
                 groups: itemsCall2,
                 component: AtMentionSuggestion,
             });
@@ -803,9 +615,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [
-                '@here',
-            ],
             groups: [
                 specialMentionsGroup([
                     {username: 'here'},
@@ -818,10 +627,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '@here',
-                '',
-            ],
             groups: [
                 specialMentionsGroup([
                     {username: 'here'},
@@ -834,9 +639,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@here',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -881,10 +683,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [
-                '@user',
-                '@user2',
-            ],
             groups: [
                 membersGroup([
                     userid1,
@@ -897,11 +695,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         jest.runOnlyPendingTimers();
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '@user',
-                '@user2',
-                '',
-            ],
             groups: [
                 membersGroup([
                     userid1,
@@ -915,13 +708,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@user',
-                    '@user2',
-                    '@user4',
-                    '@user5',
-                    '@user6.six-split',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -960,7 +746,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [],
             groups: [],
             component: AtMentionSuggestion,
         });
@@ -969,9 +754,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '',
-            ],
             groups: [
                 otherMembersGroup(),
             ],
@@ -981,9 +763,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@user6.six-split',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -1022,7 +801,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [],
             groups: [],
             component: AtMentionSuggestion,
         });
@@ -1031,9 +809,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '',
-            ],
             groups: [
                 otherMembersGroup(),
             ],
@@ -1043,9 +818,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@user6.six-split',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -1084,7 +856,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [],
             groups: [],
             component: AtMentionSuggestion,
         });
@@ -1092,9 +863,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         jest.runOnlyPendingTimers();
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '',
-            ],
             groups: [
                 otherMembersGroup(),
             ],
@@ -1104,9 +872,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@user6.six-split',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -1145,7 +910,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [],
             groups: [],
             component: AtMentionSuggestion,
         });
@@ -1154,9 +918,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '',
-            ],
             groups: [
                 otherMembersGroup(),
             ],
@@ -1166,9 +927,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@user6.six-split',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -1208,9 +966,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [
-                '@other',
-            ],
             groups: [
                 membersGroup([
                     userid3,
@@ -1223,10 +978,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '@other',
-                '',
-            ],
             groups: [
                 membersGroup([
                     userid3,
@@ -1239,10 +990,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@other',
-                    '@user4',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -1282,9 +1029,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [
-                '@other',
-            ],
             groups: [
                 membersGroup([
                     userid3,
@@ -1297,10 +1041,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '@other',
-                '',
-            ],
             groups: [
                 membersGroup([
                     userid3,
@@ -1313,10 +1053,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@other',
-                    '@user4',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -1357,10 +1093,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [
-                '@nicknamer',
-                '@other',
-            ],
             groups: [
                 membersGroup([
                     userid10,
@@ -1374,11 +1106,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '@nicknamer',
-                '@other',
-                '',
-            ],
             groups: [
                 membersGroup([
                     userid10,
@@ -1392,11 +1119,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@nicknamer',
-                    '@other',
-                    '@user4',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -1441,10 +1163,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [
-                '@user',
-                '@user2',
-            ],
             groups: [
                 membersGroup([
                     userid1,
@@ -1458,11 +1176,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '@user',
-                '@user2',
-                '',
-            ],
             groups: [
                 membersGroup([
                     userid1,
@@ -1476,13 +1189,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@user',
-                    '@user2',
-                    '@user4',
-                    '@user5',
-                    '@user6.six-split',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -1523,9 +1229,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [
-                '@other',
-            ],
             groups: [
                 membersGroup([
                     userid3,
@@ -1538,10 +1241,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '@other',
-                '',
-            ],
             groups: [
                 membersGroup([
                     userid3,
@@ -1554,11 +1253,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@xuser7',
-                    '@other',
-                    '@user4',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -1601,9 +1295,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [
-                '@other',
-            ],
             groups: [
                 membersGroup([
                     userid3,
@@ -1616,10 +1307,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '@other',
-                '',
-            ],
             groups: [
                 membersGroup([
                     userid3,
@@ -1632,11 +1319,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@other',
-                    '@xuser7',
-                    '@user4',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -1675,7 +1357,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [],
             groups: [],
             component: AtMentionSuggestion,
         });
@@ -1683,9 +1364,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         jest.runOnlyPendingTimers();
         expect(resultCallback).toHaveBeenNthCalledWith(2, {
             matchedPretext,
-            terms: [
-                '',
-            ],
             groups: [
                 otherMembersGroup(),
             ],
@@ -1695,9 +1373,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         await Promise.resolve().then(() => {
             expect(resultCallback).toHaveBeenNthCalledWith(3, {
                 matchedPretext,
-                terms: [
-                    '@xuser8',
-                ],
                 groups: itemsCall3,
                 component: AtMentionSuggestion,
             });
@@ -1731,11 +1406,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: [
-                '@board',
-                '@developers',
-                '@software-engineers',
-            ],
             groups: [
                 groupsGroup([
                     groupid1,
@@ -1779,7 +1449,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
-            terms: ['@software-engineers'],
             groups: [
                 groupsGroup([
                     groupid3,
@@ -1787,5 +1456,31 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             ],
             component: AtMentionSuggestion,
         });
+    });
+});
+
+for (const [name, func] of [
+    ['membersGroup', membersGroup],
+    ['specialMentionsGroup', specialMentionsGroup],
+    ['nonMembersGroup', nonMembersGroup],
+] as const) {
+    describe(name, () => {
+        const user1 = TestHelper.getUserMock({id: 'userid1', username: 'user1'});
+        const user2 = TestHelper.getUserMock({id: 'userid1', username: 'user.two'});
+        const user3 = TestHelper.getUserMock({id: 'userid1', username: 'user-three'});
+
+        test('should set terms matching the usernames of each user', () => {
+            expect(func([user1, user2, user3]).terms).toEqual(['@user1', '@user.two', '@user-three']);
+        });
+    });
+}
+
+describe('groupsGroup', () => {
+    const group1 = TestHelper.getGroupMock({id: 'groupid1', name: 'board', display_name: 'board'});
+    const group2 = TestHelper.getGroupMock({id: 'groupid2', name: 'developers', display_name: 'developers'});
+    const group3 = TestHelper.getGroupMock({id: 'groupid3', name: 'software-engineers', display_name: 'software engineers'});
+
+    test('should set terms matching the name of each group', () => {
+        expect(groupsGroup([group1, group2, group3]).terms).toEqual(['@board', '@developers', '@software-engineers']);
     });
 });
