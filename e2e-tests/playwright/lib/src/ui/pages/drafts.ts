@@ -6,7 +6,7 @@ import {Page, expect} from '@playwright/test';
 export default class DraftPage {
     readonly page: Page;
 
-    readonly badgeCountOnScheduledTab;
+    readonly tab;
     readonly confirmbutton;
     readonly datePattern;
     readonly deleteIcon;
@@ -27,8 +27,7 @@ export default class DraftPage {
 
         this.datePattern =
             /(Today|Tomorrow|(?:January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}) at \d{1,2}:\d{2} [AP]M/;
-        this.badgeCountOnScheduledTab = page.locator('a#draft_tabs-tab-0 div.drafts_tab_title span.MuiBadge-badge');
-        // this.scheduledDraftPageInfo = page.locator('span:has-text("Send on")');
+        this.tab = page.getByRole('tab', {name: 'Drafts'});
         this.scheduledDraftPageInfo = page.locator('.PanelHeader__info');
         this.scheduledDraftPanel = (messageContent: string) =>
             page.locator(`article.Panel:has(div.post__body:has-text("${messageContent}"))`);
@@ -51,8 +50,10 @@ export default class DraftPage {
     }
 
     async assertBadgeCountOnTab(badgeCount: string) {
-        await this.badgeCountOnScheduledTab.isVisible();
-        await expect(this.badgeCountOnScheduledTab).toHaveText(badgeCount);
+        await this.tab.isVisible();
+        const badge = this.tab.locator('span.MuiBadge-badge');
+        await expect(badge).toBeVisible();
+        await expect(badge).toHaveText(badgeCount);
     }
 
     async assertDraftBody(draftMessage: string) {

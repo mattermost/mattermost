@@ -27,7 +27,6 @@
   "accessibility.sections.centerContent": "შეტყობინება სია მთავარი რეგიონი",
   "accessibility.sections.centerFooter": "შეტყობინების შეყვანა კომპლ;იმენტარულ რეგიონში",
   "accessibility.sections.channelHeader": "არხი სათაური რეგიონი",
-  "accessibility.sections.lhsHeader": "ჯგუფი მენიუ რეგიონი",
   "accessibility.sections.lhsList": "არხი გვერდითა პანელი რეგიონი",
   "accessibility.sections.rhs": "{regionTitle} კომპლიმენტარული რეგიონი",
   "accessibility.sections.rhsContent": "შეტყობინების დეტალები კომპლიმენტარული რეგიონი",
