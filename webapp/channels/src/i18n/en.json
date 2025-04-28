@@ -5555,6 +5555,7 @@
   "suggestion.search.private": "Private Channels",
   "suggestion.search.public": "Public Channels",
   "suggestion.user.isCurrent": "(you)",
+  "suggestionList.label": "Suggestions",
   "suggestionList.noMatches": "No items match <b>{value}</b>",
   "system_notice.adminVisible": "Only visible to System Admins",
   "system_notice.adminVisible.icon": "Only visible to System Admins Icon",
