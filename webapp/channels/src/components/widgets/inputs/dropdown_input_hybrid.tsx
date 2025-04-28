@@ -6,7 +6,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-import type {Props as SelectProps, IndicatorsContainerProps, ControlProps, OptionProps, StylesConfig, SingleValue, GroupBase} from 'react-select';
+import type {Props as SelectProps, IndicatorsContainerProps, ControlProps, OptionProps, StylesConfig, SingleValue} from 'react-select';
 
 import 'components/widgets/inputs/input/input.scss';
 import './dropdown_input_hybrid.scss';
@@ -57,9 +57,9 @@ const baseStyles = {
         ...provided,
         zIndex: 99999999,
     }),
-} satisfies StylesConfig<OptionType, false>;
+} satisfies StylesConfig<OptionType, boolean>;
 
-const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerProps<T, false>) => (
+const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerProps<T>) => (
     <div className='DropdownInput__indicatorsContainer'>
         <components.IndicatorsContainer {...props}>
             <i className='icon icon-chevron-down'/>
@@ -67,13 +67,13 @@ const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerPro
     </div>
 );
 
-const Control = <T extends OptionType>(props: ControlProps<T, false>) => (
+const Control = <T extends OptionType>(props: ControlProps<T>) => (
     <div className='DropdownInput__controlContainer'>
         <components.Control {...props}/>
     </div>
 );
 
-const Option = <T extends OptionType>(props: OptionProps<T, false, GroupBase<T>>) => (
+const Option = <T extends OptionType>(props: OptionProps<T>) => (
     <div
         className={classNames('DropdownInput__option', {
             selected: props.isSelected,
@@ -138,7 +138,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                 width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '0px',
                 left: inputRef.current ? `-${inputRef.current.offsetWidth}px` : '0px',
             }),
-        } satisfies StylesConfig<OptionType, false> : {});
+        } satisfies StylesConfig<OptionType, boolean> : {});
 
     const onInputBlur = () => setInputFocused(false);
 
@@ -245,7 +245,6 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                         isSearchable={false}
                         menuPortalTarget={document.body}
                         isDisabled={props.isDisabled}
-                        isMulti={false}
                         {...otherProps}
                     />
                 </div>
