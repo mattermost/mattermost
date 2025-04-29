@@ -8,13 +8,6 @@ import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from '../reducers/entities/shared_channels';
 
-export function receivedSharedChannelsWithRemotes(sharedChannelsWithRemotes: any[]) {
-    return {
-        type: ActionTypes.RECEIVED_SHARED_CHANNELS_WITH_REMOTES,
-        data: sharedChannelsWithRemotes,
-    };
-}
-
 export function receivedChannelRemoteNames(channelId: string, remoteNames: string[]) {
     return {
         type: ActionTypes.RECEIVED_CHANNEL_REMOTE_NAMES,
@@ -22,24 +15,6 @@ export function receivedChannelRemoteNames(channelId: string, remoteNames: strin
             channelId,
             remoteNames,
         },
-    };
-}
-
-export function fetchSharedChannelsWithRemotes(teamId: string, page = 0, perPage = 50): ActionFuncAsync {
-    return async (dispatch: any) => {
-        let data;
-        try {
-            data = await Client4.getSharedChannels(teamId, page, perPage);
-        } catch (error) {
-            // In case of failures, we just skip and don't update the shared channels
-            return {error};
-        }
-
-        if (data) {
-            dispatch(receivedSharedChannelsWithRemotes(data));
-        }
-
-        return {data};
     };
 }
 
