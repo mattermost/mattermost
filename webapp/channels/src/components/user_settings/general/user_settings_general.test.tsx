@@ -605,10 +605,16 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
 
         userEvent.clear(screen.getByRole('textbox', {name: urlAttribute.name}));
-        userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'https://example.com');
+        userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'example.com');
         userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
-        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'https://example.com');
+        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'http://example.com');
+
+        userEvent.clear(screen.getByRole('textbox', {name: urlAttribute.name}));
+        userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'https://example');
+        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'https://example');
     });
 
     test('should validate email custom attribute field value', async () => {
