@@ -278,12 +278,10 @@ func TestOAuthAccessToken(t *testing.T) {
 	rurl, err := url.Parse(redirect)
 	require.NoError(t, err)
 
-	apiClient.Logout(context.Background())
-
 	data = url.Values{"grant_type": []string{"junk"}, "client_id": []string{oauthApp.Id}, "client_secret": []string{oauthApp.ClientSecret}, "code": []string{rurl.Query().Get("code")}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
-
-	_, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
+	_, resp, err := apiClient.GetOAuthAccessToken(context.Background(), data)
 	require.Error(t, err, "should have failed - bad grant type")
+	CheckBadRequestStatus(t, resp)
 
 	data.Set("grant_type", model.AccessTokenGrantType)
 	data.Set("client_id", "")
