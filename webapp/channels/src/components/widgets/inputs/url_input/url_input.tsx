@@ -116,6 +116,7 @@ function UrlInput({
                         hasError={hasError}
                         onChange={handleOnInputChange}
                         onBlur={handleOnInputBlur}
+                        aria-describedby='url-input-error'
                     />
                 )}
                 <button
@@ -131,7 +132,12 @@ function UrlInput({
             {error && (
                 <div className='url-input-error'>
                     <i className='icon icon-alert-outline'/>
-                    <span>{error}</span>
+                    <span
+                        id='url-input-error'
+                        role='alert'
+                    >
+                        {error}
+                    </span>
                 </div>
             )}
         </div>
