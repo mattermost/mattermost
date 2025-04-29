@@ -36,6 +36,7 @@ type TestHelper struct {
 	TestLogger        *mlog.Logger
 	IncludeCacheLayer bool
 
+	tb            testing.TB
 	tempWorkspace string
 }
 
@@ -57,7 +58,9 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
-	memoryStore.Set(memoryConfig)
+	if _, _, err = memoryStore.Set(memoryConfig); err != nil {
+		panic(err)
+	}
 
 	buffer := &bytes.Buffer{}
 
@@ -90,16 +93,25 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
+		tb:                tb,
 	}
 
 	if enterprise {
-		th.App.Srv().Jobs.StopWorkers()
-		th.App.Srv().Jobs.StopSchedulers()
+		if err := th.App.Srv().Jobs.StopWorkers(); err != nil {
+			panic(err)
+		}
+		if err := th.App.Srv().Jobs.StopSchedulers(); err != nil {
+			panic(err)
+		}
 
 		th.App.Srv().SetLicense(model.NewTestLicense())
 
-		th.App.Srv().Jobs.StartWorkers()
-		th.App.Srv().Jobs.StartSchedulers()
+		if err := th.App.Srv().Jobs.StartWorkers(); err != nil {
+			panic(err)
+		}
+		if err := th.App.Srv().Jobs.StartSchedulers(); err != nil {
+			panic(err)
+		}
 	} else {
 		th.App.Srv().SetLicense(getLicense(false, memoryConfig))
 	}
@@ -180,7 +192,10 @@ func (th *TestHelper) initBasic() *TestHelper {
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.createUser()
-		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		if appErr != nil {
+			panic(appErr)
+		}
 		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
@@ -197,7 +212,9 @@ func (th *TestHelper) initBasic() *TestHelper {
 	th.BasicUser = userCache.BasicUser.DeepCopy()
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
 	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	mainHelper.GetSQLStore().User().InsertUsers(users)
+	if err := mainHelper.GetSQLStore().User().InsertUsers(users); err != nil {
+		panic(err)
+	}
 
 	th.BasicTeam = th.createTeam()
 
@@ -399,7 +416,9 @@ func (th *TestHelper) shutdownApp() {
 func (th *TestHelper) tearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		th.App.Srv().InvalidateAllCaches()
+		if err := th.App.Srv().InvalidateAllCaches(); err != nil {
+			panic(err)
+		}
 	}
 	th.shutdownApp()
 	if th.tempWorkspace != "" {
