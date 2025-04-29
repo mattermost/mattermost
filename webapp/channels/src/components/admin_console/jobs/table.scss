@@ -26,3 +26,12 @@
         width: 30px;
     }
 }
+
+.JobTable {
+    .clickable {
+        cursor: pointer;
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+    }
+}

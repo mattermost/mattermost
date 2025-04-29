@@ -20,6 +20,7 @@ type TimerLayer struct {
 	store.Store
 	Metrics                         einterfaces.MetricsInterface
 	AccessControlPolicyStore        store.AccessControlPolicyStore
+	AttributesStore                 store.AttributesStore
 	AuditStore                      store.AuditStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
@@ -73,6 +74,10 @@ type TimerLayer struct {
 
 func (s *TimerLayer) AccessControlPolicy() store.AccessControlPolicyStore {
 	return s.AccessControlPolicyStore
+}
+
+func (s *TimerLayer) Attributes() store.AttributesStore {
+	return s.AttributesStore
 }
 
 func (s *TimerLayer) Audit() store.AuditStore {
@@ -273,6 +278,11 @@ func (s *TimerLayer) Webhook() store.WebhookStore {
 
 type TimerLayerAccessControlPolicyStore struct {
 	store.AccessControlPolicyStore
+	Root *TimerLayer
+}
+
+type TimerLayerAttributesStore struct {
+	store.AttributesStore
 	Root *TimerLayer
 }
 
@@ -553,22 +563,6 @@ func (s *TimerLayerAccessControlPolicyStore) Get(c request.CTX, id string) (*mod
 	return result, err
 }
 
-func (s *TimerLayerAccessControlPolicyStore) GetAllSubjects(rctxc request.CTX) ([]*model.Subject, error) {
-	start := time.Now()
-
-	result, err := s.AccessControlPolicyStore.GetAllSubjects(rctxc)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetAllSubjects", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerAccessControlPolicyStore) Save(c request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
 	start := time.Now()
 
@@ -615,6 +609,54 @@ func (s *TimerLayerAccessControlPolicyStore) SetActiveStatus(c request.CTX, id s
 		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.SetActiveStatus", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerAttributesStore) GetSubject(rctx request.CTX, ID string, groupID string) (*model.Subject, error) {
+	start := time.Now()
+
+	result, err := s.AttributesStore.GetSubject(rctx, ID, groupID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetSubject", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerAttributesStore) RefreshAttributes() error {
+	start := time.Now()
+
+	err := s.AttributesStore.RefreshAttributes()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.RefreshAttributes", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.AttributesStore.SearchUsers(rctx, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.SearchUsers", success, elapsed)
+	}
+	return result, resultVar1, err
 }
 
 func (s *TimerLayerAuditStore) Get(userID string, offset int, limit int) (model.Audits, error) {
@@ -7291,6 +7333,22 @@ func (s *TimerLayerPropertyFieldStore) Get(groupID string, id string) (*model.Pr
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) GetByName(groupID string, name string) (*model.PropertyField, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetByName(groupID, name)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetByName", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
 	start := time.Now()
 
@@ -13005,6 +13063,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	}
 
 	newStore.AccessControlPolicyStore = &TimerLayerAccessControlPolicyStore{AccessControlPolicyStore: childStore.AccessControlPolicy(), Root: &newStore}
+	newStore.AttributesStore = &TimerLayerAttributesStore{AttributesStore: childStore.Attributes(), Root: &newStore}
 	newStore.AuditStore = &TimerLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
 	newStore.BotStore = &TimerLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &TimerLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}

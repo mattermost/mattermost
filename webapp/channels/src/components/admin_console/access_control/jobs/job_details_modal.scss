@@ -1,0 +1,29 @@
+.JobDetailsModal {
+    padding: 16px;
+
+    .details-row {
+        display: flex;
+        margin-bottom: 12px;
+    }
+
+    .details-label {
+        width: 120px;
+        flex-shrink: 0;
+        font-weight: 600;
+    }
+
+    .details-value {
+        word-break: break-word;
+    }
+
+    pre {
+        max-height: 200px;
+        padding: 8px;
+        border-radius: 4px;
+        margin-top: 4px;
+        background-color: rgba(0, 0, 0, 0.05);
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+} 

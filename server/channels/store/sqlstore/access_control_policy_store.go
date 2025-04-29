@@ -215,17 +215,17 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 			return existingPolicy, nil
 		}
 
-		data = tmp.Data
-		props = tmp.Props
+		existingData := tmp.Data
+		existingProps := tmp.Props
 		if s.IsBinaryParamEnabled() {
-			data = AppendBinaryFlag(data)
-			props = AppendBinaryFlag(props)
+			existingData = AppendBinaryFlag(data)
+			existingProps = AppendBinaryFlag(props)
 		}
 
 		query := s.getQueryBuilder().
 			Insert("AccessControlPolicyHistory").
 			Columns(accessControlPolicyHistorySliceColumns()...).
-			Values(tmp.ID, tmp.Name, tmp.Type, tmp.CreateAt, tmp.Revision, tmp.Version, data, props)
+			Values(tmp.ID, tmp.Name, tmp.Type, tmp.CreateAt, tmp.Revision, tmp.Version, existingData, existingProps)
 
 		_, err = tx.ExecBuilder(query)
 		if err != nil {
@@ -601,44 +601,4 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	}
 
 	return policies, total, nil
-}
-
-func (s *SqlAccessControlPolicyStore) GetAllSubjects(rctxc request.CTX) ([]*model.Subject, error) {
-	subjects := []*model.Subject{}
-
-	// selectQuery := s.getQueryBuilder().
-	// 	Select("TargetID as Id, Properties").
-	// 	From("PropertyView")
-
-	// query, args, err := selectQuery.ToSql()
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "failed to build query for subjects")
-	// }
-
-	// rows, err := s.GetReplica().Query(query, args...)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "failed to get all subjects")
-	// }
-	// defer rows.Close()
-
-	// for rows.Next() {
-	// 	var subject model.Subject
-	// 	var properties []byte
-
-	// 	if err := rows.Scan(&subject.ID, &properties); err != nil {
-	// 		return nil, errors.Wrap(err, "failed to scan subject row")
-	// 	}
-
-	// 	if err := json.Unmarshal(properties, &subject.Properties); err != nil {
-	// 		return nil, errors.Wrap(err, "failed to unmarshal properties")
-	// 	}
-
-	// 	subjects = append(subjects, &subject)
-	// }
-
-	// if err := rows.Err(); err != nil {
-	// 	return nil, errors.Wrap(err, "rows iteration error")
-	// }
-
-	return subjects, nil
 }

@@ -635,6 +635,14 @@ func (a *App) GetGroupChannel(c request.CTX, userIDs []string) (*model.Channel, 
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
+	ok, appErr := a.ChannelAccessControlled(c, channel.Id)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if ok && channel.Type != model.ChannelTypePrivate {
+		return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.not_allowed.app_error", nil, "", http.StatusForbidden)
+	}
+
 	_, err := a.Srv().Store().Channel().Update(c, channel)
 	if err != nil {
 		var appErr *model.AppError
@@ -1574,6 +1582,38 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 			return nil, appErr
 		}
 		newMember.SchemeAdmin = userShouldBeAdmin
+	}
+
+	if channel.Type == model.ChannelTypePrivate {
+		if ok, _ := a.ChannelAccessControlled(c, channel.Id); ok {
+			if acs := a.Srv().Channels().AccessControl; acs != nil {
+				group, err := a.Srv().Store().PropertyGroup().Get(model.CustomProfileAttributesPropertyGroupName)
+				if err != nil {
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
+						fmt.Sprintf("failed to get group: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
+				}
+
+				s, err := a.Srv().Store().Attributes().GetSubject(c, user.Id, group.ID)
+				if err != nil {
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
+						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
+				}
+
+				decision, appErr := acs.AccessEvaluation(c, model.AccessRequest{
+					Subject: *s,
+					Resource: model.Resource{
+						Type: model.AccessControlPolicyTypeChannel,
+						ID:   channel.Id,
+					},
+					Action: "join_channel",
+				})
+				if appErr != nil {
+					return nil, appErr
+				} else if !decision.Decision {
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "", http.StatusForbidden)
+				}
+			}
+		}
 	}
 
 	newMember, nErr = a.Srv().Store().Channel().SaveMember(c, newMember)
@@ -3819,4 +3859,20 @@ func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*m
 	}
 
 	return channel, nil
+}
+
+func (a *App) ChannelAccessControlled(c request.CTX, channelID string) (bool, *model.AppError) {
+	if l := a.License(); !model.MinimumPremiumLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return false, nil
+	}
+
+	_, err := a.Srv().Store().AccessControlPolicy().Get(c, channelID)
+	var nfErr *store.ErrNotFound
+	if err != nil && !errors.As(err, &nfErr) {
+		return false, model.NewAppError("ChannelIsAccessControlled", "app.channel.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	} else if errors.As(err, &nfErr) {
+		return false, nil
+	}
+
+	return true, nil
 }

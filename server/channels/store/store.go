@@ -96,6 +96,7 @@ type Store interface {
 	PropertyField() PropertyFieldStore
 	PropertyValue() PropertyValueStore
 	AccessControlPolicy() AccessControlPolicyStore
+	Attributes() AttributesStore
 }
 
 type RetentionPolicyStore interface {
@@ -1090,6 +1091,7 @@ type PropertyGroupStore interface {
 type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
 	Get(groupID, id string) (*model.PropertyField, error)
+	GetByName(groupID, name string) (*model.PropertyField, error)
 	GetMany(groupID string, ids []string) ([]*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
@@ -1114,8 +1116,13 @@ type AccessControlPolicyStore interface {
 	Delete(c request.CTX, id string) error
 	SetActiveStatus(c request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
 	Get(c request.CTX, id string) (*model.AccessControlPolicy, error)
-	GetAllSubjects(rctxc request.CTX) ([]*model.Subject, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
+}
+
+type AttributesStore interface {
+	RefreshAttributes() error
+	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
+	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

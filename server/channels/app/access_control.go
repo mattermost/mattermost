@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -113,32 +114,27 @@ func (a *App) CheckExpression(rctx request.CTX, expression string) ([]model.CELE
 	return errs, nil
 }
 
-func (a *App) TestExpression(rctx request.CTX, expression string) ([]*model.User, *model.AppError) {
+func (a *App) TestExpression(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
-		return nil, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+		return nil, 0, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	res, err := acs.QueryExpression(rctx, expression)
+	res, count, err := acs.QueryUsersForExpression(rctx, expression, opts)
 	if err != nil {
-		return nil, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, 0, model.NewAppError("TestExpression", "app.pap.check_expression.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	users, appErr := a.GetUsers(res.MatchedSubjectIDs)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	return users, nil
+	return res, count, nil
 }
 
-func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, policyID string, channelIDs []string) ([]*model.AccessControlPolicy, *model.AppError) {
+func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID string, channelIDs []string) ([]*model.AccessControlPolicy, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	policy, appErr := a.GetAccessControlPolicy(rctx, policyID)
+	policy, appErr := a.GetAccessControlPolicy(rctx, parentID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -147,9 +143,22 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, policyID str
 		return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "Policy is not of type parent", http.StatusBadRequest)
 	}
 
+	channels, err := a.GetChannels(rctx, channelIDs)
+	if err != nil {
+		return nil, appErr
+	}
+
 	policies := make([]*model.AccessControlPolicy, 0, len(channelIDs))
-	for _, channelID := range channelIDs {
-		newPolicy, appErr := policy.Inherit(channelID, model.AccessControlPolicyTypeChannel)
+	for _, channel := range channels {
+		if channel.Type != model.ChannelTypePrivate || channel.IsGroupConstrained() {
+			return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "Channel is not of type private", http.StatusBadRequest)
+		}
+
+		if channel.IsShared() {
+			return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "Channel is shared", http.StatusBadRequest)
+		}
+
+		newPolicy, appErr := policy.Inherit(channel.Id, model.AccessControlPolicyTypeChannel)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -162,6 +171,40 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, policyID str
 	}
 
 	return policies, nil
+}
+
+func (a *App) UnAssignPoliciesFromChannels(rctx request.CTX, policyID string, channelIDs []string) *model.AppError {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return model.NewAppError("UnAssignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	cps, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+		Type:     model.AccessControlPolicyTypeChannel,
+		ParentID: policyID,
+	})
+	if err != nil {
+		return model.NewAppError("UnAssignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	childPolicies := make(map[string]bool)
+	for _, p := range cps {
+		childPolicies[p.ID] = true
+	}
+
+	for _, channelID := range channelIDs {
+		if _, ok := childPolicies[channelID]; !ok {
+			mlog.Warn("Policy is not assigned to the parent policy", mlog.String("channel_id", channelID), mlog.String("parent_policy_id", policyID))
+			continue
+		}
+
+		appErr := acs.DeletePolicy(rctx, channelID)
+		if appErr != nil {
+			return appErr
+		}
+	}
+
+	return nil
 }
 
 func (a *App) SearchAccessControlPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, *model.AppError) {

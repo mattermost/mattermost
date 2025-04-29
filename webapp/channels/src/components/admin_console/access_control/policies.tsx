@@ -34,7 +34,7 @@ export default function PolicyList(props: Props): JSX.Element {
     const [searchErrored, setSearchErrored] = useState(false);
     const [cursorHistory, setCursorHistory] = useState<string[]>([]);
     const [total, setTotal] = useState(0);
-    
+
     const mounted = useRef(false);
 
     useEffect(() => {
@@ -274,7 +274,7 @@ export default function PolicyList(props: Props): JSX.Element {
             total,
         };
     };
-    
+
     const rows: Row[] = getRows();
     const columns: Column[] = getColumns();
     const {startCount, endCount} = getPaginationProps();

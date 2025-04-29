@@ -151,36 +151,82 @@ func (_m *PolicyAdministrationPointInterface) Init(rctx request.CTX) *model.AppE
 	return r0
 }
 
-// QueryExpression provides a mock function with given fields: rctx, expression
-func (_m *PolicyAdministrationPointInterface) QueryExpression(rctx request.CTX, expression string) (*model.AccessControlQueryResult, *model.AppError) {
-	ret := _m.Called(rctx, expression)
+// QueryUsersForExpression provides a mock function with given fields: rctx, expression, opts
+func (_m *PolicyAdministrationPointInterface) QueryUsersForExpression(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
+	ret := _m.Called(rctx, expression, opts)
 
 	if len(ret) == 0 {
-		panic("no return value specified for QueryExpression")
+		panic("no return value specified for QueryUsersForExpression")
 	}
 
-	var r0 *model.AccessControlQueryResult
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.AccessControlQueryResult, *model.AppError)); ok {
-		return rf(rctx, expression)
+	var r0 []*model.User
+	var r1 int64
+	var r2 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError)); ok {
+		return rf(rctx, expression, opts)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.AccessControlQueryResult); ok {
-		r0 = rf(rctx, expression)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.SubjectSearchOptions) []*model.User); ok {
+		r0 = rf(rctx, expression, opts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AccessControlQueryResult)
+			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
-		r1 = rf(rctx, expression)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, model.SubjectSearchOptions) int64); ok {
+		r1 = rf(rctx, expression, opts)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+		r1 = ret.Get(1).(int64)
+	}
+
+	if rf, ok := ret.Get(2).(func(request.CTX, string, model.SubjectSearchOptions) *model.AppError); ok {
+		r2 = rf(rctx, expression, opts)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
 		}
 	}
 
-	return r0, r1
+	return r0, r1, r2
+}
+
+// QueryUsersForResource provides a mock function with given fields: rctx, resourceID, action, opts
+func (_m *PolicyAdministrationPointInterface) QueryUsersForResource(rctx request.CTX, resourceID string, action string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
+	ret := _m.Called(rctx, resourceID, action, opts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for QueryUsersForResource")
+	}
+
+	var r0 []*model.User
+	var r1 int64
+	var r2 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError)); ok {
+		return rf(rctx, resourceID, action, opts)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, model.SubjectSearchOptions) []*model.User); ok {
+		r0 = rf(rctx, resourceID, action, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, model.SubjectSearchOptions) int64); ok {
+		r1 = rf(rctx, resourceID, action, opts)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+
+	if rf, ok := ret.Get(2).(func(request.CTX, string, string, model.SubjectSearchOptions) *model.AppError); ok {
+		r2 = rf(rctx, resourceID, action, opts)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
+		}
+	}
+
+	return r0, r1, r2
 }
 
 // SavePolicy provides a mock function with given fields: rctx, policy

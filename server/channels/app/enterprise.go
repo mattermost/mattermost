@@ -104,6 +104,12 @@ func RegisterAccessControlServiceInterface(f func(*App) einterfaces.AccessContro
 	accessControlServiceInterface = f
 }
 
+var jobsAccessControlSyncJobInterface func(*Server) ejobs.AccessControlSyncJobInterface
+
+func RegisterJobsAccessControlSyncJobInterface(f func(*Server) ejobs.AccessControlSyncJobInterface) {
+	jobsAccessControlSyncJobInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if cloudInterface != nil {
 		s.Cloud = cloudInterface(s)

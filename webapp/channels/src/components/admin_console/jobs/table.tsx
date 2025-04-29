@@ -31,6 +31,7 @@ export type Props = {
     createJobButtonText: React.ReactNode;
     hideTable?: boolean;
     jobData?: any;
+    onRowClick?: (job: Job) => void;
     actions: {
         getJobsByType: (jobType: JobType) => void;
         cancelJob: (jobId: string) => Promise<ActionResult>;
@@ -90,6 +91,8 @@ class JobTable extends React.PureComponent<Props> {
             return (
                 <tr
                     key={job.id}
+                    onClick={this.props.onRowClick ? () => this.props.onRowClick!(job) : undefined}
+                    className={this.props.onRowClick ? 'clickable' : ''}
                 >
                     <td className='cancel-button-field whitespace--nowrap text-center'>
                         <JobCancelButton

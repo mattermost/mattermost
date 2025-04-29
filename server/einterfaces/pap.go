@@ -21,9 +21,11 @@ type PolicyAdministrationPointInterface interface {
 	// It returns a list of CELExpressionError if the expression is invalid.
 	// If the expression is valid, it returns an empty list.
 	CheckExpression(rctx request.CTX, expression string) ([]model.CELExpressionError, *model.AppError)
-	// QueryExpression evaluates the given expression using the CEL engine.
-	// It returns a list of subjects that match the expression.
-	QueryExpression(rctx request.CTX, expression string) (*model.AccessControlQueryResult, *model.AppError)
+	// QueryUsersForExpression evaluates the given expression using the CEL engine.
+	// It returns a list of users that match the expression.
+	QueryUsersForExpression(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError)
+	// QueryUsersForResource evaluates finds the users match to the resource.
+	QueryUsersForResource(rctx request.CTX, resourceID, action string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError)
 	// SavePolicy saves the given access control policy.
 	SavePolicy(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)
 	// GetPolicy retrieves the access control policy with the given ID.

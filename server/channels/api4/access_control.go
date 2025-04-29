@@ -14,9 +14,9 @@ import (
 )
 
 func (api *API) InitAccessControlPolicy() {
-	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessPolicy)).Methods(http.MethodPut)
-	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(getAccessPolicy)).Methods(http.MethodGet)
-	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(deleteAccessPolicy)).Methods(http.MethodDelete)
+	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessControlPolicy)).Methods(http.MethodPut)
+	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(getAccessControlPolicy)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(deleteAccessControlPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicies.Handle("/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
@@ -27,14 +27,14 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", api.APISessionRequired(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
 }
 
-func createAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	var policy model.AccessControlPolicy
 	if jsonErr := json.NewDecoder(r.Body).Decode(&policy); jsonErr != nil {
 		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createAccessPolicy", audit.Fail)
+	auditRec := c.MakeAuditRecord("createAccessControlPolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -50,7 +50,7 @@ func createAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	js, err := json.Marshal(np)
 	if err != nil {
-		c.Err = model.NewAppError("getAccessPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("createAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -59,7 +59,7 @@ func createAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
@@ -79,7 +79,7 @@ func getAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	js, err := json.Marshal(policy)
 	if err != nil {
-		c.Err = model.NewAppError("getAccessPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("getAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -88,7 +88,7 @@ func getAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func deleteAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
@@ -104,56 +104,6 @@ func deleteAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
-	}
-}
-
-func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	c.RequirePolicyId()
-	if c.Err != nil {
-		return
-	}
-
-	var props *model.ChannelSearch
-	err := json.NewDecoder(r.Body).Decode(&props)
-	if err != nil || props == nil {
-		c.SetInvalidParamWithErr("channel_search", err)
-		return
-	}
-
-	policyID := c.Params.PolicyId
-
-	c.RequirePolicyId()
-
-	opts := model.ChannelSearchOpts{
-		Deleted:                     props.Deleted,
-		IncludeDeleted:              props.IncludeDeleted,
-		Private:                     true,
-		ExcludeGroupConstrained:     true,
-		TeamIds:                     props.TeamIds,
-		ParentAccessControlPolicyId: policyID,
-	}
-
-	channels, total, appErr := c.App.SearchAllChannels(c.AppContext, props.Term, opts)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	data := model.ChannelsWithCount{Channels: channels, TotalCount: total}
-
-	channelsJSON, jsonErr := json.Marshal(data)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("searchChannelsInPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-		return
-	}
-
-	if _, err := w.Write(channelsJSON); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -192,9 +142,7 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
-	checkExpressionRequest := struct {
-		Expression string `json:"expression"`
-	}{}
+	var checkExpressionRequest model.QueryExpressionParams
 	if jsonErr := json.NewDecoder(r.Body).Decode(&checkExpressionRequest); jsonErr != nil {
 		c.SetInvalidParamWithErr("user", jsonErr)
 		return
@@ -208,7 +156,13 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, appErr := c.App.TestExpression(c.AppContext, checkExpressionRequest.Expression)
+	users, count, appErr := c.App.TestExpression(c.AppContext, checkExpressionRequest.Expression, model.SubjectSearchOptions{
+		Term:  checkExpressionRequest.Term,
+		Limit: checkExpressionRequest.Limit,
+		Cursor: model.SubjectCursor{
+			TargetID: checkExpressionRequest.After,
+		},
+	})
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -216,6 +170,7 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	resp := model.AccessControlPolicyTestResponse{
 		Users: users,
+		Total: count,
 	}
 
 	js, err := json.Marshal(resp)
@@ -301,11 +256,6 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
 	c.RequirePolicyId()
 	if c.Err != nil {
 		return
@@ -322,20 +272,8 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	policy, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if policy.Type != model.AccessControlPolicyTypeParent {
-		appErr = model.NewAppError("assignAccessPolicy", "api.access_control_policy.assign.invalid_type.app_error", nil, "", http.StatusBadRequest)
-		c.Err = appErr
-		return
-	}
-
-	for _, channelID := range assignments.ChannelIds {
-		appErr = c.App.DeleteAccessControlPolicy(c.AppContext, channelID)
+	if len(assignments.ChannelIds) != 0 {
+		appErr := c.App.UnAssignPoliciesFromChannels(c.AppContext, policyID, assignments.ChannelIds)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -385,6 +323,56 @@ func getChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *htt
 	}
 
 	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
+
+	var props *model.ChannelSearch
+	err := json.NewDecoder(r.Body).Decode(&props)
+	if err != nil || props == nil {
+		c.SetInvalidParamWithErr("channel_search", err)
+		return
+	}
+
+	policyID := c.Params.PolicyId
+
+	c.RequirePolicyId()
+
+	opts := model.ChannelSearchOpts{
+		Deleted:                     props.Deleted,
+		IncludeDeleted:              props.IncludeDeleted,
+		Private:                     true,
+		ExcludeGroupConstrained:     true,
+		TeamIds:                     props.TeamIds,
+		ParentAccessControlPolicyId: policyID,
+	}
+
+	channels, total, appErr := c.App.SearchAllChannels(c.AppContext, props.Term, opts)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	data := model.ChannelsWithCount{Channels: channels, TotalCount: total}
+
+	channelsJSON, jsonErr := json.Marshal(data)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchChannelsInPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		return
+	}
+
+	if _, err := w.Write(channelsJSON); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

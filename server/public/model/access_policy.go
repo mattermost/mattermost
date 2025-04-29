@@ -38,8 +38,8 @@ type AccessControlExpressionAutocomplete struct {
 }
 
 type AccessControlPolicyTestResponse struct {
-	Users      []*User  `json:"users"`
-	Attributes []string `json:"attributes"`
+	Users []*User `json:"users"`
+	Total int64   `json:"total"`
 }
 
 type GetAccessControlPolicyOptions struct {
@@ -164,7 +164,7 @@ func (p *AccessControlPolicy) Inherit(resourceID, resourceType string) (*AccessC
 			copy(actions, rule.Actions)
 			rules[i] = AccessControlPolicyRule{
 				Actions:    actions,
-				Expression: fmt.Sprintf("policies.%s", p.ID),
+				Expression: fmt.Sprintf("policies.id_%s", p.ID),
 			}
 		}
 	default:
