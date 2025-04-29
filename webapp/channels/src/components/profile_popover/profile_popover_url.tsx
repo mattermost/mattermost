@@ -31,7 +31,7 @@ const ProfilePopoverUrl = ({attribute, userProfile}: Props) => {
                 data-testid='url-icon'
             />
             <ExternalLink
-                location='custom_profile_attribute'
+                location='profile_popover_url'
                 href={url}
             >
                 {url}
