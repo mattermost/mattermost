@@ -39,7 +39,7 @@ func (a *App) SyncLdap(c request.CTX, includeRemovedMembers bool) {
 
 func (a *App) TestLdap(rctx request.CTX) *model.AppError {
 	license := a.Srv().License()
-	if ldapI := a.Ldap(); ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
+	if ldapI := a.LdapDiagnostic(); ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
 		if err := ldapI.RunTest(rctx); err != nil {
 			err.StatusCode = 500
 			return err
@@ -153,11 +153,8 @@ func (a *App) SwitchLdapToEmail(c request.CTX, ldapPassword, code, email, newPas
 		return "", model.NewAppError("SwitchLdapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := ldapInterface.CheckPasswordAuthData(c, *user.AuthData, ldapPassword); err != nil {
-		return "", err
-	}
-
-	if err := a.CheckUserMfa(c, user, code); err != nil {
+	user, err = a.checkLdapUserPasswordAndAllCriteria(c, user, ldapPassword, code)
+	if err != nil {
 		return "", err
 	}
 

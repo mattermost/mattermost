@@ -27,6 +27,7 @@ import {
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
+import CustomProfileAttributes from 'components/admin_console/custom_profile_attributes/custom_profile_attributes';
 import PluginManagement from 'components/admin_console/plugin_management';
 import SystemAnalytics from 'components/analytics/system_analytics';
 import {searchableStrings as systemAnalyticsSearchableStrings} from 'components/analytics/system_analytics/system_analytics';
@@ -41,6 +42,7 @@ import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 
 import * as DefinitionConstants from './admin_definition_constants';
+import AuditLoggingCertificateUploadSetting from './audit_logging';
 import Audits from './audits';
 import {searchableStrings as auditSearchableStrings} from './audits/audits';
 import BillingHistory, {searchableStrings as billingHistorySearchableStrings} from './billing/billing_history';
@@ -49,6 +51,7 @@ import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} f
 import CompanyInfoEdit from './billing/company_info_edit';
 import BleveSettings, {searchableStrings as bleveSearchableStrings} from './bleve_settings';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
+import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
@@ -72,6 +75,7 @@ import {
     GuestAccessFeatureDiscovery,
     SystemRolesFeatureDiscovery,
     GroupsFeatureDiscovery,
+    MobileSecurityFeatureDiscovery,
 } from './feature_discovery/features';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
@@ -93,6 +97,7 @@ import SecureConnectionDetail from './secure_connections/secure_connection_detai
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
+import SystemProperties, {searchableStrings as systemPropertiesSearchableStrings} from './system_properties';
 import SystemRoles from './system_roles';
 import SystemRole from './system_roles/system_role';
 import SystemUserDetail from './system_user_detail';
@@ -572,6 +577,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             systemScheme: {
                 url: 'user_management/permissions/system_scheme',
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 schema: {
                     id: 'PermissionSystemScheme',
@@ -580,6 +586,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             teamSchemeDetail: {
                 url: `user_management/permissions/team_override_scheme/:scheme_id(${ID_PATH_PATTERN})`,
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 schema: {
                     id: 'PermissionSystemScheme',
@@ -588,6 +595,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             teamScheme: {
                 url: 'user_management/permissions/team_override_scheme',
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 schema: {
                     id: 'PermissionSystemScheme',
@@ -609,6 +617,10 @@ const AdminDefinition: AdminDefinitionType = {
             },
             system_role: {
                 url: `user_management/system_roles/:role_id(${ID_PATH_PATTERN})`,
+                isHidden: it.any(
+                    it.not(it.licensedForFeature('LDAPGroups')),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
                     id: 'SystemRole',
@@ -761,7 +773,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.UseLetsEncrypt',
                             label: defineMessage({id: 'admin.service.useLetsEncrypt', defaultMessage: 'Use Let\'s Encrypt:'}),
                             help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription', defaultMessage: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.'}),
-                            disabled_help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription.disabled', defaultMessage: "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains. This setting cannot be enabled unless the [Forward port 80 to 443](#SystemSettings.Forward80To443) setting is set to true."}),
+                            disabled_help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription.disabled', defaultMessage: "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains. This setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true."}),
                             disabled_help_text_markdown: true,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
@@ -1956,6 +1968,15 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                         },
                         {
+                            type: 'custom',
+                            key: 'MetricsSettings.ClientSideUserIds',
+                            component: ClientSideUserIdsSetting,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.PERFORMANCE_MONITORING)),
+                                it.configIsFalse('MetricsSettings', 'EnableClientMetrics'),
+                            ),
+                        },
+                        {
                             type: 'text',
                             key: 'MetricsSettings.ListenAddress',
                             label: defineMessage({id: 'admin.metrics.listenAddressTitle', defaultMessage: 'Listen Address:'}),
@@ -2020,6 +2041,61 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                     ],
                 },
+            },
+            mobile_security: {
+                url: 'environment/mobile_security',
+                title: defineMessage({id: 'admin.sidebar.mobileSecurity', defaultMessage: 'Mobile Security'}),
+                isHidden: it.any(
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MOBILE_SECURITY)),
+                    it.not(it.licensedForSku(LicenseSkus.Enterprise)),
+                ),
+                schema: {
+                    id: 'MobileSecuritySettings',
+                    name: defineMessage({id: 'admin.mobileSecurity.title', defaultMessage: 'Mobile Security'}),
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'NativeAppSettings.MobileEnableBiometrics',
+                            label: defineMessage({id: 'admin.mobileSecurity.biometricsTitle', defaultMessage: 'Enable Biometric Authentication:'}),
+                            help_text: defineMessage({id: 'admin.mobileSecurity.biometricsDescription', defaultMessage: 'Enforces biometric authentication (with PIN/passcode fallback) before accessing the app. Users will be prompted based on session activity and server switching rules.'}),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'NativeAppSettings.MobilePreventScreenCapture',
+                            label: defineMessage({id: 'admin.mobileSecurity.screenCaptureTitle', defaultMessage: 'Prevent Screen Capture:'}),
+                            help_text: defineMessage({id: 'admin.mobileSecurity.screenCaptureDescription', defaultMessage: 'Blocks screenshots and screen recordings when using the mobile app. Screenshots will appear blank, and screen recordings will blur (iOS) or show a black screen (Android). Also applies when switching apps.'}),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'NativeAppSettings.MobileJailbreakProtection',
+                            label: defineMessage({id: 'admin.mobileSecurity.jailbreakTitle', defaultMessage: 'Enable Jailbreak/Root Protection:'}),
+                            help_text: defineMessage({id: 'admin.mobileSecurity.jailbreakDescription', defaultMessage: 'Prevents access to the app on devices detected as jailbroken or rooted. If a device fails the security check, users will be denied access or prompted to switch to a compliant server.'}),
+                        },
+                    ],
+                },
+            },
+            mobile_security_feature_discovery: {
+                url: 'environment/mobile_security_feature_discovery',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.mobileSecurity', defaultMessage: 'Mobile Security'}),
+                isHidden: it.any(
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MOBILE_SECURITY)),
+                    it.licensedForSku(LicenseSkus.Enterprise),
+                    it.not(it.enterpriseReady),
+                ),
+                schema: {
+                    id: 'MobileSecurityFeatureDiscoverySettings',
+                    name: defineMessage({id: 'admin.mobileSecurity.title', defaultMessage: 'Mobile Security'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: MobileSecurityFeatureDiscovery,
+                            key: 'MobileSecurityFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true),
             },
         },
     },
@@ -2131,12 +2207,96 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                         },
                         {
+                            type: 'dropdown',
+                            key: 'SupportSettings.ReportAProblemType',
+                            label: defineMessage({id: 'admin.support.reportAProblemTypeTitle', defaultMessage: 'Report a Problem:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemTypeDescription', defaultMessage: 'Select how the ‘Report a Problem’ option behaves. Choosing ‘Custom link’ or ‘Email address’ allows you to provide a URL or address in the next field. ‘Hide link’ removes the ‘Report a Problem’ option from the app.'}),
+                            options: [
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.defaultLink', defaultMessage: 'Default link'}),
+                                    value: 'default',
+                                },
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.email', defaultMessage: 'Email address'}),
+                                    value: 'email',
+                                },
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.customLink', defaultMessage: 'Custom link'}),
+                                    value: 'link',
+                                },
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.hide', defaultMessage: 'Hide link'}),
+                                    value: 'hidden',
+                                },
+                            ],
+                        },
+                        {
+                            type: 'text',
+                            key: 'defaultLicensedReportAProblemLink',
+                            label: defineMessage({id: 'admin.support.reportAProblemDefaultLinkTitle', defaultMessage: 'Default Report a Problem Link:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemDefaultLinkDescription', defaultMessage: 'Users will be directed to this link when they choose ‘Report a Problem’.'}),
+                            default: 'https://mattermost.com/pl/report_a_problem_licensed',
+                            isDisabled: it.all(),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /default/)),
+                                it.not(it.licensed),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'defaultUnlicensedReportAProblemLink',
+                            label: defineMessage({id: 'admin.support.reportAProblemDefaultLinkTitle', defaultMessage: 'Default Report a Problem Link:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemDefaultLinkDescription', defaultMessage: 'Users will be directed to this link when they choose ‘Report a Problem’.'}),
+                            default: 'https://mattermost.com/pl/report_a_problem_unlicensed',
+                            isDisabled: it.all(),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /default/)),
+                                it.licensed,
+                            ),
+                        },
+                        {
                             type: 'text',
                             key: 'SupportSettings.ReportAProblemLink',
-                            label: defineMessage({id: 'admin.support.problemTitle', defaultMessage: 'Report a Problem Link:'}),
-                            help_text: defineMessage({id: 'admin.support.problemDesc', defaultMessage: 'The URL for the Report a Problem link in the Help Menu. If this field is empty, the link is removed from the Help Menu.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
-                            isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                            label: defineMessage({id: 'admin.support.reportAProblemLinkTitle', defaultMessage: 'Custom Report a Problem Link:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemLinkDescription', defaultMessage: 'Enter the URL that users will be directed to when they choose ‘Report a Problem’.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                            ),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /link/)),
+                            ),
+                            validate: (value) => {
+                                if (!value) {
+                                    return new ValidationResult(false, defineMessage({id: 'admin.support.reportAProblemLinkError', defaultMessage: 'Link is required'}));
+                                }
+                                return new ValidationResult(true, '');
+                            },
+                        },
+                        {
+                            type: 'text',
+                            key: 'SupportSettings.ReportAProblemMail',
+                            label: defineMessage({id: 'admin.support.reportAProblemEmailTitle', defaultMessage: 'Report a Problem Email Address:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemEmailDescription', defaultMessage: 'Enter the email address that users will be prompted to send a message to when they choose ‘Report a Problem’.'}),
+                            isDisabled: (it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION))),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /email/)),
+                            ),
+                            validate: (value) => {
+                                if (!value) {
+                                    return new ValidationResult(false, defineMessage({id: 'admin.support.reportAProblemEmailError', defaultMessage: 'Email is required'}));
+                                }
+                                return new ValidationResult(true, '');
+                            },
+                        },
+                        {
+                            type: 'bool',
+                            key: 'SupportSettings.AllowDownloadLogs',
+                            label: defineMessage({id: 'admin.support.problemAllowDownloadTitle', defaultMessage: 'Allow Mobile App Log Downloads:'}),
+                            help_text: defineMessage({id: 'admin.support.problemAllowDownloadDescription', defaultMessage: 'When enabled, users can download app logs for troubleshooting. If a ‘Report a Problem’ link is shown, logs can be downloaded as part of that flow; if the ‘Report a Problem’ link is hidden, logs remain accessible as a separate option.'}),
                         },
                         {
                             type: 'text',
@@ -2170,6 +2330,19 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                         },
                     ],
+                },
+            },
+            system_properties: {
+                url: 'site_config/system_properties',
+                title: defineMessage({id: 'admin.sidebar.system_properties', defaultMessage: 'System Properties'}),
+                searchableStrings: systemPropertiesSearchableStrings,
+                isHidden: it.not(it.all(
+                    it.licensedForSku(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
+                )),
+                schema: {
+                    id: 'SystemProperties',
+                    component: SystemProperties,
                 },
             },
             localization: {
@@ -3439,6 +3612,19 @@ const AdminDefinition: AdminDefinitionType = {
                                     ),
                                 },
                                 {
+                                    type: 'number',
+                                    key: 'LdapSettings.MaximumLoginAttempts',
+                                    label: defineMessage({id: 'admin.ldap.maximumLoginAttemptsTitle', defaultMessage: 'Maximum Login Attempts:'}),
+                                    help_text: defineMessage({id: 'admin.ldap.maximumLoginAttemptsDesc', defaultMessage: 'The maximum number of login attempts before the Mattermost account is locked. You can unlock the account in system console on the users page. Setting this value lower than your LDAP maximum login attempts ensures that the users won\'t be locked out of your LDAP server because of failed login attempts in Mattermost.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                                        it.all(
+                                            it.stateIsFalse('LdapSettings.Enable'),
+                                            it.stateIsFalse('LdapSettings.EnableSync'),
+                                        ),
+                                    ),
+                                },
+                                {
                                     type: 'text',
                                     key: 'LdapSettings.LdapServer',
                                     label: defineMessage({id: 'admin.ldap.serverTitle', defaultMessage: 'AD/LDAP Server:'}),
@@ -3816,6 +4002,15 @@ const AdminDefinition: AdminDefinitionType = {
                                             it.stateIsFalse('LdapSettings.EnableSync'),
                                         ),
                                     ),
+                                },
+                                {
+                                    type: 'custom',
+                                    key: 'LdapSettings.CustomProfileAttributes',
+                                    component: CustomProfileAttributes,
+                                    isHidden: it.not(it.all(
+                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
+                                    )),
                                 },
                             ],
                         },
@@ -4519,6 +4714,15 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
                                 it.stateIsFalse('SamlSettings.Enable'),
                             ),
+                        },
+                        {
+                            type: 'custom',
+                            key: 'SamlSettings.CustomProfileAttributes',
+                            component: CustomProfileAttributes,
+                            isHidden: it.not(it.all(
+                                it.licensedForSku(LicenseSkus.Enterprise),
+                                it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
+                            )),
                         },
                         {
                             type: 'text',
@@ -5802,6 +6006,25 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
+            embedding: {
+                url: 'integrations/embedding',
+                title: defineMessage({id: 'admin.sidebar.embedding', defaultMessage: 'Embedding'}),
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.CORS)),
+                schema: {
+                    id: 'EmbeddingSettings',
+                    name: defineMessage({id: 'admin.integrations.embedding', defaultMessage: 'Embedding'}),
+                    settings: [
+                        {
+                            type: 'text',
+                            key: 'ServiceSettings.FrameAncestors',
+                            label: defineMessage({id: 'admin.customization.frameAncestorTitle', defaultMessage: 'Frame Ancestors:'}),
+                            help_text: defineMessage({id: 'admin.customization.frameAncestorDesc', defaultMessage: 'Allows the Mattermost web client to be embedded in other websites. Enter a space-separated list of domains that are allowed to embed the Mattermost web client. Leave blank to disallow embedding.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.CORS)),
+                        },
+                    ],
+                },
+            },
+
         },
     },
     compliance: {
@@ -6199,7 +6422,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'dropdown',
                             key: 'ExperimentalSettings.ClientSideCertCheck',
                             label: defineMessage({id: 'admin.experimental.clientSideCertCheck.title', defaultMessage: 'Client-Side Certification Login Method:'}),
-                            help_text: defineMessage({id: 'admin.experimental.clientSideCertCheck.desc', defaultMessage: 'When **primary**, after the client side certificate is verified, user’s email is retrieved from the certificate and is used to log in without a password. When **secondary**, after the client side certificate is verified, user’s email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials.'}),
+                            help_text: defineMessage({id: 'admin.experimental.clientSideCertCheck.desc', defaultMessage: "When **primary**, after the client side certificate is verified, user's email is retrieved from the certificate and is used to log in without a password. When **secondary**, after the client side certificate is verified, user's email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials."}),
                             help_text_markdown: true,
                             options: [
                                 {
@@ -6399,7 +6622,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'number',
                             key: 'TeamSettings.UserStatusAwayTimeout',
                             label: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.title', defaultMessage: 'User Status Away Timeout:'}),
-                            help_text: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.desc', defaultMessage: 'This setting defines the number of seconds after which the user’s status indicator changes to "Away", when they are away from Mattermost.'}),
+                            help_text: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.desc', defaultMessage: 'This setting defines the number of seconds after which the user\'s status indicator changes to "Away", when they are away from Mattermost.'}),
                             help_text_markdown: false,
                             placeholder: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.example', defaultMessage: 'E.g.: "300"'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
@@ -6576,6 +6799,15 @@ const AdminDefinition: AdminDefinitionType = {
 
                                 return JSON.parse(displayVal);
                             },
+                        },
+                        {
+                            type: 'custom',
+                            component: AuditLoggingCertificateUploadSetting,
+                            label: defineMessage({id: 'admin.audit_logging_experimental.certificate.title', defaultMessage: 'Certificate'}),
+                            key: 'ExperimentalAuditSettings.Certificate',
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.certificate.help_text', defaultMessage: 'The certificate file used for audit logging encryption.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isHidden: it.not(it.licensedForFeature('Cloud')),
                         },
                     ],
                 },

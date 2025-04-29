@@ -28,7 +28,6 @@ import LocalStorageStore from 'stores/local_storage_store';
 import AlertBanner from 'components/alert_banner';
 import type {ModeType, AlertBannerProps} from 'components/alert_banner';
 import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
-import WomanWithChatsSVG from 'components/common/svg_images_components/woman_with_chats_svg';
 import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLink from 'components/external_link';
 import ExternalLoginButton from 'components/external_login_button/external_login_button';
@@ -819,7 +818,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     {enableCustomBrand && !brandImageError ? (
                         <img
                             className={classNames('login-body-custom-branding-image')}
-                            alt='brand image'
+                            alt='brand'
                             src={Client4.getBrandImageUrl('0')}
                             onError={handleBrandImageError}
                         />
@@ -829,11 +828,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                         </h1>
                     )}
                     {getMessageSubtitle()}
-                    {!enableCustomBrand && (
-                        <div className='login-body-message-svg'>
-                            <WomanWithChatsSVG width={270}/>
-                        </div>
-                    )}
                 </div>
                 <div className='login-body-action'>
                     {!isMobileView && getAlternateLink()}

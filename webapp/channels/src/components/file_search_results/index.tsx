@@ -13,7 +13,7 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {openModal} from 'actions/views/modals';
 
 import type {GlobalState} from 'types/store';
-import type {FileDropdownPluginComponent} from 'types/store/plugins';
+import type {FilesDropdownAction} from 'types/store/plugins';
 
 import FileSearchResultItem from './file_search_result_item';
 
@@ -21,7 +21,7 @@ export type OwnProps = {
     channelId: string;
     fileInfo: FileInfo;
     teamName: string;
-    pluginMenuItems?: FileDropdownPluginComponent[];
+    pluginMenuItems?: FilesDropdownAction[];
 };
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {

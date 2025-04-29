@@ -406,10 +406,17 @@ export async function loadProfilesForDM() {
     await dispatch(loadCustomEmojisForCustomStatusesByUserIds(profileIds));
 }
 
-export function autocompleteUsersInTeam(username: string): ThunkActionFunc<Promise<UserAutocomplete>> {
+export function autocompleteUsersInCurrentTeam(username: string): ThunkActionFunc<Promise<UserAutocomplete>> {
     return async (doDispatch, doGetState) => {
         const currentTeamId = getCurrentTeamId(doGetState());
         const {data} = await doDispatch(UserActions.autocompleteUsers(username, currentTeamId));
+        return data!;
+    };
+}
+
+export function autocompleteUsersInTeam(username: string, teamId: string): ThunkActionFunc<Promise<UserAutocomplete>> {
+    return async (doDispatch) => {
+        const {data} = await doDispatch(UserActions.autocompleteUsers(username, teamId));
         return data!;
     };
 }

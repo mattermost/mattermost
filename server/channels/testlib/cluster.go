@@ -112,3 +112,7 @@ func (c *FakeClusterInterface) ClearMessages() {
 func (c *FakeClusterInterface) WebConnCountForUser(userID string) (int, *model.AppError) {
 	return 0, nil
 }
+
+func (c *FakeClusterInterface) GetWSQueues(userID, connectionID string, seqNum int64) (map[string]*model.WSQueues, error) {
+	return nil, nil
+}

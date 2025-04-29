@@ -6,7 +6,6 @@ package platform
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -31,19 +30,6 @@ func (ps *PlatformService) RegisterClusterMessageHandler(ev model.ClusterEvent, 
 	ps.additionalClusterHandlers[ev] = h
 }
 
-// ClusterHandlersPreCheck checks whether the platform service is ready to handle cluster messages.
-func (ps *PlatformService) ClusterHandlersPreCheck() error {
-	if ps.Store == nil {
-		return fmt.Errorf("could not find store")
-	}
-
-	if ps.statusCache == nil {
-		return fmt.Errorf("could not find status cache")
-	}
-
-	return nil
-}
-
 func (ps *PlatformService) ClusterPublishHandler(msg *model.ClusterMessage) {
 	event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
 	if err != nil {
@@ -66,7 +52,9 @@ func (ps *PlatformService) ClusterUpdateStatusHandler(msg *model.ClusterMessage)
 }
 
 func (ps *PlatformService) ClusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
-	ps.InvalidateAllCachesSkipSend()
+	if err := ps.InvalidateAllCachesSkipSend(); err != nil {
+		ps.logger.Error("Error validating caches from cluster message", mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) clusterInvalidateWebConnSessionCacheForUserHandler(msg *model.ClusterMessage) {
@@ -112,7 +100,7 @@ func (ps *PlatformService) invalidateWebConnSessionCacheForUserSkipClusterSend(u
 	}
 }
 
-func (ps *PlatformService) InvalidateAllCachesSkipSend() {
+func (ps *PlatformService) InvalidateAllCachesSkipSend() *model.AppError {
 	ps.logger.Info("Purging all caches")
 	ps.ClearAllUsersSessionCacheLocal()
 	if err := ps.statusCache.Purge(); err != nil {
@@ -129,10 +117,13 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 		ps.logger.Warn("Failed to clear the link cache", mlog.Err(err))
 	}
 	ps.LoadLicense()
+	return nil
 }
 
 func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
-	ps.InvalidateAllCachesSkipSend()
+	if err := ps.InvalidateAllCachesSkipSend(); err != nil {
+		return err
+	}
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{

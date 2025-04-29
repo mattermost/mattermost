@@ -17,10 +17,20 @@ import (
 
 type SqlOutgoingOAuthConnectionStore struct {
 	*SqlStore
+
+	tableSelectQuery sq.SelectBuilder
 }
 
 func newSqlOutgoingOAuthConnectionStore(sqlStore *SqlStore) store.OutgoingOAuthConnectionStore {
-	return &SqlOutgoingOAuthConnectionStore{sqlStore}
+	s := SqlOutgoingOAuthConnectionStore{
+		SqlStore: sqlStore,
+	}
+
+	s.tableSelectQuery = s.getQueryBuilder().
+		Select("Id", "CreatorId", "CreateAt", "UpdateAt", "Name", "ClientId", "ClientSecret", "CredentialsUsername", "CredentialsPassword", "OAuthTokenURL", "GrantType", "Audiences").
+		From("OutgoingOAuthConnections")
+
+	return &s
 }
 
 func (s *SqlOutgoingOAuthConnectionStore) SaveConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
@@ -86,7 +96,9 @@ func (s *SqlOutgoingOAuthConnectionStore) UpdateConnection(c request.CTX, conn *
 
 func (s *SqlOutgoingOAuthConnectionStore) GetConnection(c request.CTX, id string) (*model.OutgoingOAuthConnection, error) {
 	conn := &model.OutgoingOAuthConnection{}
-	if err := s.GetReplica().Get(conn, `SELECT * FROM OutgoingOAuthConnections WHERE Id=?`, id); err != nil {
+	query := s.tableSelectQuery.Where(sq.Eq{"Id": id})
+
+	if err := s.GetReplica().GetBuilder(conn, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("OutgoingOAuthConnection", id)
 		}
@@ -99,11 +111,7 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters 
 	filters.SetDefaults()
 
 	conns := []*model.OutgoingOAuthConnection{}
-	query := s.getQueryBuilder().
-		Select("*").
-		From("OutgoingOAuthConnections").
-		OrderBy("Id").
-		Limit(uint64(filters.Limit))
+	query := s.tableSelectQuery.OrderBy("Id").Limit(uint64(filters.Limit))
 
 	if filters.OffsetId != "" {
 		query = query.Where("Id > ?", filters.OffsetId)
@@ -113,7 +121,7 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters 
 		query = query.Where(sq.Like{"Audiences": fmt.Sprint("%", filters.Audience, "%")})
 	}
 
-	if err := s.GetReplica().SelectBuilder(&conns, query); err != nil {
+	if err := s.GetReplica().SelectBuilderCtx(c.Context(), &conns, query); err != nil {
 		return nil, errors.Wrap(err, "failed to get OutgoingOAuthConnections")
 	}
 

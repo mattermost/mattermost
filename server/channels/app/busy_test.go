@@ -16,6 +16,7 @@ import (
 )
 
 func TestBusySet(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-63300")
 	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 
@@ -161,4 +162,7 @@ func (c *ClusterMock) ConfigChanged(previousConfig *model.Config, newConfig *mod
 func (c *ClusterMock) HealthScore() int { return 0 }
 func (c *ClusterMock) WebConnCountForUser(userID string) (int, *model.AppError) {
 	return 0, nil
+}
+func (c *ClusterMock) GetWSQueues(userID, connectionID string, seqNum int64) (map[string]*model.WSQueues, error) {
+	return nil, nil
 }

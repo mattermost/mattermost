@@ -56,7 +56,7 @@ describe('Keyboard Shortcuts', () => {
         cy.typeCmdOrCtrl().type('K', {release: true});
 
         // # Start typing the name of other user
-        cy.findByRole('textbox', {name: 'quick switch input'}).type(this.otherUser.username);
+        cy.findByRole('combobox', {name: 'quick switch input'}).type(this.otherUser.username);
 
         // # Select other user from the list
         cy.findByTestId(this.otherUser.username).should('not.exist');
@@ -104,7 +104,7 @@ function verifyUserIsFoundAndDMOpensOnClick(user) {
     cy.typeCmdOrCtrl().type('K', {release: true});
 
     // # Start typing the name of other user
-    cy.findByRole('textbox', {name: 'quick switch input'}).type(user.username);
+    cy.findByRole('combobox', {name: 'quick switch input'}).type(user.username);
 
     // # Select other user from the list
     cy.findByTestId(user.username).should('be.visible');

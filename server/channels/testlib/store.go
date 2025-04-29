@@ -79,9 +79,13 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MigrationKeyDeleteDmsPreferences).Return(&model.System{Name: model.MigrationKeyDeleteDmsPreferences, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddManageJobAncillaryPermissions).Return(&model.System{Name: model.MigrationKeyAddManageJobAncillaryPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddUploadFilePermission).Return(&model.System{Name: model.MigrationKeyAddUploadFilePermission, Value: "true"}, nil)
+	systemStore.On("GetByName", model.RestrictAccessToChannelConversionToPublic).Return(&model.System{Name: model.RestrictAccessToChannelConversionToPublic, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MigrationKeyFixReadAuditsPermission).Return(&model.System{Name: model.MigrationKeyFixReadAuditsPermission, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MigrationRemoveGetAnalyticsPermission).Return(&model.System{Name: model.MigrationRemoveGetAnalyticsPermission, Value: "true"}, nil)
 	systemStore.On("GetByName", "CustomGroupAdminRoleCreationMigrationComplete").Return(&model.System{Name: model.MigrationKeyAddPlayboosksManageRolesPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", "products_boards").Return(&model.System{Name: "products_boards", Value: "true"}, nil)
 	systemStore.On("GetByName", "elasticsearch_fix_channel_index_migration").Return(&model.System{Name: "elasticsearch_fix_channel_index_migration", Value: "true"}, nil)
+	systemStore.On("GetByName", model.MigrationAddSysconsoleMobileSecurityPermission).Return(&model.System{Name: model.MigrationAddSysconsoleMobileSecurityPermission, Value: "true"}, nil)
 	systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(&model.System{}, nil).Once()
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
 
@@ -114,6 +118,10 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	pluginStore := mocks.PluginStore{}
 	pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
 
+	propertyGroupStore := mocks.PropertyGroupStore{}
+	propertyFieldStore := mocks.PropertyFieldStore{}
+	propertyValueStore := mocks.PropertyValueStore{}
+
 	mockStore.On("System").Return(&systemStore)
 	mockStore.On("User").Return(&userStore)
 	mockStore.On("Post").Return(&postStore)
@@ -130,6 +138,9 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore.On("Group").Return(&groupStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 	mockStore.On("Plugin").Return(&pluginStore)
+	mockStore.On("PropertyGroup").Return(&propertyGroupStore)
+	mockStore.On("PropertyField").Return(&propertyFieldStore)
+	mockStore.On("PropertyValue").Return(&propertyValueStore)
 
 	return &mockStore
 }

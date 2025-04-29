@@ -1,10 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/threading/global_threads/thread_item should report total number of replies 1`] = `
-<article
+<div
+  aria-label="Thread by Someone"
   className="ThreadItem"
   id=""
   onClick={[Function]}
+  onKeyDown={[Function]}
+  role="link"
   tabIndex={0}
 >
   <header>
@@ -21,7 +24,7 @@ exports[`components/threading/global_threads/thread_item should report total num
         text="Team name"
       />
     </div>
-    <Connect(injectIntl(Timestamp))
+    <MockTimestamp
       className="alt-hidden"
       day="numeric"
       units={
@@ -39,15 +42,13 @@ exports[`components/threading/global_threads/thread_item should report total num
   <div
     className="menu-anchor alt-visible"
   >
-    <Memo(ThreadMenu)
+    <MockThreadMenu
       hasUnreads={false}
       isFollowing={true}
       threadId="1y8hpek81byspd4enyk9mp1ncw"
       unreadTimestamp={1611786714912}
     >
       <WithTooltip
-        id="threadActionMenu"
-        placement="top"
         title={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Actions"
@@ -56,6 +57,7 @@ exports[`components/threading/global_threads/thread_item should report total num
         }
       >
         <Memo(Button)
+          aria-label="Actions"
           className="Button___icon"
           marginTop={true}
         >
@@ -64,26 +66,26 @@ exports[`components/threading/global_threads/thread_item should report total num
           />
         </Memo(Button)>
       </WithTooltip>
-    </Memo(ThreadMenu)>
+    </MockThreadMenu>
   </div>
   <div
-    aria-readonly="true"
     className="preview"
     dir="auto"
     onClick={[Function]}
-    tabIndex={0}
+    onKeyDown={[Function]}
   >
-    <Connect(Markdown)
+    <MockMarkdown
       imageProps={
         Object {
           "onImageHeightChanged": [Function],
           "onImageLoaded": [Function],
         }
       }
+      mentionKeys={Array []}
       message="test msg"
       options={
         Object {
-          "atMentions": false,
+          "atMentions": true,
           "mentionHighlight": false,
           "singleline": true,
         }
@@ -93,7 +95,7 @@ exports[`components/threading/global_threads/thread_item should report total num
   <div
     className="activity"
   >
-    <Memo(Avatars)
+    <MockAvatars
       size="xs"
       userIds={
         Array [
@@ -113,14 +115,17 @@ exports[`components/threading/global_threads/thread_item should report total num
       }
     />
   </div>
-</article>
+</div>
 `;
 
 exports[`components/threading/global_threads/thread_item should report unread mentions 1`] = `
-<article
+<div
+  aria-label="Thread by Someone"
   className="ThreadItem has-unreads"
   id=""
   onClick={[Function]}
+  onKeyDown={[Function]}
+  role="link"
   tabIndex={0}
 >
   <header>
@@ -146,7 +151,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
         text="Team name"
       />
     </div>
-    <Connect(injectIntl(Timestamp))
+    <MockTimestamp
       className="alt-hidden"
       day="numeric"
       units={
@@ -164,15 +169,13 @@ exports[`components/threading/global_threads/thread_item should report unread me
   <div
     className="menu-anchor alt-visible"
   >
-    <Memo(ThreadMenu)
+    <MockThreadMenu
       hasUnreads={true}
       isFollowing={true}
       threadId="1y8hpek81byspd4enyk9mp1ncw"
       unreadTimestamp={1611786714912}
     >
       <WithTooltip
-        id="threadActionMenu"
-        placement="top"
         title={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Actions"
@@ -181,6 +184,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
         }
       >
         <Memo(Button)
+          aria-label="Actions"
           className="Button___icon"
           marginTop={true}
         >
@@ -189,26 +193,26 @@ exports[`components/threading/global_threads/thread_item should report unread me
           />
         </Memo(Button)>
       </WithTooltip>
-    </Memo(ThreadMenu)>
+    </MockThreadMenu>
   </div>
   <div
-    aria-readonly="true"
     className="preview"
     dir="auto"
     onClick={[Function]}
-    tabIndex={0}
+    onKeyDown={[Function]}
   >
-    <Connect(Markdown)
+    <MockMarkdown
       imageProps={
         Object {
           "onImageHeightChanged": [Function],
           "onImageLoaded": [Function],
         }
       }
+      mentionKeys={Array []}
       message="test msg"
       options={
         Object {
-          "atMentions": false,
+          "atMentions": true,
           "mentionHighlight": false,
           "singleline": true,
         }
@@ -218,7 +222,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
   <div
     className="activity"
   >
-    <Memo(Avatars)
+    <MockAvatars
       size="xs"
       userIds={
         Array [
@@ -238,14 +242,17 @@ exports[`components/threading/global_threads/thread_item should report unread me
       }
     />
   </div>
-</article>
+</div>
 `;
 
 exports[`components/threading/global_threads/thread_item should report unread messages 1`] = `
-<article
+<div
+  aria-label="Thread by Someone"
   className="ThreadItem has-unreads"
   id=""
   onClick={[Function]}
+  onKeyDown={[Function]}
+  role="link"
   tabIndex={0}
 >
   <header>
@@ -269,7 +276,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
         text="Team name"
       />
     </div>
-    <Connect(injectIntl(Timestamp))
+    <MockTimestamp
       className="alt-hidden"
       day="numeric"
       units={
@@ -287,15 +294,13 @@ exports[`components/threading/global_threads/thread_item should report unread me
   <div
     className="menu-anchor alt-visible"
   >
-    <Memo(ThreadMenu)
+    <MockThreadMenu
       hasUnreads={true}
       isFollowing={true}
       threadId="1y8hpek81byspd4enyk9mp1ncw"
       unreadTimestamp={1611786714912}
     >
       <WithTooltip
-        id="threadActionMenu"
-        placement="top"
         title={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Actions"
@@ -304,6 +309,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
         }
       >
         <Memo(Button)
+          aria-label="Actions"
           className="Button___icon"
           marginTop={true}
         >
@@ -312,26 +318,26 @@ exports[`components/threading/global_threads/thread_item should report unread me
           />
         </Memo(Button)>
       </WithTooltip>
-    </Memo(ThreadMenu)>
+    </MockThreadMenu>
   </div>
   <div
-    aria-readonly="true"
     className="preview"
     dir="auto"
     onClick={[Function]}
-    tabIndex={0}
+    onKeyDown={[Function]}
   >
-    <Connect(Markdown)
+    <MockMarkdown
       imageProps={
         Object {
           "onImageHeightChanged": [Function],
           "onImageLoaded": [Function],
         }
       }
+      mentionKeys={Array []}
       message="test msg"
       options={
         Object {
-          "atMentions": false,
+          "atMentions": true,
           "mentionHighlight": false,
           "singleline": true,
         }
@@ -341,7 +347,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
   <div
     className="activity"
   >
-    <Memo(Avatars)
+    <MockAvatars
       size="xs"
       userIds={
         Array [
@@ -361,5 +367,5 @@ exports[`components/threading/global_threads/thread_item should report unread me
       }
     />
   </div>
-</article>
+</div>
 `;

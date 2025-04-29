@@ -66,6 +66,10 @@ type Store struct {
 	DesktopTokensStore              mocks.DesktopTokensStore
 	ChannelBookmarkStore            mocks.ChannelBookmarkStore
 	ScheduledPostStore              mocks.ScheduledPostStore
+	PropertyGroupStore              mocks.PropertyGroupStore
+	PropertyFieldStore              mocks.PropertyFieldStore
+	PropertyValueStore              mocks.PropertyValueStore
+	AccessControlPolicyStore        mocks.AccessControlPolicyStore
 }
 
 func (s *Store) SetContext(context context.Context)            { s.context = context }
@@ -119,6 +123,9 @@ func (s *Store) LinkMetadata() store.LinkMetadataStore       { return &s.LinkMet
 func (s *Store) SharedChannel() store.SharedChannelStore     { return &s.SharedChannelStore }
 func (s *Store) PostPriority() store.PostPriorityStore       { return &s.PostPriorityStore }
 func (s *Store) ScheduledPost() store.ScheduledPostStore     { return &s.ScheduledPostStore }
+func (s *Store) PropertyGroup() store.PropertyGroupStore     { return &s.PropertyGroupStore }
+func (s *Store) PropertyField() store.PropertyFieldStore     { return &s.PropertyFieldStore }
+func (s *Store) PropertyValue() store.PropertyValueStore     { return &s.PropertyValueStore }
 func (s *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 	return &s.PostAcknowledgementStore
 }
@@ -148,6 +155,9 @@ func (s *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 }
 func (s *Store) ReplicaLagAbs() error  { return nil }
 func (s *Store) ReplicaLagTime() error { return nil }
+func (s *Store) AccessControlPolicy() store.AccessControlPolicyStore {
+	return &s.AccessControlPolicyStore
+}
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
 	return mock.AssertExpectationsForObjects(t,
@@ -191,5 +201,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.DesktopTokensStore,
 		&s.ChannelBookmarkStore,
 		&s.ScheduledPostStore,
+		&s.AccessControlPolicyStore,
 	)
 }

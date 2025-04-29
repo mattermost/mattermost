@@ -20,11 +20,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         Create your Mattermost account to start collaborating with your team
       </p>
-      <div
-        className="signup-body-message-svg"
-      >
-        <Svg />
-      </div>
     </div>
     <div
       className="signup-body-action"
@@ -97,11 +92,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         Create your Mattermost account to start collaborating with your team
       </p>
-      <div
-        className="signup-body-message-svg"
-      >
-        <Svg />
-      </div>
     </div>
     <div
       className="signup-body-action"
@@ -270,11 +260,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
       >
         Create your Mattermost account to start collaborating with your team
       </p>
-      <div
-        className="signup-body-message-svg"
-      >
-        <Svg />
-      </div>
     </div>
     <div
       className="signup-body-action"

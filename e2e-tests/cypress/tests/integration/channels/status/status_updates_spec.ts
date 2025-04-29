@@ -92,12 +92,12 @@ describe('Status of current user', () => {
 });
 
 function verifyStatus(status: 'online' | 'away' | 'offline' | 'dnd') {
-    cy.get('[aria-label="Current status: Online. Select to open profile and status menu."]').
+    cy.get('[aria-label="Status is \\"Online\\". Open user\'s account menu."]').
         should(status === 'online' ? 'exist' : 'not.exist');
-    cy.get('[aria-label="Current status: Away. Select to open profile and status menu."]').
+    cy.get('[aria-label="Status is \\"Away\\". Open user\'s account menu."]').
         should(status === 'away' ? 'exist' : 'not.exist');
-    cy.get('[aria-label="Current status: Offline. Select to open profile and status menu."]').
+    cy.get('[aria-label="Status is \\"Offline\\". Open user\'s account menu."]').
         should(status === 'offline' ? 'exist' : 'not.exist');
-    cy.get('[aria-label="Current status: Do not disturb. Select to open profile and status menu."]').
+    cy.get('[aria-label="Status is \\"Do not disturb\\". Open user\'s account menu."]').
         should(status === 'dnd' ? 'exist' : 'not.exist');
 }

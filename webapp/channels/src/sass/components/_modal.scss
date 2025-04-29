@@ -45,6 +45,7 @@
 
 .app__body {
     .modal {
+        z-index: variables.$z-index-modal;
         color: rgb(var(--center-channel-color-rgb));
 
         .modal-content {
@@ -56,6 +57,11 @@
 
     .edit-modal-body {
         overflow: visible;
+
+        .textarea-label {
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
 
         .custom-textarea {
             height: auto;
@@ -117,11 +123,10 @@
 }
 
 .modal__error {
+    display: inline-block;
     margin-top: 6px;
     color: variables.$red;
-    float: left;
     font-size: 0.95em;
-    font-weight: normal;
 }
 
 .more-table {
@@ -933,7 +938,9 @@
         display: none;
         width: 32px;
         height: 32px;
-        line-height: 32px;
+        padding: 0;
+        border: none;
+        background-color: initial;
         opacity: 0.75;
         text-align: center;
     }

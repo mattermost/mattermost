@@ -60,7 +60,8 @@ func fileBytes(t *testing.T, path string) []byte {
 }
 
 func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []byte, contentType string,
-	contentLength int64) (*model.FileUploadResponse, *model.Response, error) {
+	contentLength int64,
+) (*model.FileUploadResponse, *model.Response, error) {
 	req, err := http.NewRequest("POST", c.APIURL+"/files"+url, bytes.NewReader(blob))
 	require.NoError(t, err)
 
@@ -386,6 +387,19 @@ func TestUploadFiles(t *testing.T) {
 			expectImage:                 true,
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
+		// 5MB+ JPEG
+		{
+			title:                       "Happy image thumbnail/preview 5MB+",
+			names:                       []string{"orientation_test_9.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_9_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_9_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{4000},
+			expectedImageHeights:        []int{2667},
 			expectedImageHasPreview:     []bool{true},
 			expectedImageMiniPreview:    []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
@@ -805,10 +819,91 @@ func TestGetFile(t *testing.T) {
 	_, resp, err = client.GetFile(context.Background(), fileId)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
 
-	_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileId)
+func TestGetFileAsSystemAdmin(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	sent, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
-	CheckUnauthorizedStatus(t, resp)
+
+	t.Run("public channel without membership", func(t *testing.T) {
+		publicChannel := th.CreateChannelWithClient(th.Client, model.ChannelTypeOpen)
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, publicChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("public channel with membership", func(t *testing.T) {
+		publicChannel := th.CreatePublicChannel()
+		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(th.SystemAdminUser, publicChannel)
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, publicChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("private channel without membership", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+		privateFileResp, _, err := th.Client.UploadFile(context.Background(), sent, privateChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), privateFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("private channel with membership", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(th.SystemAdminUser, privateChannel)
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, privateChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("direct message without membership", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(th.BasicUser2)
+		dmFileResp, _, err := th.Client.UploadFile(context.Background(), sent, dmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), dmFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("direct message with membership", func(t *testing.T) {
+		dmChannel, _, err := th.SystemAdminClient.CreateDirectChannel(context.Background(), th.SystemAdminUser.Id, th.BasicUser.Id)
+		require.NoError(t, err)
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, dmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("group message without membership", func(t *testing.T) {
+		user3 := th.CreateUser()
+		gmChannel, _, err := th.Client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+		gmFileResp, _, err := th.Client.UploadFile(context.Background(), sent, gmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), gmFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("group message with membership", func(t *testing.T) {
+		user3 := th.CreateUser()
+		gmChannel, _, err := th.SystemAdminClient.CreateGroupChannel(context.Background(), []string{th.SystemAdminUser.Id, th.BasicUser.Id, user3.Id})
+		require.NoError(t, err)
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, gmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
 }
 
 func TestGetFileHeaders(t *testing.T) {
@@ -874,7 +969,7 @@ func TestGetFileHeaders(t *testing.T) {
 	// t.Run("go", testHeaders(data, "test.go", "text/x-go; charset=utf-8", false, false))
 	t.Run("zip", testHeaders(data, "test.zip", "application/zip", false, false))
 	// Not every platform can recognize these
-	//t.Run("exe", testHeaders(data, "test.exe", "application/x-ms", false))
+	// t.Run("exe", testHeaders(data, "test.exe", "application/x-ms", false))
 	t.Run("no extension", testHeaders(data, "test", "application/octet-stream", false, false))
 	t.Run("no extension 2", testHeaders([]byte("<html></html>"), "test", "application/octet-stream", false, false))
 }
@@ -927,6 +1022,93 @@ func TestGetFileThumbnail(t *testing.T) {
 	_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), fileId)
 	require.NoError(t, err)
 	CheckForbiddenStatus(t, resp)
+}
+
+func TestGetFileThumbnailAsSystemAdmin(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	t.Run("public channel without membership", func(t *testing.T) {
+		th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
+		publicChannel := th.CreateChannelWithClient(th.Client, model.ChannelTypeOpen)
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, publicChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), fileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("public channel with membership", func(t *testing.T) {
+		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+		publicChannel := th.CreateChannelWithClient(th.Client, model.ChannelTypeOpen)
+		th.AddUserToChannel(th.SystemAdminUser, publicChannel)
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, publicChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), fileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("private channel without membership", func(t *testing.T) {
+		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel()
+		privateFileResp, _, err := th.Client.UploadFile(context.Background(), sent, privateChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), privateFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("private channel with membership", func(t *testing.T) {
+		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel()
+		th.AddUserToChannel(th.SystemAdminUser, privateChannel)
+		privateFileResp, _, err := th.Client.UploadFile(context.Background(), sent, privateChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), privateFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("direct message without membership", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(th.BasicUser2)
+		dmFileResp, _, err := th.Client.UploadFile(context.Background(), sent, dmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), dmFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("direct message with membership", func(t *testing.T) {
+		dmChannel, _, err := th.SystemAdminClient.CreateDirectChannel(context.Background(), th.SystemAdminUser.Id, th.BasicUser.Id)
+		require.NoError(t, err)
+		dmFileResp, _, err := th.Client.UploadFile(context.Background(), sent, dmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), dmFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("group message without membership", func(t *testing.T) {
+		user3 := th.CreateUser()
+		gmChannel, _, err := th.Client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+		gmFileResp, _, err := th.Client.UploadFile(context.Background(), sent, gmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), gmFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("group message with membership", func(t *testing.T) {
+		user3 := th.CreateUser()
+		gmChannel, _, err := th.SystemAdminClient.CreateGroupChannel(context.Background(), []string{th.SystemAdminUser.Id, th.BasicUser.Id, user3.Id})
+		require.NoError(t, err)
+		gmFileResp, _, err := th.Client.UploadFile(context.Background(), sent, gmChannel.Id, "test.png")
+		require.NoError(t, err)
+		_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), gmFileResp.FileInfos[0].Id)
+		require.NoError(t, err)
+	})
 }
 
 func TestGetFileLink(t *testing.T) {

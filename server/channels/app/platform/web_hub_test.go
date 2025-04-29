@@ -6,6 +6,7 @@ package platform
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -68,7 +69,8 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	th.Service.Start(nil)
+	err = th.Service.Start(nil)
+	require.NoError(t, err)
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
@@ -92,7 +94,8 @@ func TestHubStopRaceCondition(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	th.Service.Start(nil)
+	err = th.Service.Start(nil)
+	require.NoError(t, err)
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	defer wc1.Close()
 
@@ -197,154 +200,164 @@ func TestHubConnIndex(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	t.Run("Basic", func(t *testing.T) {
-		connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger)
+	for _, fastIterate := range []bool{true, false} {
+		t.Run(fmt.Sprintf("fastIterate=%t", fastIterate), func(t *testing.T) {
+			t.Run("Basic", func(t *testing.T) {
+				connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, fastIterate)
 
-		// User1
-		wc1 := &WebConn{
-			Platform: th.Service,
-			Suite:    th.Suite,
-			UserId:   model.NewId(),
-		}
-		wc1.SetConnectionID(model.NewId())
-		wc1.SetSession(&model.Session{})
+				// User1
+				wc1 := &WebConn{
+					Platform: th.Service,
+					Suite:    th.Suite,
+					UserId:   model.NewId(),
+				}
+				wc1.SetConnectionID(model.NewId())
+				wc1.SetSession(&model.Session{})
 
-		// User2
-		wc2 := &WebConn{
-			Platform: th.Service,
-			Suite:    th.Suite,
-			UserId:   model.NewId(),
-		}
-		wc2.SetConnectionID(model.NewId())
-		wc2.SetSession(&model.Session{})
+				// User2
+				wc2 := &WebConn{
+					Platform: th.Service,
+					Suite:    th.Suite,
+					UserId:   model.NewId(),
+				}
+				wc2.SetConnectionID(model.NewId())
+				wc2.SetSession(&model.Session{})
 
-		wc3 := &WebConn{
-			Platform: th.Service,
-			Suite:    th.Suite,
-			UserId:   wc2.UserId,
-		}
-		wc3.SetConnectionID(model.NewId())
-		wc3.SetSession(&model.Session{})
+				wc3 := &WebConn{
+					Platform: th.Service,
+					Suite:    th.Suite,
+					UserId:   wc2.UserId,
+				}
+				wc3.SetConnectionID(model.NewId())
+				wc3.SetSession(&model.Session{})
 
-		wc4 := &WebConn{
-			Platform: th.Service,
-			Suite:    th.Suite,
-			UserId:   wc2.UserId,
-		}
-		wc4.SetConnectionID(model.NewId())
-		wc4.SetSession(&model.Session{})
+				wc4 := &WebConn{
+					Platform: th.Service,
+					Suite:    th.Suite,
+					UserId:   wc2.UserId,
+				}
+				wc4.SetConnectionID(model.NewId())
+				wc4.SetSession(&model.Session{})
 
-		connIndex.Add(wc1)
-		connIndex.Add(wc2)
-		connIndex.Add(wc3)
-		connIndex.Add(wc4)
+				errAdd := connIndex.Add(wc1)
+				require.NoError(t, errAdd)
+				err = connIndex.Add(wc2)
+				require.NoError(t, err)
+				err = connIndex.Add(wc3)
+				require.NoError(t, err)
+				err = connIndex.Add(wc4)
+				require.NoError(t, err)
 
-		t.Run("Basic", func(t *testing.T) {
-			assert.True(t, connIndex.Has(wc1))
-			assert.True(t, connIndex.Has(wc2))
+				t.Run("Basic", func(t *testing.T) {
+					assert.True(t, connIndex.Has(wc1))
+					assert.True(t, connIndex.Has(wc2))
 
-			assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc3, wc4})
-			assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{wc1})
-			assert.True(t, connIndex.Has(wc2))
-			assert.True(t, connIndex.Has(wc1))
-			assert.Len(t, connIndex.All(), 4)
+					assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc3, wc4})
+					assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{wc1})
+					assert.True(t, connIndex.Has(wc2))
+					assert.True(t, connIndex.Has(wc1))
+					assert.Len(t, connIndex.All(), 4)
+				})
+
+				t.Run("RemoveMiddleUser2", func(t *testing.T) {
+					connIndex.Remove(wc3) // Remove from middle from user2
+
+					assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc4})
+					assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{wc1})
+					assert.True(t, connIndex.Has(wc2))
+					assert.False(t, connIndex.Has(wc3))
+					assert.True(t, connIndex.Has(wc4))
+					assert.Len(t, connIndex.All(), 3)
+				})
+
+				t.Run("RemoveUser1", func(t *testing.T) {
+					connIndex.Remove(wc1) // Remove sole connection from user1
+
+					assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc4})
+					assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
+					assert.Len(t, connIndex.ForUser(wc1.UserId), 0)
+					assert.Len(t, connIndex.All(), 2)
+					assert.False(t, connIndex.Has(wc1))
+					assert.True(t, connIndex.Has(wc2))
+				})
+
+				t.Run("RemoveEndUser2", func(t *testing.T) {
+					connIndex.Remove(wc4) // Remove from end from user2
+
+					assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2})
+					assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
+					assert.True(t, connIndex.Has(wc2))
+					assert.False(t, connIndex.Has(wc3))
+					assert.False(t, connIndex.Has(wc4))
+					assert.Len(t, connIndex.All(), 1)
+				})
+			})
+
+			t.Run("ByConnectionId", func(t *testing.T) {
+				connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, fastIterate)
+
+				// User1
+				wc1ID := model.NewId()
+				wc1 := &WebConn{
+					Platform: th.Service,
+					Suite:    th.Suite,
+					UserId:   th.BasicUser.Id,
+				}
+				wc1.SetConnectionID(wc1ID)
+				wc1.SetSession(&model.Session{})
+
+				// User2
+				wc2ID := model.NewId()
+				wc2 := &WebConn{
+					Platform: th.Service,
+					Suite:    th.Suite,
+					UserId:   th.BasicUser2.Id,
+				}
+				wc2.SetConnectionID(wc2ID)
+				wc2.SetSession(&model.Session{})
+
+				wc3ID := model.NewId()
+				wc3 := &WebConn{
+					Platform: th.Service,
+					Suite:    th.Suite,
+					UserId:   wc2.UserId,
+				}
+				wc3.SetConnectionID(wc3ID)
+				wc3.SetSession(&model.Session{})
+
+				t.Run("no connections", func(t *testing.T) {
+					assert.False(t, connIndex.Has(wc1))
+					assert.False(t, connIndex.Has(wc2))
+					assert.False(t, connIndex.Has(wc3))
+					assert.Empty(t, connIndex.byConnectionId)
+				})
+
+				t.Run("adding", func(t *testing.T) {
+					err = connIndex.Add(wc1)
+					require.NoError(t, err)
+					err = connIndex.Add(wc3)
+					require.NoError(t, err)
+
+					assert.Len(t, connIndex.byConnectionId, 2)
+					assert.Equal(t, wc1, connIndex.ForConnection(wc1ID))
+					assert.Equal(t, wc3, connIndex.ForConnection(wc3ID))
+					assert.Equal(t, (*WebConn)(nil), connIndex.ForConnection(wc2ID))
+				})
+
+				t.Run("removing", func(t *testing.T) {
+					connIndex.Remove(wc3)
+
+					assert.Len(t, connIndex.byConnectionId, 1)
+					assert.Equal(t, wc1, connIndex.ForConnection(wc1ID))
+					assert.Equal(t, (*WebConn)(nil), connIndex.ForConnection(wc3ID))
+					assert.Equal(t, (*WebConn)(nil), connIndex.ForConnection(wc2ID))
+				})
+			})
 		})
-
-		t.Run("RemoveMiddleUser2", func(t *testing.T) {
-			connIndex.Remove(wc3) // Remove from middle from user2
-
-			assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc4})
-			assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{wc1})
-			assert.True(t, connIndex.Has(wc2))
-			assert.False(t, connIndex.Has(wc3))
-			assert.True(t, connIndex.Has(wc4))
-			assert.Len(t, connIndex.All(), 3)
-		})
-
-		t.Run("RemoveUser1", func(t *testing.T) {
-			connIndex.Remove(wc1) // Remove sole connection from user1
-
-			assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc4})
-			assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
-			assert.Len(t, connIndex.ForUser(wc1.UserId), 0)
-			assert.Len(t, connIndex.All(), 2)
-			assert.False(t, connIndex.Has(wc1))
-			assert.True(t, connIndex.Has(wc2))
-		})
-
-		t.Run("RemoveEndUser2", func(t *testing.T) {
-			connIndex.Remove(wc4) // Remove from end from user2
-
-			assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2})
-			assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
-			assert.True(t, connIndex.Has(wc2))
-			assert.False(t, connIndex.Has(wc3))
-			assert.False(t, connIndex.Has(wc4))
-			assert.Len(t, connIndex.All(), 1)
-		})
-	})
-
-	t.Run("ByConnectionId", func(t *testing.T) {
-		connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger)
-
-		// User1
-		wc1ID := model.NewId()
-		wc1 := &WebConn{
-			Platform: th.Service,
-			Suite:    th.Suite,
-			UserId:   th.BasicUser.Id,
-		}
-		wc1.SetConnectionID(wc1ID)
-		wc1.SetSession(&model.Session{})
-
-		// User2
-		wc2ID := model.NewId()
-		wc2 := &WebConn{
-			Platform: th.Service,
-			Suite:    th.Suite,
-			UserId:   th.BasicUser2.Id,
-		}
-		wc2.SetConnectionID(wc2ID)
-		wc2.SetSession(&model.Session{})
-
-		wc3ID := model.NewId()
-		wc3 := &WebConn{
-			Platform: th.Service,
-			Suite:    th.Suite,
-			UserId:   wc2.UserId,
-		}
-		wc3.SetConnectionID(wc3ID)
-		wc3.SetSession(&model.Session{})
-
-		t.Run("no connections", func(t *testing.T) {
-			assert.False(t, connIndex.Has(wc1))
-			assert.False(t, connIndex.Has(wc2))
-			assert.False(t, connIndex.Has(wc3))
-			assert.Empty(t, connIndex.byConnectionId)
-		})
-
-		t.Run("adding", func(t *testing.T) {
-			connIndex.Add(wc1)
-			connIndex.Add(wc3)
-
-			assert.Len(t, connIndex.byConnectionId, 2)
-			assert.Equal(t, wc1, connIndex.ForConnection(wc1ID))
-			assert.Equal(t, wc3, connIndex.ForConnection(wc3ID))
-			assert.Equal(t, (*WebConn)(nil), connIndex.ForConnection(wc2ID))
-		})
-
-		t.Run("removing", func(t *testing.T) {
-			connIndex.Remove(wc3)
-
-			assert.Len(t, connIndex.byConnectionId, 1)
-			assert.Equal(t, wc1, connIndex.ForConnection(wc1ID))
-			assert.Equal(t, (*WebConn)(nil), connIndex.ForConnection(wc3ID))
-			assert.Equal(t, (*WebConn)(nil), connIndex.ForConnection(wc2ID))
-		})
-	})
+	}
 
 	t.Run("ByChannelId", func(t *testing.T) {
-		connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger)
+		connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, true)
 
 		// User1
 		wc1ID := model.NewId()
@@ -375,13 +388,20 @@ func TestHubConnIndex(t *testing.T) {
 		wc3.SetConnectionID(wc3ID)
 		wc3.SetSession(&model.Session{})
 
-		connIndex.Add(wc1)
-		connIndex.Add(wc2)
-		connIndex.Add(wc3)
+		err = connIndex.Add(wc1)
+		require.NoError(t, err)
+		err = connIndex.Add(wc2)
+		require.NoError(t, err)
+		err = connIndex.Add(wc3)
+		require.NoError(t, err)
 
 		t.Run("ForChannel", func(t *testing.T) {
 			require.Len(t, connIndex.byChannelID, 1)
-			require.Equal(t, []*WebConn{wc1, wc2, wc3}, connIndex.ForChannel(th.BasicChannel.Id))
+			ids := make([]string, 0)
+			for _, c := range connIndex.ForChannel(th.BasicChannel.Id) {
+				ids = append(ids, c.GetConnectionID())
+			}
+			require.ElementsMatch(t, []string{wc1ID, wc2ID, wc3ID}, ids)
 			require.Len(t, connIndex.ForChannel("notexist"), 0)
 		})
 
@@ -414,7 +434,7 @@ func TestHubConnIndexIncorrectRemoval(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger)
+	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
 
 	// User2
 	wc2 := &WebConn{
@@ -441,9 +461,12 @@ func TestHubConnIndexIncorrectRemoval(t *testing.T) {
 	wc4.SetConnectionID("last")
 	wc4.SetSession(&model.Session{})
 
-	connIndex.Add(wc2)
-	connIndex.Add(wc3)
-	connIndex.Add(wc4)
+	err := connIndex.Add(wc2)
+	require.NoError(t, err)
+	err = connIndex.Add(wc3)
+	require.NoError(t, err)
+	err = connIndex.Add(wc4)
+	require.NoError(t, err)
 
 	for _, wc := range connIndex.ForUser(wc2.UserId) {
 		if !connIndex.Has(wc) {
@@ -461,7 +484,7 @@ func TestHubConnIndexInactive(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	connIndex := newHubConnectionIndex(2*time.Second, th.Service.Store, th.Service.logger)
+	connIndex := newHubConnectionIndex(2*time.Second, th.Service.Store, th.Service.logger, false)
 
 	// User1
 	wc1 := &WebConn{
@@ -489,9 +512,12 @@ func TestHubConnIndexInactive(t *testing.T) {
 	wc3.SetConnectionID("conn3")
 	wc3.SetSession(&model.Session{})
 
-	connIndex.Add(wc1)
-	connIndex.Add(wc2)
-	connIndex.Add(wc3)
+	err := connIndex.Add(wc1)
+	require.NoError(t, err)
+	err = connIndex.Add(wc2)
+	require.NoError(t, err)
+	err = connIndex.Add(wc3)
+	require.NoError(t, err)
 
 	assert.Nil(t, connIndex.RemoveInactiveByConnectionID(wc2.UserId, "conn2"))
 	assert.Equal(t, connIndex.ForUserActiveCount(wc2.UserId), 1)
@@ -502,7 +528,8 @@ func TestHubConnIndexInactive(t *testing.T) {
 	assert.Len(t, connIndex.ForUser(wc2.UserId), 1)
 
 	wc3.lastUserActivityAt = model.GetMillis()
-	connIndex.Add(wc3)
+	err = connIndex.Add(wc3)
+	require.NoError(t, err)
 	connIndex.RemoveInactiveConnections()
 	assert.True(t, connIndex.Has(wc3))
 	assert.Len(t, connIndex.ForUser(wc2.UserId), 2)
@@ -568,7 +595,8 @@ func TestHubIsRegistered(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	th.Service.Start(nil)
+	err = th.Service.Start(nil)
+	require.NoError(t, err)
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
@@ -603,7 +631,8 @@ func TestHubWebConnCount(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	th.Service.Start(nil)
+	err = th.Service.Start(nil)
+	require.NoError(t, err)
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	defer wc1.Close()
@@ -621,7 +650,7 @@ func TestHubWebConnCount(t *testing.T) {
 func BenchmarkHubConnIndex(b *testing.B) {
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
-	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger)
+	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
 
 	// User1
 	wc1 := &WebConn{
@@ -639,8 +668,10 @@ func BenchmarkHubConnIndex(b *testing.B) {
 	b.ResetTimer()
 	b.Run("Add", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			connIndex.Add(wc1)
-			connIndex.Add(wc2)
+			err := connIndex.Add(wc1)
+			require.NoError(b, err)
+			err = connIndex.Add(wc2)
+			require.NoError(b, err)
 
 			b.StopTimer()
 			connIndex.Remove(wc1)
@@ -652,8 +683,11 @@ func BenchmarkHubConnIndex(b *testing.B) {
 	b.Run("Remove", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			b.StopTimer()
-			connIndex.Add(wc1)
-			connIndex.Add(wc2)
+			err := connIndex.Add(wc1)
+			require.NoError(b, err)
+			err = connIndex.Add(wc2)
+			require.NoError(b, err)
+			b.Error(err)
 			b.StartTimer()
 
 			connIndex.Remove(wc1)
@@ -666,7 +700,7 @@ func TestHubConnIndexRemoveMemLeak(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger)
+	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
 
 	wc := &WebConn{
 		Platform: th.Service,
@@ -681,7 +715,8 @@ func TestHubConnIndexRemoveMemLeak(t *testing.T) {
 		close(ch)
 	})
 
-	connIndex.Add(wc)
+	err := connIndex.Add(wc)
+	require.NoError(t, err)
 	connIndex.Remove(wc)
 
 	runtime.GC()
@@ -704,7 +739,8 @@ func BenchmarkGetHubForUserId(b *testing.B) {
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
 
-	th.Service.Start(nil)
+	err := th.Service.Start(nil)
+	require.NoError(b, err)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

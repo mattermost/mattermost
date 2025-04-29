@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -496,6 +497,88 @@ func TestUpdateTeam(t *testing.T) {
 	})
 }
 
+func TestUpdateTeamPrivacyInvitePermissions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	// Create a team with AllowOpenInvite=true and Type=TeamOpen
+	team := &model.Team{
+		DisplayName:     "Test Team",
+		Name:            GenerateTestTeamName(),
+		Email:           th.GenerateTestEmail(),
+		Type:            model.TeamOpen,
+		AllowOpenInvite: true,
+	}
+	team, _, err := client.CreateTeam(context.Background(), team)
+	require.NoError(t, err)
+
+	// Save the original invite ID
+	originalInviteId := team.InviteId
+
+	// Test case: User with InviteUser permission can change privacy settings that regenerate invite ID
+	t.Run("user with invite permission can change privacy", func(t *testing.T) {
+		// Ensure the user has the InviteUser permission
+		th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+
+		// Change from Open to Invite (should regenerate invite ID)
+		_, resp, err := client.UpdateTeamPrivacy(context.Background(), team.Id, model.TeamInvite)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Verify the team's invite ID was regenerated
+		updatedTeam, _, err := client.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.NotEqual(t, originalInviteId, updatedTeam.InviteId, "InviteId should have been regenerated")
+		require.Equal(t, model.TeamInvite, updatedTeam.Type, "Team type should be Invite")
+		require.False(t, updatedTeam.AllowOpenInvite, "AllowOpenInvite should be false")
+	})
+
+	// Test case: User without InviteUser permission cannot change privacy settings that regenerate invite ID
+	t.Run("user without invite permission cannot change privacy", func(t *testing.T) {
+		// First, make sure the team is in a state where changing privacy will regenerate invite ID
+		// Change to Open type first
+		_, resp, err := client.UpdateTeamPrivacy(context.Background(), team.Id, model.TeamOpen)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Verify the team's privacy settings changed
+		updatedTeam, _, err := client.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, model.TeamOpen, updatedTeam.Type, "Team type should be Open")
+		require.True(t, updatedTeam.AllowOpenInvite, "AllowOpenInvite should be true")
+
+		// Now remove the InviteUser permission from both team user and team admin roles
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+		// Try to change from Open to Invite (should fail because this would regenerate invite ID)
+		_, resp, err = client.UpdateTeamPrivacy(context.Background(), team.Id, model.TeamInvite)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Verify the team's privacy settings didn't change
+		updatedTeam, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, model.TeamOpen, updatedTeam.Type, "Team type should still be Open")
+		require.True(t, updatedTeam.AllowOpenInvite, "AllowOpenInvite should still be true")
+	})
+
+	// Test case: System admin can change privacy settings regardless of permissions
+	t.Run("system admin can change privacy", func(t *testing.T) {
+		// Change from Invite to Open using system admin
+		_, resp, err := th.SystemAdminClient.UpdateTeamPrivacy(context.Background(), team.Id, model.TeamOpen)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Verify the team's privacy settings changed
+		updatedTeam, _, err := th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, model.TeamOpen, updatedTeam.Type, "Team type should be Open")
+		require.True(t, updatedTeam.AllowOpenInvite, "AllowOpenInvite should be true")
+	})
+}
+
 func TestUpdateTeamSanitization(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -650,6 +733,149 @@ func TestPatchTeam(t *testing.T) {
 		}
 		_, _, err3 = th.Client.PatchTeam(context.Background(), rteam2.Id, patch2)
 		require.Error(t, err3)
+	})
+
+	t.Run("GroupConstrained flag set to true and non group members are removed", func(t *testing.T) {
+		var appErr *model.AppError
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			appErr = th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+		th.LoginTeamAdmin()
+		team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen, AllowOpenInvite: false}
+		team2, _, _ = th.Client.CreateTeam(context.Background(), team2)
+
+		_, resp, err := th.SystemAdminClient.AddTeamMember(context.Background(), team2.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		// Create a test group
+		group := th.CreateGroup()
+
+		// Create a group user
+		groupUser := th.CreateUser()
+		th.LinkUserToTeam(groupUser, th.BasicTeam)
+
+		// Create a group member
+		_, appErr = th.App.UpsertGroupMember(group.Id, groupUser.Id)
+		require.Nil(t, appErr)
+
+		// Associate the group with the team
+		autoAdd := true
+		schemeAdmin := true
+		_, r, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), group.Id, team2.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{AutoAdd: &autoAdd, SchemeAdmin: &schemeAdmin})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, r)
+
+		patch := &model.TeamPatch{}
+		patch.GroupConstrained = model.NewPointer(true)
+		_, r, err = th.SystemAdminClient.PatchTeam(context.Background(), team2.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+
+		// Wait for the user to be removed from the team by polling until they're gone
+		// or until we hit the timeout
+		timeout := time.After(5 * time.Second)
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		var tm *model.TeamMember
+		userRemoved := false
+		for !userRemoved {
+			select {
+			case <-timeout:
+				require.Fail(t, "Timed out waiting for user to be removed from team")
+				return
+			case <-ticker.C:
+				// Check if the user is still a member
+				tm, r, err = th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, th.BasicUser2.Id, "")
+				if err == nil && r.StatusCode == http.StatusOK && tm.DeleteAt != 0 {
+					// User has been removed, we can continue the test
+					userRemoved = true
+				}
+			}
+		}
+
+		tm, r, err = th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+		require.Equal(t, tm.UserId, th.BasicUser2.Id)
+		require.NotEqual(t, tm.DeleteAt, int64(0))
+	})
+
+	t.Run("GroupConstrained flag changed from true to false and non group members are not removed", func(t *testing.T) {
+		var appErr *model.AppError
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			appErr = th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+		th.LoginTeamAdmin()
+		team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen, AllowOpenInvite: false}
+		team2, _, _ = th.Client.CreateTeam(context.Background(), team2)
+
+		// Create a test group
+		group := th.CreateGroup()
+
+		// Create a group user
+		groupUser := th.CreateUser()
+		th.LinkUserToTeam(groupUser, th.BasicTeam)
+
+		// Create a group member
+		_, appErr = th.App.UpsertGroupMember(group.Id, groupUser.Id)
+		require.Nil(t, appErr)
+
+		// Associate the group with the team
+		autoAdd := true
+		schemeAdmin := true
+		_, r, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), group.Id, team2.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{AutoAdd: &autoAdd, SchemeAdmin: &schemeAdmin})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, r)
+
+		patch := &model.TeamPatch{}
+		patch.GroupConstrained = model.NewPointer(true)
+		_, r, err = th.SystemAdminClient.PatchTeam(context.Background(), team2.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+
+		patch.GroupConstrained = model.NewPointer(false)
+		_, r, err = th.SystemAdminClient.PatchTeam(context.Background(), team2.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+
+		// Unlink the group
+		r, err = th.SystemAdminClient.UnlinkGroupSyncable(context.Background(), group.Id, team2.Id, model.GroupSyncableTypeTeam)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+
+		// Wait for a reasonable amount of time to ensure the user is not removed because the team is no longer group constrained
+		timeout := time.After(2 * time.Second)
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		var tm *model.TeamMember
+		userStillPresent := true
+		for userStillPresent {
+			select {
+			case <-timeout:
+				// If we reach the timeout, the user is still present, which is what we want
+				// Verify the user is still a member of the team
+				tm, r, err = th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, groupUser.Id, "")
+				require.NoError(t, err)
+				CheckOKStatus(t, r)
+				require.Equal(t, tm.DeleteAt, int64(0))
+				return
+			case <-ticker.C:
+				// Check if the user is still a member
+				tm, r, err = th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, groupUser.Id, "")
+				if err == nil && r.StatusCode == http.StatusOK && tm.DeleteAt != 0 {
+					// User has been removed, which is not what we want
+					require.Fail(t, "User was incorrectly removed from the team")
+					userStillPresent = false
+				}
+			}
+		}
 	})
 }
 
@@ -915,7 +1141,8 @@ func TestTeamUnicodeNames(t *testing.T) {
 			DisplayName: "Some\u206c Team",
 			Description: "A \ufffatest\ufffb channel.",
 			CompanyName: "\ufeffAcme Inc\ufffc",
-			Type:        model.TeamOpen}
+			Type:        model.TeamOpen,
+		}
 		rteam, resp, err := client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
@@ -932,7 +1159,8 @@ func TestTeamUnicodeNames(t *testing.T) {
 			CompanyName: "Bad Company",
 			Name:        model.NewRandomTeamName(),
 			Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
-			Type:        model.TeamOpen}
+			Type:        model.TeamOpen,
+		}
 		team, _, _ = client.CreateTeam(context.Background(), team)
 
 		team.DisplayName = "\u206eThe Team\u206f"
@@ -953,7 +1181,8 @@ func TestTeamUnicodeNames(t *testing.T) {
 			CompanyName: "Some company name",
 			Name:        model.NewRandomTeamName(),
 			Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
-			Type:        model.TeamOpen}
+			Type:        model.TeamOpen,
+		}
 		team, _, _ = client.CreateTeam(context.Background(), team)
 
 		patch := &model.TeamPatch{}
@@ -982,21 +1211,12 @@ func TestRegenerateTeamInviteId(t *testing.T) {
 	assert.NotEqual(t, team.InviteId, "")
 	assert.NotEqual(t, team.InviteId, "inviteid0")
 
-	*th.App.Config().PrivacySettings.ShowEmailAddress = true
 	rteam, _, err := client.RegenerateTeamInviteId(context.Background(), team.Id)
 	require.NoError(t, err)
 
 	assert.NotEqual(t, team.InviteId, rteam.InviteId)
 	assert.NotEqual(t, team.InviteId, "")
 	assert.NotEqual(t, rteam.Email, "")
-
-	*th.App.Config().PrivacySettings.ShowEmailAddress = false
-	rteam, _, err = client.RegenerateTeamInviteId(context.Background(), team.Id)
-	require.NoError(t, err)
-
-	assert.NotEqual(t, team.InviteId, rteam.InviteId)
-	assert.NotEqual(t, team.InviteId, "")
-	assert.Equal(t, rteam.Email, "")
 
 	manager := th.SystemManagerClient
 	th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.SystemManagerRoleId)
@@ -1964,7 +2184,6 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 			require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
 		}
-		*th.App.Config().PrivacySettings.ShowEmailAddress = false
 		rteams, _, err2 := th.Client.GetTeamsForUser(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err2)
 		for _, rteam := range rteams {
@@ -1972,7 +2191,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 				continue
 			}
 
-			require.Empty(t, rteam.Email, "should have sanitized email")
+			require.NotEmpty(t, rteam.Email, "should have not sanitized email")
 			require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
 		}
 	})
@@ -2429,6 +2648,45 @@ func TestAddTeamMember(t *testing.T) {
 	})
 }
 
+func TestAddTeamMemberGuestPermissions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	t.Run("should be able to add guest user to team when you have permission to", func(t *testing.T) {
+		th.AddPermissionToRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+
+		guestUser := th.CreateGuestUser(t)
+
+		member, _, err := th.Client.AddTeamMember(context.Background(), th.BasicTeam.Id, guestUser.Id)
+		assert.NoError(t, err)
+		assert.NotNil(t, member)
+	})
+
+	t.Run("should not be able to add guest user to team when you don't have permissino to", func(t *testing.T) {
+		th.RemovePermissionFromRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+
+		guestUser := th.CreateGuestUser(t)
+
+		_, resp, err := th.Client.AddTeamMember(context.Background(), th.BasicTeam.Id, guestUser.Id)
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+}
+
 func TestAddTeamMemberMyself(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2589,9 +2847,7 @@ func TestAddTeamMembers(t *testing.T) {
 		otherUser.Id,
 	}
 
-	guestUser := th.CreateUser()
-	_, appErr := th.App.UpdateUserRoles(th.Context, guestUser.Id, model.SystemGuestRoleId, false)
-	require.Nil(t, appErr)
+	guestUser := th.CreateGuestUser(t)
 	guestList := []string{
 		guestUser.Id,
 	}
@@ -2601,7 +2857,7 @@ func TestAddTeamMembers(t *testing.T) {
 	})
 	bot := th.CreateBotWithSystemAdminClient()
 
-	appErr = th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, "")
+	appErr := th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, "")
 	require.Nil(t, appErr)
 
 	// Regular user can't add a member to a team they don't belong to.
@@ -2741,6 +2997,45 @@ func TestAddTeamMembers(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestAddTeamMembersGuestPermissions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	t.Run("should be able to add guest user to team when you have permission to", func(t *testing.T) {
+		th.AddPermissionToRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+
+		guestUser := th.CreateGuestUser(t)
+
+		members, _, err := th.Client.AddTeamMembers(context.Background(), th.BasicTeam.Id, []string{guestUser.Id})
+		assert.NoError(t, err)
+		assert.Len(t, members, 1)
+	})
+
+	t.Run("should not be able to add guest user to team when you don't have permissino to", func(t *testing.T) {
+		th.RemovePermissionFromRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+
+		guestUser := th.CreateGuestUser(t)
+
+		_, resp, err := th.Client.AddTeamMembers(context.Background(), th.BasicTeam.Id, []string{guestUser.Id})
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+}
+
 func TestRemoveTeamMember(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2814,21 +3109,11 @@ func TestRemoveTeamMemberEvents(t *testing.T) {
 
 	client1 := th.CreateClient()
 	th.LoginBasicWithClient(client1)
-	WebSocketClient, err := th.CreateWebSocketClientWithClient(client1)
-	require.NoError(t, err)
-	defer WebSocketClient.Close()
-	WebSocketClient.Listen()
-	resp := <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Status, model.StatusOk)
+	WebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, client1)
 
 	client2 := th.CreateClient()
 	th.LoginBasic2WithClient(client2)
-	WebSocketClient2, err := th.CreateWebSocketClientWithClient(client2)
-	require.NoError(t, err)
-	defer WebSocketClient2.Close()
-	WebSocketClient2.Listen()
-	resp = <-WebSocketClient2.ResponseChannel
-	require.Equal(t, resp.Status, model.StatusOk)
+	WebSocketClient2 := th.CreateConnectedWebSocketClientWithClient(t, client2)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		// remove second user from basic team
@@ -3039,7 +3324,7 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	assert.Equal(t, true, tm2.SchemeUser)
 	assert.Equal(t, false, tm2.SchemeAdmin)
 
-	//cannot set Guest to User for single team
+	// cannot set Guest to User for single team
 	resp, err := SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, guest.Id, s2)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
@@ -3381,7 +3666,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	memberInvite := &model.MemberInvite{Emails: []string{user1, user2}}
 	emailList := memberInvite.Emails
 
-	//Delete all the messages before check the sample email
+	// Delete all the messages before check the sample email
 	err := mail.DeleteMailBox(user1)
 	require.NoError(t, err)
 	err = mail.DeleteMailBox(user2)
@@ -3401,7 +3686,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	})
 
 	checkEmail := func(t *testing.T, expectedSubject string) {
-		//Check if the email was sent to the right email address
+		// Check if the email was sent to the right email address
 		for _, email := range emailList {
 			var resultsMailbox mail.JSONMessageHeaderInbucket
 			err = mail.RetryInbucket(5, func() error {
@@ -3428,9 +3713,11 @@ func TestInviteUsersToTeam(t *testing.T) {
 	require.NoError(t, err)
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
 	expectedSubject := i18n.T("api.templates.invite_subject",
-		map[string]any{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+		map[string]any{
+			"SenderName":      th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
-			"SiteName":        th.App.ClientConfig()["SiteName"]})
+			"SiteName":        th.App.ClientConfig()["SiteName"],
+		})
 	checkEmail(t, expectedSubject)
 
 	// Test the invite to team and channel
@@ -3441,10 +3728,12 @@ func TestInviteUsersToTeam(t *testing.T) {
 	_, _, err = th.SystemAdminClient.InviteUsersToTeamAndChannelsGracefully(context.Background(), th.BasicTeam.Id, []string{user1, user2}, []string{th.BasicChannel.Id}, "")
 	require.NoError(t, err)
 	expectedSubject = i18n.T("api.templates.invite_team_and_channel_subject",
-		map[string]any{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+		map[string]any{
+			"SenderName":      th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"ChannelName":     th.BasicChannel.DisplayName,
-			"SiteName":        th.App.ClientConfig()["SiteName"]})
+			"SiteName":        th.App.ClientConfig()["SiteName"],
+		})
 	checkEmail(t, expectedSubject)
 
 	err = mail.DeleteMailBox(user1)
@@ -3454,9 +3743,11 @@ func TestInviteUsersToTeam(t *testing.T) {
 	_, err = th.LocalClient.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, emailList)
 	require.NoError(t, err)
 	expectedSubject = i18n.T("api.templates.invite_subject",
-		map[string]any{"SenderName": "Administrator",
+		map[string]any{
+			"SenderName":      "Administrator",
 			"TeamDisplayName": th.BasicTeam.DisplayName,
-			"SiteName":        th.App.ClientConfig()["SiteName"]})
+			"SiteName":        th.App.ClientConfig()["SiteName"],
+		})
 	checkEmail(t, expectedSubject)
 
 	// Test the invite local to team and channel
@@ -3467,10 +3758,12 @@ func TestInviteUsersToTeam(t *testing.T) {
 	_, _, err = th.LocalClient.InviteUsersToTeamAndChannelsGracefully(context.Background(), th.BasicTeam.Id, []string{user1, user2}, []string{th.BasicChannel.Id}, "")
 	require.NoError(t, err)
 	expectedSubject = i18n.T("api.templates.invite_team_and_channel_subject",
-		map[string]any{"SenderName": "Administrator",
+		map[string]any{
+			"SenderName":      "Administrator",
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"ChannelName":     th.BasicChannel.DisplayName,
-			"SiteName":        th.App.ClientConfig()["SiteName"]})
+			"SiteName":        th.App.ClientConfig()["SiteName"],
+		})
 	checkEmail(t, expectedSubject)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "@global.com,@common.com" })
@@ -3541,7 +3834,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 	emailList := []string{guest1, guest2}
 
-	//Delete all the messages before check the sample email
+	// Delete all the messages before check the sample email
 	err := mail.DeleteMailBox(guest1)
 	require.NoError(t, err)
 	err = mail.DeleteMailBox(guest2)
@@ -3593,11 +3886,13 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
 	expectedSubject := i18n.T("api.templates.invite_guest_subject",
-		map[string]any{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+		map[string]any{
+			"SenderName":      th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
-			"SiteName":        th.App.ClientConfig()["SiteName"]})
+			"SiteName":        th.App.ClientConfig()["SiteName"],
+		})
 
-	//Check if the email was send to the right email address
+	// Check if the email was send to the right email address
 	for _, email := range emailList {
 		var resultsMailbox mail.JSONMessageHeaderInbucket
 		err := mail.RetryInbucket(5, func() error {

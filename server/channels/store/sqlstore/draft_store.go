@@ -38,8 +38,8 @@ func draftSliceColumns() []string {
 	}
 }
 
-func draftToSlice(draft *model.Draft) []interface{} {
-	return []interface{}{
+func draftToSlice(draft *model.Draft) []any {
+	return []any{
 		draft.CreateAt,
 		draft.UpdateAt,
 		draft.DeleteAt,
@@ -176,6 +176,20 @@ func (s *SqlDraftStore) Delete(userID, channelID, rootID string) error {
 
 	if err != nil {
 		return errors.Wrap(err, "failed to delete Draft")
+	}
+
+	return nil
+}
+
+func (s *SqlDraftStore) PermanentDeleteByUser(userID string) error {
+	query := s.getQueryBuilder().
+		Delete("Drafts").
+		Where(sq.Eq{
+			"UserId": userID,
+		})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "PermanentDeleteByUser: failed to delete drafts for user: %s", userID)
 	}
 
 	return nil

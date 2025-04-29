@@ -34,7 +34,7 @@ import {useScrollOnRender} from 'components/common/hooks/use_scroll_on_render';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 import PlaceholderScheduledPostsTitle
     from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
-import EditPost from 'components/edit_post';
+import EditScheduledPost from 'components/edit_scheduled_post';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
@@ -50,8 +50,6 @@ import PanelBody from './panel/panel_body';
 import Header from './panel/panel_header';
 import {getErrorStringFromCode} from './utils';
 
-import './draft_row.scss';
-
 type Props = {
     user: UserProfile;
     status: UserStatus['status'];
@@ -59,6 +57,7 @@ type Props = {
     item: PostDraft | ScheduledPost;
     isRemote?: boolean;
     scrollIntoView?: boolean;
+    containerClassName?: string;
 }
 
 const mockLastBlurAt = {current: 0};
@@ -70,6 +69,7 @@ function DraftRow({
     displayName,
     isRemote,
     scrollIntoView,
+    containerClassName,
 }: Props) {
     const [isEditing, setIsEditing] = useState(false);
 
@@ -366,6 +366,7 @@ function DraftRow({
             hasError={Boolean(postError)}
             innerRef={scrollIntoView ? alertRef : undefined}
             isHighlighted={scrollIntoView}
+            className={containerClassName}
         >
             {({hover}) => (
                 <>
@@ -378,19 +379,15 @@ function DraftRow({
                         remote={isRemote || false}
                         error={postError || serverError?.message}
                     />
-
-                    {
-                        isEditing &&
-                        <EditPost
+                    {isEditing && (
+                        <EditScheduledPost
                             scheduledPost={item as ScheduledPost}
                             onCancel={handleCancelEdit}
                             afterSave={handleCancelEdit}
                             onDeleteScheduledPost={handleSchedulePostOnDelete}
                         />
-                    }
-
-                    {
-                        !isEditing &&
+                    )}
+                    {!isEditing && (
                         <PanelBody
                             channelId={channel?.id}
                             displayName={displayName}
@@ -402,7 +399,7 @@ function DraftRow({
                             userId={user.id}
                             username={user.username}
                         />
-                    }
+                    )}
                 </>
             )}
         </Panel>

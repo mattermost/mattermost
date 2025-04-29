@@ -53,7 +53,7 @@ Cypress.Commands.add('checkLeftSideBar', (settings = {}) => {
         cy.uiOpenUserMenu().findByText(`@${settings.user.username}`);
 
         // # Close status menu
-        cy.uiGetSetStatusButton().click();
+        cy.get('body').type('{esc}');
     }
 
     if (settings.user.userType === 'Admin' || settings.user.isAdmin) {

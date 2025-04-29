@@ -31,7 +31,7 @@ type EmojiItem = {
 
 const suggestionTypeEmoji = 'emoji';
 
-const EmoticonSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<EmojiItem>>((props, ref) => {
+const EmoticonSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<EmojiItem>>((props, ref) => {
     const text = props.term;
     const emoji = props.item.emoji;
 
