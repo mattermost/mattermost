@@ -77,6 +77,12 @@ jobs:
             -w /mattermost/server \
             $BUILD_IMAGE \
             make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          disable_search: true
+          files: server/cover.out
       - name: Stop docker compose
         run: |
           cd server/build
