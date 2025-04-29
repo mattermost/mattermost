@@ -42,6 +42,7 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
     clearable?: boolean;
     clearableTooltipText?: string;
     onClear?: () => void;
+    rows?: number;
 }
 
 const Input = React.forwardRef((
@@ -73,6 +74,7 @@ const Input = React.forwardRef((
         onBlur,
         onChange,
         onClear,
+        rows,
         ...otherProps
     }: InputProps,
     ref?: React.Ref<HTMLInputElement | HTMLTextAreaElement>,
@@ -210,7 +212,7 @@ const Input = React.forwardRef((
                     aria-label={ariaLabel}
                     aria-describedby={error ? errorId : undefined}
                     aria-invalid={error || hasError || limitExceeded > 0}
-                    rows={3}
+                    rows={rows || 3}
                     name={name}
                     disabled={disabled}
                     {...otherProps}
