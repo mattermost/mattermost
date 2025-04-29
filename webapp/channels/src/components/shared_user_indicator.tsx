@@ -67,7 +67,7 @@ const SharedUserIndicator = (props: Props) => {
     // Fallback to the generic message
     return (
         <WithTooltip
-            title={intl.formatMessage({id: 'shared_user_indicator.tooltip', defaultMessage: 'From trusted organizations'})}
+            title={props.title || intl.formatMessage({id: 'shared_user_indicator.tooltip', defaultMessage: 'From trusted organizations'})}
         >
             {sharedIcon}
         </WithTooltip>

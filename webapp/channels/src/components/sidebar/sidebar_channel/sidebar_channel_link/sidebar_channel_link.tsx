@@ -110,7 +110,7 @@ export class SidebarChannelLink extends React.PureComponent<OwnProps & StateProp
     componentDidMount(): void {
         this.enableToolTipIfNeeded();
 
-        if (this.props.isSharedChannel && this.props.channel?.team_id && this.props.remoteNames.length === 0) {
+        if (this.props.isSharedChannel && this.props.channel?.id && this.props.remoteNames.length === 0) {
             this.props.fetchChannelRemoteNames(this.props.channel.id);
         }
     }
@@ -123,7 +123,7 @@ export class SidebarChannelLink extends React.PureComponent<OwnProps & StateProp
         if (this.props.isSharedChannel &&
             (prevProps.channel?.id !== this.props.channel?.id || prevProps.channel?.team_id !== this.props.channel?.team_id) &&
             this.props.remoteNames.length === 0 &&
-            this.props.channel?.team_id) {
+            this.props.channel?.id) {
             this.props.fetchChannelRemoteNames(this.props.channel.id);
         }
     }

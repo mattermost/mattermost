@@ -1,22 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from '@mattermost/client';
-import type {SharedChannelWithRemotes} from '@mattermost/types/shared_channels';
 import type {GlobalState} from '@mattermost/types/store';
 
+import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from '../reducers/entities/shared_channels';
-
-// Declare the methods directly on the Client4 instance
-// These methods already exist in the implementation, we're just adding TypeScript definitions here
-declare module '@mattermost/client' {
-    interface Client4 {
-        getSharedChannels(teamId: string, page?: number, perPage?: number): Promise<SharedChannelWithRemotes[]>;
-        getSharedChannelRemoteNames(channelId: string): Promise<string[]>;
-    }
-}
 
 export function receivedSharedChannelsWithRemotes(sharedChannelsWithRemotes: any[]) {
     return {
