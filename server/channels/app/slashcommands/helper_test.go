@@ -9,9 +9,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -42,9 +43,7 @@ type TestHelper struct {
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	memoryStore := config.NewTestMemoryStore()
 
@@ -58,9 +57,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
-	if _, _, err = memoryStore.Set(memoryConfig); err != nil {
-		panic(err)
-	}
+	_, _, err = memoryStore.Set(memoryConfig)
+	require.NoError(tb, err)
 
 	buffer := &bytes.Buffer{}
 
@@ -74,17 +72,14 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
-		panic("failed to configure test logger: " + errCfg.Error())
-	}
+	errCfg := testLogger.ConfigureTargets(logCfg, nil)
+	require.NoError(tb, errCfg, "failed to configure test logger")
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
 	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s.Channels())),
@@ -97,21 +92,17 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	if enterprise {
-		if err := th.App.Srv().Jobs.StopWorkers(); err != nil {
-			panic(err)
-		}
-		if err := th.App.Srv().Jobs.StopSchedulers(); err != nil {
-			panic(err)
-		}
+		stopErr := th.App.Srv().Jobs.StopWorkers()
+		require.NoError(tb, stopErr)
+		stopErr = th.App.Srv().Jobs.StopSchedulers()
+		require.NoError(tb, stopErr)
 
 		th.App.Srv().SetLicense(model.NewTestLicense())
 
-		if err := th.App.Srv().Jobs.StartWorkers(); err != nil {
-			panic(err)
-		}
-		if err := th.App.Srv().Jobs.StartSchedulers(); err != nil {
-			panic(err)
-		}
+		startErr := th.App.Srv().Jobs.StartWorkers()
+		require.NoError(tb, startErr)
+		startErr = th.App.Srv().Jobs.StartSchedulers()
+		require.NoError(tb, startErr)
 	} else {
 		th.App.Srv().SetLicense(getLicense(false, memoryConfig))
 	}
@@ -121,9 +112,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = "localhost:0" })
 	serverErr := th.Server.Start()
-	if serverErr != nil {
-		panic(serverErr)
-	}
+	require.NoError(tb, serverErr)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
@@ -181,41 +170,13 @@ func setupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	return setupTestHelper(dbStore, false, true, tb, updateConfig)
 }
 
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser *model.User
-	BasicUser       *model.User
-	BasicUser2      *model.User
-}
-
 func (th *TestHelper) initBasic() *TestHelper {
-	// create users once and cache them because password hashing is slow
-	initBasicOnce.Do(func() {
-		th.SystemAdminUser = th.createUser()
-		_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-		if appErr != nil {
-			panic(appErr)
-		}
-		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
-		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
+	th.SystemAdminUser = th.createUser()
+	_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	require.Nil(th.tb, appErr)
 
-		th.BasicUser = th.createUser()
-		th.BasicUser, _ = th.App.GetUser(th.BasicUser.Id)
-		userCache.BasicUser = th.BasicUser.DeepCopy()
-
-		th.BasicUser2 = th.createUser()
-		th.BasicUser2, _ = th.App.GetUser(th.BasicUser2.Id)
-		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
-	})
-	// restore cached users
-	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
-	th.BasicUser = userCache.BasicUser.DeepCopy()
-	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	if err := mainHelper.GetSQLStore().User().InsertUsers(users); err != nil {
-		panic(err)
-	}
-
+	th.BasicUser = th.createUser()
+	th.BasicUser2 = th.createUser()
 	th.BasicTeam = th.createTeam()
 
 	th.linkUserToTeam(th.BasicUser, th.BasicTeam)
@@ -234,10 +195,9 @@ func (th *TestHelper) createTeam() *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	var err *model.AppError
-	if team, err = th.App.CreateTeam(th.Context, team); err != nil {
-		panic(err)
-	}
+	var appErr *model.AppError
+	team, appErr = th.App.CreateTeam(th.Context, team)
+	require.Nil(th.tb, appErr)
 
 	return team
 }
@@ -261,15 +221,13 @@ func (th *TestHelper) createUserOrGuest(guest bool) *model.User {
 		EmailVerified: true,
 	}
 
-	var err *model.AppError
+	var appErr *model.AppError
 	if guest {
-		if user, err = th.App.CreateGuest(th.Context, user); err != nil {
-			panic(err)
-		}
+		user, appErr = th.App.CreateGuest(th.Context, user)
+		require.Nil(th.tb, appErr)
 	} else {
-		if user, err = th.App.CreateUser(th.Context, user); err != nil {
-			panic(err)
-		}
+		user, appErr = th.App.CreateUser(th.Context, user)
+		require.Nil(th.tb, appErr)
 	}
 	return user
 }
@@ -305,14 +263,13 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 		option(channel)
 	}
 
-	var err *model.AppError
-	if channel, err = th.App.CreateChannel(th.Context, channel, true); err != nil {
-		panic(err)
-	}
+	var appErr *model.AppError
+	channel, appErr = th.App.CreateChannel(th.Context, channel, true)
+	require.Nil(th.tb, appErr)
 
 	if channel.IsShared() {
 		id := model.NewId()
-		_, err := th.App.ShareChannel(th.Context, &model.SharedChannel{
+		_, shareErr := th.App.ShareChannel(th.Context, &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
 			Home:             false,
@@ -322,9 +279,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 			CreatorId:        th.BasicUser.Id,
 			RemoteId:         model.NewId(),
 		})
-		if err != nil {
-			panic(err)
-		}
+		require.Nil(th.tb, shareErr)
 	}
 	return channel
 }
@@ -340,28 +295,25 @@ func (th *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType
 		CreatorId:   userID,
 	}
 
-	var err *model.AppError
-	if channel, err = th.App.CreateChannel(th.Context, channel, true); err != nil {
-		panic(err)
-	}
+	var appErr *model.AppError
+	channel, appErr = th.App.CreateChannel(th.Context, channel, true)
+	require.Nil(th.tb, appErr)
 	return channel
 }
 
 func (th *TestHelper) createDmChannel(user *model.User) *model.Channel {
-	var err *model.AppError
+	var appErr *model.AppError
 	var channel *model.Channel
-	if channel, err = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id); err != nil {
-		panic(err)
-	}
+	channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id)
+	require.Nil(th.tb, appErr)
 	return channel
 }
 
 func (th *TestHelper) createGroupChannel(user1 *model.User, user2 *model.User) *model.Channel {
-	var err *model.AppError
+	var appErr *model.AppError
 	var channel *model.Channel
-	if channel, err = th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id); err != nil {
-		panic(err)
-	}
+	channel, appErr = th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+	require.Nil(th.tb, appErr)
 	return channel
 }
 
@@ -375,25 +327,20 @@ func (th *TestHelper) createPost(channel *model.Channel) *model.Post {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 
-	var err *model.AppError
-	if post, err = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
-		panic(err)
-	}
+	var appErr *model.AppError
+	post, appErr = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(th.tb, appErr)
 	return post
 }
 
 func (th *TestHelper) linkUserToTeam(user *model.User, team *model.Team) {
-	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
-	if err != nil {
-		panic(err)
-	}
+	_, appErr := th.App.JoinUserToTeam(th.Context, team, user, "")
+	require.Nil(th.tb, appErr)
 }
 
 func (th *TestHelper) addUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
-	member, err := th.App.AddUserToChannel(th.Context, user, channel, false)
-	if err != nil {
-		panic(err)
-	}
+	member, appErr := th.App.AddUserToChannel(th.Context, user, channel, false)
+	require.Nil(th.tb, appErr)
 	return member
 }
 
@@ -407,18 +354,17 @@ func (th *TestHelper) shutdownApp() {
 	select {
 	case <-done:
 	case <-time.After(30 * time.Second):
-		// panic instead of fatal to terminate all tests in this package, otherwise the
+		// Use require.FailNow to terminate all tests in this package, otherwise the
 		// still running App could spuriously fail subsequent tests.
-		panic("failed to shutdown App within 30 seconds")
+		require.FailNow(th.tb, "failed to shutdown App within 30 seconds")
 	}
 }
 
 func (th *TestHelper) tearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		if err := th.App.Srv().InvalidateAllCaches(); err != nil {
-			panic(err)
-		}
+		appErr := th.App.Srv().InvalidateAllCaches()
+		require.Nil(th.tb, appErr)
 	}
 	th.shutdownApp()
 	if th.tempWorkspace != "" {
@@ -427,10 +373,8 @@ func (th *TestHelper) tearDown() {
 }
 
 func (th *TestHelper) removePermissionFromRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
-	if err1 != nil {
-		panic(err1)
-	}
+	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+	require.Nil(th.tb, appErr)
 
 	var newPermissions []string
 	for _, p := range role.Permissions {
@@ -445,17 +389,13 @@ func (th *TestHelper) removePermissionFromRole(permission string, roleName strin
 
 	role.Permissions = newPermissions
 
-	_, err2 := th.App.UpdateRole(role)
-	if err2 != nil {
-		panic(err2)
-	}
+	_, appErr = th.App.UpdateRole(role)
+	require.Nil(th.tb, appErr)
 }
 
 func (th *TestHelper) addPermissionToRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
-	if err1 != nil {
-		panic(err1)
-	}
+	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+	require.Nil(th.tb, appErr)
 
 	for _, existingPermission := range role.Permissions {
 		if existingPermission == permission {
@@ -465,8 +405,6 @@ func (th *TestHelper) addPermissionToRole(permission string, roleName string) {
 
 	role.Permissions = append(role.Permissions, permission)
 
-	_, err2 := th.App.UpdateRole(role)
-	if err2 != nil {
-		panic(err2)
-	}
+	_, appErr = th.App.UpdateRole(role)
+	require.Nil(th.tb, appErr)
 }
