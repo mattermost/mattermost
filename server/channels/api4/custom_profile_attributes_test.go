@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -214,6 +215,69 @@ func TestPatchCPAField(t *testing.T) {
 
 			require.NotEmpty(t, wsField.ID)
 			require.Equal(t, patchedField, &wsField)
+		})
+
+		t.Run("sanitization should remove options and sync details when necessary", func(t *testing.T) {
+			// Create a select field with options
+			optionID1 := model.NewId()
+			optionID2 := model.NewId()
+			selectField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+				Name: model.NewId(),
+				Type: model.PropertyFieldTypeSelect,
+				Attrs: model.StringInterface{
+					"options": []map[string]any{
+						{"id": optionID1, "name": "Option 1", "color": "#FF0000"},
+						{"id": optionID2, "name": "Option 2", "color": "#00FF00"},
+					},
+				},
+			})
+			require.NoError(t, err)
+
+			createdField, _, err := client.CreateCPAField(context.Background(), selectField.ToPropertyField())
+			require.NoError(t, err)
+			require.NotNil(t, createdField)
+
+			// Verify options were created
+			options, ok := createdField.Attrs["options"]
+			require.True(t, ok)
+			require.NotNil(t, options)
+
+			// Patch to change type to text with LDAP attribute
+			// Options should be automatically removed even though we don't explicitly remove them
+			ldapAttr := "user_attribute"
+			textPatch := &model.PropertyFieldPatch{
+				Type:  model.NewPointer(model.PropertyFieldTypeText),
+				Attrs: &model.StringInterface{"ldap": ldapAttr},
+			}
+
+			patchedTextField, resp, err := client.PatchCPAField(context.Background(), createdField.ID, textPatch)
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTypeText, patchedTextField.Type)
+
+			// Verify options were removed
+			options = patchedTextField.Attrs["options"]
+			require.Empty(t, options)
+
+			// Verify LDAP attribute was set
+			ldap, ok := patchedTextField.Attrs["ldap"]
+			require.True(t, ok)
+			require.Equal(t, ldapAttr, ldap)
+
+			// Now patch to change type to date
+			// LDAP attribute should be automatically removed even though we don't explicitly remove it
+			datePatch := &model.PropertyFieldPatch{
+				Type: model.NewPointer(model.PropertyFieldTypeDate),
+			}
+
+			patchedDateField, resp, err := client.PatchCPAField(context.Background(), patchedTextField.ID, datePatch)
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTypeDate, patchedDateField.Type)
+
+			// Verify LDAP attribute was removed
+			ldap = patchedDateField.Attrs["ldap"]
+			require.Empty(t, ldap)
 		})
 	}, "a user with admin permissions should be able to patch the field")
 }
@@ -517,5 +581,28 @@ func TestPatchCPAValues(t *testing.T) {
 		actualValues = nil
 		require.NoError(t, json.Unmarshal(patchedValues[createdArrayField.ID], &actualValues))
 		require.Equal(t, optionsID[2:4], actualValues)
+	})
+
+	t.Run("an invalid patch should be rejected", func(t *testing.T) {
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(field)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdField)
+
+		// Create a value that's too long (over 64 characters)
+		tooLongValue := strings.Repeat("a", model.CPAValueTypeTextMaxLength+1)
+		values := map[string]json.RawMessage{
+			createdField.ID: json.RawMessage(fmt.Sprintf(`"%s"`, tooLongValue)),
+		}
+
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "Failed to validate property value")
 	})
 }
