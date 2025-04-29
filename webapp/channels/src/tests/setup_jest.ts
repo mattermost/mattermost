@@ -15,6 +15,19 @@ import './react-intl_mock';
 import './react-router-dom_mock';
 import './react-tippy_mock';
 
+// Add mock for mattermost-redux makeGetChannel
+jest.mock('mattermost-redux/selectors/entities/channels', () => {
+    const original = jest.requireActual('mattermost-redux/selectors/entities/channels');
+    return {
+        ...original,
+        makeGetChannel: jest.fn().mockImplementation(() => {
+            return jest.fn().mockImplementation((state, channelId) => {
+                return {id: channelId};
+            });
+        }),
+    };
+});
+
 module.exports = async () => {
     // eslint-disable-next-line no-process-env
     process.env.TZ = 'UTC';
