@@ -10622,5 +10622,13 @@
   {
     "id": "ent.saml.update_cpa.multiple_errors",
     "translation": "Помилки під час оновлення значень CPA"
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "На сервері AD/LDAP не зареєстровано користувача, який відповідає користувачеві SAML."
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Не вдалося підрахувати щомісячну кількість активних користувачів."
   }
 ]
