@@ -7,34 +7,16 @@ import Popover from 'components/widgets/popover';
 
 import type {SuggestionGroup} from './provider';
 
-type SuggestionItem = {
-    date: string;
-    label: string;
-}
-
-type SuggestionItemProps = {
-    key: string;
-    item: SuggestionItem;
-    term: string;
-    matchedPretext: string;
-    preventClose: () => void;
-    handleEscape: () => void;
-    isSelection: boolean;
-    onClick: (term: string, matchedPretext: string, e?: Event) => boolean;
-}
-
 type Props = {
     onCompleteWord: (term: string, matchedPretext: string, e?: Event) => boolean;
     matchedPretext: string[];
     suggestionGroups: Array<SuggestionGroup<any>>;
     preventClose: () => void;
     handleEscape: () => void;
-    components: Array<React.ComponentType<SuggestionItemProps>>;
 }
 
 const SuggestionDate = ({
     suggestionGroups,
-    components,
     matchedPretext,
     onCompleteWord,
     preventClose,
@@ -48,7 +30,7 @@ const SuggestionDate = ({
     const term = suggestionGroups[0].terms[0];
 
     // ReactComponent names need to be upper case when used in JSX
-    const Component = components[0];
+    const Component = suggestionGroups[0].component;
 
     return (
         <Popover
