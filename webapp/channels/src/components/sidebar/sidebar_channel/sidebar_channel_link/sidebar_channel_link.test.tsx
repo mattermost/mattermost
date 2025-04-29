@@ -118,11 +118,11 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             ...baseProps,
             isSharedChannel: false,
         };
-        
-        const wrapper = shallowWithIntl(
+
+        shallowWithIntl(
             <SidebarChannelLink {...props}/>,
         );
-        
+
         expect(props.fetchSharedChannelsWithRemotes).not.toHaveBeenCalled();
     });
 
@@ -132,11 +132,11 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             isSharedChannel: true,
             remoteNames: [],
         };
-        
-        const wrapper = shallowWithIntl(
+
+        shallowWithIntl(
             <SidebarChannelLink {...props}/>,
         );
-        
+
         expect(props.fetchSharedChannelsWithRemotes).toHaveBeenCalledWith('team_id');
     });
 
@@ -146,11 +146,11 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             isSharedChannel: true,
             remoteNames: ['Remote 1', 'Remote 2'], // Data already exists
         };
-        
-        const wrapper = shallowWithIntl(
+
+        shallowWithIntl(
             <SidebarChannelLink {...props}/>,
         );
-        
+
         // Should not fetch since data already exists
         expect(props.fetchSharedChannelsWithRemotes).not.toHaveBeenCalled();
     });
@@ -161,14 +161,14 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             isSharedChannel: true,
             remoteNames: [],
         };
-        
+
         const wrapper = shallowWithIntl(
             <SidebarChannelLink {...props}/>,
         );
-        
+
         // Clear the mock count from componentDidMount
         props.fetchSharedChannelsWithRemotes.mockClear();
-        
+
         // Change the channel ID to simulate channel change
         wrapper.setProps({
             ...props,
@@ -177,7 +177,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
                 id: 'new_channel_id',
             },
         });
-        
+
         expect(props.fetchSharedChannelsWithRemotes).toHaveBeenCalledWith('team_id');
     });
 });

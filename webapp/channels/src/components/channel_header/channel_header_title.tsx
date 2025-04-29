@@ -7,10 +7,10 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import {fetchSharedChannelsWithRemotes} from 'mattermost-redux/actions/shared_channels';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
-import {fetchSharedChannelsWithRemotes} from 'mattermost-redux/actions/shared_channels';
 
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';

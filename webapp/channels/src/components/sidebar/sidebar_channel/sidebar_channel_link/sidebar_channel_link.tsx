@@ -4,15 +4,16 @@
 import classNames from 'classnames';
 import React from 'react';
 import {type WrappedComponentProps, injectIntl} from 'react-intl';
-import {Link} from 'react-router-dom';
 import {connect} from 'react-redux';
+import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from '@mattermost/types/store';
 
-import {mark, trackEvent} from 'actions/telemetry_actions';
 import {fetchSharedChannelsWithRemotes} from 'mattermost-redux/actions/shared_channels';
 import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
+
+import {mark, trackEvent} from 'actions/telemetry_actions';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
@@ -109,7 +110,7 @@ export class SidebarChannelLink extends React.PureComponent<OwnProps & StateProp
 
     componentDidMount(): void {
         this.enableToolTipIfNeeded();
-        
+
         if (this.props.isSharedChannel && this.props.channel?.team_id && this.props.remoteNames.length === 0) {
             this.props.fetchSharedChannelsWithRemotes(this.props.channel.team_id);
         }
@@ -119,10 +120,10 @@ export class SidebarChannelLink extends React.PureComponent<OwnProps & StateProp
         if (prevProps.label !== this.props.label) {
             this.enableToolTipIfNeeded();
         }
-        
-        if (this.props.isSharedChannel && 
+
+        if (this.props.isSharedChannel &&
             (prevProps.channel?.id !== this.props.channel?.id || prevProps.channel?.team_id !== this.props.channel?.team_id) &&
-            this.props.remoteNames.length === 0 && 
+            this.props.remoteNames.length === 0 &&
             this.props.channel?.team_id) {
             this.props.fetchSharedChannelsWithRemotes(this.props.channel.team_id);
         }

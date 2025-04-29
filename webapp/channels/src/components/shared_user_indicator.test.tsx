@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import SharedUserIndicator from './shared_user_indicator';
 
@@ -23,7 +23,7 @@ describe('components/SharedUserIndicator', () => {
 
         expect(wrapper).toMatchSnapshot();
     });
-    
+
     test('should match snapshot with custom title', () => {
         const wrapper = shallow(
             <SharedUserIndicator
@@ -35,10 +35,10 @@ describe('components/SharedUserIndicator', () => {
 
         expect(wrapper).toMatchSnapshot();
     });
-    
+
     test('should match snapshot with remote names', () => {
         const remoteNames = ['Remote Workspace 1', 'Remote Workspace 2'];
-        
+
         const wrapper = shallow(
             <SharedUserIndicator
                 className='test-class-name'

@@ -20,7 +20,7 @@ describe('Selectors.SharedChannels', () => {
         last_ping_at: 1237,
     };
 
-    const shared_channel1 = {
+    const sharedChannel1 = {
         id: 'channel1',
         team_id: 'team1',
         home: true,
@@ -35,7 +35,7 @@ describe('Selectors.SharedChannels', () => {
         remote_id: '',
     };
 
-    const shared_channel2 = {
+    const sharedChannel2 = {
         id: 'channel2',
         team_id: 'team1',
         home: false,
@@ -55,11 +55,11 @@ describe('Selectors.SharedChannels', () => {
             sharedChannels: {
                 sharedChannelsWithRemotes: {
                     channel1: {
-                        shared_channel: shared_channel1,
+                        shared_channel: sharedChannel1,
                         remotes: [remote1, remote2],
                     },
                     channel2: {
-                        shared_channel: shared_channel2,
+                        shared_channel: sharedChannel2,
                         remotes: [remote1],
                     },
                 },

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {ActionTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 export function getSharedChannels(): GenericAction {
     return {

@@ -9,15 +9,16 @@ import {useIntl} from 'react-intl';
 import WithTooltip from 'components/with_tooltip';
 
 type Props = {
+
     /**
      * If not provided, the default title 'From trusted organizations' will be used for the tooltip.
-    */
+     */
     title?: string;
     ariaLabel?: AriaAttributes['aria-label'];
     role?: AriaRole;
     className?: string;
     withTooltip?: boolean;
-    
+
     /**
      * List of remote workspace names to display in the tooltip
      */
@@ -54,7 +55,7 @@ const SharedUserIndicator = (props: Props) => {
             <WithTooltip
                 title={intl.formatMessage(
                     {id: 'shared_user_indicator.tooltip_with_names', defaultMessage: 'From: {remoteNames}'},
-                    {remoteNames: props.remoteNames.join(', ')}
+                    {remoteNames: props.remoteNames.join(', ')},
                 )}
             >
                 {sharedIcon}

@@ -4,8 +4,8 @@
 import {combineReducers} from 'redux';
 
 import {ActionTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {RemoteClusterInfo, SharedChannelWithRemotes} from 'mattermost-redux/types/shared_channels';
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import type {SharedChannelWithRemotes} from 'mattermost-redux/types/shared_channels';
 
 export function sharedChannelsWithRemotes(state: Record<string, SharedChannelWithRemotes> = {}, action: GenericAction) {
     switch (action.type) {

@@ -3,8 +3,8 @@
 
 import {createSelector} from 'reselect';
 
-import {GlobalState} from 'mattermost-redux/types/store';
-import {RemoteClusterInfo} from 'mattermost-redux/types/shared_channels';
+import type {RemoteClusterInfo} from 'mattermost-redux/types/shared_channels';
+import type {GlobalState} from 'mattermost-redux/types/store';
 
 export function getSharedChannelsWithRemotes(state: GlobalState) {
     return state.entities.sharedChannels.sharedChannelsWithRemotes;
@@ -41,7 +41,7 @@ export const getRemoteInfoForChannel = createSelector(
         if (!data || !data.remotes || !Array.isArray(data.remotes)) {
             return [];
         }
-        
+
         return data.remotes;
     },
 );

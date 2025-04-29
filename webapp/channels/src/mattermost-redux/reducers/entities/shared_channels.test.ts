@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {sharedChannelsWithRemotes} from './shared_channels';
 import {ActionTypes} from 'mattermost-redux/action_types';
+
+import {sharedChannelsWithRemotes} from './shared_channels';
 
 describe('Reducers.SharedChannels.sharedChannelsWithRemotes', () => {
     it('should return default state when no action is provided', () => {
@@ -18,7 +19,7 @@ describe('Reducers.SharedChannels.sharedChannelsWithRemotes', () => {
             delete_at: 0,
             last_ping_at: 1235,
         };
-        
+
         const remote2 = {
             name: 'remote2',
             display_name: 'Remote 2',
@@ -26,7 +27,7 @@ describe('Reducers.SharedChannels.sharedChannelsWithRemotes', () => {
             delete_at: 0,
             last_ping_at: 1237,
         };
-        
+
         const channel1 = {
             channel_id: 'channel1',
             team_id: 'team1',
@@ -41,7 +42,7 @@ describe('Reducers.SharedChannels.sharedChannelsWithRemotes', () => {
             update_at: 1239,
             remote_id: '',
         };
-        
+
         const channel2 = {
             channel_id: 'channel2',
             team_id: 'team1',
@@ -56,7 +57,7 @@ describe('Reducers.SharedChannels.sharedChannelsWithRemotes', () => {
             update_at: 1241,
             remote_id: 'remote1',
         };
-        
+
         const sharedChannelsData = [
             {
                 shared_channel: channel1,
@@ -67,14 +68,14 @@ describe('Reducers.SharedChannels.sharedChannelsWithRemotes', () => {
                 remotes: [remote1],
             },
         ];
-        
+
         const action = {
             type: ActionTypes.RECEIVED_SHARED_CHANNELS_WITH_REMOTES,
             data: sharedChannelsData,
         };
-        
+
         const state = sharedChannelsWithRemotes({}, action);
-        
+
         expect(state).toEqual({
             channel1: {
                 shared_channel: channel1,
@@ -86,7 +87,7 @@ describe('Reducers.SharedChannels.sharedChannelsWithRemotes', () => {
             },
         });
     });
-    
+
     it('should merge new shared channels with existing ones', () => {
         const initialState = {
             channel1: {
@@ -115,7 +116,7 @@ describe('Reducers.SharedChannels.sharedChannelsWithRemotes', () => {
                 ],
             },
         };
-        
+
         const newChannel = {
             channel_id: 'channel2',
             team_id: 'team1',
@@ -130,7 +131,7 @@ describe('Reducers.SharedChannels.sharedChannelsWithRemotes', () => {
             update_at: 1241,
             remote_id: 'remote1',
         };
-        
+
         const newRemote = {
             name: 'remote2',
             display_name: 'Remote 2',
@@ -138,7 +139,7 @@ describe('Reducers.SharedChannels.sharedChannelsWithRemotes', () => {
             delete_at: 0,
             last_ping_at: 1237,
         };
-        
+
         const action = {
             type: ActionTypes.RECEIVED_SHARED_CHANNELS_WITH_REMOTES,
             data: [
@@ -148,9 +149,9 @@ describe('Reducers.SharedChannels.sharedChannelsWithRemotes', () => {
                 },
             ],
         };
-        
+
         const state = sharedChannelsWithRemotes(initialState, action);
-        
+
         expect(state).toEqual({
             channel1: initialState.channel1,
             channel2: {

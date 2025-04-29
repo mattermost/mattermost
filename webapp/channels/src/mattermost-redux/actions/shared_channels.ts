@@ -3,8 +3,9 @@
 
 import {Client4} from 'mattermost-redux/client';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
-import {getSharedChannels, receivedSharedChannelsWithRemotes} from './helpers';
+import type {ActionFunc} from 'types/store';
+
+import {receivedSharedChannelsWithRemotes} from './helpers';
 
 export function fetchSharedChannelsWithRemotes(teamId: string, page = 0, perPage = 50): ActionFunc {
     return async (dispatch) => {

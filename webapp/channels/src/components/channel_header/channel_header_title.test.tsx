@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {mount} from 'enzyme';
+import React from 'react';
 import {Provider} from 'react-redux';
 import configureStore from 'redux-mock-store';
 
+import {fetchSharedChannelsWithRemotes} from 'mattermost-redux/actions/shared_channels';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
-import {fetchSharedChannelsWithRemotes} from 'mattermost-redux/actions/shared_channels';
 
 import ChannelHeaderTitle from './channel_header_title';
 
@@ -26,7 +26,7 @@ jest.mock('mattermost-redux/actions/shared_channels', () => ({
 
 describe('components/channel_header/ChannelHeaderTitle', () => {
     const mockStore = configureStore();
-    
+
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -40,18 +40,18 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
             type: 'O',
             shared: false,
         };
-        
+
         (getCurrentChannel as jest.Mock).mockReturnValue(channel);
         (getRemoteNamesForChannel as jest.Mock).mockReturnValue([]);
-        
+
         const store = mockStore({});
-        
-        const wrapper = mount(
+
+        mount(
             <Provider store={store}>
-                <ChannelHeaderTitle />
-            </Provider>
+                <ChannelHeaderTitle/>
+            </Provider>,
         );
-        
+
         expect(fetchSharedChannelsWithRemotes).not.toHaveBeenCalled();
     });
 
@@ -64,18 +64,18 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
             type: 'O',
             shared: true,
         };
-        
+
         (getCurrentChannel as jest.Mock).mockReturnValue(channel);
         (getRemoteNamesForChannel as jest.Mock).mockReturnValue([]);
-        
+
         const store = mockStore({});
-        
-        const wrapper = mount(
+
+        mount(
             <Provider store={store}>
-                <ChannelHeaderTitle />
-            </Provider>
+                <ChannelHeaderTitle/>
+            </Provider>,
         );
-        
+
         expect(fetchSharedChannelsWithRemotes).toHaveBeenCalledWith('team_id');
     });
 
@@ -88,18 +88,18 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
             type: 'O',
             shared: true,
         };
-        
+
         (getCurrentChannel as jest.Mock).mockReturnValue(channel);
         (getRemoteNamesForChannel as jest.Mock).mockReturnValue(['Remote 1', 'Remote 2']); // Data exists
-        
+
         const store = mockStore({});
-        
-        const wrapper = mount(
+
+        mount(
             <Provider store={store}>
-                <ChannelHeaderTitle />
-            </Provider>
+                <ChannelHeaderTitle/>
+            </Provider>,
         );
-        
+
         expect(fetchSharedChannelsWithRemotes).not.toHaveBeenCalled();
     });
 });
