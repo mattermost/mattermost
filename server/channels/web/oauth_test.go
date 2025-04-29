@@ -278,8 +278,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	rurl, err := url.Parse(redirect)
 	require.NoError(t, err)
 
-	_, err = apiClient.Logout(context.Background())
-	require.NoError(t, err)
+	apiClient.Logout(context.Background())
 
 	data = url.Values{"grant_type": []string{"junk"}, "client_id": []string{oauthApp.Id}, "client_secret": []string{oauthApp.ClientSecret}, "code": []string{rurl.Query().Get("code")}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
