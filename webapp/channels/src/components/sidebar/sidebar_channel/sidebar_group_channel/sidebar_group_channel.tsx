@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useCallback} from 'react';
-import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
