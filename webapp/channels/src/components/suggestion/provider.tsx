@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 
 import type {RequireOnlyOne} from '@mattermost/types/utilities';
@@ -8,6 +9,17 @@ import type {RequireOnlyOne} from '@mattermost/types/utilities';
 export type SuggestionGroup<Item> = {
     label: MessageDescriptor;
 } & ({
+    component: React.ComponentType<{
+        id?: string;
+        item: any;
+        term: string;
+        matchedPretext: string;
+        isSelection: boolean;
+        onClick: (term: string, matchedPretext: string, e?: Event) => void;
+        onMouseMove?: (term: string) => void;
+        preventClose: () => void;
+        handleEscape: () => void;
+    }>;
     items: Item[];
     terms: string[];
 } | {

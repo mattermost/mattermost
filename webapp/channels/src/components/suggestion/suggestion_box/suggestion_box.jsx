@@ -272,6 +272,7 @@ export default class SuggestionBox extends React.PureComponent {
     };
 
     handleFocusOut = (e) => {
+        return;
         if (this.preventSuggestionListCloseFlag) {
             this.preventSuggestionListCloseFlag = false;
             return;
@@ -563,7 +564,6 @@ export default class SuggestionBox extends React.PureComponent {
                 matchedPretext: [],
                 terms: [],
                 items: [],
-                components: [],
                 selection: '',
                 suggestionBoxAlgn: undefined,
             });
@@ -633,7 +633,6 @@ export default class SuggestionBox extends React.PureComponent {
     };
 
     handleReceivedSuggestions = (suggestions) => {
-        let newComponents = [];
         const newPretext = [];
 
         if (this.props.onSuggestionsReceived) {
@@ -644,12 +643,7 @@ export default class SuggestionBox extends React.PureComponent {
         const terms = suggestions.groups.flatMap((group) => group.terms);
 
         for (let i = 0; i < terms.length; i++) {
-            newComponents.push(suggestions.component);
             newPretext.push(suggestions.matchedPretext);
-        }
-
-        if (suggestions.components) {
-            newComponents = suggestions.components;
         }
 
         let selection = this.state.selection;
@@ -671,7 +665,6 @@ export default class SuggestionBox extends React.PureComponent {
             items,
 
             suggestionGroups: suggestions.groups,
-            components: newComponents,
             matchedPretext: newPretext,
         });
 
