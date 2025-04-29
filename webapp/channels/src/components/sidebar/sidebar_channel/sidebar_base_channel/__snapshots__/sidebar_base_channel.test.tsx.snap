@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot 1`] = `
-<Connect(Connect(injectIntl(SidebarChannelLink)))
+<Connect(injectIntl(SidebarChannelLink))
   ariaLabelPrefix="public channel"
   channel={
     Object {
@@ -28,51 +28,13 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
       channelType="O"
     />
   }
-  intl={
-    Object {
-      "$t": [Function],
-      "defaultFormats": Object {},
-      "defaultLocale": "en",
-      "defaultRichTextElements": undefined,
-      "fallbackOnEmptyString": true,
-      "formatDate": [Function],
-      "formatDateTimeRange": [Function],
-      "formatDateToParts": [Function],
-      "formatDisplayName": [Function],
-      "formatList": [Function],
-      "formatListToParts": [Function],
-      "formatMessage": [Function],
-      "formatNumber": [Function],
-      "formatNumberToParts": [Function],
-      "formatPlural": [Function],
-      "formatRelativeTime": [Function],
-      "formatTime": [Function],
-      "formatTimeToParts": [Function],
-      "formats": Object {},
-      "formatters": Object {
-        "getDateTimeFormat": [Function],
-        "getDisplayNames": [Function],
-        "getListFormat": [Function],
-        "getMessageFormat": [Function],
-        "getNumberFormat": [Function],
-        "getPluralRules": [Function],
-        "getRelativeTimeFormat": [Function],
-      },
-      "locale": "en",
-      "messages": Object {},
-      "onError": [Function],
-      "onWarn": [Function],
-      "textComponent": "span",
-      "timeZone": "Etc/UTC",
-    }
-  }
   label="channel_display_name"
   link="/team_name/channels/"
 />
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot when private channel 1`] = `
-<Connect(Connect(injectIntl(SidebarChannelLink)))
+<Connect(injectIntl(SidebarChannelLink))
   ariaLabelPrefix="private channel"
   channel={
     Object {
@@ -99,51 +61,13 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
       channelType="P"
     />
   }
-  intl={
-    Object {
-      "$t": [Function],
-      "defaultFormats": Object {},
-      "defaultLocale": "en",
-      "defaultRichTextElements": undefined,
-      "fallbackOnEmptyString": true,
-      "formatDate": [Function],
-      "formatDateTimeRange": [Function],
-      "formatDateToParts": [Function],
-      "formatDisplayName": [Function],
-      "formatList": [Function],
-      "formatListToParts": [Function],
-      "formatMessage": [Function],
-      "formatNumber": [Function],
-      "formatNumberToParts": [Function],
-      "formatPlural": [Function],
-      "formatRelativeTime": [Function],
-      "formatTime": [Function],
-      "formatTimeToParts": [Function],
-      "formats": Object {},
-      "formatters": Object {
-        "getDateTimeFormat": [Function],
-        "getDisplayNames": [Function],
-        "getListFormat": [Function],
-        "getMessageFormat": [Function],
-        "getNumberFormat": [Function],
-        "getPluralRules": [Function],
-        "getRelativeTimeFormat": [Function],
-      },
-      "locale": "en",
-      "messages": Object {},
-      "onError": [Function],
-      "onWarn": [Function],
-      "textComponent": "span",
-      "timeZone": "Etc/UTC",
-    }
-  }
   label="channel_display_name"
   link="/team_name/channels/"
 />
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot when shared channel 1`] = `
-<Connect(Connect(injectIntl(SidebarChannelLink)))
+<Connect(injectIntl(SidebarChannelLink))
   ariaLabelPrefix="public channel"
   channel={
     Object {
@@ -170,44 +94,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
     <SidebarBaseChannelIcon
       channelType="O"
     />
-  }
-  intl={
-    Object {
-      "$t": [Function],
-      "defaultFormats": Object {},
-      "defaultLocale": "en",
-      "defaultRichTextElements": undefined,
-      "fallbackOnEmptyString": true,
-      "formatDate": [Function],
-      "formatDateTimeRange": [Function],
-      "formatDateToParts": [Function],
-      "formatDisplayName": [Function],
-      "formatList": [Function],
-      "formatListToParts": [Function],
-      "formatMessage": [Function],
-      "formatNumber": [Function],
-      "formatNumberToParts": [Function],
-      "formatPlural": [Function],
-      "formatRelativeTime": [Function],
-      "formatTime": [Function],
-      "formatTimeToParts": [Function],
-      "formats": Object {},
-      "formatters": Object {
-        "getDateTimeFormat": [Function],
-        "getDisplayNames": [Function],
-        "getListFormat": [Function],
-        "getMessageFormat": [Function],
-        "getNumberFormat": [Function],
-        "getPluralRules": [Function],
-        "getRelativeTimeFormat": [Function],
-      },
-      "locale": "en",
-      "messages": Object {},
-      "onError": [Function],
-      "onWarn": [Function],
-      "textComponent": "span",
-      "timeZone": "Etc/UTC",
-    }
   }
   isSharedChannel={true}
   label="channel_display_name"
@@ -216,7 +102,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot when shared private channel 1`] = `
-<Connect(Connect(injectIntl(SidebarChannelLink)))
+<Connect(injectIntl(SidebarChannelLink))
   ariaLabelPrefix="private channel"
   channel={
     Object {
@@ -243,44 +129,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
     <SidebarBaseChannelIcon
       channelType="P"
     />
-  }
-  intl={
-    Object {
-      "$t": [Function],
-      "defaultFormats": Object {},
-      "defaultLocale": "en",
-      "defaultRichTextElements": undefined,
-      "fallbackOnEmptyString": true,
-      "formatDate": [Function],
-      "formatDateTimeRange": [Function],
-      "formatDateToParts": [Function],
-      "formatDisplayName": [Function],
-      "formatList": [Function],
-      "formatListToParts": [Function],
-      "formatMessage": [Function],
-      "formatNumber": [Function],
-      "formatNumberToParts": [Function],
-      "formatPlural": [Function],
-      "formatRelativeTime": [Function],
-      "formatTime": [Function],
-      "formatTimeToParts": [Function],
-      "formats": Object {},
-      "formatters": Object {
-        "getDateTimeFormat": [Function],
-        "getDisplayNames": [Function],
-        "getListFormat": [Function],
-        "getMessageFormat": [Function],
-        "getNumberFormat": [Function],
-        "getPluralRules": [Function],
-        "getRelativeTimeFormat": [Function],
-      },
-      "locale": "en",
-      "messages": Object {},
-      "onError": [Function],
-      "onWarn": [Function],
-      "textComponent": "span",
-      "timeZone": "Etc/UTC",
-    }
   }
   isSharedChannel={true}
   label="channel_display_name"

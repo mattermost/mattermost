@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
@@ -8,7 +9,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 import type {SidebarChannelLink as SidebarChannelLinkComponent} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
 import {SidebarChannelLink} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
 
-import {defaultIntl, shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
 
 jest.mock('packages/mattermost-redux/src/selectors/entities/shared_channels', () => ({
     getRemoteNamesForChannel: jest.fn(),
@@ -26,7 +27,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             create_at: 0,
             update_at: 0,
             delete_at: 0,
-            team_id: 'team_id',
+            team_id: '',
             type: 'O' as ChannelType,
             name: '',
             header: '',
@@ -64,7 +65,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <SidebarChannelLink {...baseProps}/>,
         );
 
@@ -75,7 +76,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         const userAgentMock = jest.requireMock('utils/user_agent');
         userAgentMock.isDesktopApp.mockImplementation(() => false);
 
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <SidebarChannelLink {...baseProps}/>,
         );
 
@@ -83,7 +84,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     });
 
     test('should match snapshot when tooltip is enabled', () => {
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <SidebarChannelLink {...baseProps}/>,
         );
 
@@ -99,7 +100,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             ariaLabelPrefix: 'aria_label_prefix_',
         };
 
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <SidebarChannelLink {...props}/>,
         );
 
@@ -107,7 +108,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     });
 
     test('should enable tooltip when needed', () => {
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <SidebarChannelLink {...baseProps}/>,
         );
         const instance = wrapper.instance() as SidebarChannelLinkComponent;
@@ -129,11 +130,11 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             isSharedChannel: false,
         };
 
-        shallowWithIntl(
+        shallow(
             <SidebarChannelLink {...props}/>,
         );
 
-        expect(props.fetchChannelRemoteNames).not.toHaveBeenCalled();
+        expect(props.actions.fetchChannelRemoteNames).not.toHaveBeenCalled();
     });
 
     test('should fetch shared channels data when channel is shared', () => {
@@ -143,11 +144,11 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             remoteNames: [],
         };
 
-        shallowWithIntl(
+        shallow(
             <SidebarChannelLink {...props}/>,
         );
 
-        expect(props.fetchChannelRemoteNames).toHaveBeenCalledWith('channel_id');
+        expect(props.actions.fetchChannelRemoteNames).toHaveBeenCalledWith('channel_id');
     });
 
     test('should not fetch shared channels data when data already exists', () => {
@@ -157,12 +158,12 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             remoteNames: ['Remote 1', 'Remote 2'], // Data already exists
         };
 
-        shallowWithIntl(
+        shallow(
             <SidebarChannelLink {...props}/>,
         );
 
         // Should not fetch since data already exists
-        expect(props.fetchChannelRemoteNames).not.toHaveBeenCalled();
+        expect(props.actions.fetchChannelRemoteNames).not.toHaveBeenCalled();
     });
 
     test('should refetch when channel changes', () => {
@@ -172,12 +173,12 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             remoteNames: [],
         };
 
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <SidebarChannelLink {...props}/>,
         );
 
         // Clear the mock count from componentDidMount
-        props.fetchChannelRemoteNames.mockClear();
+        props.actions.fetchChannelRemoteNames.mockClear();
 
         // Change the channel ID to simulate channel change
         wrapper.setProps({
@@ -188,6 +189,6 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             },
         });
 
-        expect(props.fetchChannelRemoteNames).toHaveBeenCalledWith('new_channel_id');
+        expect(props.actions.fetchChannelRemoteNames).toHaveBeenCalledWith('new_channel_id');
     });
 });
