@@ -254,24 +254,24 @@ func SanitizeAndValidatePropertyValue(cpaField *CPAField, rawValue json.RawMessa
 
 		if fieldType == PropertyFieldTypeText {
 			if len(value) > CPAValueTypeTextMaxLength {
-				return nil, fmt.Errorf("value too long")
+				return nil, fmt.Errorf("length of value (%d) is higher than the max allowed (%d)", len(value), CPAValueTypeTextMaxLength)
 			}
 
 			if cpaField.Attrs.ValueType == CustomProfileAttributesValueTypeEmail && !IsValidEmail(value) {
-				return nil, fmt.Errorf("invalid email")
+				return nil, fmt.Errorf("invalid email: %q", value)
 			}
 
 			if cpaField.Attrs.ValueType == CustomProfileAttributesValueTypeURL {
 				_, err := url.Parse(value)
 				if err != nil {
-					return nil, fmt.Errorf("invalid url: %w", err)
+					return nil, fmt.Errorf("invalid url %q: %w", value, err)
 				}
 			}
 		}
 
 		if fieldType == PropertyFieldTypeSelect && value != "" {
 			if _, ok := optionsMap[value]; !ok {
-				return nil, fmt.Errorf("option \"%s\" does not exist", value)
+				return nil, fmt.Errorf("option %q does not exist", value)
 			}
 		}
 
@@ -293,7 +293,7 @@ func SanitizeAndValidatePropertyValue(cpaField *CPAField, rawValue json.RawMessa
 			}
 			if fieldType == PropertyFieldTypeMultiselect {
 				if _, ok := optionsMap[v]; !ok {
-					return nil, fmt.Errorf("option \"%s\" does not exist", v)
+					return nil, fmt.Errorf("option %q does not exist", v)
 				}
 			}
 

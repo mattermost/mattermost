@@ -116,7 +116,9 @@ func (us *UploadSession) IsValid() *AppError {
 	}
 
 	if us.FileOffset < 0 || us.FileOffset > us.FileSize {
-		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.file_offset.app_error", nil, "id="+us.Id, http.StatusBadRequest)
+		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.file_offset.app_error",
+			map[string]any{"FileOffset": us.FileOffset, "FileSize": us.FileSize},
+			"id="+us.Id, http.StatusBadRequest)
 	}
 
 	if us.Path == "" {

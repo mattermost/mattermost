@@ -8674,7 +8674,7 @@
   },
   {
     "id": "model.channel.is_valid.display_name.app_error",
-    "translation": "Invalid display name."
+    "translation": "Invalid display name. Must be {{.MaxRunes}} or fewer characters (current: {{.ActualRunes}})."
   },
   {
     "id": "model.channel.is_valid.header.app_error",
@@ -10154,7 +10154,7 @@
   },
   {
     "id": "model.upload_session.is_valid.file_offset.app_error",
-    "translation": "Invalid value for FileOffset"
+    "translation": "Invalid file offset: {{.FileOffset}} is outside the valid range (0 to {{.FileSize}})"
   },
   {
     "id": "model.upload_session.is_valid.file_size.app_error",

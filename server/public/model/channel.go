@@ -267,8 +267,10 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(o.DisplayName) > ChannelDisplayNameMaxRunes {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.display_name.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	if actualRunes := utf8.RuneCountInString(o.DisplayName); actualRunes > ChannelDisplayNameMaxRunes {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.display_name.app_error",
+			map[string]any{"MaxRunes": ChannelDisplayNameMaxRunes, "ActualRunes": actualRunes},
+			"id="+o.Id, http.StatusBadRequest)
 	}
 
 	if !IsValidChannelIdentifier(o.Name) {
