@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -176,7 +177,7 @@ func (s *SqlPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.Po
 	return acknowledgements, nil
 }
 
-func updatePost(transaction *sqlxTxWrapper, postId string) error {
+func updatePost(transaction *request.SQLxTxWrapper, postId string) error {
 	_, err := transaction.Exec(
 		`UPDATE
 			Posts

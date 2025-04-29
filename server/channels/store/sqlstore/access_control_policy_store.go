@@ -294,7 +294,7 @@ func (s *SqlAccessControlPolicyStore) Delete(rctx request.CTX, id string) error 
 	return nil
 }
 
-func (s *SqlAccessControlPolicyStore) deleteT(_ request.CTX, tx *sqlxTxWrapper, id string) error {
+func (s *SqlAccessControlPolicyStore) deleteT(_ request.CTX, tx *request.SQLxTxWrapper, id string) error {
 	query := s.getQueryBuilder().Delete("AccessControlPolicies").Where(sq.Eq{"ID": id})
 	_, err := tx.ExecBuilder(query)
 	if err != nil {
@@ -361,7 +361,7 @@ func (s *SqlAccessControlPolicyStore) Get(_ request.CTX, id string) (*model.Acce
 	return policy, nil
 }
 
-func (s *SqlAccessControlPolicyStore) getT(_ request.CTX, tx *sqlxTxWrapper, id string) (*model.AccessControlPolicy, error) {
+func (s *SqlAccessControlPolicyStore) getT(_ request.CTX, tx *request.SQLxTxWrapper, id string) (*model.AccessControlPolicy, error) {
 	query := s.getQueryBuilder().
 		Select(accessControlPolicySliceColumns()...).
 		From("AccessControlPolicies").

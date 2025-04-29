@@ -1301,7 +1301,7 @@ func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) (
 // causing unnecessary table locks. **THIS FUNCTION SHOULD NOT BE USED FOR ANY OTHER PURPOSE.** Executing this function
 // *after* the new Schemes functionality has been used on an installation will have unintended consequences.
 func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (_ map[string]string, err error) {
-	var transaction *sqlxTxWrapper
+	var transaction *SQLxTxWrapper
 
 	if transaction, err = s.GetMaster().Beginx(); err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
@@ -1396,7 +1396,7 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() (err error) {
 	lastTeamId := strings.Repeat("0", 26)
 
 	for {
-		var transaction *sqlxTxWrapper
+		var transaction *SQLxTxWrapper
 		var err error
 
 		if transaction, err = s.GetMaster().Beginx(); err != nil {

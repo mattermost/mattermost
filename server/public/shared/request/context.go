@@ -24,6 +24,7 @@ type Context struct {
 	acceptLanguage string
 	logger         mlog.LoggerIFace
 	context        context.Context
+	tx             *SQLxTxWrapper
 }
 
 func NewContext(ctx context.Context, requestId, ipAddress, xForwardedFor, path, userAgent, acceptLanguage string, t i18n.TranslateFunc) *Context {

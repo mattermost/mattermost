@@ -76,7 +76,7 @@ func (s SqlUserAccessTokenStore) Delete(tokenId string) (err error) {
 	return nil
 }
 
-func (s SqlUserAccessTokenStore) deleteSessionsAndTokensById(transaction *sqlxTxWrapper, tokenId string) error {
+func (s SqlUserAccessTokenStore) deleteSessionsAndTokensById(transaction *SQLxTxWrapper, tokenId string) error {
 	query := ""
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = ?"
@@ -91,7 +91,7 @@ func (s SqlUserAccessTokenStore) deleteSessionsAndTokensById(transaction *sqlxTx
 	return s.deleteTokensById(transaction, tokenId)
 }
 
-func (s SqlUserAccessTokenStore) deleteTokensById(transaction *sqlxTxWrapper, tokenId string) error {
+func (s SqlUserAccessTokenStore) deleteTokensById(transaction *SQLxTxWrapper, tokenId string) error {
 	if _, err := transaction.Exec("DELETE FROM UserAccessTokens WHERE Id = ?", tokenId); err != nil {
 		return errors.Wrapf(err, "failed to delete UserAccessToken id=%s", tokenId)
 	}
@@ -116,7 +116,7 @@ func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) (err error) {
 	return nil
 }
 
-func (s SqlUserAccessTokenStore) deleteSessionsandTokensByUser(transaction *sqlxTxWrapper, userId string) error {
+func (s SqlUserAccessTokenStore) deleteSessionsandTokensByUser(transaction *SQLxTxWrapper, userId string) error {
 	query := ""
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.UserId = ?"
@@ -131,7 +131,7 @@ func (s SqlUserAccessTokenStore) deleteSessionsandTokensByUser(transaction *sqlx
 	return s.deleteTokensByUser(transaction, userId)
 }
 
-func (s SqlUserAccessTokenStore) deleteTokensByUser(transaction *sqlxTxWrapper, userId string) error {
+func (s SqlUserAccessTokenStore) deleteTokensByUser(transaction *SQLxTxWrapper, userId string) error {
 	if _, err := transaction.Exec("DELETE FROM UserAccessTokens WHERE UserId = ?", userId); err != nil {
 		return errors.Wrapf(err, "failed to delete UserAccessToken userId=%s", userId)
 	}
@@ -241,7 +241,7 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) 
 	return nil
 }
 
-func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *sqlxTxWrapper, tokenId string) error {
+func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *SQLxTxWrapper, tokenId string) error {
 	query := ""
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = ?"
@@ -256,7 +256,7 @@ func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *sqlx
 	return s.updateTokenDisable(transaction, tokenId)
 }
 
-func (s SqlUserAccessTokenStore) updateTokenDisable(transaction *sqlxTxWrapper, tokenId string) error {
+func (s SqlUserAccessTokenStore) updateTokenDisable(transaction *SQLxTxWrapper, tokenId string) error {
 	if _, err := transaction.Exec("UPDATE UserAccessTokens SET IsActive = FALSE WHERE Id = ?", tokenId); err != nil {
 		return errors.Wrapf(err, "failed to update UserAccessToken with id=%s", tokenId)
 	}

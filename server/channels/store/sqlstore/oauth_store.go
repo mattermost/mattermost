@@ -327,7 +327,7 @@ func (as SqlOAuthStore) PermanentDeleteAuthDataByUser(userId string) error {
 	return nil
 }
 
-func (as SqlOAuthStore) deleteApp(transaction *sqlxTxWrapper, clientId string) error {
+func (as SqlOAuthStore) deleteApp(transaction *SQLxTxWrapper, clientId string) error {
 	if _, err := transaction.Exec("DELETE FROM OAuthApps WHERE Id = ?", clientId); err != nil {
 		return errors.Wrapf(err, "failed to delete OAuthApp with id=%s", clientId)
 	}
@@ -335,7 +335,7 @@ func (as SqlOAuthStore) deleteApp(transaction *sqlxTxWrapper, clientId string) e
 	return as.deleteOAuthAppSessions(transaction, clientId)
 }
 
-func (as SqlOAuthStore) deleteOAuthAppSessions(transaction *sqlxTxWrapper, clientId string) error {
+func (as SqlOAuthStore) deleteOAuthAppSessions(transaction *SQLxTxWrapper, clientId string) error {
 	query := ""
 	if as.DriverName() == model.DatabaseDriverPostgres {
 		query = "DELETE FROM Sessions s USING OAuthAccessData o WHERE o.Token = s.Token AND o.ClientId = ?"
@@ -350,7 +350,7 @@ func (as SqlOAuthStore) deleteOAuthAppSessions(transaction *sqlxTxWrapper, clien
 	return as.deleteOAuthTokens(transaction, clientId)
 }
 
-func (as SqlOAuthStore) deleteOAuthTokens(transaction *sqlxTxWrapper, clientId string) error {
+func (as SqlOAuthStore) deleteOAuthTokens(transaction *SQLxTxWrapper, clientId string) error {
 	if _, err := transaction.Exec("DELETE FROM OAuthAccessData WHERE ClientId = ?", clientId); err != nil {
 		return errors.Wrapf(err, "failed to delete OAuthAccessData with id=%s", clientId)
 	}
@@ -358,7 +358,7 @@ func (as SqlOAuthStore) deleteOAuthTokens(transaction *sqlxTxWrapper, clientId s
 	return as.deleteAppExtras(transaction, clientId)
 }
 
-func (as SqlOAuthStore) deleteAppExtras(transaction *sqlxTxWrapper, clientId string) error {
+func (as SqlOAuthStore) deleteAppExtras(transaction *SQLxTxWrapper, clientId string) error {
 	if _, err := transaction.Exec(
 		`DELETE FROM
 			Preferences

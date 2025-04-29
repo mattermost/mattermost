@@ -535,7 +535,7 @@ func (s *SqlChannelStore) initializeQueries() {
 		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id")
 }
 
-func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channel *model.Channel) error {
+func (s SqlChannelStore) upsertPublicChannelT(transaction *request.SQLxDBWrapper, channel *model.Channel) error {
 	publicChannel := &publicChannel{
 		Id:          channel.Id,
 		DeleteAt:    channel.DeleteAt,
@@ -710,7 +710,7 @@ func (s SqlChannelStore) SaveDirectChannel(rctx request.CTX, directChannel *mode
 	return newChannel, nil
 }
 
-func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
+func (s SqlChannelStore) saveChannelT(transaction *request.SQLxDBWrapper, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
 	if channel.Id != "" && !channel.IsShared() {
 		return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
 	}
@@ -794,7 +794,7 @@ func (s SqlChannelStore) Update(rctx request.CTX, channel *model.Channel) (_ *mo
 	return updatedChannel, nil
 }
 
-func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *model.Channel) (*model.Channel, error) {
+func (s SqlChannelStore) updateChannelT(transaction *request.SQLxDBWrapper, channel *model.Channel) (*model.Channel, error) {
 	channel.PreUpdate()
 
 	if channel.DeleteAt != 0 {
@@ -973,7 +973,7 @@ func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64)
 	return nil
 }
 
-func (s SqlChannelStore) setDeleteAtT(transaction *sqlxTxWrapper, channelId string, deleteAt, updateAt int64) error {
+func (s SqlChannelStore) setDeleteAtT(transaction *request.SQLxDBWrapper, channelId string, deleteAt, updateAt int64) error {
 	_, err := transaction.Exec(`UPDATE Channels
 			SET DeleteAt = ?,
 				UpdateAt = ?
@@ -1014,7 +1014,7 @@ func (s SqlChannelStore) PermanentDeleteByTeam(teamId string) (err error) {
 	return nil
 }
 
-func (s SqlChannelStore) permanentDeleteByTeamtT(transaction *sqlxTxWrapper, teamId string) error {
+func (s SqlChannelStore) permanentDeleteByTeamtT(transaction *request.SQLxDBWrapper, teamId string) error {
 	if _, err := transaction.Exec("DELETE FROM Channels WHERE TeamId = ?", teamId); err != nil {
 		return errors.Wrapf(err, "failed to delete channel by team with teamId=%s", teamId)
 	}
@@ -1051,7 +1051,7 @@ func (s SqlChannelStore) PermanentDelete(rctx request.CTX, channelId string) (er
 	return nil
 }
 
-func (s SqlChannelStore) permanentDeleteT(transaction *sqlxTxWrapper, channelId string) error {
+func (s SqlChannelStore) permanentDeleteT(transaction *request.SQLxDBWrapper, channelId string) error {
 	if _, err := transaction.Exec("DELETE FROM Channels WHERE Id = ?", channelId); err != nil {
 		return errors.Wrapf(err, "failed to delete channel with id=%s", channelId)
 	}
@@ -1819,7 +1819,7 @@ func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (
 		}
 	}
 
-	var transaction *sqlxTxWrapper
+	var transaction *request.SQLxTxWrapper
 
 	if transaction, err = s.GetMaster().Beginx(); err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
@@ -3936,7 +3936,7 @@ func (s SqlChannelStore) GetChannelsByScheme(schemeId string, offset int, limit 
 // causing unnecessary table locks. **THIS FUNCTION SHOULD NOT BE USED FOR ANY OTHER PURPOSE.** Executing this function
 // *after* the new Schemes functionality has been used on an installation will have unintended consequences.
 func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId string) (_ map[string]string, err error) {
-	var transaction *sqlxTxWrapper
+	var transaction *request.SQLxTxWrapper
 
 	if transaction, err = s.GetMaster().Beginx(); err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
@@ -4050,7 +4050,7 @@ func (s SqlChannelStore) ResetAllChannelSchemes() (err error) {
 	return nil
 }
 
-func (s SqlChannelStore) resetAllChannelSchemesT(transaction *sqlxTxWrapper) error {
+func (s SqlChannelStore) resetAllChannelSchemesT(transaction *request.SQLxTxWrapper) error {
 	if _, err := transaction.Exec("UPDATE Channels SET SchemeId=''"); err != nil {
 		return errors.Wrap(err, "failed to update Channels")
 	}
@@ -4064,7 +4064,7 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() (err error) {
 	lastChannelId := strings.Repeat("0", 26)
 
 	for {
-		var transaction *sqlxTxWrapper
+		var transaction *request.SQLxTxWrapper
 
 		if transaction, err = s.GetMaster().Beginx(); err != nil {
 			return errors.Wrap(err, "begin_transaction")

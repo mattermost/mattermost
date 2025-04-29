@@ -53,7 +53,7 @@ func MapStringsToQueryParams(list []string, paramPrefix string) (string, map[str
 }
 
 // finalizeTransactionX ensures a transaction is closed after use, rolling back if not already committed.
-func finalizeTransactionX(transaction *sqlxTxWrapper, perr *error) {
+func finalizeTransactionX(transaction *SQLxTxWrapper, perr *error) {
 	// Rollback returns sql.ErrTxDone if the transaction was already closed.
 	if err := transaction.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
 		*perr = merror.Append(*perr, err)

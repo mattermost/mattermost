@@ -52,7 +52,7 @@ func (s SqlChannelStore) CreateInitialSidebarCategories(c request.CTX, userId st
 	return oc, nil
 }
 
-func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrapper, userId string, excludedTeamIDs []string, opts *store.SidebarCategorySearchOpts) error {
+func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *request.SQLxDBWrapper, userId string, excludedTeamIDs []string, opts *store.SidebarCategorySearchOpts) error {
 	query := s.getQueryBuilder().
 		Select("SidebarCategories.Type, SidebarCategories.TeamId").
 		From("SidebarCategories").
@@ -177,7 +177,7 @@ type userMembership struct {
 	CategoryId string
 }
 
-func (s SqlChannelStore) migrateMembershipToSidebar(transaction *sqlxTxWrapper, runningOrder *int64, sql string, args ...any) ([]userMembership, error) {
+func (s SqlChannelStore) migrateMembershipToSidebar(transaction *request.SQLxDBWrapper, runningOrder *int64, sql string, args ...any) ([]userMembership, error) {
 	memberships := []userMembership{}
 	if err := transaction.Select(&memberships, sql, args...); err != nil {
 		return nil, err
@@ -203,7 +203,7 @@ func (s SqlChannelStore) migrateMembershipToSidebar(transaction *sqlxTxWrapper, 
 	return memberships, nil
 }
 
-func (s SqlChannelStore) migrateFavoritesToSidebarT(transaction *sqlxTxWrapper, userId, teamId, favoritesCategoryId string) error {
+func (s SqlChannelStore) migrateFavoritesToSidebarT(transaction *request.SQLxDBWrapper, userId, teamId, favoritesCategoryId string) error {
 	favoritesQuery, favoritesParams, err := s.getQueryBuilder().
 		Select("Preferences.Name").
 		From("Preferences").
@@ -630,7 +630,7 @@ func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]strin
 	return ids, nil
 }
 
-func (s SqlChannelStore) updateSidebarCategoryOrderT(transaction *sqlxTxWrapper, categoryOrder []string) error {
+func (s SqlChannelStore) updateSidebarCategoryOrderT(transaction *request.SQLxDBWrapper, categoryOrder []string) error {
 	runningOrder := 0
 	for _, categoryId := range categoryOrder {
 		sql, args, err := s.getQueryBuilder().
@@ -897,7 +897,7 @@ func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences model.Pr
 	return nil
 }
 
-func (s SqlChannelStore) removeSidebarEntriesForPreferenceT(transaction *sqlxTxWrapper, preference *model.Preference) error {
+func (s SqlChannelStore) removeSidebarEntriesForPreferenceT(transaction *request.SQLxDBWrapper, preference *model.Preference) error {
 	if preference.Category != model.PreferenceCategoryFavoriteChannel {
 		return nil
 	}
@@ -936,7 +936,7 @@ func (s SqlChannelStore) removeSidebarEntriesForPreferenceT(transaction *sqlxTxW
 	return nil
 }
 
-func (s SqlChannelStore) addChannelToFavoritesCategoryT(transaction *sqlxTxWrapper, preference *model.Preference) error {
+func (s SqlChannelStore) addChannelToFavoritesCategoryT(transaction *request.SQLxDBWrapper, preference *model.Preference) error {
 	if preference.Category != model.PreferenceCategoryFavoriteChannel {
 		return nil
 	}

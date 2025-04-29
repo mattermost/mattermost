@@ -34,7 +34,7 @@ func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsI
 
 // executePossiblyEmptyQuery only executes the query if it is non-empty. This helps avoid
 // having to check for MySQL, which, unlike Postgres, does not allow empty queries.
-func executePossiblyEmptyQuery(txn *sqlxTxWrapper, query string, args ...any) (sql.Result, error) {
+func executePossiblyEmptyQuery(txn *SQLxTxWrapper, query string, args ...any) (sql.Result, error) {
 	if query == "" {
 		return nil, nil
 	}
@@ -885,7 +885,7 @@ func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string,
 	return idsForDeletion, nil
 }
 
-func insertRetentionIdsForDeletion(txn *sqlxTxWrapper, row *model.RetentionIdsForDeletion, s *SqlStore) error {
+func insertRetentionIdsForDeletion(txn *SQLxTxWrapper, row *model.RetentionIdsForDeletion, s *SqlStore) error {
 	row.PreSave()
 	insertBuilder := s.getQueryBuilder().
 		Insert("RetentionIdsForDeletion").
@@ -1160,7 +1160,7 @@ func getDeleteQueriesForMySQL(r RetentionPolicyBatchDeletionInfo, query string) 
 	return fmt.Sprintf("DELETE %s FROM %s INNER JOIN (%s) AS A ON %s", r.Table, r.Table, query, joinClause)
 }
 
-func deleteFromRetentionIdsTx(txn *sqlxTxWrapper, id string) error {
+func deleteFromRetentionIdsTx(txn *SQLxTxWrapper, id string) error {
 	_, err := txn.Exec("DELETE FROM RetentionIdsForDeletion WHERE Id = ?", id)
 	if err != nil {
 		return errors.Wrap(err, "Failed to delete from RetentionIdsForDeletion")

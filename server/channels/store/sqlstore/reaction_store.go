@@ -365,7 +365,7 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 	return rowsAffected, nil
 }
 
-func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {
+func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *SQLxTxWrapper, reaction *model.Reaction) error {
 	reaction.DeleteAt = 0
 
 	if s.DriverName() == model.DatabaseDriverMysql {
@@ -394,7 +394,7 @@ func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper,
 	return updatePostForReactionsOnInsert(transaction, reaction.PostId)
 }
 
-func deleteReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {
+func deleteReactionAndUpdatePost(transaction *SQLxTxWrapper, reaction *model.Reaction) error {
 	if _, err := transaction.Exec(
 		`UPDATE
 			Reactions
@@ -420,13 +420,13 @@ const (
 			Id = ?`
 )
 
-func updatePostForReactionsOnDelete(transaction *sqlxTxWrapper, postId string) error {
+func updatePostForReactionsOnDelete(transaction *SQLxTxWrapper, postId string) error {
 	updateAt := model.GetMillis()
 	_, err := transaction.Exec(UpdatePostHasReactionsOnDeleteQuery, updateAt, postId, postId)
 	return err
 }
 
-func updatePostForReactionsOnInsert(transaction *sqlxTxWrapper, postId string) error {
+func updatePostForReactionsOnInsert(transaction *SQLxTxWrapper, postId string) error {
 	_, err := transaction.Exec(
 		`UPDATE
 			Posts

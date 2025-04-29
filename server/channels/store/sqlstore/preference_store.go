@@ -63,7 +63,7 @@ func (s SqlPreferenceStore) Save(preferences model.Preferences) (err error) {
 	return nil
 }
 
-func (s SqlPreferenceStore) save(transaction *sqlxTxWrapper, preference *model.Preference) error {
+func (s SqlPreferenceStore) save(transaction *SQLxTxWrapper, preference *model.Preference) error {
 	preference.PreUpdate()
 
 	if err := preference.IsValid(); err != nil {
@@ -94,7 +94,7 @@ func (s SqlPreferenceStore) save(transaction *sqlxTxWrapper, preference *model.P
 	return nil
 }
 
-func (s SqlPreferenceStore) saveTx(transaction *sqlxTxWrapper, preference *model.Preference) error {
+func (s SqlPreferenceStore) saveTx(transaction *SQLxTxWrapper, preference *model.Preference) error {
 	preference.PreUpdate()
 
 	if err := preference.IsValid(); err != nil {

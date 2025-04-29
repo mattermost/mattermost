@@ -127,3 +127,8 @@ func (a *App) PublishScheduledPostEvent(rctx request.CTX, eventType model.Websoc
 	message.Add("scheduledPost", string(scheduledPostJSON))
 	a.Publish(message)
 }
+
+func (a *App) SendScheduledPost() {
+	a.CreatePost()
+	a.DeleteScheduledPost()
+}

@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	dbsql "database/sql"
 	"fmt"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"path"
 	"strconv"
 	"strings"
@@ -127,11 +128,11 @@ type SqlStore struct {
 	rrCounter int64
 	srCounter int64
 
-	masterX *sqlxDBWrapper
+	masterX *request.SQLxDBWrapper
 
-	ReplicaXs []*atomic.Pointer[sqlxDBWrapper]
+	ReplicaXs []*atomic.Pointer[request.SQLxDBWrapper]
 
-	searchReplicaXs []*atomic.Pointer[sqlxDBWrapper]
+	searchReplicaXs []*atomic.Pointer[request.SQLxDBWrapper]
 
 	replicaLagHandles []*dbsql.DB
 	stores            SqlStoreStores
@@ -302,7 +303,7 @@ func (ss *SqlStore) initConnection() error {
 	if err != nil {
 		return err
 	}
-	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
+	ss.masterX = request.NewSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace)
 	if ss.DriverName() == model.DatabaseDriverMysql {
@@ -313,13 +314,13 @@ func (ss *SqlStore) initConnection() error {
 	}
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
-		ss.ReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceReplicas))
+		ss.ReplicaXs = make([]*atomic.Pointer[request.SQLxDBWrapper], len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
-			ss.ReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
+			ss.ReplicaXs[i] = &atomic.Pointer[request.SQLxDBWrapper]{}
 			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("replica-%v", i), replica, ss.settings, DBReplicaPingAttempts)
 			if err != nil {
 				// Initializing to be offline
-				ss.ReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
+				ss.ReplicaXs[i].Store(&request.SQLxDBWrapper{isOnline: &atomic.Bool{}})
 				mlog.Warn("Failed to setup connection. Skipping..", mlog.String("db", fmt.Sprintf("replica-%v", i)), mlog.Err(err))
 				continue
 			}
@@ -328,13 +329,13 @@ func (ss *SqlStore) initConnection() error {
 	}
 
 	if len(ss.settings.DataSourceSearchReplicas) > 0 {
-		ss.searchReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceSearchReplicas))
+		ss.searchReplicaXs = make([]*atomic.Pointer[request.SQLxDBWrapper], len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
-			ss.searchReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
+			ss.searchReplicaXs[i] = &atomic.Pointer[request.SQLxDBWrapper]{}
 			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("search-replica-%v", i), replica, ss.settings, DBReplicaPingAttempts)
 			if err != nil {
 				// Initializing to be offline
-				ss.searchReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
+				ss.searchReplicaXs[i].Store(&request.SQLxDBWrapper{isOnline: &atomic.Bool{}})
 				mlog.Warn("Failed to setup connection. Skipping..", mlog.String("db", fmt.Sprintf("search-replica-%v", i)), mlog.Err(err))
 				continue
 			}
@@ -435,12 +436,12 @@ func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 	return version, nil
 }
 
-func (ss *SqlStore) GetMaster() *sqlxDBWrapper {
+func (ss *SqlStore) GetMaster() *request.SQLxDBWrapper {
 	return ss.masterX
 }
 
 func (ss *SqlStore) SetMasterX(db *sql.DB) {
-	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(db, ss.DriverName()),
+	ss.masterX = request.NewSqlxDBWrapper(sqlx.NewDb(db, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace)
 	if ss.DriverName() == model.DatabaseDriverMysql {
@@ -452,7 +453,7 @@ func (ss *SqlStore) GetInternalMasterDB() *sql.DB {
 	return ss.GetMaster().DB.DB
 }
 
-func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
+func (ss *SqlStore) GetSearchReplicaX() *request.SQLxDBWrapper {
 	if !ss.hasLicense() {
 		return ss.GetMaster()
 	}
@@ -472,7 +473,7 @@ func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
 	return ss.GetReplica()
 }
 
-func (ss *SqlStore) GetReplica() *sqlxDBWrapper {
+func (ss *SqlStore) GetReplica() *request.SQLxDBWrapper {
 	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
 		return ss.GetMaster()
 	}
@@ -499,7 +500,7 @@ func (ss *SqlStore) monitorReplicas() {
 		case <-ss.quitMonitor:
 			return
 		case <-t.C:
-			setupReplica := func(r *atomic.Pointer[sqlxDBWrapper], dsn, name string) {
+			setupReplica := func(r *atomic.Pointer[request.SQLxDBWrapper], dsn, name string) {
 				if r.Load().Online() {
 					return
 				}
@@ -525,8 +526,8 @@ func (ss *SqlStore) monitorReplicas() {
 	}
 }
 
-func (ss *SqlStore) setDB(replica *atomic.Pointer[sqlxDBWrapper], handle *dbsql.DB, name string) {
-	replica.Store(newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
+func (ss *SqlStore) setDB(replica *atomic.Pointer[request.SQLxDBWrapper], handle *dbsql.DB, name string) {
+	replica.Store(request.NewSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace))
 	if ss.DriverName() == model.DatabaseDriverMysql {
@@ -828,8 +829,8 @@ func IsUniqueConstraintError(err error, indexName []string) bool {
 	return unique && field
 }
 
-func (ss *SqlStore) GetAllConns() []*sqlxDBWrapper {
-	all := make([]*sqlxDBWrapper, 0, len(ss.ReplicaXs)+1)
+func (ss *SqlStore) GetAllConns() []*request.SQLxDBWrapper {
+	all := make([]*request.SQLxDBWrapper, 0, len(ss.ReplicaXs)+1)
 	for i := range ss.ReplicaXs {
 		if !ss.ReplicaXs[i].Load().Online() {
 			continue

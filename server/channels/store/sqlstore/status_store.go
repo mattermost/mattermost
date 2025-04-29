@@ -88,7 +88,7 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 }
 
 // MySQL doesn't have support for RETURNING clause, so we use a transaction to get the updated rows.
-func (s SqlStatusStore) updateExpiredStatuses(t *sqlxTxWrapper) ([]*model.Status, error) {
+func (s SqlStatusStore) updateExpiredStatuses(t *SQLxTxWrapper) ([]*model.Status, error) {
 	statuses := []*model.Status{}
 	currUnixTime := time.Now().UTC().Unix()
 	selectQuery := s.statusSelectQuery.Where(

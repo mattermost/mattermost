@@ -3026,7 +3026,7 @@ func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {
 }
 
 // Deletes a thread and a thread membership if the postId is a root post
-func (s *SqlPostStore) permanentDeleteThreads(transaction *sqlxTxWrapper, postIds []string) error {
+func (s *SqlPostStore) permanentDeleteThreads(transaction *SQLxTxWrapper, postIds []string) error {
 	query := s.getQueryBuilder().
 		Delete("Threads").
 		Where(
@@ -3047,7 +3047,7 @@ func (s *SqlPostStore) permanentDeleteThreads(transaction *sqlxTxWrapper, postId
 	return nil
 }
 
-func (s *SqlPostStore) permanentDeleteReactions(transaction *sqlxTxWrapper, postIds []string) error {
+func (s *SqlPostStore) permanentDeleteReactions(transaction *SQLxTxWrapper, postIds []string) error {
 	query := s.getQueryBuilder().
 		Delete("Reactions").
 		Where(
@@ -3061,7 +3061,7 @@ func (s *SqlPostStore) permanentDeleteReactions(transaction *sqlxTxWrapper, post
 }
 
 // deleteThread marks a thread as deleted at the given time.
-func (s *SqlPostStore) deleteThread(transaction *sqlxTxWrapper, postId string, deleteAtTime int64) error {
+func (s *SqlPostStore) deleteThread(transaction *SQLxTxWrapper, postId string, deleteAtTime int64) error {
 	queryString, args, err := s.getQueryBuilder().
 		Update("Threads").
 		Set("ThreadDeleteAt", deleteAtTime).
@@ -3079,7 +3079,7 @@ func (s *SqlPostStore) deleteThread(transaction *sqlxTxWrapper, postId string, d
 	return s.deleteThreadFiles(transaction, postId, deleteAtTime)
 }
 
-func (s *SqlPostStore) deleteThreadFiles(transaction *sqlxTxWrapper, postID string, deleteAtTime int64) error {
+func (s *SqlPostStore) deleteThreadFiles(transaction *SQLxTxWrapper, postID string, deleteAtTime int64) error {
 	var query sq.UpdateBuilder
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		query = s.getQueryBuilder().Update("FileInfo").
@@ -3105,7 +3105,7 @@ func (s *SqlPostStore) deleteThreadFiles(transaction *sqlxTxWrapper, postID stri
 
 // updateThreadAfterReplyDeletion decrements the thread reply count and adjusts the participants
 // list as necessary.
-func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper, rootId string, userId string) error {
+func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *SQLxTxWrapper, rootId string, userId string) error {
 	if rootId != "" {
 		queryString, args, err := s.getQueryBuilder().
 			Select("COUNT(Posts.Id)").
@@ -3178,7 +3178,7 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 	return nil
 }
 
-func (s *SqlPostStore) savePostsPriority(transaction *sqlxTxWrapper, posts []*model.Post) error {
+func (s *SqlPostStore) savePostsPriority(transaction *SQLxTxWrapper, posts []*model.Post) error {
 	for _, post := range posts {
 		if post.GetPriority() != nil {
 			postPriority := &model.PostPriority{
@@ -3196,7 +3196,7 @@ func (s *SqlPostStore) savePostsPriority(transaction *sqlxTxWrapper, posts []*mo
 	return nil
 }
 
-func (s *SqlPostStore) savePostsPersistentNotifications(transaction *sqlxTxWrapper, posts []*model.Post) error {
+func (s *SqlPostStore) savePostsPersistentNotifications(transaction *SQLxTxWrapper, posts []*model.Post) error {
 	for _, post := range posts {
 		if priority := post.GetPriority(); priority != nil && priority.PersistentNotifications != nil && *priority.PersistentNotifications {
 			if _, err := transaction.NamedExec(`INSERT INTO PersistentNotifications (PostId, CreateAt, LastSentAt, DeleteAt, SentCount) VALUES (:PostId, :CreateAt, :LastSentAt, :DeleteAt, :SentCount)`, &model.PostPersistentNotifications{
@@ -3210,7 +3210,7 @@ func (s *SqlPostStore) savePostsPersistentNotifications(transaction *sqlxTxWrapp
 	return nil
 }
 
-func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts []*model.Post) error {
+func (s *SqlPostStore) updateThreadsFromPosts(transaction *SQLxTxWrapper, posts []*model.Post) error {
 	postsByRoot := map[string][]*model.Post{}
 	var rootIds []string
 	for _, post := range posts {

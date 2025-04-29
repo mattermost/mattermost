@@ -896,7 +896,7 @@ func (s *SqlThreadStore) MaintainMultipleFromImport(memberships []*model.ThreadM
 	return memberships, nil
 }
 
-func (s *SqlThreadStore) maintainMembershipTx(trx *sqlxTxWrapper, userID, postID string, opts store.ThreadMembershipOpts) (_ *model.ThreadMembership, err error) {
+func (s *SqlThreadStore) maintainMembershipTx(trx *SQLxTxWrapper, userID, postID string, opts store.ThreadMembershipOpts) (_ *model.ThreadMembership, err error) {
 	membership, err := s.getMembershipForUser(trx, userID, postID)
 	now := utils.MillisFromTime(time.Now())
 	// if membership exists, update it if:
@@ -1110,7 +1110,7 @@ func (s *SqlThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMemb
 	return memberships, nil
 }
 
-func (s *SqlThreadStore) updateThreadParticipantsForUserTx(trx *sqlxTxWrapper, postID, userID string) error {
+func (s *SqlThreadStore) updateThreadParticipantsForUserTx(trx *SQLxTxWrapper, postID, userID string) error {
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		userIdParam, err := jsonArray([]string{userID}).Value()
 		if err != nil {

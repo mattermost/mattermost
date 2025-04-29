@@ -1803,7 +1803,7 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() (err error) {
 	lastUserId := strings.Repeat("0", 26)
 
 	for {
-		var transaction *sqlxTxWrapper
+		var transaction *SQLxTxWrapper
 		var err error
 
 		if transaction, err = us.GetMaster().Beginx(); err != nil {

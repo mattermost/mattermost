@@ -142,7 +142,7 @@ func (s *SqlRoleStore) Save(role *model.Role) (_ *model.Role, err error) {
 	return dbRole.ToModel(), nil
 }
 
-func (s *SqlRoleStore) createRole(role *model.Role, transaction *sqlxTxWrapper) (*model.Role, error) {
+func (s *SqlRoleStore) createRole(role *model.Role, transaction *SQLxTxWrapper) (*model.Role, error) {
 	// Check the role is valid before proceeding.
 	if !role.IsValidWithoutId() {
 		return nil, store.NewErrInvalidInput("Role", "<any>", fmt.Sprintf("%v", role))

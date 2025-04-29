@@ -99,7 +99,7 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error)
 	return scheme, nil
 }
 
-func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxWrapper) (*model.Scheme, error) {
+func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *SQLxTxWrapper) (*model.Scheme, error) {
 	// Fetch the default system scheme roles to populate default permissions.
 	defaultRoleNames := []string{
 		model.TeamAdminRoleId,
