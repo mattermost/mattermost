@@ -94,6 +94,7 @@ type Channel struct {
 	PolicyID          *string            `json:"policy_id"`
 	LastRootPostAt    int64              `json:"last_root_post_at"`
 	BannerInfo        *ChannelBannerInfo `json:"banner_info"`
+	PolicyEnforced    bool               `json:"policy_enforced"`
 }
 
 func (o *Channel) Auditable() map[string]any {
@@ -114,6 +115,7 @@ func (o *Channel) Auditable() map[string]any {
 		"total_msg_count_root": o.TotalMsgCountRoot,
 		"type":                 o.Type,
 		"update_at":            o.UpdateAt,
+		"policy_enforced":      o.PolicyEnforced,
 	}
 }
 
