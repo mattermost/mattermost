@@ -360,7 +360,7 @@ func TestDoCommandRequest(t *testing.T) {
 	t.Run("with a valid text response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
-			require.Nil(t, err)
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -376,7 +376,7 @@ func TestDoCommandRequest(t *testing.T) {
 			w.Header().Add("Content-Type", "application/json")
 
 			_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
-			require.Nil(t, err)
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -434,7 +434,7 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			<-done
 			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
-			require.Nil(t, err)
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -453,7 +453,7 @@ func TestDoCommandRequest(t *testing.T) {
 			time.Sleep(1 * time.Second)
 
 			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
-			require.Nil(t, err)
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -461,9 +461,8 @@ func TestDoCommandRequest(t *testing.T) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(2))
 		})
 
-		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
-		require.Nil(t, err)
-
+		_, resp, appErr := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
+		require.Nil(t, appErr)
 		require.NotNil(t, resp)
 		assert.Equal(t, "Hello, World!", resp.Text)
 	})
@@ -481,7 +480,7 @@ func TestDoCommandRequest(t *testing.T) {
 
 		serverCommand := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, err := io.Copy(w, strings.NewReader(r.Header.Get("Authorization")))
-			require.Nil(t, err)
+			require.NoError(t, err)
 		}))
 		defer serverCommand.Close()
 
