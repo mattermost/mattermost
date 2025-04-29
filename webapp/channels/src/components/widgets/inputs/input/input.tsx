@@ -243,16 +243,17 @@ const Input = React.forwardRef((
 
     return (
         <div className={classNames('Input_container', containerClassName, {disabled})}>
-            <fieldset
+            <div
                 className={classNames('Input_fieldset', className, {
                     Input_fieldset___error: hasError || limitExceeded > 0 || isMinLengthError || customInputLabel?.type === 'error',
                     Input_fieldset___legend: showLegend,
                 })}
+                data-testid='input-fieldset'
             >
                 {useLegend && (
-                    <legend className={classNames('Input_legend', {Input_legend___focus: showLegend})}>
+                    <label className={classNames('Input_legend', {Input_legend___focus: showLegend})}>
                         {showLegend ? formatAsString(formatMessage, label || placeholder) : null}
-                    </legend>
+                    </label>
                 )}
                 <div className={classNames('Input_wrapper', wrapperClassName)}>
                     {inputPrefix}
@@ -272,7 +273,7 @@ const Input = React.forwardRef((
                     {clearButton}
                 </div>
                 {addon}
-            </fieldset>
+            </div>
             {/* Display custom or derived error messages */}
             {(customInputLabel || derivedErrorMessage) && (
                 <div
