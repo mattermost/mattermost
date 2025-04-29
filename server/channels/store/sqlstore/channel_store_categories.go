@@ -418,25 +418,6 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 	return result, nil
 }
 
-func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.SidebarCategoryWithChannels) (_ *model.SidebarCategoryWithChannels, err error) {
-	transaction, err := s.GetMaster().Beginx()
-	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransactionX(transaction, &err)
-
-	result, err := s.completePopulatingCategoryChannelsT(transaction, category)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
-	}
-
-	return result, nil
-}
-
 func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
 	if category.Type == model.SidebarCategoryCustom || category.Type == model.SidebarCategoryFavorites {
 		return category, nil
@@ -493,6 +474,10 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 }
 
 func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, error) {
+	return s.getSidebarCategoryT(s.GetReplica(), categoryId)
+}
+
+func (s SqlChannelStore) getSidebarCategoryT(db dbSelecter, categoryId string) (*model.SidebarCategoryWithChannels, error) {
 	query := s.sidebarCategorySelectQuery.
 		Columns("SidebarChannels.ChannelId").
 		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=SidebarCategories.Id").
@@ -505,7 +490,7 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 	}
 
 	categories := []*sidebarCategoryForJoin{}
-	if err = s.GetReplica().Select(&categories, sql, args...); err != nil {
+	if err = db.Select(&categories, sql, args...); err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("failed to get category with id=%s", categoryId))
 	}
 
@@ -522,7 +507,7 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 			result.Channels = append(result.Channels, *category.ChannelId)
 		}
 	}
-	return s.completePopulatingCategoryChannels(result)
+	return s.completePopulatingCategoryChannelsT(db, result)
 }
 
 func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
@@ -608,6 +593,10 @@ func (s SqlChannelStore) GetSidebarCategories(userID string, opts *store.Sidebar
 }
 
 func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]string, error) {
+	return s.getSidebarCategoryOrderT(s.GetReplica(), userId, teamId)
+}
+
+func (s SqlChannelStore) getSidebarCategoryOrderT(db dbSelecter, userId, teamId string) ([]string, error) {
 	ids := []string{}
 
 	sql, args, err := s.getQueryBuilder().
@@ -623,7 +612,7 @@ func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]strin
 		return nil, errors.Wrap(err, "sidebar_category_tosql")
 	}
 
-	if err := s.GetReplica().Select(&ids, sql, args...); err != nil {
+	if err := db.Select(&ids, sql, args...); err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("failed to get category order for userId=%s, teamId=%s", userId, teamId))
 	}
 
@@ -658,7 +647,7 @@ func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categ
 	defer finalizeTransactionX(transaction, &err)
 
 	// Ensure no invalid categories are included and that no categories are left out
-	existingOrder, err := s.GetSidebarCategoryOrder(userId, teamId)
+	existingOrder, err := s.getSidebarCategoryOrderT(transaction, userId, teamId)
 	if err != nil {
 		return err
 	}
@@ -702,7 +691,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 	updatedCategories := []*model.SidebarCategoryWithChannels{}
 	originalCategories := []*model.SidebarCategoryWithChannels{}
 	for _, category := range categories {
-		srcCategory, err2 := s.GetSidebarCategory(category.Id)
+		srcCategory, err2 := s.getSidebarCategoryT(transaction, category.Id)
 		if err2 != nil {
 			return nil, nil, errors.Wrap(err2, "failed to find SidebarCategories")
 		}
