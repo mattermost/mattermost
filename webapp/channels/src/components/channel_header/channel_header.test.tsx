@@ -25,6 +25,7 @@ describe('components/ChannelHeader', () => {
             getCustomEmojisInText: jest.fn(),
             updateChannelNotifyProps: jest.fn(),
             showChannelMembers: jest.fn(),
+            fetchChannelRemoteNames: jest.fn(),
         },
         teamId: 'team_id',
         channel: TestHelper.getChannelMock({}),
@@ -49,6 +50,7 @@ describe('components/ChannelHeader', () => {
             'hour',
         ],
         hideGuestTags: false,
+        remoteNames: [],
         intl: {
             formatMessage: jest.fn(({id, defaultMessage}) => defaultMessage || id),
         } as MockIntl,

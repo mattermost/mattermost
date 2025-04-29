@@ -59,6 +59,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             openLhs: jest.fn(),
             unsetEditingPost: jest.fn(),
             closeRightHandSide: jest.fn(),
+            fetchChannelRemoteNames: jest.fn(),
         },
     };
 

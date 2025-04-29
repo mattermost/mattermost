@@ -37,7 +37,6 @@ const SidebarGroupChannel = ({
     redirectChannel,
     membersCount,
 }: Props) => {
-    const intl = useIntl();
     const handleLeaveChannel = useCallback((callback: () => void) => {
         const id = channel.id;
         const category = Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW;
@@ -64,7 +63,6 @@ const SidebarGroupChannel = ({
             label={channel.display_name}
             channelLeaveHandler={handleLeaveChannel}
             icon={getIcon()}
-            intl={intl}
         />
     );
 };

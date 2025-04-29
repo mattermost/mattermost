@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import type {ReactNode} from 'react';
-import React, {memo, useEffect} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import React, {memo} from 'react';
+import {useSelector} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -15,8 +15,6 @@ import SharedChannelIndicator from 'components/shared_channel_indicator';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import BotTag from 'components/widgets/tag/bot_tag';
 
-import {fetchChannelRemoteNames} from 'packages/mattermost-redux/src/actions/shared_channels';
-import {getRemoteNamesForChannel} from 'packages/mattermost-redux/src/selectors/entities/shared_channels';
 import {Constants} from 'utils/constants';
 
 import ChannelHeaderTitleDirect from './channel_header_title_direct';
@@ -28,21 +26,15 @@ import ChannelHeaderMenu from '../channel_header_menu/channel_header_menu';
 type Props = {
     dmUser?: UserProfile;
     gmMembers?: UserProfile[];
+    remoteNames?: string[];
 }
 
 const ChannelHeaderTitle = ({
     dmUser,
     gmMembers,
+    remoteNames,
 }: Props) => {
-    const dispatch = useDispatch();
     const channel = useSelector(getCurrentChannel);
-    const remoteNames = useSelector((state: any) => getRemoteNamesForChannel(state, channel?.id || ''));
-
-    useEffect(() => {
-        if (channel?.shared) {
-            dispatch(fetchChannelRemoteNames(channel.id));
-        }
-    }, [dispatch, channel?.id, channel?.shared]);
 
     if (!channel) {
         return null;

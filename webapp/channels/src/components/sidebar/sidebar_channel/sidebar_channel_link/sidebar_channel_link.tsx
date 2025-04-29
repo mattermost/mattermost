@@ -4,11 +4,9 @@
 import classNames from 'classnames';
 import React from 'react';
 import {type WrappedComponentProps, injectIntl} from 'react-intl';
-import {connect} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
-import type {GlobalState} from '@mattermost/types/store';
 
 import {mark, trackEvent} from 'actions/telemetry_actions';
 
@@ -17,8 +15,6 @@ import SharedChannelIndicator from 'components/shared_channel_indicator';
 import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
 import WithTooltip from 'components/with_tooltip';
 
-import {fetchChannelRemoteNames} from 'packages/mattermost-redux/src/actions/shared_channels';
-import {getRemoteNamesForChannel} from 'packages/mattermost-redux/src/selectors/entities/shared_channels';
 import Pluggable from 'plugins/pluggable';
 import Constants, {RHSStates} from 'utils/constants';
 import {wrapEmojis} from 'utils/emoji_utils';
@@ -67,6 +63,7 @@ type OwnProps = WrappedComponentProps & {
     rhsState?: RhsState;
     rhsOpen?: boolean;
     isSharedChannel?: boolean;
+    remoteNames: string[];
 
     actions: {
         markMostRecentPostInChannelAsUnread: (channelId: string) => void;
@@ -75,28 +72,19 @@ type OwnProps = WrappedComponentProps & {
         multiSelectChannelAdd: (channelId: string) => void;
         unsetEditingPost: () => void;
         closeRightHandSide: () => void;
+        fetchChannelRemoteNames: (channelId: string) => void;
     };
 };
-
-type StateProps = {
-    remoteNames: string[];
-};
-
-type DispatchProps = {
-    fetchChannelRemoteNames: (channelId: string) => void;
-};
-
-type Props = OwnProps & StateProps & DispatchProps;
 
 type State = {
     isMenuOpen: boolean;
     showTooltip: boolean;
 };
 
-export class SidebarChannelLink extends React.PureComponent<OwnProps & StateProps & DispatchProps, State> {
+export class SidebarChannelLink extends React.PureComponent<OwnProps, State> {
     labelRef: React.RefObject<HTMLDivElement>;
 
-    constructor(props: Props) {
+    constructor(props: OwnProps) {
         super(props);
 
         this.labelRef = React.createRef();
@@ -111,11 +99,11 @@ export class SidebarChannelLink extends React.PureComponent<OwnProps & StateProp
         this.enableToolTipIfNeeded();
 
         if (this.props.isSharedChannel && this.props.channel?.id && this.props.remoteNames.length === 0) {
-            this.props.fetchChannelRemoteNames(this.props.channel.id);
+            this.props.actions.fetchChannelRemoteNames(this.props.channel.id);
         }
     }
 
-    componentDidUpdate(prevProps: Props): void {
+    componentDidUpdate(prevProps: OwnProps): void {
         if (prevProps.label !== this.props.label) {
             this.enableToolTipIfNeeded();
         }
@@ -124,7 +112,7 @@ export class SidebarChannelLink extends React.PureComponent<OwnProps & StateProp
             (prevProps.channel?.id !== this.props.channel?.id || prevProps.channel?.team_id !== this.props.channel?.team_id) &&
             this.props.remoteNames.length === 0 &&
             this.props.channel?.id) {
-            this.props.fetchChannelRemoteNames(this.props.channel.id);
+            this.props.actions.fetchChannelRemoteNames(this.props.channel.id);
         }
     }
 
@@ -323,18 +311,4 @@ export class SidebarChannelLink extends React.PureComponent<OwnProps & StateProp
     }
 }
 
-const mapStateToProps = (state: GlobalState, ownProps: OwnProps) => {
-    return {
-        remoteNames: getRemoteNamesForChannel(state, ownProps.channel?.id || ''),
-    };
-};
-
-const mapDispatchToProps = (dispatch: any) => {
-    return {
-        fetchChannelRemoteNames: (channelId: string) => {
-            dispatch(fetchChannelRemoteNames(channelId));
-        },
-    };
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(injectIntl(SidebarChannelLink));
+export default injectIntl(SidebarChannelLink);

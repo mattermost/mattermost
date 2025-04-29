@@ -40,6 +40,11 @@ class ChannelHeader extends React.PureComponent<Props> {
 
     componentDidMount() {
         this.props.actions.getCustomEmojisInText(this.props.channel ? this.props.channel.header : '');
+
+        // Initial fetch of remote names if the channel is shared
+        if (this.props.channel?.shared) {
+            this.props.actions.fetchChannelRemoteNames(this.props.channel.id);
+        }
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -47,6 +52,13 @@ class ChannelHeader extends React.PureComponent<Props> {
         const prevHeader = prevProps.channel ? prevProps.channel.header : '';
         if (header !== prevHeader) {
             this.props.actions.getCustomEmojisInText(header);
+        }
+
+        // Fetch remote names when channel changes or when a channel becomes shared
+        if (this.props.channel?.shared &&
+            (this.props.channel.id !== prevProps.channel?.id ||
+            this.props.channel.shared !== prevProps.channel?.shared)) {
+            this.props.actions.fetchChannelRemoteNames(this.props.channel.id);
         }
     }
 
@@ -337,6 +349,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                 <ChannelHeaderTitle
                                     dmUser={dmUser}
                                     gmMembers={gmMembers}
+                                    remoteNames={this.props.remoteNames}
                                 />
                                 <div
                                     className='channel-header__icons'

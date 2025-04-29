@@ -11,6 +11,7 @@ import {
     updateChannelNotifyProps,
 } from 'mattermost-redux/actions/channels';
 import {getCustomEmojisInText} from 'mattermost-redux/actions/emojis';
+import {fetchChannelRemoteNames} from 'mattermost-redux/actions/shared_channels';
 import {General} from 'mattermost-redux/constants';
 import {
     getCurrentChannel,
@@ -19,6 +20,7 @@ import {
     getCurrentChannelStats,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {
     displayLastActiveLabel,
@@ -59,6 +61,7 @@ function makeMapStateToProps() {
         let gmMembers;
         let customStatus;
         let lastActivityTimestamp;
+        let remoteNames: string[] = [];
 
         if (channel && channel.type === General.DM_CHANNEL) {
             const dmUserId = getUserIdFromChannelName(user.id, channel.name);
@@ -68,6 +71,11 @@ function makeMapStateToProps() {
         } else if (channel && channel.type === General.GM_CHANNEL) {
             gmMembers = doGetProfilesInChannel(state, channel.id);
         }
+
+        if (channel?.shared) {
+            remoteNames = getRemoteNamesForChannel(state, channel.id);
+        }
+
         const stats = getCurrentChannelStats(state);
 
         let isLastActiveEnabled = false;
@@ -84,6 +92,7 @@ function makeMapStateToProps() {
             currentUser: user,
             dmUser,
             gmMembers,
+            remoteNames,
             rhsState: getRhsState(state),
             isChannelMuted: isCurrentChannelMuted(state),
             hasGuests: stats ? stats.guest_count > 0 : false,
@@ -108,6 +117,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         getCustomEmojisInText,
         updateChannelNotifyProps,
         showChannelMembers,
+        fetchChannelRemoteNames,
     }, dispatch),
 });
 
