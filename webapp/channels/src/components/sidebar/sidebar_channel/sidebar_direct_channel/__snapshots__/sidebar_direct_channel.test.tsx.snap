@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot 1`] = `
-<Connect(injectIntl(SidebarChannelLink))
+<Connect(Connect(injectIntl(SidebarChannelLink)))
   channel={
     Object {
       "create_at": 0,
@@ -31,6 +31,44 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
       wrapperClass="DirectChannel__profile-picture"
     />
   }
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
   isSharedChannel={false}
   label="channel_display_name"
   link="/team_name/messages/@some-user"
@@ -39,7 +77,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with bot with custom icon 1`] = `
-<Connect(injectIntl(SidebarChannelLink))
+<Connect(Connect(injectIntl(SidebarChannelLink)))
   channel={
     Object {
       "create_at": 0,
@@ -70,6 +108,44 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
       wrapperClass="DirectChannel__profile-picture"
     />
   }
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
   isSharedChannel={false}
   label="channel_display_name"
   link="/team_name/messages/@some-user"
@@ -78,7 +154,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with current user 1`] = `
-<Connect(injectIntl(SidebarChannelLink))
+<Connect(Connect(injectIntl(SidebarChannelLink)))
   channel={
     Object {
       "create_at": 0,
@@ -108,6 +184,44 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
       wrapperClass="DirectChannel__profile-picture"
     />
   }
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
   isSharedChannel={false}
   label="channel_display_name (you)"
   link="/team_name/messages/@some-user"
@@ -116,7 +230,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with deleted user 1`] = `
-<Connect(injectIntl(SidebarChannelLink))
+<Connect(Connect(injectIntl(SidebarChannelLink)))
   channel={
     Object {
       "create_at": 0,
@@ -141,6 +255,44 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
     <i
       className="icon icon-archive-outline"
     />
+  }
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
   }
   isSharedChannel={false}
   label="channel_display_name"

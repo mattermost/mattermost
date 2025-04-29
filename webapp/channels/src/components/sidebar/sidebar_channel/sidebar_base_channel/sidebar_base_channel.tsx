@@ -70,6 +70,7 @@ const SidebarBaseChannel = ({
             channelLeaveHandler={channelLeaveHandler!}
             icon={channelIcon}
             isSharedChannel={channel.shared}
+            intl={intl}
         />
     );
 };

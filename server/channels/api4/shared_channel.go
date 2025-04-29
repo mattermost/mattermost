@@ -15,6 +15,7 @@ import (
 func (api *API) InitSharedChannels() {
 	api.BaseRoutes.SharedChannels.Handle("/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getSharedChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.SharedChannels.Handle("/remote_info/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(getRemoteClusterInfo)).Methods(http.MethodGet)
+	api.BaseRoutes.SharedChannels.Handle("/{channel_id:[A-Za-z0-9]+}/remotes/names", api.APISessionRequired(getChannelRemoteNames)).Methods(http.MethodGet)
 
 	api.BaseRoutes.SharedChannelRemotes.Handle("", api.APISessionRequired(getSharedChannelRemotesByRemoteCluster)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelForRemote.Handle("/invite", api.APISessionRequired(inviteRemoteClusterToChannel)).Methods(http.MethodPost)
@@ -245,4 +246,53 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+// getChannelRemoteNames returns a list of remote names for a shared channel
+func getChannelRemoteNames(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	// make sure remote cluster service is enabled.
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Check if user has access to the channel
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.SetInvalidURLParam("channel_id")
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	// Get the remotes status
+	remoteStatuses, err := c.App.GetSharedChannelRemotesStatus(c.Params.ChannelId)
+	if err != nil {
+		c.Err = model.NewAppError("getChannelRemoteNames", "api.shared_channel.get_remote_names.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	// Extract just the names
+	remoteNames := make([]string, 0, len(remoteStatuses))
+	for _, status := range remoteStatuses {
+		remoteNames = append(remoteNames, status.DisplayName)
+	}
+
+	b, jsonErr := json.Marshal(remoteNames)
+	if jsonErr != nil {
+		c.SetJSONEncodingError(jsonErr)
+		return
+	}
+
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

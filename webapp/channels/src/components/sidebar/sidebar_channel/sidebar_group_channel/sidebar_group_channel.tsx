@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useCallback} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
@@ -36,6 +37,7 @@ const SidebarGroupChannel = ({
     redirectChannel,
     membersCount,
 }: Props) => {
+    const intl = useIntl();
     const handleLeaveChannel = useCallback((callback: () => void) => {
         const id = channel.id;
         const category = Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW;
@@ -62,6 +64,7 @@ const SidebarGroupChannel = ({
             label={channel.display_name}
             channelLeaveHandler={handleLeaveChannel}
             icon={getIcon()}
+            intl={intl}
         />
     );
 };

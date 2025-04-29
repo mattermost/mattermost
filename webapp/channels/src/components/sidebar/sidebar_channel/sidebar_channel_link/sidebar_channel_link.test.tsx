@@ -6,9 +6,17 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 
 import type {SidebarChannelLink as SidebarChannelLinkComponent} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
-import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
+import {SidebarChannelLink} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {defaultIntl, shallowWithIntl} from 'tests/helpers/intl-test-helper';
+
+jest.mock('packages/mattermost-redux/src/selectors/entities/shared_channels', () => ({
+    getRemoteNamesForChannel: jest.fn(),
+}));
+
+jest.mock('packages/mattermost-redux/src/actions/shared_channels', () => ({
+    fetchChannelRemoteNames: jest.fn(() => ({type: 'MOCK_ACTION'})),
+}));
 
 describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     const baseProps = {
@@ -18,7 +26,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             create_at: 0,
             update_at: 0,
             delete_at: 0,
-            team_id: '',
+            team_id: 'team_id',
             type: 'O' as ChannelType,
             name: '',
             header: '',
@@ -38,6 +46,10 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         isChannelSelected: false,
         hasUrgent: false,
         showChannelsTutorialStep: false,
+        remoteNames: [],
+        isSharedChannel: false,
+        fetchChannelRemoteNames: jest.fn(),
+        intl: defaultIntl,
         actions: {
             markMostRecentPostInChannelAsUnread: jest.fn(),
             multiSelectChannel: jest.fn(),
@@ -108,5 +120,73 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
 
         instance.enableToolTipIfNeeded();
         expect(instance.state.showTooltip).toBe(true);
+    });
+
+    test('should not fetch shared channels for non-shared channels', () => {
+        const props = {
+            ...baseProps,
+            isSharedChannel: false,
+        };
+
+        shallowWithIntl(
+            <SidebarChannelLink {...props}/>,
+        );
+
+        expect(props.fetchChannelRemoteNames).not.toHaveBeenCalled();
+    });
+
+    test('should fetch shared channels data when channel is shared', () => {
+        const props = {
+            ...baseProps,
+            isSharedChannel: true,
+            remoteNames: [],
+        };
+
+        shallowWithIntl(
+            <SidebarChannelLink {...props}/>,
+        );
+
+        expect(props.fetchChannelRemoteNames).toHaveBeenCalledWith('channel_id');
+    });
+
+    test('should not fetch shared channels data when data already exists', () => {
+        const props = {
+            ...baseProps,
+            isSharedChannel: true,
+            remoteNames: ['Remote 1', 'Remote 2'], // Data already exists
+        };
+
+        shallowWithIntl(
+            <SidebarChannelLink {...props}/>,
+        );
+
+        // Should not fetch since data already exists
+        expect(props.fetchChannelRemoteNames).not.toHaveBeenCalled();
+    });
+
+    test('should refetch when channel changes', () => {
+        const props = {
+            ...baseProps,
+            isSharedChannel: true,
+            remoteNames: [],
+        };
+
+        const wrapper = shallowWithIntl(
+            <SidebarChannelLink {...props}/>,
+        );
+
+        // Clear the mock count from componentDidMount
+        props.fetchChannelRemoteNames.mockClear();
+
+        // Change the channel ID to simulate channel change
+        wrapper.setProps({
+            ...props,
+            channel: {
+                ...props.channel,
+                id: 'new_channel_id',
+            },
+        });
+
+        expect(props.fetchChannelRemoteNames).toHaveBeenCalledWith('new_channel_id');
     });
 });

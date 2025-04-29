@@ -118,7 +118,7 @@ import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Session} from '@mattermost/types/sessions';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
-import type {SharedChannelRemote} from '@mattermost/types/shared_channels';
+import type {SharedChannelRemote, SharedChannelWithRemotes} from '@mattermost/types/shared_channels';
 import type {
     GetTeamMembersOpts,
     Team,
@@ -2057,6 +2057,20 @@ export default class Client4 {
     ) => {
         return this.doFetch<SharedChannelRemote[]>(
             `${this.getRemoteClusterRoute(remoteId)}/sharedchannelremotes${buildQueryString(filters)}`,
+            {method: 'GET'},
+        );
+    };
+
+    getSharedChannelRemoteNames = (channelId: string) => {
+        return this.doFetch<string[]>(
+            `${this.getBaseRoute()}/sharedchannels/${channelId}/remotes/names`,
+            {method: 'GET'},
+        );
+    };
+
+    getSharedChannels = (teamId: string, page = 0, perPage = 60) => {
+        return this.doFetch<SharedChannelWithRemotes[]>(
+            `${this.getBaseRoute()}/sharedchannels${buildQueryString({team_id: teamId, page, per_page: perPage})}`,
             {method: 'GET'},
         );
     };

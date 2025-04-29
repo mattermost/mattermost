@@ -2979,6 +2979,10 @@
     "translation": "Error starting server, err:%v"
   },
   {
+    "id": "api.shared_channel.get_remote_names.app_error",
+    "translation": "Could not retrieve remote names for shared channel"
+  },
+  {
     "id": "api.shared_channel.get_shared_channel_remotes_error",
     "translation": "Could not fetch shared channel remotes"
   },
