@@ -517,6 +517,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 sort_order: 0,
                 options: [
                     {id: 'opt1', name: 'Option 1', color: ''},
+
                     // opt2 has been removed from options
                 ],
             },
@@ -554,6 +555,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 sort_order: 0,
                 options: [
                     {id: 'opt1', name: 'Option 1', color: ''},
+
                     // opt2 and opt3 have been removed from options
                 ],
             },
@@ -592,6 +594,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 sort_order: 0,
                 options: [
                     {id: 'opt1', name: 'Option 1', color: ''},
+
                     // opt2 has been removed from options
                 ],
             },
@@ -636,6 +639,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 options: [
                     {id: 'opt1', name: 'Option 1', color: ''},
                     {id: 'opt3', name: 'Option 3', color: ''},
+
                     // opt2 has been removed from options
                 ],
             },
