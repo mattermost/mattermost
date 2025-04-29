@@ -70,8 +70,10 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		options = append(options, app.StoreOverride(dbStore))
 	}
 
-	testLogger, _ := mlog.NewLogger()
-	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
+	testLogger, err := mlog.NewLogger()
+	require.NoError(tb, err)
+	logCfg, err := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
+	require.NoError(tb, err)
 	errCfg := testLogger.ConfigureTargets(logCfg, nil)
 	require.NoError(tb, errCfg, "failed to configure test logger")
 	// lock logger config so server init cannot override it during testing.
@@ -195,8 +197,7 @@ func (th *TestHelper) createTeam() *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	var appErr *model.AppError
-	team, appErr = th.App.CreateTeam(th.Context, team)
+	team, appErr := th.App.CreateTeam(th.Context, team)
 	require.Nil(th.tb, appErr)
 
 	return team
@@ -263,13 +264,12 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 		option(channel)
 	}
 
-	var appErr *model.AppError
-	channel, appErr = th.App.CreateChannel(th.Context, channel, true)
+	channel, appErr := th.App.CreateChannel(th.Context, channel, true)
 	require.Nil(th.tb, appErr)
 
 	if channel.IsShared() {
 		id := model.NewId()
-		_, shareErr := th.App.ShareChannel(th.Context, &model.SharedChannel{
+		_, err := th.App.ShareChannel(th.Context, &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
 			Home:             false,
@@ -279,7 +279,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 			CreatorId:        th.BasicUser.Id,
 			RemoteId:         model.NewId(),
 		})
-		require.Nil(th.tb, shareErr)
+		require.NoError(th.tb, err)
 	}
 	return channel
 }
@@ -295,24 +295,19 @@ func (th *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType
 		CreatorId:   userID,
 	}
 
-	var appErr *model.AppError
-	channel, appErr = th.App.CreateChannel(th.Context, channel, true)
+	channel, appErr := th.App.CreateChannel(th.Context, channel, true)
 	require.Nil(th.tb, appErr)
 	return channel
 }
 
 func (th *TestHelper) createDmChannel(user *model.User) *model.Channel {
-	var appErr *model.AppError
-	var channel *model.Channel
-	channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id)
+	channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id)
 	require.Nil(th.tb, appErr)
 	return channel
 }
 
 func (th *TestHelper) createGroupChannel(user1 *model.User, user2 *model.User) *model.Channel {
-	var appErr *model.AppError
-	var channel *model.Channel
-	channel, appErr = th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+	channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
 	require.Nil(th.tb, appErr)
 	return channel
 }
@@ -327,8 +322,7 @@ func (th *TestHelper) createPost(channel *model.Channel) *model.Post {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 
-	var appErr *model.AppError
-	post, appErr = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
+	post, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(th.tb, appErr)
 	return post
 }
