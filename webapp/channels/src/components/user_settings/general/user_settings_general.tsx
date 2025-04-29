@@ -465,7 +465,11 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         this.setState({clientError: formatMessage(holders.validUrl), emailError: '', serverError: ''});
                         return;
                     }
-                    attributeValue = validURL.toString();
+                    let validLink = validURL.toString();
+                    if (validLink.endsWith('/')) {
+                        validLink = validLink.slice(0, -1);
+                    }
+                    attributeValue = validLink;
                 }
             }
         }

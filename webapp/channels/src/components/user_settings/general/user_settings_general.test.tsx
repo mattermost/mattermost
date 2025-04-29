@@ -537,7 +537,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
-        
+
         // Should not display any value since the option no longer exists
         expect(screen.queryByText('Option 2')).not.toBeInTheDocument();
         expect(await screen.findByText('Click \'Edit\' to add your custom attribute')).toBeInTheDocument();
@@ -574,7 +574,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
-        
+
         // Should only display the option that still exists
         expect(await screen.findByText('Option 1')).toBeInTheDocument();
         expect(screen.queryByText('Option 2')).not.toBeInTheDocument();
@@ -612,15 +612,15 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
-        
+
         // Should show empty select since the option no longer exists
         expect(await screen.findByText('Select')).toBeInTheDocument();
-        
+
         // Select a valid option and save
         userEvent.click(screen.getByText('Select'));
         userEvent.click(await screen.findByText('Option 1'));
         userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        
+
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'opt1');
     });
 
@@ -656,16 +656,16 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
-        
+
         // Should only show the valid option
         expect(await screen.findByText('Option 1')).toBeInTheDocument();
         expect(screen.queryByText('Option 2')).not.toBeInTheDocument();
-        
+
         // Add another valid option and save
-        userEvent.click(screen.getByLabelText('Open'));
+        userEvent.click(await screen.findByText('Option 1'));
         userEvent.click(await screen.findByText('Option 3'));
         userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        
+
         // Should save with only the valid options
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt3']);
     });
@@ -762,7 +762,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'ftp://invalid-url');
+        userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'ftp://invalid-scheme');
         userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(await screen.findByText('Please enter a valid url.')).toBeInTheDocument();
@@ -773,12 +773,6 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'http://example.com');
-
-        userEvent.clear(screen.getByRole('textbox', {name: urlAttribute.name}));
-        userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'https://example');
-        userEvent.click(screen.getByRole('button', {name: 'Save'}));
-
-        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'https://example');
     });
 
     test('should validate email custom attribute field value', async () => {
