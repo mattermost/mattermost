@@ -596,6 +596,43 @@ func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.Channel
 	})
 }
 
+func (api *PluginAPI) AddChannelMembers(channelID string, userIDs []string) ([]*model.ChannelMember, *model.AppError) {
+	channel, err := api.GetChannel(channelID)
+	if err != nil {
+		return nil, err
+	}
+
+	var channelMembers []*model.ChannelMember
+	var lastError *model.AppError
+	for _, userID := range userIDs {
+		existingMember, err := api.app.GetChannelMember(api.ctx, channelID, userID)
+		if err != nil && err.Id != MissingChannelMemberError {
+			api.logger.Error("Error adding channel member, error getting channel member", mlog.String("user_id", userID), mlog.String("channel_id", channel.Id), mlog.Err(err))
+			lastError = err
+			continue
+		} else if err == nil {
+			// user is already a member, go to next
+			api.logger.Warn("User is already a channel member, skipping", mlog.String("user_id", userID), mlog.String("channel_id", channelID))
+			channelMembers = append(channelMembers, existingMember)
+			continue
+		}
+
+		member, err := api.app.AddChannelMember(api.ctx, userID, channel, ChannelMemberOpts{
+			// For now, don't allow overriding these via the plugin API.
+			UserRequestorID: "",
+			PostRootID:      "",
+		})
+		if err != nil {
+			api.logger.Error("Failed to add channel member", mlog.String("user_id", userID), mlog.String("channel_id", channel.Id), mlog.Err(err))
+			lastError = err
+			continue
+		}
+		channelMembers = append(channelMembers, member)
+	}
+
+	return channelMembers, lastError
+}
+
 func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*model.ChannelMember, *model.AppError) {
 	channel, err := api.GetChannel(channelID)
 	if err != nil {
@@ -605,6 +642,42 @@ func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*mod
 	return api.app.AddChannelMember(api.ctx, userID, channel, ChannelMemberOpts{
 		UserRequestorID: asUserID,
 	})
+}
+
+func (api *PluginAPI) AddUsersToChannel(channelID string, userIDs []string, asUserID string) ([]*model.ChannelMember, *model.AppError) {
+	channel, err := api.GetChannel(channelID)
+	if err != nil {
+		return nil, err
+	}
+
+	var channelMembers []*model.ChannelMember
+	var lastError *model.AppError
+	for _, userID := range userIDs {
+		existingMember, err := api.app.GetChannelMember(api.ctx, channelID, userID)
+		if err != nil && err.Id != MissingChannelMemberError {
+			api.logger.Error("Error adding channel member, error getting channel member", mlog.String("user_id", userID), mlog.String("channel_id", channel.Id), mlog.Err(err))
+			lastError = err
+			continue
+		} else if err == nil {
+			// user is already a member, go to next
+			api.logger.Warn("User is already a channel member, skipping", mlog.String("user_id", userID), mlog.String("channel_id", channelID))
+			channelMembers = append(channelMembers, existingMember)
+			continue
+		}
+
+		member, err := api.app.AddChannelMember(api.ctx, userID, channel, ChannelMemberOpts{
+			UserRequestorID: asUserID,
+		})
+		if err != nil {
+			api.logger.Error("Failed to add channel member", mlog.String("user_id", userID), mlog.String("channel_id", channel.Id), mlog.Err(err))
+			lastError = err
+			continue
+		}
+
+		channelMembers = append(channelMembers, member)
+	}
+
+	return channelMembers, lastError
 }
 
 func (api *PluginAPI) GetChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {

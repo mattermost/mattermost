@@ -617,6 +617,22 @@ type API interface {
 	// Minimum server version: 9.5
 	PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) *model.AppError
 
+	// AddChannelMembers adds multiple users to a channel at once.
+	// This means the users will not receive notifications for joining the channel.
+	//
+	// @tag Channel
+	// @tag User
+	// Minimum server version: 10.8
+	AddChannelMembers(channelId string, userIds []string) ([]*model.ChannelMember, *model.AppError)
+
+	// AddUsersToChannel adds multiple users to a channel as if the specified user had invited them.
+	// This means the users will receive the regular notifications for being added to the channel.
+	//
+	// @tag Channel
+	// @tag User
+	// Minimum server version: 10.8
+	AddUsersToChannel(channelId string, userIds []string, asUserId string) ([]*model.ChannelMember, *model.AppError)
+
 	// GetGroup gets a group by ID.
 	//
 	// @tag Group

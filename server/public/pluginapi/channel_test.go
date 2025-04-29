@@ -323,6 +323,76 @@ func TestGetSidebarCategories(t *testing.T) {
 	})
 }
 
+func TestAddMembers(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		userIDs := []string{"user1", "user2"}
+		channelMembers := []*model.ChannelMember{
+			{UserId: "user1", ChannelId: "channel1"},
+			{UserId: "user2", ChannelId: "channel1"},
+		}
+
+		api.On("AddChannelMembers", "channel1", userIDs).Return(channelMembers, nil)
+
+		members, err := client.Channel.AddMembers("channel1", userIDs)
+		require.NoError(t, err)
+		require.Equal(t, channelMembers, members)
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		userIDs := []string{"user1", "user2"}
+		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+
+		api.On("AddChannelMembers", "channel1", userIDs).Return(nil, appErr)
+
+		members, err := client.Channel.AddMembers("channel1", userIDs)
+		require.Equal(t, appErr, err)
+		require.Nil(t, members)
+	})
+}
+
+func TestAddUsers(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		userIDs := []string{"user1", "user2"}
+		channelMembers := []*model.ChannelMember{
+			{UserId: "user1", ChannelId: "channel1"},
+			{UserId: "user2", ChannelId: "channel1"},
+		}
+
+		api.On("AddUsersToChannel", "channel1", userIDs, "admin1").Return(channelMembers, nil)
+
+		members, err := client.Channel.AddUsers("channel1", userIDs, "admin1")
+		require.NoError(t, err)
+		require.Equal(t, channelMembers, members)
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		userIDs := []string{"user1", "user2"}
+		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+
+		api.On("AddUsersToChannel", "channel1", userIDs, "admin1").Return(nil, appErr)
+
+		members, err := client.Channel.AddUsers("channel1", userIDs, "admin1")
+		require.Equal(t, appErr, err)
+		require.Nil(t, members)
+	})
+}
+
 func TestUpdateSidebarCategories(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}

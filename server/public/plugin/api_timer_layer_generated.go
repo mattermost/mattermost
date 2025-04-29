@@ -671,6 +671,20 @@ func (api *apiTimerLayer) PatchChannelMembersNotifications(members []*model.Chan
 	return _returnsA
 }
 
+func (api *apiTimerLayer) AddChannelMembers(channelId string, userIds []string) ([]*model.ChannelMember, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.AddChannelMembers(channelId, userIds)
+	api.recordTime(startTime, "AddChannelMembers", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) AddUsersToChannel(channelId string, userIds []string, asUserId string) ([]*model.ChannelMember, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.AddUsersToChannel(channelId, userIds, asUserId)
+	api.recordTime(startTime, "AddUsersToChannel", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetGroup(groupId string) (*model.Group, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetGroup(groupId)

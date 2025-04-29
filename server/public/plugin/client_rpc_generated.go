@@ -3868,6 +3868,67 @@ func (s *apiRPCServer) PatchChannelMembersNotifications(args *Z_PatchChannelMemb
 	return nil
 }
 
+type Z_AddChannelMembersArgs struct {
+	A string
+	B []string
+}
+
+type Z_AddChannelMembersReturns struct {
+	A []*model.ChannelMember
+	B *model.AppError
+}
+
+func (g *apiRPCClient) AddChannelMembers(channelId string, userIds []string) ([]*model.ChannelMember, *model.AppError) {
+	_args := &Z_AddChannelMembersArgs{channelId, userIds}
+	_returns := &Z_AddChannelMembersReturns{}
+	if err := g.client.Call("Plugin.AddChannelMembers", _args, _returns); err != nil {
+		log.Printf("RPC call to AddChannelMembers API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) AddChannelMembers(args *Z_AddChannelMembersArgs, returns *Z_AddChannelMembersReturns) error {
+	if hook, ok := s.impl.(interface {
+		AddChannelMembers(channelId string, userIds []string) ([]*model.ChannelMember, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.AddChannelMembers(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API AddChannelMembers called but not implemented."))
+	}
+	return nil
+}
+
+type Z_AddUsersToChannelArgs struct {
+	A string
+	B []string
+	C string
+}
+
+type Z_AddUsersToChannelReturns struct {
+	A []*model.ChannelMember
+	B *model.AppError
+}
+
+func (g *apiRPCClient) AddUsersToChannel(channelId string, userIds []string, asUserId string) ([]*model.ChannelMember, *model.AppError) {
+	_args := &Z_AddUsersToChannelArgs{channelId, userIds, asUserId}
+	_returns := &Z_AddUsersToChannelReturns{}
+	if err := g.client.Call("Plugin.AddUsersToChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to AddUsersToChannel API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) AddUsersToChannel(args *Z_AddUsersToChannelArgs, returns *Z_AddUsersToChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		AddUsersToChannel(channelId string, userIds []string, asUserId string) ([]*model.ChannelMember, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.AddUsersToChannel(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API AddUsersToChannel called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetGroupArgs struct {
 	A string
 }

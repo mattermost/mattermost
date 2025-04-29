@@ -50,6 +50,38 @@ func (_m *API) AddChannelMember(channelId string, userID string) (*model.Channel
 	return r0, r1
 }
 
+// AddChannelMembers provides a mock function with given fields: channelId, userIds
+func (_m *API) AddChannelMembers(channelId string, userIds []string) ([]*model.ChannelMember, *model.AppError) {
+	ret := _m.Called(channelId, userIds)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddChannelMembers")
+	}
+
+	var r0 []*model.ChannelMember
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []string) ([]*model.ChannelMember, *model.AppError)); ok {
+		return rf(channelId, userIds)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string) []*model.ChannelMember); ok {
+		r0 = rf(channelId, userIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+		r1 = rf(channelId, userIds)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // AddReaction provides a mock function with given fields: reaction
 func (_m *API) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
 	ret := _m.Called(reaction)
@@ -105,6 +137,38 @@ func (_m *API) AddUserToChannel(channelId string, userID string, asUserId string
 
 	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
 		r1 = rf(channelId, userID, asUserId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// AddUsersToChannel provides a mock function with given fields: channelId, userIds, asUserId
+func (_m *API) AddUsersToChannel(channelId string, userIds []string, asUserId string) ([]*model.ChannelMember, *model.AppError) {
+	ret := _m.Called(channelId, userIds, asUserId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddUsersToChannel")
+	}
+
+	var r0 []*model.ChannelMember
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []string, string) ([]*model.ChannelMember, *model.AppError)); ok {
+		return rf(channelId, userIds, asUserId)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string, string) []*model.ChannelMember); ok {
+		r0 = rf(channelId, userIds, asUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []string, string) *model.AppError); ok {
+		r1 = rf(channelId, userIds, asUserId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

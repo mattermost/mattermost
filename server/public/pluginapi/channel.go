@@ -191,6 +191,26 @@ func (c *ChannelService) AddUser(channelID, userID, asUserID string) (*model.Cha
 	return channelMember, normalizeAppErr(appErr)
 }
 
+// AddMembers adds multiple users to a channel at once.
+// This means the users will not receive notifications for joining the channel.
+//
+// Minimum server version: 10.8
+func (c *ChannelService) AddMembers(channelID string, userIDs []string) ([]*model.ChannelMember, error) {
+	channelMembers, appErr := c.api.AddChannelMembers(channelID, userIDs)
+
+	return channelMembers, normalizeAppErr(appErr)
+}
+
+// AddUsers adds multiple users to a channel as if the specified user had invited them.
+// This means the users will receive the regular notifications for being added to the channel.
+//
+// Minimum server version: 10.8
+func (c *ChannelService) AddUsers(channelID string, userIDs []string, asUserID string) ([]*model.ChannelMember, error) {
+	channelMembers, appErr := c.api.AddUsersToChannel(channelID, userIDs, asUserID)
+
+	return channelMembers, normalizeAppErr(appErr)
+}
+
 // DeleteMember deletes a channel membership for a user.
 //
 // Minimum server version: 5.2
