@@ -220,8 +220,7 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	_, err = apiClient.DeauthorizeOAuthApp(context.Background(), model.NewId())
 	require.NoError(t, err)
 
-	_, err = apiClient.Logout(context.Background())
-	require.NoError(t, err)
+	th.Logout(apiClient)
 	resp, err = apiClient.DeauthorizeOAuthApp(context.Background(), rapp.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -767,6 +766,10 @@ func (th *TestHelper) Login(client *model.Client4, user *model.User) {
 	require.Nil(th.t, appErr)
 	client.AuthToken = session.Token
 	client.AuthType = model.HeaderBearer
+}
+
+func (th *TestHelper) Logout(client *model.Client4) {
+	client.AuthToken = ""
 }
 
 func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
