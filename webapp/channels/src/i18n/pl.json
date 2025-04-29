@@ -2593,6 +2593,7 @@
   "admin.support.reportAProblemDefaultLinkDescription": "Użytkownicy zostaną przekierowani do tego linku po wybraniu opcji \"Zgłoś problem\".",
   "admin.support.reportAProblemDefaultLinkTitle": "Domyślne łącze Zgłoś problem:",
   "admin.support.reportAProblemEmailDescription": "Wprowadź adres e-mail, na który użytkownicy będą proszeni o wysłanie wiadomości po wybraniu opcji \"Zgłoś problem\".",
+  "admin.support.reportAProblemEmailError": "Wymagany jest adres e-mail",
   "admin.support.termsDesc": "Link do warunków, na jakich użytkownicy mogą korzystać z Twojej usługi online. Domyślnie obejmuje to „Zasady Dopuszczalnego Użytkowania firmy Mattermost” wyjaśniające warunki, na jakich oprogramowanie Mattermost jest dostarczane użytkownikom końcowym. W przypadku zmiany łącza domyślnego w celu dodania własnych warunków korzystania ze świadczonej usługi nowe warunki muszą zawierać łącze do warunków domyślnych, aby użytkownicy końcowi byli świadomi zasad dopuszczalnego użytkowania oprogramowania Mattermost dla oprogramowania Mattermost.",
   "admin.support.termsOfServiceReAcceptanceHelp": "Liczba dni po której akceptacja Warunków Usługi wygasa i warunki muszą zostać ponownie zaakceptowane.",
   "admin.support.termsOfServiceReAcceptanceTitle": "Okres ponownej akceptacji:",
