@@ -6,7 +6,6 @@ package model
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/blang/semver/v4"
 )
@@ -15,6 +14,9 @@ type MetricType string
 
 const (
 	ClientTimeToFirstByte           MetricType = "TTFB"
+	ClientTimeToLastByte            MetricType = "TTLB"
+	ClientTimeToDOMInteractive      MetricType = "dom_interactive"
+	ClientSplashScreenEnd           MetricType = "splash_screen"
 	ClientFirstContentfulPaint      MetricType = "FCP"
 	ClientLargestContentfulPaint    MetricType = "LCP"
 	ClientInteractionToNextPaint    MetricType = "INP"
@@ -26,9 +28,18 @@ const (
 	ClientRHSLoadDuration           MetricType = "rhs_load"
 	ClientGlobalThreadsLoadDuration MetricType = "global_threads_load"
 
-	MobileClientLoadDuration          MetricType = "mobile_load"
-	MobileClientChannelSwitchDuration MetricType = "mobile_channel_switch"
-	MobileClientTeamSwitchDuration    MetricType = "mobile_team_switch"
+	MobileClientLoadDuration                           MetricType = "mobile_load"
+	MobileClientChannelSwitchDuration                  MetricType = "mobile_channel_switch"
+	MobileClientTeamSwitchDuration                     MetricType = "mobile_team_switch"
+	MobileClientNetworkRequestsAverageSpeed            MetricType = "mobile_network_requests_average_speed"
+	MobileClientNetworkRequestsEffectiveLatency        MetricType = "mobile_network_requests_effective_latency"
+	MobileClientNetworkRequestsElapsedTime             MetricType = "mobile_network_requests_elapsed_time"
+	MobileClientNetworkRequestsLatency                 MetricType = "mobile_network_requests_latency"
+	MobileClientNetworkRequestsTotalCompressedSize     MetricType = "mobile_network_requests_total_compressed_size"
+	MobileClientNetworkRequestsTotalParallelRequests   MetricType = "mobile_network_requests_total_parallel_requests"
+	MobileClientNetworkRequestsTotalRequests           MetricType = "mobile_network_requests_total_requests"
+	MobileClientNetworkRequestsTotalSequentialRequests MetricType = "mobile_network_requests_total_sequential_requests"
+	MobileClientNetworkRequestsTotalSize               MetricType = "mobile_network_requests_total_size"
 
 	DesktopClientCPUUsage    MetricType = "desktop_cpu"
 	DesktopClientMemoryUsage MetricType = "desktop_memory"
@@ -38,11 +49,11 @@ const (
 
 var (
 	performanceReportVersion = semver.MustParse("0.1.0")
-	acceptedPlatforms        = sliceToMapKey("linux", "macos", "ios", "android", "windows", "other")
-	acceptedAgents           = sliceToMapKey("desktop", "firefox", "chrome", "safari", "edge", "other")
+	acceptedPlatforms        = SliceToMapKey("linux", "macos", "ios", "android", "windows", "other")
+	acceptedAgents           = SliceToMapKey("desktop", "firefox", "chrome", "safari", "edge", "other")
 
-	AcceptedInteractions = sliceToMapKey("keyboard", "pointer", "other")
-	AcceptedLCPRegions   = sliceToMapKey(
+	AcceptedInteractions = SliceToMapKey("keyboard", "pointer", "other")
+	AcceptedLCPRegions   = SliceToMapKey(
 		"post",
 		"post_textbox",
 		"channel_sidebar",
@@ -54,7 +65,22 @@ var (
 		"modal_content",
 		"other",
 	)
-	AcceptedTrueFalseLabels = sliceToMapKey("true", "false")
+	AcceptedTrueFalseLabels      = SliceToMapKey("true", "false")
+	AcceptedSplashScreenOrigins  = SliceToMapKey("root", "team_controller")
+	AcceptedNetworkRequestGroups = SliceToMapKey(
+		"Cold Start",
+		"Cold Start Deferred",
+		"DeepLink",
+		"DeepLink Deferred",
+		"Login",
+		"Login Deferred",
+		"Notification",
+		"Notification Deferred",
+		"Server Switch",
+		"Server Switch Deferred",
+		"WebSocket Reconnect",
+		"WebSocket Reconnect Deferred",
+	)
 )
 
 type MetricSample struct {
@@ -86,7 +112,7 @@ func (r *PerformanceReport) IsValid() error {
 
 	reportVersion, err := semver.ParseTolerant(r.Version)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not parse semver version: %s, %w", r.Version, err)
 	}
 
 	if reportVersion.Major != performanceReportVersion.Major || reportVersion.Minor > performanceReportVersion.Minor {
@@ -94,12 +120,12 @@ func (r *PerformanceReport) IsValid() error {
 	}
 
 	if r.Start > r.End {
-		return fmt.Errorf("report timestamps are erroneous")
+		return fmt.Errorf("report timestamps are erroneous: start_timestamp %f is greater than end_timestamp %f", r.Start, r.End)
 	}
 
-	now := time.Now().UnixMilli()
+	now := GetMillis()
 	if r.End < float64(now-performanceReportTTLMilliseconds) {
-		return fmt.Errorf("report is outdated: %f", r.End)
+		return fmt.Errorf("report is outdated: end_time %f is past %d ms from now", r.End, performanceReportTTLMilliseconds)
 	}
 
 	return nil
@@ -107,9 +133,10 @@ func (r *PerformanceReport) IsValid() error {
 
 func (r *PerformanceReport) ProcessLabels() map[string]string {
 	return map[string]string{
-		"platform":            processLabel(r.Labels, "platform", acceptedPlatforms, "other"),
-		"agent":               processLabel(r.Labels, "agent", acceptedAgents, "other"),
-		"desktop_app_version": r.Labels["desktop_app_version"],
+		"platform":              processLabel(r.Labels, "platform", acceptedPlatforms, "other"),
+		"agent":                 processLabel(r.Labels, "agent", acceptedAgents, "other"),
+		"desktop_app_version":   r.Labels["desktop_app_version"],
+		"network_request_group": processLabel(r.Labels, "network_request_group", AcceptedNetworkRequestGroups, "Login"),
 	}
 }
 

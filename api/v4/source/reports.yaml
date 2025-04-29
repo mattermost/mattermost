@@ -1,12 +1,10 @@
   /api/v4/reports/users:
     get:
       tags:
-        - users
+        - reports
       summary: Get a list of paged and sorted users for admin reporting purposes
       description: >
         Get a list of paged users for admin reporting purposes, based on provided parameters.
-        
-        Must be a system admin to invoke this API.
         
         ##### Permissions
         
@@ -22,10 +20,10 @@
             default: 'Username'
         - name: direction
           in: query
-          description: The direction in which to accept paging values from. Will return values ahead of the cursor if "up", and below the cursor if "down". Default is "down".
+          description: The direction to accept paging values from. Will return values ahead of the cursor if "prev", and below the cursor if "next". Default is "next".
           schema:
             type: string
-            default: 'down'
+            default: 'next'
         - name: sort_direction
           in: query
           description: The sorting direction. Must be one of ("asc", "desc"). Will default to 'asc' if not specified or the input is invalid.
@@ -106,13 +104,10 @@
   /api/v4/reports/users/count:
     get:
       tags:
-        - users
+        - reports
       summary: Gets the full count of users that match the filter.
       description: >
         Get the full count of users admin reporting purposes, based on provided parameters.
-
-        
-        Must be a system admin to invoke this API.
         
         ##### Permissions
         
@@ -163,9 +158,6 @@
       summary: Starts a job to export the users to a report file.
       description: >
         Starts a job to export the users to a report file.
-
-        
-        Must be a system admin to invoke this API.
         
         ##### Permissions
         

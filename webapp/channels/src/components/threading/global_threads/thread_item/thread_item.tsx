@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
-import type {MouseEvent} from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -19,11 +19,13 @@ import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {Posts} from 'mattermost-redux/constants';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import Markdown from 'components/markdown';
+import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
 import Button from 'components/threading/common/button';
 import Timestamp from 'components/timestamp';
@@ -65,7 +67,7 @@ type Props = {
 const markdownPreviewOptions = {
     singleline: true,
     mentionHighlight: false,
-    atMentions: false,
+    atMentions: true,
 };
 
 function ThreadItem({
@@ -89,7 +91,9 @@ function ThreadItem({
     const tipStep = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_STEP, currentUserId));
     const showListTutorialTip = tipStep === CrtTutorialSteps.LIST_POPOVER;
     const msgDeleted = formatMessage({id: 'post_body.deleted', defaultMessage: '(message deleted)'});
-    const postAuthor = post.props?.override_username || displayName;
+    const postAuthor = ensureString(post.props?.override_username) || displayName;
+    const getMentionKeysForPost = useMemo(() => makeGetMentionKeysForPost(), []);
+    const mentionsKeys = useSelector((state: GlobalState) => getMentionKeysForPost(state, post, channel));
 
     useEffect(() => {
         if (channel?.teammate_id) {
@@ -115,7 +119,13 @@ function ThreadItem({
 
     let unreadTimestamp = post.edit_at || post.create_at;
 
-    const selectHandler = useCallback((e: MouseEvent<HTMLDivElement>) => {
+    const selectHandler = useCallback((e: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>) => {
+        // If the event is a keyboard event, check if the key is 'Enter' or ' '.
+        if ('key' in e) {
+            if (e.key !== 'Enter' && e.key !== ' ') {
+                return;
+            }
+        }
         if (e.altKey) {
             const hasUnreads = thread ? Boolean(thread.unread_replies) : false;
             const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
@@ -149,6 +159,12 @@ function ThreadItem({
     }, [threadId]);
 
     const handleFormattedTextClick = useCallback((e) => {
+        // If the event is a keyboard event, check if the key is 'Enter' or ' '.
+        if ('key' in e) {
+            if (e.key !== 'Enter' && e.key !== ' ') {
+                return;
+            }
+        }
         Utils.handleFormattedTextClick(e, currentRelativeTeamUrl);
     }, [currentRelativeTeamUrl]);
 
@@ -172,17 +188,23 @@ function ThreadItem({
     }
 
     return (
-        <article
+        <div
             style={style}
             className={classNames('ThreadItem', {
                 'has-unreads': newReplies,
                 'is-selected': isSelected,
             })}
-            tabIndex={0}
+            tabIndex={isSelected ? -1 : 0}
+            role='link'
+            aria-label={formatMessage(
+                {id: 'threading.threadItem.ariaLabel', defaultMessage: 'Thread by {author}'},
+                {author: postAuthor},
+            )}
             id={isFirstThreadInList ? 'tutorial-threads-mobile-list' : ''}
             onClick={selectHandler}
+            onKeyDown={selectHandler}
         >
-            <h1>
+            <header>
                 {Boolean(newMentions || newReplies) && (
                     <div className='indicator'>
                         {newMentions ? (
@@ -217,7 +239,7 @@ function ThreadItem({
                     className='alt-hidden'
                     value={lastReplyAt}
                 />
-            </h1>
+            </header>
             <div className='menu-anchor alt-visible'>
                 <ThreadMenu
                     threadId={threadId}
@@ -226,8 +248,6 @@ function ThreadItem({
                     unreadTimestamp={unreadTimestamp}
                 >
                     <WithTooltip
-                        id='threadActionMenu'
-                        placement='top'
                         title={(
                             <FormattedMessage
                                 id='threading.threadItem.menu'
@@ -238,24 +258,31 @@ function ThreadItem({
                         <Button
                             marginTop={true}
                             className='Button___icon'
+                            aria-label={formatMessage({
+                                id: 'threading.threadItem.menu',
+                                defaultMessage: 'Actions',
+                            })}
                         >
                             <DotsVerticalIcon size={18}/>
                         </Button>
                     </WithTooltip>
                 </ThreadMenu>
             </div>
+
+            {/* The strange interaction here where we need a click/keydown handler messes with the ESLint rules, so we just disable it */}
+            {/*eslint-disable-next-line jsx-a11y/no-static-element-interactions*/}
             <div
-                aria-readonly='true'
                 className='preview'
                 dir='auto'
-                tabIndex={0}
                 onClick={handleFormattedTextClick}
+                onKeyDown={handleFormattedTextClick}
             >
                 {post.message ? (
                     <Markdown
                         message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
                         options={markdownPreviewOptions}
                         imagesMetadata={post?.metadata && post?.metadata?.images}
+                        mentionKeys={mentionsKeys}
                         imageProps={imageProps}
                     />
                 ) : (
@@ -288,7 +315,7 @@ function ThreadItem({
                 )}
             </div>
             {showListTutorialTip && isFirstThreadInList && isMobileView && (<CRTListTutorialTip/>)}
-        </article>
+        </div>
     );
 }
 

@@ -3,10 +3,11 @@
 
 /* eslint-disable max-lines */
 
-import {DynamicSizeList} from 'dynamic-virtualized-list';
-import type {OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 import React from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
+
+import {DynamicSizeList} from '@mattermost/dynamic-virtualized-list';
+import type {OnItemsRenderedArgs} from '@mattermost/dynamic-virtualized-list';
 
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 import {getNewMessagesIndex, isDateLine, isStartOfNewMessages} from 'mattermost-redux/utils/post_list';
@@ -683,7 +684,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                 aria-label={Utils.localizeMessage({id: 'accessibility.sections.centerContent', defaultMessage: 'message list main region'})}
             >
                 {this.props.isMobileView && (
-                    <React.Fragment>
+                    <>
                         <FloatingTimestamp
                             isScrolling={this.state.isScrolling}
                             postId={this.state.topPostId}
@@ -693,7 +694,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                             atBottom={Boolean(this.state.atBottom)}
                             onClick={this.scrollToBottom}
                         />
-                    </React.Fragment>
+                    </>
                 )}
                 <div
                     className='post-list-holder-by-time'
@@ -709,11 +710,9 @@ export default class PostList extends React.PureComponent<Props, State> {
                             <LatestPostReader postIds={this.props.postListIds}/>
                             <AutoSizer>
                                 {({height, width}) => (
-                                    <React.Fragment>
+                                    <>
                                         <div>
-                                            <Pluggable
-                                                pluggableName='ChannelToast'
-                                            />
+                                            <Pluggable pluggableName='ChannelToast'/>
 
                                             {this.renderToasts(width)}
                                         </div>
@@ -722,6 +721,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                                             ref={this.listRef}
                                             height={height}
                                             width={width}
+                                            id='postListScrollContainer'
                                             className='post-list__dynamic'
                                             itemData={this.state.postListIds}
                                             overscanCountForward={OVERSCAN_COUNT_FORWARD}
@@ -740,7 +740,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                                         >
                                             {this.renderRow}
                                         </DynamicSizeList>
-                                    </React.Fragment>
+                                    </>
                                 )}
                             </AutoSizer>
                         </div>

@@ -9,13 +9,16 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
@@ -52,7 +55,7 @@ func (ps *PlatformService) initLogging() error {
 	}
 
 	// redirect default Go logger to app logger.
-	ps.logger.RedirectStdLog(mlog.LvlStdLog)
+	ps.logger.RedirectStdLog(mlog.LvlWarn)
 
 	// use the app logger as the global logger (eventually remove all instances of global logging).
 	mlog.InitGlobalLogger(ps.logger)
@@ -112,13 +115,17 @@ func (ps *PlatformService) RemoveUnlicensedLogTargets(license *model.License) {
 	timeoutCtx, cancelCtx := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancelCtx()
 
-	ps.logger.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
+	if err := ps.logger.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
 		return ti.Type != "*targets.Writer" && ti.Type != "*targets.File"
-	})
+	}); err != nil {
+		mlog.Error("Failed to remove log targets", mlog.Err(err))
+	}
 
-	ps.notificationsLogger.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
+	if err := ps.notificationsLogger.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
 		return ti.Type != "*targets.Writer" && ti.Type != "*targets.File"
-	})
+	}); err != nil {
+		mlog.Error("Failed to remove notification log targets", mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
@@ -240,6 +247,56 @@ func (ps *PlatformService) GetNotificationLogFile(_ request.CTX) (*model.FileDat
 		Filename: config.LogNotificationFilename,
 		Body:     notificationsLogFileData,
 	}, nil
+}
+
+func (ps *PlatformService) GetAdvancedLogs(_ request.CTX) ([]*model.FileData, error) {
+	var (
+		rErr *multierror.Error
+		ret  []*model.FileData
+	)
+
+	for name, loggingJSON := range map[string]json.RawMessage{
+		"LogSettings.AdvancedLoggingJSON":               ps.Config().LogSettings.AdvancedLoggingJSON,
+		"NotificationLogSettings.AdvancedLoggingJSON":   ps.Config().NotificationLogSettings.AdvancedLoggingJSON,
+		"ExperimentalAuditSettings.AdvancedLoggingJSON": ps.Config().ExperimentalAuditSettings.AdvancedLoggingJSON,
+	} {
+		if utils.IsEmptyJSON(loggingJSON) {
+			continue
+		}
+
+		cfg := make(mlog.LoggerConfiguration)
+		err := json.Unmarshal(loggingJSON, &cfg)
+		if err != nil {
+			rErr = multierror.Append(rErr, errors.Wrapf(err, "error decoding advanced logging configuration %s", name))
+			continue
+		}
+
+		for _, t := range cfg {
+			if t.Type != "file" {
+				continue
+			}
+			var fileOption struct {
+				Filename string `json:"filename"`
+			}
+			if err := json.Unmarshal(t.Options, &fileOption); err != nil {
+				rErr = multierror.Append(rErr, errors.Wrapf(err, "error decoding file target options in %s", name))
+				continue
+			}
+			data, err := os.ReadFile(fileOption.Filename)
+			if err != nil {
+				rErr = multierror.Append(rErr, errors.Wrapf(err, "failed to read advanced log file at path %s in %s", fileOption.Filename, name))
+				continue
+			}
+
+			fileName := path.Base(fileOption.Filename)
+			ret = append(ret, &model.FileData{
+				Filename: fileName,
+				Body:     data,
+			})
+		}
+	}
+
+	return ret, nil
 }
 
 func isLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) bool {

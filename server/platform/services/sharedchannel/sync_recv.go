@@ -403,7 +403,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		}
 	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message {
 		// update post
-		rpost, appErr = scs.app.UpdatePost(request.EmptyContext(scs.server.Log()), post, false)
+		rpost, appErr = scs.app.UpdatePost(request.EmptyContext(scs.server.Log()), post, nil)
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post",
 				mlog.String("post_id", post.Id),

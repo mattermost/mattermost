@@ -89,7 +89,8 @@ const AllowAllToggle: React.SFC<Props> = (props: Props): JSX.Element | null => {
             ) : (
                 <FormattedMessage
                     id='admin.channel_settings.channel_details.isPublicDescr'
-                    defaultMessage='If `public` the channel is discoverable and any user can join, or if `private` invitations are required. Toggle to convert public channels to private. When Group Sync is enabled, private channels cannot be converted to public.'
+                    defaultMessage='Select Public for a channel any user can find and join. {br}Select Private to require channel invitations to join. {br}Use this switch to change this channel from public to private or from private to public.'
+                    values={{br: (<br/>)}}
                 />
             )
             }

@@ -99,7 +99,7 @@ func TestUserLogClone(t *testing.T) {
 		l := u.LogClone()
 		require.NotNil(t, l)
 
-		m, ok := l.(map[string]interface{})
+		m, ok := l.(map[string]any)
 		require.True(t, ok)
 		assert.Equal(t, "", m["remote_id"])
 	})
@@ -135,7 +135,7 @@ func TestUserLogClone(t *testing.T) {
 		}
 
 		l := u.LogClone()
-		m, ok := l.(map[string]interface{})
+		m, ok := l.(map[string]any)
 		require.True(t, ok)
 
 		expected := map[string]any{
@@ -204,6 +204,17 @@ func TestUserPreSave(t *testing.T) {
 	user.Etag(true, true)
 	assert.NotNil(t, user.Timezone, "Timezone is nil")
 	assert.Equal(t, user.Timezone["useAutomaticTimezone"], "true", "Timezone is not set to default")
+
+	// Set default user with notify props
+	userWithDefaultNotifyProps := User{}
+	userWithDefaultNotifyProps.SetDefaultNotifications()
+
+	for notifyPropKey, expectedNotifyPropValue := range userWithDefaultNotifyProps.NotifyProps {
+		actualNotifyPropValue, ok := user.NotifyProps[notifyPropKey]
+
+		assert.True(t, ok, "Notify prop %s is not set", notifyPropKey)
+		assert.Equal(t, expectedNotifyPropValue, actualNotifyPropValue, "Notify prop %s is not set to default", notifyPropKey)
+	}
 }
 
 func TestUserPreSavePwdTooLong(t *testing.T) {
@@ -215,6 +226,17 @@ func TestUserPreSavePwdTooLong(t *testing.T) {
 func TestUserPreUpdate(t *testing.T) {
 	user := User{Password: "test"}
 	user.PreUpdate()
+
+	// Set default user with notify props
+	userWithDefaultNotifyProps := User{}
+	userWithDefaultNotifyProps.SetDefaultNotifications()
+
+	for notifyPropKey, expectedNotifyPropValue := range userWithDefaultNotifyProps.NotifyProps {
+		actualNotifyPropValue, ok := user.NotifyProps[notifyPropKey]
+
+		assert.True(t, ok, "Notify prop %s is not set", notifyPropKey)
+		assert.Equal(t, expectedNotifyPropValue, actualNotifyPropValue, "Notify prop %s is not set to default", notifyPropKey)
+	}
 }
 
 func TestUserUpdateMentionKeysFromUsername(t *testing.T) {

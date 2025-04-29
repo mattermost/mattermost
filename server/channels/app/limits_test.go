@@ -20,7 +20,7 @@ func TestGetServerLimits(t *testing.T) {
 
 		// InitBasic creates 3 users by default
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
-		require.Equal(t, int64(5000), serverLimits.MaxUsersLimit)
+		require.Equal(t, int64(2500), serverLimits.MaxUsersLimit)
 	})
 
 	t.Run("user count should increase on creating new user and decrease on permanently deleting", func(t *testing.T) {

@@ -73,12 +73,20 @@ func TestSanitizeDataSource(t *testing.T) {
 			Sanitized string
 		}{
 			{
+				"",
+				"//****:****@",
+			},
+			{
+				"postgres://mmuser:mostest@localhost",
+				"postgres://****:****@localhost",
+			},
+			{
 				"postgres://mmuser:mostest@localhost/dummy?sslmode=disable",
-				"postgres://%2A%2A%2A%2A:%2A%2A%2A%2A@localhost/dummy?sslmode=disable",
+				"postgres://****:****@localhost/dummy?sslmode=disable",
 			},
 			{
 				"postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest",
-				"postgres://%2A%2A%2A%2A:%2A%2A%2A%2A@localhost/dummy?sslmode=disable",
+				"postgres://****:****@localhost/dummy?sslmode=disable",
 			},
 		}
 		driver := model.DatabaseDriverPostgres

@@ -27,7 +27,7 @@ func (s *SqlPostPriorityStore) GetForPost(postId string) (*model.PostPriority, e
 		Where(sq.Eq{"PostId": postId})
 
 	var postPriority model.PostPriority
-	err := s.GetReplicaX().GetBuilder(&postPriority, query)
+	err := s.GetReplica().GetBuilder(&postPriority, query)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (s *SqlPostPriorityStore) GetForPosts(postIds []string) ([]*model.PostPrior
 			Where(sq.Eq{"PostId": postIds[i:j]})
 
 		var priorityBatch []*model.PostPriority
-		err := s.GetReplicaX().SelectBuilder(&priority, query)
+		err := s.GetReplica().SelectBuilder(&priority, query)
 
 		if err != nil {
 			return nil, err

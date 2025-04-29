@@ -64,7 +64,7 @@ describe('Onboarding', () => {
         cy.reload();
 
         // # Open the 'Invite People' modal
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Wait half a second to ensure that the modal has been fully loaded
         cy.wait(TIMEOUTS.HALF_SEC);

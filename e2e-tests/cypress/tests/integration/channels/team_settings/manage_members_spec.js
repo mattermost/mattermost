@@ -12,7 +12,7 @@
 
 import {
     promoteToChannelOrTeamAdmin,
-} from '../enterprise/system_console/channel_moderation/helpers.js';
+} from '../enterprise/system_console/channel_moderation/helpers.ts';
 
 describe('Manage Members', () => {
     let testTeam;
@@ -34,7 +34,7 @@ describe('Manage Members', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Open team menu and click 'Manage Members'
-        cy.uiOpenTeamMenu('Manage Members');
+        cy.uiOpenTeamMenu('Manage members');
 
         // # Open member dropdown
         cy.get(`#teamMembersDropdown_${testUser.username}`).should('be.visible').click();
@@ -61,7 +61,7 @@ describe('Manage Members', () => {
                 cy.visit(`/${testTeam.name}/channels/town-square`);
 
                 // # Open team menu and click 'Manage Members'
-                cy.uiOpenTeamMenu('Manage Members');
+                cy.uiOpenTeamMenu('Manage members');
 
                 // # Open member dropdown
                 cy.get(`#teamMembersDropdown_${user.username}`).should('be.visible').click();
@@ -94,7 +94,7 @@ describe('Manage Members', () => {
                         cy.visit(`/${testTeam.name}/channels/town-square`);
 
                         // # Open team menu and click 'Manage Members'
-                        cy.uiOpenTeamMenu('Manage Members');
+                        cy.uiOpenTeamMenu('Manage members');
 
                         // # Open member dropdown
                         cy.get(`#teamMembersDropdown_${user.username}`).should('be.visible').click();
@@ -139,7 +139,7 @@ describe('Manage Members', () => {
                 cy.visit(`/${testTeam.name}/channels/town-square`);
 
                 // # Open team menu and click 'Manage Members'
-                cy.uiOpenTeamMenu('Manage Members');
+                cy.uiOpenTeamMenu('Manage members');
 
                 // # Open member dropdown
                 cy.get(`#teamMembersDropdown_${user.username}`).should('be.visible').click();

@@ -24,11 +24,11 @@ exports[`components/TeamMembersModal should match snapshot 1`] = `
       "remove": [Function],
     }
   }
-  onExited={[MockFunction]}
+  onExited={[Function]}
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader

@@ -44,6 +44,8 @@ func outgoingOauthConnectionsCleanup(t *testing.T, th *TestHelper) {
 
 // Helper tests
 func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	t.Run("no permissions", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -127,6 +129,8 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 }
 
 func TestCheckOutgoingOAuthConnectionWritePermissions(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	t.Run("no permissions", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -169,6 +173,8 @@ func TestCheckOutgoingOAuthConnectionWritePermissions(t *testing.T) {
 // Client tests
 
 func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	t.Run("No license returns 501", func(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTION", "true")
 		defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTION")
@@ -241,6 +247,8 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 }
 
 func TestClientListOutgoingOAuthConnection(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
@@ -443,6 +451,8 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 }
 
 func TestClientGetOutgoingOAuthConnection(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
@@ -518,6 +528,8 @@ func TestClientGetOutgoingOAuthConnection(t *testing.T) {
 }
 
 func TestClientCreateOutgoingOAuthConnection(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
@@ -594,6 +606,8 @@ func TestClientCreateOutgoingOAuthConnection(t *testing.T) {
 }
 
 func TestClientUpdateOutgoingOAuthConnection(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
@@ -676,6 +690,8 @@ func TestClientUpdateOutgoingOAuthConnection(t *testing.T) {
 }
 
 func TestClientDeleteOutgoingOAuthConnection(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
@@ -752,6 +768,8 @@ func TestClientDeleteOutgoingOAuthConnection(t *testing.T) {
 // Handler tests
 
 func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	t.Run("no feature flag, no interface, no license", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -845,6 +863,8 @@ func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
 }
 
 func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
@@ -971,6 +991,8 @@ func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
 }
 
 func TestHandlerOutgoingOAuthConnectionListReadOnly(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
@@ -1068,6 +1090,8 @@ func TestHandlerOutgoingOAuthConnectionListReadOnly(t *testing.T) {
 }
 
 func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
@@ -1281,6 +1305,8 @@ func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
 }
 
 func TestHandlerOutgoingOAuthConnectionHandlerCreate(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
@@ -1430,6 +1456,8 @@ func TestHandlerOutgoingOAuthConnectionHandlerCreate(t *testing.T) {
 }
 
 func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()

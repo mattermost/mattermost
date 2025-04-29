@@ -55,7 +55,7 @@ import {focusPost} from 'components/permalink_view/actions';
 import type {TextboxElement} from 'components/textbox';
 
 import {getHistory} from 'utils/browser_history';
-import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes} from 'utils/constants';
+import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes, AdvancedTextEditorTextboxIds} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
@@ -323,7 +323,6 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .channel-header .pinned-posts-button svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.75));
         changeCss('.app__body .channel-header .channel-header_plugin-dropdown svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.75));
         changeCss('.app__body .file-preview, .app__body .post-image__details, .app__body .markdown__table th, .app__body .markdown__table td, .app__body .webhooks__container, .app__body .dropdown-menu', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.emoji-picker .emoji-picker__header', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .popover.bottom>.arrow', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .btn.btn-transparent', 'color:' + changeOpacity(theme.centerChannelColor, 0.7));
         changeCss('.app__body .popover.right>.arrow', 'border-right-color:' + changeOpacity(theme.centerChannelColor, 0.25));
@@ -366,7 +365,7 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .emoji-picker', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker__search-icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.4));
-        changeCss('.app__body .emoji-picker__preview, .app__body .emoji-picker__items, .app__body .emoji-picker__search-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .emoji-picker__preview, .app__body .emoji-picker__items', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.emoji-picker__category .fa:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
         changeCss('.app__body .emoji-picker__item-wrapper:hover', 'background-color:' + changeOpacity(theme.centerChannelColor, 0.8));
         changeCss('.app__body .icon__postcontent_picker:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
@@ -407,6 +406,9 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .emoji-picker .nav-tabs > li.active > a', 'border-bottom-color:' + theme.buttonBg + '!important;');
         changeCss('.app__body .btn-primary:hover', 'background:' + blendColors(theme.buttonBg, '#000000', 0.1));
         changeCss('.app__body .btn-primary:active', 'background:' + blendColors(theme.buttonBg, '#000000', 0.2));
+
+        changeCss('.app__body .SendMessageButton:not(.disabled):hover', 'background:' + blendColors(theme.buttonBg, '#000000', 0.1));
+        changeCss('.app__body #button_send_post_options:not(.disabled):hover', 'background:' + blendColors(theme.buttonBg, '#000000', 0.1));
     }
 
     if (theme.buttonColor) {
@@ -1283,7 +1285,7 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
                             let post = getPost(state, postId!);
                             if (!post) {
                                 const {data: postData} = await store.dispatch(getPostAction(match.postId!));
-                                post = postData;
+                                post = postData!;
                             }
                             if (post) {
                                 isReply = Boolean(post.root_id);
@@ -1300,12 +1302,12 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
                             if (!member) {
                                 const membership = await store.dispatch(getChannelMember(channel.id, getCurrentUserId(state)));
                                 if ('data' in membership) {
-                                    member = membership.data;
+                                    member = membership.data!;
                                 }
                             }
                             if (!member) {
                                 const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel.display_name, false));
-                                if (data.join) {
+                                if (data!.join) {
                                     let error = false;
                                     if (!getTeamMemberships(state)[team.id]) {
                                         const joinTeamResult = await store.dispatch(addUserToTeam(team.id, user.id));
@@ -1436,13 +1438,18 @@ function isSelection() {
     return selection!.type === 'Range';
 }
 
+/**
+ * Checks if text is selected in the a textbox in center or in RHS or in edit mode of post
+ */
 export function isTextSelectedInPostOrReply(e: React.KeyboardEvent | KeyboardEvent) {
     const {id} = e.target as HTMLElement;
 
-    const isTypingInPost = id === 'post_textbox';
-    const isTypingInReply = id === 'reply_textbox';
+    const isTypingInValidTextbox =
+    id === AdvancedTextEditorTextboxIds.InCenter ||
+    id === AdvancedTextEditorTextboxIds.InRHSComment ||
+    id === AdvancedTextEditorTextboxIds.InEditMode;
 
-    if (!isTypingInPost && !isTypingInReply) {
+    if (isTypingInValidTextbox === false) {
         return false;
     }
 

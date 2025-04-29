@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -106,15 +107,6 @@ func SetupWithStoreMock(tb testing.TB, options ...Option) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
 	options = append(options, StoreOverride(mockStore))
 	th := setupTestHelper(mockStore, false, false, tb, options...)
-	statusMock := mocks.StatusStore{}
-	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
-	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
-	statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
-	statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
-	emptyMockStore := mocks.Store{}
-	emptyMockStore.On("Close").Return(nil)
-	emptyMockStore.On("Status").Return(&statusMock)
-	th.Service.Store = &emptyMockStore
 	return th
 }
 
@@ -152,7 +144,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.MetricsSettings.Enable = true
 	*memoryConfig.ServiceSettings.ListenAddress = "localhost:0"
 	*memoryConfig.MetricsSettings.ListenAddress = "localhost:0"
-	configStore.Set(memoryConfig)
+	_, _, err = configStore.Set(memoryConfig)
+	require.NoError(tb, err)
 
 	options = append(options, ConfigStore(configStore))
 
@@ -161,13 +154,25 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 			Store: dbStore,
 		}, options...)
 	if err != nil {
-		panic(err)
+		require.NoError(tb, err)
 	}
 
 	th := &TestHelper{
 		Context: request.TestContext(tb),
 		Service: ps,
 		Suite:   &mockSuite{},
+	}
+
+	if _, ok := dbStore.(*mocks.Store); ok {
+		statusMock := mocks.StatusStore{}
+		statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
+		statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
+		statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
+		statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
+		emptyMockStore := mocks.Store{}
+		emptyMockStore.On("Close").Return(nil)
+		emptyMockStore.On("Status").Return(&statusMock)
+		th.Service.Store = &emptyMockStore
 	}
 
 	// Share same configuration with app.TestHelper

@@ -1,3 +1,5 @@
+@use "utils/variables";
+
 .edit-post-time-limit-button {
     height: 26px;
     padding: 0 8px;
@@ -16,8 +18,8 @@
     }
 
     &:hover {
-        border-color: $primary-color;
-        background: $primary-color;
-        color: $white;
+        border-color: variables.$primary-color;
+        background: variables.$primary-color;
+        color: variables.$white;
     }
 }

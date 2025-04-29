@@ -143,13 +143,12 @@ func (worker *ElasticsearchAggregatorWorker) DoJob(job *model.Job) {
 	logger.Debug("Worker: Received a new candidate job.")
 	defer worker.jobServer.HandleJobPanic(logger, job)
 
-	claimed, appErr := worker.jobServer.ClaimJob(job)
+	var appErr *model.AppError
+	job, appErr = worker.jobServer.ClaimJob(job)
 	if appErr != nil {
 		logger.Warn("Worker: Error occurred while trying to claim job", mlog.Err(appErr))
 		return
-	}
-
-	if !claimed {
+	} else if job == nil {
 		return
 	}
 
@@ -175,7 +174,7 @@ func (worker *ElasticsearchAggregatorWorker) DoJob(job *model.Job) {
 		Get(*worker.jobServer.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts + "_*").
 		Do(rctx.Context())
 	if err != nil {
-		appError := model.NewAppError("ElasticsearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.get_indexes.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		appError := model.NewAppError("ElasticsearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.get_indexes.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 		worker.setJobError(logger, job, appError)
 		return
 	}
@@ -230,7 +229,7 @@ func (worker *ElasticsearchAggregatorWorker) DoJob(job *model.Job) {
 		},
 	); appErr != nil {
 		logger.Error("Worker: Failed to create indexing job.", mlog.Err(appErr))
-		appError := model.NewAppError("ElasticsearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.create_index_job.error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		appError := model.NewAppError("ElasticsearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.create_index_job.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(appErr)
 		worker.setJobError(logger, job, appError)
 		return
 	}
@@ -280,7 +279,7 @@ func (worker *ElasticsearchAggregatorWorker) DoJob(job *model.Job) {
 				}
 				// Delete indexes
 				if _, err = worker.client.Indices.Delete(strings.Join(curWindow, ",")).Do(rctx.Context()); err != nil {
-					appError := model.NewAppError("ElasticsearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.delete_indexes.error", nil, "", http.StatusInternalServerError).Wrap(err)
+					appError := model.NewAppError("ElasticsearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.delete_indexes.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 					logger.Error("Worker: Failed to delete indexes for job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(appError))
 					worker.setJobError(logger, job, appError)
 					return
@@ -301,7 +300,7 @@ func (worker *ElasticsearchAggregatorWorker) DoJob(job *model.Job) {
 				}
 			default:
 				// error case
-				appError := model.NewAppError("ElasticsearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.index_job_failed.error", nil, "", http.StatusInternalServerError)
+				appError := model.NewAppError("ElasticsearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.index_job_failed.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 				logger.Error("Worker: Index aggregation job failed", mlog.Err(appError))
 				worker.setJobError(logger, job, appError)
 				return

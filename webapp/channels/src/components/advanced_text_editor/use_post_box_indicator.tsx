@@ -5,10 +5,17 @@ import {DateTime} from 'luxon';
 import {useState, useEffect, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import {getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getTimezoneForUserProfile, getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {getStatusForUserId, getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
+import {
+    getCurrentUserId,
+    getStatusForUserId,
+    getUser,
+    makeGetDisplayName,
+} from 'mattermost-redux/selectors/entities/users';
 
 import Constants, {UserStatuses} from 'utils/constants';
 
@@ -43,30 +50,33 @@ function useTimePostBoxIndicator(channelId: string) {
     const [timestamp, setTimestamp] = useState(0);
     const [showIt, setShowIt] = useState(false);
 
-    // get teammate timezone information
-    const teammateTimezone = useSelector(
-        (state: GlobalState) => {
-            if (!teammateId) {
-                return DEFAULT_TIMEZONE;
-            }
+    const teammate: UserProfile | undefined = useSelector((state: GlobalState) => getUser(state, teammateId));
+    const teammateTimezone = useMemo(() => {
+        if (!teammate) {
+            return DEFAULT_TIMEZONE;
+        }
 
-            const teammate = getUser(state, teammateId);
-            return getTimezoneForUserProfile(teammate);
-        },
-        (a, b) =>
-            a.automaticTimezone === b.automaticTimezone &&
-            a.manualTimezone === b.manualTimezone &&
-            a.useAutomaticTimezone === b.useAutomaticTimezone,
-    );
+        return getTimezoneForUserProfile(teammate);
+    }, [teammate]);
 
     // current user timezone
     const userCurrentTimezone = useSelector((state: GlobalState) => getCurrentTimezone(state));
 
+    const isBot = Boolean(isDM && teammate?.is_bot);
+
     // UseEffect to update the timestamp and the visibility for the time indicator
     useEffect(() => {
+        if (isBot) {
+            // returning an empty cleanup function as we need to return a genuine cleanup
+            // function at if teammate is not a bot and useEffect functions need to
+            // have consistent return types. So, we have to return a () => void function everywhere.
+            setShowIt(false);
+            return () => {};
+        }
+
         function updateTime() {
             const timezone =
-                teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone || 'UTC';
+                (teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone) || 'UTC';
 
             const teammateUserDate = DateTime.local().setZone(timezone);
 
@@ -85,15 +95,14 @@ function useTimePostBoxIndicator(channelId: string) {
         const interval = setInterval(updateTime, MINUTE);
 
         return () => clearInterval(interval);
-    }, [
-        teammateTimezone.useAutomaticTimezone,
-        teammateTimezone.automaticTimezone,
-        teammateTimezone.manualTimezone,
-    ]);
+    }, [teammateTimezone.useAutomaticTimezone, teammateTimezone.automaticTimezone, teammateTimezone.manualTimezone, isBot]);
 
     const isScheduledPostEnabledValue = useSelector(isScheduledPostsEnabled);
 
-    const showRemoteUserHour = isDM && showIt && timestamp !== 0;
+    const currentUserId = useSelector(getCurrentUserId);
+    const isSelfDM = isDM && teammateId === currentUserId;
+
+    const showRemoteUserHour = isDM && showIt && timestamp !== 0 && !isBot;
 
     return {
         showRemoteUserHour,
@@ -105,6 +114,8 @@ function useTimePostBoxIndicator(channelId: string) {
         showDndWarning,
         teammateId,
         teammateDisplayName,
+        isSelfDM,
+        isBot,
     };
 }
 

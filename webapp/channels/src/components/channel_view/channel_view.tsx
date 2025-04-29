@@ -7,6 +7,7 @@ import type {RouteComponentProps} from 'react-router-dom';
 
 import {makeAsyncComponent} from 'components/async_load';
 import deferComponentRender from 'components/deferComponentRender';
+import {DropOverlayIdCenterChannel} from 'components/file_upload_overlay/file_upload_overlay';
 import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -19,6 +20,7 @@ const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('com
 const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => import('components/file_upload_overlay')));
 const ChannelBookmarks = makeAsyncComponent('ChannelBookmarks', lazy(() => import('components/channel_bookmarks')));
 const AdvancedCreatePost = makeAsyncComponent('AdvancedCreatePost', lazy(() => import('components/advanced_create_post')));
+const ChannelBanner = makeAsyncComponent('ChannelBanner', lazy(() => import('components/channel_banner/channel_banner')));
 
 export type Props = PropsFromRedux & RouteComponentProps<{
     postid?: string;
@@ -110,7 +112,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         if (this.props.deactivatedChannel) {
             createPost = (
                 <div
-                    className='post-create__container'
+                    className='post-create__container AdvancedTextEditor__ctr'
                     id='post-create'
                 >
                     <div
@@ -186,9 +188,13 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                 id='app-content'
                 className='app__content'
             >
-                <FileUploadOverlay overlayType='center'/>
+                <FileUploadOverlay
+                    overlayType='center'
+                    id={DropOverlayIdCenterChannel}
+                />
                 <ChannelHeader {...this.props}/>
                 {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
+                <ChannelBanner channelId={this.props.channelId}/>
                 <DeferredPostView
                     channelId={this.props.channelId}
                     focusedPostId={this.state.focusedPostId}

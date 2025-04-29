@@ -12,10 +12,10 @@
 
 describe('Integrations', () => {
     const testCases = [
-        {command: '/away', className: 'icon-clock', message: 'You are now away'},
-        {command: '/dnd', className: 'icon-minus-circle', message: 'Do Not Disturb is enabled. You will not receive desktop or mobile push notifications until Do Not Disturb is turned off.'},
-        {command: '/offline', className: 'icon-circle-outline', message: 'You are now offline'},
-        {command: '/online', className: 'icon-check-circle', message: 'You are now online'},
+        {command: '/away', className: 'userAccountMenu_awayMenuItem_icon', message: 'You are now away'},
+        {command: '/dnd', className: 'userAccountMenu_dndMenuItem_icon', message: 'Do Not Disturb is enabled. You will not receive desktop or mobile push notifications until Do Not Disturb is turned off.'},
+        {command: '/offline', className: 'userAccountMenu_offlineMenuItem_icon', message: 'You are now offline'},
+        {command: '/online', className: 'userAccountMenu_onlineMenuItem_icon', message: 'You are now online'},
     ];
 
     let offTopicUrl;
@@ -25,6 +25,11 @@ describe('Integrations', () => {
         cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl: url}) => {
             offTopicUrl = url;
         });
+    });
+
+    beforeEach(() => {
+        // Ensure that the user is set to 'online' before starting each testcase
+        cy.apiUpdateUserStatus('online');
     });
 
     it('I18456 Built-in slash commands: change user status via post', () => {
@@ -62,7 +67,7 @@ describe('Integrations', () => {
 function verifyUserStatus(testCase, isCompactMode) {
     // * Verify that the user status is as indicated
     cy.uiGetProfileHeader().
-        find('i').
+        find('svg').
         should('be.visible').
         and('have.class', testCase.className);
 

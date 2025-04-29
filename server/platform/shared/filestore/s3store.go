@@ -4,9 +4,11 @@
 package filestore
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -44,6 +46,7 @@ type S3FileBackend struct {
 	presignExpires time.Duration
 	isCloud        bool // field to indicate whether this is running under Mattermost cloud or not.
 	uploadPartSize int64
+	storageClass   string
 }
 
 type S3FileBackendAuthError struct {
@@ -118,6 +121,7 @@ func newS3FileBackend(settings FileBackendSettings, isCloud bool) (*S3FileBacken
 		timeout:        timeout,
 		presignExpires: time.Duration(settings.AmazonS3PresignExpiresSeconds) * time.Second,
 		uploadPartSize: settings.AmazonS3UploadPartSizeBytes,
+		storageClass:   settings.AmazonS3StorageClass,
 	}
 	cli, err := backend.s3New(isCloud)
 	if err != nil {
@@ -213,7 +217,7 @@ func (b *S3FileBackend) TestConnection() error {
 		if obj.Err != nil {
 			typedErr := s3.ToErrorResponse(obj.Err)
 			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
-				return &S3FileBackendAuthError{DetailedError: "unable to list objects in the S3 bucket"}
+				return &S3FileBackendAuthError{DetailedError: fmt.Sprintf("unable to list objects in the S3 bucket: %v", typedErr)}
 			}
 			exists = false
 		}
@@ -222,7 +226,7 @@ func (b *S3FileBackend) TestConnection() error {
 		if err != nil {
 			typedErr := s3.ToErrorResponse(err)
 			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
-				return &S3FileBackendAuthError{DetailedError: "unable to check if the S3 bucket exists"}
+				return &S3FileBackendAuthError{DetailedError: fmt.Sprintf("unable to check if the S3 bucket exists: %v", typedErr)}
 			}
 		}
 	}
@@ -504,7 +508,7 @@ func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path
 		contentType = "binary/octet-stream"
 	}
 
-	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize)
+	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
 
 	objSize := int64(-1)
 	if b.isCloud {
@@ -548,7 +552,7 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 		contentType = "binary/octet-stream"
 	}
 
-	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize)
+	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
 	sse := options.ServerSideEncryption
 	partName := fp + ".part"
 	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
@@ -702,6 +706,103 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 	return nil
 }
 
+// ZipReader will create a zip of path. If path is a single file, it will zip the single file.
+// If deflate is true, the contents will be compressed. It will stream the zip to io.ReadCloser.
+func (b *S3FileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, error) {
+	deflateMethod := zip.Store
+	if deflate {
+		deflateMethod = zip.Deflate
+	}
+
+	path, err := b.prefixedPath(path)
+	if err != nil {
+		return nil, err
+	}
+
+	pr, pw := io.Pipe()
+
+	go func() {
+		defer pw.Close()
+
+		zipWriter := zip.NewWriter(pw)
+		defer zipWriter.Close()
+
+		ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel()
+
+		// Is path a single file?
+		object, err := b.client.StatObject(ctx, b.bucket, path, s3.StatObjectOptions{})
+		if err == nil {
+			// We want the zipped file to be at the root of the zip. E.g., given a path of
+			// "path/to/file.sh" we want the zip to have one file: "file.sh", not "path/to/file.sh".
+			stripPath := filepath.Dir(path)
+			if stripPath != "" {
+				stripPath += "/"
+			}
+			if err = b._copyObjectToZipWriter(zipWriter, object, stripPath, deflateMethod); err != nil {
+				pw.CloseWithError(err)
+			}
+			return
+		}
+
+		// Is path a directory?
+		path = path + "/"
+		opts := s3.ListObjectsOptions{
+			Prefix:    path,
+			Recursive: true,
+		}
+		ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel2()
+
+		for object := range b.client.ListObjects(ctx2, b.bucket, opts) {
+			if object.Err != nil {
+				pw.CloseWithError(errors.Wrapf(object.Err, "unable to list the directory %s", path))
+				return
+			}
+
+			if err = b._copyObjectToZipWriter(zipWriter, object, path, deflateMethod); err != nil {
+				pw.CloseWithError(err)
+				return
+			}
+		}
+	}()
+
+	return pr, nil
+}
+
+func (b *S3FileBackend) _copyObjectToZipWriter(zipWriter *zip.Writer, object s3.ObjectInfo, stripPath string, deflateMethod uint16) error {
+	// We strip the path prefix that gets applied,
+	// so that it remains transparent to the application.
+	object.Key = strings.TrimPrefix(object.Key, b.pathPrefix)
+
+	// We strip the path prefix + path so the zip file is relative to the root of the requested path
+	relPath := strings.TrimPrefix(object.Key, stripPath)
+	header := &zip.FileHeader{
+		Name:     relPath,
+		Method:   deflateMethod,
+		Modified: object.LastModified,
+	}
+	header.SetMode(0644) // rw-r--r-- permissions
+
+	writer, err := zipWriter.CreateHeader(header)
+	if err != nil {
+		return errors.Wrapf(err, "unable to create zip entry for %s", object.Key)
+	}
+
+	reader, err := b.Reader(object.Key)
+	if err != nil {
+		return errors.Wrapf(err, "unable to create reader for %s", object.Key)
+	}
+	defer reader.Close()
+
+	_, err = io.Copy(writer, reader)
+	if err != nil {
+		return errors.Wrapf(err, "unable to copy content for %s", object.Key)
+	}
+
+	return nil
+}
+
 func (b *S3FileBackend) GeneratePublicLink(path string) (string, time.Duration, error) {
 	path, err := b.prefixedPath(path)
 	if err != nil {
@@ -759,13 +860,14 @@ func (b *S3FileBackend) prefixedPath(s string) (string, error) {
 	return filepath.Join(b.pathPrefix, s), nil
 }
 
-func s3PutOptions(encrypted bool, contentType string, uploadPartSize int64) s3.PutObjectOptions {
+func s3PutOptions(encrypted bool, contentType string, uploadPartSize int64, storageClass string) s3.PutObjectOptions {
 	options := s3.PutObjectOptions{}
 	if encrypted {
 		options.ServerSideEncryption = encrypt.NewSSE()
 	}
 	options.ContentType = contentType
 	options.PartSize = uint64(uploadPartSize)
+	options.StorageClass = storageClass
 
 	return options
 }

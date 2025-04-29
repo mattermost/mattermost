@@ -5,6 +5,7 @@ import {shallow} from 'enzyme';
 import range from 'lodash/range';
 import React from 'react';
 
+import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import GroupUsers from 'components/admin_console/group_settings/group_details/group_users';
@@ -23,6 +24,7 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
         groupID: 'xxxxxxxxxxxxxxxxxxxxxxxxxx',
         members: members.slice(0, 20),
         total: 20,
+        source: GroupSource.Ldap,
         getMembers: jest.fn().mockReturnValue(Promise.resolve()),
     };
 
@@ -31,6 +33,16 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
             <GroupUsers
                 {...defaultProps}
                 members={[]}
+            />,
+        );
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot, plugin group', () => {
+        const wrapper = shallow(
+            <GroupUsers
+                {...defaultProps}
+                source={PluginGroupSourcePrefix.Plugin + 'keycloak'}
             />,
         );
         expect(wrapper).toMatchSnapshot();

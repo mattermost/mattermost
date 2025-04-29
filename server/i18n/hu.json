@@ -656,74 +656,6 @@
     "translation": "Nem sikerült kiválasztani az üzenet export adatot."
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Nem sikerült lekérni a fájl infókat egy bejegyzéshez."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Nem sikerült megnyitni az export ideiglenes fájlt."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Nem sikerült lekérni az e-mailt az ideiglenes fájlból."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Nem sikerült lekérni az ideiglenes export fájl információját."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Nem sikerült kapcsolódni az smtp szerverhez"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Nem sikerül beállítani az e-mail címzett címét."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Nem sikerült olvasni az e-mail információt."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Nem sikerült írni az e-mail üzenetet."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Nem sikerült beállítani az e-mail üzenetet."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Nem sikerül beállítani az e-mail feladó címét."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Nem sikerült kézbesíteni az e-mailt a Global Relay-nek."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Nem sikerült generálni az eml fájl adatot."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Nem sikerült létrehozni az eml fájlt."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Nem sikerült bezárni a zip fájlt."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Nem sikerült hozzáadni a mellékletet a Global Relay exporthoz."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Nem sikerült lekérni a fájl infót a bejegyzéshez."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Nem sikerült lekérni a fájl infót a bejegyzéshez."
-  },
-  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "nem lehet migrálni."
   },
@@ -1486,10 +1418,6 @@
   {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Érvénytelen eredeti azonosító."
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Érvénytelen üzenet."
   },
   {
     "id": "model.post.is_valid.id.app_error",
@@ -3244,10 +3172,6 @@
     "translation": "Az Ön licensze nem támogatja az azonosítóval betöltött push értesítéseket."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Nem sikerült lekérni a felhasználókat a csatornában a megadott lejárati időn belül."
-  },
-  {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "Az Elasticsearch Server URL vagy felhasználónév megváltozott. Kérjük, adja meg újra az Elasticsearch jelszót a kapcsolat teszteléséhez."
   },
@@ -3322,10 +3246,6 @@
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
     "translation": "Nem sikerült frissíteni az Elasticsearch indexeket"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Nem sikerült kitörölni az Elasticsearch indexet"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -3472,56 +3392,8 @@
     "translation": "Megfelelősségi exportálás munka '{{.JobName}}' nem sikerült a '{{.FilePath}}' fájlban"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Nem lehet betölteni az export sablonokat. Kérlek próbáld újra."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "A megfelelőségi funkciót a jelenlegi licenc letiltotta. Az enterprise licenc frissítésével kapcsolatban forduljon a rendszergazdához."
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Nem sikerült írni a global relay fájlt."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Nem sikerült újra olvasni a Global Relay ideiglenes exportfájlt."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Nem sikerült megnyitni az ideiglenes exportfájlt."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "A feltöltött fájlt eltávolítottuk a Global Relay exportálásából, mert túl nagy volt ahhoz, hogy elküldhesse."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Nem sikerült létrehozni a zip export fájlt."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Nem sikerült írni a csv fájlt."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Nem sikerült létrehozni a figyelmeztetés fájlt."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Nem sikerült exportálni a bejegyzést."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Nem sikerült létrehozni a zip fájlt"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Nem sikerült átalakítani a metaadatot json-be."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Nem sikerült hozzáadni a metaadat fájlt a zip fájlba."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
@@ -4408,10 +4280,6 @@
     "translation": "Nem frissíthet webhookokat csapatok között."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Nem sikerült dekódolni a bejövő webhook többrészes adatát."
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Vagy trigger_words, vagy channel_id értéket kell adni."
   },
@@ -5044,26 +4912,6 @@
     "translation": "Személyes hozzáférési tokent adtunk a fiókjához"
   },
   {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Nem sikerült hozzáadni fejlécet a CSV exportba."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Nem sikerült létrehozni ideiglenes CSV export fájlt."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Nem sikerült hozzáadni a mellékletet a CSV exportba."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Nem sikerült másolni a mellékletet a zip fájlba."
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Ismeretlen kimeneti formátum {{.ExportType}}"
-  },
-  {
     "id": "ent.cluster.timeout.error",
     "translation": "Időtúllépés a fürt válaszára várásnál"
   },
@@ -5078,14 +4926,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " mellékelt egy fájlt."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Nem sikerült írni az export fájlt."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Nem sikerült átalakítani az exportot XML-be."
   },
   {
     "id": "app.import.validate_post_import_data.props_too_large.error",
