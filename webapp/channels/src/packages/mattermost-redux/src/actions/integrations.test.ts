@@ -777,6 +777,9 @@ describe('Actions.Integrations', () => {
     it('submitInteractiveDialog uses state information', async () => {
         store = configureStore({
             entities: {
+                users: {
+                    currentUserId: 'currentUserID',
+                },
                 teams: {
                     currentTeamId: 'currentTeamID',
                 },
@@ -803,6 +806,7 @@ describe('Actions.Integrations', () => {
             ...submit,
             channel_id: 'dialog_channel_id',
             team_id: 'currentTeamID',
+            user_id: 'currentUserID',
         };
 
         nock(Client4.getBaseRoute()).
