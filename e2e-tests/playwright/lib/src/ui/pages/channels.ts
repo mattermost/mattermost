@@ -15,7 +15,6 @@ export default class ChannelsPage {
     readonly userAccountMenuButton;
     readonly searchPopover;
     readonly centerView;
-    readonly scheduledDraftDropdown;
     readonly scheduledDraftModal;
     readonly sidebarLeft;
     readonly sidebarRight;
@@ -32,6 +31,8 @@ export default class ChannelsPage {
     readonly postReminderMenu;
     readonly userAccountMenu;
     readonly emojiGifPickerPopup;
+    readonly scheduleMessageMenu;
+    readonly scheduleMessageModal;
 
     constructor(page: Page) {
         this.page = page;
@@ -56,11 +57,14 @@ export default class ChannelsPage {
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
         this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for:'}));
         this.userAccountMenu = new components.UserAccountMenu(page.locator('#userAccountMenu'));
+        this.scheduleMessageMenu = new components.ScheduleMessageMenu(page.locator('#dropdown_send_post_options'));
 
         // Popovers
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
-        this.scheduledDraftDropdown = new components.ScheduledDraftMenu(page.locator('#dropdown_send_post_options'));
         this.scheduledDraftModal = new components.ScheduledDraftModal(page.locator('div.modal-content'));
+        this.scheduleMessageModal = new components.ScheduleMessageModal(
+            page.getByRole('dialog', {name: 'Schedule message'}),
+        );
         this.userProfilePopover = new components.UserProfilePopover(page.locator('.user-profile-popover'));
 
         // Posts
@@ -143,5 +147,22 @@ export default class ChannelsPage {
         await expect(popover.container).toBeVisible();
 
         return popover;
+    }
+
+    async openScheduleMessageMenu() {
+        await expect(this.centerView.postCreate.scheduleMessageButton).toBeVisible();
+        await this.centerView.postCreate.scheduleMessageButton.click();
+
+        return this.scheduleMessageMenu;
+    }
+
+    async scheduleMessage(message: string, dayFromToday: number = 0, timeOptionIndex: number = 0) {
+        await this.centerView.postCreate.writeMessage(message);
+
+        const scheduleMessageMenu = await this.openScheduleMessageMenu();
+        await scheduleMessageMenu.toBeVisible();
+        await scheduleMessageMenu.selectCustomTime();
+
+        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }
 }

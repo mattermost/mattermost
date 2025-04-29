@@ -14,9 +14,9 @@ export {
     LoginPage,
     ResetPasswordPage,
     SignupPage,
-    ScheduledDraftPage,
+    ScheduledPostsPage,
     SystemConsolePage,
-    DraftPage,
+    DraftsPage,
 } from './ui/pages';
 
 export {TestArgs, ScreenshotOptions} from './types';

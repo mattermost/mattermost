@@ -1,6 +1,8 @@
 {
   "name": "mattermost-playwright",
-  "workspaces": ["lib"],
+  "workspaces": [
+    "lib"
+  ],
   "scripts": {
     "postinstall": "script/post_install.sh && npm run build",
     "build": "npm run build --workspaces",
@@ -27,9 +29,11 @@
     "@playwright/test": "1.52.0",
     "cross-env": "7.0.3",
     "dayjs": "1.11.13",
+    "luxon": "3.6.1",
     "zod": "3.24.3"
   },
   "devDependencies": {
+    "@types/luxon": "^3.6.2",
     "@typescript-eslint/eslint-plugin": "8.30.1",
     "eslint": "9.25.0",
     "eslint-import-resolver-typescript": "4.3.3",
