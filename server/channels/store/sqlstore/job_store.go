@@ -26,10 +26,32 @@ const (
 
 type SqlJobStore struct {
 	*SqlStore
+
+	jobColumns []string
+	jobQuery   sq.SelectBuilder
 }
 
 func newSqlJobStore(sqlStore *SqlStore) store.JobStore {
-	return &SqlJobStore{sqlStore}
+	s := &SqlJobStore{
+		SqlStore: sqlStore,
+		jobColumns: []string{
+			"Id",
+			"Type",
+			"Priority",
+			"CreateAt",
+			"StartAt",
+			"LastActivityAt",
+			"Status",
+			"Progress",
+			"Data",
+		},
+	}
+
+	s.jobQuery = s.getQueryBuilder().
+		Select(s.jobColumns...).
+		From("Jobs")
+
+	return s
 }
 
 func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
@@ -204,9 +226,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 			return nil, nil
 		}
 
-		getBuilder := jss.getQueryBuilder().
-			Select("*").
-			From("Jobs").
+		getBuilder := jss.jobQuery.
 			Where(sq.Eq{"Id": id, "Status": newStatus})
 
 		var job model.Job
@@ -231,7 +251,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 		Set("LastActivityAt", lastActivityAndStartTime).
 		Set("Status", newStatus).
 		Where(sq.Eq{"Id": id, "Status": currentStatus}).
-		Suffix("RETURNING *")
+		Suffix("RETURNING " + strings.Join(jss.jobColumns, ", "))
 
 	if newStatus == model.JobStatusInProgress {
 		builder = builder.Set("StartAt", lastActivityAndStartTime)
@@ -255,9 +275,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 }
 
 func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Id": id}).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
@@ -276,9 +294,7 @@ func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
 
 func (jss SqlJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, page int, perPage int) ([]*model.Job, error) {
 	offset := page * perPage
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobTypes}).
 		OrderBy("CreateAt DESC").
 		Limit(uint64(perPage)).
@@ -296,9 +312,7 @@ func (jss SqlJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, page 
 }
 
 func (jss SqlJobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job, error) {
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType}).
 		OrderBy("CreateAt DESC").ToSql()
 	if err != nil {
@@ -314,9 +328,7 @@ func (jss SqlJobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job
 }
 
 func (jss SqlJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error) {
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType, "Status": status}).
 		OrderBy("CreateAt DESC").ToSql()
 	if err != nil {
@@ -333,9 +345,7 @@ func (jss SqlJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, stat
 
 func (jss SqlJobStore) GetAllByTypePage(c request.CTX, jobType string, page int, perPage int) ([]*model.Job, error) {
 	offset := page * perPage
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType}).
 		OrderBy("CreateAt DESC").
 		Limit(uint64(perPage)).
@@ -354,9 +364,7 @@ func (jss SqlJobStore) GetAllByTypePage(c request.CTX, jobType string, page int,
 
 func (jss SqlJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Job, error) {
 	statuses := []*model.Job{}
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Status": status}).
 		OrderBy("CreateAt ASC").ToSql()
 	if err != nil {
@@ -372,9 +380,7 @@ func (jss SqlJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Jo
 
 func (jss SqlJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string, status string, page int, perPage int) ([]*model.Job, error) {
 	offset := page * perPage
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType, "Status": status}).
 		OrderBy("CreateAt DESC").
 		Limit(uint64(perPage)).
@@ -396,9 +402,7 @@ func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string
 }
 
 func (jss SqlJobStore) GetNewestJobByStatusesAndType(status []string, jobType string) (*model.Job, error) {
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Status": status, "Type": jobType}).
 		OrderBy("CreateAt DESC").
 		Limit(1).ToSql()
