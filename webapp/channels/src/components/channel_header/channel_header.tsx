@@ -41,8 +41,8 @@ class ChannelHeader extends React.PureComponent<Props> {
     componentDidMount() {
         this.props.actions.getCustomEmojisInText(this.props.channel ? this.props.channel.header : '');
 
-        // Initial fetch of remote names if the channel is shared
-        if (this.props.channel?.shared) {
+        // Initial fetch of remote names if the channel is shared and we don't already have them
+        if (this.props.channel?.shared && (!this.props.remoteNames || this.props.remoteNames.length === 0)) {
             this.props.actions.fetchChannelRemoteNames(this.props.channel.id);
         }
     }
@@ -54,10 +54,11 @@ class ChannelHeader extends React.PureComponent<Props> {
             this.props.actions.getCustomEmojisInText(header);
         }
 
-        // Fetch remote names when channel changes or when a channel becomes shared
+        // Fetch remote names when channel changes or when a channel becomes shared, but only if we don't already have them
         if (this.props.channel?.shared &&
             (this.props.channel.id !== prevProps.channel?.id ||
-            this.props.channel.shared !== prevProps.channel?.shared)) {
+            this.props.channel.shared !== prevProps.channel?.shared) &&
+            (!this.props.remoteNames || this.props.remoteNames.length === 0)) {
             this.props.actions.fetchChannelRemoteNames(this.props.channel.id);
         }
     }
