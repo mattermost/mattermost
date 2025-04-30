@@ -13,9 +13,12 @@ type Props = {
 };
 
 const SharedChannelIndicator: React.FC<Props> = (props: Props): JSX.Element => {
-    const sharedIcon = (<i data-testid='SharedChannelIcon'
-        className={`${props.className || ''} icon-circle-multiple-outline`}
-    />);
+    const sharedIcon = (
+        <i
+            data-testid='SharedChannelIcon'
+            className={`${props.className || ''} icon-circle-multiple-outline`}
+        />
+    );
 
     if (!props.withTooltip) {
         return sharedIcon;
