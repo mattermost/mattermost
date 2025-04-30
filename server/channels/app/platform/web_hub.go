@@ -577,7 +577,7 @@ func (h *Hub) Start() {
 						// Only set to offline if there are no
 						// active connections in other nodes as well.
 						if clusterCnt == 0 {
-							h.platform.SetStatusOffline(userID, false)
+							h.platform.SetStatusOffline(userID, false, false)
 						}
 					})
 					continue
@@ -698,7 +698,7 @@ func (h *Hub) Start() {
 			case <-h.stop:
 				for webConn := range connIndex.All() {
 					webConn.Close()
-					h.platform.SetStatusOffline(webConn.UserId, false)
+					h.platform.SetStatusOffline(webConn.UserId, false, false)
 				}
 
 				h.explicitStop = true
