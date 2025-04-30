@@ -4,8 +4,8 @@
     --icon-opacity-hover: 0.8;
     --sys-away-indicator: #ffbc1f;
     --sys-away-indicator-dark: #997113;
-    --sys-button-color: #fff;
     --sys-button-bg: #166de0;
+    --sys-button-color: #fff;
     --sys-center-channel-bg: #fff;
     --sys-center-channel-color: #3d3c40;
     --sys-dnd-indicator: #f74343;
@@ -33,8 +33,8 @@
     // Cloned RGB values from base/css_variables, to be used as rgba(var(--sys-color), opacity_here) to apply opacity to base colors
     --sys-away-indicator-rgb: 255, 188, 31;
     --sys-away-indicator-dark-rgb: 153, 113, 19;
-    --sys-button-color-rgb: 255, 255, 255;
     --sys-button-bg-rgb: 22, 109, 224;
+    --sys-button-color-rgb: 255, 255, 255;
     --sys-center-channel-bg-rgb: 255, 255, 255;
     --sys-center-channel-color-rgb: 61, 60, 64;
     --sys-dnd-indicator-rgb: 247, 67, 67;
