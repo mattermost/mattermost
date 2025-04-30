@@ -99,6 +99,7 @@ type TrackSKU string
 const (
 	TrackProfessionalSKU TrackSKU = "professional"
 	TrackEnterpriseSKU   TrackSKU = "enterprise"
+	TrackPremiumSKU      TrackSKU = "premium"
 )
 
 type TrackFeature string
@@ -745,6 +746,8 @@ func (ts *TelemetryService) trackConfig() {
 		"custom_terms_of_service_enabled":              *cfg.SupportSettings.CustomTermsOfServiceEnabled,
 		"custom_terms_of_service_re_acceptance_period": *cfg.SupportSettings.CustomTermsOfServiceReAcceptancePeriod,
 		"enable_ask_community_link":                    *cfg.SupportSettings.EnableAskCommunityLink,
+		"report_a_problem_type":                        *cfg.SupportSettings.ReportAProblemType,
+		"allow_download_logs":                          *cfg.SupportSettings.AllowDownloadLogs,
 	}
 
 	configs[TrackConfigLDAP] = map[string]any{

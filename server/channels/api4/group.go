@@ -1482,7 +1482,7 @@ func licensedAndConfiguredForGroupBySource(app *app.App, source model.GroupSourc
 		return model.NewAppError("", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 	}
 
-	if source == model.GroupSourceCustom && lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise {
+	if source == model.GroupSourceCustom && !model.MinimumProfessionalLicense(lic) {
 		return model.NewAppError("", "api.custom_groups.license_error", nil, "", http.StatusBadRequest)
 	}
 

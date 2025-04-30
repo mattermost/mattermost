@@ -36,11 +36,11 @@ exports[`components/GetLinkModal should have called onHide 1`] = `
     closeLabel="Close"
     id="getLinkModalLabel"
   >
-    <h4
+    <h2
       className="modal-title"
     >
       title
-    </h4>
+    </h2>
   </ModalHeader>
   <ModalBody
     bsClass="modal-body"
@@ -71,26 +71,20 @@ exports[`components/GetLinkModal should have called onHide 1`] = `
       />
     </button>
     <button
-      className="btn btn-primary pull-left"
+      className="btn btn-primary btn-success pull-left"
       data-copy-btn="true"
       id="linkModalCopyLink"
       onClick={[Function]}
       type="button"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Copy Link"
-        id="get_link.copy"
+      <i
+        className="icon icon-check"
       />
-    </button>
-    <p
-      className="alert alert-success alert--confirm"
-    >
-      <SuccessIcon />
       <MemoizedFormattedMessage
-        defaultMessage=" Link copied"
+        defaultMessage="Copied"
         id="get_link.clipboard"
       />
-    </p>
+    </button>
   </ModalFooter>
 </Modal>
 `;
@@ -131,11 +125,11 @@ exports[`components/GetLinkModal should have called onHide 2`] = `
     closeLabel="Close"
     id="getLinkModalLabel"
   >
-    <h4
+    <h2
       className="modal-title"
     >
       title
-    </h4>
+    </h2>
   </ModalHeader>
   <ModalBody
     bsClass="modal-body"
@@ -172,6 +166,9 @@ exports[`components/GetLinkModal should have called onHide 2`] = `
       onClick={[Function]}
       type="button"
     >
+      <i
+        className="icon icon-link-variant"
+      />
       <MemoizedFormattedMessage
         defaultMessage="Copy Link"
         id="get_link.copy"
@@ -217,11 +214,11 @@ exports[`components/GetLinkModal should match snapshot when all props is set 1`]
     closeLabel="Close"
     id="getLinkModalLabel"
   >
-    <h4
+    <h2
       className="modal-title"
     >
       title
-    </h4>
+    </h2>
   </ModalHeader>
   <ModalBody
     bsClass="modal-body"
@@ -263,6 +260,9 @@ exports[`components/GetLinkModal should match snapshot when all props is set 1`]
       onClick={[Function]}
       type="button"
     >
+      <i
+        className="icon icon-link-variant"
+      />
       <MemoizedFormattedMessage
         defaultMessage="Copy Link"
         id="get_link.copy"
@@ -308,11 +308,11 @@ exports[`components/GetLinkModal should match snapshot when helpText is not set 
     closeLabel="Close"
     id="getLinkModalLabel"
   >
-    <h4
+    <h2
       className="modal-title"
     >
       title
-    </h4>
+    </h2>
   </ModalHeader>
   <ModalBody
     bsClass="modal-body"
@@ -349,6 +349,9 @@ exports[`components/GetLinkModal should match snapshot when helpText is not set 
       onClick={[Function]}
       type="button"
     >
+      <i
+        className="icon icon-link-variant"
+      />
       <MemoizedFormattedMessage
         defaultMessage="Copy Link"
         id="get_link.copy"
