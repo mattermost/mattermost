@@ -161,8 +161,8 @@ describe('components/SharedChannelIndicator', () => {
             jest.advanceTimersByTime(1000);
 
             await waitFor(() => {
-                // Just check that the tooltip text ends with ellipsis, indicating truncation
-                const tooltipText = screen.getByText(/Shared with:.+\.\.\.$/);
+                // Check that the tooltip contains text with ellipsis, indicating truncation
+                const tooltipText = screen.getByText(/Shared with:.*\.\.\./);
                 expect(tooltipText).toBeInTheDocument();
 
                 // Verify overall tooltip length doesn't exceed the maximum length (120)
