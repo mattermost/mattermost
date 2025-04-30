@@ -55,8 +55,8 @@ export const makeMapStateToProps = () => {
         const searchTerm = state.views.search.modalSearch;
 
         let filters;
-        const isSharedChannelsDMsEnabled = getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true';
-        if (!isSharedChannelsDMsEnabled) {
+        const enableSharedChannelsDMs = getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true';
+        if (!enableSharedChannelsDMs) {
             filters = {exclude_remote: true};
         }
 
