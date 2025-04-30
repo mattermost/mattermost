@@ -1585,15 +1585,15 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 	}
 
 	if channel.Type == model.ChannelTypePrivate {
-		if ok, _ := a.ChannelAccessControlled(c, channel.Id); ok {
+		if ok, appErr := a.ChannelAccessControlled(c, channel.Id); ok {
 			if acs := a.Srv().Channels().AccessControl; acs != nil {
-				group, err := a.Srv().Store().PropertyGroup().Get(model.CustomProfileAttributesPropertyGroupName)
+				groupID, err := a.CpaGroupID()
 				if err != nil {
 					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
 						fmt.Sprintf("failed to get group: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
 				}
 
-				s, err := a.Srv().Store().Attributes().GetSubject(c, user.Id, group.ID)
+				s, err := a.Srv().Store().Attributes().GetSubject(c, user.Id, groupID)
 				if err != nil {
 					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
 						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
@@ -1613,6 +1613,8 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "", http.StatusForbidden)
 				}
 			}
+		} else if appErr != nil {
+			c.Logger().Error("Error checking access control policy for channel", mlog.Err(appErr))
 		}
 	}
 

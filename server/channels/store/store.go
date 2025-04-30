@@ -1123,6 +1123,7 @@ type AttributesStore interface {
 	RefreshAttributes() error
 	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
+	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

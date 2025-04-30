@@ -611,6 +611,22 @@ func (s *TimerLayerAccessControlPolicyStore) SetActiveStatus(c request.CTX, id s
 	return result, err
 }
 
+func (s *TimerLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
+	start := time.Now()
+
+	result, err := s.AttributesStore.GetChannelMembersToRemove(rctx, channelID, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetChannelMembersToRemove", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerAttributesStore) GetSubject(rctx request.CTX, ID string, groupID string) (*model.Subject, error) {
 	start := time.Now()
 

@@ -15,6 +15,36 @@ type AttributesStore struct {
 	mock.Mock
 }
 
+// GetChannelMembersToRemove provides a mock function with given fields: rctx, channelID, opts
+func (_m *AttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
+	ret := _m.Called(rctx, channelID, opts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetChannelMembersToRemove")
+	}
+
+	var r0 []*model.ChannelMember
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.SubjectSearchOptions) ([]*model.ChannelMember, error)); ok {
+		return rf(rctx, channelID, opts)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.SubjectSearchOptions) []*model.ChannelMember); ok {
+		r0 = rf(rctx, channelID, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, model.SubjectSearchOptions) error); ok {
+		r1 = rf(rctx, channelID, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSubject provides a mock function with given fields: rctx, ID, groupID
 func (_m *AttributesStore) GetSubject(rctx request.CTX, ID string, groupID string) (*model.Subject, error) {
 	ret := _m.Called(rctx, ID, groupID)

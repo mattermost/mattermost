@@ -99,6 +99,38 @@ func (_m *PolicyAdministrationPointInterface) GetBasicAutocompleteFields() (map[
 	return r0, r1
 }
 
+// GetChannelMembersToRemove provides a mock function with given fields: rctx, channelID
+func (_m *PolicyAdministrationPointInterface) GetChannelMembersToRemove(rctx request.CTX, channelID string) ([]*model.ChannelMember, *model.AppError) {
+	ret := _m.Called(rctx, channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetChannelMembersToRemove")
+	}
+
+	var r0 []*model.ChannelMember
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]*model.ChannelMember, *model.AppError)); ok {
+		return rf(rctx, channelID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) []*model.ChannelMember); ok {
+		r0 = rf(rctx, channelID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
+		r1 = rf(rctx, channelID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetPolicy provides a mock function with given fields: rctx, id
 func (_m *PolicyAdministrationPointInterface) GetPolicy(rctx request.CTX, id string) (*model.AccessControlPolicy, *model.AppError) {
 	ret := _m.Called(rctx, id)

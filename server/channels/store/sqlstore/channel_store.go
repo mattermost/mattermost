@@ -144,7 +144,7 @@ func channelSliceColumns(isSelect bool, prefix ...string) []string {
 			p = "Channels."
 		}
 
-		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %sId) AS %s", p, "PolicyEnforced"))
+		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %sId) AS PolicyEnforced", p))
 	}
 
 	return columns

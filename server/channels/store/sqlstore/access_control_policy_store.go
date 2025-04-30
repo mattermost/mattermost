@@ -367,7 +367,7 @@ func (s *SqlAccessControlPolicyStore) Get(_ request.CTX, id string) (*model.Acce
 	p := storeAccessControlPolicy{}
 	query := s.selectQueryBuilder.Where(sq.Eq{"ID": id})
 
-	err := s.GetReplica().GetBuilder(&p, query)
+	err := s.GetMaster().GetBuilder(&p, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("AccessControlPolicy", id)
@@ -471,7 +471,7 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 
 	query = query.Limit(limit)
 
-	err := s.GetReplica().SelectBuilder(&p, query)
+	err := s.GetMaster().SelectBuilder(&p, query)
 	if err != nil {
 		return nil, cursor, errors.Wrapf(err, "failed to find policies with opts={\"parentID\"=%q, \"resourceType\"=%q", opts.ParentID, opts.Type)
 	}

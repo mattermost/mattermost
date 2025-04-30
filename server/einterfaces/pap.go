@@ -26,6 +26,8 @@ type PolicyAdministrationPointInterface interface {
 	QueryUsersForExpression(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError)
 	// QueryUsersForResource evaluates finds the users match to the resource.
 	QueryUsersForResource(rctx request.CTX, resourceID, action string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError)
+	// GetChannelMembersToRemove retrieves the channel members that need to be removed from the given channel.
+	GetChannelMembersToRemove(rctx request.CTX, channelID string) ([]*model.ChannelMember, *model.AppError)
 	// SavePolicy saves the given access control policy.
 	SavePolicy(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)
 	// GetPolicy retrieves the access control policy with the given ID.

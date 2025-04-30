@@ -748,7 +748,7 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                     ],
                 },
-                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.Premium),
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.Premium),
             },
         },
     },

@@ -161,3 +161,40 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 
 	return users, total, nil
 }
+
+func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
+	query := s.getQueryBuilder().
+		Select(channelMemberSliceColumns()...).From("ChannelMembers").LeftJoin("AttributeView ON ChannelMembers.UserId = AttributeView.TargetID").
+		Where(sq.Eq{"ChannelMembers.ChannelId": channelID}).
+		OrderBy("ChannelMembers.UserId ASC")
+
+	if opts.Query != "" {
+		query = query.Where(sq.Expr(fmt.Sprintf("(NOT %s OR AttributeView.TargetID IS NULL)", opts.Query), opts.Args...))
+	}
+
+	if opts.Limit > 0 {
+		query = query.Limit(uint64(opts.Limit))
+	} else if opts.Limit > MaxPerPage {
+		query = query.Limit(uint64(MaxPerPage))
+	}
+
+	if opts.Cursor.TargetID != "" {
+		if s.DriverName() == model.DatabaseDriverMysql {
+			query = query.Where(sq.Expr("ChannelMembers.UserId > ?", opts.Cursor.TargetID))
+		} else {
+			query = query.Where(sq.Expr(fmt.Sprintf("ChannelMembers.UserId > $%d", len(opts.Args)+1), opts.Cursor.TargetID))
+		}
+	}
+
+	q, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build query for subjects")
+	}
+
+	members := []*model.ChannelMember{}
+	if err := s.GetReplica().Select(&members, q, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find channel members with for channel id=%s", channelID)
+	}
+
+	return members, nil
+}
