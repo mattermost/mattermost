@@ -106,8 +106,8 @@ func (scs *Service) unshareChannelWithOptions(channelID string, notifyRemotes bo
 	}
 
 	// Check feature flag for DMs/GMs (consistent with ShareChannel)
-	if !scs.server.Config().FeatureFlags.EnableSharedChannelsDMs && 
-	   (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
+	if !scs.server.Config().FeatureFlags.EnableSharedChannelsDMs &&
+		(channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
 		return false, errors.New("cannot unshare a direct or group channel")
 	}
 
