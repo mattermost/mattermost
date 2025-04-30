@@ -57,9 +57,11 @@ type Props = {
 }
 
 export default class TeamUrl extends React.PureComponent<Props, State> {
+    teamURLInput: React.RefObject<HTMLInputElement>;
+
     constructor(props: Props) {
         super(props);
-
+        this.teamURLInput = React.createRef();
         this.state = {
             nameError: '',
             isLoading: false,
@@ -95,6 +97,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                     defaultMessage='This field is required'
                 />),
             });
+            this.teamURLInput.current?.focus();
             return;
         }
 
@@ -109,6 +112,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                     }}
                 />),
             });
+            this.teamURLInput.current?.focus();
             return;
         }
 
@@ -119,6 +123,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                     defaultMessage="Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."
                 />),
             });
+            this.teamURLInput.current?.focus();
             return;
         }
 
@@ -242,6 +247,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                                     <input
                                         id='teamURLInput'
                                         type='text'
+                                        ref={this.teamURLInput}
                                         className='form-control'
                                         placeholder=''
                                         maxLength={128}

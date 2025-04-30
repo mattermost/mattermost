@@ -36,8 +36,11 @@ type State = {
 }
 
 export default class TeamSignupDisplayNamePage extends React.PureComponent<Props, State> {
+    teamNameInput: React.RefObject<HTMLInputElement>;
+
     constructor(props: Props) {
         super(props);
+        this.teamNameInput = React.createRef();
 
         this.state = {
             teamDisplayName: this.props.state.team?.display_name || '',
@@ -59,6 +62,7 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
                     defaultMessage='This field is required'
                 />),
             });
+            this.teamNameInput.current?.focus();
             return;
         } else if (displayName.length < Constants.MIN_TEAMNAME_LENGTH || displayName.length > Constants.MAX_TEAMNAME_LENGTH) {
             this.setState({nameError: (
@@ -71,6 +75,7 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
                     }}
                 />),
             });
+            this.teamNameInput.current?.focus();
             return;
         }
 
@@ -119,6 +124,7 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
                                 <input
                                     id='teamNameInput'
                                     type='text'
+                                    ref={this.teamNameInput}
                                     className='form-control'
                                     placeholder=''
                                     maxLength={128}
