@@ -226,13 +226,13 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                         className='signup-team-logo'
                         src={logoImage}
                     />
-                    <h5>
+                    <label htmlFor='teamURLInput'>
                         <FormattedMessage
                             id='create_team.team_url.teamUrl'
                             tagName='strong'
                             defaultMessage='Team URL'
                         />
-                    </h5>
+                    </label>
                     <div className={nameDivClass}>
                         <div className='row'>
                             <div className='col-sm-11'>
