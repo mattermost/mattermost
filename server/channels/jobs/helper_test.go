@@ -7,11 +7,11 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -20,7 +20,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/config"
-	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
@@ -37,16 +36,15 @@ type TestHelper struct {
 	IncludeCacheLayer bool
 	ConfigStore       *config.Store
 
+	t                         testing.TB
 	tempWorkspace             string
 	oldWatcherPollingInterval int
 }
 
-func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool,
+func setupTestHelper(t testing.TB, dbStore store.Store, enterprise bool, includeCacheLayer bool,
 	updateCfg func(cfg *model.Config), options []app.Option) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "jobstest")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 
 	configStore := config.NewTestMemoryStore()
 	memoryConfig := configStore.Get()
@@ -63,7 +61,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		updateCfg(memoryConfig)
 	}
 
-	configStore.Set(memoryConfig)
+	_, _, err = configStore.Set(memoryConfig)
+	require.NoError(t, err)
 
 	buffer := &mlog.Buffer{}
 
@@ -75,22 +74,20 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		options = append(options, app.StoreOverride(dbStore))
 	}
 
-	testLogger, _ := mlog.NewLogger()
-	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
-		panic("failed to configure test logger: " + errCfg.Error())
-	}
-	if errW := mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...); errW != nil {
-		panic("failed to add writer target to test logger: " + errW.Error())
-	}
+	testLogger, err := mlog.NewLogger()
+	require.NoError(t, err)
+	logCfg, err := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
+	require.NoError(t, err)
+	err = testLogger.ConfigureTargets(logCfg, nil)
+	require.NoError(t, err, "failed to configure test logger")
+	err = mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...)
+	require.NoError(t, err, "failed to add writer target to test logger")
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
 	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s.Channels())),
@@ -100,14 +97,14 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
 		ConfigStore:       configStore,
+		t:                 t,
+		tempWorkspace:     tempWorkspace,
 	}
 
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = "localhost:0" })
-	serverErr := th.Server.Start()
-	if serverErr != nil {
-		panic(serverErr)
-	}
+	err = th.Server.Start()
+	require.NoError(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
@@ -133,43 +130,28 @@ func SetupWithUpdateCfg(tb testing.TB, updateCfg func(cfg *model.Config), option
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 
-	th := setupTestHelper(dbStore, false, true, updateCfg, options)
+	th := setupTestHelper(tb, dbStore, false, true, updateCfg, options)
 	th.oldWatcherPollingInterval = oldWatcherPollingInterval
 	return th
 }
 
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser *model.User
-	BasicUser       *model.User
-	BasicUser2      *model.User
-}
-
 func (th *TestHelper) InitBasic() *TestHelper {
-	// create users once and cache them because password hashing is slow
-	initBasicOnce.Do(func() {
-		th.SystemAdminUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
-		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
+	th.SystemAdminUser = th.CreateUser()
+	_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	require.Nil(th.t, appErr)
+	th.SystemAdminUser, appErr = th.App.GetUser(th.SystemAdminUser.Id)
+	require.Nil(th.t, appErr)
 
-		th.BasicUser = th.CreateUser()
-		th.BasicUser, _ = th.App.GetUser(th.BasicUser.Id)
-		userCache.BasicUser = th.BasicUser.DeepCopy()
+	th.BasicUser = th.CreateUser()
+	th.BasicUser, appErr = th.App.GetUser(th.BasicUser.Id)
+	require.Nil(th.t, appErr)
 
-		th.BasicUser2 = th.CreateUser()
-		th.BasicUser2, _ = th.App.GetUser(th.BasicUser2.Id)
-		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
-	})
-	// restore cached users
-	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
-	th.BasicUser = userCache.BasicUser.DeepCopy()
-	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
-
-	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	mainHelper.GetSQLStore().User().InsertUsers(users)
+	th.BasicUser2 = th.CreateUser()
+	th.BasicUser2, appErr = th.App.GetUser(th.BasicUser2.Id)
+	require.Nil(th.t, appErr)
 
 	th.BasicTeam = th.CreateTeam()
+
 	return th
 }
 
@@ -182,10 +164,8 @@ func (th *TestHelper) CreateTeam() *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	var err *model.AppError
-	if team, err = th.App.CreateTeam(th.Context, team); err != nil {
-		panic(err)
-	}
+	team, err := th.App.CreateTeam(th.Context, team)
+	require.Nil(th.t, err)
 	return team
 }
 
@@ -206,14 +186,11 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 
 	var err *model.AppError
 	if guest {
-		if user, err = th.App.CreateGuest(th.Context, user); err != nil {
-			panic(err)
-		}
+		user, err = th.App.CreateGuest(th.Context, user)
 	} else {
-		if user, err = th.App.CreateUser(th.Context, user); err != nil {
-			panic(err)
-		}
+		user, err = th.App.CreateUser(th.Context, user)
 	}
+	require.Nil(th.t, err)
 	return user
 }
 
@@ -236,9 +213,11 @@ func (th *TestHelper) ShutdownApp() {
 func (th *TestHelper) TearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		th.App.Srv().InvalidateAllCaches()
+		appErr := th.App.Srv().InvalidateAllCaches()
+		require.Nil(th.t, appErr)
 	}
 	th.ShutdownApp()
+
 	if th.tempWorkspace != "" {
 		os.RemoveAll(th.tempWorkspace)
 	}
@@ -257,10 +236,7 @@ func (th *TestHelper) SetupBatchWorker(t *testing.T, worker *jobs.BatchWorker) *
 	jobData := make(model.StringMap)
 	jobData["batch_number"] = "1"
 	job, appErr := th.Server.Jobs.CreateJob(th.Context, jobId, jobData)
-
-	if appErr != nil {
-		panic(appErr)
-	}
+	require.Nil(t, appErr)
 
 	done := make(chan bool)
 	go func() {
@@ -342,8 +318,8 @@ func (th *TestHelper) checkJobStatus(t *testing.T, jobId string, status string) 
 
 	require.Eventuallyf(t, func() bool {
 		// it's ok if there's an error, it might take awhile for the job to finish.
-		job, err := th.Server.Jobs.GetJob(th.Context, jobId)
-		assert.Nil(t, err)
+		job, appErr := th.Server.Jobs.GetJob(th.Context, jobId)
+		assert.Nil(th.t, appErr)
 		if jobId == job.Id {
 			return job.Status == status
 		}
