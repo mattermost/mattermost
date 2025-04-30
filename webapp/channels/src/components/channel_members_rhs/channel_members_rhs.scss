@@ -1,0 +1,37 @@
+.channel-members-rhs {
+  &__members-container {
+    flex: 1 1 auto;
+    padding: 0 4px 16px;
+  }
+
+  &__member-list-separator {
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 28px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding: 0px 12px;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    margin-top: 16px;
+
+    &--first {
+      margin-top: 0px;
+    }
+  }
+
+  &__alert-container {
+    padding: 0 20px 15px;
+
+    &.policy-enforced {
+        padding: 0;
+
+        .AlertBanner {
+            border: none;
+            border-bottom: 1px solid var(--center-channel-color-8, rgba(63, 67, 80, 0.08));
+            border-radius: 0;
+        }
+    }
+  }
+
+
+}
