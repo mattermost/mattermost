@@ -121,7 +121,7 @@ func (c CustomProfileAttributesSelectOption) IsValid() error {
 
 type CPAField struct {
 	PropertyField
-	Attrs CPAAttrs
+	Attrs CPAAttrs `json:"attrs"`
 }
 
 type CPAAttrs struct {
