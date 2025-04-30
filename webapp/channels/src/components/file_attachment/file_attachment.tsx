@@ -65,6 +65,7 @@ export default function FileAttachment(props: Props) {
     const [loadFilesCalled, setLoadFilesCalled] = useState(false);
     const [keepOpen, setKeepOpen] = useState(false);
     const [openUp, setOpenUp] = useState(false);
+    const [showTooltip, setShowTooltip] = useState(true);
 
     const buttonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -139,6 +140,7 @@ export default function FileAttachment(props: Props) {
     const handleDropdownOpened = (open: boolean) => {
         props.handleFileDropdownOpened?.(open);
         setKeepOpen(open);
+        setShowTooltip(!open);
 
         if (open) {
             setMenuPosition();
@@ -227,6 +229,7 @@ export default function FileAttachment(props: Props) {
             >
                 <WithTooltip
                     title={formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
+                    disabled={!showTooltip}
                 >
                     <button
                         ref={buttonRef}
