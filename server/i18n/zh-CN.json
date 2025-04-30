@@ -10608,5 +10608,13 @@
   {
     "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} 必须是 IndexPrefix {{.IndexPrefix}} 的前缀。"
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "计算月活用户失败。"
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "没有匹配该 SAML 用户的 AD/LDAP 服务器上的已注册用户。"
   }
 ]
