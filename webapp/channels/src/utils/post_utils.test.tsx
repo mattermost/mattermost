@@ -1393,3 +1393,34 @@ describe('makeGetUniqueEmojiNameReactionsForPost', () => {
         expect(getUniqueEmojiNameReactionsForPost(baseState, 'post_id_1')).toEqual(['smile', 'cry']);
     });
 });
+
+describe('getUserOrGroupFromMentionName', () => {
+    test('should handle remote user mentions with server names', () => {
+        // Set up users
+        const users = {
+            'user1': TestHelper.getUserMock({
+                username: 'user1',
+                id: 'user1_id',
+            }),
+            'remote_user': TestHelper.getUserMock({
+                username: 'remote_user',
+                id: 'remote_user_id',
+                remote_id: 'server1',
+            }),
+        };
+
+        const groups = {};
+        
+        // Test a normal mention that should work
+        const [normalUser] = PostUtils.getUserOrGroupFromMentionName('user1', users, groups);
+        expect(normalUser).toBeDefined();
+        expect(normalUser?.id).toBe('user1_id');
+
+        // Test a remote user mention with server name - this should work but currently fails
+        const [remoteUser] = PostUtils.getUserOrGroupFromMentionName('remote_user:server1', users, groups);
+        
+        // This will fail with the current implementation, as it doesn't handle the server suffix
+        expect(remoteUser).toBeDefined();
+        expect(remoteUser?.id).toBe('remote_user_id');
+    });
+});

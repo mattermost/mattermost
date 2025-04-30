@@ -797,6 +797,17 @@ export function getUserOrGroupFromMentionName(
     groupsDisabled?: boolean,
     getMention = getMentionDetails,
 ): [UserProfile?, Group?] {
+    // Handle special case for remote user mentions in the format username:servername
+    if (mentionName.includes(':')) {
+        const username = mentionName.split(':')[0];
+        if (username) {
+            const remoteUser = getMention(users, username);
+            if (remoteUser && remoteUser.remote_id) {
+                return [remoteUser, undefined];
+            }
+        }
+    }
+    
     const user = getMention(users, mentionName);
 
     // prioritizes user if user exists with the same name as a group.
