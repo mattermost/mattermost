@@ -35,7 +35,7 @@ const ProfilePopoverOtherUserRow = ({
     hide,
     fullname,
 }: Props) => {
-    const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
+    const isSharedChannelsDMsEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
 
     if (user.id === currentUserId || haveOverrideProp) {
         return null;
@@ -43,7 +43,7 @@ const ProfilePopoverOtherUserRow = ({
 
     // Hide Message button for remote users when EnableSharedChannelsDMs feature flag is off
     const isRemoteUser = Boolean(user.remote_id);
-    const showMessageButton = enableSharedChannelsDMs || !isRemoteUser;
+    const showMessageButton = isSharedChannelsDMsEnabled || !isRemoteUser;
 
     return (
         <div className='user-popover__bottom-row-container'>

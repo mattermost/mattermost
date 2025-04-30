@@ -225,9 +225,9 @@ const AdvancedTextEditor = ({
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
-    const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
+    const isSharedChannelsDMsEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
-    const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote));
+    const isDisabled = Boolean(readOnlyChannel || (!isSharedChannelsDMsEnabled && isDMOrGMRemote));
 
     const handleShowPreview = useCallback(() => {
         setShowPreview((prev) => !prev);
@@ -638,7 +638,7 @@ const AdvancedTextEditor = ({
                 defaultMessage: 'This channel is read-only. Only members with permission can post here.',
             },
         );
-    } else if (!enableSharedChannelsDMs && isDMOrGMRemote) {
+    } else if (!isSharedChannelsDMsEnabled && isDMOrGMRemote) {
         createMessage = formatMessage(
             {
                 id: 'create_post.dm_or_gm_remote',
