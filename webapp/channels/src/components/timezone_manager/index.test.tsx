@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {act, render} from '@testing-library/react';
+import React from 'react';
 
 import TimezoneManager from '.';
 
@@ -31,7 +31,7 @@ describe('components/timezone_manager/TimezoneManager', () => {
     it('should update timezone on window focus', () => {
         const autoUpdateTimezone = jest.fn();
         render(<TimezoneManager autoUpdateTimezone={autoUpdateTimezone}/>);
-        
+
         // Clear initial call
         autoUpdateTimezone.mockClear();
 
@@ -47,7 +47,7 @@ describe('components/timezone_manager/TimezoneManager', () => {
     it('should update timezone periodically', () => {
         const autoUpdateTimezone = jest.fn();
         render(<TimezoneManager autoUpdateTimezone={autoUpdateTimezone}/>);
-        
+
         // Clear initial call
         autoUpdateTimezone.mockClear();
 
@@ -63,14 +63,14 @@ describe('components/timezone_manager/TimezoneManager', () => {
     it('should clean up listeners and interval on unmount', () => {
         const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
         const clearIntervalSpy = jest.spyOn(window, 'clearInterval');
-        
+
         const {unmount} = render(<TimezoneManager autoUpdateTimezone={jest.fn()}/>);
-        
+
         unmount();
 
         expect(removeEventListenerSpy).toHaveBeenCalledWith('focus', expect.any(Function));
         expect(clearIntervalSpy).toHaveBeenCalled();
-        
+
         removeEventListenerSpy.mockRestore();
         clearIntervalSpy.mockRestore();
     });

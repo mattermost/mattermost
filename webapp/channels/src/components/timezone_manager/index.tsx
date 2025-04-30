@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import {useEffect} from 'react';
 
 import {getBrowserTimezone} from 'utils/timezone';
 
@@ -19,7 +19,7 @@ const TimezoneManager = ({autoUpdateTimezone}: Props): null => {
 
         // Setup events that trigger timezone checks
         window.addEventListener('focus', updateTimezone);
-        
+
         // Set up interval to periodically check timezone
         const intervalId = window.setInterval(updateTimezone, TIMEZONE_UPDATE_INTERVAL);
 
