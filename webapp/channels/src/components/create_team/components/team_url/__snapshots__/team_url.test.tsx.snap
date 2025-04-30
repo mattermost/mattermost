@@ -39,6 +39,7 @@ exports[`/components/create_team/components/display_name should match snapshot 1
               </span>
             </WithTooltip>
             <input
+              aria-describedby="teamURLInputError"
               autoFocus={true}
               className="form-control"
               id="teamURLInput"

@@ -99,7 +99,15 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
         let nameError = null;
         let nameDivClass = 'form-group';
         if (this.state.nameError) {
-            nameError = <label className='control-label'>{this.state.nameError}</label>;
+            nameError = (
+                <label
+                    role='alert'
+                    className='control-label'
+                    id='teamNameInputError'
+                >
+                    {this.state.nameError}
+                </label>
+            );
             nameDivClass += ' has-error';
         }
 
@@ -133,6 +141,7 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
                                     onFocus={this.handleFocus}
                                     onChange={this.handleDisplayNameChange}
                                     spellCheck='false'
+                                    aria-describedby='teamNameInputError'
                                 />
                             </div>
                         </div>

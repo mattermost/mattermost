@@ -196,7 +196,15 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
         let nameError = null;
         let nameDivClass = 'form-group';
         if (this.state.nameError) {
-            nameError = <label className='control-label'>{this.state.nameError}</label>;
+            nameError = (
+                <label
+                    role='alert'
+                    className='control-label'
+                    id='teamURLInputError'
+                >
+                    {this.state.nameError}
+                </label>
+            );
             nameDivClass += ' has-error';
         }
 
@@ -256,6 +264,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                                         onFocus={this.handleFocus}
                                         onChange={this.handleTeamURLInputChange}
                                         spellCheck='false'
+                                        aria-describedby='teamURLInputError'
                                     />
                                 </div>
                             </div>

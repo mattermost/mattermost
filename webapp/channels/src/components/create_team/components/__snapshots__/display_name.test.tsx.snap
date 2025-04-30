@@ -27,6 +27,7 @@ exports[`/components/create_team/components/display_name should match snapshot 1
           className="col-sm-9"
         >
           <input
+            aria-describedby="teamNameInputError"
             autoFocus={true}
             className="form-control"
             id="teamNameInput"
