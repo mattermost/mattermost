@@ -8,6 +8,17 @@ import tinycolor from 'tinycolor2';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import ColorInput from 'components/color_input';
+import CheckMarkIcon from 'components/widgets/icons/check_mark_icon';
+
+// Pre-defined color swatches - 6 base colors in a single row
+const COLOR_SWATCHES = [
+    '#1c58d9', // Blue (Mattermost blue)
+    '#39b886', // Green
+    '#f2c230', // Yellow
+    '#ff8800', // Orange
+    '#e05253', // Red
+    '#8c59d0', // Purple
+];
 
 // Light theme template
 const lightThemeBase = {
@@ -513,177 +524,7 @@ export default function PrimaryColorChooser(props: Props) {
         }
     };
 
-    // Create a ThemePreview component to show a mini version of the UI
-    const ThemePreview = ({theme}: {theme: Theme}) => {
-        return (
-            <div style={{marginTop: '1rem', marginBottom: '1rem', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden', maxWidth: '100%'}}>
-                <div style={{display: 'flex', flexDirection: 'row', height: '240px'}}>
-                    {/* Sidebar Preview */}
-                    <div style={{
-                        width: '220px',
-                        backgroundColor: theme.sidebarBg || '#1e325c',
-                        color: theme.sidebarText || '#ffffff',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        overflow: 'hidden'
-                    }}>
-                        <div style={{
-                            height: '50px',
-                            backgroundColor: theme.sidebarHeaderBg || '#192a4d',
-                            color: theme.sidebarHeaderTextColor || '#ffffff',
-                            padding: '0.5rem 1rem',
-                            fontWeight: 'bold',
-                            display: 'flex',
-                            alignItems: 'center'
-                        }}>
-                            Mattermost
-                        </div>
-                        <div style={{
-                            height: '30px',
-                            backgroundColor: theme.sidebarTeamBarBg || '#162545',
-                            color: theme.sidebarText || '#ffffff',
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '0 0.5rem'
-                        }}>
-                            Teams
-                        </div>
-                        <div style={{padding: '0.5rem 0', flex: 1, overflowY: 'auto'}}>
-                            <div style={{
-                                padding: '0.5rem 1rem',
-                                cursor: 'pointer',
-                                backgroundColor: theme.sidebarTextHoverBg || '#28427b',
-                                borderLeft: `4px solid ${theme.sidebarTextActiveBorder || '#5d89ea'}`,
-                                color: theme.sidebarTextActiveColor || '#ffffff'
-                            }}>
-                                # general
-                            </div>
-                            <div style={{
-                                padding: '0.5rem 1rem',
-                                cursor: 'pointer',
-                                borderLeft: '4px solid transparent'
-                            }}>
-                                # announcements
-                            </div>
-                            <div style={{
-                                padding: '0.5rem 1rem',
-                                cursor: 'pointer',
-                                borderLeft: '4px solid transparent'
-                            }}>
-                                # off-topic
-                            </div>
-                            <div style={{
-                                padding: '0.5rem 1rem',
-                                cursor: 'pointer',
-                                marginTop: '0.5rem',
-                                borderLeft: '4px solid transparent'
-                            }}>
-                                <span style={{
-                                    display: 'inline-block',
-                                    width: '8px',
-                                    height: '8px',
-                                    borderRadius: '50%',
-                                    marginRight: '5px',
-                                    backgroundColor: theme.onlineIndicator || '#3db887'
-                                }}></span>
-                                User A
-                            </div>
-                            <div style={{
-                                padding: '0.5rem 1rem',
-                                cursor: 'pointer',
-                                borderLeft: '4px solid transparent'
-                            }}>
-                                <span style={{
-                                    display: 'inline-block',
-                                    width: '8px',
-                                    height: '8px',
-                                    borderRadius: '50%',
-                                    marginRight: '5px',
-                                    backgroundColor: theme.awayIndicator || '#ffbc1f'
-                                }}></span>
-                                User B
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {/* Center Channel Preview */}
-                    <div style={{
-                        flex: 1,
-                        backgroundColor: theme.centerChannelBg || '#ffffff',
-                        color: theme.centerChannelColor || '#3f4350',
-                        display: 'flex',
-                        flexDirection: 'column'
-                    }}>
-                        <div style={{
-                            height: '50px',
-                            borderBottom: `1px solid ${theme.centerChannelColor || '#3f4350'}20`,
-                            padding: '0.5rem 1rem',
-                            fontWeight: 'bold',
-                            display: 'flex',
-                            alignItems: 'center'
-                        }}>
-                            #general
-                        </div>
-                        <div style={{flex: 1, padding: '1rem', overflowY: 'auto'}}>
-                            <div style={{marginBottom: '1rem'}}>
-                                <strong>User A</strong>
-                                <div style={{marginTop: '0.25rem'}}>
-                                    Welcome to the team! Check out our <span style={{color: theme.linkColor || '#386fe5'}}>getting started guide</span>.
-                                </div>
-                            </div>
-                            
-                            <div style={{
-                                margin: '1rem 0',
-                                height: '1px',
-                                backgroundColor: theme.newMessageSeparator || '#cc8f00',
-                                position: 'relative'
-                            }}>
-                                <span style={{
-                                    position: 'absolute',
-                                    top: '-10px',
-                                    right: 0,
-                                    padding: '0 8px',
-                                    backgroundColor: theme.newMessageSeparator || '#cc8f00',
-                                    color: 'white',
-                                    fontSize: '12px',
-                                    borderRadius: '2px'
-                                }}>
-                                    New Messages
-                                </span>
-                            </div>
-                            
-                            <div style={{marginBottom: '1rem'}}>
-                                <strong>User B</strong>
-                                <div style={{marginTop: '0.25rem'}}>
-                                    Hey <span style={{
-                                        backgroundColor: theme.mentionHighlightBg || '#ffd470',
-                                        color: theme.centerChannelColor || '#3f4350',
-                                        padding: '0 0.25rem',
-                                        borderRadius: '3px'
-                                    }}>@User A</span>, could you share that document?
-                                </div>
-                            </div>
-                            
-                            <div style={{marginBottom: '1rem'}}>
-                                <strong>User A</strong>
-                                <div style={{marginTop: '0.25rem'}}>
-                                    I've created a new document. <button style={{
-                                        backgroundColor: theme.buttonBg || '#1c58d9',
-                                        color: theme.buttonColor || '#ffffff',
-                                        border: 'none',
-                                        padding: '0.25rem 0.75rem',
-                                        borderRadius: '4px',
-                                        fontSize: '0.9rem',
-                                        cursor: 'pointer'
-                                    }}>View Details</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    };
+    // Theme preview removed as requested
 
     return (
         <div className="col-sm-12">
@@ -737,6 +578,41 @@ export default function PrimaryColorChooser(props: Props) {
                     />
                 </div>
                 
+                {/* Color Swatches */}
+                <div className="color-swatches">
+                    <div className="color-swatches-label">
+                        <FormattedMessage
+                            id="user.settings.custom_theme.colorSwatches"
+                            defaultMessage="Color Presets:"
+                        />
+                    </div>
+                    <div className="color-swatch-container">
+                        {COLOR_SWATCHES.map((color) => {
+                            // Get the current color based on theme mode
+                            const currentColor = themeMode === 'dark' ? 
+                                (tinycolor(props.theme.buttonBg).isValid() ? props.theme.buttonBg : '#4cbba4') : 
+                                (props.theme.sidebarBg || "#145dbf");
+                            
+                            // Check if this swatch is the current or closest color
+                            const isSelected = tinycolor(color).toHexString() === tinycolor(currentColor).toHexString();
+                            
+                            return (
+                                <button
+                                    key={color}
+                                    type="button"
+                                    className={`color-swatch ${isSelected ? 'selected' : ''}`}
+                                    style={{backgroundColor: color}}
+                                    aria-label={`Color: ${color}`}
+                                    title={color}
+                                    onClick={() => handleColorChange(color)}
+                                >
+                                    {isSelected && <CheckMarkIcon/>}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+                
                 <div className="theme-mode-selector" style={{marginBottom: '1rem'}}>
                     <label style={{fontWeight: 'bold', marginBottom: '0.5rem', color: props.theme.centerChannelColor}}>
                         <FormattedMessage
@@ -779,16 +655,6 @@ export default function PrimaryColorChooser(props: Props) {
                         </div>
                     </div>
                 </div>
-                
-                <label style={{fontWeight: 'bold', marginTop: '1rem', display: 'block', color: props.theme.centerChannelColor}}>
-                    <FormattedMessage
-                        id="user.settings.custom_theme.themePreview"
-                        defaultMessage="Theme Preview:"
-                    />
-                </label>
-                
-                {/* Theme Preview Component */}
-                <ThemePreview theme={props.theme} />
             </div>
         </div>
     );
