@@ -157,6 +157,47 @@ describe('components/SharedUserIndicator', () => {
         });
     });
 
+    test('should limit the overall tooltip length for extremely long content', async () => {
+        jest.useFakeTimers();
+
+        // Generate an array of very long remote names that would produce an extremely long tooltip
+        const longRemoteNames = [
+            'Very Long Organization Name 1 That Exceeds Length Limits',
+            'Very Long Organization Name 2 That Exceeds Length Limits',
+            'Very Long Organization Name 3 That Exceeds Length Limits',
+            'Very Long Organization Name 4 That Exceeds Length Limits',
+            'Very Long Organization Name 5 That Exceeds Length Limits',
+            'Very Long Organization Name 6 That Exceeds Length Limits',
+        ];
+
+        renderWithContext(
+            <SharedUserIndicator
+                withTooltip={true}
+                remoteNames={longRemoteNames}
+            />,
+        );
+
+        const icon = screen.getByTestId('SharedUserIcon');
+        expect(icon).toHaveClass('icon-circle-multiple-outline');
+
+        await act(async () => {
+            userEvent.hover(icon);
+            jest.advanceTimersByTime(1000);
+
+            await waitFor(() => {
+                // Just check that the tooltip text ends with ellipsis, indicating truncation
+                const tooltipText = screen.getByText(/From:.+\.\.\.$/);
+                expect(tooltipText).toBeInTheDocument();
+
+                // Verify overall tooltip length doesn't exceed the maximum length (120)
+                // Add some extra characters to account for the "From: " prefix
+                const tooltipContent = tooltipText.textContent || '';
+                const actualContent = tooltipContent.replace('From: ', '');
+                expect(actualContent.length).toBeLessThanOrEqual(120);
+            });
+        });
+    });
+
     afterEach(() => {
         jest.clearAllTimers();
         jest.useRealTimers();

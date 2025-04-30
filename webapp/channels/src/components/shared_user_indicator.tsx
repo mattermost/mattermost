@@ -55,6 +55,7 @@ const SharedUserIndicator = (props: Props) => {
     if (props.remoteNames && props.remoteNames.length > 0) {
         // Show first 3 remotes and then "and N others" if there are more
         const MAX_DISPLAY_NAMES = 3;
+        const MAX_TOOLTIP_LENGTH = 120; // Maximum overall tooltip length
         let remoteNamesText;
 
         if (props.remoteNames.length <= MAX_DISPLAY_NAMES) {
@@ -63,6 +64,11 @@ const SharedUserIndicator = (props: Props) => {
             const displayNames = props.remoteNames.slice(0, MAX_DISPLAY_NAMES);
             const remainingCount = props.remoteNames.length - MAX_DISPLAY_NAMES;
             remoteNamesText = `${displayNames.join(', ')} and ${remainingCount} other${remainingCount > 1 ? 's' : ''}`;
+        }
+
+        // Add a final truncation to enforce maximum tooltip length
+        if (remoteNamesText.length > MAX_TOOLTIP_LENGTH) {
+            remoteNamesText = remoteNamesText.substring(0, MAX_TOOLTIP_LENGTH - 3) + '...';
         }
 
         return (
