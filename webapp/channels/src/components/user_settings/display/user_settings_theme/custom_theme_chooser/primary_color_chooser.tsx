@@ -487,7 +487,25 @@ export default function PrimaryColorChooser(props: Props) {
     };
     
     // Main color change handler
+    // Keep track of the user's selected color for display purposes
+    const [primaryColor, setPrimaryColor] = useState(
+        // Initialize with the current theme's primary color (sidebarBg or buttonBg)
+        (() => {
+            if (themeMode === 'dark') {
+                return props.theme.buttonBg && tinycolor(props.theme.buttonBg).isValid() ? 
+                    props.theme.buttonBg : '#4cbba4';
+            } else {
+                return props.theme.sidebarBg && tinycolor(props.theme.sidebarBg).isValid() ? 
+                    props.theme.sidebarBg : '#1c58d9';
+            }
+        })()
+    );
+    
     const handleColorChange = (newColor: string) => {
+        // Update the displayed color
+        setPrimaryColor(newColor);
+        
+        // Generate theme colors in the background
         applyColorWithMode(newColor, themeMode);
     };
 
@@ -495,28 +513,11 @@ export default function PrimaryColorChooser(props: Props) {
         const newMode = e.target.value;
         setThemeMode(newMode);
         
-        // Get a valid source color based on the selected mode
-        let currentColor: string;
-        
+        // Use the user's selected color when switching modes
+        // This preserves their color choice when toggling between light/dark
         try {
-            if (newMode === 'light') {
-                // For light mode, use sidebarBg if it's valid
-                currentColor = props.theme.sidebarBg && tinycolor(props.theme.sidebarBg).isValid() ? 
-                    tinycolor(props.theme.sidebarBg).toHexString() : '#145dbf'; // Default blue
-            } else {
-                // For dark mode, use buttonBg if it's valid, otherwise use a default teal
-                currentColor = props.theme.buttonBg && tinycolor(props.theme.buttonBg).isValid() ? 
-                    tinycolor(props.theme.buttonBg).toHexString() : '#4cbba4'; // Default teal
-            }
-            
-            // Ensure we have a valid color by forcing it through tinycolor
-            if (!tinycolor(currentColor).isValid()) {
-                // Fallback for safety
-                currentColor = newMode === 'light' ? '#145dbf' : '#4cbba4';
-            }
-                
-            // Generate a new theme with the selected mode
-            applyColorWithMode(currentColor, newMode);
+            // Generate a new theme with the selected mode but keep the same primary color
+            applyColorWithMode(primaryColor, newMode);
         } catch (error) {
             console.error('Error changing theme mode:', error);
             // Use default colors if there's an error
@@ -556,24 +557,7 @@ export default function PrimaryColorChooser(props: Props) {
                 <div style={{marginBottom: '1rem'}}>
                     <ColorInput
                         id="primaryColor"
-                        value={(() => {
-                            // Make sure we always have a valid color for the color picker
-                            let color;
-                            if (themeMode === 'dark') {
-                                // For dark mode, use buttonBg or a default teal
-                                const buttonBg = props.theme.buttonBg;
-                                color = buttonBg && tinycolor(buttonBg).isValid() ? 
-                                    buttonBg : '#4cbba4';
-                            } else {
-                                // For light mode, use sidebarBg or a default blue
-                                const sidebarBg = props.theme.sidebarBg;
-                                color = sidebarBg && tinycolor(sidebarBg).isValid() ? 
-                                    sidebarBg : '#145dbf';
-                            }
-                            
-                            // Ensure the color is in hex format
-                            return tinycolor(color).toHexString();
-                        })()}
+                        value={tinycolor(primaryColor).toHexString()}
                         onChange={handleColorChange}
                     />
                 </div>
@@ -588,13 +572,8 @@ export default function PrimaryColorChooser(props: Props) {
                     </div>
                     <div className="color-swatch-container">
                         {COLOR_SWATCHES.map((color) => {
-                            // Get the current color based on theme mode
-                            const currentColor = themeMode === 'dark' ? 
-                                (tinycolor(props.theme.buttonBg).isValid() ? props.theme.buttonBg : '#4cbba4') : 
-                                (props.theme.sidebarBg || "#145dbf");
-                            
-                            // Check if this swatch is the current or closest color
-                            const isSelected = tinycolor(color).toHexString() === tinycolor(currentColor).toHexString();
+                            // Check if this swatch is the user's selected color
+                            const isSelected = tinycolor(color).toHexString() === tinycolor(primaryColor).toHexString();
                             
                             return (
                                 <button
