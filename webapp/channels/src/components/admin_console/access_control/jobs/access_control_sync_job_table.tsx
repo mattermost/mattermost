@@ -11,6 +11,8 @@ import JobsTable from 'components/admin_console/jobs';
 
 import JobDetailsModal from './job_details_modal';
 
+import {JobTypes} from 'utils/constants';
+
 import './access_control_sync_job_table.scss';
 
 type Props = {
@@ -75,7 +77,7 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                 </button>
             </div>
             <JobsTable
-                jobType={'access_control_sync' as any as JobType}
+                jobType={JobTypes.ACCESS_CONTROL_SYNC}
                 hideJobCreateButton={true}
                 className={'job-table__access-control'}
                 createJobButtonText={'Create Job'}

@@ -104,6 +104,7 @@ type Params struct {
 	ExcludePlugins                     bool
 	ExcludeHome                        bool
 	ExcludeRemote                      bool
+	AccessControlPolicyEnforced        bool
 	ExcludeAccessControlPolicyEnforced bool
 
 	//Bookmarks
@@ -273,6 +274,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.IncludeDeleted, _ = strconv.ParseBool(query.Get("include_deleted"))
 	params.ExportName = props["export_name"]
 	params.ExcludePolicyConstrained, _ = strconv.ParseBool(query.Get("exclude_policy_constrained"))
+	params.AccessControlPolicyEnforced, _ = strconv.ParseBool(query.Get("access_control_policy_enforced"))
 	params.ExcludeAccessControlPolicyEnforced, _ = strconv.ParseBool(query.Get("exclude_access_control_policy_enforced"))
 
 	if val := query.Get("group_source"); val != "" {

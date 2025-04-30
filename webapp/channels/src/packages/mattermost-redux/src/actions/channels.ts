@@ -788,13 +788,13 @@ export function getArchivedChannels(teamId: string, page = 0, perPage: number = 
     };
 }
 
-export function getAllChannelsWithCount(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, includeDeleted = false, excludePolicyConstrained = false): ActionFuncAsync<ChannelsWithTotalCount> {
+export function getAllChannelsWithCount(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, includeDeleted = false, excludePolicyConstrained = false, accessControlPolicyEnforced = false, excludeAccessControlPolicyEnforced = false): ActionFuncAsync<ChannelsWithTotalCount> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_ALL_CHANNELS_REQUEST, data: null});
 
         let payload;
         try {
-            payload = await Client4.getAllChannels(page, perPage, notAssociatedToGroup, excludeDefaultChannels, true, includeDeleted, excludePolicyConstrained, false);
+            payload = await Client4.getAllChannels(page, perPage, notAssociatedToGroup, excludeDefaultChannels, true, includeDeleted, excludePolicyConstrained, accessControlPolicyEnforced, excludeAccessControlPolicyEnforced);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: ChannelTypes.GET_ALL_CHANNELS_FAILURE, error});
@@ -820,13 +820,13 @@ export function getAllChannelsWithCount(page = 0, perPage: number = General.CHAN
     };
 }
 
-export function getAllChannels(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, excludePolicyConstrained = false, excludeAccessControlPolicyEnforced = false): ActionFuncAsync<ChannelWithTeamData[]> {
+export function getAllChannels(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, excludePolicyConstrained = false, excludeAccessControlPolicyEnforced = false, accessControlPolicyEnforced = false): ActionFuncAsync<ChannelWithTeamData[]> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_ALL_CHANNELS_REQUEST, data: null});
 
         let channels;
         try {
-            channels = await Client4.getAllChannels(page, perPage, notAssociatedToGroup, excludeDefaultChannels, false, excludePolicyConstrained, excludeAccessControlPolicyEnforced);
+            channels = await Client4.getAllChannels(page, perPage, notAssociatedToGroup, excludeDefaultChannels, false, false, excludePolicyConstrained, accessControlPolicyEnforced, excludeAccessControlPolicyEnforced);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: ChannelTypes.GET_ALL_CHANNELS_FAILURE, error});

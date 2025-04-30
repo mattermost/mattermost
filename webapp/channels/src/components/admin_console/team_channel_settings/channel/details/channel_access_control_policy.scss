@@ -1,0 +1,84 @@
+@import 'utils/mixins';
+@import 'utils/variables';
+
+.policy-table-container {
+    margin-block: -20px;
+    width: 100%;
+    
+    .policy-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: collapse;
+        background-color: var(--center-channel-bg);
+        
+        th, td {
+            padding-block: 16px;
+            line-height: 20px;
+            white-space: nowrap;
+            text-align: left;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        }
+        
+        thead tr {
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        }
+        
+        th {
+            font-weight: 600;
+            color: var(--center-channel-color);
+            background-color: var(--center-channel-bg);
+            font-size: 14px;
+        }
+        
+        td {
+            color: var(--center-channel-color);
+            font-size: 14px;
+            background-color: var(--center-channel-bg);
+            
+            &.policy-name {
+                font-weight: 600;
+            }
+        }
+        
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .text-right {
+            text-align: right;
+            padding-right: 16px;
+            width: 50px;
+        }
+        
+        .policy-edit-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            text-decoration: none;
+            
+            &:hover {
+                color: rgba(var(--center-channel-color-rgb), 0.9);
+            }
+            
+            i {
+                font-size: 16px;
+            }
+        }
+    }
+}
+
+// Style for the Remove policy button
+#channel_access_control_with_policy {
+    .btn.btn-primary {
+        background-color: var(--dnd-indicator);
+        border-color: var(--dnd-indicator);
+        color: var(--button-color);
+        
+        &:hover, &:active, &:focus {
+            background-color: rgba(var(--dnd-indicator-rgb), 0.88);
+            border-color: rgba(var(--dnd-indicator-rgb), 0.88);
+        }
+    }
+}
+

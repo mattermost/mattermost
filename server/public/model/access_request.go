@@ -18,14 +18,19 @@ type Subject struct {
 }
 
 type SubjectSearchOptions struct {
-	Term          string        `json:"term"`
-	TeamID        string        `json:"team_id"`
+	Term   string `json:"term"`
+	TeamID string `json:"team_id"`
+	// Query and Args should be generated withing the Access Control Service
+	// and passed here wrt database driver
 	Query         string        `json:"query"`
 	Args          []any         `json:"args"`
 	Limit         int           `json:"limit"`
 	Cursor        SubjectCursor `json:"cursor"`
 	AllowInactive bool          `json:"allow_inactive"`
 	IgnoreCount   bool          `json:"ignore_count"`
+	// ExcludeChannelMembers is used to exclude members from the search results
+	// specifically used when syncing channel members
+	ExcludeChannelMembers string `json:"exclude_members"`
 }
 
 type SubjectCursor struct {

@@ -828,11 +828,17 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.Params.ExcludeAccessControlPolicyEnforced && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
 	opts := model.ChannelSearchOpts{
 		NotAssociatedToGroup:               c.Params.NotAssociatedToGroup,
 		ExcludeDefaultChannels:             c.Params.ExcludeDefaultChannels,
 		IncludeDeleted:                     c.Params.IncludeDeleted,
 		ExcludePolicyConstrained:           c.Params.ExcludePolicyConstrained,
+		AccessControlPolicyEnforced:        c.Params.AccessControlPolicyEnforced,
 		ExcludeAccessControlPolicyEnforced: c.Params.ExcludeAccessControlPolicyEnforced,
 	}
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadComplianceDataRetentionPolicy) {
@@ -1315,20 +1321,23 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 	includeDeleted = includeDeleted || props.IncludeDeleted
 	opts := model.ChannelSearchOpts{
-		NotAssociatedToGroup:     props.NotAssociatedToGroup,
-		ExcludeDefaultChannels:   props.ExcludeDefaultChannels,
-		TeamIds:                  props.TeamIds,
-		GroupConstrained:         props.GroupConstrained,
-		ExcludeGroupConstrained:  props.ExcludeGroupConstrained,
-		ExcludePolicyConstrained: props.ExcludePolicyConstrained,
-		IncludeSearchById:        props.IncludeSearchById,
-		ExcludeRemote:            props.ExcludeRemote,
-		Public:                   props.Public,
-		Private:                  props.Private,
-		IncludeDeleted:           includeDeleted,
-		Deleted:                  props.Deleted,
-		Page:                     props.Page,
-		PerPage:                  props.PerPage,
+		NotAssociatedToGroup:               props.NotAssociatedToGroup,
+		ExcludeDefaultChannels:             props.ExcludeDefaultChannels,
+		TeamIds:                            props.TeamIds,
+		GroupConstrained:                   props.GroupConstrained,
+		ExcludeGroupConstrained:            props.ExcludeGroupConstrained,
+		ExcludePolicyConstrained:           props.ExcludePolicyConstrained,
+		IncludeSearchById:                  props.IncludeSearchById,
+		ExcludeRemote:                      props.ExcludeRemote,
+		Public:                             props.Public,
+		Private:                            props.Private,
+		IncludeDeleted:                     includeDeleted,
+		Deleted:                            props.Deleted,
+		Page:                               props.Page,
+		PerPage:                            props.PerPage,
+		AccessControlPolicyEnforced:        props.AccessControlPolicyEnforced,
+		ExcludeAccessControlPolicyEnforced: props.ExcludeAccessControlPolicyEnforced,
+		ParentAccessControlPolicyId:        props.ParentAccessControlPolicyId,
 	}
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadComplianceDataRetentionPolicy) {
 		opts.IncludePolicyID = true

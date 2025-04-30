@@ -17,6 +17,8 @@ import {getHistory} from 'utils/browser_history';
 import './policies.scss';
 
 type Props = {
+    onPolicySelected: (policy: AccessControlPolicy) => void;
+    simpleMode: boolean;
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
         deletePolicy: (id: string) => Promise<ActionResult>;
@@ -180,6 +182,7 @@ export default function PolicyList(props: Props): JSX.Element {
                     ),
                     actions: (
                         <div className='policy-actions'>
+                            {!props.simpleMode && (
                             <Menu.Container
                                 menuButton={{
                                     id: `policy-menu-${policy.id}`,
@@ -220,11 +223,12 @@ export default function PolicyList(props: Props): JSX.Element {
                                     disabled={Boolean(policy.props?.child_ids?.length)}
                                 />
                             </Menu.Container>
+                            )}
                         </div>
                     ),
                 },
                 onClick: () => {
-                    getHistory().push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
+                    props.onPolicySelected(policy);
                 },
             };
         });
@@ -301,21 +305,23 @@ export default function PolicyList(props: Props): JSX.Element {
 
     return (
         <div className='PolicyTable'>
-            <div className='policy-header'>
-                <div className='policy-header-text'>
-                    <h1>{'Access policies'}</h1>
-                    <p>{'Create policies containing attribute based access rules and the objects they apply to.'}</p>
-                </div>
-                <button
-                    className='btn btn-primary'
-                    onClick={() => {
-                        getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy');
-                    }}
-                >
+            {!props.simpleMode && (
+                <div className='policy-header'>
+                    <div className='policy-header-text'>
+                        <h1>{'Access policies'}</h1>
+                        <p>{'Create policies containing attribute based access rules and the objects they apply to.'}</p>
+                    </div>
+                    <button
+                        className='btn btn-primary'
+                        onClick={() => {
+                            getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy');
+                        }}
+                    >
                     <i className='icon icon-plus'/>
-                    <span>{'Add policy'}</span>
-                </button>
-            </div>
+                        <span>{'Add policy'}</span>
+                    </button>
+                </div>
+            )}
             <DataGrid
                 columns={columns}
                 rows={rows}

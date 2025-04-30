@@ -227,6 +227,7 @@ type ChannelSearchOpts struct {
 	PerPage                            *int
 	LastDeleteAt                       int // When combined with IncludeDeleted, only channels deleted after this time will be returned.
 	LastUpdateAt                       int
+	AccessControlPolicyEnforced        bool
 	ExcludeAccessControlPolicyEnforced bool
 	ParentAccessControlPolicyId        string
 }

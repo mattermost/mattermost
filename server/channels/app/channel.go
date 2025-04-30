@@ -2038,6 +2038,7 @@ func (a *App) GetAllChannels(c request.CTX, page, perPage int, opts model.Channe
 		ExcludeGroupConstrained:            opts.ExcludeGroupConstrained,
 		ExcludePolicyConstrained:           opts.ExcludePolicyConstrained,
 		IncludePolicyID:                    opts.IncludePolicyID,
+		AccessControlPolicyEnforced:        opts.AccessControlPolicyEnforced,
 		ExcludeAccessControlPolicyEnforced: opts.ExcludeAccessControlPolicyEnforced,
 	}
 	channels, err := a.Srv().Store().Channel().GetAllChannels(page*perPage, perPage, storeOpts)
@@ -3023,6 +3024,7 @@ func (a *App) SearchAllChannels(c request.CTX, term string, opts model.ChannelSe
 		Private:                            opts.Private,
 		Page:                               opts.Page,
 		PerPage:                            opts.PerPage,
+		AccessControlPolicyEnforced:        opts.AccessControlPolicyEnforced,
 		ExcludeAccessControlPolicyEnforced: opts.ExcludeAccessControlPolicyEnforced,
 		ParentAccessControlPolicyId:        opts.ParentAccessControlPolicyId,
 	}

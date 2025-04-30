@@ -33,7 +33,10 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {getAllGroups, getGroupsAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
 import {getScheme} from 'mattermost-redux/selectors/entities/schemes';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
-
+import {getAccessControlPolicy} from 'mattermost-redux/actions/access_control';
+import {deleteAccessControlPolicy} from 'mattermost-redux/actions/access_control';
+import {assignChannelsToAccessControlPolicy} from 'mattermost-redux/actions/access_control';
+import {searchAccessControlPolicies} from 'mattermost-redux/actions/access_control';
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import {isMinimumEnterpriseLicense, isMinimumProfessionalLicense} from 'utils/license_utils';
@@ -85,6 +88,9 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
+    const assignChannelToAccessControlPolicy = (policyId: string, channelId: string) => {
+        return assignChannelsToAccessControlPolicy(policyId, [channelId]);
+    };
     return {
         actions: bindActionCreators({
             getGroups: fetchAssociatedGroups,
@@ -105,6 +111,10 @@ function mapDispatchToProps(dispatch: Dispatch) {
             updateChannelMemberSchemeRoles,
             deleteChannel,
             unarchiveChannel,
+            getAccessControlPolicy,
+            assignChannelToAccessControlPolicy,
+            deleteAccessControlPolicy,
+            searchPolicies: searchAccessControlPolicies,
         }, dispatch),
     };
 }

@@ -1157,6 +1157,7 @@ type ChannelSearchOpts struct {
 	PerPage                            *int
 	LastDeleteAt                       int
 	LastUpdateAt                       int
+	AccessControlPolicyEnforced        bool
 	ExcludeAccessControlPolicyEnforced bool
 	ParentAccessControlPolicyId        string
 }

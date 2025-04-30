@@ -21,6 +21,7 @@ type ChannelSearch struct {
 	Deleted                            bool     `json:"deleted"`
 	Page                               *int     `json:"page,omitempty"`
 	PerPage                            *int     `json:"per_page,omitempty"`
+	AccessControlPolicyEnforced        bool     `json:"access_control_policy_enforced"`
 	ExcludeAccessControlPolicyEnforced bool     `json:"exclude_access_control_policy_enforced"`
 	ParentAccessControlPolicyId        string   `json:"parent_access_control_policy_id"`
 }

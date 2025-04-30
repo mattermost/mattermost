@@ -118,6 +118,11 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 		count = count.Join("TeamMembers tm ON ( tm.UserId = Users.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", opts.TeamID)
 	}
 
+	if opts.ExcludeChannelMembers != "" {
+		q := sq.Expr("NOT EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.UserId = Users.Id AND ChannelMembers.ChannelId = ?)", opts.ExcludeChannelMembers)
+		query = query.Where(q)
+	}
+
 	if opts.Cursor.TargetID != "" {
 		if s.DriverName() == model.DatabaseDriverMysql {
 			query = query.Where(sq.Expr("TargetID > ?", opts.Cursor.TargetID))

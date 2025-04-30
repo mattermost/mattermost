@@ -1292,6 +1292,8 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 	}
 	if opts.ExcludeAccessControlPolicyEnforced {
 		query = query.Where("c.Id NOT IN (SELECT ID From AccessControlPolicies WHERE Type = ?)", model.AccessControlPolicyTypeChannel)
+	} else if opts.AccessControlPolicyEnforced {
+		query = query.InnerJoin("AccessControlPolicies acp ON c.Id = acp.ID")
 	}
 
 	return query
@@ -3564,6 +3566,8 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 		} else {
 			query = query.Where(sq.Expr("c.Id IN (SELECT ID From AccessControlPolicies WHERE Type = ? AND JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?))", model.AccessControlPolicyTypeChannel, fmt.Sprintf("%q", opts.ParentAccessControlPolicyId)))
 		}
+	} else if opts.AccessControlPolicyEnforced {
+		query = query.InnerJoin("AccessControlPolicies acp ON acp.ID = c.Id")
 	}
 
 	return query

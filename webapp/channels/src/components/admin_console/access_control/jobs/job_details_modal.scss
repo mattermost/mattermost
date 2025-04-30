@@ -1,29 +1,224 @@
 .JobDetailsModal {
-    padding: 16px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 20px;
+
+    pre {
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+    }
 
     .details-row {
         display: flex;
-        margin-bottom: 12px;
+        margin-bottom: 16px;
+        align-items: flex-start;
+
+        .details-label {
+            width: 130px;
+            font-weight: 600;
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+        }
+
+        .details-value {
+            flex: 1;
+            overflow-wrap: break-word;
+        }
     }
 
-    .details-label {
-        width: 120px;
-        flex-shrink: 0;
-        font-weight: 600;
+    // Basic details section
+    .basic-details {
+        margin-bottom: 16px;
     }
 
-    .details-value {
-        word-break: break-word;
-    }
-
-    pre {
-        max-height: 200px;
-        padding: 8px;
+    // Collapsible section styles
+    .collapsible-section {
+        margin-bottom: 24px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         border-radius: 4px;
-        margin-top: 4px;
-        background-color: rgba(0, 0, 0, 0.05);
-        overflow-y: auto;
-        white-space: pre-wrap;
-        word-break: break-word;
+
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            border-radius: 4px;
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            }
+
+            .collapsible-title {
+                margin-left: 8px;
+                font-weight: 600;
+            }
+        }
+
+        .collapsible-content {
+            padding: 20px;
+        }
+    }
+
+    // Sync Results Styles
+    .sync-results-container {
+        flex-direction: column;
+
+        .details-label {
+            margin-bottom: 10px;
+        }
+
+        .details-value {
+            width: 100%;
+        }
+    }
+
+    .sync-results-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        
+        th {
+            text-align: left;
+            padding: 12px;
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        .clickable-row {
+            cursor: pointer;
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            }
+        }
+
+        .channel-name {
+            font-weight: 500;
+            
+            .channel-id {
+                font-size: 12px;
+                color: rgba(var(--center-channel-color-rgb), 0.6);
+                margin-top: 4px;
+            }
+        }
+
+        .changes-summary {
+            .added {
+                color: var(--online-indicator);
+                font-weight: 600;
+            }
+
+            .removed {
+                color: var(--error-text);
+                font-weight: 600;
+            }
+        }
+    }
+
+    .no-results-message {
+        padding: 20px;
+        text-align: center;
+        color: rgba(var(--center-channel-color-rgb), 0.6);
+    }
+}
+
+// Modal header with status indicator
+.modal-header-with-status {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 10px;
+}
+
+// Status indicator styles
+.status-wrapper {
+    display: flex;
+    align-items: center;
+    
+    .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        cursor: help;
+        
+        &.status-success {
+            background-color: var(--online-indicator);
+        }
+        
+        &.status-error {
+            background-color: var(--error-text);
+        }
+        
+        &.status-in-progress {
+            background-color: var(--away-indicator);
+        }
+        
+        &.status-pending {
+            background-color: var(--offline-indicator);
+        }
+    }
+}
+
+// User List Modal Styles
+.UserListModal {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 16px;
+
+    .tabs {
+        display: flex;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-bottom: 20px;
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            cursor: pointer;
+
+            &.active {
+                color: var(--button-bg);
+                border-bottom: 2px solid var(--button-bg);
+            }
+
+            &:hover {
+                color: var(--center-channel-color);
+            }
+        }
+    }
+
+    .tab-content {
+        .user-list {
+            ul {
+                margin: 0;
+                padding: 0;
+                list-style: none;
+
+                li {
+                    padding: 12px 16px;
+                    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+                    
+                    &:last-child {
+                        border-bottom: none;
+                    }
+                }
+            }
+
+            .no-results {
+                padding: 20px;
+                text-align: center;
+                color: rgba(var(--center-channel-color-rgb), 0.6);
+            }
+        }
     }
 } 

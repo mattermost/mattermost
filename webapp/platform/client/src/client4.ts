@@ -1547,7 +1547,9 @@ export default class Client4 {
         excludeDefaultChannels: boolean | undefined,
         includeTotalCount: false | undefined,
         includeDeleted: boolean | undefined,
-        excludePolicyConstrained: boolean | undefined
+        excludePolicyConstrained: boolean | undefined,
+        accessControlPolicyEnforced: boolean | undefined,
+        excludeAccessControlPolicyEnforced: boolean | undefined
     ): Promise<ChannelWithTeamData[]>;
     getAllChannels(
         page: number | undefined,
@@ -1557,6 +1559,7 @@ export default class Client4 {
         includeTotalCount: true,
         includeDeleted: boolean | undefined,
         excludePolicyConstrained: boolean | undefined,
+        accessControlPolicyEnforced: boolean | undefined,
         excludeAccessControlPolicyEnforced: boolean | undefined
     ): Promise<ChannelsWithTotalCount>;
     getAllChannels(
@@ -1567,18 +1570,36 @@ export default class Client4 {
         includeTotalCount = false,
         includeDeleted = false,
         excludePolicyConstrained = false,
+        accessControlPolicyEnforced = false,
         excludeAccessControlPolicyEnforced = false,
     ) {
-        const queryData = {
+        const queryData: Record<string, any> = {
             page,
             per_page: perPage,
-            not_associated_to_group: notAssociatedToGroup,
-            exclude_default_channels: excludeDefaultChannels,
             include_total_count: includeTotalCount,
             include_deleted: includeDeleted,
-            exclude_policy_constrained: excludePolicyConstrained,
-            exclude_access_control_policy_enforced: excludeAccessControlPolicyEnforced,
         };
+        
+        if (notAssociatedToGroup) {
+            queryData.not_associated_to_group = notAssociatedToGroup;
+        }
+        
+        if (excludeDefaultChannels) {
+            queryData.exclude_default_channels = excludeDefaultChannels;
+        }
+        
+        if (excludePolicyConstrained) {
+            queryData.exclude_policy_constrained = excludePolicyConstrained;
+        }
+        
+        if (accessControlPolicyEnforced) {
+            queryData.access_control_policy_enforced = accessControlPolicyEnforced;
+        }
+        
+        if (excludeAccessControlPolicyEnforced) {
+            queryData.exclude_access_control_policy_enforced = excludeAccessControlPolicyEnforced;
+        }
+        
         return this.doFetch<ChannelWithTeamData[] | ChannelsWithTotalCount>(
             `${this.getChannelsRoute()}${buildQueryString(queryData)}`,
             {method: 'get'},

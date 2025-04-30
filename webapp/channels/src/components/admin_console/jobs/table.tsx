@@ -87,6 +87,7 @@ class JobTable extends React.PureComponent<Props> {
 
     render() {
         const showFilesColumn = this.props.jobType === JobTypes.MESSAGE_EXPORT && this.props.downloadExportResults;
+        const hideDetailsColumn = this.props.jobType === JobTypes.ACCESS_CONTROL_SYNC;
         const items = this.props.jobs.map((job) => {
             return (
                 <tr
@@ -112,7 +113,9 @@ class JobTable extends React.PureComponent<Props> {
                         />
                     </td>
                     <td className='whitespace--nowrap'><JobRunLength job={job}/></td>
-                    <td>{this.getExtraInfoText(job)}</td>
+                    {!hideDetailsColumn && (
+                        <td>{this.getExtraInfoText(job)}</td>
+                    )}
                 </tr>
             );
         });
@@ -173,12 +176,14 @@ class JobTable extends React.PureComponent<Props> {
                                             defaultMessage='Run Time'
                                         />
                                     </th>
-                                    <th colSpan={3}>
-                                        <FormattedMessage
-                                            id='admin.jobTable.headerExtraInfo'
+                                    {!hideDetailsColumn && (
+                                        <th colSpan={3}>
+                                            <FormattedMessage
+                                                id='admin.jobTable.headerExtraInfo'
                                             defaultMessage='Details'
-                                        />
-                                    </th>
+                                            />
+                                        </th>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody>

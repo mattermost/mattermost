@@ -13,24 +13,25 @@ interface Props {
     isPublic: boolean;
     isSynced: boolean;
     isDefault: boolean;
-    onToggle: (isSynced: boolean, isPublic: boolean) => void;
+    onToggle: (isSynced: boolean, isPublic: boolean, policyEnforced: boolean) => void;
     isDisabled?: boolean;
     groupsSupported?: boolean;
+    policyEnforced: boolean;
 }
 
 const SyncGroupsToggle: React.SFC<Props> = (props: Props): JSX.Element => {
-    const {isPublic, isSynced, isDefault, onToggle, isDisabled} = props;
+    const {isPublic, isSynced, isDefault, onToggle, isDisabled, policyEnforced} = props;
     return (
         <LineSwitch
             id='syncGroupSwitch'
-            disabled={isDisabled || isDefault}
+            disabled={isDisabled || isDefault || policyEnforced}
             toggled={isSynced}
             last={isSynced}
             onToggle={() => {
                 if (isDefault) {
                     return;
                 }
-                onToggle(!isSynced, isPublic);
+                onToggle(!isSynced, isPublic, policyEnforced);
             }}
             title={(
                 <FormattedMessage
@@ -59,21 +60,21 @@ const SyncGroupsToggle: React.SFC<Props> = (props: Props): JSX.Element => {
 };
 
 const AllowAllToggle: React.SFC<Props> = (props: Props): JSX.Element | null => {
-    const {isPublic, isSynced, isDefault, onToggle, isDisabled} = props;
+    const {isPublic, isSynced, isDefault, onToggle, isDisabled, policyEnforced} = props;
     if (isSynced) {
         return null;
     }
     return (
         <LineSwitch
             id='allow-all-toggle'
-            disabled={isDisabled || isDefault}
+            disabled={isDisabled || isDefault || policyEnforced}
             toggled={isPublic}
-            last={true}
+            last={false}
             onToggle={() => {
                 if (isDefault) {
                     return;
                 }
-                onToggle(isSynced, !isPublic);
+                onToggle(isSynced, !isPublic, !isPublic && policyEnforced);
             }}
             title={(
                 <FormattedMessage
@@ -110,8 +111,52 @@ const AllowAllToggle: React.SFC<Props> = (props: Props): JSX.Element | null => {
     );
 };
 
+const PolicyEnforceToggle: React.SFC<Props> = (props: Props): JSX.Element | null => {
+    const {isPublic, isSynced, isDefault, onToggle, isDisabled, policyEnforced} = props;
+    if (isSynced) {
+        return null;
+    }
+    return (
+        <LineSwitch
+            id='policy-enforce-toggle'
+            disabled={isPublic || isDisabled || isDefault}
+            toggled={policyEnforced}
+            last={true}
+            onToggle={() => {
+                if (isDefault) {
+                    return;
+                }
+                onToggle(isSynced, isPublic, !policyEnforced);
+            }}
+            title={(
+                <FormattedMessage
+                    id='admin.channel_settings.channel_details.policy_enforced_title'
+                    defaultMessage='Enable attribute based channel access'
+                />
+            )}
+            subTitle={isDefault ? (
+                <FormattedMessage
+                    id='admin.channel_settings.channel_details.private_channel_only'
+                    defaultMessage='Only private channels can be attribute based.'
+                />
+            ) : isPublic ? (
+                <FormattedMessage
+                    id='admin.channel_settings.channel_details.private_channel_only'
+                    defaultMessage='Only private channels can be attribute based.'
+                />
+            ) : (
+                <FormattedMessage
+                    id='admin.channel_settings.channel_details.attribute_based_description'
+                    defaultMessage='Restrict which users can be invited to this channel based on their user attributes and values. Only people who match the specified conditions will be allowed to be selected and added to this channel.'
+                />
+            )
+            }
+        />
+    );
+};
+
 export const ChannelModes: React.SFC<Props> = (props: Props): JSX.Element => {
-    const {isPublic, isSynced, isDefault, onToggle, isDisabled, groupsSupported} = props;
+    const {isPublic, isSynced, isDefault, onToggle, isDisabled, groupsSupported, policyEnforced} = props;
     return (
         <AdminPanel
             id='channel_manage'
@@ -120,13 +165,14 @@ export const ChannelModes: React.SFC<Props> = (props: Props): JSX.Element => {
         >
             <div className='group-teams-and-channels'>
                 <div className='group-teams-and-channels--body'>
-                    {groupsSupported &&
+                    {!policyEnforced && groupsSupported &&
                         <SyncGroupsToggle
                             isPublic={isPublic}
                             isSynced={isSynced}
                             isDefault={isDefault}
                             onToggle={onToggle}
                             isDisabled={isDisabled}
+                            policyEnforced={policyEnforced}
                         /> }
                     <AllowAllToggle
                         isPublic={isPublic}
@@ -134,9 +180,19 @@ export const ChannelModes: React.SFC<Props> = (props: Props): JSX.Element => {
                         isDefault={isDefault}
                         onToggle={onToggle}
                         isDisabled={isDisabled}
+                        policyEnforced={policyEnforced}
+                    />
+                    <PolicyEnforceToggle
+                        isPublic={isPublic}
+                        isSynced={isSynced}
+                        isDefault={isDefault}
+                        onToggle={onToggle}
+                        isDisabled={isDisabled}
+                        policyEnforced={policyEnforced}
                     />
                 </div>
             </div>
         </AdminPanel>
     );
 };
+
