@@ -11,17 +11,14 @@ import * as WebSocketActions from 'actions/websocket_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
 import LoadingScreen from 'components/loading_screen';
+import TimezoneManager from 'components/timezone_manager';
 
 import WebSocketClient from 'client/web_websocket_client';
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {isKeyPressed} from 'utils/keyboard';
-import {getBrowserTimezone} from 'utils/timezone';
 import {isAndroid, isIos} from 'utils/user_agent';
 import {doesCookieContainsMMUserId} from 'utils/utils';
-
-// Timezone update frequency in milliseconds (30 minutes)
-const TIMEZONE_UPDATE_INTERVAL = 30 * 60 * 1000;
 
 declare global {
     interface Window {
@@ -51,7 +48,6 @@ export type Props = {
 
 export default class LoggedIn extends React.PureComponent<Props> {
     private cleanupDesktopListeners?: () => void;
-    private timezoneUpdateInterval?: number;
 
     constructor(props: Props) {
         super(props);
@@ -70,18 +66,8 @@ export default class LoggedIn extends React.PureComponent<Props> {
         // Initialize websocket
         WebSocketActions.initialize();
 
-        this.updateTimeZone();
-
-        // Set up a timer to periodically update timezone
-        this.timezoneUpdateInterval = window.setInterval(() => {
-            this.updateTimeZone();
-        }, TIMEZONE_UPDATE_INTERVAL);
-
         // Make sure the websockets close and reset version
         window.addEventListener('beforeunload', this.handleBeforeUnload);
-
-        // listen for the app visibility state
-        window.addEventListener('visibilitychange', this.handleVisibilityChange, false);
 
         // Listen for focused tab/window state
         window.addEventListener('focus', this.onFocusListener);
@@ -126,13 +112,8 @@ export default class LoggedIn extends React.PureComponent<Props> {
         WebSocketActions.close();
 
         window.removeEventListener('keydown', this.handleBackSpace);
-
         window.removeEventListener('focus', this.onFocusListener);
         window.removeEventListener('blur', this.onBlurListener);
-
-        if (this.timezoneUpdateInterval) {
-            clearInterval(this.timezoneUpdateInterval);
-        }
 
         this.cleanupDesktopListeners?.();
     }
@@ -154,42 +135,18 @@ export default class LoggedIn extends React.PureComponent<Props> {
             }
         }
 
-        return this.props.children;
+        return (
+            <>
+                <TimezoneManager autoUpdateTimezone={this.props.actions.autoUpdateTimezone}/>
+                {this.props.children}
+            </>
+        );
     }
 
-    /**
-     * Handle changes in page visibility - update timezone when page becomes visible
-     * This helps detect timezone changes when the tab was in the background
-     */
-    private handleVisibilityChange = (): void => {
-        if (!document.hidden) {
-            this.updateTimeZone();
-        }
-    };
-
-    /**
-     * Updates the timezone in the application
-     * Always ignores the momentjs cache to ensure we get the current timezone
-     */
-    private updateTimeZone(): void {
-        const ignoreCache = true;
-        this.props.actions.autoUpdateTimezone(getBrowserTimezone(ignoreCache));
-    }
-
-    /**
-     * Handles window focus events
-     * Updates the timezone when the window regains focus, which helps detect timezone changes
-     * that occurred while the window was not focused
-     */
     private onFocusListener = (): void => {
         GlobalActions.emitBrowserFocus(true);
-        this.updateTimeZone();
     };
 
-    /**
-     * Handles window blur events
-     * Notifies the application that the window has lost focus
-     */
     private onBlurListener = (): void => {
         GlobalActions.emitBrowserFocus(false);
     };
