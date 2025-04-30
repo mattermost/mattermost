@@ -14,8 +14,7 @@ type Props = {
 
 const TimezoneManager = ({autoUpdateTimezone}: Props): null => {
     const updateTimezone = () => {
-        const ignoreCache = true;
-        autoUpdateTimezone(getBrowserTimezone(ignoreCache));
+        autoUpdateTimezone(getBrowserTimezone());
     };
     
     useEffect(() => {
