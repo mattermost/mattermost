@@ -165,6 +165,67 @@ func TestApp_UnshareChannelMessage(t *testing.T) {
 	assert.Equal(t, th.BasicUser.Id, systemPost.UserId, "post should be from the creator")
 }
 
+func TestApp_UnshareDirectChannel(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic()
+
+	// Save the original feature flag value
+	originalFlag := th.App.Config().FeatureFlags.EnableSharedChannelsDMs
+	
+	// Disable the feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.EnableSharedChannelsDMs = false
+	})
+	
+	defer func() {
+		// Restore original feature flag value after the test
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableSharedChannelsDMs = originalFlag
+		})
+	}()
+	
+	// Create a direct channel
+	directChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+	
+	// Attempt to unshare the direct channel (which should fail)
+	_, err := th.App.UnshareChannel(directChannel.Id)
+	assert.Error(t, err, "should error when trying to unshare a direct channel with feature flag disabled")
+	assert.Contains(t, err.Error(), "cannot unshare a direct or group channel")
+	
+	// Test the enabled feature flag case
+	t.Run("with feature flag enabled", func(t *testing.T) {
+		// Enable the feature flag
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableSharedChannelsDMs = true
+		})
+		
+		// Create a regular channel (not DM/GM) for testing
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		
+		// Add a valid shared channel record to make unshare operation succeed
+		sc := &model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             true,
+			ReadOnly:         false,
+			ShareName:        channel.Name,
+			ShareDisplayName: channel.DisplayName,
+			SharePurpose:     channel.Purpose,
+			ShareHeader:      channel.Header,
+			CreatorId:        th.BasicUser.Id,
+			RemoteId:         "",
+		}
+		
+		_, err = th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, err)
+		
+		// Now unshare should succeed
+		success, err := th.App.UnshareChannel(channel.Id)
+		assert.NoError(t, err, "should not error when feature flag is enabled")
+		assert.True(t, success, "should successfully unshare the channel")
+	})
+}
+
 func TestApp_RemoteChannelUnshareMessage(t *testing.T) {
 	th := setupSharedChannels(t).InitBasic()
 
