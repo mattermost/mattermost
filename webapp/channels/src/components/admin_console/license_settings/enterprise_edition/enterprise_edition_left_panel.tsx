@@ -127,7 +127,7 @@ const EnterpriseEditionLeftPanel = ({
                 <div className='license-details-top'>
                     <span className='title'>{'License details'}</span>
                     <button
-                        className='add-seats-button btn btn-primary btn-sm'
+                        className='add-seats-button btn btn-tertiary btn-sm'
                         onClick={openContactSales}
                     >
                         <FormattedMessage
