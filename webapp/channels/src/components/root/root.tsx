@@ -14,7 +14,7 @@ import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
 
-import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
+import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
@@ -360,7 +360,6 @@ export default class Root extends React.PureComponent<Props, State> {
         this.initiateMeRequests();
 
         measurePageLoadTelemetry();
-        trackSelectorMetrics();
 
         // Force logout of all tabs if one tab is logged out
         window.addEventListener('storage', this.handleLogoutLoginSignal);
