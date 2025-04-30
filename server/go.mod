@@ -6,6 +6,7 @@ toolchain go1.23.7
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
+	github.com/Azure/azure-storage-blob-go v0.15.0
 	github.com/Masterminds/semver/v3 v3.3.1
 	github.com/anthonynsimon/bild v0.14.0
 	github.com/avct/uasurfer v0.0.0-20240501094946-ca0c4d1e541b
@@ -84,7 +85,6 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Azure/azure-pipeline-go v0.2.3 // indirect
-	github.com/Azure/azure-storage-blob-go v0.15.0 // indirect
 	github.com/JalfResi/justext v0.0.0-20221106200834-be571e3e3052 // indirect
 	github.com/PuerkitoBio/goquery v1.9.2 // indirect
 	github.com/RoaringBitmap/roaring v1.9.4 // indirect
