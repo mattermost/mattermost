@@ -42,15 +42,6 @@ const SharedUserIndicator = (props: Props) => {
         return sharedIcon;
     }
 
-    // If a title is explicitly provided, use it
-    if (props.title) {
-        return (
-            <WithTooltip title={props.title}>
-                {sharedIcon}
-            </WithTooltip>
-        );
-    }
-
     // If we have remote names, use them in the tooltip
     if (props.remoteNames && props.remoteNames.length > 0) {
         // Show first 3 remotes and then "and N others" if there are more

@@ -15,9 +15,6 @@ import './react-intl_mock';
 import './react-router-dom_mock';
 import './react-tippy_mock';
 
-// We don't need a global mock for makeGetChannel
-// Individual component tests should mock what they need
-
 module.exports = async () => {
     // eslint-disable-next-line no-process-env
     process.env.TZ = 'UTC';
