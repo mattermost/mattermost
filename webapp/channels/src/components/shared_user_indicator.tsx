@@ -31,6 +31,7 @@ const SharedUserIndicator = (props: Props) => {
 
     const sharedIcon = (
         <i
+            data-testid='SharedUserIcon'
             className={classNames('icon icon-circle-multiple-outline', props.className)}
             aria-label={props.ariaLabel || intl.formatMessage({id: 'shared_user_indicator.aria_label', defaultMessage: 'shared user indicator'})}
             role={props?.role}
@@ -52,11 +53,23 @@ const SharedUserIndicator = (props: Props) => {
 
     // If we have remote names, use them in the tooltip
     if (props.remoteNames && props.remoteNames.length > 0) {
+        // Show first 3 remotes and then "and N others" if there are more
+        const MAX_DISPLAY_NAMES = 3;
+        let remoteNamesText;
+
+        if (props.remoteNames.length <= MAX_DISPLAY_NAMES) {
+            remoteNamesText = props.remoteNames.join(', ');
+        } else {
+            const displayNames = props.remoteNames.slice(0, MAX_DISPLAY_NAMES);
+            const remainingCount = props.remoteNames.length - MAX_DISPLAY_NAMES;
+            remoteNamesText = `${displayNames.join(', ')} and ${remainingCount} other${remainingCount > 1 ? 's' : ''}`;
+        }
+
         return (
             <WithTooltip
                 title={intl.formatMessage(
                     {id: 'shared_user_indicator.tooltip_with_names', defaultMessage: 'From: {remoteNames}'},
-                    {remoteNames: props.remoteNames.join(', ')},
+                    {remoteNames: remoteNamesText},
                 )}
             >
                 {sharedIcon}
