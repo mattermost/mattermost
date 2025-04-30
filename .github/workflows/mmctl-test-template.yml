@@ -14,6 +14,10 @@ on:
       logsartifact:
         required: true
         type: string
+      fips-enabled:
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   test:
@@ -23,6 +27,7 @@ jobs:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
       - uses: chainguard-dev/setup-chainctl@main
+        if: ${{ inputs.fips-enabled }}
         with:
           identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f       
                
@@ -33,6 +38,15 @@ jobs:
         id: go
         working-directory: ./server
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+
+      - name: Setup BUILD_IMAGE
+        id: build
+        run: |
+          if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
+            echo "IMAGE=cgr.dev/mattermost.com/go-msft-fips:1.22-dev" >> "${GITHUB_OUTPUT}"
+          else
+            echo "IMAGE=mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}" >> "${GITHUB_OUTPUT}"
+          fi
 
       - name: Store required variables for publishing results
         run: |
@@ -63,10 +77,10 @@ jobs:
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
 
-      - name: Run mmctl Tests
+      - name: Run mmctl Tests with FIPS
+        if: ${{ inputs.fips-enabled }}
         env:
-          # BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
-          BUILD_IMAGE: cgr.dev/mattermost.com/go-msft-fips:1.22-dev
+          BUILD_IMAGE: ${{ steps.build.outputs.IMAGE }}
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
             export TESTFLAGS="-timeout 90m -race"
@@ -85,6 +99,28 @@ jobs:
             $BUILD_IMAGE \
             test-mmctl BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
 
+      - name: Run mmctl Tests without FIPS
+        if: ${{ ! inputs.fips-enabled }}
+        env:
+          BUILD_IMAGE: ${{ steps.build.outputs.IMAGE }}
+        run: |
+          if [[ ${{ github.ref_name }} == 'master' ]]; then
+            export TESTFLAGS="-timeout 90m -race"
+          else
+            export TESTFLAGS="-timeout 30m"
+          fi
+          docker run --net ghactions_mm-test \
+            --ulimit nofile=8096:8096 \
+            --env-file=server/build/dotenv/test.env \
+            --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
+            --env MMCTL_TESTFLAGS="$TESTFLAGS" \
+            -v $(go env GOCACHE):/go/cache \
+            -e GOCACHE=/go/cache \
+            -v $PWD:/mattermost \
+            -w /mattermost/server \
+            $BUILD_IMAGE \
+            make test-mmctl BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID      
+                  
       - name: Stop docker compose
         run: |
           cd server/build

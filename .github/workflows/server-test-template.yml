@@ -14,6 +14,10 @@ on:
       logsartifact:
         required: true
         type: string
+      fips-enabled:
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   id-token: write
@@ -27,11 +31,32 @@ jobs:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
       - uses: chainguard-dev/setup-chainctl@main
+        if: ${{ inputs.fips-enabled }}
         with:
           identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
 
       - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2        
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Calculate Golang Version
+        id: go
+        working-directory: ./server
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"          
+
+      - name: Setup Go
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: server/go.sum
+
+      - name: Setup BUILD_IMAGE
+        id: build
+        run: |
+          if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
+            echo "IMAGE=cgr.dev/mattermost.com/go-msft-fips:1.22-dev" >> "${GITHUB_OUTPUT}"
+          else
+            echo "IMAGE=mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}" >> "${GITHUB_OUTPUT}"
+          fi
 
       - name: Store required variables for publishing results
         run: |
@@ -46,10 +71,10 @@ jobs:
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
 
-      - name: Run Tests
+      - name: Run Tests with FIPS
+        if: ${{ inputs.fips-enabled }}
         env:
-          # BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
-          BUILD_IMAGE: cgr.dev/mattermost.com/go-msft-fips:1.22-dev
+          BUILD_IMAGE: ${{ steps.build.outputs.IMAGE }}
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
             export RACE_MODE="-race"
@@ -68,11 +93,33 @@ jobs:
             $BUILD_IMAGE \
             test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
 
+      - name: Run Tests without FIPS
+        if: ${{ ! inputs.fips-enabled }}
+        env:
+          BUILD_IMAGE: ${{ steps.build.outputs.IMAGE }}
+        run: |            
+          if [[ ${{ github.ref_name }} == 'master' ]]; then
+            export RACE_MODE="-race"
+          fi
+          docker run --net ghactions_mm-test \
+            --ulimit nofile=8096:8096 \
+            --env-file=server/build/dotenv/test.env \
+            --env MM_SQLSETTINGS_DRIVERNAME="${{ inputs.drivername }}" \
+            --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
+            --env TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}" \
+            --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
+            -v $(go env GOCACHE):/go/cache \
+            -e GOCACHE=/go/cache \
+            -v $PWD:/mattermost \
+            -w /mattermost/server \
+            $BUILD_IMAGE \
+            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID            
+            
       - name: Stop docker compose
         run: |
           cd server/build
           docker compose --ansi never stop
-          
+
       - name: Archive logs
         if: ${{ always() }}
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
