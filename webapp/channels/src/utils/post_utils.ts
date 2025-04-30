@@ -803,12 +803,18 @@ export function getUserOrGroupFromMentionName(
         const username = parts[0];
         const serverName = parts[1];
         if (username && serverName) {
-            const remoteUser = getMention(users, username);
-            if (remoteUser && remoteUser.remote_id === serverName) {
-                return [remoteUser, undefined];
+            // Search for all users with matching username (could be multiple remote users)
+            const userValues = Object.values(users);
+            for (let i = 0; i < userValues.length; i++) {
+                const user = userValues[i];
+                if (user.username === username && user.remote_id === serverName) {
+                    return [user, undefined];
+                }
             }
         }
     }
+
+    // Continue with normal user/group lookup
     const user = getMention(users, mentionName);
 
     // prioritizes user if user exists with the same name as a group.
