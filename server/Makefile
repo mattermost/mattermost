@@ -801,12 +801,17 @@ endif
 
 vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
-vet-api: export ROOT := $(ROOT)
 vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
-	$(GO) install github.com/mattermost/mattermost-govet/v2@72e7752bcf59b57688fcb41173a6a1583c405adf
-	make -C ../api build
-	# Run the script through Docker
-	docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server --entrypoint /bin/bash -e GOOS -e GOARCH -e GO -e GOBIN -e ROOT cgr.dev/mattermost.com/go-msft-fips:1.22-dev ./scripts/vet-api-check.sh
+	@$(GO) install github.com/mattermost/mattermost-govet/v2@72e7752bcf59b57688fcb41173a6a1583c405adf
+	@make -C ../api build
+	@if [ "$(FIPS_ENABLED)" = "true" ]; then \
+		echo "Running vet-api check with FIPS enabled"; \
+		docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server --entrypoint /bin/bash -e GOOS -e MATTERMOST_DIR=/build/mattermost -e GOARCH -e GO -e GOBIN -e ROOT cgr.dev/mattermost.com/go-msft-fips:1.22-dev ./scripts/vet-api-check.sh; \
+	else \
+		echo "Running vet-api check with FIPS disabled"; \
+		export MATTERMOST_DIR=$(PWD)/../; \
+		./scripts/vet-api-check.sh; \
+	fi
 
 gen-serialized:	export LICENSE_HEADER:=$(LICENSE_HEADER)
 gen-serialized: ## Generates serialization methods for hot structs

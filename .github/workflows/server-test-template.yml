@@ -88,6 +88,7 @@ jobs:
             --env TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}" \
             --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
             --env GOBIN=/root/go/bin \
+            --env GOFLAGS="-buildvcs=false" \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
