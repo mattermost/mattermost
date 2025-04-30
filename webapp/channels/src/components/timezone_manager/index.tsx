@@ -13,6 +13,11 @@ type Props = {
 };
 
 const TimezoneManager = ({autoUpdateTimezone}: Props): null => {
+    const updateTimezone = () => {
+        const ignoreCache = true;
+        autoUpdateTimezone(getBrowserTimezone(ignoreCache));
+    };
+    
     useEffect(() => {
         // Initial timezone update on mount
         updateTimezone();
@@ -29,10 +34,6 @@ const TimezoneManager = ({autoUpdateTimezone}: Props): null => {
             clearInterval(intervalId);
         };
     }, []);
-    const updateTimezone = () => {
-        const ignoreCache = true;
-        autoUpdateTimezone(getBrowserTimezone(ignoreCache));
-    };
 
     return null;
 };
