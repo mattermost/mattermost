@@ -31,9 +31,14 @@ func (opts *LdapSyncOptions) ToMap() map[string]string {
 	return m
 }
 
-// FromMap populates a LdapSyncOptions from a map[string]string
+// FromMap populates a LdapSyncOptions from a map[string]string.
+// It should never be called on a nil pointer.
 func (opts *LdapSyncOptions) FromMap(m map[string]string) {
-	if m == nil {
+	if opts == nil {
+		panic("opts is nil")
+	}
+
+	if len(m) == 0 {
 		return
 	}
 

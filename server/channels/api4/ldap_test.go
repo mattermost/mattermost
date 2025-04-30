@@ -253,7 +253,7 @@ func TestSyncLdap(t *testing.T) {
 		// Test with old format using include_removed_members=true
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			url := "/ldap/sync"
-			request := map[string]interface{}{
+			request := map[string]any{
 				"include_removed_members": true,
 			}
 			jsonRequest, err := json.Marshal(request)
@@ -272,7 +272,7 @@ func TestSyncLdap(t *testing.T) {
 		// Test with old format using include_removed_members=false
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			url := "/ldap/sync"
-			request := map[string]interface{}{
+			request := map[string]any{
 				"include_removed_members": false,
 			}
 			jsonRequest, err := json.Marshal(request)
@@ -438,7 +438,7 @@ func TestSyncLdapBackwardCompatibility(t *testing.T) {
 	// Test with old format using include_removed_members=true
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		url := "/ldap/sync"
-		request := map[string]interface{}{
+		request := map[string]any{
 			"include_removed_members": true,
 		}
 		jsonRequest, err := json.Marshal(request)
@@ -456,7 +456,7 @@ func TestSyncLdapBackwardCompatibility(t *testing.T) {
 	// Test with old format using include_removed_members=false
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		url := "/ldap/sync"
-		request := map[string]interface{}{
+		request := map[string]any{
 			"include_removed_members": false,
 		}
 		jsonRequest, err := json.Marshal(request)
