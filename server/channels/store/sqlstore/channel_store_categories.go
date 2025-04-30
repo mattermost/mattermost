@@ -746,9 +746,19 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			query, args, err2 := s.getQueryBuilder().
 				Delete("SidebarChannels").
 				Where(
-					sq.And{
-						sq.Eq{"ChannelId": srcCategory.Channels},
+					sq.Or{
+						// Matches any channels currently in this category
 						sq.Eq{"CategoryId": category.Id},
+						// Matches all entries for channels in other categories which are being moved into this one
+						sq.And{
+							sq.Eq{"ChannelId": category.Channels},
+							subQueryIN(
+								"CategoryId",
+								sq.Select("Id").
+									From("SidebarCategories").
+									Where(sq.Eq{"UserId": userId, "TeamId": teamId}),
+							),
+						},
 					},
 				).ToSql()
 

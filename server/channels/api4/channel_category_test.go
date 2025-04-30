@@ -161,6 +161,100 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 
 		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventSidebarCategoryUpdated)
 	})
+
+	t.Run("creating a category with a channel should implicitly remove it from other categories on that team", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+
+		team := th.BasicTeam
+		channel := th.BasicChannel
+
+		// Create a custom category containing the channel
+		categoryA, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, team.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Type:        model.SidebarCategoryCustom,
+				DisplayName: "Category A",
+				UserId:      user.Id,
+				TeamId:      team.Id,
+				Sorting:     model.SidebarCategorySortManual,
+			},
+			Channels: []string{channel.Id},
+		})
+		require.NoError(t, err)
+
+		// That should have removed it from the Channels category and added it to the new one
+		assertChannelIsInCategory(t, client, user.Id, team.Id, channel.Id, categoryA.Id)
+
+		// Create a second custom category containing the channel
+		categoryB, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, team.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Type:        model.SidebarCategoryCustom,
+				DisplayName: "Category B",
+				UserId:      user.Id,
+				TeamId:      team.Id,
+				Sorting:     model.SidebarCategorySortManual,
+			},
+			Channels: []string{channel.Id},
+		})
+		require.NoError(t, err)
+
+		// That should have removed it from the first category and added it to the second one instead
+		assertChannelIsInCategory(t, client, user.Id, team.Id, channel.Id, categoryB.Id)
+	})
+
+	t.Run("creating a category with a DM/GM channel shouldn't remove it from categories on other teams", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+
+		// Create a DM channel
+		dmChannel, _, err := client.CreateDirectChannel(context.Background(), user.Id, th.BasicUser.Id)
+		require.NoError(t, err)
+
+		teamA := th.BasicTeam
+
+		// Create a second team and add the user to it
+		teamB, _, err := th.SystemAdminClient.CreateTeam(context.Background(), &model.Team{
+			Name:        "anotherteam" + model.NewId(),
+			DisplayName: "Another Team",
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+
+		_, _, err = th.SystemAdminClient.AddTeamMember(context.Background(), teamB.Id, user.Id)
+		require.NoError(t, err)
+
+		// Create a custom category containing the DM channel
+		teamACategory, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, teamA.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Type:        model.SidebarCategoryCustom,
+				DisplayName: "New Category on Team",
+				UserId:      user.Id,
+				TeamId:      teamA.Id,
+				Sorting:     model.SidebarCategorySortManual,
+			},
+			Channels: []string{dmChannel.Id},
+		})
+		require.NoError(t, err)
+
+		// That should have removed it from the DMs category and added it to the new one
+		assertChannelIsInCategory(t, client, user.Id, teamA.Id, dmChannel.Id, teamACategory.Id)
+
+		// Create a custom category on another team containing that DM channel
+		teamBCategory, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, teamB.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Type:        model.SidebarCategoryCustom,
+				DisplayName: "New Category on Another Team",
+				UserId:      user.Id,
+				TeamId:      teamB.Id,
+				Sorting:     model.SidebarCategorySortManual,
+			},
+			Channels: []string{dmChannel.Id},
+		})
+		require.NoError(t, err)
+
+		// That should have left it in the same place on the first team...
+		assertChannelIsInCategory(t, client, user.Id, teamA.Id, dmChannel.Id, teamACategory.Id)
+		// ... and it should have moved it from the DMs category on the other team and to the new category there.
+		assertChannelIsInCategory(t, client, user.Id, teamB.Id, dmChannel.Id, teamBCategory.Id)
+	})
 }
 
 func TestUpdateCategoryForTeamForUser(t *testing.T) {
@@ -447,6 +541,124 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 			require.Error(t, err)
 			closeBody(r)
 		})
+	})
+
+	t.Run("adding a channel to a category should implicitly remove it from other categories on that team", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+
+		team := th.BasicTeam
+		channel := th.BasicChannel
+
+		// Create a couple of custom categories
+		categoryA, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, team.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Type:        model.SidebarCategoryCustom,
+				DisplayName: "Category A",
+				UserId:      user.Id,
+				TeamId:      team.Id,
+				Sorting:     model.SidebarCategorySortManual,
+			},
+		})
+		require.NoError(t, err)
+
+		categoryB, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, team.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Type:        model.SidebarCategoryCustom,
+				DisplayName: "Category B",
+				UserId:      user.Id,
+				TeamId:      team.Id,
+				Sorting:     model.SidebarCategorySortManual,
+			},
+		})
+		require.NoError(t, err)
+
+		// Update the first category to add the channel to it
+		categoryA.Channels = []string{channel.Id}
+		_, _, err = client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, team.Id, categoryA.Id, categoryA)
+		require.NoError(t, err)
+
+		// That should have removed it from the Channels category and added it to the new one
+		assertChannelIsInCategory(t, client, user.Id, team.Id, channel.Id, categoryA.Id)
+
+		// Update the second category to add the channel to it
+		categoryB.Channels = []string{channel.Id}
+		_, _, err = client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, team.Id, categoryB.Id, categoryB)
+		require.NoError(t, err)
+
+		// That should have removed it from the first category and added it to the second one
+		assertChannelIsInCategory(t, client, user.Id, team.Id, channel.Id, categoryB.Id)
+	})
+
+	t.Run("creating a category with a DM/GM channel shouldn't remove it from categories on other teams", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+
+		// Create a DM channel
+		dmChannel, _, err := client.CreateDirectChannel(context.Background(), user.Id, th.BasicUser.Id)
+		require.NoError(t, err)
+
+		teamA := th.BasicTeam
+
+		// Create a second team and add the user to it
+		teamB, _, err := th.SystemAdminClient.CreateTeam(context.Background(), &model.Team{
+			Name:        "anotherteam" + model.NewId(),
+			DisplayName: "Another Team",
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+
+		_, _, err = th.SystemAdminClient.AddTeamMember(context.Background(), teamB.Id, user.Id)
+		require.NoError(t, err)
+
+		// Get the DM category on the other team to check it below
+		teamBCategories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, teamB.Id, "")
+		require.NoError(t, err)
+		require.Len(t, teamBCategories.Categories, 3)
+		require.Len(t, teamBCategories.Order, 3)
+
+		teamBDMsCategory := teamBCategories.Categories[2]
+		require.Equal(t, model.SidebarCategoryDirectMessages, teamBDMsCategory.Type)
+
+		// Create a custom category on each of those teams
+		teamACategory, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, teamA.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Type:        model.SidebarCategoryCustom,
+				DisplayName: "New Category on Team",
+				UserId:      user.Id,
+				TeamId:      teamA.Id,
+				Sorting:     model.SidebarCategorySortManual,
+			},
+		})
+
+		teamBCategory, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, teamB.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Type:        model.SidebarCategoryCustom,
+				DisplayName: "New Category on Another Team",
+				UserId:      user.Id,
+				TeamId:      teamB.Id,
+				Sorting:     model.SidebarCategorySortManual,
+			},
+		})
+		require.NoError(t, err)
+
+		// Update the category on the first team to add the DM to it
+		teamACategory.Channels = []string{dmChannel.Id}
+		_, _, err = client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, teamA.Id, teamACategory.Id, teamACategory)
+		require.NoError(t, err)
+
+		// That should have removed it from the DMs category in the first team and have added it to the new one...
+		assertChannelIsInCategory(t, client, user.Id, teamA.Id, dmChannel.Id, teamACategory.Id)
+		// ...and it should have left it in the DMs category in the second team
+		assertChannelIsInCategory(t, client, user.Id, teamB.Id, dmChannel.Id, teamBDMsCategory.Id)
+
+		// Update the category on the second team to add the DM to it
+		teamBCategory.Channels = []string{dmChannel.Id}
+		_, _, err = client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, teamB.Id, teamBCategory.Id, teamBCategory)
+		require.NoError(t, err)
+
+		// That should have left it in the same place on the first team...
+		assertChannelIsInCategory(t, client, user.Id, teamA.Id, dmChannel.Id, teamACategory.Id)
+		// ... and it should have moved it from the DMs category on the other team and to the new category there.
+		assertChannelIsInCategory(t, client, user.Id, teamB.Id, dmChannel.Id, teamBCategory.Id)
 	})
 }
 
@@ -1270,4 +1482,24 @@ func setupUserForSubtest(t *testing.T, th *TestHelper) (*model.User, *model.Clie
 	require.NoError(t, err)
 
 	return user, client
+}
+
+// assertChannelIsInCategory asserts that a channel is in a category (and not in any other category) for that user on that team.
+func assertChannelIsInCategory(t *testing.T, client *model.Client4, userID, teamID, channelID, categoryID string) {
+	t.Helper()
+
+	categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), userID, teamID, "")
+	require.NoError(t, err)
+
+	found := false
+	for _, category := range categories.Categories {
+		if category.Id == categoryID {
+			assert.Contains(t, category.Channels, channelID)
+			found = true
+		} else {
+			assert.NotContains(t, category.Channels, channelID)
+		}
+	}
+
+	require.True(t, found, "the given category wasn't found in the given team")
 }
