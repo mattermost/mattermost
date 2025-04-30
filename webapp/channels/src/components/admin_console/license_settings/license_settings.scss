@@ -56,6 +56,10 @@
 
 .admin-console__banner_section {
     margin-bottom: 20px;
+
+    &:empty {
+        margin-bottom: 0px;
+    }
 }
 
 .current-plan-legend {
