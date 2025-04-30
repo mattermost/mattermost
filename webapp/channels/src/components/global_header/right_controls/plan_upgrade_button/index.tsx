@@ -18,7 +18,7 @@ import WithTooltip from 'components/with_tooltip';
 import {CloudProducts} from 'utils/constants';
 
 const UpgradeButton = styled.button`
-background: var(--denim-button-bg);
+background: var(--button-bg);
 border-radius: 4px;
 border: none;
 box-shadow: none;

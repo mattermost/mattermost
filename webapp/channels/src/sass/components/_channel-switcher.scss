@@ -153,30 +153,6 @@ body.app__body {
     }
 }
 
-// Colour overrides for the System Console
-body:not(.app__body) {
-    .channel-switcher,
-    .channel-invite {
-        .close {
-            color: rgba(var(--sys-center-channel-color-rgb), 0.75);
-
-            &:hover {
-                background-color:
-                    rgba(
-                        var(--sys-center-channel-color-rgb),
-                        0.08
-                    );
-                color: rgba(var(--sys-center-channel-color-rgb), 0.75);
-            }
-
-            &:active {
-                background-color: rgba(var(--sys-button-bg-rgb), 0.08);
-                color: var(--sys-button-bg);
-            }
-        }
-    }
-}
-
 .channel-switcher__hint {
     color: rgb(var(--center-channel-color-rgb));
     font-size: 12px;

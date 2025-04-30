@@ -10,16 +10,16 @@
         border: 0;
         border-radius: 4px;
         background: var(--sys-center-channel-bg);
-        color: var(--sys-button-bg);
+        color: var(--button-bg);
         font-size: 12px;
 
         &.Filter__active,
         &:focus {
-            background: rgba(var(--sys-button-bg-rgb), 0.12);
+            background: rgba(var(--button-bg-rgb), 0.12);
         }
 
         &:hover {
-            background: rgba(var(--sys-button-bg-rgb), 0.06);
+            background: rgba(var(--button-bg-rgb), 0.06);
         }
     }
 

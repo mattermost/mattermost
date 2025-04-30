@@ -164,7 +164,7 @@ function Content(props: ContentProps) {
                     {isProfessional &&
                     <Card
                         id='professional'
-                        topColor='var(--denim-button-bg)'
+                        topColor='var(--button-bg)'
                         plan='Professional'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.professional', defaultMessage: 'Scalable solutions {br} for growing teams'}, {
                             br: <br/>,

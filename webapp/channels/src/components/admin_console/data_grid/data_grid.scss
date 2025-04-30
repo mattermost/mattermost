@@ -187,12 +187,12 @@
             }
 
             &:nth-child(even) {
-                background: rgba(var(--sys-button-bg-rgb), 0.04);
+                background: rgba(var(--button-bg-rgb), 0.04);
             }
 
             &:hover {
                 border-left: none;
-                background-color: rgba(var(--sys-button-bg-rgb), 0.08);
+                background-color: rgba(var(--button-bg-rgb), 0.08);
                 color: var(--sys-center-channel-color);
                 cursor: pointer;
             }

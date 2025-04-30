@@ -3,7 +3,7 @@
 .RenewLicenseCard.TrialLicense {
     .TrialLicenseCard__text-title {
         margin-bottom: 22px;
-        color: var(--sys-button-bg);
+        color: var(--button-bg);
         font-size: 18px;
         font-style: normal;
         font-weight: 600;
@@ -14,8 +14,8 @@
         .contact_us_primary_cta {
             padding: 6px 12px;
             margin-left: 0px;
-            background-color: var(--sys-button-bg);
-            color: var(--sys-center-channel-bg);
+            background-color: var(--button-bg);
+            color: var(--button-color);
         }
     }
 

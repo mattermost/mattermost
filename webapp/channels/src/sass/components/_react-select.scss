@@ -89,8 +89,8 @@
     }
 
     .react-select__control--is-focused {
-        border-color: rgba(var(--sys-button-bg-rgb), 1) !important;
-        box-shadow: inset 0 0 0 1px rgba(var(--sys-button-bg-rgb), 1);
+        border-color: rgba(var(--button-bg-rgb), 1) !important;
+        box-shadow: inset 0 0 0 1px rgba(var(--button-bg-rgb), 1);
 
         .app__body & {
             border-color: rgba(var(--button-bg-rgb), 1) !important;
@@ -155,7 +155,7 @@
     & &__option {
         // hovering
         &--is-focused {
-            background: rgba(var(--sys-button-bg-rgb), 0.08);
+            background: rgba(var(--button-bg-rgb), 0.08);
 
             .app__body & {
                 background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -164,7 +164,7 @@
 
         // selected option
         &--is-selected {
-            background: var(--sys-button-bg);
+            background: var(--button-bg);
             color: var(--sys-button-color);
 
             .app__body & {
@@ -175,7 +175,7 @@
 
         // selected + hovering
         &--is-selected:hover {
-            background: rgba(var(--sys-button-bg-rgb), 0.88);
+            background: rgba(var(--button-bg-rgb), 0.88);
 
             .app__body & {
                 background: rgba(var(--button-bg-rgb), 0.88);
@@ -183,7 +183,7 @@
         }
 
         &:active {
-            background: rgba(var(--sys-button-bg-rgb), 0.16);
+            background: rgba(var(--button-bg-rgb), 0.16);
 
             .app__body & {
                 background: rgba(var(--button-bg-rgb), 0.16);
