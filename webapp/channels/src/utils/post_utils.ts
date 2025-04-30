@@ -807,7 +807,6 @@ export function getUserOrGroupFromMentionName(
             }
         }
     }
-    
     const user = getMention(users, mentionName);
 
     // prioritizes user if user exists with the same name as a group.

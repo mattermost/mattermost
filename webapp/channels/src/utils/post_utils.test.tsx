@@ -1398,11 +1398,11 @@ describe('getUserOrGroupFromMentionName', () => {
     test('should handle remote user mentions with server names', () => {
         // Set up users
         const users = {
-            'user1': TestHelper.getUserMock({
+            user1: TestHelper.getUserMock({
                 username: 'user1',
                 id: 'user1_id',
             }),
-            'remote_user': TestHelper.getUserMock({
+            remote_user: TestHelper.getUserMock({
                 username: 'remote_user',
                 id: 'remote_user_id',
                 remote_id: 'server1',
@@ -1410,17 +1410,42 @@ describe('getUserOrGroupFromMentionName', () => {
         };
 
         const groups = {};
-        
+
         // Test a normal mention that should work
         const [normalUser] = PostUtils.getUserOrGroupFromMentionName('user1', users, groups);
         expect(normalUser).toBeDefined();
         expect(normalUser?.id).toBe('user1_id');
 
-        // Test a remote user mention with server name - this should work but currently fails
+        // Test a remote user mention with server name
         const [remoteUser] = PostUtils.getUserOrGroupFromMentionName('remote_user:server1', users, groups);
-        
-        // This will fail with the current implementation, as it doesn't handle the server suffix
+
+        // Verifies the implementation handles the server suffix for remote users
         expect(remoteUser).toBeDefined();
         expect(remoteUser?.id).toBe('remote_user_id');
+    });
+
+    test('should not match users when mention includes a colon but username does not match a remote user', () => {
+        // Set up users
+        const users = {
+            user1: TestHelper.getUserMock({
+                username: 'user1',
+                id: 'user1_id',
+            }),
+            remote_user: TestHelper.getUserMock({
+                username: 'remote_user',
+                id: 'remote_user_id',
+                remote_id: 'server1',
+            }),
+        };
+
+        const groups = {};
+
+        // Test a mention with a colon where the username part doesn't match any user
+        const [nonExistentUser] = PostUtils.getUserOrGroupFromMentionName('nonexistent:server1', users, groups);
+        expect(nonExistentUser).toBeUndefined();
+
+        // Test a mention with a colon where the username matches a non-remote user
+        const [normalUserWithColon] = PostUtils.getUserOrGroupFromMentionName('user1:server1', users, groups);
+        expect(normalUserWithColon).toBeUndefined();
     });
 });
