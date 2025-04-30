@@ -244,14 +244,14 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             formatMessage(
                 {
                     id: 'login.session_expired.title',
-                    defaultMessage: '* Session Expired | {siteName}',
+                    defaultMessage: '* Session Expired - {siteName}',
                 },
                 {siteName},
             )
         ) : formatMessage(
             {
                 id: 'login.pageTitle',
-                defaultMessage: 'Log in | {siteName}',
+                defaultMessage: 'Log in - {siteName}',
             },
             {siteName},
         );

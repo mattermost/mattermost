@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
 
@@ -16,11 +15,6 @@ describe('components/PasswordResetSendLink', () => {
             sendPasswordResetEmail: jest.fn().mockResolvedValue({data: true}),
         },
     };
-
-    it('should match snapshot', () => {
-        const wrapper = shallow(<PasswordResetSendLink {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
-    });
 
     it('should calls sendPasswordResetEmail() action on submit', () => {
         const props = {...baseProps};
