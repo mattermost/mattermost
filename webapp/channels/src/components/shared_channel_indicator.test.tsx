@@ -85,6 +85,30 @@ describe('components/SharedChannelIndicator', () => {
         });
     });
 
+    test('should truncate long organization names with ellipsis', async () => {
+        jest.useFakeTimers();
+
+        const remoteNames = ['A Very Very Very Very Very Long Organization Name That Needs Truncation', 'Remote 2'];
+        renderWithContext(
+            <SharedChannelIndicator
+                withTooltip={true}
+                remoteNames={remoteNames}
+            />,
+        );
+
+        const icon = screen.getByTestId('SharedChannelIcon');
+        expect(icon).toHaveClass('icon-circle-multiple-outline');
+
+        await act(async () => {
+            userEvent.hover(icon);
+            jest.advanceTimersByTime(1000);
+
+            await waitFor(() => {
+                expect(screen.getByText('Shared with: A Very Very Very Very Very Lon..., Remote 2')).toBeInTheDocument();
+            });
+        });
+    });
+
     test('should correctly handle singular "other" in text', async () => {
         jest.useFakeTimers();
 

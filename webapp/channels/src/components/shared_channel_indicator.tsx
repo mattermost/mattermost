@@ -30,13 +30,21 @@ const SharedChannelIndicator: React.FC<Props> = (props: Props): JSX.Element => {
         // If we have remote names, display them in the tooltip
         // Show first 3 remotes and then "and N others" if there are more
         const MAX_DISPLAY_NAMES = 3;
+        const MAX_NAME_LENGTH = 30;
         let remoteNamesText;
 
-        if (props.remoteNames.length <= MAX_DISPLAY_NAMES) {
-            remoteNamesText = props.remoteNames.join(', ');
+        // Truncate long organization names
+        const truncatedNames = props.remoteNames.map((name) => (
+            name.length > MAX_NAME_LENGTH ?
+                `${name.substring(0, MAX_NAME_LENGTH)}...` :
+                name
+        ));
+
+        if (truncatedNames.length <= MAX_DISPLAY_NAMES) {
+            remoteNamesText = truncatedNames.join(', ');
         } else {
-            const displayNames = props.remoteNames.slice(0, MAX_DISPLAY_NAMES);
-            const remainingCount = props.remoteNames.length - MAX_DISPLAY_NAMES;
+            const displayNames = truncatedNames.slice(0, MAX_DISPLAY_NAMES);
+            const remainingCount = truncatedNames.length - MAX_DISPLAY_NAMES;
             remoteNamesText = `${displayNames.join(', ')} and ${remainingCount} other${remainingCount > 1 ? 's' : ''}`;
         }
 
