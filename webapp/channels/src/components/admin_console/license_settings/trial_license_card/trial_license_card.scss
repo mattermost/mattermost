@@ -12,10 +12,7 @@
 
     .RenewLicenseCard__buttons {
         .contact_us_primary_cta {
-            padding: 6px 12px;
             margin-left: 0px;
-            background-color: var(--button-bg);
-            color: var(--button-color);
         }
     }
 
@@ -27,9 +24,5 @@
     button {
         display: inline-block;
         margin-top: 0;
-    }
-
-    button.contact-us {
-        padding: 11px 19px;
     }
 }

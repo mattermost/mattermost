@@ -31,33 +31,6 @@
 .CompanyInfoDisplay__addInfoButton {
     display: flex;
     align-items: center;
-    padding: 8px 16px;
-    border-radius: 4px;
-    background: var(--button-bg);
-    color: var(--button-color);
-
-    &:hover:not(.disabled) {
-        background: linear-gradient(180deg, rgba(var(--center-channel-color-rgb), 0.16)), var(--button-bg);
-        color: var(--button-color);
-        text-decoration: none;
-    }
-
-    &:active {
-        background: linear-gradient(180deg, rgba(var(--center-channel-color-rgb), 0.32)), var(--button-bg);
-        color: var(--button-color);
-        text-decoration: none;
-    }
-
-    &:focus {
-        box-shadow: inset 0 0 0 2px var(--sys-sidebar-text-active-border);
-        color: var(--button-color);
-        text-decoration: none;
-    }
-
-    &.disabled {
-        background: rgba(var(--sys-center-channel-color-rgb), 0.08);
-        color: rgba(var(--sys-center-channel-color-rgb), 0.32);
-    }
 
     > i {
         font-size: 14.4px;

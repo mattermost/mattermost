@@ -50,7 +50,7 @@ const CtaButtons = ({
         <div className='ctaButtons'>
             {(actionLink || actionButtonCallback) && actionText && (
                 <button
-                    className='actionButton annnouncementBar__purchaseNow'
+                    className='actionButton annnouncementBar__purchaseNow btn btn-primary btn-sm'
                     onClick={getClickHandler('cta', actionLink)}
                 >
                     {actionText}
@@ -58,7 +58,7 @@ const CtaButtons = ({
             )}
             {learnMoreLink && learnMoreText && (
                 <button
-                    className='learnMoreButton light-blue-btn'
+                    className='learnMoreButton btn btn-tertiary btn-sm'
                     onClick={getClickHandler('learn-more', learnMoreLink)}
                 >
                     {learnMoreText}

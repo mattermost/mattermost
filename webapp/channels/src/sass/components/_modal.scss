@@ -313,14 +313,6 @@
                 background: rgba(var(--button-bg-rgb), 0.08);
                 color: functions.v(button-bg);
             }
-
-            .modal-title {
-                width: 100%;
-                background: transparent;
-                color: functions.v(center-channel-color);
-                font-size: 22px;
-                line-height: 28px;
-            }
         }
 
         .modal-title {

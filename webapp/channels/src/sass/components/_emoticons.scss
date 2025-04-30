@@ -594,21 +594,6 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
     flex-shrink: 0;
     margin: $emoji-picker-footer-margin;
     text-decoration: none;
-
-    a,
-    a:hover {
-        border-radius: 4px;
-        background: rgba(var(--button-bg-rgb), 0.08);
-        color: var(--button-bg) !important; // it gets overriden by link color
-        fill: var(--button-bg);
-        font-size: 12px;
-        font-weight: 600;
-        text-decoration: none;
-    }
-
-    a:hover {
-        background-color: rgba(var(--button-bg-rgb), 0.12);
-    }
 }
 
 .emoji-picker__preview {

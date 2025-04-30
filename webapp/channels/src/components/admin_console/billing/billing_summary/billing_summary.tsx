@@ -119,7 +119,7 @@ export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
             <button
                 type='button'
                 onClick={() => openSalesLink()}
-                className='UpgradeMattermostCloud__upgradeButton'
+                className='btn btn-primary UpgradeMattermostCloud__upgradeButton'
             >
 
                 <FormattedMessage
