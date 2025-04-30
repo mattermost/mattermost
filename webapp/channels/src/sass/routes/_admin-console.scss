@@ -508,11 +508,6 @@
             background: variables.$light-gray;
             color: functions.alpha-color(variables.$black, 0.5);
             opacity: 1;
-
-            &.btn-primary {
-                background: variables.$primary-color;
-                color: variables.$white;
-            }
         }
 
         .cancel-button {

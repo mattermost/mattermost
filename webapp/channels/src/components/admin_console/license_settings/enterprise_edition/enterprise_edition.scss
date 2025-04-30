@@ -1,6 +1,4 @@
 .EnterpriseEditionRightPannel {
-    font-family: Metropolis;
-
     .svg-image {
         text-align: center;
 
@@ -10,6 +8,7 @@
     }
 
     .upgrade-title {
+        font-family: Metropolis, sans-serif;
         margin: 10px 0;
         color: #3f4350;
         font-size: 16px;
@@ -43,12 +42,6 @@
 
     .purchase_buttons {
         margin-top: 20px;
-
-        button {
-            height: 48px !important;
-            padding: 7px 12px !important;
-            margin: 0 5px !important;
-        }
     }
 
     .upgrade-error {
@@ -57,7 +50,6 @@
 }
 
 .EnterpriseEditionLeftPanel {
-    font-family: Metropolis;
 
     &__Grid {
         display: grid;
@@ -78,6 +70,7 @@
     }
 
     .title {
+        font-family: Metropolis, sans-serif;
         display: flex;
         color: #3f4350;
         font-size: 18px;
@@ -93,7 +86,6 @@
 
     .license-notices {
         font-size: 12px;
-        text-align: justify;
     }
 
     .licenseInformation {
@@ -112,13 +104,6 @@
             span.title {
                 display: inline-block;
                 color: #3f4350;
-            }
-
-            .add-seats-button {
-                border-radius: 4px;
-                font-family: 'Open Sans', sans-serif;
-                font-size: 12px;
-                font-weight: 600;
             }
         }
 
@@ -171,22 +156,6 @@
                     &-danger {
                         color: var(--dnd-indicator);
                     }
-                }
-            }
-
-            .add-new-licence-btn {
-                display: block;
-                padding: 12px 20px;
-                border: 1px solid var(--button-bg);
-                border-radius: 4px;
-                margin-top: 15px;
-                background-color: var(--sys-center-channel-bg);
-                color: var(--button-bg);
-
-                span {
-                    font-size: 14px;
-                    font-weight: 600;
-                    line-height: 14px;
                 }
             }
         }

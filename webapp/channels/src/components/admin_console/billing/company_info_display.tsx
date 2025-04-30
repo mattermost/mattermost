@@ -18,7 +18,7 @@ const addInfoButton = (
     <div className='CompanyInfoDisplay__addInfo'>
         <BlockableLink
             to='/admin_console/billing/company_info_edit'
-            className='CompanyInfoDisplay__addInfoButton'
+            className='btn btn-primary CompanyInfoDisplay__addInfoButton'
             onClick={() => trackEvent('cloud_admin', 'click_add_company_info')}
         >
             <i className='icon icon-plus'/>
@@ -44,7 +44,7 @@ const noCompanyInfoSection = (
         </div>
         <BlockableLink
             to='/admin_console/billing/company_info_edit'
-            className='CompanyInfoDisplay__noCompanyInfo-link'
+            className='btn btn-primary CompanyInfoDisplay__noCompanyInfo-link'
             onClick={() => trackEvent('cloud_admin', 'click_add_company_info')}
         >
             <FormattedMessage

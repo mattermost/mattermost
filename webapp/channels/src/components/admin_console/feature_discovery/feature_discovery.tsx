@@ -92,7 +92,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             return (
                 <div className='purchase-card'>
                     <button
-                        className='btn btn-primary'
+                        className='btn btn-primary btn-lg'
                         data-testid='featureDiscovery_primaryCallToAction'
                         onClick={() => {
                             trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_ADMIN, 'click_enterprise_contact_sales_feature_discovery');
@@ -106,7 +106,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                     </button>
                     <ExternalLink
                         location='feature_discovery'
-                        className='btn btn-secondary'
+                        className='btn btn-tertiary btn-lg'
                         href={learnMoreURL}
                         data-testid='featureDiscovery_secondaryCallToAction'
                     >
@@ -156,7 +156,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             // In cloud, only option is to contact sales.
             ctaPrimaryButton = (
                 <button
-                    className='btn btn-primary'
+                    className='btn btn-primary btn-lg'
                     data-testid='featureDiscovery_primaryCallToAction'
                     onClick={() => {
                         trackEvent(TELEMETRY_CATEGORIES.CLOUD_ADMIN, 'click_enterprise_contact_sales_feature_discovery');
@@ -176,7 +176,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                 {ctaPrimaryButton}
                 <ExternalLink
                     location='feature_discovery'
-                    className='btn btn-secondary'
+                    className='btn btn-tertiary btn-lg'
                     href={learnMoreURL}
                     data-testid='featureDiscovery_secondaryCallToAction'
                 >
