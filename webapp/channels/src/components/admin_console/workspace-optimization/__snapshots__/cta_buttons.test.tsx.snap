@@ -5,13 +5,13 @@ exports[`components/admin_console/workspace-optimization/cta_buttons should matc
   className="ctaButtons"
 >
   <button
-    className="actionButton annnouncementBar__purchaseNow"
+    className="actionButton annnouncementBar__purchaseNow btn btn-primary btn-sm"
     onClick={[Function]}
   >
     Action Text
   </button>
   <button
-    className="learnMoreButton light-blue-btn"
+    className="learnMoreButton btn btn-tertiary btn-sm"
     onClick={[Function]}
   >
     Learn More

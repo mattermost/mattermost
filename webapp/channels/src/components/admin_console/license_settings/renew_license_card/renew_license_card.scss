@@ -2,6 +2,15 @@
     &__text {
         &-description {
             margin-bottom: 8px;
+            color: var(--sys-center-channel-color);
+            font-family: Open Sans;
+            font-size: 14px;
+            font-style: normal;
+            line-height: 30px;
+
+            &.bolder {
+                font-weight: 600;
+            }
         }
     }
 
@@ -13,40 +22,27 @@
     &__buttons {
         display: flex;
     }
-}
 
-.RenewLicenseCard__text-title {
-    margin-bottom: 5px;
-    color: var(--sys-sidebar-text-active-border);
-    font-family: Open Sans;
-    font-size: 18px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 24px;
-
-    &.critical {
-        color: var(--sys-error-text);
-    }
-}
-
-.RenewLicenseCard__text-description {
-    margin-bottom: 5px;
-    color: var(--sys-center-channel-color);
-    font-family: Open Sans;
-    font-size: 14px;
-    font-style: normal;
-    line-height: 30px;
-
-    &.bolder {
+    &__text-title {
+        margin-bottom: 5px;
+        color: var(--sys-sidebar-text-active-border);
+        font-family: Open Sans;
+        font-size: 18px;
+        font-style: normal;
         font-weight: 600;
+        line-height: 24px;
+    
+        &.critical {
+            color: var(--sys-error-text);
+        }
     }
-}
 
-.RenewLicenseCard__licensedUsersNum {
-    display: inline-block;
-}
+    &__licensedUsersNum {
+        display: inline-block;
+    }
 
-.RenewLicenseCard__activeUsersNum {
-    display: inline-block;
-    margin-left: 25px;
+    &__activeUsersNum {
+        display: inline-block;
+        margin-left: 25px;
+    }
 }
