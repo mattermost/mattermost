@@ -16,7 +16,7 @@ const TimezoneManager = ({autoUpdateTimezone}: Props): null => {
     const updateTimezone = () => {
         autoUpdateTimezone(getBrowserTimezone());
     };
-    
+
     useEffect(() => {
         // Initial timezone update on mount
         updateTimezone();

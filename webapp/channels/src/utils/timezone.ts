@@ -5,7 +5,7 @@ import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
 
 export function getBrowserTimezone() {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return new Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
 export function getBrowserUtcOffset() {
