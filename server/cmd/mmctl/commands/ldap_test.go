@@ -22,7 +22,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO(), false).
+			SyncLdap(context.TODO(), nil).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 

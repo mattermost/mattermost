@@ -152,9 +152,9 @@ func TestSyncLdap(t *testing.T) {
 			mock.AnythingOfType("*model.LdapSyncOptions"),
 		).Return(nil, nil)
 		ready := make(chan bool)
-		includeRemovedMembers := false
+		syncOptions := &model.LdapSyncOptions{}
 		mockCall.RunFn = func(args mock.Arguments) {
-			includeRemovedMembers = args[1].(bool)
+			syncOptions = args[2].(*model.LdapSyncOptions)
 			ready <- true
 		}
 		th.App.Channels().Ldap = ldapMock
@@ -163,12 +163,13 @@ func TestSyncLdap(t *testing.T) {
 			_, err := client.SyncLdap(context.Background(), nil)
 			<-ready
 			require.NoError(t, err)
-			require.False(t, includeRemovedMembers)
+			require.Nil(t, syncOptions.ReAddRemovedMembers)
 
 			_, err = client.SyncLdap(context.Background(), &model.LdapSyncOptions{ReAddRemovedMembers: model.NewPointer(true)})
 			<-ready
 			require.NoError(t, err)
-			require.True(t, includeRemovedMembers)
+			require.NotNil(t, syncOptions.ReAddRemovedMembers)
+			require.True(t, *syncOptions.ReAddRemovedMembers)
 		})
 
 		resp, err := th.Client.SyncLdap(context.Background(), nil)
@@ -187,7 +188,7 @@ func TestSyncLdap(t *testing.T) {
 		ready := make(chan bool)
 		syncOptions := &model.LdapSyncOptions{}
 		mockCall.RunFn = func(args mock.Arguments) {
-			syncOptions = args[1].(*model.LdapSyncOptions)
+			syncOptions = args[2].(*model.LdapSyncOptions)
 			ready <- true
 		}
 		th.App.Channels().Ldap = ldapMock
@@ -244,7 +245,7 @@ func TestSyncLdap(t *testing.T) {
 		ready := make(chan bool)
 		syncOptions := &model.LdapSyncOptions{}
 		mockCall.RunFn = func(args mock.Arguments) {
-			syncOptions = args[1].(*model.LdapSyncOptions)
+			syncOptions = args[2].(*model.LdapSyncOptions)
 			ready <- true
 		}
 		th.App.Channels().Ldap = ldapMock
