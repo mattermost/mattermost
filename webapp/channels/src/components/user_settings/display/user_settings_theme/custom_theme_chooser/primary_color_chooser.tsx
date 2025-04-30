@@ -35,6 +35,42 @@ const darkThemeBase = {
     dndIndicator: '#e81023',
 };
 
+// Inspired by Material 3 color system
+// These are the tonal palette tone values for a standard Material 3 theme
+const TONE_VALUES = {
+    // Material 3 uses these standard tone values for different color roles
+    PRIMARY: {
+        light: {
+            base: 40, // Primary color in light theme
+            container: 90, // Container color in light theme
+            onBase: 100, // Text on primary
+            onContainer: 10, // Text on container
+        },
+        dark: {
+            base: 80, // Primary color in dark theme
+            container: 30, // Container color in dark theme
+            onBase: 0, // Text on primary
+            onContainer: 90, // Text on container
+        },
+    },
+    NEUTRAL: {
+        light: {
+            surface: 98, // Surface colors
+            background: 99, // Background
+            onSurface: 10, // Text on surface
+        },
+        dark: {
+            surface: 12, // Surface colors for dark theme
+            background: 10, // Background for dark theme
+            onSurface: 90, // Text on surface in dark theme
+        },
+    },
+    ACCENT: {
+        light: 65,
+        dark: 70,
+    },
+};
+
 type Props = {
     theme: Theme;
     onChange: (theme: Theme) => void;
@@ -46,174 +82,397 @@ export default function PrimaryColorChooser(props: Props) {
         tinycolor(props.theme.centerChannelBg || '#ffffff').isDark() ? 'dark' : 'light'
     );
     
-    // Function to apply color with selected theme mode
+    // Creates a tonal palette from a source color, similar to Material 3
+    const createTonalPalette = (sourceColor: tinycolor.Instance) => {
+        // Extract the base HSL values
+        const hsl = sourceColor.toHsl();
+        const hue = hsl.h;
+        
+        // Determine chroma (color intensity)
+        // Material 3 does complex calculations for this, but we'll use a simplified approach
+        const chroma = Math.min(hsl.s * 100, 48); // Cap at 48 like Material's primary palette
+        
+        // Create a tonal palette (colors that vary in tone but keep the same hue and chroma)
+        const tonalPalette: {[key: number]: string} = {};
+        
+        // Generate shades from 0 (darkest) to 100 (lightest)
+        for (let tone = 0; tone <= 100; tone += 10) {
+            // Calculate saturation based on tone
+            // Saturation is reduced at very light and dark tones
+            const adjustedSaturation = Math.max(0, 
+                chroma * (1 - Math.abs(tone - 50) / 70)
+            ) / 100;
+            
+            // Calculate lightness directly from tone (0-100 scale)
+            // This is a simplification of Material's HCT conversion
+            const lightness = tone / 100;
+            
+            tonalPalette[tone] = tinycolor({
+                h: hue,
+                s: adjustedSaturation,
+                l: lightness,
+            }).toHexString();
+        }
+        
+        return tonalPalette;
+    };
+    
+    // Creates a neutral palette (low chroma colors) from a source color
+    const createNeutralPalette = (sourceColor: tinycolor.Instance, chromaReduction = 0.9) => {
+        const hsl = sourceColor.toHsl();
+        const hue = hsl.h;
+        
+        // Significantly reduce the chroma for neutrals
+        const chroma = Math.max(hsl.s * (1 - chromaReduction), 0.04); // Keep at least 4% saturation
+        
+        const neutralPalette: {[key: number]: string} = {};
+        
+        for (let tone = 0; tone <= 100; tone += 10) {
+            // For neutrals, use even lower saturation at extremes
+            const adjustedSaturation = chroma * (1 - Math.abs(tone - 50) / 90);
+            const lightness = tone / 100;
+            
+            neutralPalette[tone] = tinycolor({
+                h: hue,
+                s: adjustedSaturation,
+                l: lightness,
+            }).toHexString();
+        }
+        
+        return neutralPalette;
+    };
+    
+    // Create a secondary palette with a slight hue shift
+    const createSecondaryPalette = (sourceColor: tinycolor.Instance, hueShift = 40) => {
+        const hsl = sourceColor.toHsl();
+        const newHue = (hsl.h + hueShift) % 360;
+        
+        // Secondary colors use slightly lower chroma
+        const newChroma = Math.min(hsl.s, 0.8) * 0.8;
+        
+        return createTonalPalette(tinycolor({h: newHue, s: newChroma, l: hsl.l}));
+    };
+    
+    // Create a tertiary palette with a different hue shift
+    const createTertiaryPalette = (sourceColor: tinycolor.Instance, hueShift = 80) => {
+        const hsl = sourceColor.toHsl();
+        const newHue = (hsl.h + hueShift) % 360;
+        
+        // Tertiary colors can have a bit more chroma than secondary
+        const newChroma = Math.min(hsl.s, 0.85) * 0.85;
+        
+        return createTonalPalette(tinycolor({h: newHue, s: newChroma, l: hsl.l}));
+    };
+    
+    // Function to apply color with selected theme mode using Material 3 principles
     const applyColorWithMode = (newColor: string, mode: string) => {
         const {theme} = props;
         
-        // Parse the new color
-        const primaryColor = tinycolor(newColor);
-        const isPrimaryLight = primaryColor.isLight();
+        // Parse the source color
+        const sourceColor = tinycolor(newColor);
         
-        // Get HSL values to work with
-        const hsl = primaryColor.toHsl();
-        const hue = hsl.h;
+        // Create our tonal palettes
+        const primaryPalette = createTonalPalette(sourceColor);
+        const neutralPalette = createNeutralPalette(sourceColor);
+        const secondaryPalette = createSecondaryPalette(sourceColor);
+        const tertiaryPalette = createTertiaryPalette(sourceColor);
+        
+        // Create error palette (always using a reddish hue for semantic meaning)
+        const errorPalette = createTonalPalette(tinycolor({h: 25, s: 0.84, l: 0.5}));
+        
+        // Define standard semantic colors that don't change with theme
+        // Using standard colors for status indicators with slight adjustments to match theme
+        const statusColors = {
+            online: mode === 'light' ? '#06d6a0' : '#3db887', // Green
+            away: mode === 'light' ? '#ffbc42' : '#e0b638',   // Yellow/Gold
+            dnd: mode === 'light' ? '#f74343' : '#e05253',    // Red
+        };
         
         let newTheme: Theme;
         
         if (mode === 'light') {
             // LIGHT MODE THEME GENERATION
-            
-            // Create variations of the primary color with the same hue but different saturation/lightness
-            const generateColor = (lightness: number, saturation: number = hsl.s) => {
-                return tinycolor({h: hue, s: saturation, l: lightness}).toHexString();
+            // Create a set of colors for each section of the UI using the Material 3 tonal palette approach
+
+            // Calculate optimal text color for any background
+            const getTextOnBgColor = (bgColor: string) => {
+                return tinycolor(bgColor).isDark() ? '#ffffff' : '#1f2228';
             };
+
+            // SIDEBAR COLORS - using primary colors for brand recognition
+            const sidebarBg = primaryPalette[TONE_VALUES.PRIMARY.light.base]; // Primary color
+            const sidebarText = getTextOnBgColor(sidebarBg);
+            const sidebarUnreadText = sidebarText; // Same as regular text for consistency
             
-            // Light theme - sidebar is the primary color
-            const sidebarBg = newColor; // Primary color
-            const sidebarHeaderBg = generateColor(0.25, 0.8); // Slightly darker than sidebar
-            const sidebarTeamBarBg = generateColor(0.15, 0.8); // Even darker for team bar
-            const sidebarTextHoverBg = generateColor(0.40, 0.7); // Lighter for hover
+            // Create a darker hover background from the primary color
+            const sidebarTextHoverBg = tinycolor(sidebarBg).darken(10).toString();
             
-            // Accent colors - subtle shift for visual interest
-            const accentHue = (hue + 15) % 360; // Small hue shift
-            const generateAccent = (lightness: number, saturation: number = 0.8) => {
-                return tinycolor({h: accentHue, s: saturation, l: lightness}).toHexString();
-            };
+            // Create a lighter shade of the primary color for the active border - better contrast
+            const sidebarTextActiveBorder = tinycolor(sidebarBg).lighten(15).saturate(10).toString();
+            const sidebarTextActiveColor = sidebarText;
             
-            // Link color - directly based on primary color, adjusted for visibility
-            const linkColor = tinycolor(newColor).darken(10).saturate(10).toHexString();
+            // Make sidebar header and team bar progressively darker for better contrast and hierarchy
+            const sidebarHeaderBg = tinycolor(sidebarBg).darken(15).toString(); // Darker than base
+            const sidebarTeamBarBg = tinycolor(sidebarBg).darken(25).toString(); // Even darker
+            const sidebarHeaderTextColor = getTextOnBgColor(sidebarHeaderBg);
+
+            // CENTER CHANNEL COLORS - neutral for content focus
+            const centerChannelBg = neutralPalette[TONE_VALUES.NEUTRAL.light.background];
+            const centerChannelColor = neutralPalette[TONE_VALUES.NEUTRAL.light.onSurface];
             
-            // Contrast color for text on primary color
-            const contrastColor = isPrimaryLight ? '#151515' : '#ffffff';
+            // ACCENT COLORS - use primary color for better consistency
+            const newMessageSeparator = sidebarBg; // Use the primary color for message separator
             
-            // Status indicators - standard colors with slight adjustments
-            const onlineColor = '#06d6a0'; // Standard green
-            const awayColor = '#ffbc42';  // Standard yellow/orange
-            const dndColor = '#f74343';   // Standard red
+            // INDICATOR COLORS - semantic colors with slight adjustments
+            const onlineIndicator = statusColors.online;
+            const awayIndicator = statusColors.away;
+            const dndIndicator = statusColors.dnd;
             
+            // MENTION COLORS - use primary color for mentions for better consistency
+            const mentionBg = sidebarBg; // Use the primary color for the mention background
+            const mentionColor = sidebarText; // Use the contrasting text color
+            
+            // BUTTON AND LINK COLORS - using primary palette for consistency
+            const buttonBg = primaryPalette[TONE_VALUES.PRIMARY.light.base];
+            const buttonColor = getTextOnBgColor(buttonBg);
+            const linkColor = primaryPalette[40];
+            
+            // ERROR AND HIGHLIGHT COLORS
+            const errorTextColor = errorPalette[50];
+            const mentionHighlightBg = tertiaryPalette[TONE_VALUES.PRIMARY.light.container];
+            const mentionHighlightLink = linkColor;
+
             newTheme = {
                 ...theme,
                 type: 'custom',
-                // Sidebar
-                sidebarBg: sidebarBg,
-                sidebarText: contrastColor,
-                sidebarUnreadText: contrastColor,
-                sidebarTextHoverBg: sidebarTextHoverBg,
-                sidebarTextActiveBorder: '#579eff', // Consistent blue accent
-                sidebarTextActiveColor: contrastColor,
-                sidebarHeaderBg: sidebarHeaderBg,
-                sidebarTeamBarBg: sidebarTeamBarBg,
-                sidebarHeaderTextColor: contrastColor,
-                // Status indicators
-                onlineIndicator: onlineColor,
-                awayIndicator: awayColor,
-                dndIndicator: dndColor,
-                // Mentions
-                mentionBg: contrastColor,
-                mentionBj: contrastColor, // For backwards compatibility
-                mentionColor: sidebarBg,
+                // Sidebar colors
+                sidebarBg,
+                sidebarText,
+                sidebarUnreadText,
+                sidebarTextHoverBg,
+                sidebarTextActiveBorder,
+                sidebarTextActiveColor,
+                sidebarHeaderBg,
+                sidebarTeamBarBg,
+                sidebarHeaderTextColor,
+                
                 // Center channel
-                centerChannelBg: '#ffffff',
-                centerChannelColor: '#3d3c40',
-                newMessageSeparator: '#ff8800',
+                centerChannelBg,
+                centerChannelColor,
+                newMessageSeparator,
+                
+                // Status indicators
+                onlineIndicator,
+                awayIndicator,
+                dndIndicator,
+                
+                // Mentions and notifications
+                mentionBg,
+                mentionBj: mentionBg, // For backwards compatibility
+                mentionColor,
+                
                 // Links and buttons
-                linkColor: linkColor,
-                buttonBg: sidebarBg,
-                buttonColor: contrastColor,
-                // Errors and mentions
-                errorTextColor: '#fd5960',
-                mentionHighlightBg: '#ffe577',
-                mentionHighlightLink: linkColor, // Ensure highlight links match normal links
-                // Code theme - preserve the existing code theme if it exists
+                linkColor,
+                buttonBg,
+                buttonColor,
+                
+                // Errors and highlights
+                errorTextColor,
+                mentionHighlightBg,
+                mentionHighlightLink,
+                
+                // Code theme - preserve existing or default to light
                 codeTheme: theme.codeTheme || 'github',
             };
         } else {
             // DARK MODE THEME GENERATION
-            // Create a dark theme using the selected color as an accent
+            // Create a set of colors for each section using the Material 3 tonal palette approach for dark themes
             
-            // Make sure the primary color is vibrant and visible enough for buttons and accents
-            // While maintaining its original hue for color identity
-            const adjustedPrimary = tinycolor(newColor);
+            // Extract the hue from the source color for consistent color generation
+            const hsl = sourceColor.toHsl();
+            const hue = hsl.h;
             
-            // If the color is too dark, brighten it for better visibility
-            if (adjustedPrimary.getBrightness() < 100) {
-                adjustedPrimary.brighten(20).saturate(20);
-            }
-            
-            // Create color generator functions for consistent theme colors
-            const generateColor = (lightness: number, saturation: number = hsl.s) => {
-                return tinycolor({h: hue, s: saturation, l: lightness}).toHexString();
+            // Calculate optimal text color for any background
+            const getTextOnBgColor = (bgColor: string) => {
+                return tinycolor(bgColor).isDark() ? '#ffffff' : '#1f2228';
             };
+
+            // SIDEBAR COLORS - using a colorful dark scheme with accents for highlights
+            // Instead of pure neutral, use a slightly tinted dark color based on the primary hue
+            const baseDarkColor = tinycolor({
+                h: hue,           // Use the primary color's hue
+                s: 0.20,          // Add a bit of saturation
+                l: 0.15           // Keep it dark but not black
+            }).toString();
             
-            // Dark sidebar colors - always use a dark neutral base that works with any accent color
-            const darkBase = tinycolor({h: hue, s: 0.20, l: 0.14}).toHexString();
-            const sidebarBg = darkBase;
-            const sidebarHeaderBg = tinycolor(darkBase).darken(2).toHexString();
-            const sidebarTeamBarBg = tinycolor(darkBase).darken(5).toHexString();
+            // Create a colorful but dark sidebar
+            const sidebarBg = baseDarkColor;
             
-            // Hover state - subtly lighter than the base
-            const sidebarTextHoverBg = tinycolor(darkBase).lighten(10).setAlpha(0.3).toHexString();
+            // Define sidebar colors
+            const sidebarText = '#e9e9e9'; // Light text for dark background
+            const sidebarUnreadText = '#ffffff'; // White for unread text to stand out
             
-            // Text color is always white in dark mode
-            const contrastColor = '#ffffff';
+            // Create a subtle but visible hover background
+            const sidebarTextHoverBg = tinycolor(sidebarBg).lighten(8).saturate(10).toString();
             
-            // Use the adjusted primary color for accents and buttons
-            const accentColor = adjustedPrimary.toHexString();
+            // Use a more vibrant primary color as an accent in the dark theme
+            const sidebarTextActiveBorder = tinycolor(primaryPalette[TONE_VALUES.PRIMARY.dark.base])
+                .saturate(40)
+                .lighten(5)
+                .toString(); 
+                
+            const sidebarTextActiveColor = sidebarText;
             
-            // Create link colors directly from the primary color
-            // Just make them brighter and slightly more saturated for visibility
-            const linkColor = tinycolor(newColor).brighten(20).saturate(10).toHexString();
+            // Create depth with progressively different shades
+            // For dark themes, make the header slightly different but not necessarily darker
+            const sidebarHeaderBg = tinycolor({
+                h: (hue + 5) % 360,  // Slight hue shift
+                s: 0.20,             // Moderate saturation
+                l: 0.12              // Dark but not black
+            }).toString();
             
-            // Status indicators - standard colors for semantic meaning but adjusted for dark mode
-            const onlineColor = '#3db887'; // Slightly desaturated green
-            const awayColor = '#e0b638';   // Gold
-            const dndColor = '#e05253';    // Red
+            // Team bar with another slight hue variation
+            const sidebarTeamBarBg = tinycolor({
+                h: (hue + 10) % 360, // More hue shift
+                s: 0.15,             // Less saturation
+                l: 0.10              // Darker but not black
+            }).toString();
+            const sidebarHeaderTextColor = sidebarText;
+
+            // CENTER CHANNEL COLORS - colorful dark background with light text
+            // Use a slightly different hue for the center to create subtle contrast with the sidebar
+            const centerChannelBg = tinycolor({
+                h: (hue - 5) % 360,  // Slight hue shift in opposite direction
+                s: 0.10,             // Less saturation than sidebar for content focus
+                l: 0.18              // Slightly lighter than sidebar, but still dark
+            }).toString();
             
-            // Mention colors - bright, noticeable color
-            const mentionBg = tinycolor(newColor).saturate(30).lighten(5).toHexString();
+            const centerChannelColor = '#e9e9e9'; // Light gray text for readability
             
-            // Highlight colors - should stand out against dark backgrounds
-            const mentionHighlightBg = tinycolor({h: (hue + 30) % 360, s: 0.5, l: 0.3}).toHexString();
+            // ACCENT COLORS - use a vibrant version of the primary color
+            // Make the new message separator more colorful by increasing saturation
+            const newMessageSeparator = tinycolor(primaryPalette[TONE_VALUES.PRIMARY.dark.base])
+                .saturate(30)
+                .lighten(10)
+                .toString();
             
+            // STATUS INDICATORS - semantic colors adjusted for dark theme
+            const onlineIndicator = statusColors.online;
+            const awayIndicator = statusColors.away;
+            const dndIndicator = statusColors.dnd;
+            
+            // MENTION COLORS - use vibrant, eye-catching colors for mentions
+            // Mentions should stand out in dark mode
+            const mentionBg = tinycolor(primaryPalette[TONE_VALUES.PRIMARY.dark.base])
+                .saturate(50)  // Very saturated for high visibility
+                .lighten(5)    // Slightly lighter
+                .toString();
+            
+            const mentionColor = getTextOnBgColor(mentionBg); // Auto-calculate for proper contrast
+            
+            // BUTTON AND LINK COLORS
+            // Make buttons vibrant and readable
+            const buttonBg = tinycolor(primaryPalette[TONE_VALUES.PRIMARY.dark.base])
+                .saturate(30)
+                .lighten(5)
+                .toString(); // More saturated buttons
+                
+            const buttonColor = getTextOnBgColor(buttonBg); // Auto-calculate for proper contrast
+            
+            // Make links more colorful and noticeable
+            const linkColor = tinycolor(primaryPalette[TONE_VALUES.PRIMARY.dark.base])
+                .saturate(40)
+                .lighten(20)
+                .toString(); // Much brighter, more saturated links in dark mode
+            
+            // ERROR AND HIGHLIGHT COLORS
+            const errorTextColor = errorPalette[70]; // Brighter in dark mode
+            
+            // Use a more colorful highlight background that stands out
+            const mentionHighlightBg = tinycolor({
+                h: hue, // Use primary color hue
+                s: 0.40, // Higher saturation for more color
+                l: 0.20 // Dark enough for contrast but still visible
+            }).toString();
+            
+            // Use the same link color for consistency
+            const mentionHighlightLink = linkColor;
+
             newTheme = {
                 ...theme,
                 type: 'custom',
-                // Sidebar
-                sidebarBg: sidebarBg,
-                sidebarText: contrastColor,
-                sidebarUnreadText: contrastColor,
-                sidebarTextHoverBg: sidebarTextHoverBg,
-                sidebarTextActiveBorder: accentColor,
-                sidebarTextActiveColor: contrastColor,
-                sidebarHeaderBg: sidebarHeaderBg,
-                sidebarTeamBarBg: sidebarTeamBarBg,
-                sidebarHeaderTextColor: contrastColor,
+                // Sidebar colors
+                sidebarBg,
+                sidebarText,
+                sidebarUnreadText,
+                sidebarTextHoverBg,
+                sidebarTextActiveBorder,
+                sidebarTextActiveColor,
+                sidebarHeaderBg,
+                sidebarTeamBarBg,
+                sidebarHeaderTextColor,
+                
+                // Center channel
+                centerChannelBg,
+                centerChannelColor,
+                newMessageSeparator,
+                
                 // Status indicators
-                onlineIndicator: onlineColor,
-                awayIndicator: awayColor,
-                dndIndicator: dndColor,
+                onlineIndicator,
+                awayIndicator,
+                dndIndicator,
+                
                 // Mentions
-                mentionBg: mentionBg,
-                mentionBj: mentionBg, // For backwards compatibility
-                mentionColor: '#ffffff',
-                // Center channel - slightly brighter and less saturated for better readability
-                centerChannelBg: tinycolor({h: hue, s: 0.06, l: 0.18}).toHexString(),
-                centerChannelColor: '#eeeeee',
-                newMessageSeparator: accentColor,
-                // Links and buttons - ensure high contrast
-                linkColor: linkColor,
-                buttonBg: accentColor, // Using the adjusted primary color
-                buttonColor: '#ffffff', // Always white text on buttons for maximum contrast
-                mentionHighlightLink: linkColor, // Ensure highlight links match normal links
-                // Errors and mentions - using warm colors that stand out but aren't too jarring
-                errorTextColor: '#eb6260',
-                mentionHighlightBg: mentionHighlightBg,
-                // Code theme - preserve the existing code theme if it exists
+                mentionBg,
+                mentionBj: mentionBg, // For backwards compatibility - must match mentionBg
+                mentionColor,
+                
+                // Links and buttons
+                linkColor,
+                buttonBg,
+                buttonColor,
+                
+                // Errors and highlights
+                errorTextColor,
+                mentionHighlightBg,
+                mentionHighlightLink,
+                
+                // Code theme - preserve existing or default to dark
                 codeTheme: theme.codeTheme || 'solarized-dark',
             };
         }
         
-        props.onChange(newTheme);
+        // Ensure all theme properties have valid hex values
+        const validTheme = {...newTheme};
+        
+        // Validate each property to ensure it's a proper hex color
+        Object.keys(validTheme).forEach(key => {
+            // Skip non-color properties
+            if (key === 'type' || key === 'codeTheme') {
+                return;
+            }
+            
+            const value = validTheme[key];
+            
+            // Handle undefined or non-string values
+            if (typeof value !== 'string') {
+                validTheme[key] = key.includes('Bg') ? '#ffffff' : '#000000';
+                return;
+            }
+            
+            // Convert any non-hex colors to hex format
+            if (!value.startsWith('#')) {
+                const color = tinycolor(value);
+                if (color.isValid()) {
+                    validTheme[key] = color.toHexString();
+                } else {
+                    validTheme[key] = key.includes('Bg') ? '#ffffff' : '#000000';
+                }
+            }
+        });
+        
+        // Pass the validated theme changes up to the parent component
+        props.onChange(validTheme);
     };
     
     // Main color change handler
@@ -225,8 +484,205 @@ export default function PrimaryColorChooser(props: Props) {
         const newMode = e.target.value;
         setThemeMode(newMode);
         
-        // Apply change with the current color, passing the new mode directly
-        applyColorWithMode(props.theme.sidebarBg || "#145dbf", newMode);
+        // Get a valid source color based on the selected mode
+        let currentColor: string;
+        
+        try {
+            if (newMode === 'light') {
+                // For light mode, use sidebarBg if it's valid
+                currentColor = props.theme.sidebarBg && tinycolor(props.theme.sidebarBg).isValid() ? 
+                    tinycolor(props.theme.sidebarBg).toHexString() : '#145dbf'; // Default blue
+            } else {
+                // For dark mode, use buttonBg if it's valid, otherwise use a default teal
+                currentColor = props.theme.buttonBg && tinycolor(props.theme.buttonBg).isValid() ? 
+                    tinycolor(props.theme.buttonBg).toHexString() : '#4cbba4'; // Default teal
+            }
+            
+            // Ensure we have a valid color by forcing it through tinycolor
+            if (!tinycolor(currentColor).isValid()) {
+                // Fallback for safety
+                currentColor = newMode === 'light' ? '#145dbf' : '#4cbba4';
+            }
+                
+            // Generate a new theme with the selected mode
+            applyColorWithMode(currentColor, newMode);
+        } catch (error) {
+            console.error('Error changing theme mode:', error);
+            // Use default colors if there's an error
+            applyColorWithMode(newMode === 'light' ? '#145dbf' : '#4cbba4', newMode);
+        }
+    };
+
+    // Create a ThemePreview component to show a mini version of the UI
+    const ThemePreview = ({theme}: {theme: Theme}) => {
+        return (
+            <div style={{marginTop: '1rem', marginBottom: '1rem', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden', maxWidth: '100%'}}>
+                <div style={{display: 'flex', flexDirection: 'row', height: '240px'}}>
+                    {/* Sidebar Preview */}
+                    <div style={{
+                        width: '220px',
+                        backgroundColor: theme.sidebarBg || '#1e325c',
+                        color: theme.sidebarText || '#ffffff',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden'
+                    }}>
+                        <div style={{
+                            height: '50px',
+                            backgroundColor: theme.sidebarHeaderBg || '#192a4d',
+                            color: theme.sidebarHeaderTextColor || '#ffffff',
+                            padding: '0.5rem 1rem',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center'
+                        }}>
+                            Mattermost
+                        </div>
+                        <div style={{
+                            height: '30px',
+                            backgroundColor: theme.sidebarTeamBarBg || '#162545',
+                            color: theme.sidebarText || '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '0 0.5rem'
+                        }}>
+                            Teams
+                        </div>
+                        <div style={{padding: '0.5rem 0', flex: 1, overflowY: 'auto'}}>
+                            <div style={{
+                                padding: '0.5rem 1rem',
+                                cursor: 'pointer',
+                                backgroundColor: theme.sidebarTextHoverBg || '#28427b',
+                                borderLeft: `4px solid ${theme.sidebarTextActiveBorder || '#5d89ea'}`,
+                                color: theme.sidebarTextActiveColor || '#ffffff'
+                            }}>
+                                # general
+                            </div>
+                            <div style={{
+                                padding: '0.5rem 1rem',
+                                cursor: 'pointer',
+                                borderLeft: '4px solid transparent'
+                            }}>
+                                # announcements
+                            </div>
+                            <div style={{
+                                padding: '0.5rem 1rem',
+                                cursor: 'pointer',
+                                borderLeft: '4px solid transparent'
+                            }}>
+                                # off-topic
+                            </div>
+                            <div style={{
+                                padding: '0.5rem 1rem',
+                                cursor: 'pointer',
+                                marginTop: '0.5rem',
+                                borderLeft: '4px solid transparent'
+                            }}>
+                                <span style={{
+                                    display: 'inline-block',
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    marginRight: '5px',
+                                    backgroundColor: theme.onlineIndicator || '#3db887'
+                                }}></span>
+                                User A
+                            </div>
+                            <div style={{
+                                padding: '0.5rem 1rem',
+                                cursor: 'pointer',
+                                borderLeft: '4px solid transparent'
+                            }}>
+                                <span style={{
+                                    display: 'inline-block',
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    marginRight: '5px',
+                                    backgroundColor: theme.awayIndicator || '#ffbc1f'
+                                }}></span>
+                                User B
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Center Channel Preview */}
+                    <div style={{
+                        flex: 1,
+                        backgroundColor: theme.centerChannelBg || '#ffffff',
+                        color: theme.centerChannelColor || '#3f4350',
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}>
+                        <div style={{
+                            height: '50px',
+                            borderBottom: `1px solid ${theme.centerChannelColor || '#3f4350'}20`,
+                            padding: '0.5rem 1rem',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center'
+                        }}>
+                            #general
+                        </div>
+                        <div style={{flex: 1, padding: '1rem', overflowY: 'auto'}}>
+                            <div style={{marginBottom: '1rem'}}>
+                                <strong>User A</strong>
+                                <div style={{marginTop: '0.25rem'}}>
+                                    Welcome to the team! Check out our <span style={{color: theme.linkColor || '#386fe5'}}>getting started guide</span>.
+                                </div>
+                            </div>
+                            
+                            <div style={{
+                                margin: '1rem 0',
+                                height: '1px',
+                                backgroundColor: theme.newMessageSeparator || '#cc8f00',
+                                position: 'relative'
+                            }}>
+                                <span style={{
+                                    position: 'absolute',
+                                    top: '-10px',
+                                    right: 0,
+                                    padding: '0 8px',
+                                    backgroundColor: theme.newMessageSeparator || '#cc8f00',
+                                    color: 'white',
+                                    fontSize: '12px',
+                                    borderRadius: '2px'
+                                }}>
+                                    New Messages
+                                </span>
+                            </div>
+                            
+                            <div style={{marginBottom: '1rem'}}>
+                                <strong>User B</strong>
+                                <div style={{marginTop: '0.25rem'}}>
+                                    Hey <span style={{
+                                        backgroundColor: theme.mentionHighlightBg || '#ffd470',
+                                        color: theme.centerChannelColor || '#3f4350',
+                                        padding: '0 0.25rem',
+                                        borderRadius: '3px'
+                                    }}>@User A</span>, could you share that document?
+                                </div>
+                            </div>
+                            
+                            <div style={{marginBottom: '1rem'}}>
+                                <strong>User A</strong>
+                                <div style={{marginTop: '0.25rem'}}>
+                                    I've created a new document. <button style={{
+                                        backgroundColor: theme.buttonBg || '#1c58d9',
+                                        color: theme.buttonColor || '#ffffff',
+                                        border: 'none',
+                                        padding: '0.25rem 0.75rem',
+                                        borderRadius: '4px',
+                                        fontSize: '0.9rem',
+                                        cursor: 'pointer'
+                                    }}>View Details</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     };
 
     return (
@@ -259,7 +715,24 @@ export default function PrimaryColorChooser(props: Props) {
                 <div style={{marginBottom: '1rem'}}>
                     <ColorInput
                         id="primaryColor"
-                        value={themeMode === 'dark' ? (tinycolor(props.theme.buttonBg).isValid() ? props.theme.buttonBg : '#4cbba4') : (props.theme.sidebarBg || "#145dbf")}
+                        value={(() => {
+                            // Make sure we always have a valid color for the color picker
+                            let color;
+                            if (themeMode === 'dark') {
+                                // For dark mode, use buttonBg or a default teal
+                                const buttonBg = props.theme.buttonBg;
+                                color = buttonBg && tinycolor(buttonBg).isValid() ? 
+                                    buttonBg : '#4cbba4';
+                            } else {
+                                // For light mode, use sidebarBg or a default blue
+                                const sidebarBg = props.theme.sidebarBg;
+                                color = sidebarBg && tinycolor(sidebarBg).isValid() ? 
+                                    sidebarBg : '#145dbf';
+                            }
+                            
+                            // Ensure the color is in hex format
+                            return tinycolor(color).toHexString();
+                        })()}
                         onChange={handleColorChange}
                     />
                 </div>
@@ -306,6 +779,16 @@ export default function PrimaryColorChooser(props: Props) {
                         </div>
                     </div>
                 </div>
+                
+                <label style={{fontWeight: 'bold', marginTop: '1rem', display: 'block', color: props.theme.centerChannelColor}}>
+                    <FormattedMessage
+                        id="user.settings.custom_theme.themePreview"
+                        defaultMessage="Theme Preview:"
+                    />
+                </label>
+                
+                {/* Theme Preview Component */}
+                <ThemePreview theme={props.theme} />
             </div>
         </div>
     );
