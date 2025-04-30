@@ -1395,7 +1395,7 @@ describe('makeGetUniqueEmojiNameReactionsForPost', () => {
 });
 
 describe('getUserOrGroupFromMentionName', () => {
-    test('should handle remote user mentions with server names', () => {
+    test('should handle basic user and group mentions', () => {
         // Set up users
         const users = {
             user1: TestHelper.getUserMock({
@@ -1418,13 +1418,43 @@ describe('getUserOrGroupFromMentionName', () => {
 
         // Test a remote user mention with server name
         const [remoteUser] = PostUtils.getUserOrGroupFromMentionName('remote_user:server1', users, groups);
-
-        // Verifies the implementation handles the server suffix for remote users
         expect(remoteUser).toBeDefined();
         expect(remoteUser?.id).toBe('remote_user_id');
     });
 
-    test('should not match users when mention includes a colon but username does not match a remote user', () => {
+    test('should handle remote user mentions with server name verification', () => {
+        // Set up users with two remote users having the same username but on different servers
+        const users = {
+            remote_user1: TestHelper.getUserMock({
+                username: 'remote_user',
+                id: 'remote_user_id1',
+                remote_id: 'server1',
+            }),
+            remote_user2: TestHelper.getUserMock({
+                username: 'remote_user',
+                id: 'remote_user_id2',
+                remote_id: 'server2',
+            }),
+        };
+
+        const groups = {};
+
+        // Test with correct server matches
+        const [remoteUser1] = PostUtils.getUserOrGroupFromMentionName('remote_user:server1', users, groups);
+        expect(remoteUser1).toBeDefined();
+        expect(remoteUser1?.id).toBe('remote_user_id1');
+        const [remoteUser2] = PostUtils.getUserOrGroupFromMentionName('remote_user:server2', users, groups);
+        expect(remoteUser2).toBeDefined();
+        expect(remoteUser2?.id).toBe('remote_user_id2');
+
+        // Test with incorrect or missing server specifications
+        const [remoteUserWrongServer] = PostUtils.getUserOrGroupFromMentionName('remote_user:server3', users, groups);
+        expect(remoteUserWrongServer).toBeUndefined();
+        const [userWithEmptyServer] = PostUtils.getUserOrGroupFromMentionName('remote_user:', users, groups);
+        expect(userWithEmptyServer).toBeUndefined();
+    });
+
+    test('should not match when mention includes a colon but does not match remote pattern', () => {
         // Set up users
         const users = {
             user1: TestHelper.getUserMock({

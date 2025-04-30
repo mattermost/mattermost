@@ -799,10 +799,12 @@ export function getUserOrGroupFromMentionName(
 ): [UserProfile?, Group?] {
     // Handle special case for remote user mentions in the format username:servername
     if (mentionName.includes(':')) {
-        const username = mentionName.split(':')[0];
-        if (username) {
+        const parts = mentionName.split(':');
+        const username = parts[0];
+        const serverName = parts[1];
+        if (username && serverName) {
             const remoteUser = getMention(users, username);
-            if (remoteUser && remoteUser.remote_id) {
+            if (remoteUser && remoteUser.remote_id === serverName) {
                 return [remoteUser, undefined];
             }
         }
