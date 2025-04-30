@@ -143,6 +143,7 @@ export default class Setup extends React.PureComponent<Props, State> {
                 <div
                     id='mfa-setup-error'
                     className='form-group has-error'
+                    role='alert'
                 >
                     <label className='control-label'>{this.state.error}</label>
                 </div>
