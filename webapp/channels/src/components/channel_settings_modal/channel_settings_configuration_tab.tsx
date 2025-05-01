@@ -24,7 +24,7 @@ const CHANNEL_BANNER_MIN_CHARACTER_LIMIT = 0;
 
 const DEFAULT_CHANNEL_BANNER = {
     enabled: false,
-    background_color: '',
+    background_color: '#DDDDDD',
     text: '',
 };
 
