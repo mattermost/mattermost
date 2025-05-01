@@ -10630,5 +10630,9 @@
   {
     "id": "api.license.load_metric.app_error",
     "translation": "Не вдалося підрахувати щомісячну кількість активних користувачів."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "Функція {{.Feature}} недоступна для поточної ліцензії"
   }
 ]
