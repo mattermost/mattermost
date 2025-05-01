@@ -216,7 +216,7 @@ export default function ChannelMembersRHS({
                 goBack={actions.goBack}
             />
             {/* Show banner for policy-enforced channels */}
-            {(channel.policy_enforced || true) && (
+            {channel.policy_enforced && (
                 <div className='channel-members-rhs__alert-container policy-enforced'>
                     <AlertBanner
                         mode='info'
