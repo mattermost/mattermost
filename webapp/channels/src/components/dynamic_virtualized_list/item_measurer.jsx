@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 /* eslint-disable react/prop-types */
-/* eslint-disable react/require-optimization */
 
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import {findDOMNode} from 'react-dom';
 
 import {isSafari} from 'utils/user_agent';
@@ -67,26 +66,12 @@ const shrinkScrollDelta = (2 * scrollBarWidth) + 1; // 17 = 2* scrollbar width(8
 //https://github.com/wnr/element-resize-detector/blob/27983e59dce9d8f1296d8f555dc2340840fb0804/src/detection-strategy/scroll.js#L246
 const expandScrollDelta = shrinkScrollDelta + 10;
 
-export default class ItemMeasurer extends Component {
+export default class ItemMeasurer extends PureComponent {
     node = null;
     resizeSensorExpand = React.createRef();
     resizeSensorShrink = React.createRef();
     positionScrollbarsRef = null;
     measureItemAnimFrame = null;
-
-    measureItem = (forceScrollCorrection) => {
-        const {handleNewMeasurements, size: oldSize, itemId} = this.props;
-
-        const node = this.node;
-
-        if (node && node.ownerDocument && node.ownerDocument.defaultView && node instanceof node.ownerDocument.defaultView.HTMLElement) {
-            const newSize = Math.ceil(node.offsetHeight);
-
-            if (oldSize !== newSize) {
-                handleNewMeasurements(itemId, newSize, forceScrollCorrection);
-            }
-        }
-    };
 
     componentDidMount() {
         this.node = findDOMNode(this);
@@ -114,21 +99,6 @@ export default class ItemMeasurer extends Component {
         }
     }
 
-    positionScrollBars = (height = this.props.size) => {
-        // we are position these hidden div scroll bars to the end so they can emit
-        // scroll event when height in the div changes
-        // Heavily inspired from https://github.com/marcj/css-element-queries/blob/master/src/ResizeSensor.js
-        // and https://github.com/wnr/element-resize-detector/blob/master/src/detection-strategy/scroll.js
-        // For more info http://www.backalleycoder.com/2013/03/18/cross-browser-event-based-element-resize-detection/#comment-244
-        if (this.positionScrollbarsRef) {
-            window.cancelAnimationFrame(this.positionScrollbarsRef);
-        }
-        this.positionScrollbarsRef = window.requestAnimationFrame(() => {
-            this.resizeSensorExpand.current.scrollTop = height + expandScrollDelta;
-            this.resizeSensorShrink.current.scrollTop = (2 * height) + shrinkScrollDelta;
-        });
-    };
-
     componentWillUnmount() {
         if (this.positionScrollbarsRef) {
             window.cancelAnimationFrame(this.positionScrollbarsRef);
@@ -145,29 +115,48 @@ export default class ItemMeasurer extends Component {
         }
     }
 
+    measureItem = (forceScrollCorrection) => {
+        const {handleNewMeasurements, size: oldSize, itemId} = this.props;
+
+        const node = this.node;
+
+        if (node && node.ownerDocument && node.ownerDocument.defaultView && node instanceof node.ownerDocument.defaultView.HTMLElement) {
+            const newSize = Math.ceil(node.offsetHeight);
+
+            if (oldSize !== newSize) {
+                handleNewMeasurements(itemId, newSize, forceScrollCorrection);
+            }
+        }
+    };
+
+    positionScrollBars = (height = this.props.size) => {
+        // we are position these hidden div scroll bars to the end so they can emit
+        // scroll event when height in the div changes
+        // Heavily inspired from https://github.com/marcj/css-element-queries/blob/master/src/ResizeSensor.js
+        // and https://github.com/wnr/element-resize-detector/blob/master/src/detection-strategy/scroll.js
+        // For more info http://www.backalleycoder.com/2013/03/18/cross-browser-event-based-element-resize-detection/#comment-244
+        if (this.positionScrollbarsRef) {
+            window.cancelAnimationFrame(this.positionScrollbarsRef);
+        }
+        this.positionScrollbarsRef = window.requestAnimationFrame(() => {
+            this.resizeSensorExpand.current.scrollTop = height + expandScrollDelta;
+            this.resizeSensorShrink.current.scrollTop = (2 * height) + shrinkScrollDelta;
+        });
+    };
+
     scrollingDiv = (event) => {
         if (event.target.offsetHeight !== this.props.size) {
             this.measureItem(event.target.offsetWidth !== this.props.width);
         }
     };
 
-    renderItems = () => {
-        const item = this.props.item;
-
-        const expandChildStyle = {
-            position: 'absolute',
-            left: '0',
-            top: '0',
-            height: `${this.props.size + expandScrollDelta}px`,
-            width: '100%',
-        };
-
-        const renderItem = (
+    render() {
+        return (
             <div
                 role='listitem'
                 style={{position: 'relative'}}
             >
-                {item}
+                {this.props.item}
                 <div style={scrollableContainerStyles}>
                     <div
                         dir='ltr'
@@ -179,7 +168,15 @@ export default class ItemMeasurer extends Component {
                                 ref={this.resizeSensorExpand}
                                 onScroll={this.scrollingDiv}
                             >
-                                <div style={expandChildStyle}/>
+                                <div
+                                    style={{
+                                        position: 'absolute',
+                                        left: '0',
+                                        top: '0',
+                                        height: `${this.props.size + expandScrollDelta}px`,
+                                        width: '100%',
+                                    }}
+                                />
                             </div>
                             <div
                                 style={expandShrinkStyles}
@@ -193,10 +190,5 @@ export default class ItemMeasurer extends Component {
                 </div>
             </div>
         );
-        return renderItem;
-    };
-
-    render() {
-        return this.renderItems();
     }
 }

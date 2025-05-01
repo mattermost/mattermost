@@ -140,10 +140,9 @@ export default class DynamicVirtualizedList extends PureComponent {
     keepScrollToBottom = false;
     mountingCorrections = 0;
     correctedInstances = 0;
+
     static defaultProps = {
-        innerTagName: 'div',
         itemData: undefined,
-        outerTagName: 'div',
         overscanCountForward: 30,
         overscanCountBackward: 10,
     };
@@ -164,94 +163,13 @@ export default class DynamicVirtualizedList extends PureComponent {
         super(props);
     }
 
-    //   static getDerivedStateFromProps(props, state) {
-    //     validateProps(props);
-    //     return null;
-    //   }
-
-    scrollBy = (scrollOffset, scrollBy) => () => {
-        const element = this.outerRef;
-        if (typeof element.scrollBy === 'function' && scrollBy) {
-            element.scrollBy(0, scrollBy);
-        } else if (scrollOffset) {
-            element.scrollTop = scrollOffset;
-        }
-
-        this.scrollCorrectionInProgress = false;
-    };
-
-    scrollTo(scrollOffset, scrollByValue, useAnimationFrame = false) {
-        this.scrollCorrectionInProgress = true;
-        this.setState(
-            (prevState) => ({
-                scrollDirection: prevState.scrollOffset >= scrollOffset ? 'backward' : 'forward',
-                scrollOffset,
-                scrollUpdateWasRequested: true,
-                scrollByValue,
-            }),
-            () => {
-                if (useAnimationFrame) {
-                    this.scrollByCorrection = window.requestAnimationFrame(this.scrollBy(this.state.scrollOffset, this.state.scrollByValue));
-                } else {
-                    this.scrollBy(this.state.scrollOffset, this.state.scrollByValue)();
-                }
-            },
-        );
-
-        this.forceUpdate();
-    }
-
-    scrollToItem(index, align = 'auto', offset = 0) {
-        const {scrollOffset} = this.state;
-
-        //Ideally the below scrollTo works fine but firefox has 6px issue and stays 6px from bottom when corrected
-        //so manually keeping scroll position bottom for now
-        const element = this.outerRef;
-        if (index === 0 && align === 'end') {
-            this.scrollTo(element.scrollHeight - this.props.height);
-            return;
-        }
-        const offsetOfItem = getOffsetForIndexAndAlignment(
-            this.props,
-            index,
-            align,
-            scrollOffset,
-            this.listMetaData,
-        );
-        if (!offsetOfItem) {
-            const itemSize = getItemSize(this.props, index, this.listMetaData);
-            if (!itemSize && this.props.scrollToFailed) {
-                if (this.state.scrolledToInitIndex) {
-                    this.props.scrollToFailed(index);
-                }
-            }
-        }
-
-        this.scrollTo(offsetOfItem + offset);
-    }
-
     componentDidMount() {
-        const {initialScrollOffset} = this.props;
-
-        if (typeof initialScrollOffset === 'number' && this.outerRef !== null) {
+        if (typeof this.props.initialScrollOffset === 'number' && this.outerRef !== null) {
             const element = this.outerRef;
-            element.scrollTop = initialScrollOffset;
+            element.scrollTop = this.props.initialScrollOffset;
         }
 
         this.commitHook();
-    }
-
-    getSnapshotBeforeUpdate(prevProps, prevState) {
-        if (prevState.localOlderPostsToRender[0] !== this.state.localOlderPostsToRender[0] || prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1]) {
-            const element = this.outerRef;
-            const previousScrollTop = element.scrollTop;
-            const previousScrollHeight = element.scrollHeight;
-            return {
-                previousScrollTop,
-                previousScrollHeight,
-            };
-        }
-        return null;
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
@@ -316,6 +234,98 @@ export default class DynamicVirtualizedList extends PureComponent {
         if (this.scrollByCorrection) {
             window.cancelAnimationFrame(this.scrollByCorrection);
         }
+    }
+
+    // This method is called after mount and update.
+    // List implementations can override this method to be notified.
+    commitHook = () => {
+        if (!this.state.scrolledToInitIndex && Object.keys(this.listMetaData.itemOffsetMap).length) {
+            const {index, position, offset} = this.props.initScrollToIndex();
+            this.scrollToItem(index, position, offset);
+            this.setState({
+                scrolledToInitIndex: true,
+            });
+
+            if (index === 0) {
+                this.keepScrollToBottom = true;
+            } else {
+                this.keepScrollPosition = true;
+            }
+        }
+    };
+
+    scrollBy = (scrollOffset, scrollBy) => () => {
+        const element = this.outerRef;
+        if (typeof element.scrollBy === 'function' && scrollBy) {
+            element.scrollBy(0, scrollBy);
+        } else if (scrollOffset) {
+            element.scrollTop = scrollOffset;
+        }
+
+        this.scrollCorrectionInProgress = false;
+    };
+
+    scrollTo(scrollOffset, scrollByValue, useAnimationFrame = false) {
+        this.scrollCorrectionInProgress = true;
+        this.setState(
+            (prevState) => ({
+                scrollDirection: prevState.scrollOffset >= scrollOffset ? 'backward' : 'forward',
+                scrollOffset,
+                scrollUpdateWasRequested: true,
+                scrollByValue,
+            }),
+            () => {
+                if (useAnimationFrame) {
+                    this.scrollByCorrection = window.requestAnimationFrame(this.scrollBy(this.state.scrollOffset, this.state.scrollByValue));
+                } else {
+                    this.scrollBy(this.state.scrollOffset, this.state.scrollByValue)();
+                }
+            },
+        );
+
+        this.forceUpdate();
+    }
+
+    scrollToItem(index, align = 'auto', offset = 0) {
+        const {scrollOffset} = this.state;
+
+        //Ideally the below scrollTo works fine but firefox has 6px issue and stays 6px from bottom when corrected
+        //so manually keeping scroll position bottom for now
+        const element = this.outerRef;
+        if (index === 0 && align === 'end') {
+            this.scrollTo(element.scrollHeight - this.props.height);
+            return;
+        }
+        const offsetOfItem = getOffsetForIndexAndAlignment(
+            this.props,
+            index,
+            align,
+            scrollOffset,
+            this.listMetaData,
+        );
+        if (!offsetOfItem) {
+            const itemSize = getItemSize(this.props, index, this.listMetaData);
+            if (!itemSize && this.props.scrollToFailed) {
+                if (this.state.scrolledToInitIndex) {
+                    this.props.scrollToFailed(index);
+                }
+            }
+        }
+
+        this.scrollTo(offsetOfItem + offset);
+    }
+
+    getSnapshotBeforeUpdate(prevProps, prevState) {
+        if (prevState.localOlderPostsToRender[0] !== this.state.localOlderPostsToRender[0] || prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1]) {
+            const element = this.outerRef;
+            const previousScrollTop = element.scrollTop;
+            const previousScrollHeight = element.scrollHeight;
+            return {
+                previousScrollTop,
+                previousScrollHeight,
+            };
+        }
+        return null;
     }
 
     callOnItemsRendered = memoizeOne((overscanStartIndex, overscanStopIndex, visibleStartIndex, visibleStopIndex) =>
@@ -397,24 +407,6 @@ export default class DynamicVirtualizedList extends PureComponent {
             );
         }
     }
-
-    // This method is called after mount and update.
-    // List implementations can override this method to be notified.
-    commitHook = () => {
-        if (!this.state.scrolledToInitIndex && Object.keys(this.listMetaData.itemOffsetMap).length) {
-            const {index, position, offset} = this.props.initScrollToIndex();
-            this.scrollToItem(index, position, offset);
-            this.setState({
-                scrolledToInitIndex: true,
-            });
-
-            if (index === 0) {
-                this.keepScrollToBottom = true;
-            } else {
-                this.keepScrollPosition = true;
-            }
-        }
-    };
 
     // This method is called when data changes
     // List implementations can override this method to be notified.
@@ -679,10 +671,7 @@ export default class DynamicVirtualizedList extends PureComponent {
                             itemCount,
                         }),
                     );
-
-                    // console.log('index', index, item, items);
                 } else {
-                    // console.log('index else', index, itemId);
                     items.push(
                         createElement('div', {
                             key: itemId,
@@ -748,16 +737,14 @@ export default class DynamicVirtualizedList extends PureComponent {
     };
 
     render() {
-        const onScroll = this.onScrollVertical;
-
         const items = this.renderItems();
 
         return (
             <div
                 id={this.props.id}
-                className={this.props.className}
-                onScroll={onScroll}
                 ref={this.outerRefSetter}
+                className={this.props.className}
+                onScroll={this.onScrollVertical}
                 style={{
                     WebkitOverflowScrolling: 'touch',
                     overflowY: 'auto',
