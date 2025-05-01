@@ -148,7 +148,7 @@ func (a *App) UpdateSidebarCategories(c request.CTX, userID, teamID string, cate
 		return nil, model.NewAppError("UpdateSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	updatedCategories, _, err := a.Srv().Store().Channel().UpdateSidebarCategories(userID, teamID, categories)
+	updatedCategories, err := a.Srv().Store().Channel().UpdateSidebarCategories(userID, teamID, categories)
 	if err != nil {
 		return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

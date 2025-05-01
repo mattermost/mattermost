@@ -2608,10 +2608,10 @@ func (s *TimerLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelM
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
+func (s *TimerLayerChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, error) {
 	start := time.Now()
 
-	result, resultVar1, err := s.ChannelStore.UpdateSidebarCategories(userID, teamID, categories)
+	result, err := s.ChannelStore.UpdateSidebarCategories(userID, teamID, categories)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2621,13 +2621,13 @@ func (s *TimerLayerChannelStore) UpdateSidebarCategories(userID string, teamID s
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateSidebarCategories", success, elapsed)
 	}
-	return result, resultVar1, err
+	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateSidebarCategory(category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.SidebarCategoryWithChannels, error) {
+func (s *TimerLayerChannelStore) UpdateSidebarCategory(category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
 	start := time.Now()
 
-	result, resultVar1, err := s.ChannelStore.UpdateSidebarCategory(category)
+	result, err := s.ChannelStore.UpdateSidebarCategory(category)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2637,7 +2637,7 @@ func (s *TimerLayerChannelStore) UpdateSidebarCategory(category *model.SidebarCa
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateSidebarCategory", success, elapsed)
 	}
-	return result, resultVar1, err
+	return result, err
 }
 
 func (s *TimerLayerChannelStore) UpdateSidebarCategoryOrder(userID string, teamID string, categoryOrder []string) error {

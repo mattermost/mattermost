@@ -3061,7 +3061,7 @@ func (_m *ChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([
 }
 
 // UpdateSidebarCategories provides a mock function with given fields: userID, teamID, categories
-func (_m *ChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
+func (_m *ChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, error) {
 	ret := _m.Called(userID, teamID, categories)
 
 	if len(ret) == 0 {
@@ -3069,9 +3069,8 @@ func (_m *ChannelStore) UpdateSidebarCategories(userID string, teamID string, ca
 	}
 
 	var r0 []*model.SidebarCategoryWithChannels
-	var r1 []*model.SidebarCategoryWithChannels
-	var r2 error
-	if rf, ok := ret.Get(0).(func(string, string, []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error)); ok {
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, error)); ok {
 		return rf(userID, teamID, categories)
 	}
 	if rf, ok := ret.Get(0).(func(string, string, []*model.SidebarCategoryWithChannels) []*model.SidebarCategoryWithChannels); ok {
@@ -3082,25 +3081,17 @@ func (_m *ChannelStore) UpdateSidebarCategories(userID string, teamID string, ca
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, []*model.SidebarCategoryWithChannels) []*model.SidebarCategoryWithChannels); ok {
+	if rf, ok := ret.Get(1).(func(string, string, []*model.SidebarCategoryWithChannels) error); ok {
 		r1 = rf(userID, teamID, categories)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).([]*model.SidebarCategoryWithChannels)
-		}
+		r1 = ret.Error(1)
 	}
 
-	if rf, ok := ret.Get(2).(func(string, string, []*model.SidebarCategoryWithChannels) error); ok {
-		r2 = rf(userID, teamID, categories)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
+	return r0, r1
 }
 
 // UpdateSidebarCategory provides a mock function with given fields: category
-func (_m *ChannelStore) UpdateSidebarCategory(category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.SidebarCategoryWithChannels, error) {
+func (_m *ChannelStore) UpdateSidebarCategory(category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
 	ret := _m.Called(category)
 
 	if len(ret) == 0 {
@@ -3108,9 +3099,8 @@ func (_m *ChannelStore) UpdateSidebarCategory(category *model.SidebarCategoryWit
 	}
 
 	var r0 *model.SidebarCategoryWithChannels
-	var r1 *model.SidebarCategoryWithChannels
-	var r2 error
-	if rf, ok := ret.Get(0).(func(*model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.SidebarCategoryWithChannels, error)); ok {
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error)); ok {
 		return rf(category)
 	}
 	if rf, ok := ret.Get(0).(func(*model.SidebarCategoryWithChannels) *model.SidebarCategoryWithChannels); ok {
@@ -3121,21 +3111,13 @@ func (_m *ChannelStore) UpdateSidebarCategory(category *model.SidebarCategoryWit
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.SidebarCategoryWithChannels) *model.SidebarCategoryWithChannels); ok {
+	if rf, ok := ret.Get(1).(func(*model.SidebarCategoryWithChannels) error); ok {
 		r1 = rf(category)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.SidebarCategoryWithChannels)
-		}
+		r1 = ret.Error(1)
 	}
 
-	if rf, ok := ret.Get(2).(func(*model.SidebarCategoryWithChannels) error); ok {
-		r2 = rf(category)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
+	return r0, r1
 }
 
 // UpdateSidebarCategoryOrder provides a mock function with given fields: userID, teamID, categoryOrder
