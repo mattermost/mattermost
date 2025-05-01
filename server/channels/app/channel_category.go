@@ -142,7 +142,12 @@ func (a *App) UpdateSidebarCategoryOrder(c request.CTX, userID, teamID string, c
 }
 
 func (a *App) UpdateSidebarCategories(c request.CTX, userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
-	updatedCategories, originalCategories, err := a.Srv().Store().Channel().UpdateSidebarCategories(userID, teamID, categories)
+	allOriginalCategories, err := a.Srv().Store().Channel().GetSidebarCategoriesForTeamForUser(userID, teamID, false)
+	if err != nil {
+		return nil, model.NewAppError("UpdateSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	updatedCategories, _, err := a.Srv().Store().Channel().UpdateSidebarCategories(userID, teamID, categories)
 	if err != nil {
 		return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -158,53 +163,49 @@ func (a *App) UpdateSidebarCategories(c request.CTX, userID, teamID string, cate
 
 	a.Publish(message)
 
-	a.muteChannelsForUpdatedCategories(c, userID, updatedCategories, originalCategories)
+	a.muteChannelsForUpdatedCategories(c, userID, teamID, updatedCategories, allOriginalCategories.Categories)
 
 	return updatedCategories, nil
 }
 
-func (a *App) muteChannelsForUpdatedCategories(c request.CTX, userID string, updatedCategories []*model.SidebarCategoryWithChannels, originalCategories []*model.SidebarCategoryWithChannels) {
+func (a *App) muteChannelsForUpdatedCategories(c request.CTX, userID string, teamID string, modifiedCategories []*model.SidebarCategoryWithChannels, originalCategories []*model.SidebarCategoryWithChannels) {
+	anyCategoryMuted := func() bool {
+		for _, category := range append(modifiedCategories, originalCategories...) {
+			if category.Muted {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	if !anyCategoryMuted() {
+		// None of the categories are/were muted, so no channels will be muted or unmuted
+		return
+	}
+
 	var channelsToMute []string
 	var channelsToUnmute []string
 
 	// Mute or unmute all channels in categories that were muted or unmuted
-	for i, updatedCategory := range updatedCategories {
-		if i > len(originalCategories)-1 {
-			// The two slices should be the same length, but double check that to be safe
-			continue
-		}
+	originalCategoriesById := makeCategoryMap(originalCategories)
+	for _, modifiedCategory := range modifiedCategories {
+		originalCategory := originalCategoriesById[modifiedCategory.Id]
 
-		originalCategory := originalCategories[i]
-
-		if updatedCategory.Muted && !originalCategory.Muted {
-			channelsToMute = append(channelsToMute, updatedCategory.Channels...)
-		} else if !updatedCategory.Muted && originalCategory.Muted {
-			channelsToUnmute = append(channelsToUnmute, updatedCategory.Channels...)
+		if modifiedCategory.Muted && !originalCategory.Muted {
+			channelsToMute = append(channelsToMute, modifiedCategory.Channels...)
+		} else if !modifiedCategory.Muted && originalCategory.Muted {
+			channelsToUnmute = append(channelsToUnmute, modifiedCategory.Channels...)
 		}
 	}
 
 	// Mute any channels moved from an unmuted category into a muted one and vice versa
-	channelsDiff := diffChannelsBetweenCategories(updatedCategories, originalCategories)
+	channelsDiff := diffChannelsBetweenCategories(updatedCategories.Categories, originalCategories)
 	if len(channelsDiff) != 0 {
-		makeCategoryMap := func(categories []*model.SidebarCategoryWithChannels) map[string]*model.SidebarCategoryWithChannels {
-			result := make(map[string]*model.SidebarCategoryWithChannels)
-			for _, category := range categories {
-				result[category.Id] = category
-			}
-
-			return result
-		}
-
-		updatedCategoriesById := makeCategoryMap(updatedCategories)
-		originalCategoriesById := makeCategoryMap(originalCategories)
-
 		for channelID, diff := range channelsDiff {
-			fromCategory := originalCategoriesById[diff.fromCategoryId]
-			toCategory := updatedCategoriesById[diff.toCategoryId]
-
-			if toCategory.Muted && !fromCategory.Muted {
+			if diff.toCategory.Muted && !diff.fromCategory.Muted {
 				channelsToMute = append(channelsToMute, channelID)
-			} else if !toCategory.Muted && fromCategory.Muted {
+			} else if !diff.toCategory.Muted && diff.fromCategory.Muted {
 				channelsToUnmute = append(channelsToUnmute, channelID)
 			}
 		}
@@ -233,18 +234,27 @@ func (a *App) muteChannelsForUpdatedCategories(c request.CTX, userID string, upd
 	}
 }
 
+func makeCategoryMap(categories []*model.SidebarCategoryWithChannels) map[string]*model.SidebarCategoryWithChannels {
+	result := make(map[string]*model.SidebarCategoryWithChannels)
+	for _, category := range categories {
+		result[category.Id] = category
+	}
+
+	return result
+}
+
 type categoryChannelDiff struct {
-	fromCategoryId string
-	toCategoryId   string
+	fromCategory *model.SidebarCategoryWithChannels
+	toCategory   *model.SidebarCategoryWithChannels
 }
 
 func diffChannelsBetweenCategories(updatedCategories []*model.SidebarCategoryWithChannels, originalCategories []*model.SidebarCategoryWithChannels) map[string]*categoryChannelDiff {
-	// mapChannelIdsToCategories returns a map of channel IDs to the IDs of the categories that they're a member of.
-	mapChannelIdsToCategories := func(categories []*model.SidebarCategoryWithChannels) map[string]string {
-		result := make(map[string]string)
+	// mapChannelIdsToCategories returns a map of channel IDs to the categories that they're a member of.
+	mapChannelIdsToCategories := func(categories []*model.SidebarCategoryWithChannels) map[string]*model.SidebarCategoryWithChannels {
+		result := make(map[string]*model.SidebarCategoryWithChannels)
 		for _, category := range categories {
 			for _, channelID := range category.Channels {
-				result[channelID] = category.Id
+				result[channelID] = category
 			}
 		}
 
@@ -257,11 +267,11 @@ func diffChannelsBetweenCategories(updatedCategories []*model.SidebarCategoryWit
 	// Check for any channels that have changed categories. Note that we don't worry about any channels that have moved
 	// outside of these categories since that heavily complicates things and doesn't currently happen in our apps.
 	channelsDiff := make(map[string]*categoryChannelDiff)
-	for channelID, originalCategoryId := range originalChannelIdsMap {
-		updatedCategoryId := updatedChannelIdsMap[channelID]
+	for channelID, originalCategory := range originalChannelIdsMap {
+		updatedCategory := updatedChannelIdsMap[channelID]
 
-		if originalCategoryId != updatedCategoryId && updatedCategoryId != "" {
-			channelsDiff[channelID] = &categoryChannelDiff{originalCategoryId, updatedCategoryId}
+		if updatedCategory != nil && originalCategory.Id != updatedCategory.Id {
+			channelsDiff[channelID] = &categoryChannelDiff{originalCategory, updatedCategory}
 		}
 	}
 

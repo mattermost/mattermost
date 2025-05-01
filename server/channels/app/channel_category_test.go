@@ -594,28 +594,27 @@ func TestDiffChannelsBetweenCategories(t *testing.T) {
 			t,
 			map[string]*categoryChannelDiff{
 				"channel1": {
-					fromCategoryId: "category1",
-					toCategoryId:   "category3",
+					fromCategory: originalCategories[0],
+					toCategory:   updatedCategories[2],
 				},
 				"channel2": {
-					fromCategoryId: "category1",
-					toCategoryId:   "category2",
+					fromCategory: originalCategories[0],
+					toCategory:   updatedCategories[1],
 				},
 				"channel3": {
-					fromCategoryId: "category1",
-					toCategoryId:   "category3",
+					fromCategory: originalCategories[0],
+					toCategory:   updatedCategories[2],
 				},
 				"channel4": {
-					fromCategoryId: "category2",
-					toCategoryId:   "category3",
+					fromCategory: originalCategories[1],
+					toCategory:   updatedCategories[2],
 				},
 			},
 			channelsDiff,
 		)
 	})
 
-	t.Run("should not return channels that are moved in our out of the categories implicitly", func(t *testing.T) {
-		// This case could change to actually return the channels in the future, but we don't need to handle it right now
+	t.Run("should not return channels that we aren't in updatedCategories", func(t *testing.T) {
 		originalCategories := []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: model.SidebarCategory{
@@ -655,8 +654,8 @@ func TestDiffChannelsBetweenCategories(t *testing.T) {
 			t,
 			map[string]*categoryChannelDiff{
 				"channel3": {
-					fromCategoryId: "category2",
-					toCategoryId:   "category1",
+					fromCategory: originalCategories[1],
+					toCategory:   updatedCategories[0],
 				},
 			},
 			channelsDiff,
