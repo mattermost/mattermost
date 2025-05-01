@@ -3643,6 +3643,7 @@
   "create_team.display_name.next": "Next",
   "create_team.display_name.required": "This field is required",
   "create_team.display_name.teamName": "Team Name",
+  "create_team.pageTitle": "Create a team - {siteName}",
   "create_team.team_url.back": "Back to previous step",
   "create_team.team_url.charLength": "Name must be {min} or more characters up to a maximum of {max}",
   "create_team.team_url.creatingTeam": "Creating team...",
