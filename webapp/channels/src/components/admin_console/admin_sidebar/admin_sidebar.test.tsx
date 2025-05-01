@@ -558,8 +558,6 @@ describe('components/AdminSidebar', () => {
 
         const wrapper = shallowWithIntl(<AdminSidebar {...props}/>);
         expect(wrapper).toMatchSnapshot();
-
-
     });
 
     describe('generateIndex', () => {
