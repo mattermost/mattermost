@@ -108,6 +108,8 @@ export type ChannelDetailsActions = {
     unarchiveChannel: (channelId: string) => Promise<ActionResult>;
     getAccessControlPolicy: (channelId: string) => Promise<ActionResult>;
     searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
+    assignChannelToAccessControlPolicy: (policyId: string, channelId: string) => Promise<ActionResult>;
+    deleteAccessControlPolicy: (policyId: string) => Promise<ActionResult>;
 };
 
 export default class ChannelDetails extends React.PureComponent<ChannelDetailsProps, ChannelDetailsState> {
@@ -174,9 +176,9 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 actions.getChannelModerations(channelID).then(() => this.restrictChannelMentions());
             }
             actions.getChannel(channelID);
-            this.fetchAccessControlPolicies(channelID);
 
             if (channel?.policy_enforced) {
+                this.fetchAccessControlPolicies(channelID);
                 this.setState({policyToggled: true});
             }
         }
@@ -402,7 +404,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         }
 
         this.setState({showConvertConfirmModal: false, showRemoveConfirmModal: false, showConvertAndRemoveConfirmModal: false, showArchiveConfirmModal: false, saving: true});
-        const {groups, isSynced, isPublic, isPrivacyChanging, channelPermissions, usersToAdd, usersToRemove, rolesToUpdate} = this.state;
+        const {groups, isSynced, isPublic, isPrivacyChanging, channelPermissions, usersToAdd, usersToRemove, rolesToUpdate, policyToggled, accessControlPolicies} = this.state;
         let serverError: JSX.Element | undefined;
         let saveNeeded = false;
 
@@ -540,6 +542,32 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 serverError = <FormError error={patchChannelModerationsResult.error.message}/>;
             }
             this.restrictChannelMentions();
+        }
+
+        if (policyToggled) {
+            if (isPublic) {
+                    serverError = <FormError error='You cannot assign a policy to a public channel.'/>;
+                    saveNeeded = true;
+                    this.setState({serverError, saving: false, saveNeeded});
+                    actions.setNavigationBlocked(saveNeeded);
+                    return;
+            }
+
+            if (isSynced) {
+                serverError = <FormError error='You cannot assign a policy to a synced channel.'/>;
+                saveNeeded = true;
+                this.setState({serverError, saving: false, saveNeeded});
+                actions.setNavigationBlocked(saveNeeded);
+                return;
+            }
+        }
+
+        if (accessControlPolicies.length > 0) {
+            for (const policy of accessControlPolicies) {
+                actions.assignChannelToAccessControlPolicy(policy.id, channelID);
+            }
+        } else {
+            actions.deleteAccessControlPolicy(channelID);
         }
 
         let privacyChanging = isPrivacyChanging;

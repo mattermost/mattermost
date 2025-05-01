@@ -17,8 +17,8 @@ import {getHistory} from 'utils/browser_history';
 import './policies.scss';
 
 type Props = {
-    onPolicySelected: (policy: AccessControlPolicy) => void;
-    simpleMode: boolean;
+    onPolicySelected?: (policy: AccessControlPolicy) => void;
+    simpleMode?: boolean;
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
         deletePolicy: (id: string) => Promise<ActionResult>;
@@ -228,7 +228,11 @@ export default function PolicyList(props: Props): JSX.Element {
                     ),
                 },
                 onClick: () => {
-                    props.onPolicySelected(policy);
+                    if (props.onPolicySelected) {  
+                        props.onPolicySelected(policy);
+                    } else {
+                        getHistory().push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
+                    }
                 },
             };
         });
