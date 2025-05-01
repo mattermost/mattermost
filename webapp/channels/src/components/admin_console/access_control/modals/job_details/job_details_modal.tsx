@@ -9,8 +9,6 @@ import {useDispatch, useSelector} from 'react-redux';
 import {GenericModal} from '@mattermost/components';
 import type {Job} from '@mattermost/types/jobs';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
-import {ChevronDownIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
@@ -19,14 +17,11 @@ import {getProfilesByIds} from 'mattermost-redux/actions/users';
 
 import type {GlobalState} from 'types/store';
 
+import UserListModal, {type ChannelMembersSyncResults } from '../user_sync/user_sync_modal';
+
 import './job_details_modal.scss';
 
 // Types for sync results
-type ChannelMembersSyncResults = {
-    MembersAdded: string[];
-    MembersRemoved: string[];
-};
-
 type SyncResults = {
     [channelId: string]: ChannelMembersSyncResults;
 };
@@ -34,19 +29,6 @@ type SyncResults = {
 // Lookup structures for channel and user names
 type ChannelLookup = {
     [channelId: string]: Channel;
-};
-
-type UserLookup = {
-    [userId: string]: UserProfile;
-};
-
-// Modal for showing detailed user lists
-type UserListModalProps = {
-    channelId: string;
-    channelName: string;
-    syncResults: ChannelMembersSyncResults;
-    userLookup: UserLookup;
-    onClose: () => void;
 };
 
 // Component to display job status
@@ -74,124 +56,17 @@ const StatusIndicator = ({status}: StatusIndicatorProps): JSX.Element => {
     );
 };
 
-// Format user display name
-const formatUserName = (user?: UserProfile): string => {
-    if (!user) {
-        return 'Unknown User';
-    }
-    
-    if (user.first_name && user.last_name) {
-        return `${user.first_name} ${user.last_name} (@${user.username})`;
-    }
-    
-    return `@${user.username}`;
-};
-
-const UserListModal = ({channelId, channelName, syncResults, userLookup, onClose}: UserListModalProps): JSX.Element => {
-    const [activeTab, setActiveTab] = useState<'added' | 'removed'>('added');
-    
-    const handleTabChange = (tab: 'added' | 'removed') => {
-        setActiveTab(tab);
-    };
-
-    const displayName = channelName || channelId;
-
-    return (
-        <GenericModal
-            onExited={onClose}
-            modalHeaderText={
-                <FormattedMessage
-                    id='admin.jobTable.syncResults.userListTitle'
-                    defaultMessage='Channel Members Changes - {channelName}'
-                    values={{
-                        channelName: displayName,
-                    }}
-                />
-            }
-            show={true}
-        >
-            <div className='UserListModal'>
-                <div className='tabs'>
-                    <button
-                        className={`tab-button ${activeTab === 'added' ? 'active' : ''}`}
-                        onClick={() => handleTabChange('added')}
-                    >
-                        <FormattedMessage
-                            id='admin.jobTable.syncResults.added'
-                            defaultMessage='Added ({count})'
-                            values={{
-                                count: syncResults.MembersAdded.length,
-                            }}
-                        />
-                    </button>
-                    <button 
-                        className={`tab-button ${activeTab === 'removed' ? 'active' : ''}`}
-                        onClick={() => handleTabChange('removed')}
-                    >
-                        <FormattedMessage
-                            id='admin.jobTable.syncResults.removed'
-                            defaultMessage='Removed ({count})'
-                            values={{
-                                count: syncResults.MembersRemoved.length,
-                            }}
-                        />
-                    </button>
-                </div>
-                <div className='tab-content'>
-                    {activeTab === 'added' && (
-                        <div className='user-list'>
-                            {syncResults.MembersAdded.length === 0 ? (
-                                <div className='no-results'>
-                                    <FormattedMessage
-                                        id='admin.jobTable.syncResults.noUsersAdded'
-                                        defaultMessage='No users were added'
-                                    />
-                                </div>
-                            ) : (
-                                <ul>
-                                    {syncResults.MembersAdded.map((userId) => (
-                                        <li key={userId}>
-                                            {formatUserName(userLookup[userId])}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
-                    )}
-                    {activeTab === 'removed' && (
-                        <div className='user-list'>
-                            {syncResults.MembersRemoved.length === 0 ? (
-                                <div className='no-results'>
-                                    <FormattedMessage
-                                        id='admin.jobTable.syncResults.noUsersRemoved'
-                                        defaultMessage='No users were removed'
-                                    />
-                                </div>
-                            ) : (
-                                <ul>
-                                    {syncResults.MembersRemoved.map((userId) => (
-                                        <li key={userId}>
-                                            {formatUserName(userLookup[userId])}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </div>
-        </GenericModal>
-    );
-};
-
 // Component to display sync results
 type SyncResultsProps = {
     syncResults: SyncResults;
     channelLookup: ChannelLookup;
     onViewDetails: (channelId: string, channelName: string, results: ChannelMembersSyncResults) => void;
+    currentPage: number;
+    pageSize: number;
+    onPageChange: (page: number) => void;
 };
 
-const SyncResultsTable = ({syncResults, channelLookup, onViewDetails}: SyncResultsProps): JSX.Element => {
+const SyncResultsTable = ({syncResults, channelLookup, onViewDetails, currentPage, pageSize, onPageChange}: SyncResultsProps): JSX.Element => {
     if (!syncResults || Object.keys(syncResults).length === 0) {
         return (
             <div className='no-results-message'>
@@ -203,97 +78,110 @@ const SyncResultsTable = ({syncResults, channelLookup, onViewDetails}: SyncResul
         );
     }
 
-    return (
-        <Table className='sync-results-table'>
-            <thead>
-                <tr>
-                    <th>
-                        <FormattedMessage
-                            id='admin.jobTable.syncResults.channel'
-                            defaultMessage='Channel'
-                        />
-                    </th>
-                    <th>
-                        <FormattedMessage
-                            id='admin.jobTable.syncResults.changes'
-                            defaultMessage='Changes'
-                        />
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                {Object.entries(syncResults).map(([channelId, results]) => {
-                    const channel = channelLookup[channelId];
-                    const displayName = channel ? channel.display_name : channelId;
-                    
-                    return (
-                        <tr 
-                            key={channelId}
-                            onClick={() => onViewDetails(channelId, displayName, results)}
-                            className='clickable-row'
-                        >
-                            <td>
-                                <div className='channel-name'>
-                                    {displayName}
-                                    {channel && <div className='channel-id'>({channelId})</div>}
-                                </div>
-                            </td>
-                            <td>
-                                <span className='changes-summary'>
-                                    <span className='added'>
-                                        +{results.MembersAdded.length}
-                                    </span>
-                                    {' / '}
-                                    <span className='removed'>
-                                        -{results.MembersRemoved.length}
-                                    </span>
-                                </span>
-                            </td>
-                        </tr>
-                    );
-                })}
-            </tbody>
-        </Table>
-    );
-};
-
-type CollapsibleSectionProps = {
-    title: React.ReactNode;
-    children: React.ReactNode;
-    defaultExpanded?: boolean;
-};
-
-const CollapsibleSection = ({title, children, defaultExpanded = false}: CollapsibleSectionProps) => {
-    const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+    const totalEntries = Object.entries(syncResults);
+    const totalPages = Math.ceil(totalEntries.length / pageSize);
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, totalEntries.length);
+    const currentEntries = totalEntries.slice(startIndex, endIndex);
 
     return (
-        <div className='collapsible-section'>
-            <div className='collapsible-header' onClick={() => setIsExpanded(!isExpanded)}>
-                {isExpanded ? <ChevronDownIcon size={16}/> : <ChevronRightIcon size={16}/>}
-                <span className='collapsible-title'>{title}</span>
-            </div>
-            {isExpanded && (
-                <div className='collapsible-content'>
-                    {children}
+        <>
+            <Table className='sync-results-table'>
+                <thead>
+                    <tr>
+                        <th>
+                            <FormattedMessage
+                                id='admin.jobTable.syncResults.channel'
+                                defaultMessage='Channel'
+                            />
+                        </th>
+                        <th className='changes-column'>
+                            <FormattedMessage
+                                id='admin.jobTable.syncResults.changes'
+                                defaultMessage='Changes'
+                            />
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {currentEntries.map(([channelId, results]) => {
+                        const channel = channelLookup[channelId];
+                        const displayName = channel ? channel.display_name : channelId;
+                        
+                        return (
+                            <tr 
+                                key={channelId}
+                                onClick={() => onViewDetails(channelId, displayName, results)}
+                                className='clickable-row'
+                            >
+                                <td>
+                                    <div className='channel-name'>
+                                        {displayName}
+                                        {channel && <div className='channel-id'>({channelId})</div>}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span className='changes-summary'>
+                                        <span className='added'>
+                                            +{results.MembersAdded.length}
+                                        </span>
+                                        {' / '}
+                                        <span className='removed'>
+                                            -{results.MembersRemoved.length}
+                                        </span>
+                                    </span>
+                                </td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </Table>
+            {totalPages > 1 && (
+                <div className='pagination-controls'>
+                    <div className='pagination-wrapper'>
+                        <div className='pagination-info'>
+                            {startIndex + 1} - {endIndex} of {totalEntries.length}
+                        </div>
+                        <div className='pagination-buttons'>
+                            <div className='btn btn-link pagination-prev'>
+                                <i 
+                                    disabled={currentPage === 1}
+                                    className='icon icon-chevron-left' 
+                                    onClick={() => onPageChange(currentPage - 1)}
+                                    aria-label='Previous'
+                                />
+                            </div>
+                            <div className='btn btn-link pagination-next'>  
+                                <i 
+                                    disabled={currentPage === totalPages}
+                                    className='icon icon-chevron-right' 
+                                    onClick={() => onPageChange(currentPage + 1)}
+                                    aria-label='Next'
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 
 type Props = {
-    job: Job | null;
+    job: Job ;
     onExited: () => void;
 };
 
 export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
     const dispatch = useDispatch();
+    const [currentPage, setCurrentPage] = useState(1);
     const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
     const [selectedChannelName, setSelectedChannelName] = useState<string>('');
     const [selectedChannelResults, setSelectedChannelResults] = useState<ChannelMembersSyncResults | null>(null);
     const [channelLookup, setChannelLookup] = useState<ChannelLookup>({});
-    const [userLookup, setUserLookup] = useState<UserLookup>({});
     const [syncResults, setSyncResults] = useState<SyncResults | null>(null);
+    
+    const pageSize = 5;
     
     // Get state for lookups
     const state = useSelector((state: GlobalState) => state);
@@ -302,9 +190,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
     useEffect(() => {
         if (job?.data?.sync_results) {
             try {
-                console.log('Sync results raw data:', job.data.sync_results);
                 const parsedResults = JSON.parse(job.data.sync_results);
-                console.log('Parsed sync results:', parsedResults);
                 setSyncResults(parsedResults);
                 
                 // Collect all channel IDs and user IDs for lookup
@@ -334,10 +220,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                         dispatch(ChannelActions.getChannel(id));
                     });
                 }
-                
-                if (userIds.length > 0) {
-                    dispatch(getProfilesByIds(userIds));
-                }
+
             } catch (e) {
                 console.error('Error parsing sync_results:', e);
             }
@@ -360,48 +243,6 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
         }
     }, [syncResults, state]);
     
-    // Build user lookup from state
-    useEffect(() => {
-        if (syncResults) {
-            const users: UserLookup = {};
-            
-            Object.values(syncResults).forEach((results) => {
-                // Add users from both added and removed lists
-                [...results.MembersAdded, ...results.MembersRemoved].forEach((userId) => {
-                    const user = getUser(state, userId);
-                    if (user) {
-                        users[userId] = user;
-                    }
-                });
-            });
-            
-            setUserLookup(users);
-        }
-    }, [syncResults, state]);
-    
-    if (!job) {
-        return (
-            <GenericModal
-                onExited={onExited}
-                modalHeaderText='Job Details'
-                show={true}
-            >
-                <div className='JobDetailsModal'>
-                    <p>
-                        <FormattedMessage
-                            id='admin.jobTable.details.noJobSelected'
-                            defaultMessage='No job selected'
-                        />
-                    </p>
-                </div>
-            </GenericModal>
-        );
-    }
-
-    const createDate = new Date(job.create_at);
-    const startDate = job.start_at ? new Date(job.start_at) : null;
-    const lastActivityDate = job.last_activity_at ? new Date(job.last_activity_at) : null;
-
     const handleViewDetails = (channelId: string, channelName: string, results: ChannelMembersSyncResults) => {
         setSelectedChannel(channelId);
         setSelectedChannelName(channelName);
@@ -414,146 +255,57 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
         setSelectedChannelResults(null);
     };
 
+    const handlePageChange = (newPage: number) => {
+        setCurrentPage(newPage);
+    };
+
     return (
-        <>
             <GenericModal
                 onExited={onExited}
                 modalHeaderText={
+                <div className='modal-header-custom'>
                     <div className='modal-header-with-status'>
-                        <FormattedMessage
-                            id='admin.jobTable.details.title'
+                            <FormattedMessage
+                                id='admin.jobTable.details.title'
                             defaultMessage='Job Details'
                         />
                         <StatusIndicator status={job.status} />
                     </div>
+                    <div className='close-icon-container'>
+                        <i 
+                            className='icon icon-close' 
+                            onClick={onExited}
+                            aria-label='Close'
+                            role='button'
+                            tabIndex={0}
+                        />
+                    </div>
+                </div>
                 }
                 show={true}
+                showHeader={false}
+                className='job-details-modal'
             >
-                <div className='JobDetailsModal'>
-                    {/* Detailed job information - in collapsible section */}
-                    <CollapsibleSection 
-                        title={
-                            <FormattedMessage
-                                id='admin.jobTable.details.additionalDetails'
-                                defaultMessage='Additional Details'
-                            />
-                        }
-                    >
-                        <div className='details-row'>
-                            <div className='details-label'>
-                                <FormattedMessage
-                                    id='admin.jobTable.details.jobId'
-                                    defaultMessage='Job ID:'
-                                />
-                            </div>
-                            <div className='details-value'>{job.id}</div>
-                        </div>
-                        <div className='details-row'>
-                            <div className='details-label'>
-                                <FormattedMessage
-                                    id='admin.jobTable.details.createAt'
-                                    defaultMessage='Created:'
-                                />
-                            </div>
-                            <div className='details-value'>
-                                <FormattedDate value={createDate}/> <FormattedTime value={createDate}/>
-                            </div>
-                        </div>
-                        {startDate && (
-                            <div className='details-row'>
-                                <div className='details-label'>
-                                    <FormattedMessage
-                                        id='admin.jobTable.details.startAt'
-                                        defaultMessage='Started:'
-                                    />
-                                </div>
-                                <div className='details-value'>
-                                    <FormattedDate value={startDate}/> <FormattedTime value={startDate}/>
-                                </div>
-                            </div>
-                        )}
-                        {lastActivityDate && (
-                            <div className='details-row'>
-                                <div className='details-label'>
-                                    <FormattedMessage
-                                        id='admin.jobTable.details.lastActivityAt'
-                                        defaultMessage='Last Activity:'
-                                    />
-                                </div>
-                                <div className='details-value'>
-                                    <FormattedDate value={lastActivityDate}/> <FormattedTime value={lastActivityDate}/>
-                                </div>
-                            </div>
-                        )}
-                        <div className='details-row'>
-                            <div className='details-label'>
-                                <FormattedMessage
-                                    id='admin.jobTable.details.progress'
-                                    defaultMessage='Progress:'
-                                />
-                            </div>
-                            <div className='details-value'>{job.progress}</div>
-                        </div>
-                        <div className='details-row'>
-                            <div className='details-label'>
-                                <FormattedMessage
-                                    id='admin.jobTable.details.status'
-                                    defaultMessage='Status:'
-                                />
-                            </div>
-                            <div className='details-value'>{job.status}</div>
-                        </div>
-                    </CollapsibleSection>
-
-                    {/* Job data - in collapsible section */}
-                    {job.data && Object.keys(job.data).length > 0 && 
-                     !job.type.includes('access_control_sync') && (
-                        <CollapsibleSection 
-                            title={
-                                <FormattedMessage
-                                    id='admin.jobTable.details.data'
-                                    defaultMessage='Data:'
-                                />
-                            }
-                        >
-                            <div className='details-value'>
-                                <pre>{JSON.stringify(job.data, null, 2)}</pre>
-                            </div>
-                        </CollapsibleSection>
-                    )}
-                    
-                    {/* Sync Results Section */}
-                    {(job.type.includes('access_control_sync')) && (
-                        <CollapsibleSection 
-                            title={
-                                <FormattedMessage
-                                    id='admin.jobTable.details.syncResults'
-                                    defaultMessage='Sync Results:'
-                                />
-                            }
-                            defaultExpanded={true}
-                        >
-                            <div className='details-value'>
-                                <SyncResultsTable 
-                                    syncResults={syncResults || {}} 
-                                    channelLookup={channelLookup}
-                                    onViewDetails={handleViewDetails}
-                                />
-                            </div>
-                        </CollapsibleSection>
+                <div className='JobDetailsModalBody'>
+                    {job.type.includes('access_control_sync') && (
+                        <SyncResultsTable 
+                            syncResults={syncResults || {}} 
+                            channelLookup={channelLookup}
+                            onViewDetails={handleViewDetails}
+                            currentPage={currentPage}
+                            pageSize={pageSize}
+                            onPageChange={handlePageChange}
+                        />
                     )}
                 </div>
-            </GenericModal>
-            
-            {selectedChannel && selectedChannelResults && (
+                {selectedChannel && selectedChannelResults && (
                 <UserListModal
                     channelId={selectedChannel}
                     channelName={selectedChannelName}
                     syncResults={selectedChannelResults}
-                    userLookup={userLookup}
                     onClose={handleCloseUserListModal}
                 />
             )}
-        </>
+            </GenericModal>
     );
 }

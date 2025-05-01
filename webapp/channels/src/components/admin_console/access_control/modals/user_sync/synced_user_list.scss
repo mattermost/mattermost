@@ -1,0 +1,129 @@
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
+
+@use 'sass:color';
+
+.SyncedUserList {
+    .list-footer {
+        display: flex;
+        justify-content: space-between; // Pushes count left, pagination right
+        align-items: center;
+        padding: 10px 0; // Add some vertical padding
+        border-top: 1px solid var(--center-channel-color-16); // Separator line like image
+        margin-bottom: 8px; // Space below header
+
+        .member-count-text {
+            font-size: 12px;
+            color: var(--center-channel-color-64); // Match subtle text color
+        }
+
+        .pagination-controls {
+            // No specific alignment needed here as flex handles it
+            // Reset margin-top as it's now inline
+            margin-top: 0;
+        }
+    }
+
+    .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100px; // Adjust height as needed
+        // Add padding if needed to separate from header/footer
+        padding: 10px 0;
+    }
+
+        .more-modal__row {
+            display: flex;
+            min-height: 65px;
+            align-items: center;
+            border-top: 1px solid variables.$light-gray;
+            gap: 10px;
+    
+            &.clickable {
+                cursor: pointer;
+            }
+    
+            &.more-modal__row--selected {
+                background: rgba(var(--sys-center-channel-color-rgb), 0.08);
+    
+                .app__body & {
+                    background: rgba(var(--center-channel-color-rgb), 0.08);
+                }
+    
+                .more-modal__actions--round {
+                    display: block;
+                }
+    
+                .more-modal__lastPostAt {
+                    display: none;
+                }
+    
+                .more-modal__details {
+                    .add-group-members {
+                        display: flex;
+                    }
+                }
+            }
+    
+            .more-modal__shared-actions {
+                color: rgba(61, 60, 64, 0.75);
+    
+                .shared-user-icon {
+                    width: 16px;
+                    height: 16px;
+                    margin-left: 4px;
+                    font-size: 16px;
+                    line-height: 16px;
+    
+                    &::before {
+                        margin: 0;
+                    }
+                }
+            }
+    
+            #member-list-popover & {
+                min-height: 0;
+            }
+        }
+
+    .pagination-controls { // Base styles for controls (re-add as they were rejected)
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        button {
+            background: none;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+            color: var(--center-channel-color);
+
+            &:disabled {
+                cursor: not-allowed;
+                opacity: 0.5;
+            }
+
+            &.arrow {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+        span {
+            font-size: 12px;
+            color: var(--center-channel-text);
+        }
+    }
+
+    .no-results {
+        padding: 20px;
+        text-align: center;
+        color: var(--center-channel-color-56);
+        // Add padding to separate from header
+        padding-top: 30px;
+        padding-bottom: 30px;
+    }
+} 
