@@ -22,19 +22,8 @@ const (
 
 // AccessControlAttribute represents a user attribute with its name and possible values
 type AccessControlAttribute struct {
-	Name   string   `json:"name"`
-	Values []string `json:"values"`
-}
-
-// AccessControlEntity represents an entity with its name and attributes
-type AccessControlEntity struct {
-	Name       string                   `json:"name"`
-	Attributes []AccessControlAttribute `json:"attributes"`
-}
-
-// AccessControlExpressionAutocomplete represents the autocomplete data for access control expressions
-type AccessControlExpressionAutocomplete struct {
-	Entities map[string]AccessControlEntity `json:"entities"`
+	Attribute PropertyField `json:"attribute"`
+	Values    []string      `json:"values"`
 }
 
 type AccessControlPolicyTestResponse struct {

@@ -193,6 +193,38 @@ func (_m *AccessControlServiceInterface) GetPolicy(rctx request.CTX, id string) 
 	return r0, r1
 }
 
+// GetPolicyRuleAttributes provides a mock function with given fields: rctx, policyID, action
+func (_m *AccessControlServiceInterface) GetPolicyRuleAttributes(rctx request.CTX, policyID string, action string) (map[string][]string, *model.AppError) {
+	ret := _m.Called(rctx, policyID, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPolicyRuleAttributes")
+	}
+
+	var r0 map[string][]string
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (map[string][]string, *model.AppError)); ok {
+		return rf(rctx, policyID, action)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) map[string][]string); ok {
+		r0 = rf(rctx, policyID, action)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
+		r1 = rf(rctx, policyID, action)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // Init provides a mock function with given fields: rctx
 func (_m *AccessControlServiceInterface) Init(rctx request.CTX) *model.AppError {
 	ret := _m.Called(rctx)

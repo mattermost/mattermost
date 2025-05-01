@@ -20,7 +20,6 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicies.Handle("/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicies.Handle("/autocomplete", api.APISessionRequired(getExpressionAutocomplete)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("/assign", api.APISessionRequired(assignAccessPolicy)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", api.APISessionRequired(unassignAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APISessionRequired(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
@@ -373,45 +372,6 @@ func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *
 	}
 
 	if _, err := w.Write(channelsJSON); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
-func getExpressionAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	ac := model.AccessControlExpressionAutocomplete{
-		Entities: map[string]model.AccessControlEntity{
-			"user": {
-				Name: "User",
-				Attributes: []model.AccessControlAttribute{
-					{
-						Name:   "Program",
-						Values: []string{"Dragon Spacecraft", "Black Phoenix", "Operation Deep Dive"},
-					},
-					{
-						Name:   "Department",
-						Values: []string{"Engineering", "Sales", "Marketing"},
-					},
-					{
-						Name:   "Clearance",
-						Values: []string{"Top Secret"},
-					},
-				},
-			},
-		},
-	}
-
-	js, err := json.Marshal(ac)
-	if err != nil {
-		c.Err = model.NewAppError("getExpressionAutocomplete", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(js); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

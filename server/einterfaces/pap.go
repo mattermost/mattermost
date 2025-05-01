@@ -17,6 +17,9 @@ type PolicyAdministrationPointInterface interface {
 	Init(rctx request.CTX) *model.AppError
 	// GetBasicAutocompleteFields returns a map of basic autocomplete values.
 	GetBasicAutocompleteFields() (map[string]any, *model.AppError)
+	// GetPolicyRuleAttributes retrieves the attributes of the given policy.
+	// It returns a map of attribute names to their values for given action.
+	GetPolicyRuleAttributes(rctx request.CTX, policyID string, action string) (map[string][]string, *model.AppError)
 	// CheckExpression checks the validity of the given expression using the CEL engine.
 	// It returns a list of CELExpressionError if the expression is invalid.
 	// If the expression is valid, it returns an empty list.
