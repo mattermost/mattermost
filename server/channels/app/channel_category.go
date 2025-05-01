@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -200,13 +201,37 @@ func (a *App) muteChannelsForUpdatedCategories(c request.CTX, userID string, tea
 	}
 
 	// Mute any channels moved from an unmuted category into a muted one and vice versa
-	channelsDiff := diffChannelsBetweenCategories(updatedCategories.Categories, originalCategories)
-	if len(channelsDiff) != 0 {
-		for channelID, diff := range channelsDiff {
-			if diff.toCategory.Muted && !diff.fromCategory.Muted {
-				channelsToMute = append(channelsToMute, channelID)
-			} else if !diff.toCategory.Muted && diff.fromCategory.Muted {
-				channelsToUnmute = append(channelsToUnmute, channelID)
+	anyChannelMoved := func() bool {
+		// If no channels were moved, we don't need to get the categories again to find where they were moved to/from
+		for _, modifiedCategory := range modifiedCategories {
+			if !slices.Equal(modifiedCategory.Channels, originalCategoriesById[modifiedCategory.Id].Channels) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	if anyChannelMoved() {
+		updatedCategories, err := a.Srv().Store().Channel().GetSidebarCategoriesForTeamForUser(userID, teamID, true)
+		if err != nil {
+			c.Logger().Error(
+				"Unable to get categories to update muted channels",
+				mlog.String("userID", userID),
+				mlog.String("teamID", teamID),
+				mlog.Err(err),
+			)
+			return
+		}
+
+		channelsDiff := diffChannelsBetweenCategories(updatedCategories.Categories, originalCategories)
+		if len(channelsDiff) != 0 {
+			for channelID, diff := range channelsDiff {
+				if diff.toCategory.Muted && !diff.fromCategory.Muted {
+					channelsToMute = append(channelsToMute, channelID)
+				} else if !diff.toCategory.Muted && diff.fromCategory.Muted {
+					channelsToUnmute = append(channelsToUnmute, channelID)
+				}
 			}
 		}
 	}
