@@ -2260,11 +2260,11 @@ func (s *RetryLayerChannelStore) GetSidebarCategories(userID string, opts *store
 
 }
 
-func (s *RetryLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+func (s *RetryLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string, fromMaster bool) (*model.OrderedSidebarCategories, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetSidebarCategoriesForTeamForUser(userID, teamID)
+		result, err := s.ChannelStore.GetSidebarCategoriesForTeamForUser(userID, teamID, fromMaster)
 		if err == nil {
 			return result, nil
 		}

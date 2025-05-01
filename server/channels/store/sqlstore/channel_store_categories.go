@@ -580,12 +580,20 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 	return &oc, nil
 }
 
-func (s SqlChannelStore) GetSidebarCategoriesForTeamForUser(userId, teamId string) (*model.OrderedSidebarCategories, error) {
+func (s SqlChannelStore) GetSidebarCategoriesForTeamForUser(userId, teamId string, fromMaster bool) (*model.OrderedSidebarCategories, error) {
 	opts := &store.SidebarCategorySearchOpts{
 		TeamID:      teamId,
 		ExcludeTeam: false,
 	}
-	return s.getSidebarCategoriesT(s.GetReplica(), userId, opts)
+
+	var db dbSelecter
+	if fromMaster {
+		db = s.GetMaster()
+	} else {
+		db = s.GetReplica()
+	}
+
+	return s.getSidebarCategoriesT(db, userId, opts)
 }
 
 func (s SqlChannelStore) GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {

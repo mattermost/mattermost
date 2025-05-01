@@ -1968,9 +1968,9 @@ func (_m *ChannelStore) GetSidebarCategories(userID string, opts *store.SidebarC
 	return r0, r1
 }
 
-// GetSidebarCategoriesForTeamForUser provides a mock function with given fields: userID, teamID
-func (_m *ChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
-	ret := _m.Called(userID, teamID)
+// GetSidebarCategoriesForTeamForUser provides a mock function with given fields: userID, teamID, fromMaster
+func (_m *ChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string, fromMaster bool) (*model.OrderedSidebarCategories, error) {
+	ret := _m.Called(userID, teamID, fromMaster)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSidebarCategoriesForTeamForUser")
@@ -1978,19 +1978,19 @@ func (_m *ChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID
 
 	var r0 *model.OrderedSidebarCategories
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) (*model.OrderedSidebarCategories, error)); ok {
-		return rf(userID, teamID)
+	if rf, ok := ret.Get(0).(func(string, string, bool) (*model.OrderedSidebarCategories, error)); ok {
+		return rf(userID, teamID, fromMaster)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) *model.OrderedSidebarCategories); ok {
-		r0 = rf(userID, teamID)
+	if rf, ok := ret.Get(0).(func(string, string, bool) *model.OrderedSidebarCategories); ok {
+		r0 = rf(userID, teamID, fromMaster)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OrderedSidebarCategories)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, teamID)
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
+		r1 = rf(userID, teamID, fromMaster)
 	} else {
 		r1 = ret.Error(1)
 	}

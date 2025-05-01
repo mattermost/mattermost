@@ -71,7 +71,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
 		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 
-		res2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		res2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		assert.NoError(t, err)
 		assert.Equal(t, res, res2)
 	})
@@ -97,7 +97,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
 		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 
-		res2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID2, team.Id)
+		res2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID2, team.Id, false)
 		assert.NoError(t, err)
 		assert.Equal(t, res, res2)
 	})
@@ -127,7 +127,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
 		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 
-		res2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team2.Id)
+		res2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team2.Id, false)
 		assert.NoError(t, err)
 		assert.Equal(t, res, res2)
 	})
@@ -145,7 +145,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 		require.Equal(t, res, initialCategories)
 
@@ -154,7 +154,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		assert.NoError(t, nErr)
 		assert.NotEmpty(t, res)
 
-		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		assert.NoError(t, err)
 		assert.Equal(t, initialCategories.Categories, res.Categories)
 	})
@@ -182,7 +182,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 
 		wg.Wait()
 
-		res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		assert.NoError(t, err)
 		assert.Len(t, res.Categories, 3)
 	})
@@ -243,7 +243,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		assert.Equal(t, []string{channel2.Id}, categories.Categories[1].Channels)
 
 		// Get and check the categories for channels
-		categories2, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories2, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, nErr)
 		require.Equal(t, categories, categories2)
 	})
@@ -310,7 +310,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		assert.Equal(t, []string{channel2.Id, channel1.Id}, categories.Categories[0].Channels)
 
 		// Get and check the categories for channels
-		categories2, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories2, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, nErr)
 		require.Equal(t, categories, categories2)
 	})
@@ -380,7 +380,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		assert.Equal(t, []string{dmChannel2.Id}, categories.Categories[2].Channels)
 
 		// Get and check the categories for channels
-		categories2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 		require.Equal(t, categories, categories2)
 	})
@@ -429,7 +429,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		assert.Equal(t, []string{}, categories.Categories[1].Channels)
 
 		// Get and check the categories for channels
-		categories2, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories2, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, nErr)
 		require.Equal(t, categories, categories2)
 	})
@@ -474,7 +474,7 @@ func testCreateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Confirm that it comes second
-		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 4)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
@@ -496,7 +496,7 @@ func testCreateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NotEmpty(t, res)
 
 		// Re-arrange the categories so that Favorites comes last
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
@@ -517,7 +517,7 @@ func testCreateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Confirm that it comes first
-		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 4)
 		assert.Equal(t, model.SidebarCategoryCustom, res.Categories[0].Type)
@@ -578,7 +578,7 @@ func testCreateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 
@@ -652,7 +652,7 @@ func testCreateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Confirm that sorting value is correct
-		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 4)
 		// first category will be favorites and second will be newly created
@@ -714,7 +714,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		channelsCategory := categories.Categories[1]
@@ -782,7 +782,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryChannels, categories.Categories[1].Type)
 
@@ -825,7 +825,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory := categories.Categories[0]
@@ -892,7 +892,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
 
@@ -937,7 +937,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
 
@@ -979,7 +979,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
 
@@ -1059,7 +1059,7 @@ func testGetSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store) {
 		gotCategory, err := ss.Channel().GetSidebarCategory(newCategory.Id)
 		require.NoError(t, err)
 
-		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 4)
 
@@ -1146,7 +1146,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.NotEmpty(t, res)
 
-		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory := initialCategories.Categories[0]
@@ -1181,7 +1181,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory := initialCategories.Categories[0]
@@ -1250,7 +1250,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory := categories.Categories[0]
@@ -1311,7 +1311,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory := categories.Categories[0]
@@ -1378,7 +1378,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory := categories.Categories[0]
@@ -1392,7 +1392,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team2.Id)
+		categories2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team2.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory2 := categories2.Categories[0]
@@ -1479,7 +1479,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory := categories.Categories[0]
@@ -1492,7 +1492,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID2, team.Id)
+		categories2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID2, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory2 := categories2.Categories[0]
@@ -1630,7 +1630,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NotEmpty(t, res)
 
 		// And some categories
-		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, nErr)
 
 		channelsCategory := initialCategories.Categories[1]
@@ -1690,7 +1690,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NotEmpty(t, res)
 
 		// The DM should start in the DMs category
-		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		dmsCategory := initialCategories.Categories[2]
@@ -1761,7 +1761,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, nErr)
 
 		channelsCategory := initialCategories.Categories[1]
@@ -1814,7 +1814,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, nErr)
 
 		channelsCategory := initialCategories.Categories[1]
@@ -1865,7 +1865,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NoError(t, err)
 		require.NotEmpty(t, res)
 
-		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory := initialCategories.Categories[0]
@@ -1903,7 +1903,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NoError(t, err)
 		require.NotEmpty(t, res)
 
-		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory := initialCategories.Categories[0]
@@ -1934,7 +1934,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory := initialCategories.Categories[0]
@@ -2005,7 +2005,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory := categories.Categories[0]
@@ -2070,7 +2070,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory := categories.Categories[0]
@@ -2141,7 +2141,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory := categories.Categories[0]
@@ -2155,7 +2155,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team2.Id)
+		categories2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team2.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory2 := categories2.Categories[0]
@@ -2250,7 +2250,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory := categories.Categories[0]
@@ -2263,7 +2263,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		categories2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID2, team.Id)
+		categories2, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID2, team.Id, false)
 		require.NoError(t, err)
 
 		favoritesCategory2 := categories2.Categories[0]
@@ -2425,7 +2425,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NotEmpty(t, res)
 
 		// And some categories
-		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, nErr)
 
 		channelsCategory := initialCategories.Categories[1]
@@ -2484,7 +2484,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NotEmpty(t, res)
 
 		// The DM should start in the DMs category
-		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, err)
 
 		dmsCategory := initialCategories.Categories[2]
@@ -2575,7 +2575,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, nErr)
 
 		channelsCategory := initialCategories.Categories[1]
@@ -2643,7 +2643,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+		initialCategories, nErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 		require.NoError(t, nErr)
 
 		channelsCategory := initialCategories.Categories[1]
@@ -2705,7 +2705,7 @@ func setupInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store.Stor
 	require.NoError(t, nErr)
 	require.NotEmpty(t, res)
 
-	res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+	res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 	require.NoError(t, err)
 	require.Len(t, res.Categories, 3)
 
@@ -2832,7 +2832,7 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 		require.NoError(t, err)
 		require.NotEmpty(t, res)
 
-		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team2.Id)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team2.Id, false)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 3)
 
@@ -2889,7 +2889,7 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 		assert.Equal(t, int64(2), count)
 
 		// Confirm that the categories on the second team are unchanged
-		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team2.Id)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team2.Id, false)
 		require.NoError(t, err)
 		assert.Len(t, res.Categories, 4)
 
@@ -2908,7 +2908,7 @@ func testDeleteSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s
 		require.NotNil(t, newCategory)
 
 		// Ensure that the category was created properly
-		res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, teamID)
+		res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, teamID, false)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 4)
 
@@ -2916,7 +2916,7 @@ func testDeleteSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s
 		err = ss.Channel().DeleteSidebarCategory(newCategory.Id)
 		assert.NoError(t, err)
 
-		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, teamID)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, teamID, false)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 3)
 	})
@@ -2960,7 +2960,7 @@ func testDeleteSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s
 		require.NotNil(t, newCategory)
 
 		// Ensure that the categories are set up correctly
-		res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, teamID)
+		res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, teamID, false)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 4)
 
@@ -2972,7 +2972,7 @@ func testDeleteSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s
 		assert.NoError(t, err)
 
 		// Confirm that the category was deleted...
-		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, teamID)
+		res, err = ss.Channel().GetSidebarCategoriesForTeamForUser(userID, teamID, false)
 		assert.NoError(t, err)
 		assert.Len(t, res.Categories, 3)
 
@@ -2992,7 +2992,7 @@ func testDeleteSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s
 	t.Run("should not allow you to remove non-custom categories", func(t *testing.T) {
 		userID, teamID := setupInitialSidebarCategories(t, rctx, ss)
 		defer ss.User().PermanentDelete(rctx, userID)
-		res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, teamID)
+		res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, teamID, false)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 3)
 		require.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
@@ -3094,7 +3094,7 @@ func testSidebarCategoryDeadlock(t *testing.T, rctx request.CTX, ss store.Store)
 	require.NoError(t, err)
 	require.NotEmpty(t, res)
 
-	initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+	initialCategories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id, false)
 	require.NoError(t, err)
 
 	channelsCategory := initialCategories.Categories[1]

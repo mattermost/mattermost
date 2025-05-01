@@ -25,7 +25,7 @@ func (a *App) createInitialSidebarCategories(c request.CTX, userID string, opts 
 
 func (a *App) GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
 	var appErr *model.AppError
-	categories, err := a.Srv().Store().Channel().GetSidebarCategoriesForTeamForUser(userID, teamID)
+	categories, err := a.Srv().Store().Channel().GetSidebarCategoriesForTeamForUser(userID, teamID, false)
 	if err == nil && len(categories.Categories) == 0 {
 		// A user must always have categories, so migration must not have happened yet, and we should run it ourselves
 		categories, appErr = a.createInitialSidebarCategories(c, userID, &store.SidebarCategorySearchOpts{
