@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 import type {AccessControlPolicy} from '@mattermost/types/admin';
 import { ActionResult } from 'mattermost-redux/types/actions';
@@ -13,64 +13,22 @@ import PolicySelectionModal from 'components/admin_console/access_control/modals
 import './channel_access_control_policy.scss';
 
 interface Props {
-    policyEnforced: boolean;
-    accessControlPolicy?: AccessControlPolicy;
-    onToggle: (isSynced: boolean, isPublic: boolean, policyEnforced: boolean) => void;
-    onPolicyRemoved: () => void;
-    isPublic: boolean;
-    isSynced: boolean;
+    accessControlPolicies: AccessControlPolicy[];
     actions: {
-        getAccessControlPolicy: (policyId: string) => Promise<ActionResult>;
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
-        assignChannelToAccessControlPolicy: (policyId: string, channelId: string) => Promise<ActionResult>;
         onPolicySelected?: (policy: AccessControlPolicy) => void;
+        onPolicyRemoved: () => void;
     };
-    channelId: string;
 }
 
 export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element => {
-    const {policyEnforced, onToggle, accessControlPolicy, actions, isPublic, isSynced, channelId, onPolicyRemoved} = props;
-    const [importedPolicies, setImportedPolicies] = useState<AccessControlPolicy[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
+    const {accessControlPolicies, actions} = props;
     const [showPolicySelectionModal, setShowPolicySelectionModal] = useState<boolean>(false);
-    const [selectedPolicy, setSelectedPolicy] = useState<AccessControlPolicy | undefined>(undefined);
-
-    useEffect(() => {
-        const fetchImportedPolicies = async () => {
-            if (accessControlPolicy?.imports && accessControlPolicy.imports.length > 0) {
-                setLoading(true);
-                const policies: AccessControlPolicy[] = [];
-                
-                for (const policyId of accessControlPolicy.imports) {
-                    try {
-                        const result = await actions.getAccessControlPolicy(policyId);
-                        if (result.data) {
-                            policies.push(result.data as AccessControlPolicy);
-                        }
-                    } catch (error) {
-                        console.error('Error fetching policy', error);
-                    }
-                }
-                
-                setImportedPolicies(policies);
-                setLoading(false);
-            } else {
-                setLoading(false);
-            }
-        };
-
-        fetchImportedPolicies();
-    }, [accessControlPolicy?.imports]);
-
+   
     const handlePolicySelected = (policy: AccessControlPolicy) => {
-        // Using the parent component's onToggle method to update parent state
-        onToggle(isSynced, isPublic, true);
-        
-        // Store the selected policy in the parent component's state
         if (actions.onPolicySelected && policy) {
             actions.onPolicySelected(policy);
         }
-        
         setShowPolicySelectionModal(false);
     };
 
@@ -83,18 +41,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
     };
 
     const renderTable = () => {
-        if (loading) {
-            return (
-                <div className='loading-container'>
-                    <FormattedMessage
-                        id='admin.channel_settings.channel_detail.access_control_policy_loading'
-                        defaultMessage='Loading...'
-                    />
-                </div>
-            );
-        }
-
-        if (!accessControlPolicy?.imports && !accessControlPolicy?.id) {
+        if (!accessControlPolicies || accessControlPolicies.length === 0) {
             return null;
         }
 
@@ -120,7 +67,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                         </tr>
                     </thead>
                     <tbody>
-                        {importedPolicies.map((policy) => (
+                        {accessControlPolicies.map((policy) => (
                             <tr key={policy.id}>
                                 <td className='policy-name'>{policy.name}</td>
                                 <td className='text-right'>
@@ -130,7 +77,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                                             e.preventDefault();
                                             getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy/' + policy.id);
                                         }}
-                                        aria-label='Edit policy'
+                                        aria-label='Go to the policy'
                                         href='#'
                                     >
                                         <i className='fa fa-external-link'/>
@@ -144,13 +91,8 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
         );
     };
 
-    // Attribute based access is disabled
-    if (!policyEnforced) {
-        return <></>;
-    }
-
     // Attribute based access is enabled, but no policy
-    if (policyEnforced && (!accessControlPolicy?.imports || accessControlPolicy.imports.length === 0)) {
+    if (accessControlPolicies.length === 0) {
         return (
             <AdminPanelWithButton
                 id='channel_access_control_policy'
@@ -161,16 +103,14 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                     handleOpenPolicyModal();
                 }}
             >
-                {showPolicySelectionModal && (
-                    <PolicySelectionModal
-                        show={showPolicySelectionModal}
-                        onHide={handleClosePolicyModal}
-                        onPolicySelected={handlePolicySelected}
-                        actions={{
-                            searchPolicies: actions.searchPolicies,
-                        }}
-                    />
-                )}
+                <PolicySelectionModal
+                    show={showPolicySelectionModal}
+                    onHide={handleClosePolicyModal}
+                    onPolicySelected={handlePolicySelected}
+                    actions={{
+                        searchPolicies: actions.searchPolicies,
+                    }}
+                />
             </AdminPanelWithButton>
         )
     }
@@ -184,14 +124,13 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                 defineMessage({id: 'admin.channel_settings.channel_detail.remove_policy', defaultMessage: 'Remove policy'})
             }
             onButtonClick={() => {
-                onToggle(isSynced, isPublic, true);
-                onPolicyRemoved();
+                actions.onPolicyRemoved();
             }}
         >
             <div className='group-teams-and-channels'>
                 <div className='group-teams-and-channels--body'>
                     <div className='access-policy-container'>
-                        {!accessControlPolicy && (
+                        {!accessControlPolicies && (
                             <div className='access-policy-description'>
                                 <FormattedMessage
                                     id='admin.channel_settings.channel_detail.select_policy'

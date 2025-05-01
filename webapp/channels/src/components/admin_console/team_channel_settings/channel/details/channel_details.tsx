@@ -37,8 +37,8 @@ import ConvertAndRemoveConfirmModal from '../../convert_and_remove_confirm_modal
 import ConvertConfirmModal from '../../convert_confirm_modal';
 import {NeedGroupsError, UsersWillBeRemovedError} from '../../errors';
 import RemoveConfirmModal from '../../remove_confirm_modal';
-import { ChannelAccessControl } from './channel_access_control_policy';
 import type {AccessControlPolicy} from '@mattermost/types/admin';
+import { ChannelAccessControl } from './channel_access_control_policy';
 
 export interface ChannelDetailsProps {
     channelID: string;
@@ -83,9 +83,8 @@ interface ChannelDetailsState {
     teamScheme?: Scheme;
     isLocalArchived: boolean;
     showArchiveConfirmModal: boolean;
-    policyEnforced: boolean;
-    currentAccessControlPolicy?: AccessControlPolicy;
-    selectedAccessControlPolicy?: AccessControlPolicy;
+    policyToggled: boolean;
+    accessControlPolicies: AccessControlPolicy[];
 }
 
 export type ChannelDetailsActions = {
@@ -108,8 +107,6 @@ export type ChannelDetailsActions = {
     deleteChannel: (channelId: string) => Promise<ActionResult>;
     unarchiveChannel: (channelId: string) => Promise<ActionResult>;
     getAccessControlPolicy: (channelId: string) => Promise<ActionResult>;
-    deleteAccessControlPolicy: (policyId: string) => Promise<ActionResult>;
-    assignChannelToAccessControlPolicy: (policyId: string, channelId: string) => Promise<ActionResult>;
     searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
 };
 
@@ -138,9 +135,8 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             teamScheme: props.teamScheme,
             isLocalArchived: props.channel?.delete_at !== 0,
             showArchiveConfirmModal: false,
-            policyEnforced: props.channel?.policy_enforced || false,
-            currentAccessControlPolicy: undefined,
-            selectedAccessControlPolicy: undefined,
+            policyToggled: false,
+            accessControlPolicies: [],
         };
     }
 
@@ -153,20 +149,8 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 isPublic: channel?.type === Constants.OPEN_CHANNEL,
                 isDefault: channel?.name === Constants.DEFAULT_CHANNEL,
                 isLocalArchived: channel?.delete_at !== 0,
-                policyEnforced: channel?.policy_enforced || false,
+                policyToggled: channel?.policy_enforced || false,
             });
-            
-            // Fetch access control policy when channel loads or changes
-            if (channel?.policy_enforced && (!prevProps.channel || !prevProps.channel.policy_enforced)) {
-                actions.getAccessControlPolicy(channel.id).then((result) => {
-                    if (result.data) {
-                        this.setState({
-                            selectedAccessControlPolicy: result.data,
-                            currentAccessControlPolicy: result.data
-                        });
-                    }
-                });
-            }
         }
 
         // If we don't have the team and channel on mount, we need to request the team after we load the channel
@@ -184,24 +168,16 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
     componentDidMount() {
         const {channelID, channel, actions} = this.props;
         if (channelID) {
-            // Ensure the channel is loaded first
-            actions.getChannel(channelID);
-            
             if (this.props.channelModerationEnabled) {
                 actions.getGroups(channelID).
                     then(() => this.setState({groups: this.props.groups}));
                 actions.getChannelModerations(channelID).then(() => this.restrictChannelMentions());
             }
-            
+            actions.getChannel(channelID);
+            this.fetchAccessControlPolicies(channelID);
+
             if (channel?.policy_enforced) {
-                actions.getAccessControlPolicy(channelID).then((result) => {
-                    if (result.data) {
-                        this.setState({
-                            policyEnforced: true,
-                            currentAccessControlPolicy: result.data
-                        });
-                    }
-                });
+                this.setState({policyToggled: true});
             }
         }
 
@@ -251,7 +227,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 isSynced,
                 isPublic,
                 isPrivacyChanging: isPublic !== isOriginallyPublic,
-                policyEnforced,
+                policyToggled: policyEnforced,
             },
             () => this.processGroupsChange(this.state.groups),
         );
@@ -426,7 +402,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         }
 
         this.setState({showConvertConfirmModal: false, showRemoveConfirmModal: false, showConvertAndRemoveConfirmModal: false, showArchiveConfirmModal: false, saving: true});
-        const {groups, isSynced, isPublic, isPrivacyChanging, channelPermissions, usersToAdd, usersToRemove, rolesToUpdate, policyEnforced, selectedAccessControlPolicy: selectedPolicy} = this.state;
+        const {groups, isSynced, isPublic, isPrivacyChanging, channelPermissions, usersToAdd, usersToRemove, rolesToUpdate} = this.state;
         let serverError: JSX.Element | undefined;
         let saveNeeded = false;
 
@@ -491,41 +467,6 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             serverError = <FormError error={resultWithError.error.message}/>;
         }
 
-        // Handle policy assignment or removal
-        const originalPolicyEnforced = channel.policy_enforced || false;
-        
-        // If policy enforcement has changed
-        if (policyEnforced !== originalPolicyEnforced) {
-            if (policyEnforced && selectedPolicy) {
-                // Assign the new policy to the channel
-                const assignResult = await actions.assignChannelToAccessControlPolicy(selectedPolicy.id, channelID);
-                if ('error' in assignResult) {
-                    serverError = <FormError error={assignResult.error.message}/>;
-                }
-            } else if (!policyEnforced && channel.policy_id) {
-                // Remove the policy from the channel
-                const deleteResult = await actions.deleteAccessControlPolicy(channel.policy_id);
-                if ('error' in deleteResult) {
-                    serverError = <FormError error={deleteResult.error.message}/>;
-                }
-            }
-        } else if (policyEnforced && selectedPolicy && this.state.currentAccessControlPolicy?.id !== selectedPolicy.id) {
-            // If the policy is changed (but still enforced)
-            if (channel.policy_id) {
-                // First remove the existing policy
-                const deleteResult = await actions.deleteAccessControlPolicy(channel.policy_id);
-                if ('error' in deleteResult) {
-                    serverError = <FormError error={deleteResult.error.message}/>;
-                }
-            }
-            
-            // Then assign the new policy
-            const assignResult = await actions.assignChannelToAccessControlPolicy(selectedPolicy.id, channelID);
-            if ('error' in assignResult) {
-                serverError = <FormError error={assignResult.error.message}/>;
-            }
-        }
-
         // Then patch the channel
         const patchResult = await actions.patchChannel(channel.id, {
             ...channel,
@@ -578,13 +519,6 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                     );
                 }
             }
-            
-            if (policyEnforced) {
-                actionsToAwait.push(
-                    actions.getAccessControlPolicy(selectedPolicy?.id || this.state.currentAccessControlPolicy?.id || '')
-                );
-            }
-            
             if (actionsToAwait.length > 0) {
                 await Promise.all(actionsToAwait);
             }
@@ -688,17 +622,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             }
         }
 
-        this.setState({
-            serverError,
-            saving: false,
-            saveNeeded,
-            isPrivacyChanging: privacyChanging,
-            usersToRemoveCount: 0,
-            rolesToUpdate: {},
-            usersToAdd: {},
-            usersToRemove: {},
-            selectedAccessControlPolicy: undefined
-        }, () => {
+        this.setState({serverError, saving: false, saveNeeded, isPrivacyChanging: privacyChanging, usersToRemoveCount: 0, rolesToUpdate: {}, usersToAdd: {}, usersToRemove: {}}, () => {
             actions.setNavigationBlocked(saveNeeded);
             if (!saveNeeded && !serverError) {
                 getHistory().push('/admin_console/user_management/channels');
@@ -784,7 +708,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
     private onPolicySelected = (policy: AccessControlPolicy) => {
         this.setState({
-            selectedAccessControlPolicy: policy,
+            accessControlPolicies: [policy],
             saveNeeded: true,
         });
         this.props.actions.setNavigationBlocked(true);
@@ -792,11 +716,57 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
     private onPolicyRemoved = () => {
         this.setState({
-            selectedAccessControlPolicy: undefined,
+            accessControlPolicies: [],
             saveNeeded: true,
         });
         this.props.actions.setNavigationBlocked(true);
     };
+
+    // Add a new dedicated method to fetch access control policies
+    fetchAccessControlPolicies = (channelId: string) => {
+        if (!channelId) {
+            return;
+        }
+
+        // Always try to fetch policies, even if policy_enforced is false
+        // This ensures we have policies when toggling the flag
+        this.props.actions.getAccessControlPolicy(channelId).then((result) => {
+            if (result.data) {
+                const currentAccessControlPolicy = result.data;
+                const policies: AccessControlPolicy[] = [];
+                const promises: Promise<any>[] = [];
+
+                if (currentAccessControlPolicy.imports && currentAccessControlPolicy.imports.length > 0) {
+                    for (const policyId of currentAccessControlPolicy.imports) {
+                        const promise = this.props.actions.getAccessControlPolicy(policyId).then((policyResult) => {
+                            if (policyResult.data) {
+                                policies.push(policyResult.data as AccessControlPolicy);
+                            }
+                        }).catch((error) => {
+                            console.error('Error fetching policy:', error);
+                        });
+                        
+                        promises.push(promise);
+                    }
+
+                    Promise.all(promises).then(() => {
+                        this.setState({
+                            accessControlPolicies: policies
+                        });
+                    });
+                } else {
+                    // If there are no imports, still update state with empty array
+                    this.setState({
+                        accessControlPolicies: []
+                    });
+                }
+            } else if (result.error) {
+                console.error('Error fetching access control policy:', result.error);
+            }
+        }).catch((error) => {
+            console.error('Error fetching access control policy:', error);
+        });
+    }
 
     public render = () => {
         const {
@@ -818,11 +788,10 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             usersToAdd,
             isLocalArchived,
             showArchiveConfirmModal,
-            policyEnforced,
-            currentAccessControlPolicy: accessControlPolicy,
-            selectedAccessControlPolicy: selectedPolicy,
+            policyToggled,
+            accessControlPolicies,
         } = this.state;
-        const {channel, team, channelID} = this.props;
+        const {channel, team} = this.props;
 
         if (!channel) {
             return null;
@@ -876,26 +845,22 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                     onToggle={this.setToggles}
                     isDisabled={this.props.isDisabled}
                     groupsSupported={this.props.channelGroupsEnabled}
-                    policyEnforced={policyEnforced}
+                    policyEnforced={policyToggled}
+                    policyEnforcedToggleAvailable={accessControlPolicies.length === 0}
                 />
                 
-                {(!isPublic || channel.policy_enforced || policyEnforced) && (
+                {(policyToggled) && (
                     <ChannelAccessControl
-                        policyEnforced={policyEnforced}
-                        onToggle={this.setToggles}
-                        onPolicyRemoved={this.onPolicyRemoved}
-                        accessControlPolicy={selectedPolicy || accessControlPolicy}
+                        accessControlPolicies={this.state.accessControlPolicies}
                         actions={{
-                            ...this.props.actions,
                             onPolicySelected: this.onPolicySelected,
+                            onPolicyRemoved: this.onPolicyRemoved,
+                            searchPolicies: this.props.actions.searchPolicies,
                         }}
-                        isPublic={isPublic}
-                        isSynced={isSynced}
-                        channelId={channelID}
                     />
                 )}
 
-                {!channel.policy_enforced && !policyEnforced && this.props.channelGroupsEnabled &&
+                {this.props.channelGroupsEnabled && !policyToggled &&
                     <ChannelGroups
                         synced={isSynced}
                         channel={channel}
