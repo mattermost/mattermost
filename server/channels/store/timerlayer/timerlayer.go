@@ -2624,6 +2624,22 @@ func (s *TimerLayerChannelStore) UpdateSidebarCategories(userID string, teamID s
 	return result, resultVar1, err
 }
 
+func (s *TimerLayerChannelStore) UpdateSidebarCategory(category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.SidebarCategoryWithChannels, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.ChannelStore.UpdateSidebarCategory(category)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateSidebarCategory", success, elapsed)
+	}
+	return result, resultVar1, err
+}
+
 func (s *TimerLayerChannelStore) UpdateSidebarCategoryOrder(userID string, teamID string, categoryOrder []string) error {
 	start := time.Now()
 

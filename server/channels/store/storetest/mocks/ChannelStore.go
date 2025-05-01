@@ -3099,6 +3099,45 @@ func (_m *ChannelStore) UpdateSidebarCategories(userID string, teamID string, ca
 	return r0, r1, r2
 }
 
+// UpdateSidebarCategory provides a mock function with given fields: category
+func (_m *ChannelStore) UpdateSidebarCategory(category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.SidebarCategoryWithChannels, error) {
+	ret := _m.Called(category)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateSidebarCategory")
+	}
+
+	var r0 *model.SidebarCategoryWithChannels
+	var r1 *model.SidebarCategoryWithChannels
+	var r2 error
+	if rf, ok := ret.Get(0).(func(*model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.SidebarCategoryWithChannels, error)); ok {
+		return rf(category)
+	}
+	if rf, ok := ret.Get(0).(func(*model.SidebarCategoryWithChannels) *model.SidebarCategoryWithChannels); ok {
+		r0 = rf(category)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SidebarCategoryWithChannels)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.SidebarCategoryWithChannels) *model.SidebarCategoryWithChannels); ok {
+		r1 = rf(category)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.SidebarCategoryWithChannels)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(*model.SidebarCategoryWithChannels) error); ok {
+		r2 = rf(category)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // UpdateSidebarCategoryOrder provides a mock function with given fields: userID, teamID, categoryOrder
 func (_m *ChannelStore) UpdateSidebarCategoryOrder(userID string, teamID string, categoryOrder []string) error {
 	ret := _m.Called(userID, teamID, categoryOrder)

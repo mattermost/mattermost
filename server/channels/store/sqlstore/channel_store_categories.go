@@ -680,6 +680,28 @@ func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categ
 	return nil
 }
 
+func (s SqlChannelStore) UpdateSidebarCategory(category *model.SidebarCategoryWithChannels) (updated *model.SidebarCategoryWithChannels, original *model.SidebarCategoryWithChannels, err error) {
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	updatedCategory, originalCategory, err := s.updateSidebarCategoryT(transaction, category.UserId, category.TeamId, category)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Ensure Channels are populated if this is the Channels or Direct Messages category
+	updatedCategory, err = s.completePopulatingCategoryChannelsT(transaction, updatedCategory)
+
+	if err = transaction.Commit(); err != nil {
+		return nil, nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return updatedCategory, originalCategory, nil
+}
+
 //nolint:unparam
 func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) (updated []*model.SidebarCategoryWithChannels, original []*model.SidebarCategoryWithChannels, err error) {
 	transaction, err := s.GetMaster().Beginx()
@@ -691,153 +713,9 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 	updatedCategories := []*model.SidebarCategoryWithChannels{}
 	originalCategories := []*model.SidebarCategoryWithChannels{}
 	for _, category := range categories {
-		srcCategory, err2 := s.getSidebarCategoryT(transaction, category.Id)
-		if err2 != nil {
-			return nil, nil, errors.Wrap(err2, "failed to find SidebarCategories")
-		}
-
-		// Copy category to avoid modifying an argument
-		destCategory := &model.SidebarCategoryWithChannels{
-			SidebarCategory: category.SidebarCategory,
-		}
-
-		// Prevent any changes to read-only fields of SidebarCategories
-		destCategory.UserId = srcCategory.UserId
-		destCategory.TeamId = srcCategory.TeamId
-		destCategory.SortOrder = srcCategory.SortOrder
-		destCategory.Type = srcCategory.Type
-		destCategory.Muted = srcCategory.Muted
-
-		if destCategory.Type != model.SidebarCategoryCustom {
-			destCategory.DisplayName = srcCategory.DisplayName
-		}
-
-		if destCategory.Type != model.SidebarCategoryDirectMessages {
-			destCategory.Channels = make([]string, len(category.Channels))
-			copy(destCategory.Channels, category.Channels)
-
-			destCategory.Muted = category.Muted
-		}
-
-		// The order in which the queries are executed in the transaction is important.
-		// SidebarCategories need to be update first, and then SidebarChannels should be deleted.
-		// The net effect remains the same, but it prevents deadlocks from other transactions
-		// operating on the tables in reverse order.
-
-		updateQuery, updateParams, err2 := s.getQueryBuilder().
-			Update("SidebarCategories").
-			Set("DisplayName", destCategory.DisplayName).
-			Set("Sorting", destCategory.Sorting).
-			Set("Muted", destCategory.Muted).
-			Set("Collapsed", destCategory.Collapsed).
-			Where(sq.Eq{"Id": destCategory.Id}).ToSql()
-		if err2 != nil {
-			return nil, nil, errors.Wrap(err2, "update_sidebar_categories_tosql1")
-		}
-		if _, err = transaction.Exec(updateQuery, updateParams...); err != nil {
-			return nil, nil, errors.Wrap(err, "failed to update SidebarCategories")
-		}
-
-		// if we are updating DM category, it's order can't channel order cannot be changed.
-		if category.Type != model.SidebarCategoryDirectMessages {
-			// Remove any SidebarChannels entries that were either:
-			// - previously in this category (and any ones that are still in the category will be recreated below)
-			// - in another category and are being added to this category
-			query, args, err2 := s.getQueryBuilder().
-				Delete("SidebarChannels").
-				Where(
-					sq.Or{
-						// Matches any channels currently in this category
-						sq.Eq{"CategoryId": category.Id},
-						// Matches all entries for channels in other categories which are being moved into this one
-						sq.And{
-							sq.Eq{"ChannelId": category.Channels},
-							subQueryIN(
-								"CategoryId",
-								sq.Select("Id").
-									From("SidebarCategories").
-									Where(sq.Eq{"UserId": userId, "TeamId": teamId}),
-							),
-						},
-					},
-				).ToSql()
-
-			if err2 != nil {
-				return nil, nil, errors.Wrap(err2, "update_sidebar_categories_tosql2")
-			}
-
-			if _, err = transaction.Exec(query, args...); err != nil {
-				return nil, nil, errors.Wrap(err, "failed to delete SidebarChannels")
-			}
-
-			runningOrder := 0
-			insertQuery := s.getQueryBuilder().
-				Insert("SidebarChannels").
-				Columns("ChannelId", "UserId", "CategoryId", "SortOrder")
-			for _, channelID := range category.Channels {
-				insertQuery = insertQuery.Values(channelID, userId, category.Id, int64(runningOrder))
-				runningOrder += model.MinimalSidebarSortDistance
-			}
-
-			if len(category.Channels) > 0 {
-				sql, args, err2 := insertQuery.ToSql()
-				if err2 != nil {
-					return nil, nil, errors.Wrap(err2, "InsertSidebarChannels_Tosql")
-				}
-
-				if _, err2 := transaction.Exec(sql, args...); err2 != nil {
-					return nil, nil, errors.Wrap(err2, "failed to save SidebarChannels")
-				}
-			}
-		}
-
-		// Update the favorites preferences based on channels moving into or out of the Favorites category for compatibility
-		if category.Type == model.SidebarCategoryFavorites {
-			// Remove any old favorites
-			sql, args, err2 := s.getQueryBuilder().Delete("Preferences").Where(
-				sq.Eq{
-					"UserId":   userId,
-					"Name":     srcCategory.Channels,
-					"Category": model.PreferenceCategoryFavoriteChannel,
-				},
-			).ToSql()
-			if err2 != nil {
-				return nil, nil, errors.Wrap(err2, "UpdateSidebarChannels_Tosql_DeletePreferences")
-			}
-
-			if _, err = transaction.Exec(sql, args...); err != nil {
-				return nil, nil, errors.Wrap(err, "failed to delete Preferences")
-			}
-
-			// And then add the new ones
-			for _, channelID := range category.Channels {
-				// This breaks the PreferenceStore abstraction, but it should be safe to assume that everything is a SQL
-				// store in this package.
-				if err = s.Preference().(*SqlPreferenceStore).save(transaction, &model.Preference{
-					Name:     channelID,
-					UserId:   userId,
-					Category: model.PreferenceCategoryFavoriteChannel,
-					Value:    "true",
-				}); err != nil {
-					return nil, nil, errors.Wrap(err, "failed to save Preference")
-				}
-			}
-		} else {
-			// Remove any old favorites that might have been in this category
-			query, args, nErr := s.getQueryBuilder().Delete("Preferences").Where(
-				sq.Eq{
-					"UserId":   userId,
-					"Name":     category.Channels,
-					"Category": model.PreferenceCategoryFavoriteChannel,
-				},
-			).ToSql()
-			if nErr != nil {
-				return nil, nil, errors.Wrap(nErr, "update_sidebar_categories_tosql")
-			}
-
-			if _, nErr = transaction.Exec(query, args...); nErr != nil {
-				return nil, nil, errors.Wrap(nErr, "failed to delete Preferences")
-			}
+		destCategory, srcCategory, err := s.updateSidebarCategoryT(transaction, userId, teamId, category)
+		if err != nil {
+			return nil, nil, err
 		}
 
 		updatedCategories = append(updatedCategories, destCategory)
@@ -859,6 +737,159 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 	}
 
 	return updatedCategories, originalCategories, nil
+}
+
+func (s SqlChannelStore) updateSidebarCategoryT(transaction *sqlxTxWrapper, userId, teamId string, category *model.SidebarCategoryWithChannels) (updated *model.SidebarCategoryWithChannels, original *model.SidebarCategoryWithChannels, err error) {
+	srcCategory, err := s.getSidebarCategoryT(transaction, category.Id)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to find SidebarCategories")
+	}
+
+	// Copy category to avoid modifying an argument
+	destCategory := &model.SidebarCategoryWithChannels{
+		SidebarCategory: category.SidebarCategory,
+	}
+
+	// Prevent any changes to read-only fields of SidebarCategories
+	destCategory.UserId = srcCategory.UserId
+	destCategory.TeamId = srcCategory.TeamId
+	destCategory.SortOrder = srcCategory.SortOrder
+	destCategory.Type = srcCategory.Type
+	destCategory.Muted = srcCategory.Muted
+
+	if destCategory.Type != model.SidebarCategoryCustom {
+		destCategory.DisplayName = srcCategory.DisplayName
+	}
+
+	if destCategory.Type != model.SidebarCategoryDirectMessages {
+		destCategory.Channels = make([]string, len(category.Channels))
+		copy(destCategory.Channels, category.Channels)
+
+		destCategory.Muted = category.Muted
+	}
+
+	// The order in which the queries are executed in the transaction is important.
+	// SidebarCategories need to be update first, and then SidebarChannels should be deleted.
+	// The net effect remains the same, but it prevents deadlocks from other transactions
+	// operating on the tables in reverse order.
+
+	updateQuery, updateParams, err := s.getQueryBuilder().
+		Update("SidebarCategories").
+		Set("DisplayName", destCategory.DisplayName).
+		Set("Sorting", destCategory.Sorting).
+		Set("Muted", destCategory.Muted).
+		Set("Collapsed", destCategory.Collapsed).
+		Where(sq.Eq{"Id": destCategory.Id}).ToSql()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "update_sidebar_categories_tosql1")
+	}
+	if _, err = transaction.Exec(updateQuery, updateParams...); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to update SidebarCategories")
+	}
+
+	// if we are updating DM category, its order can't channel order cannot be changed.
+	if category.Type != model.SidebarCategoryDirectMessages {
+		// Remove any SidebarChannels entries that were either:
+		// - previously in this category (and any ones that are still in the category will be recreated below)
+		// - in another category and are being added to this category
+		query, args, err2 := s.getQueryBuilder().
+			Delete("SidebarChannels").
+			Where(
+				sq.Or{
+					// Matches any channels currently in this category
+					sq.Eq{"CategoryId": category.Id},
+					// Matches all entries for channels in other categories which are being moved into this one
+					sq.And{
+						sq.Eq{"ChannelId": category.Channels},
+						subQueryIN(
+							"CategoryId",
+							sq.Select("Id").
+								From("SidebarCategories").
+								Where(sq.Eq{"UserId": userId, "TeamId": teamId}),
+						),
+					},
+				},
+			).ToSql()
+
+		if err2 != nil {
+			return nil, nil, errors.Wrap(err2, "update_sidebar_categories_tosql2")
+		}
+
+		if _, err = transaction.Exec(query, args...); err != nil {
+			return nil, nil, errors.Wrap(err, "failed to delete SidebarChannels")
+		}
+
+		runningOrder := 0
+		insertQuery := s.getQueryBuilder().
+			Insert("SidebarChannels").
+			Columns("ChannelId", "UserId", "CategoryId", "SortOrder")
+		for _, channelID := range category.Channels {
+			insertQuery = insertQuery.Values(channelID, userId, category.Id, int64(runningOrder))
+			runningOrder += model.MinimalSidebarSortDistance
+		}
+
+		if len(category.Channels) > 0 {
+			sql, args, err2 := insertQuery.ToSql()
+			if err2 != nil {
+				return nil, nil, errors.Wrap(err2, "InsertSidebarChannels_Tosql")
+			}
+
+			if _, err2 := transaction.Exec(sql, args...); err2 != nil {
+				return nil, nil, errors.Wrap(err2, "failed to save SidebarChannels")
+			}
+		}
+	}
+
+	// Update the favorites preferences based on channels moving into or out of the Favorites category for compatibility
+	if category.Type == model.SidebarCategoryFavorites {
+		// Remove any old favorites
+		sql, args, err2 := s.getQueryBuilder().Delete("Preferences").Where(
+			sq.Eq{
+				"UserId":   userId,
+				"Name":     srcCategory.Channels,
+				"Category": model.PreferenceCategoryFavoriteChannel,
+			},
+		).ToSql()
+		if err2 != nil {
+			return nil, nil, errors.Wrap(err2, "UpdateSidebarChannels_Tosql_DeletePreferences")
+		}
+
+		if _, err = transaction.Exec(sql, args...); err != nil {
+			return nil, nil, errors.Wrap(err, "failed to delete Preferences")
+		}
+
+		// And then add the new ones
+		for _, channelID := range category.Channels {
+			// This breaks the PreferenceStore abstraction, but it should be safe to assume that everything is a SQL
+			// store in this package.
+			if err = s.Preference().(*SqlPreferenceStore).save(transaction, &model.Preference{
+				Name:     channelID,
+				UserId:   userId,
+				Category: model.PreferenceCategoryFavoriteChannel,
+				Value:    "true",
+			}); err != nil {
+				return nil, nil, errors.Wrap(err, "failed to save Preference")
+			}
+		}
+	} else {
+		// Remove any old favorites that might have been in this category
+		query, args, nErr := s.getQueryBuilder().Delete("Preferences").Where(
+			sq.Eq{
+				"UserId":   userId,
+				"Name":     category.Channels,
+				"Category": model.PreferenceCategoryFavoriteChannel,
+			},
+		).ToSql()
+		if nErr != nil {
+			return nil, nil, errors.Wrap(nErr, "update_sidebar_categories_tosql")
+		}
+
+		if _, nErr = transaction.Exec(query, args...); nErr != nil {
+			return nil, nil, errors.Wrap(nErr, "failed to delete Preferences")
+		}
+	}
+
+	return destCategory, srcCategory, nil
 }
 
 // UpdateSidebarChannelsByPreferences is called when the Preference table is being updated to keep SidebarCategories in sync
