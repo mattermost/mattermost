@@ -1476,7 +1476,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		assert.Equal(t, "true", res2.Value)
 
 		// Assign it to favorites on the second team. The favorites preference is already set.
-		updated, _, err := ss.Channel().UpdateSidebarCategories(userID, team.Id, []*model.SidebarCategoryWithChannels{
+		updated, _, err := ss.Channel().UpdateSidebarCategories(userID, team2.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: favoritesCategory2.SidebarCategory,
 				Channels:        []string{dmChannel.Id},
@@ -1504,7 +1504,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		assert.Nil(t, res2)
 
 		// Remove it from favorites on the second team. The favorites preference was already deleted.
-		_, _, err = ss.Channel().UpdateSidebarCategories(userID, team.Id, []*model.SidebarCategoryWithChannels{
+		_, _, err = ss.Channel().UpdateSidebarCategories(userID, team2.Id, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: favoritesCategory2.SidebarCategory,
 				Channels:        []string{},
