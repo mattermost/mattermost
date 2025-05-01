@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import './channel_invite_modal.scss';
+
 import isEqual from 'lodash/isEqual';
 import React from 'react';
-import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
-import styled from 'styled-components';
 
+import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {Group, GroupSearchParams} from '@mattermost/types/groups';
 import type {TeamMembership} from '@mattermost/types/teams';
@@ -19,6 +20,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {filterGroupsMatchingTerm} from 'mattermost-redux/utils/group_utils';
 import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermost-redux/utils/user_utils';
 
+import AlertBanner from 'components/alert_banner';
 import InvitationModal from 'components/invitation_modal';
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
@@ -90,15 +92,6 @@ type State = {
     loadingUsers: boolean;
     inviteError?: string;
 }
-
-const UsernameSpan = styled.span`
-    fontSize: 12px;
-`;
-
-const UserMappingSpan = styled.span`
-    position: absolute;
-    right: 20px;
-`;
 
 export class ChannelInviteModal extends React.PureComponent<Props, State> {
     private searchTimeoutId = 0;
@@ -408,15 +401,15 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                                 {displayName}
                                 {option.is_bot && <BotTag/>}
                                 {isGuest(option.roles) && <GuestTag className='popoverlist'/>}
-                                {displayName === option.username ? null : <UsernameSpan className='ml-2 light'>
+                                {displayName === option.username ? null : <span className='channel-invite__username ml-2 light'>
                                     {'@'}{option.username}
-                                </UsernameSpan>
+                                </span>
                                 }
-                                <UserMappingSpan
-                                    className='light'
+                                <span
+                                    className='channel-invite__user-mapping light'
                                 >
                                     {userMapping[option.id]}
-                                </UserMappingSpan>
+                                </span>
                             </span>
                         </div>
                     </div>
@@ -538,37 +531,46 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
         );
 
         return (
-            <Modal
+            <GenericModal
                 id='addUsersToChannelModal'
-                dialogClassName='a11y__modal channel-invite'
+                className='channel-invite'
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onExited}
-                role='none'
-                aria-labelledby='channelInviteModalLabel'
+                modalHeaderText={
+                    <FormattedMessage
+                        id='channel_invite.addNewMembers'
+                        defaultMessage='Add people to {channel}'
+                        values={{
+                            channel: this.props.channel.display_name,
+                        }}
+                    />
+                }
+                compassDesign={true}
+                bodyOverflowVisible={true}
             >
-                <Modal.Header
-                    id='channelInviteModalLabel'
-                    closeButton={true}
-                >
-                    <Modal.Title
-                        componentClass='h1'
-                        id='deletePostModalLabel'
-                    >
-                        <FormattedMessage
-                            id='channel_invite.addNewMembers'
-                            defaultMessage='Add people to {channel}'
-                            values={{
-                                channel: this.props.channel.display_name,
-                            }}
-                        />
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body
-                    role='application'
-                    className='overflow--visible'
-                >
+                <div className='channel-invite__wrapper'>
                     {inviteError}
+                    {(this.props.channel.policy_enforced) && (
+                        <div className='channel-invite__policy-banner'>
+                            <AlertBanner
+                                mode='info'
+                                variant='app'
+                                title={(
+                                    <FormattedMessage
+                                        id='channel_invite.policy_enforced.title'
+                                        defaultMessage='Channel access is restricted by user attributes'
+                                    />
+                                )}
+                                message={(
+                                    <FormattedMessage
+                                        id='channel_invite.policy_enforced.description'
+                                        defaultMessage='Only people who match the specified access rules can be selected and added to this channel.'
+                                    />
+                                )}
+                            />
+                        </div>
+                    )}
                     <div className='channel-invite__content'>
                         {content}
                         <TeamWarningBanner
@@ -578,8 +580,8 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                         />
                         {(this.props.emailInvitationsEnabled && this.props.canInviteGuests) && inviteGuestLink}
                     </div>
-                </Modal.Body>
-            </Modal>
+                </div>
+            </GenericModal>
         );
     };
 }
