@@ -5032,6 +5032,7 @@
   "scheduledPosts.title": "{prefix}Scheduled - {displayName} {siteName}",
   "search_bar.channels": "Channels",
   "search_bar.clear": "Clear",
+  "search_bar.close": "Close",
   "search_bar.file_types": "File types",
   "search_bar.files_tab": "Files",
   "search_bar.messages_tab": "Messages",
