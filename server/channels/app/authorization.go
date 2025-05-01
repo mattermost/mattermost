@@ -21,6 +21,20 @@ func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Pe
 	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
+// SessionHasPermissionToAndNotRestrictedAdmin is a variant of [App.SessionHasPermissionTo] that
+// denies access to restricted system admins. Note that a local session is always unrestricted.
+func (a *App) SessionHasPermissionToAndNotRestrictedAdmin(session model.Session, permission *model.Permission) bool {
+	if session.IsUnrestricted() {
+		return true
+	}
+
+	if *a.Config().ExperimentalSettings.RestrictSystemAdmin {
+		return false
+	}
+
+	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
+}
+
 func (a *App) SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool {
 	for _, perm := range permissions {
 		if a.SessionHasPermissionTo(session, perm) {

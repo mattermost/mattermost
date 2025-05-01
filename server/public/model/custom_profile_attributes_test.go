@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -480,6 +481,192 @@ func TestCPAField_SanitizeAndValidate(t *testing.T) {
 			expectError: true,
 			errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
 		},
+
+		// Test options cleaning for types that don't support options
+		{
+			name: "text field with options should clean options",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							ID:    NewId(),
+							Name:  "Option 1",
+							Color: "#123456",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				Options:    nil, // Options should be cleaned
+			},
+		},
+		{
+			name: "date field with options should clean options",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeDate,
+				},
+				Attrs: CPAAttrs{
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							ID:    NewId(),
+							Name:  "Option 1",
+							Color: "#123456",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				Options:    nil, // Options should be cleaned
+			},
+		},
+		{
+			name: "user field with options should clean options",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeUser,
+				},
+				Attrs: CPAAttrs{
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							ID:    NewId(),
+							Name:  "Option 1",
+							Color: "#123456",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				Options:    nil, // Options should be cleaned
+			},
+		},
+
+		// Test options preservation for types that support options
+		{
+			name: "select field with options should preserve options",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeSelect,
+				},
+				Attrs: CPAAttrs{
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							ID:    NewId(),
+							Name:  "Option 1",
+							Color: "#123456",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
+					{Name: "Option 1", Color: "#123456"},
+				},
+			},
+		},
+		{
+			name: "multiselect field with options should preserve options",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeMultiselect,
+				},
+				Attrs: CPAAttrs{
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							ID:    NewId(),
+							Name:  "Option 1",
+							Color: "#123456",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
+					{Name: "Option 1", Color: "#123456"},
+				},
+			},
+		},
+
+		// Test syncing attributes cleaning for types that don't support syncing
+		{
+			name: "select field with LDAP and SAML should clean syncing attributes",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeSelect,
+				},
+				Attrs: CPAAttrs{
+					LDAP: "ldap_attribute",
+					SAML: "saml_attribute",
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							ID:    NewId(),
+							Name:  "Option 1",
+							Color: "#123456",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				LDAP:       "", // Should be cleaned
+				SAML:       "", // Should be cleaned
+				Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
+					{Name: "Option 1", Color: "#123456"},
+				},
+			},
+		},
+		{
+			name: "date field with LDAP and SAML should clean syncing attributes",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeDate,
+				},
+				Attrs: CPAAttrs{
+					LDAP: "ldap_attribute",
+					SAML: "saml_attribute",
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				LDAP:       "", // Should be cleaned
+				SAML:       "", // Should be cleaned
+			},
+		},
+
+		// Test syncing attributes preservation for types that support syncing
+		{
+			name: "text field with LDAP and SAML should preserve syncing attributes",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					LDAP: "ldap_attribute",
+					SAML: "saml_attribute",
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				LDAP:       "ldap_attribute", // Should be preserved
+				SAML:       "saml_attribute", // Should be preserved
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -508,4 +695,201 @@ func TestCPAField_SanitizeAndValidate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSanitizeAndValidatePropertyValue(t *testing.T) {
+	t.Run("text field type", func(t *testing.T) {
+		t.Run("valid text", func(t *testing.T) {
+			result, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeText}}, json.RawMessage(`"hello world"`))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Equal(t, "hello world", value)
+		})
+
+		t.Run("empty text should be allowed", func(t *testing.T) {
+			result, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeText}}, json.RawMessage(`""`))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Empty(t, value)
+		})
+
+		t.Run("invalid JSON", func(t *testing.T) {
+			_, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeText}}, json.RawMessage(`invalid`))
+			require.Error(t, err)
+		})
+
+		t.Run("wrong type", func(t *testing.T) {
+			_, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeText}}, json.RawMessage(`123`))
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "json: cannot unmarshal number into Go value of type string")
+		})
+
+		t.Run("value too long", func(t *testing.T) {
+			longValue := strings.Repeat("a", CPAValueTypeTextMaxLength+1)
+			_, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeText}}, json.RawMessage(fmt.Sprintf(`"%s"`, longValue)))
+			require.Error(t, err)
+			require.Equal(t, "value too long", err.Error())
+		})
+	})
+
+	t.Run("date field type", func(t *testing.T) {
+		t.Run("valid date", func(t *testing.T) {
+			result, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeDate}}, json.RawMessage(`"2023-01-01"`))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Equal(t, "2023-01-01", value)
+		})
+
+		t.Run("empty date should be allowed", func(t *testing.T) {
+			result, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeDate}}, json.RawMessage(`""`))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Empty(t, value)
+		})
+	})
+
+	t.Run("select field type", func(t *testing.T) {
+		t.Run("valid option", func(t *testing.T) {
+			result, err := SanitizeAndValidatePropertyValue(&CPAField{
+				PropertyField: PropertyField{Type: PropertyFieldTypeSelect},
+				Attrs: CPAAttrs{
+					Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
+						{ID: "option1"},
+					},
+				}}, json.RawMessage(`"option1"`))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Equal(t, "option1", value)
+		})
+
+		t.Run("invalid option", func(t *testing.T) {
+			_, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeSelect}}, json.RawMessage(`"option1"`))
+			require.Error(t, err)
+		})
+
+		t.Run("empty option should be allowed", func(t *testing.T) {
+			result, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeSelect}}, json.RawMessage(`""`))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Empty(t, value)
+		})
+	})
+
+	t.Run("user field type", func(t *testing.T) {
+		t.Run("valid user ID", func(t *testing.T) {
+			validID := NewId()
+			result, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeUser}}, json.RawMessage(fmt.Sprintf(`"%s"`, validID)))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Equal(t, validID, value)
+		})
+
+		t.Run("empty user ID should be allowed", func(t *testing.T) {
+			_, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeUser}}, json.RawMessage(`""`))
+			require.NoError(t, err)
+		})
+
+		t.Run("invalid user ID format", func(t *testing.T) {
+			_, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeUser}}, json.RawMessage(`"invalid-id"`))
+			require.Error(t, err)
+			require.Equal(t, "invalid user id", err.Error())
+		})
+	})
+
+	t.Run("multiselect field type", func(t *testing.T) {
+		t.Run("valid options", func(t *testing.T) {
+			option1ID := NewId()
+			option2ID := NewId()
+			option3ID := NewId()
+			result, err := SanitizeAndValidatePropertyValue(&CPAField{
+				PropertyField: PropertyField{Type: PropertyFieldTypeMultiselect},
+				Attrs: CPAAttrs{
+					Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
+						{ID: option1ID},
+						{ID: option2ID},
+						{ID: option3ID},
+					},
+				}}, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, option1ID, option2ID)))
+			require.NoError(t, err)
+			var values []string
+			require.NoError(t, json.Unmarshal(result, &values))
+			require.Equal(t, []string{option1ID, option2ID}, values)
+		})
+
+		t.Run("empty array", func(t *testing.T) {
+			option1ID := NewId()
+			option2ID := NewId()
+			option3ID := NewId()
+			_, err := SanitizeAndValidatePropertyValue(&CPAField{
+				PropertyField: PropertyField{Type: PropertyFieldTypeMultiselect},
+				Attrs: CPAAttrs{
+					Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
+						{ID: option1ID},
+						{ID: option2ID},
+						{ID: option3ID},
+					},
+				}}, json.RawMessage(`[]`))
+			require.NoError(t, err)
+		})
+
+		t.Run("array with empty values should filter them out", func(t *testing.T) {
+			option1ID := NewId()
+			option2ID := NewId()
+			option3ID := NewId()
+			result, err := SanitizeAndValidatePropertyValue(&CPAField{
+				PropertyField: PropertyField{Type: PropertyFieldTypeMultiselect},
+				Attrs: CPAAttrs{
+					Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
+						{ID: option1ID},
+						{ID: option2ID},
+						{ID: option3ID},
+					},
+				}}, json.RawMessage(fmt.Sprintf(`["%s", "", "%s", "   ", "%s"]`, option1ID, option2ID, option3ID)))
+			require.NoError(t, err)
+			var values []string
+			require.NoError(t, json.Unmarshal(result, &values))
+			require.Equal(t, []string{option1ID, option2ID, option3ID}, values)
+		})
+	})
+
+	t.Run("multiuser field type", func(t *testing.T) {
+		t.Run("valid user IDs", func(t *testing.T) {
+			validID1 := NewId()
+			validID2 := NewId()
+			result, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeMultiuser}}, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, validID1, validID2)))
+			require.NoError(t, err)
+			var values []string
+			require.NoError(t, json.Unmarshal(result, &values))
+			require.Equal(t, []string{validID1, validID2}, values)
+		})
+
+		t.Run("empty array", func(t *testing.T) {
+			_, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeMultiuser}}, json.RawMessage(`[]`))
+			require.NoError(t, err)
+		})
+
+		t.Run("array with empty strings should be filtered out", func(t *testing.T) {
+			validID1 := NewId()
+			validID2 := NewId()
+			result, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeMultiuser}}, json.RawMessage(fmt.Sprintf(`["%s", "", "   ", "%s"]`, validID1, validID2)))
+			require.NoError(t, err)
+			var values []string
+			require.NoError(t, json.Unmarshal(result, &values))
+			require.Equal(t, []string{validID1, validID2}, values)
+		})
+
+		t.Run("array with invalid ID should return error", func(t *testing.T) {
+			validID1 := NewId()
+			_, err := SanitizeAndValidatePropertyValue(&CPAField{PropertyField: PropertyField{Type: PropertyFieldTypeMultiuser}}, json.RawMessage(fmt.Sprintf(`["%s", "invalid-id"]`, validID1)))
+			require.Error(t, err)
+			require.Equal(t, "invalid user id: invalid-id", err.Error())
+		})
+	})
 }
