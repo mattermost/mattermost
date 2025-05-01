@@ -9,7 +9,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import JobsTable from 'components/admin_console/jobs';
 
-import JobDetailsModal from './job_details_modal';
+import JobDetailsModal from '../modals/job_details/job_details_modal';
 
 import {JobTypes} from 'utils/constants';
 

@@ -9,9 +9,9 @@ import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/cha
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import CELEditor from 'components/admin_console/access_control/cel_editor/editor';
-import ChannelList from 'components/admin_console/access_control/channel_list';
-import TableEditor from 'components/admin_console/access_control/table_editor/table_editor';
+import CELEditor from '../editors/cel_editor/editor';
+import ChannelList from './channel_list';
+import TableEditor from '../editors/table_editor/table_editor';
 import BlockableLink from 'components/admin_console/blockable_link';
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import Card from 'components/card/card';

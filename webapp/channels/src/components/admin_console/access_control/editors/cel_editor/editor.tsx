@@ -14,7 +14,7 @@ import Markdown from 'components/markdown';
 
 import {MonacoLanguageProvider} from './language_provider';
 
-import TestResultsModal from '../test_modal/test_modal';
+import TestResultsModal from '../../modals/policy_test/test_modal';
 
 import './editor.scss';
 

@@ -84,8 +84,8 @@ interface ChannelDetailsState {
     isLocalArchived: boolean;
     showArchiveConfirmModal: boolean;
     policyEnforced: boolean;
-    accessControlPolicy?: AccessControlPolicy;
-    selectedPolicy?: AccessControlPolicy;
+    currentAccessControlPolicy?: AccessControlPolicy;
+    selectedAccessControlPolicy?: AccessControlPolicy;
 }
 
 export type ChannelDetailsActions = {
@@ -139,8 +139,8 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             isLocalArchived: props.channel?.delete_at !== 0,
             showArchiveConfirmModal: false,
             policyEnforced: props.channel?.policy_enforced || false,
-            accessControlPolicy: undefined,
-            selectedPolicy: undefined,
+            currentAccessControlPolicy: undefined,
+            selectedAccessControlPolicy: undefined,
         };
     }
 
@@ -161,7 +161,8 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 actions.getAccessControlPolicy(channel.id).then((result) => {
                     if (result.data) {
                         this.setState({
-                            accessControlPolicy: result.data
+                            selectedAccessControlPolicy: result.data,
+                            currentAccessControlPolicy: result.data
                         });
                     }
                 });
@@ -197,7 +198,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                     if (result.data) {
                         this.setState({
                             policyEnforced: true,
-                            accessControlPolicy: result.data
+                            currentAccessControlPolicy: result.data
                         });
                     }
                 });
@@ -425,7 +426,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         }
 
         this.setState({showConvertConfirmModal: false, showRemoveConfirmModal: false, showConvertAndRemoveConfirmModal: false, showArchiveConfirmModal: false, saving: true});
-        const {groups, isSynced, isPublic, isPrivacyChanging, channelPermissions, usersToAdd, usersToRemove, rolesToUpdate, policyEnforced, selectedPolicy} = this.state;
+        const {groups, isSynced, isPublic, isPrivacyChanging, channelPermissions, usersToAdd, usersToRemove, rolesToUpdate, policyEnforced, selectedAccessControlPolicy: selectedPolicy} = this.state;
         let serverError: JSX.Element | undefined;
         let saveNeeded = false;
 
@@ -508,7 +509,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                     serverError = <FormError error={deleteResult.error.message}/>;
                 }
             }
-        } else if (policyEnforced && selectedPolicy && this.state.accessControlPolicy?.id !== selectedPolicy.id) {
+        } else if (policyEnforced && selectedPolicy && this.state.currentAccessControlPolicy?.id !== selectedPolicy.id) {
             // If the policy is changed (but still enforced)
             if (channel.policy_id) {
                 // First remove the existing policy
@@ -580,7 +581,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             
             if (policyEnforced) {
                 actionsToAwait.push(
-                    actions.getAccessControlPolicy(selectedPolicy?.id || this.state.accessControlPolicy?.id || '')
+                    actions.getAccessControlPolicy(selectedPolicy?.id || this.state.currentAccessControlPolicy?.id || '')
                 );
             }
             
@@ -696,7 +697,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             rolesToUpdate: {},
             usersToAdd: {},
             usersToRemove: {},
-            selectedPolicy: undefined
+            selectedAccessControlPolicy: undefined
         }, () => {
             actions.setNavigationBlocked(saveNeeded);
             if (!saveNeeded && !serverError) {
@@ -783,7 +784,15 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
     private onPolicySelected = (policy: AccessControlPolicy) => {
         this.setState({
-            selectedPolicy: policy,
+            selectedAccessControlPolicy: policy,
+            saveNeeded: true,
+        });
+        this.props.actions.setNavigationBlocked(true);
+    };
+
+    private onPolicyRemoved = () => {
+        this.setState({
+            selectedAccessControlPolicy: undefined,
             saveNeeded: true,
         });
         this.props.actions.setNavigationBlocked(true);
@@ -810,8 +819,8 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             isLocalArchived,
             showArchiveConfirmModal,
             policyEnforced,
-            accessControlPolicy,
-            selectedPolicy,
+            currentAccessControlPolicy: accessControlPolicy,
+            selectedAccessControlPolicy: selectedPolicy,
         } = this.state;
         const {channel, team, channelID} = this.props;
 
@@ -874,6 +883,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                     <ChannelAccessControl
                         policyEnforced={policyEnforced}
                         onToggle={this.setToggles}
+                        onPolicyRemoved={this.onPolicyRemoved}
                         accessControlPolicy={selectedPolicy || accessControlPolicy}
                         actions={{
                             ...this.props.actions,

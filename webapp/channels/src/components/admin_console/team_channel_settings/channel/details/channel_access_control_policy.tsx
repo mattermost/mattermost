@@ -8,7 +8,7 @@ import { ActionResult } from 'mattermost-redux/types/actions';
 import { getHistory } from 'utils/browser_history';
 import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
 
-import PolicySelectionModal from './policy_selection_modal';
+import PolicySelectionModal from 'components/admin_console/access_control/modals/policy_selection/policy_selection_modal';
 
 import './channel_access_control_policy.scss';
 
@@ -16,6 +16,7 @@ interface Props {
     policyEnforced: boolean;
     accessControlPolicy?: AccessControlPolicy;
     onToggle: (isSynced: boolean, isPublic: boolean, policyEnforced: boolean) => void;
+    onPolicyRemoved: () => void;
     isPublic: boolean;
     isSynced: boolean;
     actions: {
@@ -28,7 +29,7 @@ interface Props {
 }
 
 export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element => {
-    const {policyEnforced, onToggle, accessControlPolicy, actions, isPublic, isSynced, channelId} = props;
+    const {policyEnforced, onToggle, accessControlPolicy, actions, isPublic, isSynced, channelId, onPolicyRemoved} = props;
     const [importedPolicies, setImportedPolicies] = useState<AccessControlPolicy[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [showPolicySelectionModal, setShowPolicySelectionModal] = useState<boolean>(false);
@@ -183,7 +184,8 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                 defineMessage({id: 'admin.channel_settings.channel_detail.remove_policy', defaultMessage: 'Remove policy'})
             }
             onButtonClick={() => {
-                onToggle(isSynced, isPublic, false);
+                onToggle(isSynced, isPublic, true);
+                onPolicyRemoved();
             }}
         >
             <div className='group-teams-and-channels'>

@@ -13,7 +13,7 @@ import Markdown from 'components/markdown';
 
 import ValueModal from './value_modal';
 
-import TestResultsModal from '../test_modal/test_modal';
+import TestResultsModal from '../../modals/policy_test/test_modal';
 
 import './table_editor.scss';
 
