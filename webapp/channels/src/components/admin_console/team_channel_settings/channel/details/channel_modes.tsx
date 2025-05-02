@@ -120,7 +120,7 @@ const PolicyEnforceToggle: React.SFC<Props> = (props: Props): JSX.Element | null
     return (
         <LineSwitch
             id='policy-enforce-toggle'
-            disabled={isDisabled || isSynced|| isPublic || !policyEnforcedToggleAvailable}
+            disabled={isDisabled || isSynced || isPublic || !policyEnforcedToggleAvailable}
             toggled={policyEnforced}
             last={true}
             onToggle={() => {
@@ -135,12 +135,7 @@ const PolicyEnforceToggle: React.SFC<Props> = (props: Props): JSX.Element | null
                     defaultMessage='Enable attribute based channel access'
                 />
             )}
-            subTitle={isDefault ? (
-                <FormattedMessage
-                    id='admin.channel_settings.channel_details.private_channel_only'
-                    defaultMessage='Only private channels can be attribute based.'
-                />
-            ) : isPublic ? (
+            subTitle={isDefault || isPublic ? (
                 <FormattedMessage
                     id='admin.channel_settings.channel_details.private_channel_only'
                     defaultMessage='Only private channels can be attribute based.'

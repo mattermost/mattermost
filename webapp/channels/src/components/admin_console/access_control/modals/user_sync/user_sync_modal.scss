@@ -1,15 +1,16 @@
+
 // Custom modal header
 .modal-header-custom {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     padding: 16px 16px 0;
     font-size: 24px;
 
     .close-icon-container .icon-close {
-        font-size: 24px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         cursor: pointer;
+        font-size: 24px;
         
         &:hover {
             color: rgba(var(--center-channel-color-rgb), 0.72);
@@ -18,27 +19,27 @@
 }
 
 // User List Modal Styles
-.UserListModalBody {
+.user-sync-modal-body {
     max-height: 60vh;
+    padding: 30px;
     overflow-y: auto;
-    padding: 16px;
 
     .tabs {
         display: flex;
 
         .tab-button {
-            background: none;
             border: none;
-            padding-block: 12px;
-            padding-inline-end: 16px;
-            font-size: 14px;
-            font-weight: 600;
+            background: none;
             color: rgba(var(--center-channel-color-rgb), 0.75);
             cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            padding-block: 12px;
+            padding-inline-end: 16px;
 
             &.active {
-                color: var(--button-bg);
                 border-bottom: 2px solid var(--button-bg);
+                color: var(--button-bg);
             }
 
             &:hover {
@@ -50,8 +51,8 @@
     .tab-content {
         .user-list {
             ul {
-                margin: 0;
                 padding: 0;
+                margin: 0;
                 list-style: none;
 
                 li {
@@ -66,9 +67,13 @@
 
             .no-results {
                 padding: 20px;
-                text-align: center;
                 color: rgba(var(--center-channel-color-rgb), 0.6);
+                text-align: center;
             }
         }
     }
+}
+
+.user-sync-modal {
+    width: 660px;
 }

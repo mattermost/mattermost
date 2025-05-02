@@ -264,10 +264,10 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
 
     onFilter = (filterOptions: FilterOptions) => {
         const filters: ChannelSearchOpts = {};
-        const {group_constrained: groupConstrained, exclude_group_constrained: excludeGroupConstrained, access_control_policy_enforced: access_control_policy_enforced} = filterOptions.management.values;
+        const {group_constrained: groupConstrained, exclude_group_constrained: excludeGroupConstrained, access_control_policy_enforced: accessControlPolicyEnforced} = filterOptions.management.values;
         const {public: publicChannels, private: privateChannels, deleted} = filterOptions.channels.values;
         const {team_ids: teamIds} = filterOptions.teams.values;
-        if (publicChannels.value || privateChannels.value || deleted.value || groupConstrained.value || excludeGroupConstrained.value || (teamIds.value as string[]).length || access_control_policy_enforced.value) {
+        if (publicChannels.value || privateChannels.value || deleted.value || groupConstrained.value || excludeGroupConstrained.value || (teamIds.value as string[]).length || accessControlPolicyEnforced.value) {
             filters.public = publicChannels.value as boolean;
             if (filters.public) {
                 trackEvent('admin_channels_page', 'public_filter_applied_to_channel_list');
@@ -283,7 +283,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                 trackEvent('admin_channels_page', 'archived_filter_applied_to_channel_list');
             }
 
-            filters.access_control_policy_enforced = access_control_policy_enforced.value as boolean;
+            filters.access_control_policy_enforced = accessControlPolicyEnforced.value as boolean;
             if (filters.access_control_policy_enforced) {
                 trackEvent('admin_channels_page', 'attributed_based_filter_applied_to_channel_list');
             }

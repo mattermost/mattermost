@@ -3,12 +3,15 @@
 
 import React, {useState} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
+
 import type {AccessControlPolicy} from '@mattermost/types/admin';
-import { ActionResult } from 'mattermost-redux/types/actions';
-import { getHistory } from 'utils/browser_history';
-import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import PolicySelectionModal from 'components/admin_console/access_control/modals/policy_selection/policy_selection_modal';
+import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
+
+import {getHistory} from 'utils/browser_history';
 
 import './channel_access_control_policy.scss';
 
@@ -24,7 +27,7 @@ interface Props {
 export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element => {
     const {accessControlPolicies, actions} = props;
     const [showPolicySelectionModal, setShowPolicySelectionModal] = useState<boolean>(false);
-   
+
     const handlePolicySelected = (policy: AccessControlPolicy) => {
         if (actions.onPolicySelected && policy) {
             actions.onPolicySelected(policy);
@@ -112,7 +115,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                     }}
                 />
             </AdminPanelWithButton>
-        )
+        );
     }
 
     return (

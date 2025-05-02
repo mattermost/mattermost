@@ -35,3 +35,18 @@
         }
     }
 }
+
+.DataGrid_footer {
+    display: flex;
+    height: auto;
+    flex-direction: row;
+    padding: 8px;
+    border-top: solid 1px rgba(0, 0, 0, 0.1);
+    font-size: 1.1em;
+    text-align: right;
+
+    .DataGrid_cell {
+        width: 100%;
+        text-align: right;
+    }
+}

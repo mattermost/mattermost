@@ -183,52 +183,52 @@ export default function PolicyList(props: Props): JSX.Element {
                     actions: (
                         <div className='policy-actions'>
                             {!props.simpleMode && (
-                            <Menu.Container
-                                menuButton={{
-                                    id: `policy-menu-${policy.id}`,
-                                    class: 'policy-menu-button',
-                                    children: (
-                                        <i className='icon icon-dots-vertical'/>
-                                    ),
-                                }}
-                                menu={{
-                                    id: `policy-menu-dropdown-${policy.id}`,
-                                    'aria-label': 'Policy actions menu',
-                                }}
-                            >
-                                <Menu.Item
-                                    id={`policy-menu-edit-${policy.id}`}
-                                    onClick={() => {
-                                        getHistory().push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
+                                <Menu.Container
+                                    menuButton={{
+                                        id: `policy-menu-${policy.id}`,
+                                        class: 'policy-menu-button',
+                                        children: (
+                                            <i className='icon icon-dots-vertical'/>
+                                        ),
                                     }}
-                                    leadingElement={<i className='icon icon-pencil-outline'/>}
-                                    labels={
-                                        <FormattedMessage
-                                            id='admin.access_control.edit'
-                                            defaultMessage='Edit'
-                                        />
-                                    }
-                                />
-                                <Menu.Item
-                                    id={`policy-menu-delete-${policy.id}`}
-                                    onClick={() => handleDelete(policy.id)}
-                                    leadingElement={<i className='icon icon-trash-can-outline'/>}
-                                    labels={
-                                        <FormattedMessage
-                                            id='admin.access_control.delete'
-                                            defaultMessage='Delete'
-                                        />
-                                    }
-                                    isDestructive={true}
-                                    disabled={Boolean(policy.props?.child_ids?.length)}
-                                />
-                            </Menu.Container>
+                                    menu={{
+                                        id: `policy-menu-dropdown-${policy.id}`,
+                                        'aria-label': 'Policy actions menu',
+                                    }}
+                                >
+                                    <Menu.Item
+                                        id={`policy-menu-edit-${policy.id}`}
+                                        onClick={() => {
+                                            getHistory().push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
+                                        }}
+                                        leadingElement={<i className='icon icon-pencil-outline'/>}
+                                        labels={
+                                            <FormattedMessage
+                                                id='admin.access_control.edit'
+                                                defaultMessage='Edit'
+                                            />
+                                        }
+                                    />
+                                    <Menu.Item
+                                        id={`policy-menu-delete-${policy.id}`}
+                                        onClick={() => handleDelete(policy.id)}
+                                        leadingElement={<i className='icon icon-trash-can-outline'/>}
+                                        labels={
+                                            <FormattedMessage
+                                                id='admin.access_control.delete'
+                                                defaultMessage='Delete'
+                                            />
+                                        }
+                                        isDestructive={true}
+                                        disabled={Boolean(policy.props?.child_ids?.length)}
+                                    />
+                                </Menu.Container>
                             )}
                         </div>
                     ),
                 },
                 onClick: () => {
-                    if (props.onPolicySelected) {  
+                    if (props.onPolicySelected) {
                         props.onPolicySelected(policy);
                     } else {
                         getHistory().push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
@@ -321,7 +321,7 @@ export default function PolicyList(props: Props): JSX.Element {
                             getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy');
                         }}
                     >
-                    <i className='icon icon-plus'/>
+                        <i className='icon icon-plus'/>
                         <span>{'Add policy'}</span>
                     </button>
                 </div>

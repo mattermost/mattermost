@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from 'react';
 import {Modal} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlPolicy} from '@mattermost/types/admin';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import './policy_selection_modal.scss';
 import PolicyList from 'components/admin_console/access_control/policies';

@@ -6,11 +6,12 @@ import {FormattedMessage} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Client4} from 'mattermost-redux/client';
+
 import UserList from 'components/user_list';
-import { Client4 } from 'mattermost-redux/client';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
+import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import './synced_user_list.scss';
 
@@ -32,7 +33,7 @@ export const SyncedUserList = ({userIds, type, noResultsMessageId, noResultsDefa
     const totalPages = Math.ceil(totalUsers / USERS_PER_PAGE);
 
     // Calculate the range of users being shown
-    const firstUserIndex = (currentPage - 1) * USERS_PER_PAGE + 1;
+    const firstUserIndex = (currentPage - 1) * (USERS_PER_PAGE + 1);
     const lastUserIndex = Math.min(currentPage * USERS_PER_PAGE, totalUsers);
 
     const fetchUsers = useCallback(async (page: number) => {
@@ -51,7 +52,6 @@ export const SyncedUserList = ({userIds, type, noResultsMessageId, noResultsDefa
             const fetchedUsers = await Client4.getProfilesByIds(idsToFetch);
             setUsers(fetchedUsers || []);
         } catch (error) {
-            console.error(`Failed to fetch ${type} users:`, error);
             setUsers([]); // Clear users on error
         } finally {
             setLoading(false);
@@ -62,8 +62,8 @@ export const SyncedUserList = ({userIds, type, noResultsMessageId, noResultsDefa
         fetchUsers(currentPage);
     }, [fetchUsers, currentPage]);
 
-     // Reset to page 1 if userIds change
-     useEffect(() => {
+    // Reset to page 1 if userIds change
+    useEffect(() => {
         setCurrentPage(1);
     }, [userIds]);
 
@@ -89,7 +89,7 @@ export const SyncedUserList = ({userIds, type, noResultsMessageId, noResultsDefa
     return (
         <div className='SyncedUserList'>
             {loading ? (
-                 <div className='loading-spinner'>
+                <div className='loading-spinner'>
                     <LoadingSpinner/>
                 </div>
             ) : (
@@ -97,21 +97,21 @@ export const SyncedUserList = ({userIds, type, noResultsMessageId, noResultsDefa
                     users={users}
                 />
             )}
-              <div className='list-footer'>
+            <div className='list-footer'>
                 <span className='member-count-text'>
                     {totalUsers > 0 && ( // Only show count if there are users
-                         <FormattedMessage
+                        <FormattedMessage
                             id='admin.jobTable.syncResults.memberCount'
                             defaultMessage='{firstUser} - {lastUser} members of {totalUsers} total'
-                            values={{ firstUser: firstUserIndex, lastUser: lastUserIndex, totalUsers }}
+                            values={{firstUser: firstUserIndex, lastUser: lastUserIndex, totalUsers}}
                         />
                     )}
-                     {totalUsers === 0 && ( // Placeholder or message when no users
-                         <span>&nbsp;</span> // Keep space consistent
+                    {totalUsers === 0 && ( // Placeholder or message when no users
+                        <span>&nbsp;</span> // Keep space consistent
                     )}
                 </span>
-                 {totalPages > 1 && ( // Only show pagination if more than one page
-                     <div className='pagination-controls'>
+                {totalPages > 1 && ( // Only show pagination if more than one page
+                    <div className='pagination-controls'>
                         <button
                             onClick={handlePreviousPage}
                             disabled={currentPage === 1 || loading}
@@ -123,7 +123,7 @@ export const SyncedUserList = ({userIds, type, noResultsMessageId, noResultsDefa
                             <FormattedMessage
                                 id='admin.jobTable.syncResults.pagination'
                                 defaultMessage='Page {currentPage} of {totalPages}'
-                                values={{ currentPage, totalPages }}
+                                values={{currentPage, totalPages}}
                             />
                         </span>
                         <button
@@ -134,10 +134,10 @@ export const SyncedUserList = ({userIds, type, noResultsMessageId, noResultsDefa
                             <NextIcon/>
                         </button>
                     </div>
-                 )}
+                )}
             </div>
         </div>
     );
 };
 
-export default SyncedUserList; 
+export default SyncedUserList;

@@ -4,11 +4,11 @@
 .value-modal-backdrop {
     position: fixed;
     z-index: 1050;
-    inset: 0; // shorthand for top, right, bottom, left
     display: flex;
     align-items: center;
     justify-content: center;
     background: rgba(0, 0, 0, 0.4);
+    inset: 0; // shorthand for top, right, bottom, left
 }
 
 .value-modal {
@@ -54,8 +54,8 @@
 .value-modal-close {
     border: none;
     background: none;
-    cursor: pointer;
     color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: pointer;
     
     &:hover {
         color: var(--center-channel-color);
@@ -67,8 +67,8 @@
     padding: 8px 16px;
     border: none;
     border-radius: 4px;
-    font-weight: 600;
     cursor: pointer;
+    font-weight: 600;
 }
 
 .value-modal-cancel {

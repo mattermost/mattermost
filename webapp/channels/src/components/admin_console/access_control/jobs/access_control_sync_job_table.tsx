@@ -9,9 +9,9 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import JobsTable from 'components/admin_console/jobs';
 
-import JobDetailsModal from '../modals/job_details/job_details_modal';
-
 import {JobTypes} from 'utils/constants';
+
+import JobDetailsModal from '../modals/job_details/job_details_modal';
 
 import './access_control_sync_job_table.scss';
 
@@ -67,6 +67,7 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
             <div className='policy-header'>
                 <div className='policy-header-text'>
                     <h1>{'Access Control Sync Jobs'}</h1>
+                    <p>{'Synchronize access control policies with system resources and permissions.'}</p>
                 </div>
                 <button
                     className='btn btn-primary'
@@ -77,6 +78,7 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                 </button>
             </div>
             <JobsTable
+                perPage={5}
                 jobType={JobTypes.ACCESS_CONTROL_SYNC}
                 hideJobCreateButton={true}
                 className={'job-table__access-control'}
@@ -87,7 +89,7 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
             />
             {showModal && (
                 <JobDetailsModal
-                    job={selectedJob}
+                    job={selectedJob as Job}
                     onExited={handleModalClose}
                 />
             )}

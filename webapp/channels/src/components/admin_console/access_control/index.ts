@@ -8,7 +8,6 @@ import type {Dispatch} from 'redux';
 import {searchAccessControlPolicies, deleteAccessControlPolicy} from 'mattermost-redux/actions/access_control';
 
 import PolicyList from './policies';
-import { AccessControlPolicy } from '@mattermost/types/admin';
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators({

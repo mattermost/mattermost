@@ -9,6 +9,9 @@ import type {Job, JobType} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import NextIcon from 'components/widgets/icons/fa_next_icon';
+import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
+
 import {JobTypes} from 'utils/constants';
 
 import JobCancelButton from './job_cancel_button';
@@ -32,6 +35,7 @@ export type Props = {
     hideTable?: boolean;
     jobData?: any;
     onRowClick?: (job: Job) => void;
+    perPage?: number;
     actions: {
         getJobsByType: (jobType: JobType) => void;
         cancelJob: (jobId: string) => Promise<ActionResult>;
@@ -39,8 +43,19 @@ export type Props = {
     };
 }
 
-class JobTable extends React.PureComponent<Props> {
+type State = {
+    currentPage: number;
+}
+
+class JobTable extends React.PureComponent<Props, State> {
     interval: ReturnType<typeof setInterval>|null = null;
+
+    constructor(props: Props) {
+        super(props);
+        this.state = {
+            currentPage: 1,
+        };
+    }
 
     componentDidMount() {
         this.props.actions.getJobsByType(this.props.jobType);
@@ -85,10 +100,38 @@ class JobTable extends React.PureComponent<Props> {
         this.reload();
     };
 
+    handleNextPage = () => {
+        if (this.props.perPage) {
+            const totalPages = Math.ceil(this.props.jobs.length / this.props.perPage);
+            if (this.state.currentPage < totalPages) {
+                this.setState({currentPage: this.state.currentPage + 1});
+            }
+        }
+    };
+
+    handlePrevPage = () => {
+        if (this.state.currentPage > 1) {
+            this.setState({currentPage: this.state.currentPage - 1});
+        }
+    };
+
     render() {
+        const {perPage} = this.props;
+        const {currentPage} = this.state;
+
+        let paginatedJobs = this.props.jobs;
+        let startIndex = 0;
+        let endIndex = this.props.jobs.length;
+
+        if (perPage) {
+            startIndex = (currentPage - 1) * perPage;
+            endIndex = Math.min(startIndex + perPage, this.props.jobs.length);
+            paginatedJobs = this.props.jobs.slice(startIndex, endIndex);
+        }
+
         const showFilesColumn = this.props.jobType === JobTypes.MESSAGE_EXPORT && this.props.downloadExportResults;
         const hideDetailsColumn = this.props.jobType === JobTypes.ACCESS_CONTROL_SYNC;
-        const items = this.props.jobs.map((job) => {
+        const items = paginatedJobs.map((job) => {
             return (
                 <tr
                     key={job.id}
@@ -119,6 +162,59 @@ class JobTable extends React.PureComponent<Props> {
                 </tr>
             );
         });
+
+        const renderFooter = (): JSX.Element | null => {
+            let footer: JSX.Element | null = null;
+
+            if (perPage) {
+                const firstPage = startIndex <= 0;
+                const lastPage = endIndex >= this.props.jobs.length;
+
+                let prevPageFn: () => void = this.handlePrevPage;
+                if (firstPage) {
+                    prevPageFn = () => {};
+                }
+
+                let nextPageFn: () => void = this.handleNextPage;
+                if (lastPage) {
+                    nextPageFn = () => {};
+                }
+
+                footer = (
+                    <div className='DataGrid_footer'>
+                        <div className='DataGrid_cell'>
+                            <FormattedMessage
+                                id='admin.data_grid.paginatorCount'
+                                defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
+                                values={{
+                                    startCount: startIndex + 1,
+                                    endCount: endIndex,
+                                    total: this.props.jobs.length,
+                                }}
+                            />
+                            <button
+                                type='button'
+                                className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
+                                onClick={prevPageFn}
+                                disabled={firstPage}
+                            >
+                                <PreviousIcon/>
+                            </button>
+                            <button
+                                type='button'
+                                className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
+                                onClick={nextPageFn}
+                                disabled={lastPage}
+                            >
+                                <NextIcon/>
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return footer;
+        };
 
         return (
             <div className={classNames('JobTable', 'job-table__panel', this.props.className)}>
@@ -180,7 +276,7 @@ class JobTable extends React.PureComponent<Props> {
                                         <th colSpan={3}>
                                             <FormattedMessage
                                                 id='admin.jobTable.headerExtraInfo'
-                                            defaultMessage='Details'
+                                                defaultMessage='Details'
                                             />
                                         </th>
                                     )}
@@ -190,6 +286,9 @@ class JobTable extends React.PureComponent<Props> {
                                 {items}
                             </tbody>
                         </table>
+                        {perPage && this.props.jobs.length > 0 && (
+                            renderFooter()
+                        )}
                     </div>
                 }
             </div>

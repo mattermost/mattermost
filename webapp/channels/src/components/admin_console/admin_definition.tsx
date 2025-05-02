@@ -713,15 +713,6 @@ const AdminDefinition: AdminDefinitionType = {
                                     label: defineMessage({id: 'admin.accesscontrol.enableTitle', defaultMessage: 'Allow attribute based access controls on this server'}),
                                     help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies'}),
                                 },
-                                {
-                                    type: 'bool',
-                                    key: 'AccessControlSettings.EnableChannelScopeAccessControl',
-                                    label: defineMessage({id: 'admin.accesscontrol.enableTitle', defaultMessage: 'Allow access restriction configuration in channel settings'}),
-                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'When enabled, channel admins will be able to view and modify access control rules in channel settings'}),
-                                    isDisabled: it.any(
-                                        it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
-                                    ),
-                                },
                             ],
                         },
                         {

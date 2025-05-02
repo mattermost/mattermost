@@ -35,31 +35,32 @@ export const UserListModal = ({channelId, channelName, syncResults, onClose}: Us
 
     return (
         <GenericModal
+            className='user-sync-modal'
             onExited={onClose}
             modalHeaderText={
                 <div className='modal-header-custom'>
                     <FormattedMessage
-                    id='admin.jobTable.syncResults.userListTitle'
-                    defaultMessage='Channel Members Changes - {channelName}'
-                    values={{
-                        channelName: displayName,
-                    }}
-                />
-                <div className='close-icon-container'>
-                    <i 
-                        className='icon icon-close' 
-                        onClick={onClose}
-                        aria-label='Close'
-                        role='button'
-                        tabIndex={0}
+                        id='admin.jobTable.syncResults.userListTitle'
+                        defaultMessage='Channel Members Changes - {channelName}'
+                        values={{
+                            channelName: displayName,
+                        }}
                     />
+                    <div className='close-icon-container'>
+                        <i
+                            className='icon icon-close'
+                            onClick={onClose}
+                            aria-label='Close'
+                            role='button'
+                            tabIndex={0}
+                        />
+                    </div>
                 </div>
-            </div>
             }
             show={true}
             showHeader={false}
         >
-            <div className='UserListModalBody'>
+            <div className='user-sync-modal-body'>
                 <div className='tabs'>
                     <button
                         className={`tab-button ${activeTab === 'added' ? 'active' : ''}`}
@@ -73,7 +74,7 @@ export const UserListModal = ({channelId, channelName, syncResults, onClose}: Us
                             }}
                         />
                     </button>
-                    <button 
+                    <button
                         className={`tab-button ${activeTab === 'removed' ? 'active' : ''}`}
                         onClick={() => handleTabChange('removed')}
                     >

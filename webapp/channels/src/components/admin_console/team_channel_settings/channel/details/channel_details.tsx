@@ -5,6 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {AccessControlPolicy} from '@mattermost/types/admin';
 import type {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch} from '@mattermost/types/channels';
 import {SyncableType} from '@mattermost/types/groups';
 import type {SyncablePatch, Group} from '@mattermost/types/groups';
@@ -25,6 +26,7 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 
+import {ChannelAccessControl} from './channel_access_control_policy';
 import {ChannelGroups} from './channel_groups';
 import ChannelMembers from './channel_members';
 import ChannelModeration from './channel_moderation';
@@ -37,8 +39,6 @@ import ConvertAndRemoveConfirmModal from '../../convert_and_remove_confirm_modal
 import ConvertConfirmModal from '../../convert_confirm_modal';
 import {NeedGroupsError, UsersWillBeRemovedError} from '../../errors';
 import RemoveConfirmModal from '../../remove_confirm_modal';
-import type {AccessControlPolicy} from '@mattermost/types/admin';
-import { ChannelAccessControl } from './channel_access_control_policy';
 
 export interface ChannelDetailsProps {
     channelID: string;
@@ -546,11 +546,11 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
         if (policyToggled) {
             if (isPublic) {
-                    serverError = <FormError error='You cannot assign a policy to a public channel.'/>;
-                    saveNeeded = true;
-                    this.setState({serverError, saving: false, saveNeeded});
-                    actions.setNavigationBlocked(saveNeeded);
-                    return;
+                serverError = <FormError error='You cannot assign a policy to a public channel.'/>;
+                saveNeeded = true;
+                this.setState({serverError, saving: false, saveNeeded});
+                actions.setNavigationBlocked(saveNeeded);
+                return;
             }
 
             if (isSynced) {
@@ -762,7 +762,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             if (result.data) {
                 const currentAccessControlPolicy = result.data;
                 const policies: AccessControlPolicy[] = [];
-                const promises: Promise<any>[] = [];
+                const promises: Array<Promise<any>> = [];
 
                 if (currentAccessControlPolicy.imports && currentAccessControlPolicy.imports.length > 0) {
                     for (const policyId of currentAccessControlPolicy.imports) {
@@ -770,31 +770,25 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                             if (policyResult.data) {
                                 policies.push(policyResult.data as AccessControlPolicy);
                             }
-                        }).catch((error) => {
-                            console.error('Error fetching policy:', error);
                         });
-                        
+
                         promises.push(promise);
                     }
 
                     Promise.all(promises).then(() => {
                         this.setState({
-                            accessControlPolicies: policies
+                            accessControlPolicies: policies,
                         });
                     });
                 } else {
                     // If there are no imports, still update state with empty array
                     this.setState({
-                        accessControlPolicies: []
+                        accessControlPolicies: [],
                     });
                 }
-            } else if (result.error) {
-                console.error('Error fetching access control policy:', result.error);
             }
-        }).catch((error) => {
-            console.error('Error fetching access control policy:', error);
         });
-    }
+    };
 
     public render = () => {
         const {
@@ -876,7 +870,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                     policyEnforced={policyToggled}
                     policyEnforcedToggleAvailable={accessControlPolicies.length === 0}
                 />
-                
+
                 {(policyToggled) && (
                     <ChannelAccessControl
                         accessControlPolicies={this.state.accessControlPolicies}
