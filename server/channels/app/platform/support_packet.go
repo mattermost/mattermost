@@ -143,7 +143,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Cluster.ID = cluster.GetClusterId()
 		clusterInfo, e := cluster.GetClusterInfos()
 		if e != nil {
-			multierror.Append(rErr, errors.Wrap(e, "error while getting cluster infos"))
+			rErr = multierror.Append(rErr, errors.Wrap(e, "error while getting cluster infos"))
 		} else {
 			d.Cluster.NumberOfNodes = len(clusterInfo)
 		}
