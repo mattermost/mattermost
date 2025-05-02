@@ -373,7 +373,7 @@ func TestListCPAValues(t *testing.T) {
 	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
 
-	_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdField.ID, json.RawMessage(`"Field Value"`))
+	_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdField.ID, json.RawMessage(`"Field Value"`), true)
 	require.Nil(t, appErr)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
@@ -417,7 +417,7 @@ func TestListCPAValues(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, createdArrayField)
 
-		_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdArrayField.ID, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, optionID1, optionID2)))
+		_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdArrayField.ID, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, optionID1, optionID2)), true)
 		require.Nil(t, appErr)
 
 		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
@@ -581,6 +581,64 @@ func TestPatchCPAValues(t *testing.T) {
 		actualValues = nil
 		require.NoError(t, json.Unmarshal(patchedValues[createdArrayField.ID], &actualValues))
 		require.Equal(t, optionsID[2:4], actualValues)
+	})
+
+	t.Run("should fail if any of the values belongs to a field that is LDAP/SAML synced", func(t *testing.T) {
+		// Create a field with LDAP attribute
+		ldapField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsLDAP: "ldap_attr",
+			},
+		})
+		require.NoError(t, err)
+
+		createdLDAPField, appErr := th.App.CreateCPAField(ldapField)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdLDAPField)
+
+		// Create a field with SAML attribute
+		samlField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsSAML: "saml_attr",
+			},
+		})
+		require.NoError(t, err)
+
+		createdSAMLField, appErr := th.App.CreateCPAField(samlField)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdSAMLField)
+
+		// Test LDAP field
+		values := map[string]json.RawMessage{
+			createdLDAPField.ID: json.RawMessage(`"LDAP Value"`),
+		}
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+
+		// Test SAML field
+		values = map[string]json.RawMessage{
+			createdSAMLField.ID: json.RawMessage(`"SAML Value"`),
+		}
+		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+
+		// Test multiple fields with one being LDAP synced
+		values = map[string]json.RawMessage{
+			createdField.ID:     json.RawMessage(`"Regular Value"`),
+			createdLDAPField.ID: json.RawMessage(`"LDAP Value"`),
+		}
+		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
 	})
 
 	t.Run("an invalid patch should be rejected", func(t *testing.T) {
