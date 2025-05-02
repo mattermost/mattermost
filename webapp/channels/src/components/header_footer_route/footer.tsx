@@ -6,6 +6,7 @@ import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {isEmbedded} from 'utils/embedded';
 
 import './footer.scss';
 import ExternalLink from 'components/external_link';
@@ -15,8 +16,8 @@ const Footer = () => {
 
     const {AboutLink, PrivacyPolicyLink, TermsOfServiceLink, HelpLink} = useSelector(getConfig);
 
-    // Check if MMEMBED cookie is set and if so, don't show the footer
-    if (document.cookie.includes('MMEMBED=1')) {
+    // Don't show footer when embedded in an iframe
+    if (isEmbedded()) {
         return null;
     }
 
