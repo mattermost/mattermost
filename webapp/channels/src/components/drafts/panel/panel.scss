@@ -13,11 +13,13 @@
         margin-top: 16px;
     }
 
-    &:hover, &:focus-within {
+    &:hover {
         border-color: rgba(var(--center-channel-color-rgb), 0.16);
         box-shadow: var(--elevation-2);
         transition-duration: 0.15s;
+    }
 
+    &:hover, &:focus-within {
         .PanelHeader__actions {
             opacity: 1;
         }

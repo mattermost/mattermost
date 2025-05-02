@@ -12,7 +12,7 @@ type Props = {
     children: React.ReactNode;
     onClick: () => void;
     hasError: boolean;
-    innerRef?: React.Ref<HTMLElement>;
+    innerRef?: React.Ref<HTMLDivElement>;
     isHighlighted?: boolean;
     style?: React.CSSProperties;
     className?: string;
@@ -35,8 +35,14 @@ function Panel({
         }
     };
 
+    const handleOnKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            onClick();
+        }
+    };
+
     return (
-        <article
+        <div
             className={classNames(
                 'Panel',
                 {
@@ -47,11 +53,13 @@ function Panel({
             )}
             style={style}
             onClick={handleOnClick}
-            role='button'
+            onKeyDown={handleOnKeyDown}
+            role='link'
+            tabIndex={0}
             ref={innerRef}
         >
             {children}
-        </article>
+        </div>
     );
 }
 
