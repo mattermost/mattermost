@@ -74,7 +74,7 @@ export default class ClusterTable extends PureComponent<Props> {
                         <WarningIcon/>
                         <FormattedMessage
                             id='admin.cluster.version_mismatch_warning'
-                            defaultMessage='WARNING: Your HA cluster may be running multiple versions, or we may not be able to properly detect the running versions. Unless you are currently performing an upgrade please ensure all nodes in your cluster are running the same Mattermost version to avoid platform disruption. Also ensure all nodes in the cluster are able to communicate with each other over Gossip.'
+                            defaultMessage='WARNING: Multiple Mattermost versions have been detected in your HA cluster, or the running versions cannot be properly identified. Unless upgrading, ensure all nodes are on the same version and can communicate via Gossip to prevent platform issues.'
                         />
                     </div>
                 );
