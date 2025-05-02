@@ -22,7 +22,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
-const TimeBetweenBatchesMs = 100
+const (
+	TimeBetweenBatchesMs       = 100
+	DefaultPreviousJobPageSize = 5
+)
 
 // testEndOfBatchCb is only used for testing
 var testEndOfBatchCb func(worker *MessageExportWorker)
@@ -158,8 +161,9 @@ func (w *MessageExportWorker) DoJob(job *model.Job) {
 	go w.jobServer.CancellationWatcher(cancelContext, job.Id, cancelWatcherChan)
 	defer cancelCancelWatcher()
 
+	rctx := request.EmptyContext(logger).WithContext(w.context)
 	// if job data is missing, we'll do our best to recover
-	w.initJobData(logger, job, time.Now())
+	w.initJobData(rctx, logger, job, time.Now())
 	data, err := extractJobData(logger, job.Data)
 	if err != nil {
 		// Error in conversion. Not much we can do about that. But it shouldn't happen, unless someone edited the db.
@@ -167,7 +171,6 @@ func (w *MessageExportWorker) DoJob(job *model.Job) {
 		return
 	}
 
-	rctx := request.EmptyContext(logger).WithContext(w.context)
 	reportProgress := func(message string) {
 		logger.Debug(message)
 		// Don't fail because we couldn't update progress.
@@ -260,7 +263,7 @@ func (w *MessageExportWorker) finishExport(rctx request.CTX, logger *mlog.Logger
 }
 
 // initializes job data if it's missing, allows us to recover from failed or improperly configured jobs
-func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Job, now time.Time) {
+func (w *MessageExportWorker) initJobData(rctx request.CTX, logger mlog.LoggerIFace, job *model.Job, now time.Time) {
 	if job.Data == nil {
 		job.Data = make(map[string]string)
 	}
@@ -307,7 +310,8 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 	}
 
 	if _, exists := job.Data[shared.JobDataBatchStartTime]; !exists {
-		previousJob, err := w.jobServer.Store.Job().GetNewestJobByStatusesAndType([]string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport)
+		previousJob, err := w.getPreviousNonCliJob(rctx)
+
 		if err != nil {
 			exportFromTimestamp := strconv.FormatInt(*w.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10)
 			logger.Info("Worker: No previously successful job found, falling back to configured MessageExportSettings.ExportFromTimestamp", mlog.String("export_from_timestamp", exportFromTimestamp))
@@ -360,6 +364,36 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 	}
 
 	job.Data[shared.JobDataExportDir] = getJobExportDir(logger, job.Data, job.Data[shared.JobDataJobStartTime], job.Data[shared.JobDataJobEndTime])
+}
+
+// getPreviousNonCliJob returns the most recent job that was not initiated by mmctl
+func (w *MessageExportWorker) getPreviousNonCliJob(rctx request.CTX) (*model.Job, error) {
+	offset := 0
+
+	for {
+		jobs, err := w.jobServer.Store.Job().GetAllByTypesAndStatusesPage(rctx,
+			[]string{model.JobTypeMessageExport},
+			[]string{model.JobStatusWarning, model.JobStatusSuccess},
+			offset, DefaultPreviousJobPageSize)
+		if err != nil {
+			return nil, err
+		}
+
+		// Find the first job not initiated by mmctl
+		for _, job := range jobs {
+			if job.Data == nil || job.Data[shared.JobDataInitiatedBy] != "mmctl" {
+				return job, nil
+			}
+		}
+
+		// If we didn't get a full page of jobs, we've reached the end
+		if len(jobs) < DefaultPreviousJobPageSize {
+			return nil, nil
+		}
+
+		// If we didn't find a non-mmctl job in this page, continue to the next page
+		offset += DefaultPreviousJobPageSize
+	}
 }
 
 func extractJobData(logger *mlog.Logger, strmap map[string]string) (shared.JobData, error) {
