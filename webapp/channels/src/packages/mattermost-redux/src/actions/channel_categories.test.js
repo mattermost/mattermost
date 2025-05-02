@@ -550,8 +550,8 @@ describe('addChannelToCategory', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [{...category1, channel_ids: ['channel5', 'channel1', 'channel2']}]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`).
+            reply(200, {...category1, channel_ids: ['channel5', 'channel1', 'channel2']});
 
         await store.dispatch(Actions.addChannelToCategory('category1', 'channel5'));
 
@@ -583,11 +583,8 @@ describe('addChannelToCategory', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [
-                {...category1, channel_ids: ['channel3', 'channel1', 'channel2']},
-                {...category2, channel_ids: ['channel4']},
-            ]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`).
+            reply(200, {...category1, channel_ids: ['channel3', 'channel1', 'channel2']});
 
         await store.dispatch(Actions.addChannelToCategory('category1', 'channel3'));
 
@@ -627,8 +624,8 @@ describe('moveChannelToCategory', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [{...category1, channel_ids: ['channel1', 'channel5', 'channel2']}]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`).
+            reply(200, {...category1, channel_ids: ['channel1', 'channel5', 'channel2']});
 
         await store.dispatch(Actions.moveChannelToCategory('category1', 'channel5', 1));
 
@@ -639,8 +636,8 @@ describe('moveChannelToCategory', () => {
         expect(state.entities.channelCategories.byId.otherTeamCategory).toBe(otherTeamCategory);
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [{...category1, channel_ids: ['channel1', 'channel5', 'channel6', 'channel2']}]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`).
+            reply(200, {...category1, channel_ids: ['channel1', 'channel5', 'channel6', 'channel2']});
 
         await store.dispatch(Actions.moveChannelToCategory('category1', 'channel6', 2));
 
@@ -672,11 +669,8 @@ describe('moveChannelToCategory', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [
-                {...category1, channel_ids: ['channel2']},
-                {...category2, channel_ids: ['channel3', 'channel4', 'channel1']},
-            ]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category2.id}`).
+            reply(200, {...category2, channel_ids: ['channel3', 'channel4', 'channel1']});
 
         await store.dispatch(Actions.moveChannelToCategory('category2', 'channel1', 2));
 
@@ -704,8 +698,8 @@ describe('moveChannelToCategory', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [{...category1, channel_ids: ['channel1', 'channel5', 'channel2', 'channel3', 'channel4']}]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`).
+            reply(200, {...category1, channel_ids: ['channel1', 'aaa', 'channel5', 'channel2', 'channel3', 'channel4']});
 
         await store.dispatch(Actions.moveChannelToCategory('category1', 'channel5', 1));
 
@@ -714,8 +708,8 @@ describe('moveChannelToCategory', () => {
         expect(state.entities.channelCategories.byId.category1.channel_ids).toEqual(['channel1', 'channel5', 'channel2', 'channel3', 'channel4']);
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [{...category1, channel_ids: ['channel5', 'channel2', 'channel3', 'channel1', 'channel4']}]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`).
+            reply(200, {...category1, channel_ids: ['channel5', 'channel2', 'channel3', 'channel1', 'channel4']});
 
         await store.dispatch(Actions.moveChannelToCategory('category1', 'channel1', 3));
 
@@ -762,11 +756,8 @@ describe('moveChannelToCategory', () => {
         expect(isFavoriteChannel(state, 'channel1')).toBe(false);
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [
-                {...favoritesCategory, channel_ids: ['channel1']},
-                {...otherCategory, channel_ids: []},
-            ]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${favoritesCategory.id}`).
+            reply(200, {...favoritesCategory, channel_ids: ['channel1']});
 
         // Move the channel into favorites
         await store.dispatch(Actions.moveChannelToCategory('favoritesCategory', 'channel1', 0));
@@ -778,11 +769,8 @@ describe('moveChannelToCategory', () => {
         expect(isFavoriteChannel(state, 'channel1')).toBe(true);
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [
-                {...favoritesCategory, channel_ids: []},
-                {...otherCategory, channel_ids: ['channel1']},
-            ]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${otherCategory.id}`).
+            reply(200, {...otherCategory, channel_ids: ['channel1']});
 
         // And back out
         await store.dispatch(Actions.moveChannelToCategory('otherCategory', 'channel1', 0));
@@ -814,14 +802,13 @@ describe('moveChannelToCategory', () => {
             });
 
             nock(Client4.getBaseRoute()).
-                put(`/users/${currentUserId}/teams/${teamId}/channels/categories`, (body) => {
-                    return body.find((category) => category.id === 'category1').sorting !== CategorySorting.Manual &&
-                        body.find((category) => category.id === 'category2').sorting === CategorySorting.Manual;
+                put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category2.id}`, (body) => {
+                    return body.sorting === CategorySorting.Manual;
                 }).
-                reply(200, [
-                    {...category1, channel_ids: ['channel2']},
+                reply(
+                    200,
                     {...category2, channel_ids: ['channel1', 'channel3', 'channel4'], sorting: CategorySorting.Manual},
-                ]);
+                );
 
             await store.dispatch(Actions.moveChannelToCategory(category2.id, 'channel1', 0));
 
@@ -830,14 +817,13 @@ describe('moveChannelToCategory', () => {
             expect(state.entities.channelCategories.byId.category2.sorting).toBe(CategorySorting.Manual);
 
             nock(Client4.getBaseRoute()).
-                put(`/users/${currentUserId}/teams/${teamId}/channels/categories`, (body) => {
-                    return body.find((category) => category.id === 'category1').sorting === CategorySorting.Manual &&
-                        body.find((category) => category.id === 'category2').sorting === CategorySorting.Manual;
+                put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`, (body) => {
+                    return body.sorting === CategorySorting.Manual;
                 }).
-                reply(200, [
+                reply(
+                    200,
                     {...category1, channel_ids: ['channel2', 'channel1'], sorting: CategorySorting.Manual},
-                    {...category2, channel_ids: ['channel3', 'channel4'], sorting: CategorySorting.Manual},
-                ]);
+                );
 
             await store.dispatch(Actions.moveChannelToCategory(category1.id, 'channel1', 2));
 
@@ -865,14 +851,10 @@ describe('moveChannelToCategory', () => {
             });
 
             nock(Client4.getBaseRoute()).
-                put(`/users/${currentUserId}/teams/${teamId}/channels/categories`, (body) => {
-                    return body.find((category) => category.id === 'category1').sorting !== CategorySorting.Manual &&
-                        body.find((category) => category.id === 'category2').sorting !== CategorySorting.Manual;
+                put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category2.id}`, (body) => {
+                    return body.sorting !== CategorySorting.Manual;
                 }).
-                reply(200, [
-                    {...category1, channel_ids: ['channel2']},
-                    {...category2, channel_ids: ['channel1', 'channel3', 'channel4']},
-                ]);
+                reply(200, {...category2, channel_ids: ['channel1', 'channel3', 'channel4']});
 
             await store.dispatch(Actions.moveChannelToCategory(category2.id, 'channel1', 0));
 
@@ -881,14 +863,13 @@ describe('moveChannelToCategory', () => {
             expect(state.entities.channelCategories.byId.category2.sorting).toBe(CategorySorting.Recency);
 
             nock(Client4.getBaseRoute()).
-                put(`/users/${currentUserId}/teams/${teamId}/channels/categories`, (body) => {
-                    return body.find((category) => category.id === 'category1').sorting !== CategorySorting.Manual &&
-                        body.find((category) => category.id === 'category2').sorting !== CategorySorting.Manual;
+                put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`, (body) => {
+                    return body.sorting !== CategorySorting.Manual;
                 }).
-                reply(200, [
+                reply(
+                    200,
                     {...category1, channel_ids: ['channel2', 'channel1']},
-                    {...category2, channel_ids: ['channel3', 'channel4']},
-                ]);
+                );
 
             await store.dispatch(Actions.moveChannelToCategory(category1.id, 'channel1', 2));
 
@@ -917,12 +898,12 @@ describe('moveChannelToCategory', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${favoritesCategory.id}`).
             delayBody(100).
-            reply(200, [
-                {...category1, channel_ids: ['channel2']},
+            reply(
+                200,
                 {...favoritesCategory, channel_ids: ['channel1'], sorting: CategorySorting.Manual},
-            ]);
+            );
 
         const moveRequest = store.dispatch(Actions.moveChannelToCategory(favoritesCategory.id, 'channel1', 0));
 
@@ -959,7 +940,7 @@ describe('moveChannelToCategory', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${favoritesCategory.id}`).
             delayBody(100).
             reply(400);
 
@@ -1033,8 +1014,8 @@ describe('moveChannelsToCategory', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [{...category1, channel_ids: ['channel1', 'channel5', 'channel6', 'channel2']}]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`).
+            reply(200, {...category1, channel_ids: ['channel1', 'channel5', 'channel6', 'channel2']});
 
         await store.dispatch(Actions.moveChannelsToCategory('category1', ['channel5', 'channel6'], 1));
 
@@ -1045,8 +1026,8 @@ describe('moveChannelsToCategory', () => {
         expect(state.entities.channelCategories.byId.otherTeamCategory).toBe(otherTeamCategory);
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [{...category1, channel_ids: ['channel1', 'channel5', 'channel6', 'channel7', 'channel8', 'channel2']}]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`).
+            reply(200, {...category1, channel_ids: ['channel1', 'channel5', 'channel6', 'channel7', 'channel8', 'channel2']});
 
         await store.dispatch(Actions.moveChannelsToCategory('category1', ['channel7', 'channel8'], 3));
 
@@ -1078,11 +1059,8 @@ describe('moveChannelsToCategory', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [
-                {...category1, channel_ids: ['channel2']},
-                {...category2, channel_ids: ['channel4', 'channel5', 'channel6', 'channel1', 'channel3']},
-            ]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category2.id}`).
+            reply(200, {...category2, channel_ids: ['channel4', 'channel5', 'channel6', 'channel1', 'channel3']});
 
         await store.dispatch(Actions.moveChannelsToCategory('category2', ['channel1', 'channel3'], 3));
 
@@ -1110,8 +1088,8 @@ describe('moveChannelsToCategory', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [{...category1, channel_ids: ['channel1', 'channel5', 'channel3', 'channel2', 'channel4']}]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`).
+            reply(200, {...category1, channel_ids: ['channel1', 'channel5', 'channel3', 'channel2', 'channel4']});
 
         await store.dispatch(Actions.moveChannelsToCategory('category1', ['channel5', 'channel3'], 1));
 
@@ -1120,8 +1098,8 @@ describe('moveChannelsToCategory', () => {
         expect(state.entities.channelCategories.byId.category1.channel_ids).toEqual(['channel1', 'channel5', 'channel3', 'channel2', 'channel4']);
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [{...category1, channel_ids: ['channel5', 'channel3', 'channel2', 'channel1', 'channel4']}]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`).
+            reply(200, {...category1, channel_ids: ['channel5', 'channel3', 'channel2', 'channel1', 'channel4']});
 
         await store.dispatch(Actions.moveChannelsToCategory('category1', ['channel1', 'channel4'], 3));
 
@@ -1168,11 +1146,8 @@ describe('moveChannelsToCategory', () => {
         expect(isFavoriteChannel(state, 'channel1')).toBe(false);
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [
-                {...favoritesCategory, channel_ids: ['channel1', 'channel2']},
-                {...otherCategory, channel_ids: []},
-            ]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${favoritesCategory.id}`).
+            reply(200, {...favoritesCategory, channel_ids: ['channel1', 'channel2']});
 
         // Move the channel into favorites
         await store.dispatch(Actions.moveChannelsToCategory('favoritesCategory', ['channel1', 'channel2'], 0));
@@ -1185,11 +1160,8 @@ describe('moveChannelsToCategory', () => {
         expect(isFavoriteChannel(state, 'channel2')).toBe(true);
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [
-                {...favoritesCategory, channel_ids: []},
-                {...otherCategory, channel_ids: ['channel1']},
-            ]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${otherCategory.id}`).
+            reply(200, {...otherCategory, channel_ids: ['channel1']});
 
         // And back out
         await store.dispatch(Actions.moveChannelsToCategory('otherCategory', ['channel1', 'channel2'], 0));
@@ -1222,14 +1194,13 @@ describe('moveChannelsToCategory', () => {
             });
 
             nock(Client4.getBaseRoute()).
-                put(`/users/${currentUserId}/teams/${teamId}/channels/categories`, (body) => {
-                    return body.find((category) => category.id === 'category1').sorting !== CategorySorting.Manual &&
-                        body.find((category) => category.id === 'category2').sorting === CategorySorting.Manual;
+                put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category2.id}`, (body) => {
+                    return body.sorting === CategorySorting.Manual;
                 }).
-                reply(200, [
-                    {...category1, channel_ids: ['channel2']},
+                reply(
+                    200,
                     {...category2, channel_ids: ['channel1', 'channel3', 'channel4'], sorting: CategorySorting.Manual},
-                ]);
+                );
 
             await store.dispatch(Actions.moveChannelsToCategory(category2.id, ['channel1'], 0));
 
@@ -1238,14 +1209,13 @@ describe('moveChannelsToCategory', () => {
             expect(state.entities.channelCategories.byId.category2.sorting).toBe(CategorySorting.Manual);
 
             nock(Client4.getBaseRoute()).
-                put(`/users/${currentUserId}/teams/${teamId}/channels/categories`, (body) => {
-                    return body.find((category) => category.id === 'category1').sorting === CategorySorting.Manual &&
-                        body.find((category) => category.id === 'category2').sorting === CategorySorting.Manual;
+                put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`, (body) => {
+                    return body.sorting === CategorySorting.Manual;
                 }).
-                reply(200, [
+                reply(
+                    200,
                     {...category1, channel_ids: ['channel2', 'channel1'], sorting: CategorySorting.Manual},
-                    {...category2, channel_ids: ['channel3', 'channel4'], sorting: CategorySorting.Manual},
-                ]);
+                );
 
             await store.dispatch(Actions.moveChannelsToCategory(category1.id, ['channel1'], 2));
 
@@ -1273,14 +1243,10 @@ describe('moveChannelsToCategory', () => {
             });
 
             nock(Client4.getBaseRoute()).
-                put(`/users/${currentUserId}/teams/${teamId}/channels/categories`, (body) => {
-                    return body.find((category) => category.id === 'category1').sorting !== CategorySorting.Manual &&
-                        body.find((category) => category.id === 'category2').sorting !== CategorySorting.Manual;
+                put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category2.id}`, (body) => {
+                    return body.sorting !== CategorySorting.Manual;
                 }).
-                reply(200, [
-                    {...category1, channel_ids: ['channel2']},
-                    {...category2, channel_ids: ['channel1', 'channel3', 'channel4']},
-                ]);
+                reply(200, {...category2, channel_ids: ['channel1', 'channel3', 'channel4']});
 
             await store.dispatch(Actions.moveChannelsToCategory(category2.id, ['channel1'], 0));
 
@@ -1289,14 +1255,10 @@ describe('moveChannelsToCategory', () => {
             expect(state.entities.channelCategories.byId.category2.sorting).toBe(CategorySorting.Recency);
 
             nock(Client4.getBaseRoute()).
-                put(`/users/${currentUserId}/teams/${teamId}/channels/categories`, (body) => {
-                    return body.find((category) => category.id === 'category1').sorting !== CategorySorting.Manual &&
-                        body.find((category) => category.id === 'category2').sorting !== CategorySorting.Manual;
+                put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`, (body) => {
+                    return body.sorting !== CategorySorting.Manual;
                 }).
-                reply(200, [
-                    {...category1, channel_ids: ['channel2', 'channel1']},
-                    {...category2, channel_ids: ['channel3', 'channel4']},
-                ]);
+                reply(200, {...category1, channel_ids: ['channel2', 'channel1']});
 
             await store.dispatch(Actions.moveChannelsToCategory(category1.id, ['channel1'], 2));
 
@@ -1324,11 +1286,11 @@ describe('moveChannelsToCategory', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [
-                {...category1, channel_ids: ['channel2']},
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category2.id}`).
+            reply(
+                200,
                 {...category2, channel_ids: ['channel1', 'channel3', 'channel4'], sorting: CategorySorting.Manual},
-            ]);
+            );
 
         await store.dispatch(Actions.moveChannelsToCategory(category2.id, ['channel1'], 0));
 
@@ -1337,11 +1299,8 @@ describe('moveChannelsToCategory', () => {
         expect(state.entities.channelCategories.byId.category2.sorting).toBe(CategorySorting.Manual);
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
-            reply(200, [
-                {...category1, channel_ids: ['channel2', 'channel1'], sorting: CategorySorting.Manual},
-                {...category2, channel_ids: ['channel3', 'channel4'], sorting: CategorySorting.Manual},
-            ]);
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${category1.id}`).
+            reply(200, {...category1, channel_ids: ['channel2', 'channel1'], sorting: CategorySorting.Manual});
 
         await store.dispatch(Actions.moveChannelsToCategory(category1.id, ['channel1'], 2));
 
@@ -1369,12 +1328,9 @@ describe('moveChannelsToCategory', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${favoritesCategory.id}`).
             delayBody(100).
-            reply(200, [
-                {...category1, channel_ids: ['channel2']},
-                {...favoritesCategory, channel_ids: ['channel1'], sorting: CategorySorting.Manual},
-            ]);
+            reply(200, {...favoritesCategory, channel_ids: ['channel1'], sorting: CategorySorting.Manual});
 
         const moveRequest = store.dispatch(Actions.moveChannelsToCategory(favoritesCategory.id, ['channel1'], 0));
 
@@ -1411,7 +1367,7 @@ describe('moveChannelsToCategory', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
+            put(`/users/${currentUserId}/teams/${teamId}/channels/categories/${favoritesCategory.id}`).
             delayBody(100).
             reply(400);
 

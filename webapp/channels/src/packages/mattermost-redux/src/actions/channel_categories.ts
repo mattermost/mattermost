@@ -243,11 +243,12 @@ export function moveChannelToCategory(categoryId: string, channelId: string, new
         }
 
         // Add the channel to the new category
-        const categories = [{
+        const updatedTargetCategory = {
             ...targetCategory,
             sorting,
             channel_ids: insertWithoutDuplicates(targetCategory.channel_ids, channelId, newIndex),
-        }];
+        };
+        const categories = [updatedTargetCategory];
 
         // And remove it from the old category
         const sourceCategory = getCategoryInTeamWithChannel(getState(), targetCategory.team_id, channelId);
@@ -264,7 +265,7 @@ export function moveChannelToCategory(categoryId: string, channelId: string, new
         });
 
         try {
-            await Client4.updateChannelCategories(currentUserId, targetCategory.team_id, categories);
+            await Client4.updateChannelCategory(currentUserId, targetCategory.team_id, updatedTargetCategory);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -301,12 +302,13 @@ export function moveChannelsToCategory(categoryId: string, channelIds: string[],
         }
 
         // Add the channels to the new category
+        const updatedTargetCategory = {
+            ...targetCategory,
+            sorting,
+            channel_ids: insertMultipleWithoutDuplicates(targetCategory.channel_ids, channelIds, newIndex),
+        };
         let categories = {
-            [targetCategory.id]: {
-                ...targetCategory,
-                sorting,
-                channel_ids: insertMultipleWithoutDuplicates(targetCategory.channel_ids, channelIds, newIndex),
-            },
+            [targetCategory.id]: updatedTargetCategory,
         };
 
         // Needed if we have to revert categories and for checking for favourites
@@ -343,7 +345,7 @@ export function moveChannelsToCategory(categoryId: string, channelIds: string[],
         });
 
         try {
-            await Client4.updateChannelCategories(currentUserId, targetCategory.team_id, categoriesArray);
+            await Client4.updateChannelCategory(currentUserId, targetCategory.team_id, updatedTargetCategory);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
