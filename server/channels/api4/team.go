@@ -151,7 +151,16 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (!team.AllowOpenInvite || team.Type != model.TeamOpen) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+	isPublicTeam := team.AllowOpenInvite && team.Type == model.TeamOpen
+	hasPermissionViewTeam := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam)
+
+	if !isPublicTeam && !hasPermissionViewTeam {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	if isPublicTeam && !hasPermissionViewTeam && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPublicTeams) {
+		// Fail with PermissionViewTeam, not PermissionListPublicTeams.
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
@@ -1660,7 +1669,6 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	team, err := c.App.GetTeam(c.Params.TeamId)
-
 	if err != nil {
 		c.Err = err
 		return
@@ -1738,7 +1746,7 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	imageData := imageArray[0]
 
-	if err := c.App.SetTeamIcon(c.Params.TeamId, imageData); err != nil {
+	if err := c.App.SetTeamIcon(c.AppContext, c.Params.TeamId, imageData); err != nil {
 		c.Err = err
 		return
 	}
