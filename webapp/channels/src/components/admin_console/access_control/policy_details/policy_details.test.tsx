@@ -30,6 +30,9 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
     const mockAssignChannelsToAccessControlPolicy = jest.fn();
     const mockUnassignChannelsFromAccessControlPolicy = jest.fn();
     const mockGetAccessControlExpressionAutocomplete = jest.fn();
+    const mockGetAccessControlFields = jest.fn();
+    const mockCreateJob = jest.fn();
+    const mockUpdateAccessControlPolicyActive = jest.fn();
 
     const defaultProps = {
         policyId: 'policy1',
@@ -58,6 +61,9 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             assignChannelsToAccessControlPolicy: mockAssignChannelsToAccessControlPolicy,
             unassignChannelsFromAccessControlPolicy: mockUnassignChannelsFromAccessControlPolicy,
             getAccessControlExpressionAutocomplete: mockGetAccessControlExpressionAutocomplete,
+            getAccessControlFields: mockGetAccessControlFields,
+            createJob: mockCreateJob,
+            updateAccessControlPolicyActive: mockUpdateAccessControlPolicyActive,
         },
     };
 
@@ -76,6 +82,9 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         mockAssignChannelsToAccessControlPolicy.mockReset();
         mockUnassignChannelsFromAccessControlPolicy.mockReset();
         mockGetAccessControlExpressionAutocomplete.mockReset();
+        mockGetAccessControlFields.mockReset();
+        mockCreateJob.mockReset();
+        mockUpdateAccessControlPolicyActive.mockReset();
     });
 
     test('should match snapshot with new policy', () => {

@@ -13,7 +13,7 @@ type Props = {
     channelsAffected: number;
 }
 
-export default function PolicyConfirmationModal({onExited, onConfirm, channelsAffected,}: Props) {
+export default function PolicyConfirmationModal({onExited, onConfirm, channelsAffected}: Props) {
     const {formatMessage} = useIntl();
     const [enforceImmediately, setEnforceImmediately] = useState(true);
 
@@ -33,14 +33,14 @@ export default function PolicyConfirmationModal({onExited, onConfirm, channelsAf
                             />
                         </div>
                         <div className='close-icon-container'>
-                        <i
-                            className='icon icon-close'
-                            onClick={onExited}
-                            aria-label='Close'
-                            role='button'
-                            tabIndex={0}
-                        />
-                    </div>
+                            <i
+                                className='icon icon-close'
+                                onClick={onExited}
+                                aria-label='Close'
+                                role='button'
+                                tabIndex={0}
+                            />
+                        </div>
                     </div>
                     <div className='modal-header-subheader'>
                         <FormattedMessage
