@@ -3,7 +3,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw, pages}) => {
+test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -11,7 +11,7 @@ test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 10 random users
     for (let i = 0; i < 10; i++) {
@@ -19,7 +19,6 @@ test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw
     }
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
@@ -48,7 +47,7 @@ test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw
     expect(firstRowEmailWithoutSort).not.toBe(firstRowEmailWithSort);
 });
 
-test('MM-T5523-2 Non sortable columns should not sort the list when clicked', async ({pw, pages}) => {
+test('MM-T5523-2 Non sortable columns should not sort the list when clicked', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -56,7 +55,7 @@ test('MM-T5523-2 Non sortable columns should not sort the list when clicked', as
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 10 random users
     for (let i = 0; i < 10; i++) {
@@ -64,7 +63,6 @@ test('MM-T5523-2 Non sortable columns should not sort the list when clicked', as
     }
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 

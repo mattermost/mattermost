@@ -21,6 +21,12 @@ export default class SystemConsolePage {
     readonly systemUsersDateRangeMenu;
     readonly systemUsersColumnToggleMenu;
     readonly systemUsersActionMenus;
+
+    readonly featureDiscovery;
+
+    // modal
+    readonly confirmModal;
+    readonly exportModal;
     readonly saveChangesModal;
 
     constructor(page: Page) {
@@ -32,9 +38,6 @@ export default class SystemConsolePage {
 
         // Sections and sub-sections
         this.systemUsers = new components.SystemUsers(page.getByTestId('systemUsersSection'));
-        this.mobileSecurity = new components.SystemConsoleMobileSecurity(
-            page.getByTestId('sysconsole_section_MobileSecuritySettings'),
-        );
         this.featureDiscovery = new components.SystemConsoleFeatureDiscovery(page.getByTestId('featureDiscovery'));
 
         // Menus & Popovers
@@ -52,6 +55,9 @@ export default class SystemConsolePage {
         this.systemUsersActionMenus = Array.from(Array(10).keys()).map(
             (index) => new components.SystemUsersFilterMenu(page.locator(`#actionMenu-systemUsersTable-${index}`)),
         );
+
+        this.confirmModal = new components.GenericConfirmModal(page.locator('#confirmModal'));
+        this.exportModal = new components.GenericConfirmModal(page.getByRole('dialog', {name: 'Export user data'}));
         this.saveChangesModal = new components.SystemUsers(page.locator('div.modal-content'));
     }
 

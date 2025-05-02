@@ -3,11 +3,10 @@
 
 import {test} from '@mattermost/playwright-lib';
 
-test('/landing#/login', async ({pw, pages, page, isMobile, browserName, viewport}, testInfo) => {
+test('/landing#/login', async ({pw, page, browserName, viewport}, testInfo) => {
     // Go to landing login page
-    const landingLoginPage = new pages.LandingLoginPage(page, isMobile);
-    await landingLoginPage.goto();
-    await landingLoginPage.toBeVisible();
+    await pw.landingLoginPage.goto();
+    await pw.landingLoginPage.toBeVisible();
 
     // Match snapshot of landing page
     await pw.matchSnapshot(testInfo, {page, browserName, viewport});

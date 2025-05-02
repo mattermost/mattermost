@@ -20,9 +20,7 @@ async function interceptConfigWithLandingPage(page: Page, enabled: boolean) {
     });
 }
 
-test('MM-T5640_1 should not see landing page ', async ({pw, pages, page}) => {
-    const {adminClient} = await pw.getAdminClient();
-    const adminConfig = await adminClient.getConfig();
+test('MM-T5640_1 should not see landing page ', async ({pw, page}) => {
     await interceptConfigWithLandingPage(page, false);
 
     // Navigate to your starting URL
@@ -35,16 +33,11 @@ test('MM-T5640_1 should not see landing page ', async ({pw, pages, page}) => {
     expect(page.url()).toContain('/login');
 
     // Verify the login page is visible
-    const loginPage = new pages.LoginPage(page, adminConfig);
-    await loginPage.toBeVisible();
+    await pw.loginPage.toBeVisible();
 });
 
-test('MM-T5640_2 should see landing page', async ({pages, isMobile, page}) => {
+test('MM-T5640_2 should see landing page', async ({pw, page}) => {
     // Navigate to your starting URL
-    await page.goto('/');
-
-    await page.evaluate(() => localStorage.clear());
-
     await page.goto('/');
 
     // Wait until the URL contains '/landing'
@@ -54,6 +47,5 @@ test('MM-T5640_2 should see landing page', async ({pages, isMobile, page}) => {
     expect(page.url()).toContain('/landing');
 
     // Verify the landing page is visible
-    const landingLoginPage = new pages.LandingLoginPage(page, isMobile);
-    await landingLoginPage.toBeVisible();
+    await pw.landingLoginPage.toBeVisible();
 });

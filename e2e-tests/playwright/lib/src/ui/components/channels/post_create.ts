@@ -30,7 +30,7 @@ export default class ChannelsPostCreate {
             this.input = container.getByTestId('reply_textbox');
         }
 
-        this.attachmentButton = container.getByLabel('attachment');
+        this.attachmentButton = container.locator('#fileUploadButton');
         this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.getByTestId('SendMessageButton');
         this.scheduleDraftMessageButton = container.getByLabel('Schedule message');

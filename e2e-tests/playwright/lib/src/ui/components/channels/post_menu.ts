@@ -47,4 +47,11 @@ export default class PostMenu {
         await this.dotMenuButton.waitFor();
         await this.dotMenuButton.click();
     }
+
+    /**
+     * Clicks on dot menu button.
+     */
+    async clickOnDotMenu() {
+        await this.dotMenuButton.click();
+    }
 }

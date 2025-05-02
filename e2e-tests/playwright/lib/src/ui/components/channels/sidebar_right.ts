@@ -13,17 +13,21 @@ export default class ChannelsSidebarRight {
     readonly closeButton;
     readonly postCreate;
     readonly rhsPostBody;
-    readonly scheduledDraftChannelInfo;
+    readonly postBoxIndicator;
     readonly scheduledDraftChannelInfoMessage;
     readonly scheduledDraftSeeAllLink;
     readonly scheduledDraftChannelInfoMessageText;
+    readonly editTextbox;
+    readonly postEdit;
+    readonly currentVersionEditedPosttext;
+    readonly restorePreviousPostVersionIcon;
 
     constructor(container: Locator) {
         this.container = container;
 
-        this.scheduledDraftChannelInfo = container.locator('div.postBoxIndicator');
+        this.postBoxIndicator = container.locator('div.postBoxIndicator');
         this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
-        this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all scheduled messages")');
+        this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all")');
         this.scheduledDraftChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
         this.rhsPostBody = container.locator('.post-message__text');
         this.postCreate = new ChannelsPostCreate(container.getByTestId('comment-create'), true);
@@ -83,5 +87,18 @@ export default class ChannelsSidebarRight {
     async clickOnSeeAllscheduledDrafts() {
         await this.scheduledDraftSeeAllLink.isVisible();
         await this.scheduledDraftSeeAllLink.click();
+    }
+
+    async toContainText(text: string) {
+        await expect(this.container).toContainText(text);
+    }
+
+    async verifyCurrentVersionPostMessage(postID: string | null, postMessageContent: string) {
+        expect(await this.currentVersionEditedPosttext(postID).textContent()).toBe(postMessageContent);
+    }
+
+    async restorePreviousPostVersion() {
+        await this.restorePreviousPostVersionIcon.isVisible();
+        await this.restorePreviousPostVersionIcon.click();
     }
 }

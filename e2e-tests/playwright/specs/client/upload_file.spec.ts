@@ -20,7 +20,7 @@ const filename = 'mattermost-icon_128x128.png';
 const file = getFileFromAsset(filename);
 const blob = getBlobFromAsset(filename);
 
-test.beforeAll(async ({pw}) => {
+test.beforeEach(async ({pw}) => {
     ({userClient, user, team} = await pw.initSetup());
     townSquareChannel = await userClient.getChannelByName(team.id, 'town-square');
 });

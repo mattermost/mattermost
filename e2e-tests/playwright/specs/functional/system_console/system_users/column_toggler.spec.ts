@@ -3,7 +3,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test('MM-T5523-3 Should list the column names with checkboxes in the correct order', async ({pw, pages}) => {
+test('MM-T5523-3 Should list the column names with checkboxes in the correct order', async ({pw}) => {
     const {adminUser} = await pw.initSetup();
 
     if (!adminUser) {
@@ -11,10 +11,9 @@ test('MM-T5523-3 Should list the column names with checkboxes in the correct ord
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
@@ -45,7 +44,7 @@ test('MM-T5523-3 Should list the column names with checkboxes in the correct ord
     ]);
 });
 
-test('MM-T5523-4 Should allow certain columns to be checked and others to be disabled', async ({pw, pages}) => {
+test('MM-T5523-4 Should allow certain columns to be checked and others to be disabled', async ({pw}) => {
     const {adminUser} = await pw.initSetup();
 
     if (!adminUser) {
@@ -53,10 +52,9 @@ test('MM-T5523-4 Should allow certain columns to be checked and others to be dis
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
@@ -81,7 +79,7 @@ test('MM-T5523-4 Should allow certain columns to be checked and others to be dis
     expect(emailMenuItem).not.toBeDisabled();
 });
 
-test('MM-T5523-5 Should show/hide the columns which are toggled on/off', async ({pw, pages}) => {
+test('MM-T5523-5 Should show/hide the columns which are toggled on/off', async ({pw}) => {
     const {adminUser} = await pw.initSetup();
 
     if (!adminUser) {
@@ -89,10 +87,9 @@ test('MM-T5523-5 Should show/hide the columns which are toggled on/off', async (
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 

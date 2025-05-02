@@ -3,7 +3,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test.fixme('MM-T5522 Should begin export of data when export button is pressed', async ({pw, pages}) => {
+test.fixme('MM-T5522 Should begin export of data when export button is pressed', async ({pw}) => {
     test.slow();
 
     // # Skip test if no license
@@ -15,10 +15,9 @@ test.fixme('MM-T5522 Should begin export of data when export button is pressed',
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {page, channelsPage, systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
@@ -32,8 +31,7 @@ test.fixme('MM-T5522 Should begin export of data when export button is pressed',
 
     // # Click Export button and confirm the modal
     await systemConsolePage.systemUsers.exportButton.click();
-    const confirmModal = new components.GenericConfirmModal(page, 'exportUserDataModal');
-    await confirmModal.confirm();
+    await systemConsolePage.exportModal.confirm();
 
     // # Change the export pw.duration to all time
     await systemConsolePage.systemUsers.dateRangeSelectorMenuButton.click();
@@ -41,24 +39,22 @@ test.fixme('MM-T5522 Should begin export of data when export button is pressed',
 
     // # Click Export button and confirm the modal
     await systemConsolePage.systemUsers.exportButton.click();
-    await confirmModal.confirm();
+    await systemConsolePage.exportModal.confirm();
 
     // # Click Export again button and confirm the modal
     await systemConsolePage.systemUsers.exportButton.click();
-    await confirmModal.confirm();
+    await systemConsolePage.exportModal.confirm();
 
     // * Verify that we are told that one is already running
     expect(page.getByText('Export is in progress')).toBeVisible();
 
     // # Go back to Channels and open the system bot DM
-    const channelsPage = new pages.ChannelsPage(page);
     channelsPage.goto('ad-1/messages', '@system-bot');
     await channelsPage.centerView.toBeVisible();
 
     // * Verify that we have started the export and that the second one is running second
-    const lastPost = await channelsPage.centerView.getLastPost();
-    const postText = await lastPost.body.innerText();
-    expect(postText).toContain('export of user data for the last 30 days');
+    const lastPost = await channelsPage.getLastPost();
+    await lastPost.toContain('export of user data for the last 30 days');
 
     // * Wait until the first export finishes
     await channelsPage.centerView.waitUntilLastPostContains('contains user data for all time', pw.duration.half_min);

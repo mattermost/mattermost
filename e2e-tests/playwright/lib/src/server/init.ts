@@ -20,6 +20,9 @@ export async function initSetup({
     try {
         // Login the admin user via API
         const {adminClient, adminUser} = await getAdminClient();
+        if (!adminUser) {
+            throw new Error('Failed to setup admin: Admin user not found.');
+        }
         if (!adminClient) {
             throw new Error(
                 "Failed to setup admin: Check that you're able to access the server using the same admin credential.",
@@ -49,12 +52,6 @@ export async function initSetup({
         // Update user preference
         const preferences: PreferenceType[] = [
             {user_id: user.id, category: 'tutorial_step', name: user.id, value: '999'},
-            {
-                user_id: user.id,
-                category: 'drafts',
-                name: 'drafts_tour_tip_showed',
-                value: JSON.stringify({drafts_tour_tip_showed: true}),
-            },
             {user_id: user.id, category: 'crt_thread_pane_step', name: user.id, value: '999'},
         ];
         await userClient.savePreferences(user.id, preferences);

@@ -3,7 +3,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test('MM-T5139: Message Priority - Standard message priority and system setting', async ({pw, pages}) => {
+test('MM-T5139: Message Priority - Standard message priority and system setting', async ({pw}) => {
     // # Setup test environment
     const {user} = await pw.initSetup();
 
@@ -11,12 +11,11 @@ test('MM-T5139: Message Priority - Standard message priority and system setting'
     const {channelsPage} = await pw.testBrowser.login(user);
 
     // # Visit default channel page
-    const channelPage = new pages.ChannelsPage(page);
-    await channelPage.goto();
-    await channelPage.toBeVisible();
+    await channelsPage.goto();
+    await channelsPage.toBeVisible();
 
     // Open menu
-    await channelPage.centerView.postCreate.openPriorityMenu();
+    await channelsPage.centerView.postCreate.openPriorityMenu();
 
     // Use messagePriority for dialog interactions
     await channelsPage.messagePriority.verifyPriorityDialog();
@@ -26,24 +25,24 @@ test('MM-T5139: Message Priority - Standard message priority and system setting'
     await channelsPage.messagePriority.closePriorityMenu();
 
     const testMessage = 'This is just a test message';
-    await channelPage.postMessage(testMessage);
+    await channelsPage.postMessage(testMessage);
 
     // # Verify message posts without priority label
-    const lastPost = await channelPage.centerView.getLastPost();
+    const lastPost = await channelsPage.getLastPost();
     await lastPost.toBeVisible();
     await lastPost.toContainText(testMessage);
     await expect(lastPost.container.locator('.post-priority')).not.toBeVisible();
 
     // # Open post in RHS and verify
     await lastPost.container.click();
-    await channelPage.sidebarRight.toBeVisible();
+    await channelsPage.sidebarRight.toBeVisible();
 
     // # Get RHS post and verify content
-    const rhsPost = await channelPage.sidebarRight.getLastPost();
+    const rhsPost = await channelsPage.sidebarRight.getLastPost();
     await rhsPost.toBeVisible();
     await rhsPost.toContainText(testMessage);
     await expect(rhsPost.container.locator('.post-priority')).not.toBeVisible();
 
     // # Verify RHS formatting bar doesn't have priority button
-    await expect(channelPage.sidebarRight.postCreate.priorityButton).not.toBeVisible();
+    await expect(channelsPage.sidebarRight.postCreate.priorityButton).not.toBeVisible();
 });

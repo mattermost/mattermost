@@ -17,7 +17,7 @@ async function setupAndGetRandomUser(pw: PlaywrightExtended) {
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create a random user to edit for
     const user = await adminClient.createUser(pw.random.user(), '', '');
@@ -25,7 +25,6 @@ async function setupAndGetRandomUser(pw: PlaywrightExtended) {
     await adminClient.addToTeam(team.id, user.id);
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
@@ -43,8 +42,8 @@ async function setupAndGetRandomUser(pw: PlaywrightExtended) {
     return {getUser: () => adminClient.getUser(user.id), systemConsolePage};
 }
 
-test('MM-T5520-1 should activate and deactivate users', async ({pw, pages}) => {
-    const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw, pages);
+test('MM-T5520-1 should activate and deactivate users', async ({pw}) => {
+    const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw);
 
     // # Open menu and deactivate the user
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
@@ -52,8 +51,7 @@ test('MM-T5520-1 should activate and deactivate users', async ({pw, pages}) => {
     await deactivate.click();
 
     // # Press confirm on the modal
-    const confirmModal = new components.GenericConfirmModal(systemConsolePage.page);
-    await confirmModal.confirm();
+    await systemConsolePage.confirmModal.confirm();
 
     // * Verify user is deactivated
     const firstRow = await systemConsolePage.systemUsers.getNthRow(1);
@@ -71,8 +69,8 @@ test('MM-T5520-1 should activate and deactivate users', async ({pw, pages}) => {
     expect(await firstRow.innerText()).toContain('Member');
 });
 
-test('MM-T5520-2 should change user roles', async ({pw, pages}) => {
-    const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw, pages);
+test('MM-T5520-2 should change user roles', async ({pw}) => {
+    const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw);
 
     // # Open menu and click Manage roles
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
@@ -112,8 +110,8 @@ test('MM-T5520-2 should change user roles', async ({pw, pages}) => {
     expect((await getUser()).roles).toContain('system_user');
 });
 
-test('MM-T5520-3 should be able to manage teams', async ({pw, pages}) => {
-    const {systemConsolePage} = await setupAndGetRandomUser(pw, pages);
+test('MM-T5520-3 should be able to manage teams', async ({pw}) => {
+    const {systemConsolePage} = await setupAndGetRandomUser(pw);
 
     // # Open menu and click Manage teams
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
@@ -148,8 +146,8 @@ test('MM-T5520-3 should be able to manage teams', async ({pw, pages}) => {
     expect(team).not.toBeVisible();
 });
 
-test('MM-T5520-4 should reset the users password', async ({pw, pages}) => {
-    const {systemConsolePage} = await setupAndGetRandomUser(pw, pages);
+test('MM-T5520-4 should reset the users password', async ({pw}) => {
+    const {systemConsolePage} = await setupAndGetRandomUser(pw);
 
     // # Open menu and click Reset Password
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
@@ -188,8 +186,8 @@ test('MM-T5520-5 should change the users email', async ({pw}) => {
     expect((await getUser()).email).toEqual(newEmail);
 });
 
-test('MM-T5520-6 should revoke sessions', async ({pw, pages}) => {
-    const {systemConsolePage} = await setupAndGetRandomUser(pw, pages);
+test('MM-T5520-6 should revoke sessions', async ({pw}) => {
+    const {systemConsolePage} = await setupAndGetRandomUser(pw);
 
     // # Open menu and revoke sessions
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
@@ -197,8 +195,7 @@ test('MM-T5520-6 should revoke sessions', async ({pw, pages}) => {
     await removeSessions.click();
 
     // # Press confirm on the modal
-    const confirmModal = new components.GenericConfirmModal(systemConsolePage.page);
-    await confirmModal.confirm();
+    await systemConsolePage.confirmModal.confirm();
 
     const firstRow = await systemConsolePage.systemUsers.getNthRow(1);
     expect(await firstRow.innerHTML()).not.toContain('class="error"');

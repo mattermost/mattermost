@@ -3,18 +3,17 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test.fixme('Base channel accessibility', async ({pw, pages, axe}) => {
+test.fixme('Base channel accessibility', async ({pw, axe}) => {
     // # Create and sign in a new user
     const {user} = await pw.initSetup();
 
     // # Log in a user in new browser context
-    const {page} = await pw.testBrowser.login(user);
+    const {page, channelsPage} = await pw.testBrowser.login(user);
 
     // # Visit a default channel page
-    const channelsPage = new pages.ChannelsPage(page);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.postMessage('hello');
+    await channelsPage.centerView.postCreate.postMessage('hello');
 
     // # Analyze the page
     // Disable 'color-contrast' to be addressed by MM-53814
@@ -24,20 +23,19 @@ test.fixme('Base channel accessibility', async ({pw, pages, axe}) => {
     expect(accessibilityScanResults.violations).toHaveLength(0);
 });
 
-test('Post actions tab support', async ({pw, pages, axe}) => {
+test('Post actions tab support', async ({pw, axe}) => {
     // # Create and sign in a new user
     const {user, adminClient} = await pw.initSetup();
     const config = await adminClient.getConfig();
     const license = await adminClient.getClientLicenseOld();
 
     // # Log in a user in new browser context
-    const {page} = await pw.testBrowser.login(user);
+    const {page, channelsPage} = await pw.testBrowser.login(user);
 
     // # Visit a default channel page
-    const channelsPage = new pages.ChannelsPage(page);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await channelsPage.postMessage('hello');
+    await channelsPage.centerView.postCreate.postMessage('hello');
 
     const post = await channelsPage.centerView.getLastPost();
     await post.hover();

@@ -18,6 +18,7 @@ import {
 } from './flag';
 import {getBlobFromAsset, getFileFromAsset} from './file';
 import {
+    createNewUserProfile,
     createRandomChannel,
     createRandomPost,
     createRandomTeam,
@@ -36,7 +37,6 @@ export {expect} from '@playwright/test';
 export type ExtendedFixtures = {
     axe: AxeBuilderExtended;
     pw: PlaywrightExtended;
-    pages: typeof pages;
 };
 
 type AxeBuilderOptions = {
@@ -50,14 +50,10 @@ export const test = base.extend<ExtendedFixtures>({
         const ab = new AxeBuilderExtended();
         await use(ab);
     },
-    pw: async ({browser}, use) => {
-        const pw = new PlaywrightExtended(browser);
+    pw: async ({browser, page, isMobile}, use) => {
+        const pw = new PlaywrightExtended(browser, page, isMobile);
         await use(pw);
         await pw.testBrowser.close();
-    },
-    // eslint-disable-next-line no-empty-pattern
-    pages: async ({}, use) => {
-        await use(pages);
     },
 });
 
@@ -72,6 +68,7 @@ export class PlaywrightExtended {
     readonly ensureLicense;
     readonly ensureServerDeployment;
     readonly skipIfNoLicense;
+    readonly skipIfFeatureFlagNotSet;
 
     // ./file
     readonly getBlobFromAsset;
@@ -90,6 +87,9 @@ export class PlaywrightExtended {
     // ./mock_browser_api
     readonly stubNotification;
     readonly waitForNotification;
+
+    // ./server
+    readonly createNewUserProfile;
 
     // ./visual
     readonly matchSnapshot;
@@ -121,6 +121,7 @@ export class PlaywrightExtended {
         this.ensureLicense = ensureLicense;
         this.ensureServerDeployment = ensureServerDeployment;
         this.skipIfNoLicense = skipIfNoLicense;
+        this.skipIfFeatureFlagNotSet = skipIfFeatureFlagNotSet;
 
         // ./file
         this.getBlobFromAsset = getBlobFromAsset;
@@ -136,12 +137,18 @@ export class PlaywrightExtended {
         this.waitForAnimationEnd = waitForAnimationEnd;
         this.waitUntil = waitUntil;
 
-        // ./ui/pages
-        this.pages = pages;
+        // unauthenticated page
+        this.loginPage = new pages.LoginPage(page);
+        this.landingLoginPage = new pages.LandingLoginPage(page, isMobile);
+        this.signupPage = new pages.SignupPage(page);
+        this.resetPasswordPage = new pages.ResetPasswordPage(page);
 
         // ./mock_browser_api
         this.stubNotification = stubNotification;
         this.waitForNotification = waitForNotification;
+
+        // ./server
+        this.createNewUserProfile = createNewUserProfile;
 
         // ./visual
         this.matchSnapshot = matchSnapshot;
@@ -206,4 +213,21 @@ export class AxeBuilderExtended {
 
         return JSON.stringify(fingerprints, null, 2);
     }
+}
+
+async function waitUntilLocalStorageIsSet(page: Page, key: string, value: string, timeout = duration.ten_sec) {
+    await waitUntil(
+        () =>
+            page.evaluate(
+                ({key, value}) => {
+                    if (localStorage.getItem(key) === value) {
+                        return true;
+                    }
+                    localStorage.setItem(key, value);
+                    return false;
+                },
+                {key, value},
+            ),
+        {timeout},
+    );
 }

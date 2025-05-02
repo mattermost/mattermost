@@ -15,11 +15,10 @@ export default class GenericConfirmModal {
     readonly confirmButton: Locator;
     readonly cancelButton: Locator;
 
-    constructor(page: Page, id?: string) {
-        const modalId = `#confirmModal ${id}`.trim();
-        this.container = page.locator(modalId);
-        this.confirmButton = page.locator('#confirmModalButton');
-        this.cancelButton = page.locator('#cancelModalButton');
+    constructor(container: Locator) {
+        this.container = container;
+        this.confirmButton = container.locator('#confirmModalButton');
+        this.cancelButton = container.locator('#cancelModalButton');
     }
 
     async toBeVisible() {

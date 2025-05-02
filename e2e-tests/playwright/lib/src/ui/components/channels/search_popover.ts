@@ -12,6 +12,7 @@ export default class SearchPopover {
     readonly searchBoxClose;
     readonly selectedSuggestion;
     readonly searchHints;
+    readonly clearButton;
 
     constructor(container: Locator) {
         this.container = container;
@@ -22,6 +23,16 @@ export default class SearchPopover {
         this.searchBoxClose = container.getByTestId('searchBoxClose');
         this.selectedSuggestion = container.locator('.suggestion--selected').locator('.suggestion-list__main');
         this.searchHints = container.locator('#searchHints');
+        this.clearButton = container.locator('.input-clear-x');
+    }
+
+    // clearIfPossible clears the search input if the clear button is visible. Returns true if the clear button was clicked.
+    async clearIfPossible() {
+        if (await this.clearButton.isVisible()) {
+            await this.clearButton.click();
+            return true;
+        }
+        return false;
     }
 
     async toBeVisible() {
