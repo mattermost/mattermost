@@ -485,7 +485,7 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 	}
 
 	if err := db.Select(&channels, sql, args...); err != nil {
-		return nil, store.NewErrNotFound("ChannelMembers", "<too many fields>").Wrap(err)
+		return nil, errors.Wrap(err, "failed to get channel members")
 	}
 
 	category.Channels = append(channels, category.Channels...)
@@ -506,7 +506,7 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 
 	categories := []*sidebarCategoryForJoin{}
 	if err = s.GetReplica().Select(&categories, sql, args...); err != nil {
-		return nil, store.NewErrNotFound("SidebarCategories", categoryId).Wrap(err)
+		return nil, errors.Wrap(err, fmt.Sprintf("failed to get category with id=%s", categoryId))
 	}
 
 	if len(categories) == 0 {
@@ -563,7 +563,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 	}
 
 	if err := db.Select(&categories, sql, args...); err != nil {
-		return nil, store.NewErrNotFound("SidebarCategories", fmt.Sprintf("userId=%s,teamId=%s", userId, opts.TeamID)).Wrap(err)
+		return nil, errors.Wrap(err, fmt.Sprintf("failed to get categories for userId=%s, teamId=%s", userId, opts.TeamID))
 	}
 
 	for _, category := range categories {
@@ -624,7 +624,7 @@ func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]strin
 	}
 
 	if err := s.GetReplica().Select(&ids, sql, args...); err != nil {
-		return nil, store.NewErrNotFound("SidebarCategories", fmt.Sprintf("userId=%s,teamId=%s", userId, teamId)).Wrap(err)
+		return nil, errors.Wrap(err, fmt.Sprintf("failed to get category order for userId=%s, teamId=%s", userId, teamId))
 	}
 
 	return ids, nil

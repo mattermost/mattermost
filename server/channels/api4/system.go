@@ -83,13 +83,8 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	const FileMime = "application/zip"
 	const OutputDirectory = "support_packet"
 
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("generateSupportPacket", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-		return
-	}
-
 	// Support Packet generation is limited to system admins (MM-42271).
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
@@ -262,13 +257,8 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestEmail) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionTestEmail) {
 		c.SetPermissionError(model.PermissionTestEmail)
-		return
-	}
-
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("testEmail", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -282,13 +272,8 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestSiteURL) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionTestSiteURL) {
 		c.SetPermissionError(model.PermissionTestSiteURL)
-		return
-	}
-
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("testSiteURL", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -333,18 +318,13 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRecycleDatabaseConnections) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionRecycleDatabaseConnections) {
 		c.SetPermissionError(model.PermissionRecycleDatabaseConnections)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("databaseRecycle", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("databaseRecycle", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-		return
-	}
 
 	c.App.RecycleDatabaseConnection(c.AppContext)
 
@@ -353,18 +333,13 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionInvalidateCaches) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionInvalidateCaches) {
 		c.SetPermissionError(model.PermissionInvalidateCaches)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("invalidateCaches", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("invalidateCaches", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-		return
-	}
 
 	appErr := c.App.Srv().InvalidateAllCaches()
 	if appErr != nil {
@@ -382,12 +357,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("queryLogs", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("queryLogs", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetLogs) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
 		c.SetPermissionError(model.PermissionGetLogs)
 		return
 	}
@@ -430,12 +400,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("getLogs", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("getLogs", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetLogs) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
 		c.SetPermissionError(model.PermissionGetLogs)
 		return
 	}
@@ -457,11 +422,8 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("downloadLogs", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("downloadLogs", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-		return
-	}
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetLogs) {
+
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
 		c.SetPermissionError(model.PermissionGetLogs)
 		return
 	}
@@ -563,8 +525,8 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("latestVersion", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
@@ -1034,7 +996,6 @@ func getOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	firstAdminCompleteSetupObj, err := c.App.GetOnboarding()
-
 	if err != nil {
 		c.Err = model.NewAppError("getOnboarding", "app.system.get_onboarding_request.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return

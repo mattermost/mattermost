@@ -267,7 +267,7 @@ describe('Authentication', () => {
         cy.postMessage('hello');
 
         // # Open team menu and click on "Invite People"
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Click invite members if needed
         cy.findByText('Copy invite link').click();

@@ -4,6 +4,8 @@
 package properties
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -32,8 +34,8 @@ func (ps *PropertyService) SearchPropertyFields(groupID, targetID string, opts m
 	return ps.fieldStore.SearchPropertyFields(opts)
 }
 
-func (ps *PropertyService) UpdatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
-	fields, err := ps.UpdatePropertyFields([]*model.PropertyField{field})
+func (ps *PropertyService) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
+	fields, err := ps.UpdatePropertyFields(groupID, []*model.PropertyField{field})
 	if err != nil {
 		return nil, err
 	}
@@ -41,13 +43,21 @@ func (ps *PropertyService) UpdatePropertyField(field *model.PropertyField) (*mod
 	return fields[0], nil
 }
 
-func (ps *PropertyService) UpdatePropertyFields(fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	return ps.fieldStore.Update(fields)
+func (ps *PropertyService) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+	return ps.fieldStore.Update(groupID, fields)
 }
 
-func (ps *PropertyService) DeletePropertyField(id string) error {
+func (ps *PropertyService) DeletePropertyField(groupID, id string) error {
+	// if groupID is not empty, we need to check first that the field belongs to the group
+	if groupID != "" {
+		if _, err := ps.GetPropertyField(groupID, id); err != nil {
+			return fmt.Errorf("error getting property field %q for group %q: %w", id, groupID, err)
+		}
+	}
+
 	if err := ps.valueStore.DeleteForField(id); err != nil {
 		return err
 	}
-	return ps.fieldStore.Delete(id)
+
+	return ps.fieldStore.Delete(groupID, id)
 }

@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 type PropertyFieldType string
@@ -35,8 +34,8 @@ type PropertyField struct {
 	DeleteAt   int64             `json:"delete_at"`
 }
 
-func (pf *PropertyField) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (pf *PropertyField) Auditable() map[string]any {
+	return map[string]any{
 		"id":          pf.ID,
 		"group_id":    pf.GroupID,
 		"name":        pf.Name,
@@ -94,10 +93,6 @@ func (pf *PropertyField) IsValid() error {
 	return nil
 }
 
-func (pf *PropertyField) SanitizeInput() {
-	pf.Name = strings.TrimSpace(pf.Name)
-}
-
 type PropertyFieldPatch struct {
 	Name       *string            `json:"name"`
 	Type       *PropertyFieldType `json:"type"`
@@ -106,8 +101,8 @@ type PropertyFieldPatch struct {
 	TargetType *string            `json:"target_type"`
 }
 
-func (pfp *PropertyFieldPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (pfp *PropertyFieldPatch) Auditable() map[string]any {
+	return map[string]any{
 		"name":        pfp.Name,
 		"type":        pfp.Type,
 		"attrs":       pfp.Attrs,
@@ -116,10 +111,22 @@ func (pfp *PropertyFieldPatch) Auditable() map[string]interface{} {
 	}
 }
 
-func (pfp *PropertyFieldPatch) SanitizeInput() {
-	if pfp.Name != nil {
-		pfp.Name = NewPointer(strings.TrimSpace(*pfp.Name))
+func (pfp *PropertyFieldPatch) IsValid() error {
+	if pfp.Name != nil && *pfp.Name == "" {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value cannot be empty"}, "", http.StatusBadRequest)
 	}
+
+	if pfp.Type != nil &&
+		*pfp.Type != PropertyFieldTypeText &&
+		*pfp.Type != PropertyFieldTypeSelect &&
+		*pfp.Type != PropertyFieldTypeMultiselect &&
+		*pfp.Type != PropertyFieldTypeDate &&
+		*pfp.Type != PropertyFieldTypeUser &&
+		*pfp.Type != PropertyFieldTypeMultiuser {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 func (pf *PropertyField) Patch(patch *PropertyFieldPatch) {

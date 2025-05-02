@@ -3,14 +3,11 @@
 exports[`components/QuickSwitchModal should match snapshot 1`] = `
 <GenericModal
   ariaLabel="Find Channels"
-  autoCloseOnCancelButton={true}
-  autoCloseOnConfirmButton={true}
   bodyPadding={false}
   className="a11y__modal channel-switcher"
   compassDesign={true}
   enforceFocus={false}
   id="quickSwitchModal"
-  keyboardEscape={true}
   modalHeaderText={
     <div
       className="channel-switcher__header"
@@ -25,7 +22,6 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
       </h2>
     </div>
   }
-  modalLocation="center"
   modalSubheaderText={
     <div
       className="channel-switcher__hint"
@@ -45,8 +41,6 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
   onExited={[Function]}
   onHide={[Function]}
   show={true}
-  showCloseButton={true}
-  showHeader={true}
 >
   <div
     className="channel-switcher__suggestion-box"

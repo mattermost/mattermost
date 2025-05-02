@@ -123,11 +123,38 @@ func TestPropertyField_IsValid(t *testing.T) {
 	})
 }
 
-func TestPropertyField_SanitizeInput(t *testing.T) {
-	t.Run("trims spaces from name", func(t *testing.T) {
-		pf := &PropertyField{Name: "  test field  "}
-		pf.SanitizeInput()
-		assert.Equal(t, "test field", pf.Name)
+func TestPropertyFieldPatch_IsValid(t *testing.T) {
+	t.Run("valid patch", func(t *testing.T) {
+		patch := &PropertyFieldPatch{
+			Name: NewPointer("test field"),
+			Type: NewPointer(PropertyFieldTypeText),
+		}
+		require.NoError(t, patch.IsValid())
+	})
+
+	t.Run("empty name", func(t *testing.T) {
+		patch := &PropertyFieldPatch{
+			Name: NewPointer(""),
+			Type: NewPointer(PropertyFieldTypeText),
+		}
+		require.Error(t, patch.IsValid())
+	})
+
+	t.Run("invalid type", func(t *testing.T) {
+		invalidType := PropertyFieldType("invalid")
+		patch := &PropertyFieldPatch{
+			Name: NewPointer("test field"),
+			Type: &invalidType,
+		}
+		require.Error(t, patch.IsValid())
+	})
+
+	t.Run("nil values are valid", func(t *testing.T) {
+		patch := &PropertyFieldPatch{
+			Name: nil,
+			Type: nil,
+		}
+		require.NoError(t, patch.IsValid())
 	})
 }
 

@@ -42,6 +42,7 @@ export default function EmojiPickerTabs(props: Props) {
                 aria-label={activeKey === 1 ? intl.formatMessage({id: 'emoji_gif_picker.dialog.emojis', defaultMessage: 'Emoji Picker'}) : intl.formatMessage({id: 'emoji_gif_picker.dialog.gifs', defaultMessage: 'GIF Picker'})}
                 aria-modal='true'
             >
+                <EmojiPickerHeader handleEmojiPickerClose={props.onEmojiClose}/>
                 <Tabs
                     id='emoji-picker-tabs'
                     defaultActiveKey={1}
@@ -51,7 +52,6 @@ export default function EmojiPickerTabs(props: Props) {
                     activeKey={activeKey}
                     onSelect={(activeKey) => setActiveKey(activeKey)}
                 >
-                    <EmojiPickerHeader handleEmojiPickerClose={props.onEmojiClose}/>
                     <Tab
                         eventKey={1}
                         title={

@@ -3,15 +3,14 @@
 
 import {defineConfig, devices} from '@playwright/test';
 
-import {duration} from '@e2e-support/util';
-import testConfig from '@e2e-test.config';
+import {duration, testConfig} from '@mattermost/playwright-lib';
 
 export default defineConfig({
-    globalSetup: require.resolve('./global_setup'),
+    globalSetup: './global_setup.ts',
     forbidOnly: testConfig.isCI,
     outputDir: './results/output',
     retries: testConfig.isCI ? 2 : 0,
-    testDir: 'tests',
+    testDir: 'specs',
     timeout: duration.one_min,
     workers: testConfig.workers,
     expect: {
@@ -43,6 +42,7 @@ export default defineConfig({
         actionTimeout: duration.half_min,
     },
     projects: [
+        {name: 'setup', testMatch: /test_setup\.ts/},
         {
             name: 'ipad',
             use: {
@@ -50,6 +50,7 @@ export default defineConfig({
                 ...devices['iPad Pro 11'],
                 permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
             },
+            dependencies: ['setup'],
         },
         {
             name: 'chrome',
@@ -58,6 +59,7 @@ export default defineConfig({
                 permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
                 viewport: {width: 1280, height: 1024},
             },
+            dependencies: ['setup'],
         },
         {
             name: 'firefox',
@@ -66,6 +68,7 @@ export default defineConfig({
                 permissions: ['notifications'],
                 viewport: {width: 1280, height: 1024},
             },
+            dependencies: ['setup'],
         },
     ],
     reporter: [

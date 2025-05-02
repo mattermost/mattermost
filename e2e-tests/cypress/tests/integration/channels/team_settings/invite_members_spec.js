@@ -111,7 +111,7 @@ describe('Invite Members', () => {
             cy.visit(`/${testTeam.name}/channels/town-square`);
 
             // # Open and select invite menu item
-            cy.uiOpenTeamMenu('Invite People');
+            cy.uiOpenTeamMenu('Invite people');
 
             // * Users emails input is focused by default
             cy.get('.users-emails-input__control--is-focused').should('be.visible');
@@ -181,7 +181,7 @@ function inviteUserToTeamAsMember(testUser, testTeam, user) {
     cy.visit(`/${testTeam.name}/channels/town-square`);
 
     // # Open and select invite menu item
-    cy.uiOpenTeamMenu('Invite People');
+    cy.uiOpenTeamMenu('Invite people');
 
     // * Verify Invite Members
     verifyInviteMembersModal(testTeam);
@@ -196,7 +196,7 @@ function inviteUserToTeamAsSysadmin(testTeam, user) {
     cy.visit(`/${testTeam.name}/channels/off-topic`);
 
     // # Open and select invite menu item
-    cy.uiOpenTeamMenu('Invite People');
+    cy.uiOpenTeamMenu('Invite people');
 
     // * Verify Invite Members
     verifyInviteMembersModal(testTeam);

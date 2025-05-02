@@ -5,8 +5,6 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import SuccessIcon from 'components/widgets/icons/fa_success_icon';
-
 type Props = {
     show: boolean;
     onHide: () => void;
@@ -22,6 +20,7 @@ type State = {
 
 export default class GetLinkModal extends React.PureComponent<Props, State> {
     private textAreaRef = React.createRef<HTMLTextAreaElement>();
+    private resetTimeout: NodeJS.Timeout | null = null;
     public static defaultProps = {
         helpText: null,
     };
@@ -33,7 +32,16 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
         };
     }
 
+    public componentWillUnmount(): void {
+        if (this.resetTimeout) {
+            clearTimeout(this.resetTimeout);
+        }
+    }
+
     public onHide = (): void => {
+        if (this.resetTimeout) {
+            clearTimeout(this.resetTimeout);
+        }
         this.setState({copiedLink: false});
         this.props.onHide();
     };
@@ -47,6 +55,12 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
 
             try {
                 this.setState({copiedLink: document.execCommand('copy')});
+                if (this.resetTimeout) {
+                    clearTimeout(this.resetTimeout);
+                }
+                this.resetTimeout = setTimeout(() => {
+                    this.setState({copiedLink: false});
+                }, 1000);
             } catch (err) {
                 this.setState({copiedLink: false});
             }
@@ -73,13 +87,26 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                     id='linkModalCopyLink'
                     data-copy-btn='true'
                     type='button'
-                    className='btn btn-primary pull-left'
+                    className={`btn ${this.state.copiedLink ? 'btn-primary btn-success' : 'btn-primary'} pull-left`}
                     onClick={this.copyLink}
                 >
-                    <FormattedMessage
-                        id='get_link.copy'
-                        defaultMessage='Copy Link'
-                    />
+                    {this.state.copiedLink ? (
+                        <>
+                            <i className='icon icon-check'/>
+                            <FormattedMessage
+                                id='get_link.clipboard'
+                                defaultMessage='Copied'
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <i className='icon icon-link-variant'/>
+                            <FormattedMessage
+                                id='get_link.copy'
+                                defaultMessage='Copy Link'
+                            />
+                        </>
+                    )}
                 </button>
             );
         }
@@ -96,19 +123,6 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
             />
         );
 
-        let copyLinkConfirm = null;
-        if (this.state.copiedLink) {
-            copyLinkConfirm = (
-                <p className='alert alert-success alert--confirm'>
-                    <SuccessIcon/>
-                    <FormattedMessage
-                        id='get_link.clipboard'
-                        defaultMessage=' Link copied'
-                    />
-                </p>
-            );
-        }
-
         return (
             <Modal
                 dialogClassName='a11y__modal'
@@ -122,7 +136,7 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                     id='getLinkModalLabel'
                     closeButton={true}
                 >
-                    <h4 className='modal-title'>{this.props.title}</h4>
+                    <h2 className='modal-title'>{this.props.title}</h2>
                 </Modal.Header>
                 <Modal.Body>
                     {helpText}
@@ -141,7 +155,6 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                         />
                     </button>
                     {copyLink}
-                    {copyLinkConfirm}
                 </Modal.Footer>
             </Modal>
         );

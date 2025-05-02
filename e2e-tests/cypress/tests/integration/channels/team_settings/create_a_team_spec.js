@@ -23,7 +23,7 @@ describe('Teams Suite', () => {
 
     it('MM-T383 Create a new team', () => {
         // # Open team menu and click "Create a Team"
-        cy.uiOpenTeamMenu('Create a Team');
+        cy.uiOpenTeamMenu('Create a team');
 
         // # Input team name as Team Test
         const teamName = 'Team Test';
@@ -69,7 +69,7 @@ describe('Teams Suite', () => {
 
 function tryReservedTeamURLAndVerifyError(teamURL) {
     // # Open team menu and click "Create a Team"
-    cy.uiOpenTeamMenu('Create a Team');
+    cy.uiOpenTeamMenu('Create a team');
 
     // # Input passed in team name
     cy.get('#teamNameInput').should('be.visible').type(teamURL);

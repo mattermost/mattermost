@@ -670,7 +670,6 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 		return model.NewAppError("mergePrepackagedPlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	isEnterpriseLicense := a.License() != nil && a.License().IsE20OrEnterprise()
 	for _, prepackaged := range pluginsEnvironment.PrepackagedPlugins() {
 		if prepackaged.Manifest == nil {
 			continue
@@ -687,7 +686,7 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 
 		// If not enterprise, check version.
 		// Playbooks is not listed in the marketplace, this only handles prepackaged.
-		if !isEnterpriseLicense {
+		if !model.MinimumEnterpriseLicense(a.License()) {
 			if prepackaged.Manifest.Id == model.PluginIdPlaybooks {
 				version, err := semver.Parse(prepackaged.Manifest.Version)
 				if err != nil {
@@ -1033,8 +1032,8 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 		if err != nil {
 			return nil, errors.Wrapf(err, "Unable to verify prepackaged playbooks version")
 		}
-		license := ch.License()
-		hasEnterpriseLicense := license != nil && license.IsE20OrEnterprise()
+
+		hasEnterpriseLicense := model.MinimumEnterpriseLicense(ch.License())
 
 		// Do not install playbooks >=v2 if we do not have an enterprise license
 		if version.GTE(SemVerV2) && !hasEnterpriseLicense {
@@ -1105,15 +1104,13 @@ func (ch *Channels) pluginIsTransitionallyPrepackaged(m *model.Manifest) bool {
 // - the server is not enterprise licensed
 // - the playbooks version is <v2
 func (ch *Channels) playbooksIsTransitionallyPrepackaged(m *model.Manifest) bool {
-	license := ch.srv.License()
-	isNotEnterpriseLicensed := !(license != nil && license.IsE20OrEnterprise())
 	version, err := semver.Parse(m.Version)
 	if err != nil {
 		ch.srv.Log().Warn("unable to parse prepackaged playbooks version - not marking it as transitional.", mlog.String("version", m.Version), mlog.Err(err))
 		return false
 	}
 
-	return isNotEnterpriseLicensed && version.LT(SemVerV2)
+	return !model.MinimumEnterpriseLicense(ch.srv.License()) && version.LT(SemVerV2)
 }
 
 // shouldPersistTransitionallyPrepackagedPlugin determines if a transitionally prepackaged plugin

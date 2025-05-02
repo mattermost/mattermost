@@ -125,7 +125,7 @@ func TestParseURLAutolink(t *testing.T) {
 			Expected:    "https://example.com",
 		},
 		{
-			Description: "link with angle brackets",
+			Description: "link in html tags",
 			Input:       "<b>We use http://example.com</b>",
 			Position:    14,
 			Expected:    "http://example.com",
@@ -141,6 +141,138 @@ func TestParseURLAutolink(t *testing.T) {
 			Input:       "there is no colon",
 			Position:    1000,
 			Expected:    "",
+		},
+		{
+			Description: "no link with angle brackets",
+			Input:       "This is an <:emoji:>",
+			Position:    15,
+			Expected:    "",
+		},
+		{
+			Description: "link with http in angle brackets",
+			Input:       "<http://example.com> and some text",
+			Position:    5,
+			Expected:    "http://example.com",
+		},
+		{
+			Description: "link with https in angle brackets",
+			Input:       "<https://example.com> and some text",
+			Position:    6,
+			Expected:    "https://example.com",
+		},
+		{
+			Description: "link with ftp in angle brackets",
+			Input:       "<ftp://example.com> and some text",
+			Position:    4,
+			Expected:    "ftp://example.com",
+		},
+		{
+			Description: "link with a path in angle brackets",
+			Input:       "<https://example.com/abcd> and some text",
+			Position:    6,
+			Expected:    "https://example.com/abcd",
+		},
+		{
+			Description: "link with parameters in angle brackets",
+			Input:       "<ftp://example.com/abcd?foo=bar> and some text",
+			Position:    4,
+			Expected:    "ftp://example.com/abcd?foo=bar",
+		},
+		{
+			Description: "link, not at start in angle brackets",
+			Input:       "This is <https://example.com> and some text",
+			Position:    14,
+			Expected:    "https://example.com",
+		},
+		{
+			Description: "link with a path, not at start in angle brackets",
+			Input:       "This is also <http://www.example.com/abcd> and some text",
+			Position:    18,
+			Expected:    "http://www.example.com/abcd",
+		},
+		{
+			Description: "link with parameters, not at start in angle brackets",
+			Input:       "These are <https://www.example.com/abcd?foo=bar> and some text",
+			Position:    16,
+			Expected:    "https://www.example.com/abcd?foo=bar",
+		},
+		{
+			Description: "link with trailing characters in angle brackets",
+			Input:       "This is <ftp://www.example.com??>",
+			Position:    12,
+			Expected:    "ftp://www.example.com",
+		},
+		{
+			Description: "multiple links in angle brackets",
+			Input:       "This is <https://example.com/abcd> and <ftp://www.example.com/1234>",
+			Position:    14,
+			Expected:    "https://example.com/abcd",
+		},
+		{
+			Description: "second of multiple links in angle brackets",
+			Input:       "This is <https://example.com/abcd> and <ftp://www.example.com/1234>",
+			Position:    43,
+			Expected:    "ftp://www.example.com/1234",
+		},
+		{
+			Description: "multiple links with first one in angle brackets",
+			Input:       "This is <https://example.com/abcd> and ftp://www.example.com/1234",
+			Position:    14,
+			Expected:    "https://example.com/abcd",
+		},
+		{
+			Description: "second of multiple links with first one in angle brackets",
+			Input:       "This is <https://example.com/abcd> and ftp://www.example.com/1234",
+			Position:    42,
+			Expected:    "ftp://www.example.com/1234",
+		},
+		{
+			Description: "multiple links with second one in angle brackets",
+			Input:       "This is https://example.com/abcd and <ftp://www.example.com/1234>",
+			Position:    13,
+			Expected:    "https://example.com/abcd",
+		},
+		{
+			Description: "second of multiple links with second one in angle brackets",
+			Input:       "This is https://example.com/abcd and <ftp://www.example.com/1234>",
+			Position:    41,
+			Expected:    "ftp://www.example.com/1234",
+		},
+		{
+			Description: "link with brackets wrapped in angle brackets",
+			Input:       "Go to <ftp://www.example.com/my/page_(disambiguation)> and some text",
+			Position:    10,
+			Expected:    "ftp://www.example.com/my/page_(disambiguation)",
+		},
+		{
+			Description: "link with angle brackets in parenthesis",
+			Input:       "(<https://www.example.com/foo/bar>)",
+			Position:    7,
+			Expected:    "https://www.example.com/foo/bar",
+		},
+		{
+			Description: "link with angle brackets in underscores",
+			Input:       "_<http://www.example.com>_",
+			Position:    6,
+			Expected:    "http://www.example.com",
+		},
+		{
+			Description: "link with angle brackets in asterisks",
+			Input:       "This is **<ftp://example.com>**",
+			Position:    14,
+			Expected:    "ftp://example.com",
+		},
+		{
+			Description: "link with angle brackets in strikethrough",
+			Input:       "Those were ~~<https://example.com>~~",
+			Position:    19,
+			Expected:    "https://example.com",
+		},
+		{
+			Description: "link with angle brackets in html tags",
+			Input:       "<b>We use <http://example.com></b>",
+			Position:    15,
+			Expected:    "http://example.com",
 		},
 	}
 
@@ -275,9 +407,219 @@ func TestParseWWWAutolink(t *testing.T) {
 			Expected:    "www1.example.com/foo",
 		},
 		{
-			Description: "link with angle brackets",
+			Description: "link in html tags",
 			Input:       "<b>We use www2.example.com</b>",
 			Position:    10,
+			Expected:    "www2.example.com",
+		},
+		{
+			Description: "no link, text with angle brackets",
+			Input:       "This is some <> text",
+			Position:    0,
+			Expected:    "",
+		},
+		{
+			Description: "link with angle brackets",
+			Input:       "<www.example.com> and some text",
+			Position:    1,
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with a path in angle brackets",
+			Input:       "<www.example.com/abcd> and some text",
+			Position:    1,
+			Expected:    "www.example.com/abcd",
+		},
+		{
+			Description: "link with parameters in angle brackets",
+			Input:       "<www.example.com/abcd?foo=bar> and some text",
+			Position:    1,
+			Expected:    "www.example.com/abcd?foo=bar",
+		},
+		{
+			Description: "link in angle brackets, not at start",
+			Input:       "This is <www.example.com> and some text",
+			Position:    len("This is <"),
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with a path in angle brackets, not at start",
+			Input:       "This is also <www.example.com/abcd> and some text",
+			Position:    len("This is also <"),
+			Expected:    "www.example.com/abcd",
+		},
+		{
+			Description: "link with parameters in angle brackets, not at start",
+			Input:       "These are <www.example.com/abcd?foo=bar> and some text",
+			Position:    len("These are <"),
+			Expected:    "www.example.com/abcd?foo=bar",
+		},
+		{
+			Description: "link with trailing characters in angle brackets",
+			Input:       "This is <www.example.com??>",
+			Position:    len("This is <"),
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link in angle brackets after current position",
+			Input:       "This is some text and <www.example.com>",
+			Position:    0,
+			Expected:    "",
+		},
+		{
+			Description: "multiple links with angle brackets",
+			Input:       "This is <www.example.com/abcd> and <www.example.com/1234>",
+			Position:    len("This is <"),
+			Expected:    "www.example.com/abcd",
+		},
+		{
+			Description: "multiple links 2 with angle brackets",
+			Input:       "This is <www.example.com/abcd> and <www.example.com/1234>",
+			Position:    len("This is <www.example.com/abcd> and <"),
+			Expected:    "www.example.com/1234",
+		},
+		{
+			Description: "multiple links, last one with angle brackets",
+			Input:       "This is www.example.com/abcd and <www.example.com/1234>",
+			Position:    len("This is "),
+			Expected:    "www.example.com/abcd",
+		},
+		{
+			Description: "multiple links, last one with angle brackets 2",
+			Input:       "This is www.example.com/abcd and <www.example.com/1234>",
+			Position:    len("This is www.example.com/abcd and <"),
+			Expected:    "www.example.com/1234",
+		},
+		{
+			Description: "multiple links, first one with angle brackets",
+			Input:       "This is <www.example.com/abcd> and www.example.com/1234",
+			Position:    len("This is <"),
+			Expected:    "www.example.com/abcd",
+		},
+		{
+			Description: "multiple links, first one with angle brackets 2",
+			Input:       "This is <www.example.com/abcd> and www.example.com/1234",
+			Position:    len("This is <www.example.com/abcd> and "),
+			Expected:    "www.example.com/1234",
+		},
+		{
+			Description: "link with brackets in angle brackets",
+			Input:       "Go to <www.example.com/my/page_(disambiguation)> and some text",
+			Position:    7,
+			Expected:    "www.example.com/my/page_(disambiguation)",
+		},
+		{
+			Description: "link in angle brackets following other letters",
+			Input:       "aaa<www.example.com> and some text",
+			Position:    4,
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with angle brackets in parentheses",
+			Input:       "(<www.example.com>)",
+			Position:    2,
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with angle brackets in underscores",
+			Input:       "_<www.example.com>_",
+			Position:    2,
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with angle brackets in asterisks",
+			Input:       "This is **<www.example.com>**",
+			Position:    len("This is **<"),
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with angle brackets in strikethrough",
+			Input:       "Those were ~~<www.example.com>~~",
+			Position:    len("Those were ~~<"),
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link using www1 in angle brackets",
+			Input:       "Our backup site is at <www1.example.com/foo>",
+			Position:    len("Our backup site is at <"),
+			Expected:    "www1.example.com/foo",
+		},
+		{
+			Description: "link with angle brackets in html tags",
+			Input:       "<b>We use <www2.example.com></b>",
+			Position:    len("<b>We use <"),
+			Expected:    "www2.example.com",
+		},
+		{
+			Description: "link with only opening angle bracket",
+			Input:       "<www.example.com and some text",
+			Position:    1,
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with only closing angle bracket",
+			Input:       "www.example.com> and some text",
+			Position:    0,
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with only opening bracket",
+			Input:       "(www.example.com",
+			Position:    1,
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with only closing bracket",
+			Input:       "www.example.com)",
+			Position:    0,
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with underscore at only start",
+			Input:       "_www.example.com",
+			Position:    1,
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with underscore at only end",
+			Input:       "www.example.com_",
+			Position:    0,
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with asterisks at only start",
+			Input:       "This is **www.example.com",
+			Position:    10,
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with asterisks at only end",
+			Input:       "This is www.example.com**",
+			Position:    8,
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with tildes at only start",
+			Input:       "Those were ~~www.example.com",
+			Position:    13,
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with tildes at only end",
+			Input:       "Those were www.example.com~~",
+			Position:    11,
+			Expected:    "www.example.com",
+		},
+		{
+			Description: "link with only opening html tag",
+			Input:       "<b>We use www2.example.com",
+			Position:    10,
+			Expected:    "www2.example.com",
+		},
+		{
+			Description: "link with only closing html tag",
+			Input:       "We use www2.example.com</b>",
+			Position:    7,
 			Expected:    "www2.example.com",
 		},
 	}
@@ -421,6 +763,28 @@ func TestTrimTrailingCharactersFromLink(t *testing.T) {
 			Start:       len("http://🍄.ga/ "),
 			End:         len("http://🍄.ga/ http://x🍄.ga/"),
 			ExpectedEnd: len("http://🍄.ga/ http://x🍄.ga/"),
+		},
+		{
+			Input:       "<http://www.example.com>",
+			Start:       1,
+			ExpectedEnd: 23,
+		},
+		{
+			Input:       "<http://www.example.com&quot;>",
+			Start:       1,
+			ExpectedEnd: 23,
+		},
+		{
+			Input:       "this is a sentence containing <http://www.example.com> in it",
+			Start:       len("this is a sentence containing <"),
+			End:         len("this is a sentence containing <http://www.example.com>"),
+			ExpectedEnd: 53,
+		},
+		{
+			Input:       "this is a sentence containing <http://www.example.com???>",
+			Start:       len("this is a sentence containing <"),
+			End:         len("this is a sentence containing <http://www.example.com???>"),
+			ExpectedEnd: 53,
 		},
 	}
 
@@ -696,6 +1060,93 @@ func TestAutolinking(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			assert.Equal(t, tc.ExpectedHTML, RenderHTML(tc.Markdown))
+		})
+	}
+}
+
+func Test_isAllowedBeforeWWWLink(t *testing.T) {
+	type args struct {
+		c byte
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "empty space",
+			args: args{
+				c: byte(' '),
+			},
+			want: false,
+		},
+		{
+			name: "asterisk",
+			args: args{
+				c: byte('*'),
+			},
+			want: true,
+		},
+		{
+			name: "underscore",
+			args: args{
+				c: byte('_'),
+			},
+			want: true,
+		},
+		{
+			name: "open parenthesis",
+			args: args{
+				c: byte('('),
+			},
+			want: true,
+		},
+		{
+			name: "close parenthesis",
+			args: args{
+				c: byte(')'),
+			},
+			want: true,
+		},
+		{
+			name: "tilde",
+			args: args{
+				c: byte('~'),
+			},
+			want: true,
+		},
+		{
+			name: "open angle bracket",
+			args: args{
+				c: byte('<'),
+			},
+			want: true,
+		},
+		{
+			name: "close angle bracket",
+			args: args{
+				c: byte('>'),
+			},
+			want: true,
+		},
+		{
+			name: "alphabet",
+			args: args{
+				c: byte('c'),
+			},
+			want: false,
+		},
+		{
+			name: "number",
+			args: args{
+				c: byte('4'),
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, isAllowedBeforeWWWLink(tt.args.c), "isAllowedBeforeWWWLink(%v)", tt.args.c)
 		})
 	}
 }

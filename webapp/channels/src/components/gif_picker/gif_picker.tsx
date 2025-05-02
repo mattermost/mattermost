@@ -34,7 +34,7 @@ const GifPicker = (props: Props) => {
     }, [props.getRootPickerNode]);
 
     return (
-        <div>
+        <>
             <GifPickerSearch
                 value={props.filter}
                 onChange={props.handleFilterChange}
@@ -44,7 +44,7 @@ const GifPicker = (props: Props) => {
                 filter={props.filter}
                 onClick={handleItemClick}
             />
-        </div>
+        </>
     );
 };
 

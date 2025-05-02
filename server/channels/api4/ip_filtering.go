@@ -21,7 +21,9 @@ func (api *API) InitIPFiltering() {
 }
 
 func ensureIPFilteringInterface(c *Context, where string) (einterfaces.IPFilteringInterface, bool) {
-	if c.App.IPFiltering() == nil || !c.App.Config().FeatureFlags.CloudIPFiltering || c.App.License() == nil || !c.App.License().IsCloud() || c.App.License().SkuShortName != model.LicenseShortSkuEnterprise {
+	license := c.App.License()
+	ipFilteringFeatureFlag := c.App.Config().FeatureFlags.CloudIPFiltering
+	if c.App.IPFiltering() == nil || !ipFilteringFeatureFlag || license == nil || !license.IsCloud() || !model.MinimumEnterpriseLicense(license) {
 		c.Err = model.NewAppError(where, "api.context.ip_filtering.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, false
 	}

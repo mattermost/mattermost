@@ -19,7 +19,7 @@ func NewTestLogger() Logger {
 func (l *testLogger) With(logContext LogContext) Logger {
 	newl := *l
 	if len(newl.logContext) == 0 {
-		newl.logContext = map[string]interface{}{}
+		newl.logContext = map[string]any{}
 	}
 	for k, v := range logContext {
 		newl.logContext[k] = v
@@ -30,7 +30,7 @@ func (l *testLogger) With(logContext LogContext) Logger {
 func (l *testLogger) WithError(err error) Logger {
 	newl := *l
 	if len(newl.logContext) == 0 {
-		newl.logContext = map[string]interface{}{}
+		newl.logContext = map[string]any{}
 	}
 	newl.logContext[ErrorKey] = err.Error()
 	return &newl
@@ -46,7 +46,7 @@ func (l *testLogger) Timed() Logger {
 	})
 }
 
-func (l *testLogger) logf(prefix, format string, args ...interface{}) {
+func (l *testLogger) logf(prefix, format string, args ...any) {
 	out := fmt.Sprintf(prefix+": "+format, args...)
 	if len(l.logContext) > 0 {
 		measure(l.logContext)
@@ -55,7 +55,7 @@ func (l *testLogger) logf(prefix, format string, args ...interface{}) {
 	l.TB.Log(out)
 }
 
-func (l *testLogger) Debugf(format string, args ...interface{}) { l.logf("DEBUG", format, args...) }
-func (l *testLogger) Errorf(format string, args ...interface{}) { l.logf("ERROR", format, args...) }
-func (l *testLogger) Infof(format string, args ...interface{})  { l.logf("INFO", format, args...) }
-func (l *testLogger) Warnf(format string, args ...interface{})  { l.logf("WARN", format, args...) }
+func (l *testLogger) Debugf(format string, args ...any) { l.logf("DEBUG", format, args...) }
+func (l *testLogger) Errorf(format string, args ...any) { l.logf("ERROR", format, args...) }
+func (l *testLogger) Infof(format string, args ...any)  { l.logf("INFO", format, args...) }
+func (l *testLogger) Warnf(format string, args ...any)  { l.logf("WARN", format, args...) }

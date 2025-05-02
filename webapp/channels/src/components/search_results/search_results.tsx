@@ -422,7 +422,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     data-a11y-loop-navigation={false}
                     aria-label={intl.formatMessage({
                         id: 'accessibility.sections.rhs',
-                        defaultMessage: '{regionTitle} complimentary region',
+                        defaultMessage: '{regionTitle} complementary region',
                     }, {
                         regionTitle: formattedTitle,
                     })}

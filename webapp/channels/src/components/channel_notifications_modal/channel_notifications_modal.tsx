@@ -46,6 +46,9 @@ export type Props = PropsFromRedux & {
      */
     currentUser: UserProfile;
 
+    /**
+     * Id of the element that triggered the modal opening
+     */
     focusOriginElement?: string;
 };
 

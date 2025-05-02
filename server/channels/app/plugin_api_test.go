@@ -1177,7 +1177,7 @@ func TestPluginAPIGetTeamIcon(t *testing.T) {
 	fileReader := bytes.NewReader(dataBytes)
 
 	// Set the Team Icon
-	appErr := th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	appErr := th.App.SetTeamIconFromFile(th.Context, th.BasicTeam, fileReader)
 	require.Nil(t, appErr)
 
 	// Get the team icon to check
@@ -1239,7 +1239,7 @@ func TestPluginAPIRemoveTeamIcon(t *testing.T) {
 	fileReader := bytes.NewReader(dataBytes)
 
 	// Set the Team Icon
-	err := th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	err := th.App.SetTeamIconFromFile(th.Context, th.BasicTeam, fileReader)
 	require.Nil(t, err)
 	err = api.RemoveTeamIcon(th.BasicTeam.Id)
 	require.Nil(t, err)

@@ -643,6 +643,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                             size="xs"
                           >
                             <Memo(Tag)
+                              data-testid="post-priority-label"
                               icon="alert-circle-outline"
                               size="xs"
                               text="Important"
@@ -652,10 +653,12 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                               <TagWrapper
                                 as="div"
                                 className="Tag Tag--info Tag--xs"
+                                data-testid="post-priority-label"
                                 uppercase={true}
                               >
                                 <div
                                   className="TagWrapper-keYggn gnIgwl Tag Tag--info Tag--xs"
+                                  data-testid="post-priority-label"
                                 >
                                   <AlertCircleOutlineIcon
                                     size={10}

@@ -36,7 +36,7 @@ describe('Verify Accessibility Support in different input fields', () => {
 
     it('MM-T1456 Verify Accessibility Support in Input fields in Invite People Flow', () => {
         // # Open team menu and click 'Invite People'
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Click invite members if needed
         cy.get('.InviteAs').findByTestId('inviteMembersLink').click();

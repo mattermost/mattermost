@@ -180,32 +180,55 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             serverError = <NeedGroupsError/>;
             saveNeeded = true;
         } else {
-            const patchTeamPromise = actions.patchTeam({
-                ...team,
-                group_constrained: syncChecked,
-                allowed_domains: allowedDomainsChecked ? allowedDomains : '',
-                allow_open_invite: allAllowedChecked,
-            });
             const patchTeamSyncable = groups.
                 filter((g) => {
                     return origGroups.some((group) => group.id === g.id && group.scheme_admin !== g.scheme_admin);
                 }).
                 map((g) => actions.patchGroupSyncable(g.id, teamID, SyncableType.Team, {scheme_admin: g.scheme_admin}));
-            const unlink = origGroups.
-                filter((g) => {
-                    return !groups.some((group) => group.id === g.id);
-                }).
-                map((g) => actions.unlinkGroupSyncable(g.id, teamID, SyncableType.Team));
+
             const link = groups.
                 filter((g) => {
                     return !origGroups.some((group) => group.id === g.id);
                 }).
                 map((g) => actions.linkGroupSyncable(g.id, teamID, SyncableType.Team, {auto_add: true, scheme_admin: g.scheme_admin}));
-            const result = await Promise.all([patchTeamPromise, ...patchTeamSyncable, ...unlink, ...link]);
-            const resultWithError = result.find((r) => r.error);
-            if (resultWithError) {
-                serverError = <FormError error={resultWithError.error?.message}/>;
-            } else {
+
+            // First execute patch and link operations
+            const groupResult = await Promise.all([...patchTeamSyncable, ...link]);
+            const groupResultWithError = groupResult.find((r) => r.error);
+
+            if (groupResultWithError) {
+                serverError = <FormError error={groupResultWithError.error?.message}/>;
+            }
+
+            // After group operations succeed, patch the team
+            const patchTeamResult = await actions.patchTeam({
+                ...team,
+                group_constrained: syncChecked,
+                allowed_domains: allowedDomainsChecked ? allowedDomains : '',
+                allow_open_invite: allAllowedChecked,
+            });
+
+            if (patchTeamResult.error) {
+                serverError = <FormError error={patchTeamResult.error?.message}/>;
+            }
+
+            // After patching the team, handle unlinking groups
+            const unlink = origGroups.
+                filter((g) => {
+                    return !groups.some((group) => group.id === g.id);
+                }).
+                map((g) => actions.unlinkGroupSyncable(g.id, teamID, SyncableType.Team));
+
+            let unlinkResultWithError: ActionResult | undefined;
+            if (unlink.length > 0) {
+                const unlinkResult = await Promise.all(unlink);
+                unlinkResultWithError = unlinkResult.find((r) => r.error);
+                if (unlinkResultWithError) {
+                    serverError = <FormError error={unlinkResultWithError.error?.message}/>;
+                }
+            }
+
+            if (!patchTeamResult.error && !groupResultWithError && !unlinkResultWithError) {
                 if (unlink.length > 0) {
                     trackEvent('admin_team_config_page', 'groups_removed_from_team', {count: unlink.length, team_id: teamID});
                 }

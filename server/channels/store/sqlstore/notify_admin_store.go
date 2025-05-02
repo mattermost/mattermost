@@ -17,10 +17,27 @@ import (
 
 type SqlNotifyAdminStore struct {
 	*SqlStore
+
+	notifyAdminQuery sq.SelectBuilder
 }
 
 func newSqlNotifyAdminStore(sqlStore *SqlStore) store.NotifyAdminStore {
-	return &SqlNotifyAdminStore{sqlStore}
+	s := &SqlNotifyAdminStore{
+		SqlStore: sqlStore,
+	}
+
+	s.notifyAdminQuery = s.getQueryBuilder().
+		Select(
+			"UserId",
+			"CreateAt",
+			"RequiredPlan",
+			"RequiredFeature",
+			"Trial",
+			"SentAt",
+		).
+		From("NotifyAdmin")
+
+	return s
 }
 
 func (s SqlNotifyAdminStore) insert(data *model.NotifyAdminData) (sql.Result, error) {
@@ -45,9 +62,7 @@ func (s SqlNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdm
 
 func (s SqlNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostFeature) ([]*model.NotifyAdminData, error) {
 	data := []*model.NotifyAdminData{}
-	query, args, err := s.getQueryBuilder().
-		Select("*").
-		From("NotifyAdmin").
+	query, args, err := s.notifyAdminQuery.
 		Where(sq.Eq{"UserId": userId, "RequiredFeature": feature}).
 		ToSql()
 	if err != nil {
@@ -65,9 +80,7 @@ func (s SqlNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature mo
 
 func (s SqlNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
 	data := []*model.NotifyAdminData{}
-	query, args, err := s.getQueryBuilder().
-		Select("*").
-		From("NotifyAdmin").
+	query, args, err := s.notifyAdminQuery.
 		Where(sq.Eq{"Trial": trial}).
 		Where("(SentAt IS NULL)").
 		ToSql()

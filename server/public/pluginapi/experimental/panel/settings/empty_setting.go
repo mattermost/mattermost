@@ -32,10 +32,10 @@ func (s *emptySetting) GetSlackAttachments(userID, settingHandler string, disabl
 	return &sa, nil
 }
 
-func (s *emptySetting) Get(userID string) (interface{}, error) {
+func (s *emptySetting) Get(userID string) (any, error) {
 	return nil, nil
 }
 
-func (s *emptySetting) Set(userID string, value interface{}) error {
+func (s *emptySetting) Set(userID string, value any) error {
 	return nil
 }

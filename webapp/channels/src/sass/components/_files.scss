@@ -330,6 +330,7 @@
     display: flex;
     overflow: hidden;
     width: 320px;
+    min-width: 204px;
     max-width: 100%;
     height: 6.4rem;
     align-items: center;
@@ -463,20 +464,6 @@
 
 .file-dropdown-icon {
     display: none;
-    width: 32px;
-    min-width: 32px;
-    height: 32px;
-    align-items: center;
-    justify-content: center;
-    border: 0;
-    border-radius: 4px;
-    margin-left: 8px;
-    background-color: var(--center-channel-bg);
-    color: rgba(var(--center-channel-color-rgb), 0.64);
-    cursor: pointer;
-    fill: rgba(var(--center-channel-color-rgb), 0.64);
-    text-decoration: none;
-    transition: opacity 0.15s ease;
 
     svg {
         display: flex;
@@ -484,8 +471,6 @@
 
     &:hover {
         display: flex;
-        background-color: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.8);
     }
 
     &:focus {
@@ -497,9 +482,15 @@
     position: relative;
     display: flex;
     overflow: hidden;
+    width: 100%;
+    min-width: 0;
     height: 100%;
     flex: 1;
+    flex-direction: row;
     align-items: center;
+    padding-right: 12px;
+    background: transparent;
+    color: functions.v(center-channel-color);
     font-size: 12px;
     text-align: left;
 
@@ -529,7 +520,9 @@
 
     .post-image__detail_wrapper {
         display: flex;
+        min-width: 0;
         flex: 1;
+        flex-direction: row;
         padding: 0;
 
         .post--compact & {
@@ -537,9 +530,12 @@
         }
 
         .post-image__detail {
+            overflow: hidden;
             width: 100%;
-            height: 100%;
+            min-width: 0;
+            height: 36px;
             line-height: normal;
+            text-overflow: ellipsis;
 
             .post-image__name {
                 display: block;
@@ -583,74 +579,48 @@
             }
 
             .post-image__size {
+                overflow: hidden;
                 margin-left: 4px;
                 opacity: 0.73;
+                text-overflow: ellipsis;
             }
         }
     }
 
     .post-image__download {
-        top: 0;
-        right: 0;
         display: flex;
         height: 100%;
         align-items: center;
         justify-content: center;
-        padding: 0 1.6rem;
+        margin-left: 2px;
+        background: transparent;
         line-height: 0;
         opacity: 1;
         text-align: center;
-        transition: opacity 0.15s ease;
-
-        a {
-            display: flex;
-            width: 3.2rem;
-            height: 3.2rem;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            color: rgba(functions.v(center-channel-color-rgb), 0.75);
-            font-size: 1.6rem;
-            text-decoration: none;
-
-            &:focus {
-                color: rgba(functions.v(center-channel-color-rgb), 0.75);
-            }
-
-            &:hover {
-                background: rgba(functions.v(center-channel-color-rgb), 0.08);
-                color: rgba(functions.v(center-channel-color-rgb), 0.75);
-            }
-
-            &:active {
-                background: rgba(var(--button-bg-rgb), 0.08);
-                color: functions.v(button-bg);
-            }
-        }
-
-        span {
-            display: inline-block;
-        }
+        transition: opacity 0.15s ease, background-color 0.15s ease;
 
         svg {
             display: inline-block;
             width: 30px;
             height: 30px;
-            border: 1px solid;
-            border-color: rgba(var(--center-channel-color-rgb), 0.35);
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.35);
             border-radius: 50%;
             opacity: 0.7;
             stroke: rgba(var(--center-channel-color-rgb), 0.4);
-            transition: all 0.1s linear;
+            transition: opacity 0.15s ease;
 
             &:hover {
                 opacity: 1;
             }
         }
-    }
 
-    div.MenuWrapper + .post-image__download {
-        padding-left: 8px;
+        .btn-icon {
+            display: flex;
+        }
+
+        span {
+            display: inline-block;
+        }
     }
 
     .post-image__progressBar {

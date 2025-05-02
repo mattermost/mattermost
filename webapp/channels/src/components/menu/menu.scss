@@ -10,6 +10,7 @@
         padding: 4px 0;
         background-color: var(--center-channel-bg);
         box-shadow: var(--elevation-4), 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset;
+        margin-block-start: 4px;
     }
     &.AsSubMenu {
         pointer-events: none;

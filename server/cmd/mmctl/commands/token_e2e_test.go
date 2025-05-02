@@ -77,3 +77,65 @@ func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
 		s.Require().Equal(0, len(userTokens))
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestRevokeTokenForAUserCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	previousVal := s.th.App.Config().ServiceSettings.EnableUserAccessTokens
+	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+	defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = *previousVal })
+
+	s.RunForSystemAdminAndLocal("Revoke user access tokens", func(c client.Client) {
+		printer.Clean()
+
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
+		s.Require().Nil(appErr)
+
+		token, appErr := s.th.App.CreateUserAccessToken(s.th.Context, &model.UserAccessToken{
+			UserId:      user.Id,
+			Description: "test token",
+		})
+		s.Require().Nil(appErr)
+
+		err := revokeTokenForAUserCmdF(c, &cobra.Command{}, []string{token.Id})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		_, appErr = s.th.App.GetUserAccessToken(token.Id, false)
+		s.Require().Error(appErr)
+		s.Require().Contains(appErr.Error(), "not found")
+	})
+
+	s.RunForSystemAdminAndLocal("Fail to revoke non-existent token", func(c client.Client) {
+		printer.Clean()
+
+		err := revokeTokenForAUserCmdF(c, &cobra.Command{}, []string{"non-existent-token-id"})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "could not revoke token")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Revoke token without permission", func() {
+		printer.Clean()
+
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
+		s.Require().Nil(appErr)
+
+		token, appErr := s.th.App.CreateUserAccessToken(s.th.Context, &model.UserAccessToken{
+			UserId:      user.Id,
+			Description: "test token",
+		})
+		s.Require().Nil(appErr)
+
+		err := revokeTokenForAUserCmdF(s.th.Client, &cobra.Command{}, []string{token.Id})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().ErrorContains(
+			err,
+			fmt.Sprintf(`could not revoke token %q: You do not have the appropriate permissions.`, token.Id),
+		)
+	})
+}

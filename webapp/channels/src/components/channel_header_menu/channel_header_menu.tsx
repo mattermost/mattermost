@@ -23,6 +23,7 @@ import {
 
 import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
 
+import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 import * as Menu from 'components/menu';
 
 import {Constants} from 'utils/constants';
@@ -53,6 +54,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
     const isMuted = useSelector(isCurrentChannelMuted);
     const isLicensedForLDAPGroups = useSelector(getLicense).LDAPGroups === 'true';
     const pluginMenuItems = useSelector(getChannelHeaderMenuPluginComponents);
+    const isChannelBookmarksEnabled = useSelector(getIsChannelBookmarksEnabled);
 
     const isReadonly = false;
 
@@ -144,6 +146,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                     pluginItems={pluginItems}
                     isFavorite={isFavorite}
                     isMobile={isMobile || false}
+                    isChannelBookmarksEnabled={isChannelBookmarksEnabled}
                 />
             )}
             {isGroup && (
@@ -154,6 +157,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                     pluginItems={pluginItems}
                     isFavorite={isFavorite}
                     isMobile={isMobile || false}
+                    isChannelBookmarksEnabled={isChannelBookmarksEnabled}
                 />
             )}
             {(!isDirect && !isGroup) && (
@@ -167,6 +171,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                     isDefault={isDefault}
                     isReadonly={isReadonly}
                     isLicensedForLDAPGroups={isLicensedForLDAPGroups}
+                    isChannelBookmarksEnabled={isChannelBookmarksEnabled}
                 />
             )}
 

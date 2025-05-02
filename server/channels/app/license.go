@@ -18,10 +18,6 @@ func (ch *Channels) License() *model.License {
 }
 
 func (ch *Channels) RequestTrialLicenseWithExtraFields(requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError {
-	if *ch.srv.platform.Config().ExperimentalSettings.RestrictSystemAdmin {
-		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-	}
-
 	requester, err := ch.srv.userService.GetUser(requesterID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -63,10 +59,6 @@ func (ch *Channels) RequestTrialLicenseWithExtraFields(requesterID string, trial
 
 // Deprecated: Use RequestTrialLicenseWithExtraFields instead. This function remains to support the Plugin API.
 func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
-	if *ch.srv.platform.Config().ExperimentalSettings.RestrictSystemAdmin {
-		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-	}
-
 	if !termsAccepted {
 		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request.terms-not-accepted", nil, "", http.StatusBadRequest)
 	}

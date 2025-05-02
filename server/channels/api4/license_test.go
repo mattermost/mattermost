@@ -472,3 +472,155 @@ func TestRequestTrialLicense(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
+
+func TestGetLicenseLoadMetric(t *testing.T) {
+	t.Run("when user is logged out", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		client := th.CreateClient()
+		_, resp, err := client.GetLicenseLoadMetric(context.Background())
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("when no license is loaded", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.Srv().Platform().SetLicense(nil)
+		data, resp, err := th.Client.GetLicenseLoadMetric(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.Equal(t, 0, data["load"])
+	})
+
+	t.Run("with 50 users on a license count of 1000", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		// Create a license with 1000 users
+		license := model.NewTestLicense()
+		license.Features.Users = model.NewPointer(1000) // Set license for 1000 users
+		th.App.Srv().Platform().SetLicense(license)
+
+		// Make user active by setting their status
+		status := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusAway,
+			Manual:         true,
+			LastActivityAt: model.GetMillis(),
+		}
+		initialErr := th.App.Srv().Store().Status().SaveOrUpdate(status)
+		require.NoError(t, initialErr)
+
+		// Add 50 active users (50/1000 * 1000 = 50)
+		for i := 0; i < 49; i++ { // 49 + 1 basic user = 50 active users
+			user := th.CreateUser()
+
+			// Make user active
+			status := &model.Status{
+				UserId:         user.Id,
+				Status:         model.StatusAway,
+				Manual:         true,
+				LastActivityAt: model.GetMillis(),
+			}
+			statusErr := th.App.Srv().Store().Status().SaveOrUpdate(status)
+			require.NoError(t, statusErr)
+		}
+
+		// Check load metric - should be exactly 50
+		data, resp, err := th.Client.GetLicenseLoadMetric(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		loadValue := data["load"]
+		require.Equal(t, 50, loadValue)
+	})
+
+	t.Run("with 19 users on a license count of 20", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		// Create a license with 20 users
+		license := model.NewTestLicense()
+		license.Features.Users = model.NewPointer(20) // Set license for 20 users
+		th.App.Srv().Platform().SetLicense(license)
+
+		// Make user active by setting their status
+		status := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusAway,
+			Manual:         true,
+			LastActivityAt: model.GetMillis(),
+		}
+		initialErr := th.App.Srv().Store().Status().SaveOrUpdate(status)
+		require.NoError(t, initialErr)
+
+		// Add 19 active users (19/20 * 1000 = 950)
+		for i := 0; i < 18; i++ { // 18 + 1 basic user = 19 active users
+			user := th.CreateUser()
+
+			// Make user active
+			status := &model.Status{
+				UserId:         user.Id,
+				Status:         model.StatusAway,
+				Manual:         true,
+				LastActivityAt: model.GetMillis(),
+			}
+			statusErr := th.App.Srv().Store().Status().SaveOrUpdate(status)
+			require.NoError(t, statusErr)
+		}
+
+		// Check load metric - should be around
+		data, resp, err := th.Client.GetLicenseLoadMetric(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		loadValue := data["load"]
+		require.Equal(t, 950, loadValue)
+	})
+
+	t.Run("with 30 users on a license count of 20", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		// Create a license with 20 users
+		license := model.NewTestLicense()
+		license.Features.Users = model.NewPointer(20) // Set license for 20 users
+		th.App.Srv().Platform().SetLicense(license)
+
+		// Make user active by setting their status
+		status := &model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusAway,
+			Manual:         true,
+			LastActivityAt: model.GetMillis(),
+		}
+		initialErr := th.App.Srv().Store().Status().SaveOrUpdate(status)
+		require.NoError(t, initialErr)
+
+		// Add 30 active users (30/20 * 1000 = 1500)
+		for i := 0; i < 29; i++ { // 29 + 1 basic user = 30 active users
+			user := th.CreateUser()
+
+			// Make user active
+			status := &model.Status{
+				UserId:         user.Id,
+				Status:         model.StatusAway,
+				Manual:         true,
+				LastActivityAt: model.GetMillis(),
+			}
+			statusErr := th.App.Srv().Store().Status().SaveOrUpdate(status)
+			require.NoError(t, statusErr)
+		}
+
+		// Check load metric - should be exactly 1500
+		data, resp, err := th.Client.GetLicenseLoadMetric(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		loadValue := data["load"]
+		require.Equal(t, 1500, loadValue)
+	})
+}

@@ -67,7 +67,7 @@ func TestGetLatestVersion(t *testing.T) {
 			_, err := w.Write(updatedJSON)
 			require.NoError(t, err)
 		}))
-		defer ts.Close()
+		defer updatedServer.Close()
 
 		cachedResult, appErr := th.App.GetLatestVersion(th.Context, updatedServer.URL)
 		require.Nil(t, appErr)
@@ -88,7 +88,7 @@ func TestGetLatestVersion(t *testing.T) {
 			`))
 			require.NoError(t, err)
 		}))
-		defer ts.Close()
+		defer errorServer.Close()
 
 		_, appErr := th.App.GetLatestVersion(th.Context, errorServer.URL)
 		require.NotNil(t, appErr)

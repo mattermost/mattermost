@@ -70,7 +70,7 @@ describe('Profile > Profile Settings> Full Name', () => {
 
     it('MM-T2048 Empty full name: @ still displays before username', () => {
         // # Open any user list ("View Members", "Add Members", "Manage Members", ..)
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
 
         // # Find a user who hasn't set their full name
         cy.get('.modal-title').should('be.visible');

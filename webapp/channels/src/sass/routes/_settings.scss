@@ -353,9 +353,11 @@
                             white-space: nowrap;
                         }
 
-                        .premadeThemeButton{
+                        .premadeThemeButton {
+                            padding: 0;
                             border: none;
                             background: none;
+                            text-align: start;
                         }
 
                         label {
@@ -702,6 +704,11 @@
 
 .no-resize {
     resize: none;
+}
+
+.user-settings__radio-group-inline {
+    // Counteract the margin-left added by Bootstrap's radio-inline class
+    margin-left: -20px;
 }
 
 .user-settings__submit-checkbox {

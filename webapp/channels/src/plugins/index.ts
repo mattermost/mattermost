@@ -62,11 +62,6 @@ window.plugins = {};
 // During the beta, plugins manipulated the global window.plugins data structure directly. This
 // remains possible, but is officially deprecated and may be removed in a future release.
 function registerPlugin(id: string, plugin: Plugin): void {
-    // Don't register plugins if MMEMBED cookie is set
-    if (document.cookie.includes('MMEMBED=1')) {
-        return;
-    }
-
     const oldPlugin = window.plugins[id];
     if (oldPlugin && oldPlugin.uninitialize) {
         oldPlugin.uninitialize();

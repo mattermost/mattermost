@@ -93,7 +93,7 @@ type Actions struct {
 	DoUploadFile           func(time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)
 	GenerateThumbnailImage func(request.CTX, image.Image, string, string)
 	GeneratePreviewImage   func(request.CTX, image.Image, string, string)
-	InvalidateAllCaches    func()
+	InvalidateAllCaches    func() *model.AppError
 	MaxPostSize            func() int
 	PrepareImage           func(fileData []byte) (image.Image, string, func(), error)
 }
@@ -210,7 +210,9 @@ func (si *SlackImporter) SlackImport(rctx request.CTX, fileData multipart.File, 
 		si.deactivateSlackBotUser(rctx, botUser)
 	}
 
-	si.actions.InvalidateAllCaches()
+	if err := si.actions.InvalidateAllCaches(); err != nil {
+		return err, log
+	}
 
 	log.WriteString(i18n.T("api.slackimport.slack_import.notes"))
 	log.WriteString("=======\r\n\r\n")

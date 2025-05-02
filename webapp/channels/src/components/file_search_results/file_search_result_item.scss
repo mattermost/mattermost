@@ -85,32 +85,15 @@
     }
 
     .action-icon {
-        display: flex;
-        width: 32px;
-        min-width: 32px;
-        height: 32px;
-        justify-content: center;
-        border-radius: 4px;
-        margin-left: 8px;
-        background-color: var(--center-channel-bg);
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-        cursor: pointer;
-        fill: rgba(var(--center-channel-color-rgb), 0.64);
-        opacity: 0;
-        text-decoration: none;
-        transition: opacity 0.15s ease;
+        display: none;
+        margin-left: 2px;
 
         &.download-icon {
-            margin-right: 6px;
+            margin-right: 2px;
         }
 
         svg {
             display: flex;
-        }
-
-        &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.8);
         }
     }
 

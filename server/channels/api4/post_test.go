@@ -3638,7 +3638,60 @@ func TestGetPostThread(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
+	// Test the new query parameters - updatesOnly, fromUpdateAt
 	// Sending some bad params
+	_, resp, err = client.GetPostThreadWithOpts(context.Background(), th.BasicPost.Id, "", model.GetPostsOptions{
+		UpdatesOnly: true, // updatesOnly is true but fromUpdateAt is not set
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	// Test error when both fromUpdateAt and fromCreateAt are set
+	_, resp, err = client.GetPostThreadWithOpts(context.Background(), th.BasicPost.Id, "", model.GetPostsOptions{
+		FromUpdateAt: 12345,
+		FromCreateAt: 12345,
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	// Test error when updatesOnly is used with direction="up"
+	_, resp, err = client.GetPostThreadWithOpts(context.Background(), th.BasicPost.Id, "", model.GetPostsOptions{
+		UpdatesOnly:  true,
+		FromUpdateAt: 12345,
+		Direction:    "up",
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	// Test valid parameters
+	// This should work with proper parameters
+	_, resp, err = client.GetPostThreadWithOpts(context.Background(), th.BasicPost.Id, "", model.GetPostsOptions{
+		UpdatesOnly:  true,
+		FromUpdateAt: 12345,
+		Direction:    "down",
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	list, resp, err = client.GetPostThreadWithOpts(context.Background(), th.BasicPost.Id, "", model.GetPostsOptions{
+		UpdatesOnly:  true,
+		Direction:    "down",
+		FromUpdateAt: post.UpdateAt,
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.Len(t, list.Order, 1)
+	assert.Len(t, list.Posts, 1)
+	require.Equal(t, th.BasicPost.Id, list.Order[0], "wrong order")
+
+	// Test with just fromUpdateAt parameter
+	_, resp, err = client.GetPostThreadWithOpts(context.Background(), th.BasicPost.Id, "", model.GetPostsOptions{
+		FromUpdateAt: 12345,
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	// Sending other bad params unrelated to the new changes
 	_, resp, err = client.GetPostThreadWithOpts(context.Background(), th.BasicPost.Id, "", model.GetPostsOptions{
 		CollapsedThreads: true,
 		FromPost:         "something",

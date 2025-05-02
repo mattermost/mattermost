@@ -145,8 +145,8 @@ func (s *Server) InvalidateAllCaches() *model.AppError {
 	return s.platform.InvalidateAllCaches()
 }
 
-func (s *Server) InvalidateAllCachesSkipSend() {
-	s.platform.InvalidateAllCachesSkipSend()
+func (s *Server) InvalidateAllCachesSkipSend() *model.AppError {
+	return s.platform.InvalidateAllCachesSkipSend()
 }
 
 func (a *App) RecycleDatabaseConnection(rctx request.CTX) {

@@ -72,7 +72,7 @@ describe('Bots in lists', () => {
 
             // # Open channel members
             cy.get('.channel-header__trigger').click();
-            cy.findByText('Manage Members').click();
+            cy.findByText('Manage members').click();
 
             cy.get('.more-modal__row .more-modal__name').then(async ($query) => {
                 // # Extract usernames from jQuery collection

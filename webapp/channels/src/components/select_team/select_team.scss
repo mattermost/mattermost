@@ -5,7 +5,7 @@
     margin-top: 10px;
     margin-bottom: 24px;
 
-    >h4 {
+    > h4 {
         margin: 0;
 
         span {
@@ -13,6 +13,41 @@
             font-size: 20px;
             font-weight: 600;
             line-height: 28px;
+        }
+    }
+
+    a.LearnAboutTeamsLink {
+        display: flex;
+        align-items: center;
+        padding: 6px 18px;
+        column-gap: 10px;
+
+        &:hover,
+        &:focus,
+        &:active {
+            text-decoration: none;
+        }
+
+        > i {
+            display: inline-flex;
+            padding: 3px;
+            border-radius: 50%;
+            background-color: rgba(var(--denim-button-bg-rgb), 0.08);
+            font-size: 14px;
+
+            &::before {
+                margin: 0;
+            }
+        }
+
+        span {
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 16px;
+
+            &:hover {
+                text-decoration: underline;
+            }
         }
     }
 }

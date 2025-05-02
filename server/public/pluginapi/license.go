@@ -4,13 +4,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-const (
-	e10          = "E10"
-	e20          = "E20"
-	professional = "professional"
-	enterprise   = "enterprise"
-)
-
 // IsEnterpriseLicensedOrDevelopment returns true when the server is licensed with any Mattermost
 // Enterprise License, or has `EnableDeveloper` and `EnableTesting` configuration settings
 // enabled signaling a non-production, developer mode.
@@ -30,7 +23,7 @@ func isValidSkuShortName(license *model.License) bool {
 	}
 
 	switch license.SkuShortName {
-	case e10, e20, professional, enterprise:
+	case model.LicenseShortSkuE10, model.LicenseShortSkuE20, model.LicenseShortSkuProfessional, model.LicenseShortSkuEnterprise, model.LicenseShortSkuEnterpriseAdvanced:
 		return true
 	default:
 		return false
@@ -41,9 +34,7 @@ func isValidSkuShortName(license *model.License) bool {
 // Enterprise E10 License or a Mattermost Professional License, or has `EnableDeveloper` and
 // `EnableTesting` configuration settings enabled, signaling a non-production, developer mode.
 func IsE10LicensedOrDevelopment(config *model.Config, license *model.License) bool {
-	if license != nil &&
-		(license.SkuShortName == e10 || license.SkuShortName == professional ||
-			license.SkuShortName == e20 || license.SkuShortName == enterprise) {
+	if model.MinimumProfessionalLicense(license) {
 		return true
 	}
 
@@ -65,7 +56,7 @@ func IsE10LicensedOrDevelopment(config *model.Config, license *model.License) bo
 // Enterprise E20 License or a Mattermost Enterprise License, or has `EnableDeveloper` and
 // `EnableTesting` configuration settings enabled, signaling a non-production, developer mode.
 func IsE20LicensedOrDevelopment(config *model.Config, license *model.License) bool {
-	if license != nil && (license.SkuShortName == e20 || license.SkuShortName == enterprise) {
+	if model.MinimumEnterpriseLicense(license) {
 		return true
 	}
 
@@ -78,6 +69,16 @@ func IsE20LicensedOrDevelopment(config *model.Config, license *model.License) bo
 			*license.Features.FutureFeatures {
 			return true
 		}
+	}
+
+	return IsConfiguredForDevelopment(config)
+}
+
+// IsEnterpriseAdvancedLicensedOrDevelopment returns true when the server is licensed with a Mattermost
+// Enterprise Advanced License, or has `EnableDeveloper` and `EnableTesting` configuration settings
+func IsEnterpriseAdvancedLicensedOrDevelopment(config *model.Config, license *model.License) bool {
+	if license != nil && license.SkuShortName == model.LicenseShortSkuEnterpriseAdvanced {
+		return true
 	}
 
 	return IsConfiguredForDevelopment(config)

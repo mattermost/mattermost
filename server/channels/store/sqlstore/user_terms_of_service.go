@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -14,20 +15,29 @@ import (
 
 type SqlUserTermsOfServiceStore struct {
 	*SqlStore
+
+	userTermsOfServiceSelectQuery sq.SelectBuilder
 }
 
 func newSqlUserTermsOfServiceStore(sqlStore *SqlStore) store.UserTermsOfServiceStore {
-	return SqlUserTermsOfServiceStore{sqlStore}
+	s := SqlUserTermsOfServiceStore{
+		SqlStore: sqlStore,
+	}
+
+	s.userTermsOfServiceSelectQuery = s.getQueryBuilder().
+		Select("UserId", "TermsOfServiceId", "CreateAt").
+		From("UserTermsOfService")
+
+	return s
 }
 
 func (s SqlUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {
 	var userTermsOfService model.UserTermsOfService
-	query := `
-		SELECT * 
-		FROM UserTermsOfService 
-		WHERE UserId = ?
-	`
-	if err := s.GetReplica().Get(&userTermsOfService, query, userId); err != nil {
+
+	query := s.userTermsOfServiceSelectQuery.
+		Where(sq.Eq{"UserId": userId})
+
+	if err := s.GetReplica().GetBuilder(&userTermsOfService, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("UserTermsOfService", "userId="+userId)
 		}

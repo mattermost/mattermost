@@ -89,7 +89,7 @@ const SelectTeam = (props: Props) => {
                 labels={<span>{teamName}</span>}
                 trailingElements={(teamId === props.selectedTeamId && (
                     <CheckIcon
-                        size={14}
+                        size={16}
                         color='var(--button-bg, #1c58d9)'
                     />
                 ))}
@@ -101,13 +101,13 @@ const SelectTeam = (props: Props) => {
     // MUI Menu doesn't support fragments, and the recommended alternative is to use an array.
     const renderFilterArea = () => {
         const elements = [
-            <Menu.Input
+            <Menu.InputItem
                 key='filter_teams'
                 id='search_teams'
                 type='text'
                 placeholder={intl.formatMessage({id: 'search_teams_selector.search_teams', defaultMessage: 'Search teams'})}
                 className='search-teams-selector-search'
-                inputPrefix={<SearchIcon size={12}/>}
+                inputPrefix={<SearchIcon size={18}/>}
                 value={filter}
                 onChange={onFilterChange}
             />,

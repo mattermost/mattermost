@@ -60,7 +60,8 @@ func fileBytes(t *testing.T, path string) []byte {
 }
 
 func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []byte, contentType string,
-	contentLength int64) (*model.FileUploadResponse, *model.Response, error) {
+	contentLength int64,
+) (*model.FileUploadResponse, *model.Response, error) {
 	req, err := http.NewRequest("POST", c.APIURL+"/files"+url, bytes.NewReader(blob))
 	require.NoError(t, err)
 
@@ -386,6 +387,19 @@ func TestUploadFiles(t *testing.T) {
 			expectImage:                 true,
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
+		// 5MB+ JPEG
+		{
+			title:                       "Happy image thumbnail/preview 5MB+",
+			names:                       []string{"orientation_test_9.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_9_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_9_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{4000},
+			expectedImageHeights:        []int{2667},
 			expectedImageHasPreview:     []bool{true},
 			expectedImageMiniPreview:    []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,

@@ -9,7 +9,7 @@ import (
 var errStateNotFound = errors.New("flow state not found")
 
 // State is the "app"'s state
-type State map[string]interface{}
+type State map[string]any
 
 func (s State) MergeWith(update State) State {
 	n := State{}

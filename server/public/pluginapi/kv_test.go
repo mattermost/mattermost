@@ -24,7 +24,7 @@ func TestKVSet(t *testing.T) {
 	tests := []struct {
 		name            string
 		key             string
-		value           interface{}
+		value           any
 		options         []pluginapi.KVSetOption
 		expectedValue   []byte
 		expectedOptions model.PluginKVSetOptions
@@ -158,7 +158,7 @@ func TestSetAtomicWithRetries(t *testing.T) {
 	tests := []struct {
 		name              string
 		key               string
-		valueFunc         func(t *testing.T) func(old []byte) (interface{}, error)
+		valueFunc         func(t *testing.T) func(old []byte) (any, error)
 		setupAPI          func(api *plugintest.API)
 		wantErr           bool
 		expectedErrPrefix string
@@ -166,8 +166,8 @@ func TestSetAtomicWithRetries(t *testing.T) {
 		{
 			name: "Test SetAtomicWithRetries success after first attempt",
 			key:  "testNum",
-			valueFunc: func(t *testing.T) func(old []byte) (interface{}, error) {
-				return func(old []byte) (interface{}, error) {
+			valueFunc: func(t *testing.T) func(old []byte) (any, error) {
+				return func(old []byte) (any, error) {
 					return 2, nil
 				}
 			},
@@ -184,8 +184,8 @@ func TestSetAtomicWithRetries(t *testing.T) {
 		{
 			name: "Test success after first attempt, old is struct and as expected",
 			key:  "testNum2",
-			valueFunc: func(t *testing.T) func(old []byte) (interface{}, error) {
-				return func(old []byte) (interface{}, error) {
+			valueFunc: func(t *testing.T) func(old []byte) (any, error) {
+				return func(old []byte) (any, error) {
 					type toStore struct {
 						Value int
 					}
@@ -213,8 +213,8 @@ func TestSetAtomicWithRetries(t *testing.T) {
 		{
 			name: "Test success after first attempt, old is an int value and as expected",
 			key:  "testNum2",
-			valueFunc: func(t *testing.T) func(old []byte) (interface{}, error) {
-				return func(old []byte) (interface{}, error) {
+			valueFunc: func(t *testing.T) func(old []byte) (any, error) {
+				return func(old []byte) (any, error) {
 					fromDB, err := strconv.Atoi(string(old))
 					if err != nil {
 						return nil, err
@@ -236,8 +236,8 @@ func TestSetAtomicWithRetries(t *testing.T) {
 		{
 			name: "Test SetAtomicWithRetries success on fourth attempt",
 			key:  "testNum",
-			valueFunc: func(t *testing.T) func(old []byte) (interface{}, error) {
-				return func(old []byte) (interface{}, error) {
+			valueFunc: func(t *testing.T) func(old []byte) (any, error) {
+				return func(old []byte) (any, error) {
 					return 2, nil
 				}
 			},
@@ -258,8 +258,8 @@ func TestSetAtomicWithRetries(t *testing.T) {
 		{
 			name: "Test SetAtomicWithRetries success on fourth attempt because value was changed between calls to KVGet",
 			key:  "testNum",
-			valueFunc: func(t *testing.T) func(old []byte) (interface{}, error) {
-				return func(old []byte) (interface{}, error) {
+			valueFunc: func(t *testing.T) func(old []byte) (any, error) {
+				return func(old []byte) (any, error) {
 					return 2, nil
 				}
 			},
@@ -280,8 +280,8 @@ func TestSetAtomicWithRetries(t *testing.T) {
 		{
 			name: "Test SetAtomicWithRetries failure on get",
 			key:  "testNum",
-			valueFunc: func(t *testing.T) func(old []byte) (interface{}, error) {
-				return func(old []byte) (interface{}, error) {
+			valueFunc: func(t *testing.T) func(old []byte) (any, error) {
+				return func(old []byte) (any, error) {
 					return nil, errors.New("should not have got here")
 				}
 			},
@@ -294,8 +294,8 @@ func TestSetAtomicWithRetries(t *testing.T) {
 		{
 			name: "Test SetAtomicWithRetries failure on valueFunc",
 			key:  "testNum",
-			valueFunc: func(t *testing.T) func(old []byte) (interface{}, error) {
-				return func(old []byte) (interface{}, error) {
+			valueFunc: func(t *testing.T) func(old []byte) (any, error) {
+				return func(old []byte) (any, error) {
 					return nil, errors.New("some user provided error")
 				}
 			},
@@ -309,8 +309,8 @@ func TestSetAtomicWithRetries(t *testing.T) {
 		{
 			name: "Test SetAtomicWithRetries DB failure on set",
 			key:  "testNum",
-			valueFunc: func(t *testing.T) func(old []byte) (interface{}, error) {
-				return func(old []byte) (interface{}, error) {
+			valueFunc: func(t *testing.T) func(old []byte) (any, error) {
+				return func(old []byte) (any, error) {
 					return 2, nil
 				}
 			},
@@ -329,8 +329,8 @@ func TestSetAtomicWithRetries(t *testing.T) {
 		{
 			name: "Test SetAtomicWithRetries failure on five set attempts -- depends on numRetries constant being = 5",
 			key:  "testNum",
-			valueFunc: func(t *testing.T) func(old []byte) (interface{}, error) {
-				return func(old []byte) (interface{}, error) {
+			valueFunc: func(t *testing.T) func(old []byte) (any, error) {
+				return func(old []byte) (any, error) {
 					return 2, nil
 				}
 			},
@@ -349,8 +349,8 @@ func TestSetAtomicWithRetries(t *testing.T) {
 		{
 			name: "Test SetAtomicWithRetries success after five set attempts -- depends on numRetries constant being = 5",
 			key:  "testNum",
-			valueFunc: func(t *testing.T) func(old []byte) (interface{}, error) {
-				return func(old []byte) (interface{}, error) {
+			valueFunc: func(t *testing.T) func(old []byte) (any, error) {
+				return func(old []byte) (any, error) {
 					fromDB, err := strconv.Atoi(string(old))
 					if err != nil {
 						return nil, err

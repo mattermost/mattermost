@@ -368,6 +368,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 bodyPadding={false}
                 modalHeaderText={headerTitle}
                 modalLocation='top'
+                delayFocusTrap={true}
             >
                 <div
                     ref={this.modalBodyRef}

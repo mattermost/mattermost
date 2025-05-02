@@ -44,7 +44,7 @@ function GifPickerSearch(props: Props) {
 
     return (
         <div className='emoji-picker__search-container'>
-            <div className='emoji-picker__text-container'>
+            <div className='emoji-picker__text-container gif-picker__text-container'>
                 <span className='icon-magnify icon emoji-picker__search-icon'/>
                 <input
                     id='emojiPickerSearch'

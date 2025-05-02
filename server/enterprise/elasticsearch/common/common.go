@@ -265,6 +265,17 @@ func ESUserFromUserForIndexing(userForIndexing *model.UserForIndexing) *ESUser {
 	return ESUserFromUserAndTeams(user, userForIndexing.TeamsIds, userForIndexing.ChannelsIds)
 }
 
+// SearchIndexName returns the index pattern to search for a given index name.
+func SearchIndexName(settings model.ElasticsearchSettings, name string) string {
+	if *settings.GlobalSearchPrefix == "" {
+		return *settings.IndexPrefix + name
+	}
+
+	// GlobalSearchPrefix is a prefix of IndexPrefix itself. This is verified in the config.
+	// Therefore, we use * to search across all indices with the common search prefix.
+	return *settings.GlobalSearchPrefix + "*" + name
+}
+
 func BuildPostIndexName(aggregateAfterDays int, unaggregatedBase string, aggregatedBase string, now time.Time, createAt int64) string {
 	postTime := time.Unix(createAt/1000, 0)
 	aggregateCutoffTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local).AddDate(0, 0, -aggregateAfterDays+1)

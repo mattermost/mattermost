@@ -67,7 +67,7 @@ describe('Leave an archived channel', () => {
             cy.uiArchiveChannel();
 
             // # Open channel menu and click View Members
-            cy.uiOpenChannelMenu('View Members');
+            cy.uiOpenChannelMenu('View members');
 
             // * Channel Members modal opens
             cy.get('div#channelMembersModal').should('be.visible');

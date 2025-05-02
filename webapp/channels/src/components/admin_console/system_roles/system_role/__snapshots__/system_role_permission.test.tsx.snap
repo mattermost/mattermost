@@ -6,6 +6,7 @@ exports[`admin_console/system_role_permission should match snapshot 1`] = `
 >
   <div
     className="PermissionSection"
+    data-testid="permission_section_environment"
     key="environment"
   >
     <div

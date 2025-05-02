@@ -33,7 +33,20 @@ exports[`components/select_team/SelectTeam should match snapshot 1`] = `
               id="signup_team.join_open"
             />
           </h4>
-          <LearnAboutTeamsLink />
+          <ForwardRef
+            className="LearnAboutTeamsLink"
+            href="https://mattermost.com/pl/mattermost-academy-team-training"
+            location="learn_about_teams"
+          >
+            <i
+              aria-hidden={true}
+              className="icon icon-lightbulb-outline"
+            />
+            <MemoizedFormattedMessage
+              defaultMessage="Learn about teams"
+              id="learn_about_teams"
+            />
+          </ForwardRef>
         </div>
         <InfiniteScroll
           bufferValue={280}
@@ -150,7 +163,20 @@ exports[`components/select_team/SelectTeam should match snapshot, on create team
               id="signup_team.join_open"
             />
           </h4>
-          <LearnAboutTeamsLink />
+          <ForwardRef
+            className="LearnAboutTeamsLink"
+            href="https://mattermost.com/pl/mattermost-academy-team-training"
+            location="learn_about_teams"
+          >
+            <i
+              aria-hidden={true}
+              className="icon icon-lightbulb-outline"
+            />
+            <MemoizedFormattedMessage
+              defaultMessage="Learn about teams"
+              id="learn_about_teams"
+            />
+          </ForwardRef>
         </div>
         <InfiniteScroll
           bufferValue={280}
@@ -404,7 +430,20 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
               id="signup_team.join_open"
             />
           </h4>
-          <LearnAboutTeamsLink />
+          <ForwardRef
+            className="LearnAboutTeamsLink"
+            href="https://mattermost.com/pl/mattermost-academy-team-training"
+            location="learn_about_teams"
+          >
+            <i
+              aria-hidden={true}
+              className="icon icon-lightbulb-outline"
+            />
+            <MemoizedFormattedMessage
+              defaultMessage="Learn about teams"
+              id="learn_about_teams"
+            />
+          </ForwardRef>
         </div>
         <InfiniteScroll
           bufferValue={280}
@@ -633,7 +672,20 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
               id="signup_team.join_open"
             />
           </h4>
-          <LearnAboutTeamsLink />
+          <ForwardRef
+            className="LearnAboutTeamsLink"
+            href="https://mattermost.com/pl/mattermost-academy-team-training"
+            location="learn_about_teams"
+          >
+            <i
+              aria-hidden={true}
+              className="icon icon-lightbulb-outline"
+            />
+            <MemoizedFormattedMessage
+              defaultMessage="Learn about teams"
+              id="learn_about_teams"
+            />
+          </ForwardRef>
         </div>
         <InfiniteScroll
           bufferValue={280}

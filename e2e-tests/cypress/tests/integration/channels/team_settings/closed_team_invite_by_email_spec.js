@@ -55,7 +55,7 @@ describe('Team Settings', () => {
 
     it('MM-T385 Invite new user to closed team using email invite', () => {
         // # Open 'Team Settings' modal
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
@@ -75,7 +75,7 @@ describe('Team Settings', () => {
         });
 
         // # Open the 'Invite People' full screen modal
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Wait half a second to ensure that the modal has been fully loaded
         cy.wait(TIMEOUTS.HALF_SEC);

@@ -5,7 +5,7 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, compa
   title="test_filename"
 >
   <a
-    className="post-image__name"
+    className="post-image__name btn btn-icon btn-sm"
     href="#"
     onClick={[MockFunction]}
     rel="noopener noreferrer"
@@ -40,6 +40,7 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, stand
   >
     <ForwardRef
       aria-label="download"
+      className="btn btn-icon btn-sm"
       download="test_filename"
       href="/api/v4/files/thumbnail_id?download=1"
       location="filename_overlay"
@@ -64,6 +65,7 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, with 
   >
     <ForwardRef
       aria-label="download"
+      className="btn btn-icon btn-sm"
       download="test_filename"
       href="/api/v4/files/thumbnail_id?download=1"
       location="filename_overlay"

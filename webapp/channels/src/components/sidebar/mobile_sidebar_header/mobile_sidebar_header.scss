@@ -1,0 +1,35 @@
+.mobileSidebarHeader {
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    gap: 4px;
+
+    h1 {
+        overflow: hidden;
+        margin: 0;
+        color: var(--sidebar-header-text-color);
+        font-family: Metropolis, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 22px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__username {
+        display: flex;
+        overflow: hidden;
+        flex-direction: row;
+        color: rgba(var(--sidebar-header-text-color-rgb), 0.75);
+        font-family: "Open Sans", sans-serif;
+        font-size: 14px;
+        gap: 2px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        span:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+}

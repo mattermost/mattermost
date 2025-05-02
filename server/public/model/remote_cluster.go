@@ -70,8 +70,8 @@ type RemoteCluster struct {
 	Options       Bitmask `json:"options"`   // bit-flag set of options
 }
 
-func (rc *RemoteCluster) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (rc *RemoteCluster) Auditable() map[string]any {
+	return map[string]any{
 		"remote_id":       rc.RemoteId,
 		"remote_team_id":  rc.RemoteTeamId,
 		"name":            rc.Name,
@@ -148,8 +148,8 @@ type RemoteClusterPatch struct {
 	DefaultTeamId *string `json:"default_team_id"`
 }
 
-func (rcp *RemoteClusterPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (rcp *RemoteClusterPatch) Auditable() map[string]any {
+	return map[string]any{
 		"display_name":    rcp.DisplayName,
 		"default_team_id": rcp.DefaultTeamId,
 	}
@@ -300,8 +300,8 @@ type RemoteClusterFrame struct {
 	Msg      RemoteClusterMsg `json:"msg"`
 }
 
-func (f *RemoteClusterFrame) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (f *RemoteClusterFrame) Auditable() map[string]any {
+	return map[string]any{
 		"remote_id": f.RemoteId,
 		"msg_id":    f.Msg.Id,
 		"topic":     f.Msg.Topic,

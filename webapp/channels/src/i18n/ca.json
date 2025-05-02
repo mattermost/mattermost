@@ -40,7 +40,6 @@
   "accessibility.sections.centerContent": "regió principal de la llista de missatges",
   "accessibility.sections.centerFooter": "regió complementaria del redactat de missatge",
   "accessibility.sections.channelHeader": "regió de la capçalera del canal",
-  "accessibility.sections.lhsHeader": "regió del menú d'equip",
   "accessibility.sections.lhsList": "regió de la barra lateral del canal",
   "accessibility.sections.lhsNavigator": "regió de navegació del canal",
   "accessibility.sections.rhs": "regió complementaria de {regionTitle}",

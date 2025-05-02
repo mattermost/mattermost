@@ -13,6 +13,7 @@ import InvitationModal from 'components/invitation_modal';
 import MemberListTeam from 'components/member_list_team';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 
+import {focusElement} from 'utils/a11y_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {ModalData} from 'types/actions';
@@ -21,6 +22,7 @@ type Props = {
     currentTeam?: Team;
     onExited: () => void;
     onLoad?: () => void;
+    focusOriginElement?: string;
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
     };
@@ -60,6 +62,13 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
         this.handleHide();
     };
 
+    handleExit = () => {
+        if (this.props.focusOriginElement) {
+            focusElement(this.props.focusOriginElement, true);
+        }
+        this.props.onExited();
+    };
+
     render() {
         let teamDisplayName = '';
         if (this.props.currentTeam) {
@@ -71,7 +80,7 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
                 dialogClassName='a11y__modal more-modal'
                 show={this.state.show}
                 onHide={this.handleHide}
-                onExited={this.props.onExited}
+                onExited={this.handleExit}
                 role='none'
                 aria-labelledby='teamMemberModalLabel'
                 id='teamMembersModal'

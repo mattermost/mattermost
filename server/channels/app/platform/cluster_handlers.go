@@ -52,7 +52,9 @@ func (ps *PlatformService) ClusterUpdateStatusHandler(msg *model.ClusterMessage)
 }
 
 func (ps *PlatformService) ClusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
-	ps.InvalidateAllCachesSkipSend()
+	if err := ps.InvalidateAllCachesSkipSend(); err != nil {
+		ps.logger.Error("Error validating caches from cluster message", mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) clusterInvalidateWebConnSessionCacheForUserHandler(msg *model.ClusterMessage) {
@@ -98,7 +100,7 @@ func (ps *PlatformService) invalidateWebConnSessionCacheForUserSkipClusterSend(u
 	}
 }
 
-func (ps *PlatformService) InvalidateAllCachesSkipSend() {
+func (ps *PlatformService) InvalidateAllCachesSkipSend() *model.AppError {
 	ps.logger.Info("Purging all caches")
 	ps.ClearAllUsersSessionCacheLocal()
 	if err := ps.statusCache.Purge(); err != nil {
@@ -115,10 +117,13 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 		ps.logger.Warn("Failed to clear the link cache", mlog.Err(err))
 	}
 	ps.LoadLicense()
+	return nil
 }
 
 func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
-	ps.InvalidateAllCachesSkipSend()
+	if err := ps.InvalidateAllCachesSkipSend(); err != nil {
+		return err
+	}
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{

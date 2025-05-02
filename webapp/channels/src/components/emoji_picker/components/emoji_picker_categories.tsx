@@ -70,6 +70,7 @@ function EmojiPickerCategories({
             id='emojiPickerCategories'
             className='emoji-picker__categories'
             onKeyDown={handleKeyDown}
+            data-testid='emojiPickerCategories'
         >
             {categoryNames.map((categoryName) => {
                 const category = categories[categoryName];

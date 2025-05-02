@@ -17,7 +17,8 @@ import * as Menu from 'components/menu';
 import {OnboardingTourSteps} from 'components/tours';
 import {useShowOnboardingTutorialStep, CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
 
-export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU = 'browseOrAddChannelMenuButton';
+export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU = 'browserOrAddChannelMenu';
+export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON = 'browseOrAddChannelMenuButton';
 
 type Props = {
     canCreateChannel: boolean;
@@ -52,6 +53,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                     />
                 )}
                 trailingElements={showCreateAndJoinChannelsTutorialTip && <CreateAndJoinChannelsTour/>}
+                aria-haspopup='true'
             />
         );
     }
@@ -69,6 +71,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                         defaultMessage='Browse channels'
                     />
                 )}
+                aria-haspopup='true'
             />
         );
     }
@@ -84,6 +87,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                     defaultMessage='Open a direct message'
                 />
             )}
+            aria-haspopup='true'
         />
     );
 
@@ -100,6 +104,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                         defaultMessage='Create new user group'
                     />
                 )}
+                aria-haspopup='true'
             />
         );
     }
@@ -117,6 +122,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                         defaultMessage='Create new category'
                     />
                 )}
+                aria-haspopup='true'
             />
         );
     }
@@ -139,13 +145,14 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                 </>
             )}
             trailingElements={showInvitePeopleTutorialTip && <InvitePeopleTour/>}
+            aria-haspopup='true'
         />
     );
 
     return (
         <Menu.Container
             menuButton={{
-                id: ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU,
+                id: ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON,
                 'aria-label': formatMessage({
                     id: 'sidebarLeft.browserOrCreateChannelMenuButton.label',
                     defaultMessage: 'Browse or create channels',
@@ -158,7 +165,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
             }}
             menu={{
                 id: 'browserOrAddChannelMenu',
-                'aria-labelledby': ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU,
+                'aria-labelledby': ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON,
             }}
         >
             {createNewChannelMenuItem}

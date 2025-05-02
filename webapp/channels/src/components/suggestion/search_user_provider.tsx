@@ -71,6 +71,11 @@ export default class SearchUserProvider extends Provider {
     }
 
     handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<UserProfile>, teamId: string) {
+        // no autocomplete on All teams
+        if (teamId === '') {
+            return false;
+        }
+
         const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext.toLowerCase());
 
         this.doAutocomplete(captured, teamId, resultsCallback);

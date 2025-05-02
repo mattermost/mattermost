@@ -502,7 +502,7 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
         },
         description: {
             id: 'admin.permissions.permission.playbook_public_manage_members.description',
-            defaultMessage: 'Add and remove public playbook members.',
+            defaultMessage: 'Add and remove public playbook members (including playbook admins).',
         },
     }),
     playbook_public_make_private: defineMessages({
@@ -542,7 +542,7 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
         },
         description: {
             id: 'admin.permissions.permission.playbook_private_manage_members.description',
-            defaultMessage: 'Add and remove private playbook members.',
+            defaultMessage: 'Add and remove private playbook members (including playbook admins).',
         },
     }),
     playbook_private_make_public: defineMessages({

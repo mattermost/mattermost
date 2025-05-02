@@ -55,6 +55,8 @@ for SERVICE in $ENABLED_DOCKER_SERVICES; do
       continue
     fi
     mme2e_log "Configuring the $SERVICE container"
+    ${MME2E_DC_SERVER} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true' <../../server/tests/custom-schema-objectID.ldif
+    ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true' < ../../server/tests/custom-schema-cpa.ldif
     ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest' <../../server/tests/test-data.ldif
     ;;
   minio)

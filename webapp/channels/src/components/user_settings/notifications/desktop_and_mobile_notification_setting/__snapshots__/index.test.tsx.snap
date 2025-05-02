@@ -70,6 +70,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           >
             <label>
               <input
+                class="a11y--active a11y--focused"
                 type="checkbox"
               />
               Notify me about replies to threads I'm following
@@ -293,6 +294,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
           >
             <label>
               <input
+                class="a11y--active a11y--focused"
                 type="checkbox"
               />
               Use different settings for my mobile devices

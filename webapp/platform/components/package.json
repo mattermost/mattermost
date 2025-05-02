@@ -35,6 +35,7 @@
   },
   "peerDependencies": {
     "@babel/runtime-corejs3": "^7.17.8",
+    "@mattermost/compass-icons": "0.1.48",
     "@mui/base": "5.0.0-alpha.127",
     "@mui/material": "5.11.16",
     "@mui/styled-engine-sc": "5.11.11",

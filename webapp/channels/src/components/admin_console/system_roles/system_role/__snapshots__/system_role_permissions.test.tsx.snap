@@ -172,6 +172,9 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             Object {
               "name": "environment_developer",
             },
+            Object {
+              "name": "environment_mobile_security",
+            },
           ],
         }
       }

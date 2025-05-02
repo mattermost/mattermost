@@ -12,7 +12,7 @@ const config = {
             },
             modules: false,
             corejs: {
-                version: "3.26",
+                version: '3.26',
                 proposals: true,
             },
             debug: false,
