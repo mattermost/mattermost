@@ -88,7 +88,7 @@ export const isEnterpriseLicense = (license?: ClientLicense) => {
     switch (license?.SkuShortName) {
     case LicenseSkus.Enterprise:
     case LicenseSkus.E20:
-    case LicenseSkus.Premium:
+    case LicenseSkus.EnterpriseAdvanced:
         return true;
     }
 
