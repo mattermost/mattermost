@@ -18,19 +18,6 @@ import WithTooltip from 'components/with_tooltip';
 import {CloudProducts} from 'utils/constants';
 
 const UpgradeButton = styled.button`
-background: var(--denim-button-bg);
-border-radius: 4px;
-border: none;
-box-shadow: none;
-height: 24px;
-width: auto;
-font-family: 'Open Sans';
-font-style: normal;
-font-weight: 600;
-font-size: 11px !important;
-line-height: 10px;
-letter-spacing: 0.02em;
-color: var(--button-color);
 `;
 
 let openPricingModal: (telemetryProps?: TelemetryProps) => void;
@@ -90,6 +77,7 @@ const PlanUpgradeButton = (): JSX.Element | null => {
                 id='UpgradeButton'
                 aria-haspopup='dialog'
                 onClick={() => openPricingModal({trackingLocation: 'global_header_plan_upgrade_button'})}
+                className='btn btn-primary btn-sm'
             >
                 {formatMessage({id: 'pricing_modal.btn.viewPlans', defaultMessage: 'View plans'})}
             </UpgradeButton>
