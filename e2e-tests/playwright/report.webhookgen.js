@@ -4,13 +4,27 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
 const fs = require('fs');
+const path = require('path');
+const AWS = require('aws-sdk');
 
 const dayjs = require('dayjs');
 const duration = require('dayjs/plugin/duration');
 dayjs.extend(duration);
 
-const {TYPE, SERVER_TYPE, BRANCH, PULL_REQUEST, BUILD_ID, MM_ENV, MM_DOCKER_IMAGE, MM_DOCKER_TAG, RELEASE_DATE} =
-    process.env;
+const {
+    TYPE, 
+    SERVER_TYPE, 
+    BRANCH, 
+    PULL_REQUEST, 
+    BUILD_ID, 
+    MM_ENV, 
+    MM_DOCKER_IMAGE, 
+    MM_DOCKER_TAG, 
+    RELEASE_DATE,
+    AWS_S3_BUCKET,
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY
+} = process.env;
 
 const resultsFile = 'results/reporter/results.json';
 const summaryFile = 'results/summary.json';
@@ -20,6 +34,72 @@ const passRate = (summary.passed * 100) / (summary.passed + summary.failed);
 const totalSpecs = summary.passed + summary.failed;
 const playwrightVersion = results.config.version;
 const playwrightDuration = dayjs.duration(results.stats.duration, 'millisecond').format('HH:mm:ss');
+
+/**
+ * Save artifacts to AWS S3
+ * @return {Object} - {reportLink} when successful
+ */
+async function saveArtifacts() {
+    if (!AWS_S3_BUCKET || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+        console.log('Missing AWS S3 environment variables');
+        return {success: false};
+    }
+
+    const s3 = new AWS.S3({
+        accessKeyId: AWS_ACCESS_KEY_ID,
+        secretAccessKey: AWS_SECRET_ACCESS_KEY,
+    });
+
+    const uploadFile = async (filePath, key) => {
+        try {
+            const fileContent = fs.readFileSync(filePath);
+            const params = {
+                Bucket: AWS_S3_BUCKET,
+                Key: key,
+                Body: fileContent,
+                ContentType: path.extname(filePath) === '.html' ? 'text/html' : 'application/json',
+            };
+
+            await s3.upload(params).promise();
+            return true;
+        } catch (error) {
+            console.log('Error uploading file:', error);
+            return false;
+        }
+    };
+
+    try {
+        // Upload the HTML report and JSON results
+        const reportDir = 'results/reporter';
+        const reportFiles = fs.readdirSync(reportDir);
+        
+        const date = new Date();
+        const dateString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+        const baseS3Folder = `${dateString}/${BUILD_ID || 'unknown'}/playwright`;
+        
+        // Upload all files in the reporter directory
+        for (const file of reportFiles) {
+            const filePath = path.join(reportDir, file);
+            const key = `${baseS3Folder}/${file}`;
+            await uploadFile(filePath, key);
+        }
+        
+        // Upload summary.json
+        await uploadFile(summaryFile, `${baseS3Folder}/summary.json`);
+        
+        // Generate report link to the HTML report
+        const reportLink = `https://${AWS_S3_BUCKET}.s3.amazonaws.com/${baseS3Folder}/index.html`;
+        console.log('Successfully uploaded artifacts to S3:', reportLink);
+        
+        return {
+            success: true,
+            reportLink,
+        };
+    } catch (error) {
+        console.log('Error saving artifacts:', error);
+        return {success: false};
+    }
+}
 
 function generateTitle() {
     let dockerImageLink = '';
@@ -57,7 +137,7 @@ function generateTitle() {
     return title;
 }
 
-function generateWebhookBody() {
+async function generateWebhookBody() {
     let testResult;
     const testResults = [
         {status: 'Passed', priority: 'none', cutOff: 100, color: '#43A047'},
@@ -70,6 +150,13 @@ function generateWebhookBody() {
             testResult = testResults[i];
             break;
         }
+    }
+
+    // Upload artifacts to S3 if environment variables are set
+    let reportLinkField = '';
+    const artifactResult = await saveArtifacts();
+    if (artifactResult && artifactResult.success) {
+        reportLinkField = `\nReport: ${artifactResult.reportLink}`;
     }
 
     const summaryField = `${passRate.toFixed(2)}% (${summary.passed}/${totalSpecs}) | ${playwrightDuration} | playwright@${playwrightVersion}`;
@@ -88,11 +175,13 @@ function generateWebhookBody() {
                 author_icon: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
                 author_link: 'https://www.mattermost.com',
                 title: generateTitle(),
-                text: `${summaryField}${serverTypeField}${rollingReleaseFromField}${mmEnvField}`,
+                text: `${summaryField}${serverTypeField}${rollingReleaseFromField}${mmEnvField}${reportLinkField}`,
             },
         ],
     };
 }
 
-const webhookBody = generateWebhookBody();
-process.stdout.write(JSON.stringify(webhookBody));
+(async () => {
+    const webhookBody = await generateWebhookBody();
+    process.stdout.write(JSON.stringify(webhookBody));
+})();
