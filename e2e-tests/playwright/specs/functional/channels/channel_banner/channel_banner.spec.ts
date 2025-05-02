@@ -7,7 +7,7 @@ import {getRandomId} from 'utils/utils';
 test('Should show channel banner when configured', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
-    test.skip(license.SkuShortName !== 'premium', 'Skipping test - server does not have Premium license');
+    test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
     const {channelsPage} = await pw.testBrowser.login(adminUser);
     await channelsPage.goto();
@@ -52,7 +52,7 @@ test('Should show channel banner when configured', async ({pw}) => {
 test('Should render markdown', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
-    test.skip(license.SkuShortName !== 'premium', 'Skipping test - server does not have Premium license');
+    test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
     const {channelsPage} = await pw.testBrowser.login(adminUser);
     await channelsPage.goto();
