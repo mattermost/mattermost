@@ -890,14 +890,18 @@ func (a *App) SetProfileImageFromMultiPartFile(c request.CTX, userID string, fil
 	return a.SetProfileImageFromFile(c, userID, file)
 }
 
-func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
+func (a *App) AdjustImage(rctx request.CTX, file io.ReadSeeker) (*bytes.Buffer, *model.AppError) {
 	// Decode image into Image object
-	img, _, err := a.ch.imgDecoder.Decode(file)
+	img, format, err := a.ch.imgDecoder.Decode(file)
 	if err != nil {
 		return nil, model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	orientation, _ := imaging.GetImageOrientation(file)
+	orientation, err := imaging.GetImageOrientation(file, format)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get image orientation", mlog.Err(err))
+	}
+
 	img = imaging.MakeImageUpright(img, orientation)
 
 	// Scale profile image
@@ -912,8 +916,8 @@ func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 	return buf, nil
 }
 
-func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.Reader) *model.AppError {
-	buf, err := a.AdjustImage(file)
+func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.ReadSeeker) *model.AppError {
+	buf, err := a.AdjustImage(c, file)
 	if err != nil {
 		return err
 	}
