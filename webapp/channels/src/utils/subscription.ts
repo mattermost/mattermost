@@ -22,7 +22,7 @@ export const getSkuDisplayName = (skuShortName: string, isGovSku: boolean): stri
         skuName = 'Enterprise';
         break;
     default:
-        skuName = 'Premium';
+        skuName = 'Enterprise Advanced';
         break;
     }
 
