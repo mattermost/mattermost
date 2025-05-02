@@ -265,6 +265,8 @@ export const ActionTypes = keyMirror({
     SET_SHOW_PREVIEW_ON_CREATE_COMMENT: null,
     SET_SHOW_PREVIEW_ON_CREATE_POST: null,
     SET_SHOW_PREVIEW_ON_EDIT_CHANNEL_HEADER_MODAL: null,
+    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL: null,
+    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL: null,
 
     TOGGLE_RHS_MENU: null,
     OPEN_RHS_MENU: null,
@@ -340,6 +342,7 @@ export const ModalIdentifiers = {
     CHANNEL_NOTIFICATIONS: 'channel_notifications',
     CHANNEL_INVITE: 'channel_invite',
     CHANNEL_MEMBERS: 'channel_members',
+    CHANNEL_SETTINGS: 'channel_settings',
     TEAM_MEMBERS: 'team_members',
     ADD_USER_TO_CHANNEL: 'add_user_to_channel',
     ADD_USER_TO_ROLE: 'add_user_to_role',
@@ -539,7 +542,7 @@ export enum LicenseSkus {
     Starter = 'starter',
     Professional = 'professional',
     Enterprise = 'enterprise',
-    Premium = 'premium',
+    EnterpriseAdvanced = 'advanced',
 }
 
 export function getLicenseTier(licenseSku: string): number {
@@ -548,7 +551,7 @@ export function getLicenseTier(licenseSku: string): number {
         return 10;
     case LicenseSkus.Enterprise:
         return 20;
-    case LicenseSkus.Premium:
+    case LicenseSkus.EnterpriseAdvanced:
         return 30;
     default:
         return 0;
