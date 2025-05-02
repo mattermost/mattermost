@@ -810,7 +810,7 @@ func TestPatchChannel(t *testing.T) {
 	t.Run("Should be able to configure channel banner on a channel", func(t *testing.T) {
 		client.Logout(context.Background())
 		th.LoginBasic()
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		defer func() {
 			th.App.Srv().RemoveLicense()
 		}()
@@ -845,7 +845,7 @@ func TestPatchChannel(t *testing.T) {
 	t.Run("Cannot enable channel banner without configuring it", func(t *testing.T) {
 		client.Logout(context.Background())
 		th.LoginBasic()
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		defer func() {
 			th.App.Srv().RemoveLicense()
 		}()
@@ -905,7 +905,7 @@ func TestPatchChannel(t *testing.T) {
 	t.Run("Cannot configure channel banner on a DM channel", func(t *testing.T) {
 		client.Logout(context.Background())
 		th.LoginBasic()
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		defer func() {
 			th.App.Srv().RemoveLicense()
 		}()
@@ -932,7 +932,7 @@ func TestPatchChannel(t *testing.T) {
 	t.Run("Cannot configure channel banner on a GM channel", func(t *testing.T) {
 		client.Logout(context.Background())
 		th.LoginBasic()
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		defer func() {
 			th.App.Srv().RemoveLicense()
 		}()
@@ -4102,7 +4102,7 @@ func TestAddChannelMemberGuestAccessControl(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	// Create a guest user
-	guest, guestClient := th.CreateGuestAndClient()
+	guest, guestClient := th.CreateGuestAndClient(t)
 
 	// Create a public channel to which the guest doesn't belong
 	publicChannel := th.CreatePublicChannel()
@@ -5747,7 +5747,7 @@ func TestCanEditChannelBanner(t *testing.T) {
 		err := canEditChannelBanner(nil, channel)
 
 		require.NotNil(t, err)
-		assert.Equal(t, "license_error.feature_unavailable", err.Id)
+		assert.Equal(t, "license_error.feature_unavailable.specific", err.Id)
 		assert.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
 
@@ -5760,12 +5760,12 @@ func TestCanEditChannelBanner(t *testing.T) {
 		err := canEditChannelBanner(license, channel)
 
 		require.NotNil(t, err)
-		assert.Equal(t, "license_error.feature_unavailable", err.Id)
+		assert.Equal(t, "license_error.feature_unavailable.specific", err.Id)
 		assert.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
 
 	t.Run("when channel type is direct message", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuPremium)
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
 		channel := &model.Channel{
 			Type: model.ChannelTypeDirect,
 		}
@@ -5778,7 +5778,7 @@ func TestCanEditChannelBanner(t *testing.T) {
 	})
 
 	t.Run("when channel type is group message", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuPremium)
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
 		channel := &model.Channel{
 			Type: model.ChannelTypeGroup,
 		}
@@ -5790,7 +5790,7 @@ func TestCanEditChannelBanner(t *testing.T) {
 	})
 
 	t.Run("when channel type is open and license is valid", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuPremium)
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
 		channel := &model.Channel{
 			Type: model.ChannelTypeOpen,
 		}
@@ -5800,7 +5800,7 @@ func TestCanEditChannelBanner(t *testing.T) {
 	})
 
 	t.Run("when channel type is private and license is valid", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuPremium)
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
 		channel := &model.Channel{
 			Type: model.ChannelTypePrivate,
 		}

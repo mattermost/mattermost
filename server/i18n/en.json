@@ -60,8 +60,16 @@
     "translation": "You cannot save an acknowledgment in an archived channel."
   },
   {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Failed to add certificate."
+  },
+  {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "No file under 'certificate' in request."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Too many files under 'certificate' in request."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
@@ -94,6 +102,10 @@
   {
     "id": "api.admin.ldap.not_available.app_error",
     "translation": "LDAP is not available."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Failed to remove certificate."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -2315,6 +2327,10 @@
   {
     "id": "api.license.client.old_format.app_error",
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Failed to compute monthly active users."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -5061,6 +5077,10 @@
   {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",
     "translation": "Unable to delete Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Cannot update value for a synced Custom Profile Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
@@ -8353,6 +8373,10 @@
     "translation": "Your license does not support SAML authentication."
   },
   {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "No user registered on AD/LDAP server that matches the SAML user."
+  },
+  {
     "id": "ent.saml.metadata.app_error",
     "translation": "An error occurred while building Service Provider Metadata."
   },
@@ -8451,6 +8475,10 @@
   {
     "id": "license_error.feature_unavailable",
     "translation": "Feature is not available for the current license"
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} feature is not available for the current license"
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -9283,6 +9311,22 @@
   {
     "id": "model.config.is_valid.read_timeout.app_error",
     "translation": "Invalid value for read timeout."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Invalid report a problem link. Must be a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Report a problem link is required."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Invalid report a problem mail. Must be a valid email address."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Report a problem mail is required."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
@@ -10502,15 +10546,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Version 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
