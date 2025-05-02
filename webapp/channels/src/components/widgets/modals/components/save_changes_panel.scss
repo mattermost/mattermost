@@ -122,13 +122,12 @@
         line-height: 10px;
 
         &.error {
-            background-color: var(--button-color);
-            color: var(--button-bg);
+            background-color: var(--button-bg);
+            color: var(--button-color);
         }
 
         &:disabled {
-            background: rgba(var(--center-channel-color-rgb), 0.32);
-            color: var(--button-color);
+            background: var(--center-channel-bg);
             opacity: 0.32; 
         }
     }
