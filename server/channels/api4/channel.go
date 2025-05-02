@@ -378,7 +378,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if patch.BannerInfo != nil {
-		canEditChannelBanner(c, c.App.License(), originalOldChannel)
+		canEditChannelBanner(c, originalOldChannel)
 		if c.Err != nil {
 			return
 		}
@@ -2458,8 +2458,8 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	}
 }
 
-func canEditChannelBanner(c *Context, license *model.License, originalChannel *model.Channel) {
-	if !model.MinimumEnterpriseAdvancedLicense(license) {
+func canEditChannelBanner(c *Context, originalChannel *model.Channel) {
+	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
 		c.Err = model.NewAppError("patchChannel", "license_error.feature_unavailable.specific", map[string]any{"Feature": "Channel Banner"}, "feature is not available for the current license", http.StatusForbidden)
 	}
 
