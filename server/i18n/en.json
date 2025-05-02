@@ -48,6 +48,14 @@
     "translation": "September"
   },
   {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Get channels limit is not valid."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Get fields limit is not valid."
+  },
+  {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "You cannot remove an acknowledgment in an archived channel."
   },
@@ -534,6 +542,10 @@
   {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "The channel has been archived or deleted."
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Policy enforced channels cannot be updated."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -4647,6 +4659,10 @@
     "translation": "Unable to delete the channel."
   },
   {
+    "id": "app.channel.get.app_error",
+    "translation": "Could not get channel."
+  },
+  {
     "id": "app.channel.get.existing.app_error",
     "translation": "Unable to find the existing channel {{.channel_id}}."
   },
@@ -6203,12 +6219,48 @@
     "translation": "We encountered an error updating the app."
   },
   {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "Unable to assign access control policy to channels."
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "Could not check expression."
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "Could not create access control policy."
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "Could not delete access control policy."
+  },
+  {
     "id": "app.pap.delete_policy.app_error",
     "translation": "Unable to delete access control policy."
   },
   {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "Could not get access control auto complete."
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "Could not get access control policies."
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "Could not get channel members to remove."
+  },
+  {
     "id": "app.pap.get_policy.app_error",
     "translation": "Unable to retrieve the access control policy."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": ""
   },
   {
     "id": "app.pap.init.app_error",
@@ -6223,8 +6275,24 @@
     "translation": "An attribute is missing from the expression."
   },
   {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "Could not query for expression."
+  },
+  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy."
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "Could not search access control policies."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Could not unassign access control policy from channels."
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "Could not change active status of access control policy."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
@@ -8575,6 +8643,10 @@
   {
     "id": "model.access.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "Could not inherit access control policy."
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
