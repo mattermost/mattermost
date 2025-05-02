@@ -66,12 +66,12 @@ describe('mapStateToProps', () => {
         },
     } as unknown as GlobalState;
 
-    test('should include remote users regardless of feature flag setting', () => {
+    test('should exclude remote users when feature flag is disabled', () => {
         const f = makeMapStateToProps();
         const props = f(initialState, {isExistingChannel: false});
 
-        // Now we should get all users, including remote ones
-        expect(props.users.length).toEqual(4);
+        // With feature flag disabled, we should filter out remote users (users 1 and 2)
+        expect(props.users.length).toEqual(2);
     });
 
     test('should include remote users when feature flag is enabled', () => {

@@ -14,7 +14,6 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
-import Badge from 'components/widgets/badges/badge';
 import InfoIcon from 'components/widgets/icons/info_icon';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
@@ -89,12 +88,9 @@ export default function UserDetails(props: Props): JSX.Element {
                     {isBot && <BotTag/>}
                     {isGuest(option.roles) && <GuestTag/>}
                     {isRemoteUser && (
-                        <Badge
-                            className='remote-user-badge'
-                            variant='info'
-                        >
+                        <span className='remote-user-badge'>
                             {'Remote'}
-                        </Badge>
+                        </span>
                     )}
                     <CustomStatusEmoji
                         userID={option.id}
@@ -110,24 +106,6 @@ export default function UserDetails(props: Props): JSX.Element {
                 {!isBot && (
                     <div className='more-modal__description'>
                         {option.email}
-                        {isRemoteUser && !enableSharedChannelsDMs && (
-                            <OverlayTrigger
-                                delayShow={500}
-                                placement='top'
-                                overlay={
-                                    <Tooltip id={`tooltip-remote-${id}`}>
-                                        {'Messaging with remote users will be available soon'}
-                                    </Tooltip>
-                                }
-                            >
-                                <span
-                                    className='remote-coming-soon'
-                                    style={{marginLeft: '4px'}}
-                                >
-                                    <InfoIcon size={14}/>
-                                </span>
-                            </OverlayTrigger>
-                        )}
                     </div>
                 )}
             </div>

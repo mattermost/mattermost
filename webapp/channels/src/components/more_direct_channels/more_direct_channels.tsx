@@ -9,7 +9,6 @@ import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type MultiSelect from 'components/multiselect/multiselect';
@@ -30,6 +29,7 @@ export type Props = {
     searchTerm: string;
     users: UserProfile[];
     totalCount: number;
+    enableSharedChannelsDMs?: boolean;
 
     /*
     * List of current channel members of existing channel
@@ -61,7 +61,7 @@ export type Props = {
         setModalSearchTerm: (term: string) => void;
     };
     focusOriginElement: string;
-    intl: any;
+    intl?: any;
 }
 
 type State = {
@@ -70,7 +70,6 @@ type State = {
     search: boolean;
     saving: boolean;
     loadingUsers: boolean;
-    error?: string;
 }
 
 export default class MoreDirectChannels extends React.PureComponent<Props, State> {
@@ -186,19 +185,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             return;
         }
 
-        // Check if any remote users are selected when the feature flag is disabled
-        const enableSharedChannelsDMs = getFeatureFlagValue({views: {featureFlags: {}}}, 'EnableSharedChannelsDMs') === 'true';
-        const hasRemoteUsers = values.some((user) => user.remote_id);
-
-        if (hasRemoteUsers && !enableSharedChannelsDMs) {
-            this.setState({
-                error: 'Messaging with remote users will be available soon.',
-            });
-            return;
-        }
-
-        // Clear any existing errors
-        this.setState({saving: true, error: undefined});
+        this.setState({saving: true});
 
         const done = (result: any) => {
             const {data, error} = result;
@@ -221,42 +208,15 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         if (isGroupChannel(value)) {
             this.addUsers(value.profiles);
         } else {
-            // Check if the user is remote and the feature flag is disabled
-            const enableSharedChannelsDMs = getFeatureFlagValue({views: {featureFlags: {}}}, 'EnableSharedChannelsDMs') === 'true';
-            const isRemoteUser = Boolean(value.remote_id);
-
-            if (isRemoteUser && !enableSharedChannelsDMs) {
-                this.setState({
-                    error: 'Messaging with remote users will be available soon.',
-                });
-                return; // Prevent selection
-            }
-
-            // If not a remote user or if feature flag is enabled, proceed with adding
             const values = [...this.state.values];
             if (!values.includes(value)) {
                 values.push(value);
             }
-            this.setState({values, error: undefined});
+            this.setState({values});
         }
     };
 
     addUsers = (users: UserProfile[]) => {
-        // Check if any remote users can't be added due to disabled feature flag
-        const enableSharedChannelsDMs = getFeatureFlagValue({views: {featureFlags: {}}}, 'EnableSharedChannelsDMs') === 'true';
-        if (!enableSharedChannelsDMs) {
-            const hasRemoteUsers = users.some((user) => Boolean(user.remote_id));
-            if (hasRemoteUsers) {
-                this.setState({
-                    error: this.props.intl.formatMessage({
-                        id: 'more_direct_channels.remote_messaging_unavailable',
-                        defaultMessage: 'Messaging with remote users will be available soon.',
-                    }),
-                });
-                return;
-            }
-        }
-
         const values = [...this.state.values];
         const existingUserIds = values.map((user) => user.id);
         for (const user of users) {
@@ -316,7 +276,6 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 totalCount={this.props.totalCount}
                 users={this.props.users}
                 values={this.state.values}
-                error={this.state.error}
             />
         );
 

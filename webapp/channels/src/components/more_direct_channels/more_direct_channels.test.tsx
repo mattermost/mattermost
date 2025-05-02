@@ -22,6 +22,7 @@ describe('components/MoreDirectChannels', () => {
         currentTeamName: 'team_name',
         searchTerm: '',
         totalCount: 3,
+        enableSharedChannelsDMs: true,
         users: [
             {
                 ...mockedUser,
@@ -53,6 +54,9 @@ describe('components/MoreDirectChannels', () => {
         restrictDirectMessage: 'any',
         onModalDismissed: jest.fn(),
         onExited: jest.fn(),
+        intl: {
+            formatMessage: jest.fn((obj) => obj.defaultMessage),
+        },
         actions: {
             getProfiles: jest.fn(() => {
                 return new Promise((resolve) => {
@@ -260,5 +264,43 @@ describe('components/MoreDirectChannels', () => {
         const props = {...baseProps, users, myDirectChannels, currentChannelMembers};
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
         expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should show error when trying to add remote users with feature flag disabled', () => {
+        const props = {...baseProps, enableSharedChannelsDMs: false};
+        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+
+        const remoteUsers = [
+            {
+                ...mockedUser,
+                id: 'remote_user_id',
+                remote_id: 'remote_id',
+            },
+        ];
+
+        wrapper.instance().addUsers(remoteUsers);
+        expect(wrapper.state('error')).toBeDefined();
+    });
+
+    test('should allow adding remote users with feature flag enabled', () => {
+        // Reset state to start with empty values array
+        const props = {...baseProps, enableSharedChannelsDMs: true};
+        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+
+        // Start with empty values
+        wrapper.setState({values: []});
+        const remoteUsers = [
+            {
+                ...mockedUser,
+                id: 'remote_user_id',
+                remote_id: 'remote_id',
+            },
+        ];
+
+        wrapper.instance().addUsers(remoteUsers);
+        expect(wrapper.state('error')).toBeUndefined();
+
+        // Should have one value in the values array
+        expect(wrapper.state('values').length).toEqual(1);
     });
 });

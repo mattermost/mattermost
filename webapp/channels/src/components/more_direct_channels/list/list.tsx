@@ -36,7 +36,6 @@ type Props = {
     selectedItemRef: React.RefObject<HTMLDivElement>;
     totalCount: number;
     users: UserProfile[];
-    error?: string;
 
     /**
      * An array of values that have been selected by the user in the multiselect.
@@ -167,8 +166,8 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
             loading={props.loading}
             users={props.users}
             totalCount={props.totalCount}
-            errorText={props.error}
             placeholderText={intl.formatMessage({id: 'multiselect.placeholder', defaultMessage: 'Search and add members'})}
+            valueWithImage={false}
         />
     );
 });

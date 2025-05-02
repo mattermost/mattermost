@@ -14,7 +14,7 @@ import {
     getTotalUsersStats,
     searchProfiles,
 } from 'mattermost-redux/actions/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
     getCurrentUserId,
@@ -54,9 +54,10 @@ export const makeMapStateToProps = () => {
 
         const searchTerm = state.views.search.modalSearch;
 
-        // Always get the feature flag value to use in the UI, but don't filter out remote users
+        // Get the EnableSharedChannelsDMs feature flag value
+        const enableSharedChannelsDMs = getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true';
 
-        // No longer exclude remote users from search results regardless of feature flag
+        // No filters for initial queries
         const filters = undefined;
 
         let users: UserProfile[];
@@ -72,6 +73,11 @@ export const makeMapStateToProps = () => {
             users = getProfilesInCurrentTeam(state, filters);
         }
 
+        // Filter out remote users if the feature flag is off
+        if (!enableSharedChannelsDMs) {
+            users = users.filter((user) => !user.remote_id);
+        }
+
         const team = getCurrentTeam(state);
         const stats = getTotalUsersStatsSelector(state) || {total_users_count: 0};
 
@@ -84,6 +90,7 @@ export const makeMapStateToProps = () => {
             currentUserId,
             restrictDirectMessage,
             totalCount: stats.total_users_count ?? 0,
+            enableSharedChannelsDMs,
         };
     };
 };

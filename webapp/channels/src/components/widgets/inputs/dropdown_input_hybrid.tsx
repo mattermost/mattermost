@@ -6,7 +6,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-import type {Props as SelectProps, IndicatorsContainerProps, ControlProps, OptionProps, StylesConfig, SingleValue} from 'react-select';
+import type {Props as SelectProps, IndicatorsContainerProps, ControlProps, OptionProps, StylesConfig, SingleValue, GroupBase} from 'react-select';
 
 import 'components/widgets/inputs/input/input.scss';
 import './dropdown_input_hybrid.scss';
