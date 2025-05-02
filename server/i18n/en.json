@@ -6248,7 +6248,7 @@
   },
   {
     "id": "app.pap.get_channel_access_control_attributes.app_error",
-    "translation": ""
+    "translation": "Could not get attributes for channel."
   },
   {
     "id": "app.pap.get_channel_members_to_remove.app_error",
@@ -6260,7 +6260,7 @@
   },
   {
     "id": "app.pap.get_policy_attributes.app_error",
-    "translation": ""
+    "translation": "Could not get attributes for policy."
   },
   {
     "id": "app.pap.init.app_error",
