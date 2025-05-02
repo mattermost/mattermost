@@ -22,7 +22,7 @@
         @include mixins.tertiary-button;
 
         &:hover {
-            color: var(--button-bg);
+            color: var(--denim-button-bg);
         }
     }
 }

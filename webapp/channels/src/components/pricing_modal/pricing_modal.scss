@@ -81,7 +81,7 @@
             }
 
             a {
-                color: var(--button-bg);
+                color: var(--denim-button-bg);
                 font-family: 'Open Sans';
                 font-size: 14px;
                 font-style: normal;
@@ -148,7 +148,7 @@
                 padding: 8px;
                 border-radius: 8px;
                 margin-top: 24px;
-                background: rgba(var(--button-bg-rgb), 0.08);
+                background: rgba(var(--denim-button-bg-rgb), 0.08);
                 font-family: 'Open Sans';
                 font-size: 14px;
                 font-style: normal;
@@ -161,7 +161,7 @@
                 }
 
                 .learn {
-                    color: var(--button-bg);
+                    color: var(--denim-button-bg);
                 }
             }
         }
