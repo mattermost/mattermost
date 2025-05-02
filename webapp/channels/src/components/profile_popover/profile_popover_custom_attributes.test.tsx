@@ -105,6 +105,9 @@ describe('components/ProfilePopoverCustomAttributes', () => {
                     url_attribute_id: urlAttribute,
                     select_attribute_id: selectAttribute,
                 },
+                license: {
+                    Cloud: 'false',
+                },
             },
             users: {
                 profiles: {
@@ -137,6 +140,12 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         expect(screen.getByText('text value')).toBeInTheDocument();
         expect(screen.getByText('+1 (555) 123-4567')).toBeInTheDocument();
         expect(screen.getByText('https://example.com')).toBeInTheDocument();
+
+        // URL attribute should be rendered as a link
+        const urlLink = screen.getByRole('link', {name: 'https://example.com'});
+        expect(urlLink).toBeInTheDocument();
+        expect(urlLink).toHaveAttribute('href', 'https://example.com');
+
         expect(screen.getByText('Option 1')).toBeInTheDocument();
     });
 
