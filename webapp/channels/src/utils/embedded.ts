@@ -3,7 +3,8 @@
 
 /**
  * Checks if the application is running embedded in another platform
- * This is determined by the MMEMBED cookie being set to '1'
+ * This is determined by checking if window.self is not equal to window.parent.
+ * If accessing window.parent throws an error, it is assumed the app is in a cross-origin iframe.
  * @returns True if the app is running embedded
  */
 export function isEmbedded(): boolean {
