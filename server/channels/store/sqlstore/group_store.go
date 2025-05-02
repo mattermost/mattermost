@@ -1645,16 +1645,21 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 }
 
 func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupIDs []string, isCount bool) sq.SelectBuilder {
-	var selectStr string
+	var builder sq.SelectBuilder
 
 	if isCount {
-		selectStr = "count(DISTINCT Users.Id)"
+		builder = s.getQueryBuilder().Select("count(DISTINCT Users.Id)")
 	} else {
-		tmpl := "Users.*, coalesce(TeamMembers.SchemeGuest, false) SchemeGuest, TeamMembers.SchemeAdmin, TeamMembers.SchemeUser, %s AS GroupIDs"
+		builder = s.getQueryBuilder().Select().
+			Columns(getUsersColumns()...).
+			Column("coalesce(TeamMembers.SchemeGuest, false) SchemeGuest").
+			Column("TeamMembers.SchemeAdmin").
+			Column("TeamMembers.SchemeUser")
+
 		if s.DriverName() == model.DatabaseDriverMysql {
-			selectStr = fmt.Sprintf(tmpl, "group_concat(UserGroups.Id)")
+			builder = builder.Column("group_concat(UserGroups.Id) AS GroupIDs")
 		} else {
-			selectStr = fmt.Sprintf(tmpl, "string_agg(UserGroups.Id, ',')")
+			builder = builder.Column("string_agg(UserGroups.Id, ',') AS GroupIDs")
 		}
 	}
 
@@ -1666,7 +1671,7 @@ func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupID
 
 	query, _ := subQuery.MustSql()
 
-	builder := s.getQueryBuilder().Select(selectStr).
+	builder = builder.
 		From("TeamMembers").
 		Join("Teams ON Teams.Id = TeamMembers.TeamId").
 		Join("Users ON Users.Id = TeamMembers.UserId").
