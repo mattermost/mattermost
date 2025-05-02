@@ -48,14 +48,14 @@ const EnterpriseEditionRightPanel = ({
                 return (
                     <FormattedMessage
                         id='admin.license.purchaseEnterpriseGovPlanTitle'
-                        defaultMessage='Purchase the Enterprise Gov Plan'
+                        defaultMessage='Purchase Enterprise Advanced Gov'
                     />
                 );
             }
             return (
                 <FormattedMessage
                     id='admin.license.purchaseEnterprisePlanTitle'
-                    defaultMessage='Purchase the Enterprise Plan'
+                    defaultMessage='Purchase Enterprise Advanced'
                 />
             );
         }
@@ -71,14 +71,14 @@ const EnterpriseEditionRightPanel = ({
             return (
                 <FormattedMessage
                     id='admin.license.upgradeToEnterpriseGov'
-                    defaultMessage='Upgrade to the Enterprise Gov Plan'
+                    defaultMessage='Upgrade to the Enterprise Advanced Gov Plan'
                 />
             );
         }
         return (
             <FormattedMessage
                 id='admin.license.upgradeToEnterprise'
-                defaultMessage='Upgrade to the Enterprise Plan'
+                defaultMessage='Upgrade to the Enterprise Advanced Plan'
             />
         );
     };
@@ -100,7 +100,7 @@ const EnterpriseEditionRightPanel = ({
             return (
                 <FormattedMessage
                     id='admin.license.purchaseEnterprisePlanSubtitle'
-                    defaultMessage='Continue your access to Enterprise features by purchasing a license today.'
+                    defaultMessage='Continue your access to Enterprise Advanced features by purchasing a license.'
                 />
             );
         }

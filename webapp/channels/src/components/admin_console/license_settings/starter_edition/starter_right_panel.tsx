@@ -9,10 +9,12 @@ import SetupSystemSvg from 'components/common/svg_images_components/setup_system
 
 const StarterRightPanel = () => {
     const upgradeAdvantages = [
-        'OneLogin/ADFS SAML 2.0',
-        'OpenID Connect',
-        'Office365 suite integration',
-        'Read-only announcement channels',
+        'Attribute-based access control',
+        'Channel warning banners',
+        'AD/LDAP group sync',
+        'Advanced workflows with Playbooks',
+        'High availability',
+        'Advanced compliance',
         'And more...',
     ];
 
@@ -27,7 +29,7 @@ const StarterRightPanel = () => {
             <div className='upgrade-title'>
                 <FormattedMessage
                     id='admin.license.upgradeTitle'
-                    defaultMessage='Upgrade to the Professional Plan'
+                    defaultMessage='Purchase one of our plans to unlock more features'
                 />
             </div>
             <div className='advantages-list'>
