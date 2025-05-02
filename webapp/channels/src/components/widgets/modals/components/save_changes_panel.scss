@@ -114,7 +114,7 @@
         border: none;
         border-radius: 4px;
         background: var(--button-bg);
-        color: var(--button-bg);
+        color: var(--button-color);
         font-family: inherit;
         font-size: 12px;
         font-weight: 600;
@@ -127,7 +127,8 @@
         }
 
         &:disabled {
-            background: var(--center-channel-bg);
+            background: rgba(var(--center-channel-color-rgb), 0.32);
+            color: var(--button-color);
             opacity: 0.32; 
         }
     }
