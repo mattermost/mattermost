@@ -174,7 +174,7 @@ function SelfHostedContent(props: ContentProps) {
                             isStarter ? (
                                 <PlanLabel
                                     text={formatMessage({id: 'pricing_modal.planLabel.currentPlan', defaultMessage: 'CURRENT PLAN'})}
-                                    color='var(--status-online)'
+                                    color='var(--online-indicator)'
                                     bgColor='var(--center-channel-bg)'
                                     firstSvg={<CheckMarkSvg/>}
                                 />) : undefined}
@@ -210,7 +210,7 @@ function SelfHostedContent(props: ContentProps) {
                             isProfessional ? (
                                 <PlanLabel
                                     text={formatMessage({id: 'pricing_modal.planLabel.currentPlan', defaultMessage: 'CURRENT PLAN'})}
-                                    color='var(--status-online)'
+                                    color='var(--online-indicator)'
                                     bgColor='var(--center-channel-bg)'
                                     firstSvg={<CheckMarkSvg/>}
                                 />) : undefined}
@@ -239,7 +239,7 @@ function SelfHostedContent(props: ContentProps) {
                             isEnterprise ? (
                                 <PlanLabel
                                     text={formatMessage({id: 'pricing_modal.planLabel.currentPlan', defaultMessage: 'CURRENT PLAN'})}
-                                    color='var(--status-online)'
+                                    color='var(--online-indicator)'
                                     bgColor='var(--center-channel-bg)'
                                     firstSvg={<CheckMarkSvg/>}
                                     renderLastDaysOnTrial={true}

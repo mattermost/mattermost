@@ -182,7 +182,7 @@ function Content(props: ContentProps) {
                         planLabel={isProfessional ? (
                             <PlanLabel
                                 text={professionalPlanLabelText()}
-                                color='var(--status-online)'
+                                color='var(--online-indicator)'
                                 bgColor='var(--center-channel-bg)'
                                 firstSvg={<CheckMarkSvg/>}
                             />) : undefined}
@@ -210,7 +210,7 @@ function Content(props: ContentProps) {
                             isEnterprise ? (
                                 <PlanLabel
                                     text={formatMessage({id: 'pricing_modal.planLabel.currentPlan', defaultMessage: 'CURRENT PLAN'})}
-                                    color='var(--status-online)'
+                                    color='var(--online-indicator)'
                                     bgColor='var(--center-channel-bg)'
                                     firstSvg={<CheckMarkSvg/>}
                                     renderLastDaysOnTrial={true}
