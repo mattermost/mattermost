@@ -13,9 +13,8 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {
     isEnterpriseLicense,
     isMinimumEnterpriseAdvancedLicense,
-    isMinimumEnterpriseLicense,
-    isNonEnterpriseLicense
-} from "utils/license_utils";
+    isNonEnterpriseLicense,
+} from 'utils/license_utils';
 
 import type {AdditionalValues, Group} from './types';
 

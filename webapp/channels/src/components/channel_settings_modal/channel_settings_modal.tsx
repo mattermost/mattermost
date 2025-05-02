@@ -9,7 +9,7 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
-import { Channel, ChannelType } from "@mattermost/types/channels";
+import type {Channel} from '@mattermost/types/channels';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 import {selectChannelBannerEnabled} from 'mattermost-redux/selectors/entities/channel_banner';
@@ -65,8 +65,6 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     const hasManageChannelBannerPermission = (channel.type === 'O' && canManagePublicChannelBanner) || (channel.type === 'P' && canManagePrivateChannelBanner);
 
     const shouldShowConfigurationTab = channelBannerEnabled && hasManageChannelBannerPermission;
-
-    console.log({channelBannerEnabled, canManagePublicChannelBanner, canManagePrivateChannelBanner, hasManageChannelBannerPermission, shouldShowConfigurationTab});
 
     const canArchivePrivateChannels = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DELETE_PRIVATE_CHANNEL),

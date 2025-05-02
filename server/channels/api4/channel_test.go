@@ -842,6 +842,52 @@ func TestPatchChannel(t *testing.T) {
 		require.Equal(t, "color", *patchedChannel.BannerInfo.BackgroundColor)
 	})
 
+	t.Run("Should not be able to configure channel banner on a channel as a non-admin channel member", func(t *testing.T) {
+		client.Logout(context.Background())
+		th.LoginBasic()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
+
+		patch := &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled:         model.NewPointer(true),
+				Text:            model.NewPointer("banner text"),
+				BackgroundColor: model.NewPointer("color"),
+			},
+		}
+
+		_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Should be able to configure channel banner as a team admin", func(t *testing.T) {
+		client.Logout(context.Background())
+		th.LoginTeamAdmin()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			th.App.Srv().RemoveLicense()
+		}()
+
+		patch := &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled:         model.NewPointer(true),
+				Text:            model.NewPointer("banner text"),
+				BackgroundColor: model.NewPointer("color"),
+			},
+		}
+
+		patchedChannel, resp, err := client.PatchChannel(context.Background(), th.BasicChannel2.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, patchedChannel.BannerInfo)
+		require.True(t, *patchedChannel.BannerInfo.Enabled)
+		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
+		require.Equal(t, "color", *patchedChannel.BannerInfo.BackgroundColor)
+	})
+
 	t.Run("Cannot enable channel banner without configuring it", func(t *testing.T) {
 		client.Logout(context.Background())
 		th.LoginBasic()
@@ -5736,76 +5782,4 @@ func TestViewChannelWithoutCollapsedThreads(t *testing.T) {
 	threads, _, err = client.GetUserThreads(context.Background(), user.Id, team.Id, model.GetUserThreadsOpts{})
 	require.NoError(t, err)
 	require.Zero(t, threads.TotalUnreadMentions)
-}
-
-func TestCanEditChannelBanner(t *testing.T) {
-	t.Run("when license is nil", func(t *testing.T) {
-		channel := &model.Channel{
-			Type: model.ChannelTypeOpen,
-		}
-
-		err := canEditChannelBanner(nil, channel)
-
-		require.NotNil(t, err)
-		assert.Equal(t, "license_error.feature_unavailable.specific", err.Id)
-		assert.Equal(t, http.StatusForbidden, err.StatusCode)
-	})
-
-	t.Run("when license is not E20 or Enterprise", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
-		channel := &model.Channel{
-			Type: model.ChannelTypeOpen,
-		}
-
-		err := canEditChannelBanner(license, channel)
-
-		require.NotNil(t, err)
-		assert.Equal(t, "license_error.feature_unavailable.specific", err.Id)
-		assert.Equal(t, http.StatusForbidden, err.StatusCode)
-	})
-
-	t.Run("when channel type is direct message", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
-		channel := &model.Channel{
-			Type: model.ChannelTypeDirect,
-		}
-
-		err := canEditChannelBanner(license, channel)
-
-		require.NotNil(t, err)
-		assert.Equal(t, "api.channel.update_channel.banner_info.channel_type.not_allowed", err.Id)
-		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
-	})
-
-	t.Run("when channel type is group message", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
-		channel := &model.Channel{
-			Type: model.ChannelTypeGroup,
-		}
-
-		err := canEditChannelBanner(license, channel)
-		require.NotNil(t, err)
-		assert.Equal(t, "api.channel.update_channel.banner_info.channel_type.not_allowed", err.Id)
-		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
-	})
-
-	t.Run("when channel type is open and license is valid", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
-		channel := &model.Channel{
-			Type: model.ChannelTypeOpen,
-		}
-
-		err := canEditChannelBanner(license, channel)
-		assert.Nil(t, err)
-	})
-
-	t.Run("when channel type is private and license is valid", func(t *testing.T) {
-		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
-		channel := &model.Channel{
-			Type: model.ChannelTypePrivate,
-		}
-
-		err := canEditChannelBanner(license, channel)
-		assert.Nil(t, err)
-	})
 }
