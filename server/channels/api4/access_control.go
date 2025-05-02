@@ -22,6 +22,7 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicies.Handle("/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/autocomplete/fields", api.APISessionRequired(getFieldsAutocomplete)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicy.Handle("/activate", api.APISessionRequired(updateActiveStatus)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("/assign", api.APISessionRequired(assignAccessPolicy)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", api.APISessionRequired(unassignAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APISessionRequired(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
@@ -217,6 +218,37 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 
 	if _, err := w.Write(js); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
+
+	active := r.URL.Query().Get("active")
+	if active != "true" && active != "false" {
+		c.SetInvalidParam("active")
+		return
+	}
+	activeBool, err := strconv.ParseBool(active)
+	if err != nil {
+		c.SetInvalidParamWithErr("active", err)
+		return
+	}
+
+	policyID := c.Params.PolicyId
+
+	appErr := c.App.UpdateAccessControlPolicyActive(c.AppContext, policyID, activeBool)
+	if appErr != nil {
+		c.Err = appErr
+		return
 	}
 }
 

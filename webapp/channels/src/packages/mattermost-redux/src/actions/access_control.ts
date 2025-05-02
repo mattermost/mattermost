@@ -168,3 +168,17 @@ export function getAccessControlFields(after: string, limit: number): ActionFunc
         return {data};
     };
 }
+
+export function updateAccessControlPolicyActive(policyId: string, active: boolean): ActionFuncAsync<StatusOK> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.updateAccessControlPolicyActive(policyId, active);
+
+            return {data};
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
+    };
+}

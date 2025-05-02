@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/admin';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
+import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -20,11 +21,13 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import TextSetting from 'components/widgets/settings/text_setting';
 
 import {getHistory} from 'utils/browser_history';
+import {JobTypes} from 'utils/constants';
 
 import ChannelList from './channel_list';
 
 import CELEditor from '../editors/cel_editor/editor';
 import TableEditor from '../editors/table_editor/table_editor';
+import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
 import './policy_details.scss';
 
@@ -39,6 +42,8 @@ interface PolicyActions {
     assignChannelsToAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     getAccessControlFields: (after: string, limit: number) => Promise<ActionResult>;
+    createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
+    updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
 }
 
 export interface PolicyDetailsProps {
@@ -67,6 +72,7 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
     const [saveNeeded, setSaveNeeded] = useState(false);
     const [channelsCount, setChannelsCount] = useState(0);
     const [autocompleteResult, setAutocompleteResult] = useState<PropertyField[]>([]);
+    const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
     useEffect(() => {
         loadPage();
@@ -93,6 +99,7 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
             // Set policy name and expression after fetching the policy
             setPolicyName(result.data?.name || '');
             setExpression(result.data?.rules?.[0]?.expression || '');
+            setAutoSyncMembership(result.data?.active || false);
 
             // Search for channels after setting the policy details
             const channelsResult = await actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE});
@@ -105,7 +112,7 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
         }
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (apply = false) => {
         try {
             const updatedPolicy = await actions.createPolicy({
                 id: policyId || '',
@@ -116,11 +123,24 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
             });
 
             if (updatedPolicy.data.id) {
+                // Update the active status of the after creation or update
+                // It's a separate call because it's unrelated to the policy itself
+                await actions.updateAccessControlPolicyActive(updatedPolicy.data.id, autoSyncMembership);
+
                 if (channelChanges.removedCount > 0) {
                     await actions.unassignChannelsFromAccessControlPolicy(updatedPolicy.data.id, Object.keys(channelChanges.removed));
                 }
                 if (Object.keys(channelChanges.added).length > 0) {
                     await actions.assignChannelsToAccessControlPolicy(updatedPolicy.data.id, Object.keys(channelChanges.added));
+                }
+
+                // Apply policy if requested by creating a job
+                if (apply && updatedPolicy.data.id) {
+                    const job: JobTypeBase & { data: any } = {
+                        type: JobTypes.ACCESS_CONTROL_SYNC,
+                        data: {parent_id: updatedPolicy.data.id},
+                    };
+                    await actions.createJob(job);
                 }
             }
 
@@ -130,8 +150,11 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
             await loadPage();
             setSaveNeeded(false);
             actions.setNavigationBlocked(false);
+            setShowConfirmationModal(false);
         } catch (error) {
             setServerError(true);
+        } finally {
+            setShowConfirmationModal(false);
         }
     };
 
@@ -391,10 +414,18 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
                 />
             )}
 
+            {showConfirmationModal && (
+                <PolicyConfirmationModal
+                    onExited={() => setShowConfirmationModal(false)}
+                    onConfirm={handleSubmit}
+                    channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
+                />
+            )}
+
             <div className='admin-console-save'>
                 <SaveButton
                     disabled={!saveNeeded}
-                    onClick={handleSubmit}
+                    onClick={() => setShowConfirmationModal(true)}
                     defaultMessage={
                         <FormattedMessage
                             id='admin.access_control.edit_policy.save'

@@ -160,7 +160,7 @@ type Routes struct {
 	AuditLogs *mux.Router // 'api/v4/audit_logs'
 
 	AccessControlPolicies *mux.Router // 'api/v4/access_control_policies'
-	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policy/{policy_id:[A-Za-z0-9]+}'
+	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
 }
 
 type API struct {

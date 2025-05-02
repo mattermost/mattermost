@@ -356,6 +356,24 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 		return nil, errors.Wrapf(err, "failed to update policy with id=%s", id)
 	}
 
+	if existingPolicy.Type == model.AccessControlPolicyTypeParent {
+		// if the policy is a parent, we need to update the child policies
+		var expr sq.Sqlizer
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			expr = sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", id))
+		} else {
+			expr = sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", id))
+		}
+		query, args, err = s.getQueryBuilder().Update("AccessControlPolicies").Set("Active", active).Where(expr).ToSql()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
+		}
+		_, err = tx.Query(query, args...)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to update child policies with id=%s", id)
+		}
+	}
+
 	if err = tx.Commit(); err != nil {
 		return nil, errors.Wrap(err, "commit_transaction")
 	}
@@ -471,7 +489,7 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 
 	query = query.Limit(limit)
 
-	err := s.GetMaster().SelectBuilder(&p, query)
+	err := s.GetReplica().SelectBuilder(&p, query)
 	if err != nil {
 		return nil, cursor, errors.Wrapf(err, "failed to find policies with opts={\"parentID\"=%q, \"resourceType\"=%q", opts.ParentID, opts.Type)
 	}
@@ -543,6 +561,11 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 			query = query.Where(condition)
 			count = count.Where(condition)
 		}
+	}
+
+	if opts.Active {
+		query = query.Where(sq.Eq{"Active": true})
+		count = count.Where(sq.Eq{"Active": true})
 	}
 
 	cursor := opts.Cursor

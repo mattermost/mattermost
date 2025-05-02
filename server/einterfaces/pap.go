@@ -15,8 +15,6 @@ type PolicyAdministrationPointInterface interface {
 	// Init initializes the policy administration point and intiates the CEL engine.
 	// It is an idempotent operation, meaning that it can be called multiple times.
 	Init(rctx request.CTX) *model.AppError
-	// GetBasicAutocompleteFields returns a map of basic autocomplete values.
-	GetBasicAutocompleteFields() (map[string]any, *model.AppError)
 	// GetPolicyRuleAttributes retrieves the attributes of the given policy.
 	// It returns a map of attribute names to their values for given action.
 	GetPolicyRuleAttributes(rctx request.CTX, policyID string, action string) (map[string][]string, *model.AppError)

@@ -97,38 +97,6 @@ func (_m *AccessControlServiceInterface) DeletePolicy(rctx request.CTX, id strin
 	return r0
 }
 
-// GetBasicAutocompleteFields provides a mock function with given fields:
-func (_m *AccessControlServiceInterface) GetBasicAutocompleteFields() (map[string]interface{}, *model.AppError) {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetBasicAutocompleteFields")
-	}
-
-	var r0 map[string]interface{}
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func() (map[string]interface{}, *model.AppError)); ok {
-		return rf()
-	}
-	if rf, ok := ret.Get(0).(func() map[string]interface{}); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]interface{})
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
-		r1 = rf()
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // GetChannelMembersToRemove provides a mock function with given fields: rctx, channelID
 func (_m *AccessControlServiceInterface) GetChannelMembersToRemove(rctx request.CTX, channelID string) ([]*model.ChannelMember, *model.AppError) {
 	ret := _m.Called(rctx, channelID)

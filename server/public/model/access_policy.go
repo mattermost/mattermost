@@ -45,6 +45,7 @@ type AccessControlPolicySearch struct {
 	Cursor          AccessControlPolicyCursor `json:"cursor"`
 	Limit           int                       `json:"limit"`
 	IncludeChildren bool                      `json:"include_children"`
+	Active          bool                      `json:"active"`
 }
 
 type AccessControlPolicyCursor struct {
