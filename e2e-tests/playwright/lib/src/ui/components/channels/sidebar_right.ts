@@ -85,11 +85,6 @@ export default class ChannelsSidebarRight {
         await expect(this.container).not.toBeVisible();
     }
 
-    async clickOnSeeAllscheduledDrafts() {
-        await this.scheduledDraftSeeAllLink.isVisible();
-        await this.scheduledDraftSeeAllLink.click();
-    }
-
     async toContainText(text: string) {
         await expect(this.container).toContainText(text);
     }

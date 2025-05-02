@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {expect, Page} from '@playwright/test';
+import {waitUntil} from 'async-wait-until';
 
 import {ChannelsPost, components} from '@/ui/components';
 import SettingsModal from '@/ui/components/channels/settings/settings_modal';
-
+import {duration} from '@/util';
 export default class ChannelsPage {
     readonly channels = 'Channels';
 
@@ -91,6 +92,8 @@ export default class ChannelsPage {
             }
         }
         await this.page.goto(channelsUrl);
+
+        return channelsUrl;
     }
 
     /**
@@ -100,6 +103,30 @@ export default class ChannelsPage {
      */
     async postMessage(message: string, files?: string[]) {
         await this.centerView.postMessage(message, files);
+    }
+
+    async replyToLastPost(message: string) {
+        const rootPost = await this.getLastPost();
+        await rootPost.reply();
+
+        const sidebarRight = this.sidebarRight;
+        await sidebarRight.toBeVisible();
+        await sidebarRight.postMessage('Replying to a thread');
+
+        // * Verify the message has been sent
+        await waitUntil(
+            async () => {
+                const post = await this.sidebarRight.getLastPost();
+                const content = await post.container.textContent();
+
+                return content?.includes(message);
+            },
+            {timeout: duration.ten_sec},
+        );
+
+        const lastPost = await sidebarRight.getLastPost();
+
+        return {rootPost, sidebarRight, lastPost};
     }
 
     async openChannelSettings(): Promise<SettingsModal> {
@@ -149,19 +176,26 @@ export default class ChannelsPage {
         return popover;
     }
 
-    async openScheduleMessageMenu() {
-        await expect(this.centerView.postCreate.scheduleMessageButton).toBeVisible();
-        await this.centerView.postCreate.scheduleMessageButton.click();
-
-        return this.scheduleMessageMenu;
-    }
-
     async scheduleMessage(message: string, dayFromToday: number = 0, timeOptionIndex: number = 0) {
         await this.centerView.postCreate.writeMessage(message);
 
-        const scheduleMessageMenu = await this.openScheduleMessageMenu();
-        await scheduleMessageMenu.toBeVisible();
-        await scheduleMessageMenu.selectCustomTime();
+        await expect(this.centerView.postCreate.scheduleMessageButton).toBeVisible();
+        await this.centerView.postCreate.scheduleMessageButton.click();
+
+        await this.scheduleMessageMenu.toBeVisible();
+        await this.scheduleMessageMenu.selectCustomTime();
+
+        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+    }
+
+    async scheduleMessageFromThread(message: string, dayFromToday: number = 0, timeOptionIndex: number = 0) {
+        await this.sidebarRight.postCreate.writeMessage(message);
+
+        await expect(this.sidebarRight.postCreate.scheduleMessageButton).toBeVisible();
+        await this.sidebarRight.postCreate.scheduleMessageButton.click();
+
+        await this.scheduleMessageMenu.toBeVisible();
+        await this.scheduleMessageMenu.selectCustomTime();
 
         return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }

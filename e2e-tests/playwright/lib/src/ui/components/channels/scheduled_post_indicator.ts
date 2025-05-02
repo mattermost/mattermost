@@ -24,6 +24,10 @@ export default class ScheduledPostIndicator {
         await expect(this.container).toBeVisible();
     }
 
+    async toBeNotVisible() {
+        await expect(this.container).not.toBeVisible();
+    }
+
     async getText() {
         return await this.messageText.innerText();
     }

@@ -40,8 +40,9 @@ export default class DraftsPage {
     }
 
     async getBadgeCountOnTab() {
-        await this.tab.isVisible();
+        await expect(this.tab).toBeVisible();
         const badge = this.tab.locator('span.MuiBadge-badge');
+        await expect(badge).toBeVisible();
         return await badge.textContent();
     }
 
