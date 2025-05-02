@@ -57,7 +57,10 @@ interface ChannelChanges {
     removedCount: number;
 }
 
-const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
+function PolicyDetails({
+    policyId,
+    actions,
+}: PolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState('');
     const [expression, setExpression] = useState('');
     const [autoSyncMembership, setAutoSyncMembership] = useState(false);
@@ -93,26 +96,36 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
     };
 
     const loadPage = async () => {
-        if (policyId) {
-            const result = await actions.fetchPolicy(policyId);
-
-            // Set policy name and expression after fetching the policy
-            setPolicyName(result.data?.name || '');
-            setExpression(result.data?.rules?.[0]?.expression || '');
-            setAutoSyncMembership(result.data?.active || false);
-
-            // Search for channels after setting the policy details
-            const channelsResult = await actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE});
-            setChannelsCount(channelsResult.data?.total_count || 0);
-
-            const fieldsResult = await actions.getAccessControlFields('', 100);
-            if (fieldsResult.data) {
-                setAutocompleteResult(fieldsResult.data);
-            }
+        if (!policyId) {
+            return;
         }
+
+        await actions.fetchPolicy(policyId).then((result) => {
+            if (result.data) {
+                // Set policy name and expression after fetching the policy
+                setPolicyName(result.data?.name || '');
+                setExpression(result.data?.rules?.[0]?.expression || '');
+                setAutoSyncMembership(result.data?.active || false);
+            }
+        });
+
+        // Search for channels after setting the policy details
+        await actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE}).then((result) => {
+            setChannelsCount(result.data?.total_count || 0);
+        });
+
+        await actions.getAccessControlFields('', 100).then((result) => {
+            if (result.data) {
+                setAutocompleteResult(result.data);
+            }
+        });
     };
 
     const handleSubmit = async (apply = false) => {
+        let updatedPolicyData: AccessControlPolicy | undefined;
+        let success = true;
+
+        // --- Step 1: Create/Update Policy ---
         try {
             const updatedPolicy = await actions.createPolicy({
                 id: policyId || '',
@@ -121,60 +134,95 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
                 type: 'parent',
                 version: 'v0.1',
             });
+            updatedPolicyData = updatedPolicy.data;
+            if (!updatedPolicyData?.id) {
+                // Handle case where policy creation might "succeed" but not return an ID needed for subsequent steps
+                // ideally this should never happen.
+                throw new Error('Policy creation did not return a valid ID.');
+            }
+        } catch (error) {
+            setServerError(true);
+            success = false;
+        }
 
-            if (updatedPolicy.data.id) {
-                // Update the active status of the after creation or update
-                // It's a separate call because it's unrelated to the policy itself
-                await actions.updateAccessControlPolicyActive(updatedPolicy.data.id, autoSyncMembership);
+        // --- Step 2: Dependent Actions (Channels, Active Status, Job) ---
+        if (success && updatedPolicyData?.id) { // ID existence checked in step 1's try
+            const policyID = updatedPolicyData.id;
+            try {
+                await actions.updateAccessControlPolicyActive(policyID, autoSyncMembership);
 
                 if (channelChanges.removedCount > 0) {
-                    await actions.unassignChannelsFromAccessControlPolicy(updatedPolicy.data.id, Object.keys(channelChanges.removed));
+                    await actions.unassignChannelsFromAccessControlPolicy(policyID, Object.keys(channelChanges.removed));
                 }
                 if (Object.keys(channelChanges.added).length > 0) {
-                    await actions.assignChannelsToAccessControlPolicy(updatedPolicy.data.id, Object.keys(channelChanges.added));
+                    await actions.assignChannelsToAccessControlPolicy(policyID, Object.keys(channelChanges.added));
                 }
 
-                // Apply policy if requested by creating a job
-                if (apply && updatedPolicy.data.id) {
+                if (apply) {
                     const job: JobTypeBase & { data: any } = {
                         type: JobTypes.ACCESS_CONTROL_SYNC,
-                        data: {parent_id: updatedPolicy.data.id},
+                        data: {parent_id: policyID},
                     };
                     await actions.createJob(job);
                 }
+            } catch (error) {
+                setServerError(true);
+                success = false;
             }
-
-            getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy/' + updatedPolicy.data.id);
-
-            setChannelChanges({removed: {}, added: {}, removedCount: 0});
-            await loadPage();
-            setSaveNeeded(false);
-            actions.setNavigationBlocked(false);
-            setShowConfirmationModal(false);
-        } catch (error) {
-            setServerError(true);
-        } finally {
-            setShowConfirmationModal(false);
         }
+
+        // --- Step 3: Navigation & Final State Updates ---
+        if (success && updatedPolicyData?.id) {
+            try {
+                // Navigate first
+                getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy/' + encodeURIComponent(updatedPolicyData.id));
+
+                // Then update local state if navigation succeeded
+                setChannelChanges({removed: {}, added: {}, removedCount: 0});
+                await loadPage(); // Assuming loadPage handles its own errors or failure is acceptable
+                setSaveNeeded(false);
+                actions.setNavigationBlocked(false);
+            } catch (error) {
+                setServerError(true);
+                success = false;
+            }
+        }
+
+        // --- Step 4: Always hide modal ---
+        setShowConfirmationModal(false);
     };
 
     const handleDelete = async () => {
-        try {
-            if (policyId) {
-                if (channelChanges.removedCount > 0) {
-                    await actions.unassignChannelsFromAccessControlPolicy(policyId, Object.keys(channelChanges.removed));
-                }
+        if (!policyId) {
+            return; // Should not happen if delete button is enabled correctly
+        }
 
-                await actions.deletePolicy(policyId).then(
-                    (result) => {
-                        if (result.data) {
-                            getHistory().push('/admin_console/user_management/attribute_based_access_control');
-                        }
-                    },
-                );
+        let success = true;
+
+        // --- Step 1: Unassign Channels (if necessary) ---
+        if (channelChanges.removedCount > 0) {
+            try {
+                await actions.unassignChannelsFromAccessControlPolicy(policyId, Object.keys(channelChanges.removed));
+            } catch (error) {
+                setServerError(true);
+                success = false;
             }
-        } catch (error) {
-            setServerError(true);
+        }
+
+        // --- Step 2: Delete Policy and Navigate ---
+        if (success) {
+            try {
+                const result = await actions.deletePolicy(policyId);
+                if (result.data) {
+                    // Navigate only if deletion was successful
+                    getHistory().push('/admin_console/user_management/attribute_based_access_control');
+                } else {
+                    // Handle cases where delete action might not throw but indicate failure
+                    throw new Error('Policy deletion failed without throwing an error.');
+                }
+            } catch (error) {
+                setServerError(true);
+            }
         }
     };
 
@@ -425,7 +473,13 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
             <div className='admin-console-save'>
                 <SaveButton
                     disabled={!saveNeeded}
-                    onClick={() => setShowConfirmationModal(true)}
+                    onClick={() => {
+                        if (hasChannels()) {
+                            setShowConfirmationModal(true);
+                        } else {
+                            handleSubmit();
+                        }
+                    }}
                     defaultMessage={
                         <FormattedMessage
                             id='admin.access_control.edit_policy.save'
@@ -454,6 +508,6 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
             </div>
         </div>
     );
-};
+}
 
 export default PolicyDetails;

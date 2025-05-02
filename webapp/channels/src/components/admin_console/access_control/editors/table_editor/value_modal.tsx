@@ -16,12 +16,12 @@ interface ValueModalProps {
 /**
  * A modal component for adding values to attributes in the table editor
  */
-const ValueModal: React.FC<ValueModalProps> = ({
+function ValueModal({
     onClose,
     onAdd,
     newValue,
     setNewValue,
-}) => {
+}: ValueModalProps): JSX.Element {
     // Handle input changes
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setNewValue(e.target.value);
@@ -89,6 +89,6 @@ const ValueModal: React.FC<ValueModalProps> = ({
             </div>
         </div>
     );
-};
+}
 
 export default ValueModal;

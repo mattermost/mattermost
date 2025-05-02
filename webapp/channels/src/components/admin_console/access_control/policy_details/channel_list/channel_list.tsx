@@ -51,7 +51,7 @@ const PAGE_SIZE = 10;
 
 export default class ChannelList extends React.PureComponent<Props, State> {
     private mounted = false;
-    private searchDebounced: () => void;
+    private searchDebounced;
 
     public constructor(props: Props) {
         super(props);
@@ -80,6 +80,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
     };
 
     componentWillUnmount = () => {
+        this.searchDebounced.cancel();
         this.mounted = false;
     };
 

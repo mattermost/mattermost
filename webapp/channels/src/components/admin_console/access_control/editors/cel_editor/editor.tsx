@@ -83,13 +83,13 @@ const schemas = {
     'channel.attributes': ['required_level', 'restricted', 'visibility'],
 };
 
-const CELEditor: React.FC<CELEditorProps> = ({
+function CELEditor({
     value,
     onChange,
     onValidate,
     placeholder = 'user.attributes.<attribute> == <value>',
     className = '',
-}) => {
+}: CELEditorProps): JSX.Element {
     const [editorState, setEditorState] = useState({
         expression: value,
         isValidating: false,
@@ -346,6 +346,6 @@ const CELEditor: React.FC<CELEditorProps> = ({
             )}
         </div>
     );
-};
+}
 
 export default CELEditor;

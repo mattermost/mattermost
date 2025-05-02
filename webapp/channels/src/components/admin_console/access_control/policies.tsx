@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlPolicy} from '@mattermost/types/admin';
@@ -37,6 +37,7 @@ export default function PolicyList(props: Props): JSX.Element {
     const [cursorHistory, setCursorHistory] = useState<string[]>([]);
     const [total, setTotal] = useState(0);
 
+    const history = useMemo(() => getHistory(), []);
     const mounted = useRef(false);
 
     useEffect(() => {
@@ -160,13 +161,13 @@ export default function PolicyList(props: Props): JSX.Element {
         }
 
         return policies.map((policy: AccessControlPolicy) => {
-            const desciptionId = `customDescription-${policy.id}`;
+            const descriptionId = `customDescription-${policy.id}`;
             const appliedToId = `customAppliedTo-${policy.id}`;
             return {
                 cells: {
                     name: (
                         <div
-                            id={desciptionId}
+                            id={descriptionId}
                             className='policy-name'
                         >
                             {policy.name}
@@ -199,7 +200,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                     <Menu.Item
                                         id={`policy-menu-edit-${policy.id}`}
                                         onClick={() => {
-                                            getHistory().push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
+                                            history.push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
                                         }}
                                         leadingElement={<i className='icon icon-pencil-outline'/>}
                                         labels={
@@ -231,7 +232,7 @@ export default function PolicyList(props: Props): JSX.Element {
                     if (props.onPolicySelected) {
                         props.onPolicySelected(policy);
                     } else {
-                        getHistory().push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
+                        history.push(`/admin_console/user_management/attribute_based_access_control/edit_policy/${policy.id}`);
                     }
                 },
             };
@@ -318,7 +319,7 @@ export default function PolicyList(props: Props): JSX.Element {
                     <button
                         className='btn btn-primary'
                         onClick={() => {
-                            getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy');
+                            history.push('/admin_console/user_management/attribute_based_access_control/edit_policy');
                         }}
                     >
                         <i className='icon icon-plus'/>

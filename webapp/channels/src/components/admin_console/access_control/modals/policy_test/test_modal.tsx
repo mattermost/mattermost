@@ -18,20 +18,22 @@ const USERS_PER_PAGE = 10;
 type Props = {
     testResults: AccessControlTestResult | null;
     onExited: () => void;
-    onLoad?: () => void;
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
         setModalSearchTerm: (term: string) => void;
     };
 }
 
-const TestResultsModal: React.FC<Props> = ({testResults, onExited, onLoad, actions}) => {
+function TestResultsModal({
+    testResults,
+    onExited,
+    actions,
+}: Props): JSX.Element {
     useEffect(() => {
-        onLoad?.();
         return () => {
             actions.setModalSearchTerm('');
         };
-    }, [onLoad, actions]);
+    }, [actions]);
 
     // TODO: Make search function actually work
     // Ideally we need to pass the expression here and filter the users based on the expression
@@ -70,6 +72,6 @@ const TestResultsModal: React.FC<Props> = ({testResults, onExited, onLoad, actio
             </Modal.Body>
         </Modal>
     );
-};
+}
 
 export default TestResultsModal;

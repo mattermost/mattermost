@@ -55,7 +55,7 @@ interface HelpTextProps {
     message: string;
 }
 
-const HelpText: React.FC<HelpTextProps> = ({message}) => {
+function HelpText({message}: HelpTextProps): JSX.Element {
     return (
         <div className='table-editor__help-text'>
             <Markdown
@@ -73,9 +73,9 @@ const HelpText: React.FC<HelpTextProps> = ({message}) => {
             </a>
         </div>
     );
-};
+}
 
-const ErrorMessage: React.FC<ErrorMessageProps> = ({error}) => {
+function ErrorMessage({error}: ErrorMessageProps): JSX.Element | null {
     if (!error) {
         return null;
     }
@@ -89,9 +89,9 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({error}) => {
             />
         </span>
     );
-};
+}
 
-const TestButton: React.FC<TestButtonProps> = ({onClick, disabled}) => {
+function TestButton({onClick, disabled}: TestButtonProps): JSX.Element {
     return (
         <button
             className='table-editor__test-btn'
@@ -105,15 +105,15 @@ const TestButton: React.FC<TestButtonProps> = ({onClick, disabled}) => {
             />
         </button>
     );
-};
+}
 
-const AttributeDropdown: React.FC<AttributeDropdownProps> = ({
+function AttributeDropdown({
     isOpen,
     disabled,
     availableAttributes,
     onSelect,
     onToggle,
-}) => {
+}: AttributeDropdownProps): JSX.Element {
     return (
         <div className='table-editor__select-attribute-container'>
             <button
@@ -142,7 +142,7 @@ const AttributeDropdown: React.FC<AttributeDropdownProps> = ({
             )}
         </div>
     );
-};
+}
 
 // Parse CEL expression into table rows
 const parseExpression = (expr: string): TableRow[] => {
@@ -187,13 +187,13 @@ const parseExpression = (expr: string): TableRow[] => {
     return rows;
 };
 
-const TableEditor: React.FC<TableEditorProps> = ({
+function TableEditor({
     value,
     onChange,
     onValidate,
     disabled = false,
     userAttributes,
-}) => {
+}: TableEditorProps): JSX.Element {
     const [rows, setRows] = useState<TableRow[]>(parseExpression(value));
     const [showTestResults, setShowTestResults] = useState(false);
     const [testResults, setTestResults] = useState<AccessControlTestResult | null>(null);
@@ -494,6 +494,6 @@ const TableEditor: React.FC<TableEditorProps> = ({
             )}
         </div>
     );
-};
+}
 
 export default TableEditor;
