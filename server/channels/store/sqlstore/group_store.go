@@ -589,26 +589,22 @@ func (s *SqlGroupStore) GetMemberCountWithRestrictions(groupID string, viewRestr
 func (s *SqlGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
-	query := `
-		SELECT
-			Users.*
-		FROM
-			GroupMembers
-			JOIN Users ON Users.Id = GroupMembers.UserId
-		WHERE
-			GroupId = ?
-			AND GroupMembers.UserId IN (
-				SELECT TeamMembers.UserId
-				FROM TeamMembers
-				JOIN Teams ON Teams.Id = ?
-				WHERE TeamMembers.TeamId = Teams.Id
-				AND TeamMembers.DeleteAt = 0
-			)
-			AND GroupMembers.DeleteAt = 0
-			AND Users.DeleteAt = 0
-		`
+	query := s.groupMemberUsersSelectQuery.
+		Where(sq.Eq{
+			"GroupMembers.GroupId": groupID,
+			"GroupMembers.UserId": s.getQueryBuilder().
+				Select("TeamMembers.UserId").
+				From("TeamMembers").
+				Join("Teams ON Teams.Id = TeamMembers.TeamId").
+				Where(sq.Eq{
+					"TeamMembers.TeamId":   teamID,
+					"TeamMembers.DeleteAt": 0,
+				}),
+			"GroupMembers.DeleteAt": 0,
+			"Users.DeleteAt":        0,
+		})
 
-	if err := s.GetReplica().Select(&groupMembers, query, groupID, teamID); err != nil {
+	if err := s.GetReplica().SelectBuilder(&groupMembers, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to member Users for groupId=%s and teamId=%s", groupID, teamID)
 	}
 
