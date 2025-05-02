@@ -42,9 +42,10 @@ interface Props extends Menu.FirstMenuItemProps {
     isFavorite: boolean;
     isLicensedForLDAPGroups: boolean;
     pluginItems: ReactNode[];
+    isChannelBookmarksEnabled: boolean;
 }
 
-const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, isFavorite, isLicensedForLDAPGroups, pluginItems, ...rest}: Props) => {
+const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, isFavorite, isLicensedForLDAPGroups, pluginItems, isChannelBookmarksEnabled, ...rest}: Props) => {
     const isGroupConstrained = channel?.group_constrained === true;
     const isArchived = channel.delete_at !== 0;
     const isPrivate = channel?.type === Constants.PRIVATE_CHANNEL;
@@ -73,9 +74,11 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                     <MenuItemChannelSettings
                         channel={channel}
                     />
-                    <MenuItemChannelBookmarks
-                        channel={channel}
-                    />
+                    {isChannelBookmarksEnabled && (
+                        <MenuItemChannelBookmarks
+                            channel={channel}
+                        />
+                    )}
                 </>
             )}
             <Menu.Separator/>

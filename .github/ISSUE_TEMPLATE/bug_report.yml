@@ -16,11 +16,11 @@ body:
         required: true
       - label: This issue reproduces on one of the [currently supported server versions](https://docs.mattermost.com/about/mattermost-server-releases.html#latest-releases).
         required: true
-      - label: I have read the [contribution guidelines](https://github.com/mattermost/mattermost/blob/master/CONTRIBUTING.md).
+      - label: I have read the [contribution guidelines](https://github.com/mattermost/mattermost/blob/master/CONTRIBUTING.md) and the [Mattermost Handbook Contribution Guidelines](https://handbook.mattermost.com/contributors/contributors/guidelines/contribution-guidelines).
         required: true
 - type: input
   attributes:
-    label: Mattermost Server Version 
+    label: Mattermost Server Version
     description: |
       What version of the Mattermost server are you using? You can find it by going to [Main Menu] > [About Mattermost].
   validations:
@@ -61,4 +61,4 @@ body:
 - type: textarea
   attributes:
     label: Additional Information
-    description: If you have anything else to add to the ticket, you may do so here. 
+    description: If you have anything else to add to the ticket, you may do so here.

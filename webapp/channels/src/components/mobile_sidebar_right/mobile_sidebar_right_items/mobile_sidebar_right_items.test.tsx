@@ -18,7 +18,7 @@ describe('MobileSidebarRightItems', () => {
         appDownloadLink: undefined,
         experimentalPrimaryTeam: undefined,
         helpLink: undefined,
-        reportAProblemLink: undefined,
+        reportAProblemLink: '',
         moreTeamsToJoin: false,
         pluginMenuItems: [],
         isMentionSearch: false,
