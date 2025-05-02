@@ -545,13 +545,19 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             <div
                 id={'hideJoinedPreferenceCheckbox'}
                 onClick={this.handleChecked}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        this.handleChecked();
+                    }
+                }}
+                role='checkbox'
+                aria-checked={this.props.rememberHideJoinedChannelsChecked}
+                aria-label={this.props.rememberHideJoinedChannelsChecked ? this.props.intl.formatMessage({id: 'more_channels.hide_joined_checked', defaultMessage: 'Hide joined channels checkbox, checked'}) : this.props.intl.formatMessage({id: 'more_channels.hide_joined_not_checked', defaultMessage: 'Hide joined channels checkbox, not checked'})}
+                tabIndex={0}
             >
-                <button
-                    className={hideJoinedButtonClass}
-                    aria-label={this.props.rememberHideJoinedChannelsChecked ? this.props.intl.formatMessage({id: 'more_channels.hide_joined_checked', defaultMessage: 'Hide joined channels checkbox, checked'}) : this.props.intl.formatMessage({id: 'more_channels.hide_joined_not_checked', defaultMessage: 'Hide joined channels checkbox, not checked'})}
-                >
+                <div className={hideJoinedButtonClass}>
                     {this.props.rememberHideJoinedChannelsChecked ? <CheckboxCheckedIcon/> : null}
-                </button>
+                </div>
                 <FormattedMessage
                     id='more_channels.hide_joined'
                     defaultMessage='Hide Joined'
