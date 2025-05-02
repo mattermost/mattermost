@@ -8,6 +8,7 @@ import type {AdminConfig, ClientLicense, EnvironmentConfig} from './config';
 import type {DataRetentionCustomPolicies} from './data_retention';
 import type {MixedUnlinkedGroupRedux} from './groups';
 import type {PluginRedux, PluginStatusRedux} from './plugins';
+import { PropertyField } from './properties';
 import type {SamlCertificateStatus, SamlMetadataResponse} from './saml';
 import type {Team} from './teams';
 import type {UserAccessToken, UserProfile} from './users';
@@ -196,10 +197,6 @@ export type AccessControlPolicies = {
 export type AccessControlTestResult = {
     users: UserProfile[];
     attributes: string[];
-}
-
-export type AccessControlExpressionAutocomplete = {
-    entities: Record<string, AccessControlEntity>;
 }
 
 export type AccessControlEntity = {

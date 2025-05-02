@@ -114,13 +114,13 @@
             font-size: 12px;
         }
     }
-
-    .no-results {
-        padding: 20px;
-        // Add padding to separate from header
-        padding-top: 30px;
-        padding-bottom: 30px;
-        color: var(--center-channel-color-56);
-        text-align: center;
-    }
 } 
+
+.no-results {
+    padding: 20px;
+    // Add padding to separate from header
+    padding-top: 30px;
+    padding-bottom: 30px;
+    color: var(--center-channel-color-56);
+    text-align: center;
+}

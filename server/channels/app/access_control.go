@@ -234,3 +234,24 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 
 	return attributes, nil
 }
+
+func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string, limit int) ([]*model.PropertyField, *model.AppError) {
+	cpaGroupID, err := a.CpaGroupID()
+	if err != nil {
+		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	fields, err := a.Srv().Store().PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+		GroupID: cpaGroupID,
+		Cursor: model.PropertyFieldSearchCursor{
+			PropertyFieldID: after,
+			CreateAt:        1,
+		},
+		PerPage: limit,
+	})
+	if err != nil {
+		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return fields, nil
+}

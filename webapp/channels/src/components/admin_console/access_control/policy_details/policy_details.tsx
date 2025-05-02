@@ -4,8 +4,9 @@
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {AccessControlExpressionAutocomplete, AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/admin';
+import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/admin';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
+import type {PropertyField} from '@mattermost/types/properties';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -37,13 +38,12 @@ interface PolicyActions {
     setNavigationBlocked: (blocked: boolean) => void;
     assignChannelsToAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
-    getAccessControlExpressionAutocomplete: () => Promise<ActionResult>;
+    getAccessControlFields: (after: string, limit: number) => Promise<ActionResult>;
 }
 
 export interface PolicyDetailsProps {
     policyId?: string;
     actions: PolicyActions;
-    autocompleteResult: AccessControlExpressionAutocomplete;
 }
 
 interface ChannelChanges {
@@ -66,7 +66,7 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
     });
     const [saveNeeded, setSaveNeeded] = useState(false);
     const [channelsCount, setChannelsCount] = useState(0);
-    const [autocompleteResult, setAutocompleteResult] = useState<AccessControlExpressionAutocomplete>({entities: {}});
+    const [autocompleteResult, setAutocompleteResult] = useState<PropertyField[]>([]);
 
     useEffect(() => {
         loadPage();
@@ -98,9 +98,9 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
             const channelsResult = await actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE});
             setChannelsCount(channelsResult.data?.total_count || 0);
 
-            const autocompleteResult = await actions.getAccessControlExpressionAutocomplete();
-            if (autocompleteResult.data) {
-                setAutocompleteResult(autocompleteResult.data);
+            const fieldsResult = await actions.getAccessControlFields('', 100);
+            if (fieldsResult.data) {
+                setAutocompleteResult(fieldsResult.data);
             }
         }
     };
@@ -288,9 +288,9 @@ const PolicyDetails: React.FC<PolicyDetailsProps> = ({policyId, actions}) => {
                                         setSaveNeeded(true);
                                     }}
                                     onValidate={() => {}}
-                                    userAttributes={autocompleteResult.entities.user?.attributes?.map((attr) => ({
+                                    userAttributes={autocompleteResult.map((attr) => ({
                                         attribute: attr.name,
-                                        values: attr.values,
+                                        values: [],
                                     })) || []}
                                 />
                             )}

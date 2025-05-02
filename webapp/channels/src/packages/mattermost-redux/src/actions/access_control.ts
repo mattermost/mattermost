@@ -3,10 +3,11 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {AccessControlExpressionAutocomplete, AccessControlPoliciesResult, AccessControlPolicy} from '@mattermost/types/admin';
+import type {AccessControlPoliciesResult, AccessControlPolicy} from '@mattermost/types/admin';
 import type {ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
 import type {StatusOK} from '@mattermost/types/client4';
 import type {ServerError} from '@mattermost/types/errors';
+import type {PropertyField} from '@mattermost/types/properties';
 
 import {AdminTypes, ChannelTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -154,11 +155,11 @@ export function unassignChannelsFromAccessControlPolicy(policyId: string, channe
     };
 }
 
-export function getAccessControlExpressionAutocomplete(): ActionFuncAsync<AccessControlExpressionAutocomplete> {
+export function getAccessControlFields(after: string, limit: number): ActionFuncAsync<PropertyField[]> {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.checkAccessControlExpressionAutocomplete();
+            data = await Client4.getAccessControlFields(after, limit);
         } catch (error) {
             forceLogoutIfNecessary(error as ServerError, dispatch, getState);
             return {error};
