@@ -122,8 +122,8 @@
         line-height: 10px;
 
         &.error {
-            background-color: var(--button-bg);
-            color: var(--button-color);
+            background-color: var(--button-color);
+            color: var(--button-bg);
         }
 
         &:disabled {
