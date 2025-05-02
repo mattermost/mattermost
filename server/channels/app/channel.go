@@ -3866,7 +3866,7 @@ func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*m
 }
 
 func (a *App) ChannelAccessControlled(c request.CTX, channelID string) (bool, *model.AppError) {
-	if l := a.License(); !model.MinimumPremiumLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+	if l := a.License(); !model.MinimumEnterpriseAdvancedLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
 		return false, nil
 	}
 

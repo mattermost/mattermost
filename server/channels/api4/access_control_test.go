@@ -38,7 +38,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 	})
 
 	t.Run("CreateAccessControlPolicy with regular user", func(t *testing.T) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		// Create and set up the mock
@@ -56,7 +56,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		// Set up a test license with Data Retention enabled
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		// Create and set up the mock
@@ -104,7 +104,7 @@ func TestGetAccessControlPolicy(t *testing.T) {
 	})
 
 	t.Run("GetAccessControlPolicy with regular user", func(t *testing.T) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		// Create and set up the mock
@@ -121,7 +121,7 @@ func TestGetAccessControlPolicy(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		// Create and set up the mock
@@ -154,7 +154,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 	})
 
 	t.Run("DeleteAccessControlPolicy with regular user", func(t *testing.T) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
@@ -170,7 +170,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
@@ -200,7 +200,7 @@ func TestCheckExpression(t *testing.T) {
 	})
 
 	t.Run("CheckExpression with regular user", func(t *testing.T) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
@@ -216,7 +216,7 @@ func TestCheckExpression(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
@@ -234,7 +234,7 @@ func TestCheckExpression(t *testing.T) {
 	}, "CheckExpression with system admin")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
@@ -271,7 +271,7 @@ func TestTestExpression(t *testing.T) {
 	})
 
 	t.Run("TestExpression with regular user", func(t *testing.T) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
@@ -287,7 +287,7 @@ func TestTestExpression(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
@@ -321,7 +321,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 	})
 
 	t.Run("SearchAccessControlPolicies with regular user", func(t *testing.T) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
@@ -337,7 +337,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
@@ -386,7 +386,7 @@ func TestAssignAccessPolicy(t *testing.T) {
 	})
 
 	t.Run("AssignAccessPolicy with regular user", func(t *testing.T) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
@@ -404,7 +404,7 @@ func TestAssignAccessPolicy(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		resourceID := model.NewId()
 
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		child, appErr := samplePolicy.Inherit(resourceID, model.AccessControlPolicyTypeChannel)
@@ -451,7 +451,7 @@ func TestUnassignAccessPolicy(t *testing.T) {
 	})
 
 	t.Run("UnassignAccessPolicy with regular user", func(t *testing.T) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
@@ -469,7 +469,7 @@ func TestUnassignAccessPolicy(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		resourceID := model.NewId()
 
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		child, appErr := samplePolicy.Inherit(resourceID, model.AccessControlPolicyTypeChannel)
@@ -520,7 +520,7 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 	})
 
 	t.Run("GetChannelsForAccessControlPolicy with regular user", func(t *testing.T) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
@@ -536,7 +536,7 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
@@ -575,7 +575,7 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 	}
 
 	t.Run("SearchChannelsForAccessControlPolicy with regular user", func(t *testing.T) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuPremium))
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
