@@ -147,7 +147,7 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 	}
 
 	users := []*model.User{}
-	if err := s.GetReplica().Select(&users, q, args...); err != nil {
+	if err = s.GetReplica().Select(&users, q, args...); err != nil {
 		return nil, 0, errors.Wrapf(err, "failed to find Users with term=%s and searchType=%v", opts.Term, searchFields)
 	}
 

@@ -271,9 +271,9 @@ func testAttributesStoreSearchUsers(t *testing.T, rctx request.CTX, ss store.Sto
 			})
 			if len(subjects) == 0 {
 				break
-			} else {
-				cursor = subjects[0].Id
 			}
+			cursor = subjects[0].Id
+
 			require.NoError(t, err, "couldn't search users")
 			require.Len(t, subjects, 1, "expected 1 user with the query")
 			require.Equal(t, int64(2), count, "expected count 2 user with the query")

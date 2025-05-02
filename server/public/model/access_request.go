@@ -20,7 +20,7 @@ type Subject struct {
 type SubjectSearchOptions struct {
 	Term   string `json:"term"`
 	TeamID string `json:"team_id"`
-	// Query and Args should be generated withing the Access Control Service
+	// Query and Args should be generated within the Access Control Service
 	// and passed here wrt database driver
 	Query         string        `json:"query"`
 	Args          []any         `json:"args"`

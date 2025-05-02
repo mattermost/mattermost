@@ -1599,7 +1599,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
 				}
 
-				decision, appErr := acs.AccessEvaluation(c, model.AccessRequest{
+				decision, evalErr := acs.AccessEvaluation(c, model.AccessRequest{
 					Subject: *s,
 					Resource: model.Resource{
 						Type: model.AccessControlPolicyTypeChannel,
@@ -1607,8 +1607,8 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 					},
 					Action: "join_channel",
 				})
-				if appErr != nil {
-					return nil, appErr
+				if evalErr != nil {
+					return nil, evalErr
 				} else if !decision.Decision {
 					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "", http.StatusForbidden)
 				}
