@@ -7,10 +7,11 @@ import type {GlobalState} from '@mattermost/types/store';
 import {General} from 'mattermost-redux/constants';
 import {getChannel, getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import { isMinimumEnterpriseAdvancedLicense } from "utils/license_utils";
 
 export const selectChannelBannerEnabled = (state: GlobalState): boolean => {
     const license = getLicense(state);
-    return license?.SkuShortName === General.SKUEnterpriseAdvanced;
+    return isMinimumEnterpriseAdvancedLicense(license);
 };
 
 export const selectShowChannelBanner = (state: GlobalState, channelId: string): boolean => {

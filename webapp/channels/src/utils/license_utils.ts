@@ -134,5 +134,5 @@ export function isMinimumEnterpriseAdvancedLicense(license?: ClientLicense): boo
         return false;
     }
 
-    return getLicenseTier(license.SkuShortName) >= getLicenseTier(LicenseSkus.Premium);
+    return getLicenseTier(license.SkuShortName) >= getLicenseTier(LicenseSkus.EnterpriseAdvanced);
 }
