@@ -143,6 +143,257 @@ func TestGetSidebarCategories(t *testing.T) {
 	})
 }
 
+func TestUpdateSidebarCategory(t *testing.T) {
+	t.Run("should mute and unmute all channels in a category when it is muted or unmuted", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+		require.Nil(t, err)
+
+		channelsCategory := categories.Categories[1]
+
+		// Create some channels to be part of the channels category
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel1)
+
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel2)
+
+		// Mute the category
+		channelsCategory.Muted = true
+		updated, err := th.App.UpdateSidebarCategory(th.Context, &model.SidebarCategoryWithChannels{
+			SidebarCategory: channelsCategory.SidebarCategory,
+			Channels:        []string{channel1.Id, channel2.Id},
+		})
+		require.Nil(t, err)
+		assert.True(t, updated.Muted)
+
+		// Confirm that the channels are now muted
+		member1, err := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member1.IsChannelMuted())
+		member2, err := th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member2.IsChannelMuted())
+
+		// Unmute the category
+		channelsCategory.Muted = false
+		updated, err = th.App.UpdateSidebarCategory(th.Context, &model.SidebarCategoryWithChannels{
+			SidebarCategory: channelsCategory.SidebarCategory,
+			Channels:        []string{channel1.Id, channel2.Id},
+		})
+		require.Nil(t, err)
+		assert.False(t, updated.Muted)
+
+		// Confirm that the channels are now unmuted
+		member1, err = th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member1.IsChannelMuted())
+		member2, err = th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member2.IsChannelMuted())
+	})
+
+	t.Run("should mute and unmute channels moved from an unmuted category to a muted one and back", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Create some channels
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel1)
+
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel2)
+
+		// And some categories
+		mutedCategory, err := th.App.CreateSidebarCategory(th.Context, th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: "muted",
+				Muted:       true,
+			},
+		})
+		require.Nil(t, err)
+		require.True(t, mutedCategory.Muted)
+
+		unmutedCategory, err := th.App.CreateSidebarCategory(th.Context, th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: "unmuted",
+				Muted:       false,
+			},
+			Channels: []string{channel1.Id, channel2.Id},
+		})
+		require.Nil(t, err)
+		require.False(t, unmutedCategory.Muted)
+
+		// Move the channels
+		_, err = th.App.UpdateSidebarCategory(th.Context, &model.SidebarCategoryWithChannels{
+			SidebarCategory: mutedCategory.SidebarCategory,
+			Channels:        []string{channel1.Id, channel2.Id},
+		})
+		require.Nil(t, err)
+
+		// Confirm that the channels are now muted
+		member1, err := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member1.IsChannelMuted())
+		member2, err := th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member2.IsChannelMuted())
+
+		// Move the channels back
+		_, err = th.App.UpdateSidebarCategory(th.Context, &model.SidebarCategoryWithChannels{
+			SidebarCategory: unmutedCategory.SidebarCategory,
+			Channels:        []string{channel1.Id, channel2.Id},
+		})
+		require.Nil(t, err)
+
+		// Confirm that the channels are now unmuted
+		member1, err = th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member1.IsChannelMuted())
+		member2, err = th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member2.IsChannelMuted())
+	})
+
+	t.Run("should not mute or unmute channels moved between muted categories", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Create some channels
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel1)
+
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel2)
+
+		// And some categories
+		category1, err := th.App.CreateSidebarCategory(th.Context, th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: "category1",
+				Muted:       true,
+			},
+		})
+		require.Nil(t, err)
+		require.True(t, category1.Muted)
+
+		category2, err := th.App.CreateSidebarCategory(th.Context, th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: "category2",
+				Muted:       true,
+			},
+			Channels: []string{channel1.Id, channel2.Id},
+		})
+		require.Nil(t, err)
+		require.True(t, category2.Muted)
+
+		// Move the unmuted channels
+		_, err = th.App.UpdateSidebarCategory(th.Context, &model.SidebarCategoryWithChannels{
+			SidebarCategory: category1.SidebarCategory,
+			Channels:        []string{channel1.Id, channel2.Id},
+		})
+		require.Nil(t, err)
+
+		// Confirm that the channels are still unmuted
+		member1, err := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member1.IsChannelMuted())
+		member2, err := th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member2.IsChannelMuted())
+
+		// Mute the channels manually
+		_, err = th.App.ToggleMuteChannel(th.Context, channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		_, err = th.App.ToggleMuteChannel(th.Context, channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		// Move the muted channels back
+		_, err = th.App.UpdateSidebarCategory(th.Context, &model.SidebarCategoryWithChannels{
+			SidebarCategory: category2.SidebarCategory,
+			Channels:        []string{channel1.Id, channel2.Id},
+		})
+		require.Nil(t, err)
+
+		// Confirm that the channels are still muted
+		member1, err = th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member1.IsChannelMuted())
+		member2, err = th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member2.IsChannelMuted())
+	})
+
+	t.Run("should not mute or unmute channels moved between unmuted categories", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Create some channels
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel1)
+
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel2)
+
+		// And some categories
+		category1, err := th.App.CreateSidebarCategory(th.Context, th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: "category1",
+				Muted:       false,
+			},
+		})
+		require.Nil(t, err)
+		require.False(t, category1.Muted)
+
+		category2, err := th.App.CreateSidebarCategory(th.Context, th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: "category2",
+				Muted:       false,
+			},
+			Channels: []string{channel1.Id, channel2.Id},
+		})
+		require.Nil(t, err)
+		require.False(t, category2.Muted)
+
+		// Move the unmuted channels
+		_, err = th.App.UpdateSidebarCategory(th.Context, &model.SidebarCategoryWithChannels{
+			SidebarCategory: category1.SidebarCategory,
+			Channels:        []string{channel1.Id, channel2.Id},
+		})
+		require.Nil(t, err)
+
+		// Confirm that the channels are still unmuted
+		member1, err := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member1.IsChannelMuted())
+		member2, err := th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member2.IsChannelMuted())
+
+		// Mute the channels manually
+		_, err = th.App.ToggleMuteChannel(th.Context, channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		_, err = th.App.ToggleMuteChannel(th.Context, channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		// Move the muted channels back
+		_, err = th.App.UpdateSidebarCategory(th.Context, &model.SidebarCategoryWithChannels{
+			SidebarCategory: category2.SidebarCategory,
+			Channels:        []string{channel1.Id, channel2.Id},
+		})
+		require.Nil(t, err)
+
+		// Confirm that the channels are still muted
+		member1, err = th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member1.IsChannelMuted())
+		member2, err = th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member2.IsChannelMuted())
+	})
+}
+
 func TestUpdateSidebarCategories(t *testing.T) {
 	t.Run("should mute and unmute all channels in a category when it is muted or unmuted", func(t *testing.T) {
 		th := Setup(t).InitBasic()

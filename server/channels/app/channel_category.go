@@ -142,6 +142,33 @@ func (a *App) UpdateSidebarCategoryOrder(c request.CTX, userID, teamID string, c
 	return nil
 }
 
+func (a *App) UpdateSidebarCategory(c request.CTX, category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	originalCategories, err := a.Srv().Store().Channel().GetSidebarCategoriesForTeamForUser(category.UserId, category.TeamId, false)
+	if err != nil {
+		return nil, model.NewAppError("UpdateSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	updatedCategory, err := a.Srv().Store().Channel().UpdateSidebarCategory(category)
+	if err != nil {
+		return nil, model.NewAppError("UpdateSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, category.TeamId, "", category.UserId, nil, "")
+
+	updatedCategoryJSON, jsonErr := json.Marshal(updatedCategory)
+	if jsonErr != nil {
+		return nil, model.NewAppError("UpdateSidebarCategory", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
+	message.Add("updatedCategory", string(updatedCategoryJSON))
+
+	a.Publish(message)
+
+	a.muteChannelsForUpdatedCategories(c, category.UserId, category.TeamId, []*model.SidebarCategoryWithChannels{updatedCategory}, originalCategories.Categories)
+
+	return updatedCategory, nil
+}
+
 func (a *App) UpdateSidebarCategories(c request.CTX, userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
 	allOriginalCategories, err := a.Srv().Store().Channel().GetSidebarCategoriesForTeamForUser(userID, teamID, false)
 	if err != nil {

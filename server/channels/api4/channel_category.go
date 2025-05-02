@@ -307,13 +307,13 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 
 	categoryUpdateRequest.Id = c.Params.CategoryId
 
-	categories, appErr := c.App.UpdateSidebarCategories(c.AppContext, c.Params.UserId, c.Params.TeamId, []*model.SidebarCategoryWithChannels{&categoryUpdateRequest})
+	category, appErr := c.App.UpdateSidebarCategory(c.AppContext, &categoryUpdateRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	categoryJSON, err := json.Marshal(categories[0])
+	categoryJSON, err := json.Marshal(category)
 	if err != nil {
 		c.Err = model.NewAppError("updateCategoryForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
