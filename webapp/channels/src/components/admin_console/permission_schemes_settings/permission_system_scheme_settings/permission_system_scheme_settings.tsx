@@ -381,6 +381,9 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
         if (!this.state.loaded) {
             return <LoadingScreen/>;
         }
+
+        console.log(this.state.roles.channel_admin);
+
         const isLicensed = this.props.license?.IsLicensed === 'true';
         return (
             <div className='wrapper--fixed'>

@@ -128,3 +128,11 @@ export function isMinimumEnterpriseLicense(license: ClientLicense): boolean {
 
     return getLicenseTier(license.SkuShortName) >= getLicenseTier(LicenseSkus.Enterprise);
 }
+
+export function isMinimumEnterpriseAdvancedLicense(license?: ClientLicense): boolean {
+    if (!license) {
+        return false;
+    }
+
+    return getLicenseTier(license.SkuShortName) >= getLicenseTier(LicenseSkus.Premium);
+}
