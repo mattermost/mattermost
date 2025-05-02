@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useState} from 'react';
+import React, {memo} from 'react';
 
 import {makeIsEligibleForClick} from 'utils/utils';
 
 import './panel.scss';
 
 type Props = {
-    children: ({hover}: {hover: boolean}) => React.ReactNode;
+    children: React.ReactNode;
     onClick: () => void;
     hasError: boolean;
     innerRef?: React.Ref<HTMLElement>;
@@ -29,16 +29,6 @@ function Panel({
     style,
     className,
 }: Props) {
-    const [hover, setHover] = useState(false);
-
-    const handleMouseOver = () => {
-        setHover(true);
-    };
-
-    const handleMouseLeave = () => {
-        setHover(false);
-    };
-
     const handleOnClick = (e: React.MouseEvent<HTMLElement>) => {
         if (isEligibleForClick(e)) {
             onClick();
@@ -56,13 +46,11 @@ function Panel({
                 className,
             )}
             style={style}
-            onMouseOver={handleMouseOver}
             onClick={handleOnClick}
-            onMouseLeave={handleMouseLeave}
             role='button'
             ref={innerRef}
         >
-            {children({hover})}
+            {children}
         </article>
     );
 }

@@ -368,39 +368,34 @@ function DraftRow({
             isHighlighted={scrollIntoView}
             className={containerClassName}
         >
-            {({hover}) => (
-                <>
-                    <Header
-                        kind={isScheduledPost ? 'scheduledPost' : 'draft'}
-                        hover={hover}
-                        actions={actions}
-                        title={title}
-                        timestamp={timestamp}
-                        remote={isRemote || false}
-                        error={postError || serverError?.message}
-                    />
-                    {isEditing && (
-                        <EditScheduledPost
-                            scheduledPost={item as ScheduledPost}
-                            onCancel={handleCancelEdit}
-                            afterSave={handleCancelEdit}
-                            onDeleteScheduledPost={handleSchedulePostOnDelete}
-                        />
-                    )}
-                    {!isEditing && (
-                        <PanelBody
-                            channelId={channel?.id}
-                            displayName={displayName}
-                            fileInfos={fileInfos}
-                            message={item.message}
-                            status={status}
-                            priority={rootId ? undefined : item.metadata?.priority}
-                            uploadsInProgress={uploadsInProgress}
-                            userId={user.id}
-                            username={user.username}
-                        />
-                    )}
-                </>
+            <Header
+                kind={isScheduledPost ? 'scheduledPost' : 'draft'}
+                actions={actions}
+                title={title}
+                timestamp={timestamp}
+                remote={isRemote || false}
+                error={postError || serverError?.message}
+            />
+            {isEditing && (
+                <EditScheduledPost
+                    scheduledPost={item as ScheduledPost}
+                    onCancel={handleCancelEdit}
+                    afterSave={handleCancelEdit}
+                    onDeleteScheduledPost={handleSchedulePostOnDelete}
+                />
+            )}
+            {!isEditing && (
+                <PanelBody
+                    channelId={channel?.id}
+                    displayName={displayName}
+                    fileInfos={fileInfos}
+                    message={item.message}
+                    status={status}
+                    priority={rootId ? undefined : item.metadata?.priority}
+                    uploadsInProgress={uploadsInProgress}
+                    userId={user.id}
+                    username={user.username}
+                />
             )}
         </Panel>
     );
