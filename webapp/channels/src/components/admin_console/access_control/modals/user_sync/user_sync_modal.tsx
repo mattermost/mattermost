@@ -91,7 +91,6 @@ export const UserListModal = ({channelId, channelName, syncResults, onClose}: Us
                     {activeTab === 'added' && (
                         <SyncedUserList
                             userIds={syncResults.MembersAdded}
-                            type='added'
                             noResultsMessageId='admin.jobTable.syncResults.noUsersAdded'
                             noResultsDefaultMessage='No users were added'
                         />
@@ -99,7 +98,6 @@ export const UserListModal = ({channelId, channelName, syncResults, onClose}: Us
                     {activeTab === 'removed' && (
                         <SyncedUserList
                             userIds={syncResults.MembersRemoved}
-                            type='removed'
                             noResultsMessageId='admin.jobTable.syncResults.noUsersRemoved'
                             noResultsDefaultMessage='No users were removed'
                         />

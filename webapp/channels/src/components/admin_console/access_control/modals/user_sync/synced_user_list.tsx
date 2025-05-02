@@ -17,14 +17,13 @@ import './synced_user_list.scss';
 
 type SyncedUserListProps = {
     userIds: string[];
-    type: 'added' | 'removed';
     noResultsMessageId: string;
     noResultsDefaultMessage: string;
 };
 
 const USERS_PER_PAGE = 5;
 
-export const SyncedUserList = ({userIds, type, noResultsMessageId, noResultsDefaultMessage}: SyncedUserListProps): JSX.Element => {
+export const SyncedUserList = ({userIds, noResultsMessageId, noResultsDefaultMessage}: SyncedUserListProps): JSX.Element => {
     const [currentPage, setCurrentPage] = useState(1);
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
@@ -33,7 +32,7 @@ export const SyncedUserList = ({userIds, type, noResultsMessageId, noResultsDefa
     const totalPages = Math.ceil(totalUsers / USERS_PER_PAGE);
 
     // Calculate the range of users being shown
-    const firstUserIndex = (currentPage - 1) * (USERS_PER_PAGE + 1);
+    const firstUserIndex = totalUsers === 0 ? 0 : (currentPage - 1) * (USERS_PER_PAGE + 1);
     const lastUserIndex = Math.min(currentPage * USERS_PER_PAGE, totalUsers);
 
     const fetchUsers = useCallback(async (page: number) => {
@@ -56,7 +55,7 @@ export const SyncedUserList = ({userIds, type, noResultsMessageId, noResultsDefa
         } finally {
             setLoading(false);
         }
-    }, [userIds, type]);
+    }, [userIds]);
 
     useEffect(() => {
         fetchUsers(currentPage);

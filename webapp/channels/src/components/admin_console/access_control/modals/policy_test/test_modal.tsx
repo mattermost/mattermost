@@ -19,7 +19,7 @@ type Props = {
     testResults: AccessControlTestResult | null;
     onExited: () => void;
     actions: {
-        openModal: <P>(modalData: ModalData<P>) => void;
+        openModal?: <P>(modalData: ModalData<P>) => void;
         setModalSearchTerm: (term: string) => void;
     };
 }

@@ -135,19 +135,14 @@ export default function PolicyList(props: Props): JSX.Element {
     };
 
     const getResources = (policy: AccessControlPolicy) => {
-        let resources = '-';
-
         const childIds = policy.props?.child_ids;
-        if (childIds) {
-            if (childIds.length > 1) {
-                resources = `${childIds.length} channels`;
-            } else if (childIds.length === 1) {
-                resources = '1 channel';
-            } else {
-                resources = 'None';
-            }
+        if (!childIds || childIds.length === 0) {
+            return 'None';
         }
-        return resources;
+        if (childIds.length === 1) {
+            return '1 channel';
+        }
+        return `${childIds.length} channels`;
     };
 
     const handleDelete = async (policyId: string) => {

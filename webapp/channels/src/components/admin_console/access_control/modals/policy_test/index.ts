@@ -6,6 +6,7 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {openModal} from 'actions/views/modals';
+import {setModalSearchTerm} from 'actions/views/search';
 import {isModalOpen} from 'selectors/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
@@ -24,7 +25,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,
-            setModalSearchTerm: (term: string) => ({type: 'SET_MODAL_SEARCH_TERM', data: term}),
+            setModalSearchTerm,
         }, dispatch),
     };
 }

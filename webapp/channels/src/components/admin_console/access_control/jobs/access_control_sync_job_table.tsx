@@ -16,7 +16,6 @@ import JobDetailsModal from '../modals/job_details/job_details_modal';
 import './access_control_sync_job_table.scss';
 
 type Props = {
-    jobs?: Job[];
     actions: {
         createJob: (job: JobTypeBase) => Promise<ActionResult>;
         getJobsByType: (jobType: JobType) => void;
@@ -24,18 +23,16 @@ type Props = {
 };
 
 export default function AccessControlSyncJobTable(props: Props): JSX.Element {
-    const disabled = false;
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
         // Load jobs when component mounts
-        const accessControlSyncJobType = 'access_control_sync' as any as JobType;
-        props.actions.getJobsByType(accessControlSyncJobType);
+        props.actions.getJobsByType(JobTypes.ACCESS_CONTROL_SYNC);
 
         // Set up polling interval
         const interval = setInterval(() => {
-            props.actions.getJobsByType(accessControlSyncJobType);
+            props.actions.getJobsByType(JobTypes.ACCESS_CONTROL_SYNC);
         }, 15000);
 
         return () => {
@@ -46,7 +43,7 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
     const handleCreateJob = async (e?: React.SyntheticEvent) => {
         e?.preventDefault();
         const job = {
-            type: 'access_control_sync' as any as JobType,
+            type: JobTypes.ACCESS_CONTROL_SYNC,
         };
 
         await props.actions.createJob(job);
@@ -83,13 +80,13 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                 hideJobCreateButton={true}
                 className={'job-table__access-control'}
                 createJobButtonText={'Create Job'}
-                disabled={disabled}
+                disabled={false}
                 createJobHelpText={<></>}
                 onRowClick={handleRowClick}
             />
-            {showModal && (
+            {showModal && selectedJob && (
                 <JobDetailsModal
-                    job={selectedJob as Job}
+                    job={selectedJob}
                     onExited={handleModalClose}
                 />
             )}
