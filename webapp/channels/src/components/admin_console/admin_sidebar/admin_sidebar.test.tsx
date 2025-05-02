@@ -493,7 +493,7 @@ describe('components/AdminSidebar', () => {
         const props: Props = {
             license: {
                 IsLicensed: 'true',
-                SkuShortName: 'premium', // TODO update this to aenterprise advanced
+                SkuShortName: 'advanced',
                 Cloud: 'true',
             },
             config: {
