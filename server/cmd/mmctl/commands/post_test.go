@@ -45,9 +45,6 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.client.EXPECT().GetMe(context.TODO(), "").Times(1)
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "", "").Times(1)
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), "", "").
 			Times(1)
 		s.client.
@@ -152,13 +149,10 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 			Id: model.Me,
 		}, &model.Response{}, nil).Times(1)
 
-		s.client.EXPECT().
-			GetUserByEmail(context.TODO(), userFromArg, "").Times(1)
 		s.client.
 			EXPECT().
 			GetUserByUsername(context.TODO(), userFromArg, "").
 			Times(1)
-
 		s.client.
 			EXPECT().
 			GetUser(context.TODO(), userFromArg, "").Return(&mockUser, &model.Response{}, nil).Times(1)
