@@ -612,7 +612,7 @@ func TestGetPreviousJobNoJobs(t *testing.T) {
 	}
 
 	rctx := request.EmptyContext(logger)
-	job, err := worker.getPreviousJob(rctx)
+	job, err := worker.getPreviousNonCliJob(rctx)
 
 	require.NoError(t, err)
 	assert.Nil(t, job, "Expected nil job when no jobs are returned")
@@ -644,7 +644,7 @@ func TestGetPreviousJobOneRegularJob(t *testing.T) {
 	}
 
 	rctx := request.EmptyContext(logger)
-	job, err := worker.getPreviousJob(rctx)
+	job, err := worker.getPreviousNonCliJob(rctx)
 
 	require.NoError(t, err)
 	assert.Equal(t, regularJob.Id, job.Id, "Expected to get the regular job")
@@ -662,17 +662,11 @@ func TestGetPreviousJobOneMmctlJob(t *testing.T) {
 		Data:   map[string]string{shared.JobDataInitiatedBy: "mmctl"},
 	}
 
-	// Mock the job store to return one mmctl job (first page)
+	// Mock the job store to return only mmctl jobs (4 jobs, not a full page)
 	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
 		[]string{model.JobTypeMessageExport},
 		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		0, DefaultPreviousJobPageSize).Return([]*model.Job{mmctlJob}, nil).Once()
-
-	// Mock the job store to return no jobs (second page, empty)
-	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
-		[]string{model.JobTypeMessageExport},
-		[]string{model.JobStatusWarning, model.JobStatusSuccess},
-		DefaultPreviousJobPageSize, DefaultPreviousJobPageSize).Return([]*model.Job{}, nil).Once()
+		0, DefaultPreviousJobPageSize).Return([]*model.Job{mmctlJob, mmctlJob, mmctlJob, mmctlJob}, nil).Once()
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -682,7 +676,7 @@ func TestGetPreviousJobOneMmctlJob(t *testing.T) {
 	}
 
 	rctx := request.EmptyContext(logger)
-	job, err := worker.getPreviousJob(rctx)
+	job, err := worker.getPreviousNonCliJob(rctx)
 
 	require.NoError(t, err)
 	assert.Nil(t, job, "Expected nil job when only mmctl jobs are found")
@@ -748,7 +742,7 @@ func TestGetPreviousJobManyJobs(t *testing.T) {
 	}
 
 	rctx := request.EmptyContext(logger)
-	job, err := worker.getPreviousJob(rctx)
+	job, err := worker.getPreviousNonCliJob(rctx)
 
 	require.NoError(t, err)
 	assert.NotNil(t, job)

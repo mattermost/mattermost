@@ -310,7 +310,7 @@ func (w *MessageExportWorker) initJobData(rctx request.CTX, logger mlog.LoggerIF
 	}
 
 	if _, exists := job.Data[shared.JobDataBatchStartTime]; !exists {
-		previousJob, err := w.getPreviousJob(rctx)
+		previousJob, err := w.getPreviousNonCliJob(rctx)
 
 		if err != nil {
 			exportFromTimestamp := strconv.FormatInt(*w.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10)
@@ -366,7 +366,8 @@ func (w *MessageExportWorker) initJobData(rctx request.CTX, logger mlog.LoggerIF
 	job.Data[shared.JobDataExportDir] = getJobExportDir(logger, job.Data, job.Data[shared.JobDataJobStartTime], job.Data[shared.JobDataJobEndTime])
 }
 
-func (w *MessageExportWorker) getPreviousJob(rctx request.CTX) (*model.Job, error) {
+// getPreviousNonCliJob returns the most recent job that was not initiated by mmctl
+func (w *MessageExportWorker) getPreviousNonCliJob(rctx request.CTX) (*model.Job, error) {
 	offset := 0
 
 	for {
@@ -378,16 +379,16 @@ func (w *MessageExportWorker) getPreviousJob(rctx request.CTX) (*model.Job, erro
 			return nil, err
 		}
 
-		// If no more jobs are found, we've reached the end
-		if len(jobs) == 0 {
-			return nil, nil
-		}
-
 		// Find the first job not initiated by mmctl
 		for _, job := range jobs {
 			if job.Data == nil || job.Data[shared.JobDataInitiatedBy] != "mmctl" {
 				return job, nil
 			}
+		}
+
+		// If we didn't get a full page of jobs, we've reached the end
+		if len(jobs) < DefaultPreviousJobPageSize {
+			return nil, nil
 		}
 
 		// If we didn't find a non-mmctl job in this page, continue to the next page

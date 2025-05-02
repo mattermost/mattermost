@@ -299,7 +299,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
 	})
 }
 
-func Test_getStartAndEnd(t *testing.T) {
+func TestGetStartAndEnd(t *testing.T) {
 	type args struct {
 		dateStr string
 		start   int
@@ -399,16 +399,16 @@ func Test_getStartAndEnd(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := getStartAndEnd(tt.args.dateStr, tt.args.start, tt.args.end)
+			gotStart, gotEnd, err := getStartAndEnd(tt.args.dateStr, tt.args.start, tt.args.end)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getStartAndEnd() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.expectedStart {
-				t.Errorf("getStartAndEnd() got = %v, want %v", got, tt.expectedStart)
+			if gotStart != tt.expectedStart {
+				t.Errorf("getStartAndEnd() got = %v, want %v", gotStart, tt.expectedStart)
 			}
-			if got1 != tt.expectedEnd {
-				t.Errorf("getStartAndEnd() got1 = %v, want %v", got1, tt.expectedEnd)
+			if gotEnd != tt.expectedEnd {
+				t.Errorf("getStartAndEnd() got1 = %v, want %v", gotEnd, tt.expectedEnd)
 			}
 		})
 	}

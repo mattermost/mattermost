@@ -29,7 +29,7 @@ Options
 
 ::
 
-      --date "YYYY-MM-DD -0000"   Run the export for one day, from 12am to 12am (minus one millisecond) inclusively, in the format with timezoneoffset: "YYYY-MM-DD -0000". E.g., "2024-10-21 -0400" for Oct 21, 2024 EDT timezone. "2023-11-01 +0000"for Nov 01, 2024 UTC. If set, the 'start' and 'end' flags will be ignored.
+      --date "YYYY-MM-DD -0000"   Run the export for one day, from 12am to 12am (minus one millisecond) inclusively, in the format with timezone offset: "YYYY-MM-DD -0000". E.g., `"2024-10-21 -0400"` for Oct 21, 2024 EDT timezone. `"2023-11-01 +0000"` for Nov 01, 2024 UTC. If set, the 'start' and 'end' flags will be ignored.
       --end 1743134400000         The end timestamp in unix milliseconds. Posts with updateAt <= end will be exported. If set, 'start' must be set as well. eg, 1743134400000 for 2025-03-28 EDT.
   -h, --help                      help for create
       --start 1743048000000       The start timestamp in unix milliseconds. Posts with updateAt >= start will be exported. If set, 'end' must be set as well. eg, 1743048000000 for 2025-03-27 EDT.

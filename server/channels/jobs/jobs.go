@@ -318,7 +318,7 @@ func (srv *JobServer) CheckForPendingJobsByType(jobType string) (bool, *model.Ap
 func (srv *JobServer) GetJobsByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, *model.AppError) {
 	jobs, err := srv.Store.Job().GetAllByTypeAndStatus(c, jobType, status)
 	if err != nil {
-		return nil, model.NewAppError("GetJobsByTypesAndStatuses", "app.job.get_all_jobs_by_type_and_status.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetJobsByTypeAndStatus", "app.job.get_all_jobs_by_type_and_status.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return jobs, nil
