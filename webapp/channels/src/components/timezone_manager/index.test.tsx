@@ -62,16 +62,19 @@ describe('components/timezone_manager/TimezoneManager', () => {
 
     it('should clean up listeners and interval on unmount', () => {
         const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
-        const clearIntervalSpy = jest.spyOn(window, 'clearInterval');
 
         const {unmount} = render(<TimezoneManager autoUpdateTimezone={jest.fn()}/>);
+
+        // We should have 1 timer (the interval) before unmounting
+        expect(jest.getTimerCount()).toBe(1);
 
         unmount();
 
         expect(removeEventListenerSpy).toHaveBeenCalledWith('focus', expect.any(Function));
-        expect(clearIntervalSpy).toHaveBeenCalled();
+
+        // After unmounting, all timers should be cleared
+        expect(jest.getTimerCount()).toBe(0);
 
         removeEventListenerSpy.mockRestore();
-        clearIntervalSpy.mockRestore();
     });
 });
