@@ -1447,20 +1447,18 @@ func (s *SqlGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts 
 func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
 	groupsVar := groups{}
 
-	selectQuery := []string{"g.*"}
+	groupsQuery := s.userGroupsSelectQuery
 
 	if opts.IncludeMemberCount {
-		selectQuery = append(selectQuery, "coalesce(Members.MemberCount, 0) AS MemberCount")
+		groupsQuery = groupsQuery.Column("coalesce(Members.MemberCount, 0) AS MemberCount")
 	}
 
 	if opts.IncludeChannelMemberCount != "" {
-		selectQuery = append(selectQuery, "coalesce(ChannelMembers.ChannelMemberCount, 0) AS ChannelMemberCount")
+		groupsQuery = groupsQuery.Column("coalesce(ChannelMembers.ChannelMemberCount, 0) AS ChannelMemberCount")
 		if opts.IncludeTimezones {
-			selectQuery = append(selectQuery, "coalesce(ChannelMembers.ChannelMemberTimezonesCount, 0) AS ChannelMemberTimezonesCount")
+			groupsQuery = groupsQuery.Column("coalesce(ChannelMembers.ChannelMemberTimezonesCount, 0) AS ChannelMemberTimezonesCount")
 		}
 	}
-
-	groupsQuery := s.getQueryBuilder().Select(strings.Join(selectQuery, ", "))
 
 	if opts.IncludeMemberCount {
 		countQuery := s.getQueryBuilder().
@@ -1478,7 +1476,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 			return nil, errors.Wrap(err, "get_groups_tosql")
 		}
 		groupsQuery = groupsQuery.
-			LeftJoin("("+countString+") AS Members ON Members.GroupId = g.Id", params...)
+			LeftJoin("("+countString+") AS Members ON Members.GroupId = UserGroups.Id", params...)
 	}
 
 	if opts.IncludeChannelMemberCount != "" {
@@ -1511,36 +1509,33 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 		}
 
 		groupsQuery = groupsQuery.
-			LeftJoin("(SELECT "+selectStr+" FROM ChannelMembers LEFT JOIN GroupMembers ON GroupMembers.UserId = ChannelMembers.UserId AND GroupMembers.DeleteAt = 0 "+joinStr+" WHERE ChannelMembers.ChannelId = ? GROUP BY GroupId) AS ChannelMembers ON ChannelMembers.GroupId = g.Id", opts.IncludeChannelMemberCount)
+			LeftJoin("(SELECT "+selectStr+" FROM ChannelMembers LEFT JOIN GroupMembers ON GroupMembers.UserId = ChannelMembers.UserId AND GroupMembers.DeleteAt = 0 "+joinStr+" WHERE ChannelMembers.ChannelId = ? GROUP BY GroupId) AS ChannelMembers ON ChannelMembers.GroupId = UserGroups.Id", opts.IncludeChannelMemberCount)
 	}
 
 	if opts.FilterHasMember != "" {
 		groupsQuery = groupsQuery.
-			LeftJoin("GroupMembers ON GroupMembers.GroupId = g.Id").
+			LeftJoin("GroupMembers ON GroupMembers.GroupId = UserGroups.Id").
 			Where("GroupMembers.UserId = ?", opts.FilterHasMember).
 			Where("GroupMembers.DeleteAt = 0")
 	}
 
-	groupsQuery = groupsQuery.
-		From("UserGroups g")
-
 	if opts.Since > 0 {
 		groupsQuery = groupsQuery.Where(sq.Gt{
-			"g.UpdateAt": opts.Since,
+			"UserGroups.UpdateAt": opts.Since,
 		})
 	}
 
 	if opts.FilterArchived {
-		groupsQuery = groupsQuery.Where("g.DeleteAt > 0")
+		groupsQuery = groupsQuery.Where("UserGroups.DeleteAt > 0")
 	} else if !opts.IncludeArchived && opts.Since <= 0 {
 		// Mobile needs to return archived groups when the since parameter is set, will need to keep this for backwards compatibility
-		groupsQuery = groupsQuery.Where("g.DeleteAt = 0")
+		groupsQuery = groupsQuery.Where("UserGroups.DeleteAt = 0")
 	}
 
 	if opts.IncludeArchived {
-		groupsQuery = groupsQuery.OrderBy("CASE WHEN g.DeleteAt = 0 THEN g.DisplayName end, CASE WHEN g.DeleteAt != 0 THEN g.DisplayName END")
+		groupsQuery = groupsQuery.OrderBy("CASE WHEN UserGroups.DeleteAt = 0 THEN UserGroups.DisplayName end, CASE WHEN UserGroups.DeleteAt != 0 THEN UserGroups.DisplayName END")
 	} else {
-		groupsQuery = groupsQuery.OrderBy("g.DisplayName")
+		groupsQuery = groupsQuery.OrderBy("UserGroups.DisplayName")
 	}
 
 	if perPage != 0 {
@@ -1550,7 +1545,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 	}
 
 	if opts.FilterAllowReference {
-		groupsQuery = groupsQuery.Where("g.AllowReference = true")
+		groupsQuery = groupsQuery.Where("UserGroups.AllowReference = true")
 	}
 
 	if opts.Q != "" {
@@ -1559,12 +1554,12 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 		if s.DriverName() == model.DatabaseDriverMysql {
 			operatorKeyword = "LIKE"
 		}
-		groupsQuery = groupsQuery.Where(fmt.Sprintf("(g.Name %[1]s ? OR g.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
+		groupsQuery = groupsQuery.Where(fmt.Sprintf("(UserGroups.Name %[1]s ? OR UserGroups.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
 	}
 
 	if len(opts.NotAssociatedToTeam) == 26 {
 		groupsQuery = groupsQuery.Where(`
-			g.Id NOT IN (
+			UserGroups.Id NOT IN (
 				SELECT
 					Id
 				FROM
@@ -1580,7 +1575,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 
 	if len(opts.NotAssociatedToChannel) == 26 {
 		groupsQuery = groupsQuery.Where(`
-			g.Id NOT IN (
+			UserGroups.Id NOT IN (
 				SELECT
 					Id
 				FROM
@@ -1605,7 +1600,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 					JOIN Channels ON Channels.TeamId = Teams.Id
 				WHERE
 					Channels.Id = ?
-			) THEN g.Id IN (
+			) THEN UserGroups.Id IN (
 				SELECT
 					GroupId
 				FROM
@@ -1627,27 +1622,22 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 	}
 
 	if opts.Source != "" {
-		groupsQuery = groupsQuery.Where("g.Source = ?", opts.Source)
+		groupsQuery = groupsQuery.Where("UserGroups.Source = ?", opts.Source)
 	} else if opts.OnlySyncableSources {
 		sources := model.GetSyncableGroupSources()
 		sourcePrefixes := model.GetSyncableGroupSourcePrefixes()
 
 		orClauses := sq.Or{}
 		if len(sources) > 0 {
-			orClauses = append(orClauses, sq.Eq{"g.Source": sources})
+			orClauses = append(orClauses, sq.Eq{"UserGroups.Source": sources})
 		}
 		for _, prefix := range sourcePrefixes {
-			orClauses = append(orClauses, sq.Like{"g.Source": string(prefix) + "%"})
+			orClauses = append(orClauses, sq.Like{"UserGroups.Source": string(prefix) + "%"})
 		}
 		groupsQuery = groupsQuery.Where(orClauses)
 	}
 
-	queryString, args, err := groupsQuery.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "get_groups_tosql")
-	}
-
-	if err = s.GetReplica().Select(&groupsVar, queryString, args...); err != nil {
+	if err := s.GetReplica().SelectBuilder(&groupsVar, groupsQuery); err != nil {
 		return nil, errors.Wrap(err, "failed to find Groups")
 	}
 
