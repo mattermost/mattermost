@@ -14,7 +14,7 @@ import {
     getTotalUsersStats,
     searchProfiles,
 } from 'mattermost-redux/actions/users';
-import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
     getCurrentUserId,
@@ -54,11 +54,10 @@ export const makeMapStateToProps = () => {
 
         const searchTerm = state.views.search.modalSearch;
 
-        let filters;
-        const enableSharedChannelsDMs = getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true';
-        if (!enableSharedChannelsDMs) {
-            filters = {exclude_remote: true};
-        }
+        // Always get the feature flag value to use in the UI, but don't filter out remote users
+
+        // No longer exclude remote users from search results regardless of feature flag
+        const filters = undefined;
 
         let users: UserProfile[];
         if (searchTerm) {
