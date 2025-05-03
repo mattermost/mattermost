@@ -86,7 +86,6 @@ export const makeMapStateToProps = () => {
             currentUserId,
             restrictDirectMessage,
             totalCount: stats.total_users_count ?? 0,
-            enableSharedChannelsDMs,
         };
     };
 };

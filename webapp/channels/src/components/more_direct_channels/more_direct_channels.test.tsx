@@ -22,7 +22,6 @@ describe('components/MoreDirectChannels', () => {
         currentTeamName: 'team_name',
         searchTerm: '',
         totalCount: 3,
-        enableSharedChannelsDMs: true,
         users: [
             {
                 ...mockedUser,
@@ -266,7 +265,7 @@ describe('components/MoreDirectChannels', () => {
     test('should add remote users regardless of feature flag (filtering happens at server level)', () => {
         // Remote users are filtered at the server level, but if they somehow make it to the client
         // we should still be able to add them for backward compatibility
-        const props = {...baseProps, enableSharedChannelsDMs: false};
+        const props = {...baseProps};
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
 
         const remoteUsers = [
@@ -286,7 +285,7 @@ describe('components/MoreDirectChannels', () => {
 
     test('should allow adding remote users with feature flag enabled', () => {
         // Reset state to start with empty values array
-        const props = {...baseProps, enableSharedChannelsDMs: true};
+        const props = {...baseProps};
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
 
         // Start with empty values

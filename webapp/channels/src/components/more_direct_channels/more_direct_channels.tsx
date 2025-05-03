@@ -29,7 +29,6 @@ export type Props = {
     searchTerm: string;
     users: UserProfile[];
     totalCount: number;
-    enableSharedChannelsDMs?: boolean;
 
     /*
     * List of current channel members of existing channel
