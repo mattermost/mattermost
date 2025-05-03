@@ -82,22 +82,21 @@ func (sd *syncData) setDataFromMsg(msg *model.SyncMsg) {
 // channels are very active.
 // Returning an error forces a retry on the task.
 func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error {
-    // SPECIAL CASE: Empty channelID indicates a global user sync task
-    // This is intentionally created only by onConnectionStateChange when EnableSharedChannelsDMs is true
-    // Normal syncTasks always include a valid channelID
-    if task.channelID == "" {
-        // Double-check that the feature flag is still enabled
-        if scs.server.Config().FeatureFlags.EnableSharedChannelsDMs != "true" {
-            return nil // Skip if feature flag has been disabled
-        }
-        
-        scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Processing global user sync task",
-            mlog.String("remote", rc.DisplayName),
-            mlog.String("remoteId", rc.RemoteId),
-        )
-        
-        return scs.syncAllUsersForRemote(rc)
-    }
+	// Empty channelID indicates a global user sync task
+	// Normal syncTasks always include a valid channelID
+	if task.channelID == "" {
+		// Double-check that the feature flag is still enabled
+		if scs.server.Config().FeatureFlags.EnableSharedChannelsDMs != "true" {
+			return nil // Skip if feature flag has been disabled
+		}
+
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Processing global user sync task",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+		)
+
+		return scs.syncAllUsersForRemote(rc)
+	}
 
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
@@ -699,111 +698,111 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 // This is called when a connection with a remote cluster is established.
 // Function is defined as a variable to make it easier to mock in tests.
 var realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) error {
-    if !rc.IsOnline() {
-        return fmt.Errorf("remote cluster %s is not online", rc.RemoteId)
-    }
-    
-    metrics := scs.server.GetMetrics()
-    
-    start := time.Now()
-    var metricsRecorded bool
-    defer func() {
-        if !metricsRecorded && metrics != nil {
-            metrics.IncrementSharedChannelsSyncCounter(rc.RemoteId)
-            metrics.ObserveSharedChannelsSyncCollectionDuration(rc.RemoteId, time.Since(start).Seconds())
-            metricsRecorded = true
-        }
-    }()
-    
-    // Get all active users
-    options := &model.UserGetOptions{
-        Page:           0,
-        PerPage:        100, // Process in batches
-        Active:         true,
-        ExcludeDeleted: true,
-        ExcludeBots:    true,
-    }
-    
-    // We create a syncData object to use with existing methods
-    // We need to make a fake SharedChannelRemote since we don't have a channel
-    fakeSCR := &model.SharedChannelRemote{
-        RemoteId: rc.RemoteId,
-        // Other fields don't matter for user sync
-    }
-    
-    sd := &syncData{
-        task: syncTask{remoteID: rc.RemoteId},
-        rc:   rc,
-        scr:  fakeSCR,
-        users: make(map[string]*model.User),
-    }
-    
-    var processedCount int
-    
-    // We may need to page through all users
-    for {
-        users, err := scs.app.GetUsersPage(request.EmptyContext(scs.server.Log()), options, false)
-        if err != nil {
-            scs.server.Log().Error("Error fetching users for global sync",
-                mlog.String("remote_id", rc.RemoteId),
-                mlog.Err(err),
-            )
-            return err
-        }
-        
-        if len(users) == 0 {
-            break
-        }
-        
-        // Add users to sync data
-        for _, user := range users {
-            // Skip remote users (don't sync back to origin)
-            if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
-                continue
-            }
-            
-            sd.users[user.Id] = user
-            processedCount++
-            
-            // Send in batches to avoid overwhelming the connection
-            if len(sd.users) >= MaxUsersPerSync {
-                if err := scs.sendUserSyncData(sd); err != nil {
-                    scs.server.Log().Error("Error sending user batch during initial sync",
-                        mlog.String("remote_id", rc.RemoteId),
-                        mlog.Err(err),
-                    )
-                }
-                sd.users = make(map[string]*model.User)
-            }
-        }
-        
-        // Move to next page
-        options.Page++
-    }
-    
-    // Send any remaining users
-    if len(sd.users) > 0 {
-        if err := scs.sendUserSyncData(sd); err != nil {
-            scs.server.Log().Error("Error sending final user batch during initial sync",
-                mlog.String("remote_id", rc.RemoteId),
-                mlog.Err(err),
-            )
-        }
-    }
-    
-    scs.server.Log().Debug("Completed initial user sync",
-        mlog.String("remote_id", rc.RemoteId),
-        mlog.Int("users_processed", processedCount),
-    )
-    
-    // Even if there were some errors with specific batches, consider the overall
-    // sync successful since we'll retry individual users during normal operation
-    return nil
+	if !rc.IsOnline() {
+		return fmt.Errorf("remote cluster %s is not online", rc.RemoteId)
+	}
+
+	metrics := scs.server.GetMetrics()
+
+	start := time.Now()
+	var metricsRecorded bool
+	defer func() {
+		if !metricsRecorded && metrics != nil {
+			metrics.IncrementSharedChannelsSyncCounter(rc.RemoteId)
+			metrics.ObserveSharedChannelsSyncCollectionDuration(rc.RemoteId, time.Since(start).Seconds())
+			metricsRecorded = true
+		}
+	}()
+
+	// Get all active users
+	options := &model.UserGetOptions{
+		Page:           0,
+		PerPage:        100, // Process in batches
+		Active:         true,
+		ExcludeDeleted: true,
+		ExcludeBots:    true,
+	}
+
+	// We create a syncData object to use with existing methods
+	// We need to make a fake SharedChannelRemote since we don't have a channel
+	fakeSCR := &model.SharedChannelRemote{
+		RemoteId: rc.RemoteId,
+		// Other fields don't matter for user sync
+	}
+
+	sd := &syncData{
+		task:  syncTask{remoteID: rc.RemoteId},
+		rc:    rc,
+		scr:   fakeSCR,
+		users: make(map[string]*model.User),
+	}
+
+	var processedCount int
+
+	// We may need to page through all users
+	for {
+		users, err := scs.app.GetUsersPage(request.EmptyContext(scs.server.Log()), options, false)
+		if err != nil {
+			scs.server.Log().Error("Error fetching users for global sync",
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Err(err),
+			)
+			return err
+		}
+
+		if len(users) == 0 {
+			break
+		}
+
+		// Add users to sync data
+		for _, user := range users {
+			// Skip remote users (don't sync back to origin)
+			if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
+				continue
+			}
+
+			sd.users[user.Id] = user
+			processedCount++
+
+			// Send in batches to avoid overwhelming the connection
+			if len(sd.users) >= MaxUsersPerSync {
+				if err := scs.sendUserSyncData(sd); err != nil {
+					scs.server.Log().Error("Error sending user batch during initial sync",
+						mlog.String("remote_id", rc.RemoteId),
+						mlog.Err(err),
+					)
+				}
+				sd.users = make(map[string]*model.User)
+			}
+		}
+
+		// Move to next page
+		options.Page++
+	}
+
+	// Send any remaining users
+	if len(sd.users) > 0 {
+		if err := scs.sendUserSyncData(sd); err != nil {
+			scs.server.Log().Error("Error sending final user batch during initial sync",
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Err(err),
+			)
+		}
+	}
+
+	scs.server.Log().Debug("Completed initial user sync",
+		mlog.String("remote_id", rc.RemoteId),
+		mlog.Int("users_processed", processedCount),
+	)
+
+	// Even if there were some errors with specific batches, consider the overall
+	// sync successful since we'll retry individual users during normal operation
+	return nil
 }
 
 // syncAllUsersForRemote delegates to the function variable to make it mockable in tests
 func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
-    return realSyncAllUsersForRemote(scs, rc)
+	return realSyncAllUsersForRemote(scs, rc)
 }
 
 // sendSyncMsgToRemote synchronously sends the sync message to the remote cluster (or plugin).

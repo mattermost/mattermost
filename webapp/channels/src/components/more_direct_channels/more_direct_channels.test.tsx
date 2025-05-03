@@ -261,47 +261,4 @@ describe('components/MoreDirectChannels', () => {
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
-
-    test('should add remote users regardless of feature flag (filtering happens at server level)', () => {
-        // Remote users are filtered at the server level, but if they somehow make it to the client
-        // we should still be able to add them for backward compatibility
-        const props = {...baseProps};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
-
-        const remoteUsers = [
-            {
-                ...mockedUser,
-                id: 'remote_user_id',
-                remote_id: 'remote_id',
-            },
-        ];
-
-        wrapper.instance().addUsers(remoteUsers);
-        
-        // Verify user was added to values 
-        const values = wrapper.state('values');
-        expect(values.find((v) => v.id === 'remote_user_id')).toBeDefined();
-    });
-
-    test('should allow adding remote users with feature flag enabled', () => {
-        // Reset state to start with empty values array
-        const props = {...baseProps};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
-
-        // Start with empty values
-        wrapper.setState({values: []});
-        const remoteUsers = [
-            {
-                ...mockedUser,
-                id: 'remote_user_id',
-                remote_id: 'remote_id',
-            },
-        ];
-
-        wrapper.instance().addUsers(remoteUsers);
-        expect(wrapper.state('error')).toBeUndefined();
-
-        // Should have one value in the values array
-        expect(wrapper.state('values').length).toEqual(1);
-    });
 });

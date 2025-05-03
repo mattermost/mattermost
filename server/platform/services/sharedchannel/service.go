@@ -251,13 +251,12 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 		// Add user synchronization if feature flag is enabled
 		if scs.server.Config().FeatureFlags.EnableSharedChannelsDMs == "true" {
 			go func() {
-				// IMPORTANT: Create a special sync task with empty channelID
+				// Create a special sync task with empty channelID
 				// This empty channelID is a deliberate marker for a global user sync task
-				// and will be specifically handled in syncForRemote
 				task := newSyncTask("", "", rc.RemoteId, nil, nil)
 				task.schedule = time.Now().Add(NotifyMinimumDelay)
 				scs.addTask(task)
-				
+
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Scheduled global user sync task for remote",
 					mlog.String("remote", rc.DisplayName),
 					mlog.String("remoteId", rc.RemoteId),

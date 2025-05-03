@@ -15,11 +15,9 @@ export function isGroupChannel(option: UserProfile | GroupChannel): option is Gr
     return (option as GroupChannel)?.type === 'G';
 }
 
-export type Option = (UserProfile & {last_post_at?: number; remote_id?: string}) | GroupChannel;
+export type Option = (UserProfile & {last_post_at?: number}) | GroupChannel;
 
-export type OptionValue = Option & Value & {
-    remote_id?: string;
-};
+export type OptionValue = Option & Value;
 
 export function optionValue(option: Option): OptionValue {
     return {
