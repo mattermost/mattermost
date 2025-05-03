@@ -61,7 +61,6 @@ export type Props = {
         setModalSearchTerm: (term: string) => void;
     };
     focusOriginElement: string;
-    intl?: any;
 }
 
 type State = {

@@ -69,7 +69,6 @@ describe('mapStateToProps', () => {
     test('should not include remote users', () => {
         const f = makeMapStateToProps();
         const props = f(initialState, {isExistingChannel: false});
-
         expect(props.users.length).toEqual(2);
     });
 

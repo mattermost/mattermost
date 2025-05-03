@@ -16,7 +16,6 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 
 import {displayEntireNameForUser} from 'utils/utils';
 
-
 type Props = {
     currentUserId: string;
     option: UserProfile;
@@ -30,10 +29,7 @@ export default function UserDetails(props: Props): JSX.Element {
         delete_at: deleteAt,
         is_bot: isBot = false,
         last_picture_update: lastPictureUpdate,
-        remote_id: remoteId,
     } = option;
-
-    const isRemoteUser = Boolean(remoteId);
 
     const displayName = displayEntireNameForUser(option);
 
@@ -59,7 +55,6 @@ export default function UserDetails(props: Props): JSX.Element {
             />
         );
     }
-
 
     return (
         <>

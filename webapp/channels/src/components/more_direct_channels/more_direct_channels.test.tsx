@@ -54,9 +54,6 @@ describe('components/MoreDirectChannels', () => {
         restrictDirectMessage: 'any',
         onModalDismissed: jest.fn(),
         onExited: jest.fn(),
-        intl: {
-            formatMessage: jest.fn((obj) => obj.defaultMessage),
-        },
         actions: {
             getProfiles: jest.fn(() => {
                 return new Promise((resolve) => {
