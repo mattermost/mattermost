@@ -92,12 +92,11 @@
 
         &.error {
             background-color: var(--button-color);
-            color: var(--denim-button-bg);
-        }
+            color: var(--dnd-indicator);
 
-        &:disabled {
-            background: var(--center-channel-bg);
-            opacity: 0.32; 
+            &:disabled {
+                background: rgba(var(--button-color-rgb), 0.16); 
+            }
         }
     }
 }
