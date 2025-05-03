@@ -3,12 +3,10 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
-import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
@@ -18,19 +16,15 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 
 import {displayEntireNameForUser} from 'utils/utils';
 
-import type {GlobalState} from 'types/store';
 
 type Props = {
     currentUserId: string;
     option: UserProfile;
     status: string;
-
-    // For testing
-    enableSharedChannelsDMs?: boolean;
 };
 
 export default function UserDetails(props: Props): JSX.Element {
-    const {currentUserId, option, status, enableSharedChannelsDMs: propEnableSharedChannelsDMs} = props;
+    const {currentUserId, option, status} = props;
     const {
         id,
         delete_at: deleteAt,
@@ -66,7 +60,6 @@ export default function UserDetails(props: Props): JSX.Element {
         );
     }
 
-    // The remote user tooltip message depends on whether the feature flag is enabled
 
     return (
         <>
@@ -80,11 +73,6 @@ export default function UserDetails(props: Props): JSX.Element {
                     {modalName}
                     {isBot && <BotTag/>}
                     {isGuest(option.roles) && <GuestTag/>}
-                    {isRemoteUser && (
-                        <span className='remote-user-badge'>
-                            {'Remote'}
-                        </span>
-                    )}
                     <CustomStatusEmoji
                         userID={option.id}
                         showTooltip={true}

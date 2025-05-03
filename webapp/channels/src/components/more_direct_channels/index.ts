@@ -54,10 +54,8 @@ export const makeMapStateToProps = () => {
 
         const searchTerm = state.views.search.modalSearch;
 
-        // Determine if shared channel DMs are enabled via feature flag
         const enableSharedChannelsDMs = getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true';
 
-        // Filter remote users at the server level if the feature flag is disabled
         let filters;
         if (!enableSharedChannelsDMs) {
             filters = {exclude_remote: true};

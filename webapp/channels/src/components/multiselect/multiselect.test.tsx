@@ -37,6 +37,7 @@ describe('components/multiselect/multiselect', () => {
         users,
         valueRenderer: element as any,
         values: [{id: 'id', label: 'label', value: 'value'}],
+        valueWithImage: false,
     };
 
     test('should match snapshot', () => {

@@ -73,7 +73,7 @@ describe('mapStateToProps', () => {
         expect(props.users.length).toEqual(2);
     });
 
-    test('should include remote users when feature flag is enabled', () => {
+    test('should include remote users', () => {
         const testState = {
             ...initialState,
             entities: {
