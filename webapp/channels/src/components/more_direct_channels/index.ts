@@ -56,7 +56,6 @@ export const makeMapStateToProps = () => {
 
         let filters;
         const enableSharedChannelsDMs = getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true';
-
         if (!enableSharedChannelsDMs) {
             filters = {exclude_remote: true};
         }

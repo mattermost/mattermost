@@ -86,7 +86,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	// Normal syncTasks always include a valid channelID
 	if task.channelID == "" {
 		// Double-check that the feature flag is still enabled
-		if scs.server.Config().FeatureFlags.EnableSharedChannelsDMs != "true" {
+		if !scs.server.Config().FeatureFlags.EnableSharedChannelsDMs {
 			return nil // Skip if feature flag has been disabled
 		}
 
@@ -716,14 +716,11 @@ var realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) erro
 
 	// Get all active users
 	options := &model.UserGetOptions{
-		Page:           0,
-		PerPage:        100, // Process in batches
-		Active:         true,
-		ExcludeDeleted: true,
-		ExcludeBots:    true,
+		Page:    0,
+		PerPage: 100, // Process in batches
+		Active:  true,
 	}
 
-	// We create a syncData object to use with existing methods
 	// We need to make a fake SharedChannelRemote since we don't have a channel
 	fakeSCR := &model.SharedChannelRemote{
 		RemoteId: rc.RemoteId,
@@ -738,10 +735,11 @@ var realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) erro
 	}
 
 	var processedCount int
+	merr := merror.New()
 
 	// We may need to page through all users
 	for {
-		users, err := scs.app.GetUsersPage(request.EmptyContext(scs.server.Log()), options, false)
+		users, err := scs.server.GetStore().User().GetAllProfiles(options)
 		if err != nil {
 			scs.server.Log().Error("Error fetching users for global sync",
 				mlog.String("remote_id", rc.RemoteId),
@@ -756,7 +754,7 @@ var realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) erro
 
 		// Add users to sync data
 		for _, user := range users {
-			// Skip remote users (don't sync back to origin)
+			// Skip remote users belonging to the remote server we are syncing with (don't sync back to origin)
 			if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
 				continue
 			}
@@ -771,6 +769,7 @@ var realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) erro
 						mlog.String("remote_id", rc.RemoteId),
 						mlog.Err(err),
 					)
+					merr.Append(fmt.Errorf("error sending user batch during initial sync: %w", err))
 				}
 				sd.users = make(map[string]*model.User)
 			}
@@ -787,6 +786,7 @@ var realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) erro
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.Err(err),
 			)
+			merr.Append(fmt.Errorf("error sending final user batch during initial sync: %w", err))
 		}
 	}
 
@@ -795,9 +795,9 @@ var realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) erro
 		mlog.Int("users_processed", processedCount),
 	)
 
-	// Even if there were some errors with specific batches, consider the overall
-	// sync successful since we'll retry individual users during normal operation
-	return nil
+	// Return any errors that occurred during batch processing so callers can handle them
+	// The sync is still considered partially successful since we'll retry individual users during normal operation
+	return merr.ErrorOrNil()
 }
 
 // syncAllUsersForRemote delegates to the function variable to make it mockable in tests
