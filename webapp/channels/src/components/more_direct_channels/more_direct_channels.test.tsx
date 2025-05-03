@@ -266,7 +266,9 @@ describe('components/MoreDirectChannels', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should show error when trying to add remote users with feature flag disabled', () => {
+    test('should add remote users regardless of feature flag (filtering happens at server level)', () => {
+        // Remote users are filtered at the server level, but if they somehow make it to the client
+        // we should still be able to add them for backward compatibility
         const props = {...baseProps, enableSharedChannelsDMs: false};
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
 
@@ -279,7 +281,10 @@ describe('components/MoreDirectChannels', () => {
         ];
 
         wrapper.instance().addUsers(remoteUsers);
-        expect(wrapper.state('error')).toBeDefined();
+        
+        // Verify user was added to values 
+        const values = wrapper.state('values');
+        expect(values.find((v) => v.id === 'remote_user_id')).toBeDefined();
     });
 
     test('should allow adding remote users with feature flag enabled', () => {

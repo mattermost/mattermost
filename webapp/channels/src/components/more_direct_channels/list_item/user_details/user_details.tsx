@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -14,7 +13,6 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
-import InfoIcon from 'components/widgets/icons/info_icon';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
@@ -40,11 +38,6 @@ export default function UserDetails(props: Props): JSX.Element {
         last_picture_update: lastPictureUpdate,
         remote_id: remoteId,
     } = option;
-
-    // Get the feature flag value to determine if remote user messaging is enabled
-    // Allow prop override for testing
-    const featureFlagValue = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
-    const enableSharedChannelsDMs = propEnableSharedChannelsDMs ?? featureFlagValue;
 
     const isRemoteUser = Boolean(remoteId);
 

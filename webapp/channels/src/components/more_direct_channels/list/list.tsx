@@ -167,7 +167,6 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
             users={props.users}
             totalCount={props.totalCount}
             placeholderText={intl.formatMessage({id: 'multiselect.placeholder', defaultMessage: 'Search and add members'})}
-            valueWithImage={false}
         />
     );
 });

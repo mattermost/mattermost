@@ -54,11 +54,14 @@ export const makeMapStateToProps = () => {
 
         const searchTerm = state.views.search.modalSearch;
 
-        // Get the EnableSharedChannelsDMs feature flag value
+        // Determine if shared channel DMs are enabled via feature flag
         const enableSharedChannelsDMs = getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true';
 
-        // No filters for initial queries
-        const filters = undefined;
+        // Filter remote users at the server level if the feature flag is disabled
+        let filters;
+        if (!enableSharedChannelsDMs) {
+            filters = {exclude_remote: true};
+        }
 
         let users: UserProfile[];
         if (searchTerm) {
@@ -71,11 +74,6 @@ export const makeMapStateToProps = () => {
             users = selectProfiles(state, filters);
         } else {
             users = getProfilesInCurrentTeam(state, filters);
-        }
-
-        // Filter out remote users if the feature flag is off
-        if (!enableSharedChannelsDMs) {
-            users = users.filter((user) => !user.remote_id);
         }
 
         const team = getCurrentTeam(state);
