@@ -3,11 +3,11 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {AccessControlPoliciesResult, AccessControlPolicy} from '@mattermost/types/access_control';
+import type {AccessControlPoliciesResult, AccessControlPolicy, AccessControlTestResult} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
-import {AdminTypes, ChannelTypes} from 'mattermost-redux/action_types';
+import {AdminTypes, ChannelTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
@@ -131,4 +131,22 @@ export function updateAccessControlPolicyActive(policyId: string, active: boolea
             active,
         ],
     });
+}
+
+export function searchUsersForExpression(expression: string, term: string, after: string, limit: number): ActionFuncAsync<AccessControlTestResult> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.testAccessControlExpression(expression, term, after, limit);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
+
+        dispatch(
+            {type: UserTypes.RECEIVED_PROFILES, data: data.users},
+        );
+
+        return {data};
+    };
 }

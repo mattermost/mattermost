@@ -50,7 +50,7 @@ export type CELExpressionError = {
 
 export type AccessControlTestResult = {
     users: UserProfile[];
-    attributes: string[];
+    total: number;
 }
 
 export type AccessControlEntity = {

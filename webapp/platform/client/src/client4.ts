@@ -4494,10 +4494,10 @@ export default class Client4 {
         );
     };
 
-    testAccessControlExpression = (expression: string) => {
+    testAccessControlExpression = (expression: string, term: string, after: string, limit: number) => {
         return this.doFetch<AccessControlTestResult>(
             `${this.getBaseRoute()}/access_control_policies/test`,
-            {method: 'post', body: JSON.stringify({expression})},
+            {method: 'post', body: JSON.stringify({expression, term, after, limit})},
         );
     };
 }

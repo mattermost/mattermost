@@ -4,10 +4,7 @@
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {AccessControlTestResult} from '@mattermost/types/access_control';
-
-import {Client4} from 'mattermost-redux/client';
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 
 import Markdown from 'components/markdown';
 
@@ -47,10 +44,6 @@ interface TestButtonProps {
     disabled: boolean;
 }
 
-interface ErrorMessageProps {
-    error: any;
-}
-
 interface HelpTextProps {
     message: string;
 }
@@ -72,22 +65,6 @@ function HelpText({message}: HelpTextProps): JSX.Element {
                 />
             </a>
         </div>
-    );
-}
-
-function ErrorMessage({error}: ErrorMessageProps): JSX.Element | null {
-    if (!error) {
-        return null;
-    }
-
-    return (
-        <span className='EditPolicy__error'>
-            <i className='icon icon-alert-outline'/>
-            <FormattedMessage
-                id='admin.access_control.edit_policy.serverError'
-                defaultMessage='There are errors in the form above'
-            />
-        </span>
     );
 }
 
@@ -196,9 +173,7 @@ function TableEditor({
 }: TableEditorProps): JSX.Element {
     const [rows, setRows] = useState<TableRow[]>(parseExpression(value));
     const [showTestResults, setShowTestResults] = useState(false);
-    const [testResults, setTestResults] = useState<AccessControlTestResult | null>(null);
     const [showAttributeDropdown, setShowAttributeDropdown] = useState(false);
-    const [serverError, setServerError] = useState(false);
     const [newValue, setNewValue] = useState('');
     const [activeInputRowIndex, setActiveInputRowIndex] = useState<number | null>(null);
     const [showValueModal, setShowValueModal] = useState(false);
@@ -287,19 +262,6 @@ function TableEditor({
         newRows[rowIndex].values = newRows[rowIndex].values.filter((_, i) => i !== valueIndex);
         setRows(newRows);
         updateExpression(newRows);
-    };
-
-    const testAccessRule = async () => {
-        try {
-            const result = await Client4.testAccessControlExpression(value);
-            setTestResults({
-                attributes: result.attributes || {},
-                users: result.users || [],
-            });
-            setShowTestResults(true);
-        } catch (error) {
-            setServerError(error);
-        }
     };
 
     // Get available attributes (excluding ones already used)
@@ -464,7 +426,7 @@ function TableEditor({
                 />
 
                 <TestButton
-                    onClick={testAccessRule}
+                    onClick={() => setShowTestResults(true)}
                     disabled={disabled || !value}
                 />
             </div>
@@ -480,15 +442,14 @@ function TableEditor({
                 />
             )}
 
-            <ErrorMessage error={serverError}/>
-
             {showTestResults && (
                 <TestResultsModal
-                    testResults={testResults}
                     onExited={() => setShowTestResults(false)}
                     actions={{
                         openModal: () => {},
-                        setModalSearchTerm: (term: string): ActionResult => ({data: term}),
+                        searchUsers: (term: string, after: string, limit: number) => {
+                            return searchUsersForExpression(value, term, after, limit);
+                        },
                     }}
                 />
             )}

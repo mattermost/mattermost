@@ -7,8 +7,8 @@ import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlTestResult} from '@mattermost/types/access_control';
 
+import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import Markdown from 'components/markdown';
 
@@ -149,22 +149,6 @@ function CELEditor({
             onValidate?.(false);
         }
     }, [editorState.expression, onValidate]);
-
-    const testAccessRule = useCallback(async () => {
-        try {
-            const result = await Client4.testAccessControlExpression(editorState.expression);
-            setEditorState((prev) => ({
-                ...prev,
-                testResults: {
-                    attributes: result.attributes || {},
-                    users: result.users || [],
-                },
-                showTestResults: true,
-            }));
-        } catch (error) {
-            // Handle error silently
-        }
-    }, [editorState.expression]);
 
     // initialize monaco editor
     useEffect(() => {
@@ -308,7 +292,7 @@ function CELEditor({
             <div className='cel-editor__footer'>
                 <button
                     className='cel-editor__test-btn'
-                    onClick={testAccessRule}
+                    onClick={() => setEditorState((prev) => ({...prev, showTestResults: true}))}
                     disabled={!editorState.isValid || editorState.isValidating}
                 >
                     <i className='icon icon-lock-outline'/>
@@ -336,11 +320,12 @@ function CELEditor({
             </div>
             {editorState.showTestResults && (
                 <TestResultsModal
-                    testResults={editorState.testResults}
                     onExited={() => setEditorState((prev) => ({...prev, showTestResults: false}))}
                     actions={{
                         openModal: () => {},
-                        setModalSearchTerm: (term: string): ActionResult => ({data: term}),
+                        searchUsers: (term: string, after: string, limit: number) => {
+                            return searchUsersForExpression(editorState.expression, term, after, limit);
+                        },
                     }}
                 />
             )}
