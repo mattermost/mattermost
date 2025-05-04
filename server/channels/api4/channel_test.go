@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 	"io"
 	"net/http"
 	"sort"
@@ -1001,6 +1002,147 @@ func TestPatchChannel(t *testing.T) {
 		require.Equal(t, "Channel banner can only be configured on Public and Private channels.", err.Error())
 		CheckBadRequestStatus(t, resp)
 		require.Nil(t, patchedChannel)
+	})
+}
+
+func TestCanEditChannelBanner(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("when license is nil", func(t *testing.T) {
+		channel := &model.Channel{
+			Type: model.ChannelTypeOpen,
+		}
+
+		th.App.Srv().SetLicense(nil)
+
+		webContext := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Params: &web.Params{
+				ChannelId: "channel_id",
+			},
+		}
+
+		canEditChannelBanner(webContext, channel)
+
+		require.NotNil(t, webContext.Err)
+		assert.Equal(t, "api.context.permissions.app_error", webContext.Err.Id)
+		assert.Equal(t, http.StatusForbidden, webContext.Err.StatusCode)
+	})
+
+	t.Run("when license is not E20 or Enterprise", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
+		th.App.Srv().SetLicense(license)
+
+		webContext := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Params: &web.Params{
+				ChannelId: "channel_id",
+			},
+		}
+
+		channel := &model.Channel{
+			Type: model.ChannelTypeOpen,
+		}
+
+		canEditChannelBanner(webContext, channel)
+
+		require.NotNil(t, webContext.Err)
+		assert.Equal(t, "api.context.permissions.app_error", webContext.Err.Id)
+		assert.Equal(t, http.StatusForbidden, webContext.Err.StatusCode)
+	})
+
+	t.Run("when channel type is direct message", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
+		th.App.Srv().SetLicense(license)
+
+		webContext := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Params: &web.Params{
+				ChannelId: "channel_id",
+			},
+		}
+
+		channel := &model.Channel{
+			Type: model.ChannelTypeDirect,
+		}
+
+		canEditChannelBanner(webContext, channel)
+
+		require.NotNil(t, webContext.Err)
+		assert.Equal(t, "api.channel.update_channel.banner_info.channel_type.not_allowed", webContext.Err.Id)
+		assert.Equal(t, http.StatusBadRequest, webContext.Err.StatusCode)
+	})
+
+	t.Run("when channel type is group message", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
+		th.App.Srv().SetLicense(license)
+
+		webContext := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Params: &web.Params{
+				ChannelId: "channel_id",
+			},
+		}
+
+		channel := &model.Channel{
+			Type: model.ChannelTypeGroup,
+		}
+
+		canEditChannelBanner(webContext, channel)
+		require.NotNil(t, webContext.Err)
+		assert.Equal(t, "api.channel.update_channel.banner_info.channel_type.not_allowed", webContext.Err.Id)
+		assert.Equal(t, http.StatusBadRequest, webContext.Err.StatusCode)
+	})
+
+	t.Run("when channel type is open and license is valid", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
+		th.App.Srv().SetLicense(license)
+
+		channel := th.CreatePublicChannel()
+		th.MakeUserChannelAdmin(th.BasicUser, channel)
+
+		webContext := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Params: &web.Params{
+				ChannelId: channel.Id,
+			},
+		}
+
+		webContext.AppContext = webContext.AppContext.WithSession(&model.Session{
+			UserId: th.BasicUser.Id,
+		})
+
+		canEditChannelBanner(webContext, channel)
+		assert.Nil(t, webContext.Err)
+	})
+
+	t.Run("when channel type is private and license is valid", func(t *testing.T) {
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
+		th.App.Srv().SetLicense(license)
+
+		channel := th.CreatePrivateChannel()
+		th.MakeUserChannelAdmin(th.BasicUser, channel)
+
+		webContext := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Params: &web.Params{
+				ChannelId: channel.Id,
+			},
+		}
+
+		webContext.AppContext = webContext.AppContext.WithSession(&model.Session{
+			UserId: th.BasicUser.Id,
+		})
+
+		canEditChannelBanner(webContext, channel)
+		assert.Nil(t, webContext.Err)
 	})
 }
 
