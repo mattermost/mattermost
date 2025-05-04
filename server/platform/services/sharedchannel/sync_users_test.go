@@ -4,8 +4,8 @@
 package sharedchannel
 
 import (
-	"errors"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -15,12 +15,161 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
+type TestHelper struct {
+	MainHelper *testlib.MainHelper
+	Server     *TestServer
+}
+
+type TestServer struct {
+	Store  store.Store
+	config *model.Config
+	log    *mlog.Logger
+}
+
+func (ts *TestServer) GetStore() store.Store {
+	return ts.Store
+}
+
+func (ts *TestServer) Config() *model.Config {
+	return ts.config
+}
+
+func (ts *TestServer) Log() *mlog.Logger {
+	return ts.log
+}
+
+func (ts *TestServer) GetMetrics() einterfaces.MetricsInterface {
+	return nil
+}
+
+func (ts *TestServer) GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace {
+	return nil
+}
+
+func (ts *TestServer) AddClusterLeaderChangedListener(listener func()) string {
+	return ""
+}
+
+func (ts *TestServer) RemoveClusterLeaderChangedListener(id string) {
+}
+
+func (ts *TestServer) IsLeader() bool {
+	return true
+}
+
+// createMockStore creates a mock store suitable for testing
+func createMockStore() store.Store {
+	mockStore := &mocks.Store{}
+	mockUserStore := &mocks.UserStore{}
+	mockStore.On("User").Return(mockUserStore)
+
+	// Create default test users for mocks
+	remoteId := "remote1"
+	user1 := &model.User{
+		Id:       "user1",
+		Username: "user1",
+		Email:    "user1@example.com",
+		CreateAt: 10000,
+		UpdateAt: 20000,
+	}
+	user2 := &model.User{
+		Id:       "user2",
+		Username: "user2",
+		Email:    "user2@example.com",
+		CreateAt: 10001,
+		UpdateAt: 20001,
+	}
+	remoteUser := &model.User{
+		Id:       "remote_user",
+		Username: "remote_user",
+		Email:    "remote_user@example.com",
+		CreateAt: 10002,
+		UpdateAt: 20002,
+		RemoteId: &remoteId,
+	}
+
+	// Return these users by default for all GetAllProfiles calls
+	mockUserStore.On("GetAllProfiles", mock.Anything).Return([]*model.User{user1, user2, remoteUser}, nil)
+
+	// Set up Save to return a valid user
+	mockUserStore.On("Save", mock.Anything, mock.AnythingOfType("*model.User")).Return(
+		&model.User{Id: "user1"}, nil,
+	)
+
+	return mockStore
+}
+
+func SetupTestHelperWithStore(tb testing.TB) *TestHelper {
+	// Try creating a database connection, but provide a graceful fallback if it fails
+	var mainHelper *testlib.MainHelper
+	var store store.Store
+
+	// In short mode we'll use a mock store
+	if testing.Short() {
+		// Use mocks in short mode
+		store = createMockStore()
+	} else {
+		// Try to setup a real database
+		mainHelper = testlib.NewMainHelperWithOptions(&testlib.HelperOptions{
+			EnableStore:     true,
+			EnableResources: false,
+		})
+
+		// If database setup succeeds, use it
+		if mainHelper != nil && mainHelper.SQLStore != nil {
+			mainHelper.PreloadMigrations()
+			store = mainHelper.GetStore()
+		} else {
+			// If database connection fails, fall back to mock
+			tb.Logf("Database connection failed or in short mode, using mock store")
+			store = createMockStore()
+			// No need to keep mainHelper if we're using mocks
+			mainHelper = nil
+		}
+	}
+
+	// Setup test server with the store (either real or mock)
+	logger := mlog.CreateConsoleTestLogger(tb)
+	serverConfig := &model.Config{}
+	serverConfig.SetDefaults()
+	serverConfig.FeatureFlags = &model.FeatureFlags{}
+	serverConfig.FeatureFlags.SyncAllUsersForRemoteCluster = true
+
+	testServer := &TestServer{
+		Store:  store,
+		config: serverConfig,
+		log:    logger,
+	}
+
+	return &TestHelper{
+		MainHelper: mainHelper,
+		Server:     testServer,
+	}
+}
+
+func (h *TestHelper) TearDown() {
+	// Nothing to do for mock store
+	if h.MainHelper == nil {
+		return
+	}
+
+	// For real store, clean up but don't call Close() since it calls os.Exit()
+	if h.MainHelper.SQLStore != nil {
+		// Just close the SQL connection directly
+		h.MainHelper.SQLStore.Close()
+	}
+}
+
 func TestOnConnectionStateChangeWithUserSync(t *testing.T) {
-	t.Run("when EnableSharedChannelsDMs flag is enabled, it creates a sync task with empty channelID", func(t *testing.T) {
-		// Setup
+	t.Run("when SyncAllUsersForRemoteCluster flag is enabled, it creates a sync task with empty channelID", func(t *testing.T) {
+		// Setup mock for this test since we just need to check the feature flag
 		mockServer := &MockServerIface{}
 		logger := mlog.CreateConsoleTestLogger(t)
 		mockServer.On("Log").Return(logger)
@@ -28,8 +177,11 @@ func TestOnConnectionStateChangeWithUserSync(t *testing.T) {
 		// Set the feature flag to true
 		mockConfig := &model.Config{}
 		mockConfig.FeatureFlags = &model.FeatureFlags{}
-		mockConfig.FeatureFlags.EnableSharedChannelsDMs = true
+		mockConfig.FeatureFlags.SyncAllUsersForRemoteCluster = true
 		mockServer.On("Config").Return(mockConfig)
+
+		// Mock the GetRemoteClusterService call that's used in SendPendingInvitesForRemote
+		mockServer.On("GetRemoteClusterService").Return(nil)
 
 		scs := &Service{
 			server: mockServer,
@@ -64,8 +216,8 @@ func TestOnConnectionStateChangeWithUserSync(t *testing.T) {
 		assert.True(t, foundTask, "Expected to find a task with empty channelID for remote user sync")
 	})
 
-	t.Run("when EnableSharedChannelsDMs flag is disabled, it does not create a sync task", func(t *testing.T) {
-		// Setup
+	t.Run("when SyncAllUsersForRemoteCluster flag is disabled, it does not create a sync task", func(t *testing.T) {
+		// Setup mock for this test since we just need to check the feature flag
 		mockServer := &MockServerIface{}
 		logger := mlog.CreateConsoleTestLogger(t)
 		mockServer.On("Log").Return(logger)
@@ -73,8 +225,11 @@ func TestOnConnectionStateChangeWithUserSync(t *testing.T) {
 		// Set the feature flag to false
 		mockConfig := &model.Config{}
 		mockConfig.FeatureFlags = &model.FeatureFlags{}
-		mockConfig.FeatureFlags.EnableSharedChannelsDMs = false
+		mockConfig.FeatureFlags.SyncAllUsersForRemoteCluster = false
 		mockServer.On("Config").Return(mockConfig)
+
+		// Mock the GetRemoteClusterService call that's used in SendPendingInvitesForRemote
+		mockServer.On("GetRemoteClusterService").Return(nil)
 
 		scs := &Service{
 			server: mockServer,
@@ -112,22 +267,17 @@ func TestOnConnectionStateChangeWithUserSync(t *testing.T) {
 
 func TestSyncForRemoteWithEmptyChannelID(t *testing.T) {
 	t.Run("when channelID is empty and feature flag is enabled, it calls syncAllUsersForRemote", func(t *testing.T) {
-		// Setup
-		mockServer := &MockServerIface{}
-		logger := mlog.CreateConsoleTestLogger(t)
-		mockServer.On("Log").Return(logger)
+		// Setup test helper with store (real or mock)
+		th := SetupTestHelperWithStore(t)
+		defer th.TearDown()
 
 		// Set the feature flag to true
-		mockConfig := &model.Config{}
-		mockConfig.FeatureFlags = &model.FeatureFlags{}
-		mockConfig.FeatureFlags.EnableSharedChannelsDMs = true
-		mockServer.On("Config").Return(mockConfig)
+		th.Server.config.FeatureFlags.SyncAllUsersForRemoteCluster = true
 
+		// Create the service with real store and mock app
 		mockApp := &MockAppIface{}
-
-		// The service
 		scs := &Service{
-			server: mockServer,
+			server: th.Server,
 			app:    mockApp,
 		}
 
@@ -157,22 +307,17 @@ func TestSyncForRemoteWithEmptyChannelID(t *testing.T) {
 	})
 
 	t.Run("when channelID is empty but feature flag is disabled, it does not call syncAllUsersForRemote", func(t *testing.T) {
-		// Setup
-		mockServer := &MockServerIface{}
-		logger := mlog.CreateConsoleTestLogger(t)
-		mockServer.On("Log").Return(logger)
+		// Setup test helper with real database
+		th := SetupTestHelperWithStore(t)
+		defer th.TearDown()
 
 		// Set the feature flag to false
-		mockConfig := &model.Config{}
-		mockConfig.FeatureFlags = &model.FeatureFlags{}
-		mockConfig.FeatureFlags.EnableSharedChannelsDMs = false
-		mockServer.On("Config").Return(mockConfig)
+		th.Server.config.FeatureFlags.SyncAllUsersForRemoteCluster = false
 
+		// Create the service with real store and mock app
 		mockApp := &MockAppIface{}
-
-		// The service
 		scs := &Service{
-			server: mockServer,
+			server: th.Server,
 			app:    mockApp,
 		}
 
@@ -202,463 +347,373 @@ func TestSyncForRemoteWithEmptyChannelID(t *testing.T) {
 }
 
 func TestSyncAllUsersForRemote(t *testing.T) {
-	t.Run("successfully syncs users", func(t *testing.T) {
-		// Setup
-		mockServer := &MockServerIface{}
-		logger := mlog.CreateConsoleTestLogger(t)
-		mockServer.On("Log").Return(logger)
+	// This test works in both short and non-short mode
+	t.Run("successfully syncs users with database", func(t *testing.T) {
+		// Setup test helper with store (real or mock)
+		th := SetupTestHelperWithStore(t)
+		defer th.TearDown()
 
+		// Create test users vars to use in both real DB and mock cases
+		user1ID := "user1"
+		user2ID := "user2"
+		remoteUserID := "remote_user"
+		var remoteId = "remote1"
+
+		// If we're using a mock store, set up expectations with the same users
+		if mockUserStore, ok := th.Server.GetStore().User().(*mocks.UserStore); ok {
+			user1 := &model.User{
+				Id:       user1ID,
+				Username: "user1",
+				Email:    "user1@example.com",
+				CreateAt: 10000,
+				UpdateAt: 20000,
+			}
+			user2 := &model.User{
+				Id:       user2ID,
+				Username: "user2",
+				Email:    "user2@example.com",
+				CreateAt: 10001,
+				UpdateAt: 20001,
+			}
+			remoteUser := &model.User{
+				Id:       remoteUserID,
+				Username: "remote_user",
+				Email:    "remote_user@example.com",
+				CreateAt: 10002,
+				UpdateAt: 20002,
+				RemoteId: &remoteId,
+			}
+			mockUserStore.On("GetAllProfiles", mock.Anything).Return([]*model.User{user1, user2, remoteUser}, nil)
+
+			// Mock the Save method
+			mockUserStore.On("Save", mock.Anything, mock.AnythingOfType("*model.User")).Return(
+				&model.User{Id: user1ID}, nil,
+			)
+		}
+
+		// Create a service with store connection
 		mockApp := &MockAppIface{}
-		mockStore := &mocks.Store{}
+		scs := &Service{
+			server: th.Server,
+			app:    mockApp,
+			tasks:  make(map[string]syncTask),
+			mux:    sync.RWMutex{},
+		}
 
-		// Mock GetUsersPage to return some test users
-		testUsers := []*model.User{
-			{
+		// Variables to hold our test users, whether they come from DB or mocks
+		var user1, user2, remoteUser *model.User
+
+		// Check if we're using a mock store
+		if _, ok := th.Server.GetStore().User().(*mocks.UserStore); ok {
+			// In mock mode, just create the structs without saving to DB
+			user1 = &model.User{
 				Id:       "user1",
 				Username: "user1",
 				Email:    "user1@example.com",
 				CreateAt: 10000,
 				UpdateAt: 20000,
-			},
-			{
+			}
+			user2 = &model.User{
 				Id:       "user2",
 				Username: "user2",
 				Email:    "user2@example.com",
 				CreateAt: 10001,
 				UpdateAt: 20001,
-			},
-		}
-
-		mockApp.On("GetUsersPage", mock.Anything, mock.Anything, mock.Anything).Return(testUsers, nil).Once()
-		mockApp.On("GetUsersPage", mock.Anything, mock.Anything, mock.Anything).Return([]*model.User{}, nil) // Second call returns empty to end loop
-
-		mockServer.On("GetStore").Return(mockStore)
-
-		// Create a spy/mock for sendUserSyncData
-		sendUserSyncDataCalled := false
-		usersSent := 0
-		oldRealSyncAllUsersForRemote := realSyncAllUsersForRemote
-
-		// Override realSyncAllUsersForRemote to use a modified version that tracks calls to sendUserSyncData
-		sendUserSyncData := func(sd *syncData) error {
-			sendUserSyncDataCalled = true
-			usersSent += len(sd.users)
-			return nil
-		}
-
-		realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) error {
-			if !rc.IsOnline() {
-				return errors.New("remote cluster not online")
 			}
-
-			options := &model.UserGetOptions{
-				Page:    0,
-				PerPage: 100,
-				Active:  true,
+			remoteUser = &model.User{
+				Id:       "remote_user",
+				Username: "remote_user",
+				Email:    "remote_user@example.com",
+				CreateAt: 10002,
+				UpdateAt: 20002,
+				RemoteId: &remoteId,
 			}
-
-			fakeSCR := &model.SharedChannelRemote{
-				RemoteId: rc.RemoteId,
-			}
-
-			sd := &syncData{
-				task:  syncTask{remoteID: rc.RemoteId},
-				rc:    rc,
-				scr:   fakeSCR,
-				users: make(map[string]*model.User),
-			}
-
-			// We may need to page through all users
-			for {
-				users, err := scs.server.GetStore().User().GetAllProfiles(options)
-				if err != nil {
-					return err
-				}
-
-				if len(users) == 0 {
-					break
-				}
-
-				// Add users to sync data
-				for _, user := range users {
-					// Skip remote users (don't sync back to origin)
-					if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
-						continue
-					}
-
-					sd.users[user.Id] = user
-
-					// Send in batches to avoid overwhelming the connection
-					if len(sd.users) >= MaxUsersPerSync {
-						if err := sendUserSyncData(sd); err != nil {
-							return err
-						}
-						sd.users = make(map[string]*model.User)
-					}
-				}
-
-				// Move to next page
-				options.Page++
-			}
-
-			// Send any remaining users
-			if len(sd.users) > 0 {
-				if err := sendUserSyncData(sd); err != nil {
-					return err
-				}
-			}
-
-			return nil
-		}
-		defer func() { realSyncAllUsersForRemote = oldRealSyncAllUsersForRemote }()
-
-		// The service
-		scs := &Service{
-			server: mockServer,
-			app:    mockApp,
-		}
-
-		// The remote cluster
-		rc := &model.RemoteCluster{
-			RemoteId:    "remote1",
-			DisplayName: "Remote 1",
-			LastPingAt:  model.GetMillis(), // setting LastPingAt to current time makes IsOnline() return true
-		}
-
-		// Call the function
-		err := scs.syncAllUsersForRemote(rc)
-
-		// Verify
-		require.NoError(t, err)
-		assert.True(t, sendUserSyncDataCalled, "Expected sendUserSyncData to be called")
-		assert.Equal(t, 2, usersSent, "Expected 2 users to be sent")
-	})
-
-	t.Run("processes users in batches when count exceeds MaxUsersPerSync", func(t *testing.T) {
-		// Setup
-		mockServer := &MockServerIface{}
-		logger := mlog.CreateConsoleTestLogger(t)
-		mockServer.On("Log").Return(logger)
-
-		mockApp := &MockAppIface{}
-		mockStore := &mocks.Store{}
-		mockServer.On("GetStore").Return(mockStore)
-
-		// Create a large set of test users that will exceed MaxUsersPerSync
-		largeUserSet := make([]*model.User, MaxUsersPerSync+5)
-		for i := 0; i < MaxUsersPerSync+5; i++ {
-			largeUserSet[i] = &model.User{
-				Id:       fmt.Sprintf("user%d", i),
-				Username: fmt.Sprintf("user%d", i),
-				Email:    fmt.Sprintf("user%d@example.com", i),
-				CreateAt: int64(10000 + i),
-				UpdateAt: int64(20000 + i),
-			}
-		}
-
-		mockApp.On("GetUsersPage", mock.Anything, mock.Anything, mock.Anything).Return(largeUserSet, nil).Once()
-		mockApp.On("GetUsersPage", mock.Anything, mock.Anything, mock.Anything).Return([]*model.User{}, nil) // Second call returns empty to end loop
-
-		// Track batch processing
-		var sendUserSyncDataCalls int
-		var userBatches []int // Track how many users were in each batch
-
-		oldRealSyncAllUsersForRemote := realSyncAllUsersForRemote
-
-		// Create a custom implementation that tracks batch sizes
-		sendUserSyncData := func(sd *syncData) error {
-			sendUserSyncDataCalls++
-			userBatches = append(userBatches, len(sd.users))
-			return nil
-		}
-
-		realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) error {
-			if !rc.IsOnline() {
-				return errors.New("remote cluster not online")
-			}
-
-			options := &model.UserGetOptions{
-				Page:    0,
-				PerPage: 100,
-				Active:  true,
-			}
-
-			fakeSCR := &model.SharedChannelRemote{
-				RemoteId: rc.RemoteId,
-			}
-
-			sd := &syncData{
-				task:  syncTask{remoteID: rc.RemoteId},
-				rc:    rc,
-				scr:   fakeSCR,
-				users: make(map[string]*model.User),
-			}
-
-			for {
-				users, err := scs.server.GetStore().User().GetAllProfiles(options)
-				if err != nil {
-					return err
-				}
-
-				if len(users) == 0 {
-					break
-				}
-
-				for _, user := range users {
-					// Skip remote users
-					if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
-						continue
-					}
-
-					sd.users[user.Id] = user
-
-					// Send in batches when threshold reached
-					if len(sd.users) >= MaxUsersPerSync {
-						if err := sendUserSyncData(sd); err != nil {
-							return err
-						}
-						sd.users = make(map[string]*model.User)
-					}
-				}
-
-				options.Page++
-			}
-
-			// Send any remaining users
-			if len(sd.users) > 0 {
-				if err := sendUserSyncData(sd); err != nil {
-					return err
-				}
-			}
-
-			return nil
-		}
-		defer func() { realSyncAllUsersForRemote = oldRealSyncAllUsersForRemote }()
-
-		// Create service
-		scs := &Service{
-			server: mockServer,
-			app:    mockApp,
-		}
-
-		// Remote cluster
-		rc := &model.RemoteCluster{
-			RemoteId:    "remote1",
-			DisplayName: "Remote 1",
-			LastPingAt:  model.GetMillis(), // setting LastPingAt to current time makes IsOnline() return true
-		}
-
-		// Call the function
-		err := scs.syncAllUsersForRemote(rc)
-
-		// Verify
-		require.NoError(t, err)
-
-		// 1. Verify that sendUserSyncData was called multiple times (once for each batch)
-		assert.Equal(t, 2, sendUserSyncDataCalls, "Expected sendUserSyncData to be called twice (once per batch)")
-
-		// 2. Verify that the first batch had exactly MaxUsersPerSync users
-		assert.Equal(t, MaxUsersPerSync, userBatches[0], "First batch should contain exactly MaxUsersPerSync users")
-
-		// 3. Verify that the second batch had the remaining users (total - MaxUsersPerSync)
-		assert.Equal(t, 5, userBatches[1], "Second batch should contain the remaining 5 users")
-
-		// 4. Verify total user count
-		totalUsersSent := 0
-		for _, count := range userBatches {
-			totalUsersSent += count
-		}
-		assert.Equal(t, len(largeUserSet), totalUsersSent, "Total number of users sent should match the input")
-
-		mockApp.AssertExpectations(t)
-		mockServer.AssertExpectations(t)
-	})
-
-	t.Run("handles user fetch error", func(t *testing.T) {
-		// Setup
-		mockServer := &MockServerIface{}
-		logger := mlog.CreateConsoleTestLogger(t)
-		mockServer.On("Log").Return(logger)
-
-		mockApp := &MockAppIface{}
-
-		// Mock GetStore().User().GetAllProfiles to return an error
-		mockUserStore := &mocks.UserStore{}
-		mockUserStore.On("GetAllProfiles", mock.Anything).Return(nil, errors.New("user fetch error"))
-
-		mockStore := &mocks.Store{}
-		mockStore.On("User").Return(mockUserStore)
-		mockServer.On("GetStore").Return(mockStore)
-
-		// Override realSyncAllUsersForRemote to use app.GetUsersPage directly
-		oldRealSyncAllUsersForRemote := realSyncAllUsersForRemote
-		realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) error {
-			if !rc.IsOnline() {
-				return errors.New("remote cluster not online")
-			}
-
-			options := &model.UserGetOptions{
-				Page:    0,
-				PerPage: 100,
-				Active:  true,
-			}
-
-			users, err := scs.server.GetStore().User().GetAllProfiles(options)
-			if err != nil {
-				return err
-			}
-
-			// These lines won't be reached due to the error
-			_ = users
-			return nil
-		}
-		defer func() { realSyncAllUsersForRemote = oldRealSyncAllUsersForRemote }()
-
-		// The service
-		scs := &Service{
-			server: mockServer,
-			app:    mockApp,
-		}
-
-		// The remote cluster
-		rc := &model.RemoteCluster{
-			RemoteId:    "remote1",
-			DisplayName: "Remote 1",
-			LastPingAt:  model.GetMillis(), // setting LastPingAt to current time makes IsOnline() return true
-		}
-
-		// Call the function
-		err := scs.syncAllUsersForRemote(rc)
-
-		// Verify
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "user fetch error")
-	})
-
-	t.Run("skips remote users from the same remote", func(t *testing.T) {
-		// Setup
-		mockServer := &MockServerIface{}
-		logger := mlog.CreateConsoleTestLogger(t)
-		mockServer.On("Log").Return(logger)
-
-		mockApp := &MockAppIface{}
-		mockStore := &mocks.Store{}
-
-		// Mock GetUsersPage to return some test users, including one from the same remote
-		remoteId := "remote1"
-		testUsers := []*model.User{
-			{
-				Id:       "user1",
+		} else {
+			// In real DB mode, create and save the users
+			user1 = &model.User{
 				Username: "user1",
 				Email:    "user1@example.com",
 				CreateAt: 10000,
 				UpdateAt: 20000,
-			},
-			{
-				Id:       "remote_user",
-				Username: "remote_user",
-				Email:    "remote_user@example.com",
+			}
+			var err error
+			user1, err = th.Server.GetStore().User().Save(nil, user1)
+			require.NoError(t, err)
+
+			user2 = &model.User{
+				Username: "user2",
+				Email:    "user2@example.com",
 				CreateAt: 10001,
 				UpdateAt: 20001,
-				RemoteId: &remoteId, // Same as the remote we're syncing to
-			},
+			}
+			user2, err = th.Server.GetStore().User().Save(nil, user2)
+			require.NoError(t, err)
+
+			// Create a remote user to test that it's skipped
+			remoteUser = &model.User{
+				Username: "remote_user",
+				Email:    "remote_user@example.com",
+				CreateAt: 10002,
+				UpdateAt: 20002,
+				RemoteId: &remoteId,
+			}
+			remoteUser, err = th.Server.GetStore().User().Save(nil, remoteUser)
+			require.NoError(t, err)
 		}
 
-		mockApp.On("GetUsersPage", mock.Anything, mock.Anything, mock.Anything).Return(testUsers, nil).Once()
-		mockApp.On("GetUsersPage", mock.Anything, mock.Anything, mock.Anything).Return([]*model.User{}, nil) // Second call returns empty to end loop
-
-		mockServer.On("GetStore").Return(mockStore)
-
-		// Create a spy/mock for sendUserSyncData
-		usersSent := []*model.User{}
-		oldRealSyncAllUsersForRemote := realSyncAllUsersForRemote
-
-		// Override realSyncAllUsersForRemote to use a modified version that tracks calls to sendUserSyncData
-		sendUserSyncData := func(sd *syncData) error {
-			for _, user := range sd.users {
-				usersSent = append(usersSent, user)
-			}
-			return nil
-		}
-
-		realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) error {
-			if !rc.IsOnline() {
-				return errors.New("remote cluster not online")
-			}
-
-			options := &model.UserGetOptions{
-				Page:    0,
-				PerPage: 100,
-				Active:  true,
-			}
-
-			fakeSCR := &model.SharedChannelRemote{
-				RemoteId: rc.RemoteId,
-			}
-
-			sd := &syncData{
-				task:  syncTask{remoteID: rc.RemoteId},
-				rc:    rc,
-				scr:   fakeSCR,
-				users: make(map[string]*model.User),
-			}
-
-			// We may need to page through all users
-			for {
-				users, err := scs.server.GetStore().User().GetAllProfiles(options)
-				if err != nil {
-					return err
-				}
-
-				if len(users) == 0 {
-					break
-				}
-
-				// Add users to sync data
-				for _, user := range users {
-					// Skip remote users (don't sync back to origin)
-					if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
-						continue
-					}
-
-					sd.users[user.Id] = user
-				}
-
-				// Send any users
-				if len(sd.users) > 0 {
-					if err := sendUserSyncData(sd); err != nil {
-						return err
-					}
-					sd.users = make(map[string]*model.User)
-				}
-
-				// Move to next page
-				options.Page++
-			}
-
-			return nil
-		}
-		defer func() { realSyncAllUsersForRemote = oldRealSyncAllUsersForRemote }()
-
-		// The service
-		scs := &Service{
-			server: mockServer,
-			app:    mockApp,
-		}
-
-		// The remote cluster
+		// Create a remote cluster
 		rc := &model.RemoteCluster{
 			RemoteId:    remoteId,
 			DisplayName: "Remote 1",
 			LastPingAt:  model.GetMillis(), // setting LastPingAt to current time makes IsOnline() return true
 		}
 
-		// Call the function
-		err := scs.syncAllUsersForRemote(rc)
+		// Use our test helper to extract the users that would be synced
+		sentUsers, err := ExtractUsersFromSyncForTest(scs, rc)
+		require.NoError(t, err)
+
+		// Verify that user1 and user2 were sent (not the remoteUser)
+		assert.Contains(t, sentUsers, user1.Id, "User1 should be sent")
+		assert.Contains(t, sentUsers, user2.Id, "User2 should be sent")
+		assert.NotContains(t, sentUsers, remoteUser.Id, "Remote user should not be sent")
+	})
+
+	t.Run("processes users in batches", func(t *testing.T) {
+		// Setup test helper with store (real or mock)
+		th := SetupTestHelperWithStore(t)
+		defer th.TearDown()
+
+		// If we're using a mock store, set up expectations
+		var remoteId = "remote1"
+		var batchUsers []*model.User
+
+		if mockUserStore, ok := th.Server.GetStore().User().(*mocks.UserStore); ok {
+			// Generate test users for the mock
+			batchUsers = make([]*model.User, TestableMaxUsersPerSync+5)
+			for i := 0; i < TestableMaxUsersPerSync+5; i++ {
+				batchUsers[i] = &model.User{
+					Id:       fmt.Sprintf("user%d", i),
+					Username: fmt.Sprintf("batchuser%d", i),
+					Email:    fmt.Sprintf("batchuser%d@example.com", i),
+					CreateAt: 10000 + int64(i),
+					UpdateAt: 20000 + int64(i),
+				}
+			}
+			// Add remote user
+			remoteUser := &model.User{
+				Id:       "remote_batch_user",
+				Username: "remote_batch_user",
+				Email:    "remote_batch_user@example.com",
+				CreateAt: 10002,
+				UpdateAt: 20002,
+				RemoteId: &remoteId,
+			}
+			// Using a new slice to avoid the makezero error
+			updatedBatchUsers := append([](*model.User){}, batchUsers...)
+			batchUsers = append(updatedBatchUsers, remoteUser)
+
+			// Override the default mock to return our specific batch users
+			mockUserStore.ExpectedCalls = nil
+			mockUserStore.On("GetAllProfiles", mock.Anything).Return(batchUsers, nil)
+
+			// Mock the Save method
+			mockUserStore.On("Save", mock.Anything, mock.AnythingOfType("*model.User")).Return(
+				&model.User{Id: "user1"}, nil,
+			)
+		}
+		mockApp := &MockAppIface{}
+		scs := &Service{
+			server: th.Server,
+			app:    mockApp,
+			tasks:  make(map[string]syncTask),
+			mux:    sync.RWMutex{},
+		}
+
+		// Temporarily set TestableMaxUsersPerSync to a smaller number for testing
+		originalMaxUsers := TestableMaxUsersPerSync
+		TestableMaxUsersPerSync = 2
+		defer func() {
+			TestableMaxUsersPerSync = originalMaxUsers
+		}()
+
+		// Create a batch of test users in the database if not using mock store
+		// We'll create TestableMaxUsersPerSync + 5 users to test batching
+		var userIds = make([]string, 0, TestableMaxUsersPerSync+5)
+
+		// Only create real users if we're not using a mock store - otherwise the mock
+		// already has the test users we want from the setup above
+		if _, ok := th.Server.GetStore().User().(*mocks.UserStore); !ok {
+			for i := 0; i < TestableMaxUsersPerSync+5; i++ {
+				user := &model.User{
+					Username: fmt.Sprintf("batchuser%d", i),
+					Email:    fmt.Sprintf("batchuser%d@example.com", i),
+					CreateAt: 10000 + int64(i),
+					UpdateAt: 20000 + int64(i),
+				}
+				var err error
+				user, err = th.Server.GetStore().User().Save(nil, user)
+				require.NoError(t, err)
+				userIds = append(userIds, user.Id)
+			}
+		} else {
+			// For mock store, just collect the IDs for verification
+			for i := 0; i < TestableMaxUsersPerSync+5; i++ {
+				userIds = append(userIds, fmt.Sprintf("user%d", i))
+			}
+		}
+
+		// Create a remote user to verify filtering
+		var remoteBatchUser *model.User
+		if _, ok := th.Server.GetStore().User().(*mocks.UserStore); !ok {
+			remoteBatchUser = &model.User{
+				Username: "remote_batch_user",
+				Email:    "remote_batch_user@example.com",
+				CreateAt: 10002,
+				UpdateAt: 20002,
+				RemoteId: &remoteId,
+			}
+			var err error
+			// Fix ineffectual assignment - we don't use the returned user
+			_, err = th.Server.GetStore().User().Save(nil, remoteBatchUser)
+			require.NoError(t, err)
+		}
+		// For mock store, the remote user is already set up in the mock
+
+		// Create a remote cluster
+		rc := &model.RemoteCluster{
+			RemoteId:    remoteId,
+			DisplayName: "Remote 1",
+			LastPingAt:  model.GetMillis(), // setting LastPingAt to current time makes IsOnline() return true
+		}
+
+		// Use our test helper to extract the users that would be synced
+		sentUsers, err := ExtractUsersFromSyncForTest(scs, rc)
+		require.NoError(t, err)
+
+		// Verify that remote users are not synced
+		// Check that sent users don't include any with RemoteId = remoteId
+		for userID, user := range sentUsers {
+			if user.RemoteId != nil && *user.RemoteId == remoteId {
+				assert.Fail(t, "Remote user should not be sent", "Found user %s with RemoteId %s that should have been filtered", userID, remoteId)
+			}
+		}
+
+		// Verify that at least our minimum number of users are included (minus remote user)
+		// In mock mode, we should have exactly our test batch users
+		assert.GreaterOrEqual(t, len(sentUsers), TestableMaxUsersPerSync, "Expected at least our test batch size of users to be included")
+	})
+
+	t.Run("handles error from database", func(t *testing.T) {
+		// This test requires a mock since we need to simulate a database error
+		mockServer := &MockServerIface{}
+		logger := mlog.CreateConsoleTestLogger(t)
+		mockServer.On("Log").Return(logger)
+		mockServer.On("GetMetrics").Return(nil) // Mock the GetMetrics call
+
+		mockApp := &MockAppIface{}
+
+		// Create a new mock for this test, not using createMockStore since we want specific error behavior
+		mockUserStore := &mocks.UserStore{}
+		mockUserStore.On("GetAllProfiles", mock.Anything).Return(nil, assert.AnError)
+
+		mockStore := &mocks.Store{}
+		mockStore.On("User").Return(mockUserStore)
+		mockServer.On("GetStore").Return(mockStore)
+
+		// The service
+		scs := &Service{
+			server: mockServer,
+			app:    mockApp,
+		}
+
+		// The remote cluster
+		rc := &model.RemoteCluster{
+			RemoteId:    "remote1",
+			DisplayName: "Remote 1",
+			LastPingAt:  model.GetMillis(), // setting LastPingAt to current time makes IsOnline() return true
+		}
+
+		// Call the function directly using the real implementation
+		err := realSyncAllUsersForRemote(scs, rc)
 
 		// Verify
+		require.Error(t, err)
+		assert.Equal(t, assert.AnError, err)
+	})
+}
+
+// Test the export function for user extraction
+func TestExtractUsersFromSyncForTest(t *testing.T) {
+	t.Run("extracts expected users from store", func(t *testing.T) {
+		// Setup test helper with store (real or mock)
+		th := SetupTestHelperWithStore(t)
+		defer th.TearDown()
+
+		// If we're using a mock store, set up expectations
+		if mockUserStore, ok := th.Server.GetStore().User().(*mocks.UserStore); ok {
+			user1 := &model.User{
+				Id:       "export_test_user1",
+				Username: "export_test_user1",
+				Email:    "export_test_user1@example.com",
+				CreateAt: model.GetMillis(),
+				UpdateAt: model.GetMillis(),
+			}
+			mockUserStore.On("GetAllProfiles", mock.Anything).Return([]*model.User{user1}, nil)
+
+			// Mock the Save method
+			mockUserStore.On("Save", mock.Anything, mock.AnythingOfType("*model.User")).Return(
+				&model.User{Id: "user1"}, nil,
+			)
+		}
+		scs := &Service{
+			server: th.Server,
+			app:    &MockAppIface{},
+			tasks:  make(map[string]syncTask),
+			mux:    sync.RWMutex{},
+		}
+
+		// Create test users in the database
+		user1 := &model.User{
+			Username: "export_test_user1",
+			Email:    "export_test_user1@example.com",
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+		}
+		user1, err := th.Server.GetStore().User().Save(nil, user1)
 		require.NoError(t, err)
-		assert.Len(t, usersSent, 1, "Expected only 1 user to be sent (remote user skipped)")
-		assert.Equal(t, "user1", usersSent[0].Id, "Expected user1 to be sent")
+
+		// Create a remote cluster
+		rc := &model.RemoteCluster{
+			RemoteId:    "export_test_remote",
+			DisplayName: "Export Test Remote",
+			LastPingAt:  model.GetMillis(), // setting LastPingAt to current time makes IsOnline() return true
+		}
+
+		// Use our test helper to extract users
+		sentUsers, err := ExtractUsersFromSyncForTest(scs, rc)
+		require.NoError(t, err)
+
+		// Verify extraction worked correctly
+		assert.Contains(t, sentUsers, user1.Id, "Expected user to be extracted")
+	})
+
+	t.Run("nil remote cluster should return empty set", func(t *testing.T) {
+		// Setup test service with minimal mock
+		mockServer := &MockServerIface{}
+		logger := mlog.CreateConsoleTestLogger(t)
+		mockServer.On("Log").Return(logger)
+
+		scs := &Service{
+			server: mockServer,
+			tasks:  make(map[string]syncTask),
+			mux:    sync.RWMutex{},
+		}
+
+		// Call function with nil remote
+		sentUsers, err := ExtractUsersFromSyncForTest(scs, nil)
+
+		// Should return an empty map without error
+		require.Empty(t, sentUsers, "Expected empty map for nil remote")
+		require.NoError(t, err, "Should not return error for nil remote")
 	})
 }

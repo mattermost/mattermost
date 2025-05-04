@@ -2983,6 +2983,10 @@
     "translation": "Could not fetch shared channel remotes"
   },
   {
+    "id": "api.shared_channel.sync_all_users_error",
+    "translation": "Error synchronizing users for remote cluster"
+  },
+  {
     "id": "api.shared_channel.has_remote_error",
     "translation": "Could not determine if channel is shared with the remote"
   },

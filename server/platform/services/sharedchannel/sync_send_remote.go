@@ -86,14 +86,9 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	// Normal syncTasks always include a valid channelID
 	if task.channelID == "" {
 		// Double-check that the feature flag is still enabled
-		if !scs.server.Config().FeatureFlags.EnableSharedChannelsDMs {
+		if !scs.server.Config().FeatureFlags.SyncAllUsersForRemoteCluster {
 			return nil // Skip if feature flag has been disabled
 		}
-
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Processing global user sync task",
-			mlog.String("remote", rc.DisplayName),
-			mlog.String("remoteId", rc.RemoteId),
-		)
 
 		return scs.syncAllUsersForRemote(rc)
 	}
@@ -789,11 +784,6 @@ var realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) erro
 			merr.Append(fmt.Errorf("error sending final user batch during initial sync: %w", err))
 		}
 	}
-
-	scs.server.Log().Debug("Completed initial user sync",
-		mlog.String("remote_id", rc.RemoteId),
-		mlog.Int("users_processed", processedCount),
-	)
 
 	// Return any errors that occurred during batch processing so callers can handle them
 	// The sync is still considered partially successful since we'll retry individual users during normal operation
