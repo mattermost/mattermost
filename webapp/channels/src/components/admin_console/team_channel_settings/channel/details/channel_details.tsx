@@ -5,7 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {AccessControlPolicy} from '@mattermost/types/admin';
+import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch} from '@mattermost/types/channels';
 import {SyncableType} from '@mattermost/types/groups';
 import type {SyncablePatch, Group} from '@mattermost/types/groups';
@@ -546,7 +546,15 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
         if (policyToggled) {
             if (isPublic) {
-                serverError = <FormError error='You cannot assign a policy to a public channel.'/>;
+                serverError = (
+                    <FormError
+                        error={
+                            <FormattedMessage
+                                id='admin.channel_details.policy_public_error'
+                                defaultMessage='You cannot assign a policy to a public channel.'
+                            />}
+                    />
+                );
                 saveNeeded = true;
                 this.setState({serverError, saving: false, saveNeeded});
                 actions.setNavigationBlocked(saveNeeded);
@@ -554,7 +562,15 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             }
 
             if (isSynced) {
-                serverError = <FormError error='You cannot assign a policy to a synced channel.'/>;
+                serverError = (
+                    <FormError
+                        error={
+                            <FormattedMessage
+                                id='admin.channel_details.policy_synced_error'
+                                defaultMessage='You cannot assign a policy to a synced channel.'
+                            />}
+                    />
+                );
                 saveNeeded = true;
                 this.setState({serverError, saving: false, saveNeeded});
                 actions.setNavigationBlocked(saveNeeded);
@@ -563,11 +579,22 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         }
 
         if (accessControlPolicies.length > 0) {
-            for (const policy of accessControlPolicies) {
-                actions.assignChannelToAccessControlPolicy(policy.id, channelID);
-            }
+            await actions.assignChannelToAccessControlPolicy(accessControlPolicies[0].id, channelID).catch((error) => {
+                this.setState({
+                    serverError: <FormError error={error.message}/>,
+                    saving: false,
+                    saveNeeded: true,
+                });
+                actions.setNavigationBlocked(true);
+            });
         } else {
-            actions.deleteAccessControlPolicy(channelID);
+            await actions.deleteAccessControlPolicy(channelID).catch((error) => {
+                this.setState({
+                    serverError: <FormError error={error.message}/>,
+                    saving: false,
+                    saveNeeded: true,
+                });
+            });
         }
 
         let privacyChanging = isPrivacyChanging;
@@ -750,8 +777,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         this.props.actions.setNavigationBlocked(true);
     };
 
-    // Add a new dedicated method to fetch access control policies
-    fetchAccessControlPolicies = (channelId: string) => {
+    private fetchAccessControlPolicies = (channelId: string) => {
         if (!channelId) {
             return;
         }

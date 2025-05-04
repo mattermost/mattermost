@@ -4,7 +4,7 @@
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {AccessControlTestResult} from '@mattermost/types/admin';
+import type {AccessControlTestResult} from '@mattermost/types/access_control';
 
 import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';

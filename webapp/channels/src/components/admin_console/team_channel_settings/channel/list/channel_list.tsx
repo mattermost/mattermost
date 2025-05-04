@@ -236,11 +236,16 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                     ),
                     management: (
                         <span className='group-description adjusted row-content'>
-                            {channel.policy_enforced ? (
-                                <FormattedMessage{...(messages.attribute_based)}/>
-                            ) : (
-                                <FormattedMessage {...(channel.group_constrained ? messages.group : messages.manual)}/>
-                            )}
+                            <span className='group-indicator channel-indicator channel-indicator--larger'>
+                                {(() => {
+                                    if (channel.policy_enforced) {
+                                        return <FormattedMessage {...messages.attribute_based}/>;
+                                    } else if (channel.group_constrained) {
+                                        return <FormattedMessage {...messages.group}/>;
+                                    }
+                                    return <FormattedMessage {...messages.manual}/>;
+                                })()}
+                            </span>
                         </span>
                     ),
                     edit: (

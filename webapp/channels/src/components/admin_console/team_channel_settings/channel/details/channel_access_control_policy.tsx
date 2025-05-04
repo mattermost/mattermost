@@ -2,16 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
-import {FormattedMessage, defineMessage} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
+import {Link} from 'react-router-dom';
 
-import type {AccessControlPolicy} from '@mattermost/types/admin';
+import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import PolicySelectionModal from 'components/admin_console/access_control/modals/policy_selection/policy_selection_modal';
 import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
-
-import {getHistory} from 'utils/browser_history';
 
 import './channel_access_control_policy.scss';
 
@@ -27,6 +26,8 @@ interface Props {
 export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element => {
     const {accessControlPolicies, actions} = props;
     const [showPolicySelectionModal, setShowPolicySelectionModal] = useState<boolean>(false);
+
+    const intl = useIntl();
 
     const handlePolicySelected = (policy: AccessControlPolicy) => {
         if (actions.onPolicySelected && policy) {
@@ -74,17 +75,16 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                             <tr key={policy.id}>
                                 <td className='policy-name'>{policy.name}</td>
                                 <td className='text-right'>
-                                    <a
+                                    <Link
+                                        to={'/admin_console/user_management/attribute_based_access_control/edit_policy/' + policy.id}
                                         className='policy-edit-icon'
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy/' + policy.id);
-                                        }}
-                                        aria-label='Go to the policy'
-                                        href='#'
+                                        aria-label={intl.formatMessage({
+                                            id: 'admin.channel_settings.channel_detail.go_to_policy.aria_label',
+                                            defaultMessage: 'Go to the policy',
+                                        })}
                                     >
                                         <i className='fa fa-external-link'/>
-                                    </a>
+                                    </Link>
                                 </td>
                             </tr>
                         ))}
@@ -123,9 +123,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
             id='channel_access_control_with_policy'
             title={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_title', defaultMessage: 'Access Policy'})}
             subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.policy_following', defaultMessage: 'This channel is currently using the following access policy.'})}
-            buttonText={
-                defineMessage({id: 'admin.channel_settings.channel_detail.remove_policy', defaultMessage: 'Remove policy'})
-            }
+            buttonText={defineMessage({id: 'admin.channel_settings.channel_detail.remove_policy', defaultMessage: 'Remove policy'})}
             onButtonClick={() => {
                 actions.onPolicyRemoved();
             }}

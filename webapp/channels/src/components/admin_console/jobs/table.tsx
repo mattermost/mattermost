@@ -3,7 +3,8 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {Job, JobType} from '@mattermost/types/jobs';
 
@@ -22,7 +23,7 @@ import JobStatus from './job_status';
 
 import './table.scss';
 
-export type Props = {
+type JobTableProps = {
     jobs: Job[];
     getExtraInfoText?: (job: Job) => React.ReactNode;
     disabled: boolean;
@@ -43,6 +44,8 @@ export type Props = {
     };
 }
 
+type Props = JobTableProps & WrappedComponentProps;
+
 type State = {
     currentPage: number;
 }
@@ -53,7 +56,7 @@ class JobTable extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            currentPage: 1,
+            currentPage: 0,
         };
     }
 
@@ -110,7 +113,7 @@ class JobTable extends React.PureComponent<Props, State> {
     };
 
     handlePrevPage = () => {
-        if (this.state.currentPage > 1) {
+        if (this.state.currentPage > 0) {
             this.setState({currentPage: this.state.currentPage - 1});
         }
     };
@@ -124,7 +127,7 @@ class JobTable extends React.PureComponent<Props, State> {
         let endIndex = this.props.jobs.length;
 
         if (perPage) {
-            startIndex = (currentPage - 1) * perPage;
+            startIndex = currentPage * perPage;
             endIndex = Math.min(startIndex + perPage, this.props.jobs.length);
             paginatedJobs = this.props.jobs.slice(startIndex, endIndex);
         }
@@ -170,15 +173,7 @@ class JobTable extends React.PureComponent<Props, State> {
                 const firstPage = startIndex <= 0;
                 const lastPage = endIndex >= this.props.jobs.length;
 
-                let prevPageFn: () => void = this.handlePrevPage;
-                if (firstPage) {
-                    prevPageFn = () => {};
-                }
-
-                let nextPageFn: () => void = this.handleNextPage;
-                if (lastPage) {
-                    nextPageFn = () => {};
-                }
+                const {formatMessage} = this.props.intl;
 
                 footer = (
                     <div className='DataGrid_footer'>
@@ -195,16 +190,18 @@ class JobTable extends React.PureComponent<Props, State> {
                             <button
                                 type='button'
                                 className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
-                                onClick={prevPageFn}
+                                onClick={this.handlePrevPage}
                                 disabled={firstPage}
+                                aria-label={formatMessage({id: 'admin.jobTable.prevPage', defaultMessage: 'Previous page'})}
                             >
                                 <PreviousIcon/>
                             </button>
                             <button
                                 type='button'
                                 className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
-                                onClick={nextPageFn}
+                                onClick={this.handleNextPage}
                                 disabled={lastPage}
+                                aria-label={formatMessage({id: 'admin.jobTable.nextPage', defaultMessage: 'Next page'})}
                             >
                                 <NextIcon/>
                             </button>
@@ -296,4 +293,4 @@ class JobTable extends React.PureComponent<Props, State> {
     }
 }
 
-export default JobTable;
+export default injectIntl(JobTable);

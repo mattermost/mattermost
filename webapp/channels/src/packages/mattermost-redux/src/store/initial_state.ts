@@ -119,7 +119,7 @@ const state: GlobalState = {
             dataRetentionCustomPolicies: {},
             dataRetentionCustomPoliciesCount: 0,
             prevTrialLicense: {},
-            accessControlPolicies: [],
+            accessControlPolicies: {},
             channelsForAccessControlPolicy: {},
         },
         jobs: {

@@ -4,7 +4,7 @@
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/admin';
+import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {PropertyField} from '@mattermost/types/properties';
@@ -47,6 +47,7 @@ interface PolicyActions {
 }
 
 export interface PolicyDetailsProps {
+    policy?: AccessControlPolicy;
     policyId?: string;
     actions: PolicyActions;
 }
@@ -58,12 +59,13 @@ interface ChannelChanges {
 }
 
 function PolicyDetails({
+    policy,
     policyId,
     actions,
 }: PolicyDetailsProps): JSX.Element {
-    const [policyName, setPolicyName] = useState('');
-    const [expression, setExpression] = useState('');
-    const [autoSyncMembership, setAutoSyncMembership] = useState(false);
+    const [policyName, setPolicyName] = useState(policy?.name || '');
+    const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
+    const [autoSyncMembership, setAutoSyncMembership] = useState(policy?.active || false);
     const [serverError, setServerError] = useState(false);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
     const [editorMode, setEditorMode] = useState<'cel' | 'table'>('cel');
@@ -101,12 +103,9 @@ function PolicyDetails({
         }
 
         await actions.fetchPolicy(policyId).then((result) => {
-            if (result.data) {
-                // Set policy name and expression after fetching the policy
-                setPolicyName(result.data?.name || '');
-                setExpression(result.data?.rules?.[0]?.expression || '');
-                setAutoSyncMembership(result.data?.active || false);
-            }
+            setPolicyName(result.data?.name || '');
+            setExpression(result.data?.rules?.[0]?.expression || '');
+            setAutoSyncMembership(result.data?.active || false);
         });
 
         // Search for channels after setting the policy details
@@ -122,74 +121,76 @@ function PolicyDetails({
     };
 
     const handleSubmit = async (apply = false) => {
-        let updatedPolicyData: AccessControlPolicy | undefined;
         let success = true;
+        let currentPolicyId = policyId;
 
         // --- Step 1: Create/Update Policy ---
         try {
-            const updatedPolicy = await actions.createPolicy({
-                id: policyId || '',
+            await actions.createPolicy({
+                id: currentPolicyId || '',
                 name: policyName,
                 rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
                 type: 'parent',
                 version: 'v0.1',
+            }).then((result) => {
+                currentPolicyId = result.data?.id;
+                setPolicyName(result.data?.name || '');
+                setExpression(result.data?.rules?.[0]?.expression || '');
+                setAutoSyncMembership(result.data?.active || false);
             });
-            updatedPolicyData = updatedPolicy.data;
-            if (!updatedPolicyData?.id) {
-                // Handle case where policy creation might "succeed" but not return an ID needed for subsequent steps
-                // ideally this should never happen.
-                throw new Error('Policy creation did not return a valid ID.');
-            }
         } catch (error) {
             setServerError(true);
             success = false;
         }
 
-        // --- Step 2: Dependent Actions (Channels, Active Status, Job) ---
-        if (success && updatedPolicyData?.id) { // ID existence checked in step 1's try
-            const policyID = updatedPolicyData.id;
-            try {
-                await actions.updateAccessControlPolicyActive(policyID, autoSyncMembership);
+        if (!currentPolicyId || !success) {
+            return;
+        }
 
+        // --- Step 2: Update Policy Active ---
+        try {
+            await actions.updateAccessControlPolicyActive(currentPolicyId, autoSyncMembership);
+        } catch (error) {
+            setServerError(true);
+            success = false;
+        }
+
+        // --- Step 3: Assign Channels ---
+        if (success) {
+            try {
                 if (channelChanges.removedCount > 0) {
-                    await actions.unassignChannelsFromAccessControlPolicy(policyID, Object.keys(channelChanges.removed));
+                    await actions.unassignChannelsFromAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.removed));
                 }
                 if (Object.keys(channelChanges.added).length > 0) {
-                    await actions.assignChannelsToAccessControlPolicy(policyID, Object.keys(channelChanges.added));
+                    await actions.assignChannelsToAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.added));
                 }
 
-                if (apply) {
-                    const job: JobTypeBase & { data: any } = {
-                        type: JobTypes.ACCESS_CONTROL_SYNC,
-                        data: {parent_id: policyID},
-                    };
-                    await actions.createJob(job);
-                }
-            } catch (error) {
-                setServerError(true);
-                success = false;
-            }
-        }
-
-        // --- Step 3: Navigation & Final State Updates ---
-        if (success && updatedPolicyData?.id) {
-            try {
-                // Navigate first
-                getHistory().push('/admin_console/user_management/attribute_based_access_control/edit_policy/' + encodeURIComponent(updatedPolicyData.id));
-
-                // Then update local state if navigation succeeded
                 setChannelChanges({removed: {}, added: {}, removedCount: 0});
-                await loadPage(); // Assuming loadPage handles its own errors or failure is acceptable
-                setSaveNeeded(false);
-                actions.setNavigationBlocked(false);
             } catch (error) {
                 setServerError(true);
                 success = false;
             }
         }
 
-        // --- Step 4: Always hide modal ---
+        // --- Step 4: Create Job if necessary ---
+        if (apply) {
+            try {
+                const job: JobTypeBase & { data: any } = {
+                    type: JobTypes.ACCESS_CONTROL_SYNC,
+                    data: {parent_id: currentPolicyId},
+                };
+                await actions.createJob(job);
+            } catch (error) {
+                setServerError(true);
+                success = false;
+            }
+        }
+
+        // --- Step 5: Navigate lastly ---
+        setSaveNeeded(false);
         setShowConfirmationModal(false);
+        actions.setNavigationBlocked(false);
+        getHistory().push('/admin_console/user_management/attribute_based_access_control');
     };
 
     const handleDelete = async () => {
@@ -212,17 +213,14 @@ function PolicyDetails({
         // --- Step 2: Delete Policy and Navigate ---
         if (success) {
             try {
-                const result = await actions.deletePolicy(policyId);
-                if (result.data) {
-                    // Navigate only if deletion was successful
-                    getHistory().push('/admin_console/user_management/attribute_based_access_control');
-                } else {
-                    // Handle cases where delete action might not throw but indicate failure
-                    throw new Error('Policy deletion failed without throwing an error.');
-                }
+                await actions.deletePolicy(policyId);
             } catch (error) {
                 setServerError(true);
             }
+        }
+
+        if (success) {
+            getHistory().push('/admin_console/user_management/attribute_based_access_control');
         }
     };
 
@@ -305,7 +303,10 @@ function PolicyDetails({
                             id='autoSyncMembership'
                             label='Auto-sync membership based on access rules:'
                             value={autoSyncMembership}
-                            onChange={(_, value) => setAutoSyncMembership(value)}
+                            onChange={(_, value) => {
+                                setAutoSyncMembership(value);
+                                setSaveNeeded(true);
+                            }}
                             setByEnv={false}
                             helpText='All users matching the property values configured below will be added as members, and membership will be automatically maintained as user property values change.'
                         />

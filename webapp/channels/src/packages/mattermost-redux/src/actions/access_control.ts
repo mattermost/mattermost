@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {AccessControlPoliciesResult, AccessControlPolicy} from '@mattermost/types/admin';
+import type {AccessControlPoliciesResult, AccessControlPolicy} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -23,14 +23,22 @@ export function getAccessControlPolicy(id: string) {
     });
 }
 
-export function createAccessControlPolicy(policy: AccessControlPolicy) {
-    return bindClientFunc({
-        clientFunc: Client4.updateOrCreateAccessControlPolicy,
-        onSuccess: [AdminTypes.CREATE_ACCESS_CONTROL_POLICY_SUCCESS],
-        params: [
-            policy,
-        ],
-    });
+export function createAccessControlPolicy(policy: AccessControlPolicy): ActionFuncAsync<AccessControlPolicy> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.updateOrCreateAccessControlPolicy(policy);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
+
+        dispatch(
+            {type: AdminTypes.CREATE_ACCESS_CONTROL_POLICY_SUCCESS, data},
+        );
+
+        return {data};
+    };
 }
 
 export function deleteAccessControlPolicy(id: string) {
@@ -86,6 +94,7 @@ export function searchAccessControlPolicyChannels(id: string, term: string, opts
 export function assignChannelsToAccessControlPolicy(policyId: string, channelIds: string[]) {
     return bindClientFunc({
         clientFunc: Client4.assignChannelsToAccessControlPolicy,
+        onSuccess: [AdminTypes.ASSIGN_CHANNELS_TO_ACCESS_CONTROL_POLICY_SUCCESS],
         params: [
             policyId,
             channelIds,
@@ -96,6 +105,7 @@ export function assignChannelsToAccessControlPolicy(policyId: string, channelIds
 export function unassignChannelsFromAccessControlPolicy(policyId: string, channelIds: string[]) {
     return bindClientFunc({
         clientFunc: Client4.unassignChannelsFromAccessControlPolicy,
+        onSuccess: [AdminTypes.UNASSIGN_CHANNELS_FROM_ACCESS_CONTROL_POLICY_SUCCESS],
         params: [
             policyId,
             channelIds,

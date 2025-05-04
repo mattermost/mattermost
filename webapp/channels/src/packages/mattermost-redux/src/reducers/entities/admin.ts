@@ -3,7 +3,8 @@
 
 import {combineReducers} from 'redux';
 
-import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState, AccessControlPolicy} from '@mattermost/types/admin';
+import type {AccessControlPolicy} from '@mattermost/types/access_control';
+import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState} from '@mattermost/types/admin';
 import type {Audit} from '@mattermost/types/audits';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
@@ -649,15 +650,35 @@ function dataRetentionCustomPoliciesCount(state = 0, action: MMReduxAction) {
     }
 }
 
-function accessControlPolicies(state: AccessControlPolicy[] = [], action: MMReduxAction) {
+function accessControlPolicies(state: IDMappedObjects<AccessControlPolicy> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.CREATE_ACCESS_CONTROL_POLICY_SUCCESS:
     case AdminTypes.RECEIVED_ACCESS_CONTROL_POLICY:
-        return [...state, action.data];
-    case AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES:
-        return action.data;
-    case AdminTypes.DELETE_ACCESS_CONTROL_POLICY_SUCCESS:
-        return state.filter((policy) => policy.id !== action.data.id);
+        return {
+            ...state,
+            [action.data.id]: action.data,
+        };
+    case AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES: {
+        const nextState: IDMappedObjects<AccessControlPolicy> = {};
+        for (const policy of action.data) {
+            nextState[policy.id] = policy;
+        }
+        return nextState;
+    }
+    case AdminTypes.DELETE_ACCESS_CONTROL_POLICY_SUCCESS: {
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, action.data.id);
+        return nextState;
+    }
+    case AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES_SEARCH: {
+        const nextState = {...state};
+        for (const policy of action.data) {
+            nextState[policy.id] = policy;
+        }
+        return nextState;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
@@ -670,6 +691,16 @@ function channelsForAccessControlPolicy(state: Record<string, string[]> = {}, ac
             return {...state, ...action.data};
         }
         return state;
+    case AdminTypes.ASSIGN_CHANNELS_TO_ACCESS_CONTROL_POLICY_SUCCESS:
+        return {
+            ...state,
+            [action.data.policyId]: action.data.channelIds,
+        };
+    case AdminTypes.UNASSIGN_CHANNELS_FROM_ACCESS_CONTROL_POLICY_SUCCESS:
+        return {
+            ...state,
+            [action.data.policyId]: action.data.channelIds,
+        };
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:
@@ -740,6 +771,9 @@ export default combineReducers({
     // the last trial license the server used.
     prevTrialLicense,
 
+    // object with policy ids as keys and objects representing the policies as values
     accessControlPolicies,
+
+    // object with policy ids as keys and arrays of channel ids as values
     channelsForAccessControlPolicy,
 });

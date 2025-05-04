@@ -5,7 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import type {AccessControlPolicy} from '@mattermost/types/admin';
+import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 

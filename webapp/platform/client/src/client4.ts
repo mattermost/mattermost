@@ -3,7 +3,8 @@
 
 /* eslint-disable max-lines */
 
-import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery, AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult} from '@mattermost/types/admin';
+import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult} from '@mattermost/types/access_control';
+import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';

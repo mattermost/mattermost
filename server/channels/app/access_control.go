@@ -213,9 +213,20 @@ func (a *App) SearchAccessControlPolicies(rctx request.CTX, opts model.AccessCon
 		return nil, 0, model.NewAppError("SearchAccessControlPolicies", "app.pap.search_access_control_policies.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	policies, total, appErr := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, opts)
-	if appErr != nil {
-		return nil, 0, model.NewAppError("SearchAccessControlPolicies", "app.pap.search_access_control_policies.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	policies, total, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, opts)
+	if err != nil {
+		return nil, 0, model.NewAppError("SearchAccessControlPolicies", "app.pap.search_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var appErr *model.AppError
+	for i, policy := range policies {
+		if policy.Type != model.AccessControlPolicyTypeParent {
+			continue
+		}
+		policies[i], appErr = acs.NormalizePolicy(rctx, policy)
+		if appErr != nil {
+			return nil, 0, appErr
+		}
 	}
 
 	return policies, total, nil

@@ -213,6 +213,38 @@ func (_m *AccessControlServiceInterface) Init(rctx request.CTX) *model.AppError 
 	return r0
 }
 
+// NormalizePolicy provides a mock function with given fields: rctx, policy
+func (_m *AccessControlServiceInterface) NormalizePolicy(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+	ret := _m.Called(rctx, policy)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NormalizePolicy")
+	}
+
+	var r0 *model.AccessControlPolicy
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)); ok {
+		return rf(rctx, policy)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.AccessControlPolicy) *model.AccessControlPolicy); ok {
+		r0 = rf(rctx, policy)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AccessControlPolicy)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.AccessControlPolicy) *model.AppError); ok {
+		r1 = rf(rctx, policy)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // QueryUsersForExpression provides a mock function with given fields: rctx, expression, opts
 func (_m *AccessControlServiceInterface) QueryUsersForExpression(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
 	ret := _m.Called(rctx, expression, opts)

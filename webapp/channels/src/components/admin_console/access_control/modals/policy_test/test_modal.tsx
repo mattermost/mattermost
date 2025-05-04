@@ -5,7 +5,7 @@ import React, {useEffect} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import type {AccessControlTestResult} from '@mattermost/types/admin';
+import type {AccessControlTestResult} from '@mattermost/types/access_control';
 
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container';
 

@@ -8,7 +8,7 @@ import type {Dispatch} from 'redux';
 import type {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 
 import {searchAccessControlPolicyChannels as searchChannels} from 'mattermost-redux/actions/access_control';
-import {searchChannelsInheritsPolicy, getChannelsInAccessControlPolicy} from 'mattermost-redux/selectors/entities/access_control';
+import {searchChannelsInheritsPolicy, makeGetChannelsInAccessControlPolicy} from 'mattermost-redux/selectors/entities/access_control';
 import {filterChannelList} from 'mattermost-redux/selectors/entities/channels';
 import {filterChannelsMatchingTerm, channelListToMap} from 'mattermost-redux/utils/channel_utils';
 
@@ -30,7 +30,7 @@ function searchChannelsToAdd(channels: Record<string, Channel>, term: string, fi
 }
 
 function mapStateToProps() {
-    const getPolicyChannels = getChannelsInAccessControlPolicy();
+    const getPolicyChannels = makeGetChannelsInAccessControlPolicy();
     return (state: GlobalState, ownProps: OwnProps) => {
         const {channelsToAdd, policyId} = ownProps;
         const searchTerm = state.views.search.channelListSearch.term || '';

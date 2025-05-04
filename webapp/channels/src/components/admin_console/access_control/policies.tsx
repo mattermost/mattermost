@@ -4,7 +4,7 @@
 import React, {useState, useEffect, useRef, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {AccessControlPolicy} from '@mattermost/types/admin';
+import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -135,7 +135,7 @@ export default function PolicyList(props: Props): JSX.Element {
     };
 
     const getResources = (policy: AccessControlPolicy) => {
-        const childIds = policy.props?.child_ids;
+        const childIds = policy.props?.child_ids as string[];
         if (!childIds || childIds.length === 0) {
             return 'None';
         }
@@ -308,8 +308,18 @@ export default function PolicyList(props: Props): JSX.Element {
             {!props.simpleMode && (
                 <div className='policy-header'>
                     <div className='policy-header-text'>
-                        <h1>{'Access policies'}</h1>
-                        <p>{'Create policies containing attribute based access rules and the objects they apply to.'}</p>
+                        <h1>
+                            <FormattedMessage
+                                id='admin.access_control.policies.title'
+                                defaultMessage='Access Control Policies'
+                            />
+                        </h1>
+                        <p>
+                            <FormattedMessage
+                                id='admin.access_control.policies.description'
+                                defaultMessage='Create policies containing attribute based access rules and the resources they apply to.'
+                            />
+                        </p>
                     </div>
                     <button
                         className='btn btn-primary'

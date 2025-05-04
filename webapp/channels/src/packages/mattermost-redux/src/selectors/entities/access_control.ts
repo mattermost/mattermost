@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AccessControlPolicy} from '@mattermost/types/admin';
+import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {Channel, ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -11,24 +11,19 @@ import {filterChannelList} from './channels';
 
 import {createSelector} from '../create_selector';
 
-export function getAccessControlPolicies(state: GlobalState): AccessControlPolicy[] {
-    return Array.isArray(state.entities.admin.accessControlPolicies) ? state.entities.admin.accessControlPolicies : [];
-}
-
-export function getAccessControlPolicy(state: GlobalState, id: string): AccessControlPolicy | undefined | null {
-    const policies = getAccessControlPolicies(state);
-    return policies.find((policy) => policy.id === id) || null;
+export function getAccessControlPolicy() {
+    return (createSelector(
+        'getAccessControlPolicy',
+        (state: GlobalState, id: string) => state.entities.admin.accessControlPolicies[id],
+        (policy: AccessControlPolicy) => policy,
+    )) as (state: GlobalState, id: string) => AccessControlPolicy;
 }
 
 export function getChannelIdsForAccessControlPolicy(state: GlobalState, parentId: string): string[] {
     return Array.isArray(state.entities.admin.channelsForAccessControlPolicy[parentId]) ? state.entities.admin.channelsForAccessControlPolicy[parentId] : [];
 }
 
-export function getAllChildAccessControlPolicies(state: GlobalState) {
-    return state.entities.admin.channelsForAccessControlPolicy;
-}
-
-export function getChannelsInAccessControlPolicy() {
+export function makeGetChannelsInAccessControlPolicy() {
     return (createSelector(
         'getChannelsInAccessControlPolicy',
         (state: GlobalState) => state.entities.channels.channels,
@@ -62,7 +57,7 @@ export function getChannelsInAccessControlPolicy() {
 }
 
 export function searchChannelsInheritsPolicy(state: GlobalState, policyId: string, term: string, filters: ChannelSearchOpts): Channel[] {
-    const channelsInPolicy = getChannelsInAccessControlPolicy();
+    const channelsInPolicy = makeGetChannelsInAccessControlPolicy();
     const channelArray = channelsInPolicy(state, {policyId});
     let channels = filterChannelList(channelArray, filters);
     channels = filterChannelsMatchingTerm(channels, term);

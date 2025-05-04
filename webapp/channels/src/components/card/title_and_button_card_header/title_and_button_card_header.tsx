@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+
+import WithTooltip from 'components/with_tooltip';
 
 type Props = {
     title: React.ReactNode;
@@ -15,7 +16,7 @@ type Props = {
 
 // This component can be used in the card header
 const TitleAndButtonCardHeader: React.FC<Props> = (props: Props) => {
-    const button = (
+    let button = (
         <button
             disabled={props.isDisabled}
             className='btn btn-primary'
@@ -24,6 +25,16 @@ const TitleAndButtonCardHeader: React.FC<Props> = (props: Props) => {
             {props.buttonText}
         </button>
     );
+
+    if (props.isDisabled && props.tooltipText) {
+        button = (
+            <WithTooltip
+                title={props.tooltipText}
+            >
+                {button}
+            </WithTooltip>
+        );
+    }
 
     return (
         <>
@@ -39,20 +50,7 @@ const TitleAndButtonCardHeader: React.FC<Props> = (props: Props) => {
                 }
             </div>
             {
-                props.buttonText && props.onClick && (
-                    props.tooltipText && props.isDisabled ? (
-                        <OverlayTrigger
-                            placement='bottom'
-                            overlay={
-                                <Tooltip id='tooltip-disabled-reason'>
-                                    {props.tooltipText}
-                                </Tooltip>
-                            }
-                        >
-                            <span>{button}</span>
-                        </OverlayTrigger>
-                    ) : button
-                )
+                props.buttonText && props.onClick && button
             }
         </>
     );
