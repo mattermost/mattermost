@@ -5,74 +5,42 @@ import {batchActions} from 'redux-batched-actions';
 
 import type {AccessControlPoliciesResult, AccessControlPolicy} from '@mattermost/types/admin';
 import type {ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
-import type {StatusOK} from '@mattermost/types/client4';
 import type {ServerError} from '@mattermost/types/errors';
-import type {PropertyField} from '@mattermost/types/properties';
 
 import {AdminTypes, ChannelTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-import {forceLogoutIfNecessary} from './helpers';
+import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
-export function getAccessControlPolicy(id: string): ActionFuncAsync<AccessControlPolicy> {
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.getAccessControlPolicy(id);
-        } catch (error) {
-            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            dispatch(
-                {
-                    type: AdminTypes.RECEIVED_ACCESS_CONTROL_POLICY,
-                    error,
-                },
-            );
-            return {error};
-        }
-
-        dispatch(
-            {type: AdminTypes.RECEIVED_ACCESS_CONTROL_POLICY, data},
-        );
-
-        return {data};
-    };
+export function getAccessControlPolicy(id: string) {
+    return bindClientFunc({
+        clientFunc: Client4.getAccessControlPolicy,
+        onSuccess: [AdminTypes.RECEIVED_ACCESS_CONTROL_POLICY],
+        params: [
+            id,
+        ],
+    });
 }
 
-export function createAccessControlPolicy(policy: AccessControlPolicy): ActionFuncAsync<AccessControlPolicy> {
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.updateOrCreateAccessControlPolicy(policy);
-        } catch (error) {
-            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            return {error};
-        }
-
-        dispatch(
-            {type: AdminTypes.CREATE_ACCESS_CONTROL_POLICY_SUCCESS, data},
-        );
-
-        return {data};
-    };
+export function createAccessControlPolicy(policy: AccessControlPolicy) {
+    return bindClientFunc({
+        clientFunc: Client4.updateOrCreateAccessControlPolicy,
+        onSuccess: [AdminTypes.CREATE_ACCESS_CONTROL_POLICY_SUCCESS],
+        params: [
+            policy,
+        ],
+    });
 }
 
-export function deleteAccessControlPolicy(id: string): ActionFuncAsync<AccessControlPolicy> {
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.deleteAccessControlPolicy(id);
-        } catch (error) {
-            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            return {error};
-        }
-
-        dispatch(
-            {type: AdminTypes.DELETE_ACCESS_CONTROL_POLICY_SUCCESS, data},
-        );
-
-        return {data};
-    };
+export function deleteAccessControlPolicy(id: string) {
+    return bindClientFunc({
+        clientFunc: Client4.deleteAccessControlPolicy,
+        onSuccess: [AdminTypes.DELETE_ACCESS_CONTROL_POLICY_SUCCESS],
+        params: [
+            id,
+        ],
+    });
 }
 
 export function searchAccessControlPolicies(term: string, type: string, after: string, limit: number): ActionFuncAsync<AccessControlPoliciesResult> {
@@ -82,12 +50,6 @@ export function searchAccessControlPolicies(term: string, type: string, after: s
             data = await Client4.searchAccessControlPolicies(term, type, after, limit);
         } catch (error) {
             forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            dispatch(
-                {
-                    type: AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES_SEARCH,
-                    error,
-                },
-            );
             return {error};
         }
 
@@ -106,12 +68,6 @@ export function searchAccessControlPolicyChannels(id: string, term: string, opts
             data = await Client4.searchChildAccessControlPolicyChannels(id, term, opts);
         } catch (error) {
             forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            dispatch(
-                {
-                    type: AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES_SEARCH,
-                    error,
-                },
-            );
             return {error};
         }
 
@@ -127,58 +83,42 @@ export function searchAccessControlPolicyChannels(id: string, term: string, opts
     };
 }
 
-export function assignChannelsToAccessControlPolicy(policyId: string, channelIds: string[]): ActionFuncAsync<StatusOK> {
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.assignChannelsToAccessControlPolicy(policyId, channelIds);
-        } catch (error) {
-            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            return {error};
-        }
-
-        return {data};
-    };
+export function assignChannelsToAccessControlPolicy(policyId: string, channelIds: string[]) {
+    return bindClientFunc({
+        clientFunc: Client4.assignChannelsToAccessControlPolicy,
+        params: [
+            policyId,
+            channelIds,
+        ],
+    });
 }
 
-export function unassignChannelsFromAccessControlPolicy(policyId: string, channelIds: string[]): ActionFuncAsync<StatusOK> {
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.unassignChannelsFromAccessControlPolicy(policyId, channelIds);
-        } catch (error) {
-            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            return {error};
-        }
-
-        return {data};
-    };
+export function unassignChannelsFromAccessControlPolicy(policyId: string, channelIds: string[]) {
+    return bindClientFunc({
+        clientFunc: Client4.unassignChannelsFromAccessControlPolicy,
+        params: [
+            policyId,
+            channelIds,
+        ],
+    });
 }
 
-export function getAccessControlFields(after: string, limit: number): ActionFuncAsync<PropertyField[]> {
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.getAccessControlFields(after, limit);
-        } catch (error) {
-            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            return {error};
-        }
-
-        return {data};
-    };
+export function getAccessControlFields(after: string, limit: number) {
+    return bindClientFunc({
+        clientFunc: Client4.getAccessControlFields,
+        params: [
+            after,
+            limit,
+        ],
+    });
 }
 
-export function updateAccessControlPolicyActive(policyId: string, active: boolean): ActionFuncAsync<StatusOK> {
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.updateAccessControlPolicyActive(policyId, active);
-
-            return {data};
-        } catch (error) {
-            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            return {error};
-        }
-    };
+export function updateAccessControlPolicyActive(policyId: string, active: boolean) {
+    return bindClientFunc({
+        clientFunc: Client4.updateAccessControlPolicyActive,
+        params: [
+            policyId,
+            active,
+        ],
+    });
 }
