@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
@@ -18,6 +18,7 @@ import type {ActionFuncAsync} from 'types/store';
 
 import './test_modal.scss';
 
+const USERS_TO_FETCH = 50;
 const USERS_PER_PAGE = 10;
 
 type Props = {
@@ -32,35 +33,51 @@ function TestResultsModal({
     onExited,
     actions,
 }: Props): JSX.Element {
-    const dispatch = useDispatch<any>(); // Use any for dispatch type for simplicity, can be refined
-    const [page, setPage] = useState<number>(0);
-    const [after, setAfter] = useState<string>('');
+    const dispatch = useDispatch<any>();
+    const [term, setTerm] = useState<string>('');
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [total, setTotal] = useState<number>(0);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [cursorHistory, setCursorHistory] = useState<string[]>([]); // Stores the 'after' cursor for page 1, page 2, etc.
+
+    const fetchUsers = useCallback(async (searchTerm: string, cursor: string, reset: boolean = false) => {
+        setLoading(true);
+        const result: ActionResult<AccessControlTestResult> = await dispatch(actions.searchUsers(searchTerm, cursor, USERS_TO_FETCH));
+        if (result?.data) {
+            const newUsers = result.data.users;
+            if (reset) {
+                setUsers(newUsers);
+            } else {
+                setUsers((prevUsers) => [...prevUsers, ...newUsers]);
+            }
+            setTotal(result.data.total);
+        } else {
+            setUsers([]);
+            setTotal(0);
+        }
+        setLoading(false);
+    }, [dispatch, actions]);
 
     useEffect(() => {
-        dispatch(actions.searchUsers('', '', USERS_PER_PAGE)).
-            then((result: ActionResult<AccessControlTestResult>) => {
-                if (result?.data) {
-                    setUsers(result.data.users || []);
-                    setTotal(result.data.total || 0);
-                }
-            });
-    }, [actions, dispatch]);
+        fetchUsers(term, '');
+    }, []);
 
-    const handleSearch = (term: string) => {
-        dispatch(actions.searchUsers(term, after, USERS_PER_PAGE)).
-            then((result: ActionResult<AccessControlTestResult>) => {
-                if (result?.data) {
-                    setUsers(result.data.users || []);
-                    setTotal(result.data.total || 0);
-                }
-            });
+    const handleSearch = (newTerm: string) => {
+        setCursorHistory([]);
+        setTerm(newTerm);
+        fetchUsers(newTerm, '', true);
     };
 
-    const handleNextPage = () => {
-        setPage(page + 1);
-        setAfter(users[users.length - 1].id);
+    const handleNextPage = (page: number) => {
+        if (loading || !users.length) {
+            return;
+        }
+        if (page * USERS_PER_PAGE < USERS_TO_FETCH) {
+            return;
+        }
+        const cursorForNextPage = users[users.length - 1].id;
+        setCursorHistory([...cursorHistory, cursorForNextPage]);
+        fetchUsers(term, cursorForNextPage);
     };
 
     return (
