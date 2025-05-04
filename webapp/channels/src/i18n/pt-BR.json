@@ -1,9 +1,9 @@
 {
   "about.buildnumber": "Número de Compilação:",
-  "about.cloudEdition": "Cloud",
+  "about.cloudEdition": "Nuvem",
   "about.copyright": "Copyright 2015 - {currentYear} Mattermost, Inc. Todos os direitos reservados",
   "about.database": "Banco de dados:",
-  "about.date": "Data De Criação:",
+  "about.date": "Data de Compilação:",
   "about.dbversion": "Versão do Esquema do Banco de Dados:",
   "about.enterpriseEditionLearn": "Saiba mais sobre Enterprise Edition em ",
   "about.enterpriseEditionSst": "Mensagens de alta confiança para a empresa",
