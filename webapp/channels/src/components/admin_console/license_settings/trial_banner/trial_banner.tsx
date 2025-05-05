@@ -238,7 +238,7 @@ const TrialBanner = ({
             <>
                 <FormattedMessage
                     id='admin.license.trial-request.title'
-                    defaultMessage='Experience Mattermost Enterprise Edition for free for the next 30 days. No obligation to buy or credit card required. '
+                    defaultMessage='Experience all that Mattermost Enterprise Advanced, our highest tier plan, has to offer with a free trial for the next 30 days. No obligation to buy and no credit card required. '
                 />
                 <FormattedMessage
                     id='admin.license.trial-request.accept-terms'
