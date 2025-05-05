@@ -218,8 +218,8 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		existingData := tmp.Data
 		existingProps := tmp.Props
 		if s.IsBinaryParamEnabled() {
-			existingData = AppendBinaryFlag(data)
-			existingProps = AppendBinaryFlag(props)
+			existingData = AppendBinaryFlag(existingData)
+			existingProps = AppendBinaryFlag(existingProps)
 		}
 
 		query := s.getQueryBuilder().
@@ -351,7 +351,7 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
 	}
-	_, err = tx.Query(query, args...)
+	_, err = tx.Exec(query, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update policy with id=%s", id)
 	}
@@ -360,7 +360,7 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 		// if the policy is a parent, we need to update the child policies
 		var expr sq.Sqlizer
 		if s.DriverName() == model.DatabaseDriverPostgres {
-			expr = sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", id))
+			expr = sq.Expr("Data->'imports' @> ?::jsonb", fmt.Sprintf("%q", id))
 		} else {
 			expr = sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", id))
 		}
@@ -368,7 +368,7 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
 		}
-		_, err = tx.Query(query, args...)
+		_, err = tx.Exec(query, args...)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to update child policies with id=%s", id)
 		}

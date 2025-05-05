@@ -102,6 +102,8 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 		count = count.Where(sq.Expr(opts.Query, opts.Args...))
 	}
 
+	argCount := len(opts.Args)
+
 	if opts.Limit > 0 {
 		query = query.Limit(uint64(opts.Limit))
 	} else if opts.Limit > MaxPerPage {
@@ -114,20 +116,31 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 	}
 
 	if opts.TeamID != "" {
-		query = query.Join("TeamMembers tm ON ( tm.UserId = Users.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", opts.TeamID)
-		count = count.Join("TeamMembers tm ON ( tm.UserId = Users.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", opts.TeamID)
+		argCount++
+		if s.DriverName() == model.DatabaseDriverMysql {
+			query = query.Where("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = ? AND DeleteAt = 0)", opts.TeamID)
+			count = count.Where("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = ? AND DeleteAt = 0)", opts.TeamID)
+		} else {
+			query = query.Where(sq.Expr(fmt.Sprintf("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = $%d AND DeleteAt = 0)", argCount), opts.TeamID))
+			count = count.Where(sq.Expr(fmt.Sprintf("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = $%d AND DeleteAt = 0)", argCount), opts.TeamID))
+		}
 	}
 
 	if opts.ExcludeChannelMembers != "" {
-		q := sq.Expr("NOT EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.UserId = Users.Id AND ChannelMembers.ChannelId = ?)", opts.ExcludeChannelMembers)
-		query = query.Where(q)
+		argCount++
+		if s.DriverName() == model.DatabaseDriverMysql {
+			query = query.Where(sq.Expr("NOT EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.UserId = Users.Id AND ChannelMembers.ChannelId = ?)", opts.ExcludeChannelMembers))
+		} else {
+			query = query.Where(sq.Expr(fmt.Sprintf("NOT EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.UserId = Users.Id AND ChannelMembers.ChannelId = $%d)", argCount), opts.ExcludeChannelMembers))
+		}
 	}
 
 	if opts.Cursor.TargetID != "" {
 		if s.DriverName() == model.DatabaseDriverMysql {
 			query = query.Where(sq.Expr("TargetID > ?", opts.Cursor.TargetID))
 		} else {
-			query = query.Where(sq.Expr(fmt.Sprintf("TargetID > $%d", len(opts.Args)+1), opts.Cursor.TargetID))
+			argCount++
+			query = query.Where(sq.Expr(fmt.Sprintf("TargetID > $%d", argCount), opts.Cursor.TargetID))
 		}
 	}
 
@@ -137,8 +150,8 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 	}
 
 	if term := opts.Term; strings.TrimSpace(term) != "" {
-		query = generateSearchQuery(query, strings.Fields(term), searchFields, s.DriverName() == model.DatabaseDriverPostgres)
-		count = generateSearchQuery(count, strings.Fields(term), searchFields, s.DriverName() == model.DatabaseDriverPostgres)
+		_, query = generateSearchQueryForExpression(query, strings.Fields(term), searchFields, s.DriverName() == model.DatabaseDriverPostgres, argCount)
+		_, count = generateSearchQueryForExpression(count, strings.Fields(term), searchFields, s.DriverName() == model.DatabaseDriverPostgres, argCount)
 	}
 
 	q, args, err := query.ToSql()
@@ -177,6 +190,8 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 		query = query.Where(sq.Expr(fmt.Sprintf("(NOT %s OR AttributeView.TargetID IS NULL)", opts.Query), opts.Args...))
 	}
 
+	argCount := len(opts.Args)
+
 	if opts.Limit > 0 {
 		query = query.Limit(uint64(opts.Limit))
 	} else if opts.Limit > MaxPerPage {
@@ -184,10 +199,11 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 	}
 
 	if opts.Cursor.TargetID != "" {
+		argCount++
 		if s.DriverName() == model.DatabaseDriverMysql {
 			query = query.Where(sq.Expr("ChannelMembers.UserId > ?", opts.Cursor.TargetID))
 		} else {
-			query = query.Where(sq.Expr(fmt.Sprintf("ChannelMembers.UserId > $%d", len(opts.Args)+1), opts.Cursor.TargetID))
+			query = query.Where(sq.Expr(fmt.Sprintf("ChannelMembers.UserId > $%d", argCount), opts.Cursor.TargetID))
 		}
 	}
 
@@ -202,4 +218,30 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 	}
 
 	return members, nil
+}
+
+func generateSearchQueryForExpression(query sq.SelectBuilder, terms []string, fields []string, isPostgreSQL bool, prevArgs int) (int, sq.SelectBuilder) {
+	for _, term := range terms {
+		searchFields := []string{}
+		termArgs := []any{}
+		for _, field := range fields {
+			if isPostgreSQL {
+				prevArgs++
+				searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower($%d) escape '*' ", field, prevArgs))
+			} else {
+				searchFields = append(searchFields, fmt.Sprintf("%s LIKE ? escape '*' ", field))
+			}
+			termArgs = append(termArgs, fmt.Sprintf("%%%s%%", strings.TrimLeft(term, "@")))
+		}
+		if isPostgreSQL {
+			prevArgs++
+			searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower($%d) escape '*' ", "Id", prevArgs))
+		} else {
+			searchFields = append(searchFields, "Id = ?")
+		}
+		termArgs = append(termArgs, strings.TrimLeft(term, "@"))
+		query = query.Where(fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")), termArgs...)
+	}
+
+	return prevArgs, query
 }

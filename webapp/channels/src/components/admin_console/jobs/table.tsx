@@ -23,7 +23,7 @@ import JobStatus from './job_status';
 
 import './table.scss';
 
-type JobTableProps = {
+export type Props = {
     jobs: Job[];
     getExtraInfoText?: (job: Job) => React.ReactNode;
     disabled: boolean;
@@ -44,16 +44,16 @@ type JobTableProps = {
     };
 }
 
-type Props = JobTableProps & WrappedComponentProps;
+type JobTableProps = Props & WrappedComponentProps;
 
 type State = {
     currentPage: number;
 }
 
-class JobTable extends React.PureComponent<Props, State> {
+class JobTable extends React.PureComponent<JobTableProps, State> {
     interval: ReturnType<typeof setInterval>|null = null;
 
-    constructor(props: Props) {
+    constructor(props: JobTableProps) {
         super(props);
         this.state = {
             currentPage: 0,

@@ -1,3 +1,5 @@
+DROP MATERIALIZED VIEW IF EXISTS AttributeView;
+
 CREATE MATERIALIZED VIEW AttributeView AS
   SELECT
 	pv.GroupID,
@@ -7,3 +9,5 @@ CREATE MATERIALIZED VIEW AttributeView AS
   FROM PropertyValues pv
   LEFT JOIN PropertyFields pf ON pf.ID = pv.FieldID
   GROUP BY pv.GroupID, pv.TargetID, pv.TargetType;
+
+REFRESH MATERIALIZED VIEW AttributeView;
