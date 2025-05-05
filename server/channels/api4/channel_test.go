@@ -7,13 +7,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/mattermost/mattermost/server/v8/channels/web"
 	"io"
 	"net/http"
 	"sort"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
