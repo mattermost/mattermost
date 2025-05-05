@@ -20,12 +20,24 @@ var LdapCmd = &cobra.Command{
 	Short: "LDAP related utilities",
 }
 
-var LdapSyncCmd = &cobra.Command{
-	Use:     "sync",
-	Short:   "Synchronize now",
-	Long:    "Synchronize all LDAP users and groups now.",
-	Example: "  ldap sync",
-	RunE:    withClient(ldapSyncCmdF),
+func newLDAPSyncCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "sync",
+		Short:   "Synchronize now",
+		Long:    "Synchronize all LDAP users and groups now.",
+		Example: "  ldap sync",
+		RunE:    withClient(ldapSyncCmdF),
+	}
+
+	cmd.Flags().Bool("include-removed-members", false, "Include members who left or were removed from a group-synced team/channel")
+	err := cmd.Flags().MarkDeprecated("include-removed-members", "This flag is deprecated and will be removed in a future version. Use --re-add-removed-members instead.")
+	if err != nil {
+		panic(err)
+	}
+	cmd.Flags().Bool("re-add-removed-members", false, "Re-add members who left or were removed from a group-synced team/channel")
+
+	return cmd
+
 }
 
 var LdapIDMigrate = &cobra.Command{
@@ -68,12 +80,7 @@ var LdapJobShowCmd = &cobra.Command{
 }
 
 func init() {
-	LdapSyncCmd.Flags().Bool("include-removed-members", false, "Include members who left or were removed from a group-synced team/channel")
-	err := LdapSyncCmd.Flags().MarkDeprecated("include-removed-members", "This flag is deprecated and will be removed in a future version. Use --re-add-removed-members instead.")
-	if err != nil {
-		panic(err)
-	}
-	LdapSyncCmd.Flags().Bool("re-add-removed-members", false, "Re-add members who left or were removed from a group-synced team/channel")
+	ldapSyncCmd := newLDAPSyncCmd()
 
 	LdapJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of import jobs")
 	LdapJobListCmd.Flags().Int("per-page", 200, "Number of import jobs to be fetched")
@@ -85,7 +92,7 @@ func init() {
 	)
 
 	LdapCmd.AddCommand(
-		LdapSyncCmd,
+		ldapSyncCmd,
 		LdapIDMigrate,
 		LdapJobCmd,
 	)
