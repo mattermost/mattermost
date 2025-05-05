@@ -4337,7 +4337,7 @@
   "leave_team_modal.no": "No",
   "leave_team_modal.title": "Leave the team?",
   "leave_team_modal.yes": "Yes",
-  "licensingPage.infoBanner.startTrialTitle": "Free 30 day trial!",
+  "licensingPage.infoBanner.startTrialTitle": "Start a free 30-day tral of Mattermost Enterprise Advanced",
   "licensingPage.overageUsersBanner.cta": "Contact Sales",
   "licensingPage.overageUsersBanner.noticeDescription": "Notify your Customer Success Manager on your next true-up check. <a></a>",
   "licensingPage.overageUsersBanner.noticeTitle": "Your workspace user count has exceeded your paid license seat count by {seats, number} {seats, plural, one {seat} other {seats}}",
