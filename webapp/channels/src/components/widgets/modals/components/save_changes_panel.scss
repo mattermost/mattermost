@@ -82,21 +82,32 @@
     }
 
     &__cancel-btn {
-        &.error {
-            background: rgba(var(--button-color-rgb), 0.12);
-            color: var(--button-color);
+        &.btn {
+            &.error {
+                background: rgba(var(--button-color-rgb), 0.12);
+                color: var(--button-color);
+
+                &:hover {
+                    background-color: rgba(var(--button-color-rgb), 0.16);
+                }
+            }
         }
     }
 
     &__save-btn {
+        &.btn {
+            &.error {
+                background-color: var(--button-color);
+                color: var(--dnd-indicator);
 
-        &.error {
-            background-color: var(--button-color);
-            color: var(--dnd-indicator);
+                &:hover {
+                    background-color: rgba(var(--button-color-rgb), 0.9);
+                }
 
-            &:disabled {
-                background: rgba(var(--button-color-rgb), 0.16); 
+                &:disabled {
+                    background: rgba(var(--button-color-rgb), 0.16); 
+                }
             }
-        }
+        }   
     }
 }
