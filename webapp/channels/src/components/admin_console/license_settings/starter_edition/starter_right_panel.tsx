@@ -9,13 +9,34 @@ import SetupSystemSvg from 'components/common/svg_images_components/setup_system
 
 const StarterRightPanel = () => {
     const upgradeAdvantages = [
-        'Attribute-based access control',
-        'Channel warning banners',
-        'AD/LDAP group sync',
-        'Advanced workflows with Playbooks',
-        'High availability',
-        'Advanced compliance',
-        'And more...',
+        {
+            id: 'admin.license.enterpriseToAdvancedAdvantage.attributeBasedAccess',
+            defaultMessage: 'Attribute-based access control',
+        },
+        {
+            id: 'admin.license.enterpriseToAdvancedAdvantage.channelWarningBanners',
+            defaultMessage: 'Channel warning banners',
+        },
+        {
+            id: 'admin.license.enterpriseToAdvancedAdvantage.adLdapGroupSync',
+            defaultMessage: 'AD/LDAP group sync',
+        },
+        {
+            id: 'admin.license.enterpriseToAdvancedAdvantage.advancedWorkflows',
+            defaultMessage: 'Advanced workflows with Playbooks',
+        },
+        {
+            id: 'admin.license.enterpriseToAdvancedAdvantage.highAvailability',
+            defaultMessage: 'High availability',
+        },
+        {
+            id: 'admin.license.enterpriseToAdvancedAdvantage.advancedCompliance',
+            defaultMessage: 'Advanced compliance',
+        },
+        {
+            id: 'admin.license.upgradeAdvantage.andMore',
+            defaultMessage: 'And more...',
+        },
     ];
 
     return (
@@ -33,13 +54,17 @@ const StarterRightPanel = () => {
                 />
             </div>
             <div className='advantages-list'>
-                {upgradeAdvantages.map((item: string, i: number) => {
+                {upgradeAdvantages.map((item, i) => {
                     return (
                         <div
                             className='item'
                             key={i.toString()}
                         >
-                            <i className='fa fa-lock'/>{item}
+                            <i className='fa fa-lock'/>
+                            <FormattedMessage
+                                id={item.id}
+                                defaultMessage={item.defaultMessage}
+                            />
                         </div>
                     );
                 })}

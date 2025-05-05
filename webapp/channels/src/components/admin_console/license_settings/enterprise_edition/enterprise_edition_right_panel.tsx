@@ -21,21 +21,57 @@ const EnterpriseEditionRightPanel = ({
     license,
 }: EnterpriseEditionProps) => {
     const upgradeAdvantages = [
-        'AD/LDAP Group sync',
-        'High Availability',
-        'Advanced compliance',
-        'Advanced roles and permissions',
-        'And more...',
+        {
+            id: 'admin.license.upgradeAdvantage.adLdapSync',
+            defaultMessage: 'AD/LDAP Group sync',
+        },
+        {
+            id: 'admin.license.upgradeAdvantage.highAvailability',
+            defaultMessage: 'High Availability',
+        },
+        {
+            id: 'admin.license.upgradeAdvantage.advancedCompliance',
+            defaultMessage: 'Advanced compliance',
+        },
+        {
+            id: 'admin.license.upgradeAdvantage.advancedRoles',
+            defaultMessage: 'Advanced roles and permissions',
+        },
+        {
+            id: 'admin.license.upgradeAdvantage.andMore',
+            defaultMessage: 'And more...',
+        },
     ];
 
     const enterpriseToAdvancedAdvantages = [
-        'Attribute-based access control',
-        'Channel warning banners',
-        'AD/LDAP group sync',
-        'Advanced workflows with Playbooks',
-        'High availability',
-        'Advanced compliance',
-        'And more...',
+        {
+            id: 'admin.license.enterpriseToAdvancedAdvantage.attributeBasedAccess',
+            defaultMessage: 'Attribute-based access control',
+        },
+        {
+            id: 'admin.license.enterpriseToAdvancedAdvantage.channelWarningBanners',
+            defaultMessage: 'Channel warning banners',
+        },
+        {
+            id: 'admin.license.enterpriseToAdvancedAdvantage.adLdapGroupSync',
+            defaultMessage: 'AD/LDAP group sync',
+        },
+        {
+            id: 'admin.license.enterpriseToAdvancedAdvantage.advancedWorkflows',
+            defaultMessage: 'Advanced workflows with Playbooks',
+        },
+        {
+            id: 'admin.license.enterpriseToAdvancedAdvantage.highAvailability',
+            defaultMessage: 'High availability',
+        },
+        {
+            id: 'admin.license.enterpriseToAdvancedAdvantage.advancedCompliance',
+            defaultMessage: 'Advanced compliance',
+        },
+        {
+            id: 'admin.license.upgradeAdvantage.andMore',
+            defaultMessage: 'And more...',
+        },
     ];
 
     const isEnterpriseAdvanced = license?.SkuShortName === LicenseSkus.EnterpriseAdvanced;
@@ -125,13 +161,17 @@ const EnterpriseEditionRightPanel = ({
 
         return (
             <div className='advantages-list'>
-                {advantages.map((item: string, i: number) => {
+                {advantages.map((item, i) => {
                     return (
                         <div
                             className='item'
                             key={i.toString()}
                         >
-                            <i className='fa fa-lock'/>{item}
+                            <i className='fa fa-lock'/>
+                            <FormattedMessage
+                                id={item.id}
+                                defaultMessage={item.defaultMessage}
+                            />
                         </div>
                     );
                 })}
