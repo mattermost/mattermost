@@ -3693,7 +3693,7 @@ func (a *App) setSidebarCategoriesForConvertedGroupMessage(c request.CTX, gmConv
 		// So what we do is fetch the category, so we get an auto-filled data,
 		// then call update category to persist the data and send the websocket events.
 		channelsCategory := categories.Categories[0]
-		_, appErr = a.UpdateSidebarCategories(c, user.Id, gmConversionRequest.TeamID, []*model.SidebarCategoryWithChannels{channelsCategory})
+		_, appErr = a.UpdateSidebarCategory(c, channelsCategory)
 		if appErr != nil {
 			c.Logger().Error("Failed to add converted GM to default sidebar category for user", mlog.String("user_id", user.Id), mlog.Err(err))
 		}

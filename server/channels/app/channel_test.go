@@ -2893,8 +2893,18 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 			Categories: model.SidebarCategoriesWithChannels{
 				{
 					SidebarCategory: model.SidebarCategory{
-						Type: model.SidebarCategoryChannels,
+						Type:   model.SidebarCategoryChannels,
+						UserId: "user_id_1",
+						TeamId: "team_id_1",
 					},
+				},
+				{
+					SidebarCategory: model.SidebarCategory{
+						Type:   model.SidebarCategoryDirectMessages,
+						UserId: "user_id_1",
+						TeamId: "team_id_1",
+					},
+					Channels: []string{"channelidchannelidchanneli"},
 				},
 			},
 		}, nil)
@@ -2903,41 +2913,69 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 			Categories: model.SidebarCategoriesWithChannels{
 				{
 					SidebarCategory: model.SidebarCategory{
-						Type: model.SidebarCategoryChannels,
+						Type:   model.SidebarCategoryChannels,
+						UserId: "user_id_2",
+						TeamId: "team_id_1",
 					},
+				},
+				{
+					SidebarCategory: model.SidebarCategory{
+						Type:   model.SidebarCategoryDirectMessages,
+						UserId: "user_id_2",
+						TeamId: "team_id_1",
+					},
+					Channels: []string{"channelidchannelidchanneli"},
 				},
 			},
 		}, nil)
-	mockChannelStore.On("UpdateSidebarCategories", "user_id_1", "team_id_1", mock.Anything).Return(
-		[]*model.SidebarCategoryWithChannels{
-			{
-				SidebarCategory: model.SidebarCategory{
-					Type: model.SidebarCategoryChannels,
+	mockChannelStore.On("GetSidebarCategoriesForTeamForUser", "user_id_1", "team_id_1", false).Return(
+		&model.OrderedSidebarCategories{
+			Categories: []*model.SidebarCategoryWithChannels{
+				{
+					SidebarCategory: model.SidebarCategory{
+						Type:   model.SidebarCategoryChannels,
+						UserId: "user_id_1",
+						TeamId: "team_id_1",
+					},
 				},
-			},
-		},
-		[]*model.SidebarCategoryWithChannels{
-			{
-				SidebarCategory: model.SidebarCategory{
-					Type: model.SidebarCategoryChannels,
+				{
+					SidebarCategory: model.SidebarCategory{
+						Type:   model.SidebarCategoryDirectMessages,
+						UserId: "user_id_1",
+						TeamId: "team_id_1",
+					},
+					Channels: []string{"channelidchannelidchanneli"},
 				},
 			},
 		},
 		nil,
 	)
-	mockChannelStore.On("UpdateSidebarCategories", "user_id_2", "team_id_1", mock.Anything).Return(
-		[]*model.SidebarCategoryWithChannels{
-			{
-				SidebarCategory: model.SidebarCategory{
-					Type: model.SidebarCategoryChannels,
+	mockChannelStore.On("GetSidebarCategoriesForTeamForUser", "user_id_2", "team_id_1", false).Return(
+		&model.OrderedSidebarCategories{
+			Categories: []*model.SidebarCategoryWithChannels{
+				{
+					SidebarCategory: model.SidebarCategory{
+						Type:   model.SidebarCategoryChannels,
+						UserId: "user_id_2",
+						TeamId: "team_id_1",
+					},
+				},
+				{
+					SidebarCategory: model.SidebarCategory{
+						Type:   model.SidebarCategoryDirectMessages,
+						UserId: "user_id_2",
+						TeamId: "team_id_1",
+					},
+					Channels: []string{"channelidchannelidchanneli"},
 				},
 			},
 		},
-		[]*model.SidebarCategoryWithChannels{
-			{
-				SidebarCategory: model.SidebarCategory{
-					Type: model.SidebarCategoryChannels,
-				},
+		nil,
+	)
+	mockChannelStore.On("UpdateSidebarCategory", mock.Anything).Return(
+		&model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Type: model.SidebarCategoryChannels,
 			},
 		},
 		nil,
