@@ -15,7 +15,10 @@ import AlertBanner from 'components/alert_banner';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ExternalLink from 'components/external_link';
 import MoreDirectChannels from 'components/more_direct_channels';
+import GenericTag from 'components/widgets/tag/generic_tag';
+import TagGroup from 'components/widgets/tag/tag_group';
 
+import useAccessControlAttributes from 'hooks/useAccessControlAttributes';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import type {ModalData} from 'types/actions';
@@ -73,6 +76,12 @@ export default function ChannelMembersRHS({
     const [page, setPage] = useState(0);
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
     const {formatMessage} = useIntl();
+
+    const {attributeTags, loading} = useAccessControlAttributes(
+        'channel',
+        channel.id,
+        channel.policy_enforced,
+    );
 
     const searching = searchTerms !== '';
 
@@ -225,7 +234,19 @@ export default function ChannelMembersRHS({
                             id: 'channel_members_rhs.policy_enforced_restrictions',
                             defaultMessage: 'Channel access is restricted by user attributes',
                         })}
-                    />
+                    >
+                        {attributeTags.length > 0 && (
+                            <TagGroup>
+                                {attributeTags.map((tag) => (
+                                    <GenericTag
+                                        key={tag}
+                                        text={tag}
+                                    />
+                                ))}
+                            </TagGroup>
+                        )}
+                        {loading && <span className='loading-indicator'>{'Loading...'}</span>}
+                    </AlertBanner>
                 </div>
             )}
 

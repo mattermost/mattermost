@@ -27,7 +27,9 @@ import type {Value} from 'components/multiselect/multiselect';
 import ProfilePicture from 'components/profile_picture';
 import ToggleModalButton from 'components/toggle_modal_button';
 import BotTag from 'components/widgets/tag/bot_tag';
+import GenericTag from 'components/widgets/tag/generic_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
+import TagGroup from 'components/widgets/tag/tag_group';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {sortUsersAndGroups} from 'utils/utils';
@@ -91,6 +93,8 @@ type State = {
     saving: boolean;
     loadingUsers: boolean;
     inviteError?: string;
+    attributeTags: string[];
+    loadingAttributes: boolean;
 }
 
 export class ChannelInviteModal extends React.PureComponent<Props, State> {
@@ -114,6 +118,8 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
             saving: false,
             loadingUsers: true,
             groupAndUserOptions: [],
+            attributeTags: [],
+            loadingAttributes: false,
         } as State;
     }
 
@@ -180,7 +186,52 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
         this.props.actions.getTeamStats(this.props.channel.team_id);
         this.props.actions.loadStatusesForProfilesList(this.props.profilesNotInCurrentChannel);
         this.props.actions.loadStatusesForProfilesList(this.props.profilesInCurrentChannel);
+
+        if (this.props.channel.policy_enforced) {
+            this.fetchChannelAccessControlAttributes();
+        }
     }
+
+    private fetchChannelAccessControlAttributes = async () => {
+        this.setState({loadingAttributes: true});
+
+        try {
+            const url = `${Client4.getChannelsRoute()}/${this.props.channel.id}/access_control/attributes`;
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    Authorization: `Bearer ${Client4.getToken()}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch access control attributes: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const tags: string[] = [];
+
+            // Extract values from all properties in the response
+            // Format: { "attributeName": ["value1", "value2"], "anotherAttribute": ["value3"] }
+            Object.entries(data).forEach(([, values]: [string, any]) => {
+                if (Array.isArray(values)) {
+                    values.forEach((value) => {
+                        if (value !== undefined && value !== null) {
+                            tags.push(value);
+                        }
+                    });
+                }
+            });
+
+            this.setState({attributeTags: tags});
+        } catch (err) {
+            // Silently handle the error, just don't show any tags
+        } finally {
+            this.setState({loadingAttributes: false});
+        }
+    };
 
     public async componentDidUpdate(prevProps: Props, prevState: State) {
         if (prevState.term !== this.state.term) {
@@ -568,7 +619,22 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                                         defaultMessage='Only people who match the specified access rules can be selected and added to this channel.'
                                     />
                                 )}
-                            />
+                            >
+                                {this.state.attributeTags.length > 0 && (
+                                    <TagGroup>
+                                        {this.state.attributeTags.map((tag) => (
+                                            <GenericTag
+                                                key={tag}
+                                                text={tag}
+                                            />
+                                        ))}
+                                    </TagGroup>
+                                )}
+                                {this.state.loadingAttributes && <span className='loading-indicator'>{'Loading...'}</span>}
+                                {this.state.attributeTags.length === 0 && !this.state.loadingAttributes && (
+                                    <span className='no-attributes-message'>{'No access control attributes found'}</span>
+                                )}
+                            </AlertBanner>
                         </div>
                     )}
                     <div className='channel-invite__content'>

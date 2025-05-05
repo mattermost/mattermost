@@ -1,0 +1,64 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.GenericTag {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 4px;
+    font-weight: 600;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 8px;
+    margin-bottom: 8px;
+
+    
+    &--clickable {
+        cursor: pointer;
+        
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+    
+    // Variants
+    &--default {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+    
+    &--primary {
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
+    }
+    
+    &--secondary {
+        background-color: rgba(var(--button-color-rgb), 0.08);
+        color: var(--button-color);
+    }
+    
+    &--info {
+        background-color: rgba(var(--info-color-rgb), 0.08);
+        color: var(--info-color);
+    }
+    
+    // Sizes
+    &--small {
+        font-size: 10px;
+        padding: 0 6px;
+        height: 16px;
+    }
+    
+    &--medium {
+        font-size: 12px;
+        padding: 2px 8px;
+        height: 20px;
+    }
+    
+    &--large {
+        font-size: 14px;
+        padding: 4px 12px;
+        height: 24px;
+    }
+}

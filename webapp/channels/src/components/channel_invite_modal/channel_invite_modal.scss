@@ -19,6 +19,14 @@
         .multi-select__footer {
             padding: 24px 0 !important;
         }
+
+        .multi-select__wrapper {
+            margin: -10px 0 0 -5px;
+        }
+
+        .invite-as-guest {
+            margin-right: 0;
+        }
     }
     
     &__username {
@@ -28,5 +36,11 @@
     &__user-mapping {
         position: absolute;
         right: 20px;
+    }
+
+    &__policy-banner {
+        .TagGroup {
+            margin-top: 12px;
+        }
     }
 }
