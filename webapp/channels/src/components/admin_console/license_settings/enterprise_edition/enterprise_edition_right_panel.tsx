@@ -9,7 +9,7 @@ import type {ClientLicense} from '@mattermost/types/config';
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
 import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
 
-import {isEnterpriseLicense} from 'utils/license_utils';
+import {LicenseSkus} from 'utils/constants';
 
 export interface EnterpriseEditionProps {
     isTrialLicense: boolean;
@@ -19,7 +19,6 @@ export interface EnterpriseEditionProps {
 const EnterpriseEditionRightPanel = ({
     isTrialLicense,
     license,
-
 }: EnterpriseEditionProps) => {
     const upgradeAdvantages = [
         'AD/LDAP Group sync',
@@ -29,7 +28,18 @@ const EnterpriseEditionRightPanel = ({
         'And more...',
     ];
 
-    const isEnterpriseOrE20 = isEnterpriseLicense(license);
+    const enterpriseToAdvancedAdvantages = [
+        'Attribute-based access control',
+        'Channel warning banners',
+        'AD/LDAP group sync',
+        'Advanced workflows with Playbooks',
+        'High availability',
+        'Advanced compliance',
+    ];
+
+    const isEnterpriseAdvanced = license?.SkuShortName === LicenseSkus.EnterpriseAdvanced;
+    const isEnterprise = license?.SkuShortName === LicenseSkus.Enterprise;
+    const isProfessional = license?.SkuShortName === LicenseSkus.Professional;
 
     const contactSalesBtn = (
         <div className='purchase-card'>
@@ -40,18 +50,8 @@ const EnterpriseEditionRightPanel = ({
         </div>
     );
 
-    const isGovSku = license.IsGovSku === 'true';
-
     const title = () => {
         if (isTrialLicense) {
-            if (isGovSku) {
-                return (
-                    <FormattedMessage
-                        id='admin.license.purchaseEnterpriseGovPlanTitle'
-                        defaultMessage='Purchase Enterprise Advanced Gov'
-                    />
-                );
-            }
             return (
                 <FormattedMessage
                     id='admin.license.purchaseEnterprisePlanTitle'
@@ -59,7 +59,7 @@ const EnterpriseEditionRightPanel = ({
                 />
             );
         }
-        if (isEnterpriseOrE20) {
+        if (isEnterpriseAdvanced) {
             return (
                 <FormattedMessage
                     id='admin.license.enterprisePlanTitle'
@@ -67,24 +67,32 @@ const EnterpriseEditionRightPanel = ({
                 />
             );
         }
-        if (isGovSku) {
+        if (isEnterprise) {
             return (
                 <FormattedMessage
-                    id='admin.license.upgradeToEnterpriseGov'
-                    defaultMessage='Upgrade to the Enterprise Advanced Gov Plan'
+                    id='admin.license.upgradeToEnterpriseAdvanced'
+                    defaultMessage='Upgrade to Enterprise Advanced'
+                />
+            );
+        }
+        if (isProfessional) {
+            return (
+                <FormattedMessage
+                    id='admin.license.upgradeToEnterprise'
+                    defaultMessage='Upgrade to Enterprise'
                 />
             );
         }
         return (
             <FormattedMessage
                 id='admin.license.upgradeToEnterprise'
-                defaultMessage='Upgrade to the Enterprise Advanced Plan'
+                defaultMessage='Upgrade to Enterprise'
             />
         );
     };
 
     const svgImage = () => {
-        if (isEnterpriseOrE20) {
+        if (isEnterpriseAdvanced) {
             return null; //No image
         }
         return (
@@ -104,17 +112,19 @@ const EnterpriseEditionRightPanel = ({
                 />
             );
         }
-        if (isEnterpriseOrE20) {
+        if (isEnterpriseAdvanced) {
             return (
                 <FormattedMessage
                     id='admin.license.enterprisePlanSubtitle'
-                    defaultMessage='We’re here to work with you and your needs. Contact us today to get more seats on your plan.'
+                    defaultMessage="We're here to work with you and your needs. Contact us today to get more seats on your plan."
                 />
             );
         }
+        const advantages = isEnterprise ? enterpriseToAdvancedAdvantages : upgradeAdvantages;
+
         return (
             <div className='advantages-list'>
-                {upgradeAdvantages.map((item: string, i: number) => {
+                {advantages.map((item: string, i: number) => {
                     return (
                         <div
                             className='item'
