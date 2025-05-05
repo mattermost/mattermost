@@ -25,12 +25,6 @@ func (a *App) getSharedChannelsService() (SharedChannelServiceIFace, error) {
 	return scService, nil
 }
 
-// GetSharedChannelsService returns the shared channel service.
-// This is exposed to the API layer for test endpoints.
-func (a *App) GetSharedChannelsService() (SharedChannelServiceIFace, error) {
-	return a.getSharedChannelsService()
-}
-
 func (a *App) checkChannelNotShared(c request.CTX, channelId string) error {
 	// check that channel exists.
 	if _, appErr := a.GetChannel(c, channelId); appErr != nil {
