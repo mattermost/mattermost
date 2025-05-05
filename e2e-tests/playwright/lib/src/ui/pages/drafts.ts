@@ -30,7 +30,7 @@ export default class DraftPage {
         this.tab = page.getByRole('tab', {name: 'Drafts'});
         this.scheduledDraftPageInfo = page.locator('.PanelHeader__info');
         this.scheduledDraftPanel = (messageContent: string) =>
-            page.locator(`article.Panel:has(div.post__body:has-text("${messageContent}"))`);
+            page.locator(`div.nonVirtualizedScheduledPostRow:has-text("${messageContent}")`);
         this.deleteIcon = page.locator('#draft_icon-trash-can-outline_delete');
         this.deleteIconToolTip = page.locator('text=Delete scheduled post');
         this.rescheduleIconToolTip = page.locator('text=Schedule draft');
