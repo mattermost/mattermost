@@ -4,6 +4,7 @@
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {JobTypeBase} from '@mattermost/types/jobs';
@@ -78,6 +79,7 @@ function PolicyDetails({
     const [channelsCount, setChannelsCount] = useState(0);
     const [autocompleteResult, setAutocompleteResult] = useState<PropertyField[]>([]);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+    const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
 
     useEffect(() => {
         loadPage();
@@ -442,7 +444,7 @@ function PolicyDetails({
                                         if (hasChannels()) {
                                             return;
                                         }
-                                        handleDelete();
+                                        setShowDeleteConfirmationModal(true);
                                     }}
                                     isDisabled={hasChannels()}
                                 />
@@ -469,6 +471,34 @@ function PolicyDetails({
                     onConfirm={handleSubmit}
                     channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
                 />
+            )}
+
+            {showDeleteConfirmationModal && (
+                <GenericModal
+                    onExited={() => setShowDeleteConfirmationModal(false)}
+                    handleConfirm={handleDelete}
+                    handleCancel={() => setShowDeleteConfirmationModal(false)}
+                    modalHeaderText={
+                        <FormattedMessage
+                            id='admin.access_control.policy.edit_policy.delete_confirmation.title'
+                            defaultMessage='Confirm Policy Deletion'
+                        />
+                    }
+                    confirmButtonText={
+                        <FormattedMessage
+                            id='admin.access_control.policy.edit_policy.delete_confirmation.confirm_button'
+                            defaultMessage='Delete Policy'
+                        />
+                    }
+                    confirmButtonClassName='btn btn-danger'
+                    isDeleteModal={true}
+                    compassDesign={true}
+                >
+                    <FormattedMessage
+                        id='admin.access_control.policy.edit_policy.delete_confirmation.message'
+                        defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
+                    />
+                </GenericModal>
             )}
 
             <div className='admin-console-save'>

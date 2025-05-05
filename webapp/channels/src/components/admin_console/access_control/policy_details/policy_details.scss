@@ -3,74 +3,9 @@
         min-height: 40px;
     }
 
-    .btn-delete {
-        display: inline-block;
-        background: var(--denim-status-do-not-disturb);
-        color: var(--button-color);
-    }
-
-    .AccessControlPolicySettings {
-        .editor-tabs {
-            display: flex;
-            margin-bottom: 16px;
-        }
-
-        .editor-tab {
-            padding: 12px 24px;
-            border: none;
-            border-bottom: 2px solid transparent;
-            margin-right: 16px;
-            background: transparent;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            cursor: pointer;
-            font-weight: 600;
-
-            &:hover {
-                color: var(--center-channel-color);
-            }
-
-            &.active {
-                border-bottom-color: var(--button-bg);
-                color: var(--button-bg);
-            }
-        }
-
-        .delete-policy-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .delete-policy {
-            .btn-primary {
-                display: flex;
-                min-width: 130px;
-                align-items: center;
-                background: var(--denim-status-do-not-disturb, #d24b4e);
-                color: var(--button-color);
-                opacity: 1;
-            
-                &:hover:not(:disabled) {
-                    background: color-mix(in srgb, var(--denim-status-do-not-disturb, #d24b4e), black 10%);
-                    color: var(--button-color, #fff) !important;
-                }
-
-                &:disabled {
-                    background: color-mix(in srgb, var(--denim-status-do-not-disturb, #d24b4e), black 10%);
-                    cursor: not-allowed;
-                    opacity: 0.65;
-                }
-            }
-        }
-
-        .tooltip {
-            opacity: 1;
-
-            &-inner {
-                max-width: 250px;
-                padding: 8px 12px;
-            }
+    .delete-policy {
+        .btn-primary:not(:disabled) {
+            background-color: var(--dnd-indicator);
         }
     }
 }
