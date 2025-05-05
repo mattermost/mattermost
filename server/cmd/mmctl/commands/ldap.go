@@ -37,7 +37,6 @@ func newLDAPSyncCmd() *cobra.Command {
 	cmd.Flags().Bool("re-add-removed-members", false, "Re-add members who left or were removed from a group-synced team/channel")
 
 	return cmd
-
 }
 
 var LdapIDMigrate = &cobra.Command{
