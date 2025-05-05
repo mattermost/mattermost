@@ -235,7 +235,6 @@ export function reconnect() {
         }
 
         dispatch(loadChannelsForCurrentUser());
-        dispatch(fetchMyCategories(currentTeamId));
 
         if (mostRecentPost) {
             dispatch(syncPostsInChannel(currentChannelId, mostRecentPost.create_at));
