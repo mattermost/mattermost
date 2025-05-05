@@ -136,10 +136,10 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 	}
 
 	if opts.Cursor.TargetID != "" {
+		argCount++
 		if s.DriverName() == model.DatabaseDriverMysql {
 			query = query.Where(sq.Expr("TargetID > ?", opts.Cursor.TargetID))
 		} else {
-			argCount++
 			query = query.Where(sq.Expr(fmt.Sprintf("TargetID > $%d", argCount), opts.Cursor.TargetID))
 		}
 	}
@@ -183,7 +183,6 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 	query := s.getQueryBuilder().
 		Select(channelMemberSliceColumns()...).From("ChannelMembers").LeftJoin("AttributeView ON ChannelMembers.UserId = AttributeView.TargetID").
-		Where(sq.Eq{"ChannelMembers.ChannelId": channelID}).
 		OrderBy("ChannelMembers.UserId ASC")
 
 	if opts.Query != "" {
@@ -191,6 +190,13 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 	}
 
 	argCount := len(opts.Args)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query = query.Where(sq.Eq{"ChannelMembers.ChannelId": channelID})
+	} else {
+		argCount++
+		query = query.Where(sq.Expr(fmt.Sprintf("ChannelMembers.ChannelId = $%d", argCount), channelID))
+	}
 
 	if opts.Limit > 0 {
 		query = query.Limit(uint64(opts.Limit))

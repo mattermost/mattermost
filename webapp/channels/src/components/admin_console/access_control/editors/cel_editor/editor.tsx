@@ -73,15 +73,13 @@ interface CELEditorProps {
     onValidate?: (isValid: boolean) => void;
     placeholder?: string;
     className?: string;
+    userAttributes: Array<{
+        attribute: string;
+        values: string[];
+    }>;
 }
 
 // TODO: this is just a sample schema for the editor, we need to get the actual schema from the server
-const schemas = {
-    user: ['attributes'],
-    channel: ['attributes'],
-    'user.attributes': ['Clearance', 'Department', 'Program', 'Teams'],
-    'channel.attributes': ['required_level', 'restricted', 'visibility'],
-};
 
 function CELEditor({
     value,
@@ -89,6 +87,7 @@ function CELEditor({
     onValidate,
     placeholder = 'user.attributes.<attribute> == <value>',
     className = '',
+    userAttributes,
 }: CELEditorProps): JSX.Element {
     const [editorState, setEditorState] = useState({
         expression: value,
@@ -100,6 +99,11 @@ function CELEditor({
         showTestResults: false,
         testResults: null as AccessControlTestResult | null,
     });
+
+    const schemas = {
+        user: ['attributes'],
+        'user.attributes': userAttributes.map((attr) => attr.attribute),
+    };
 
     const editorRef = useRef(null);
     const monacoRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);

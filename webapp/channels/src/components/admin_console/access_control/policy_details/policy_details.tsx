@@ -353,6 +353,10 @@ function PolicyDetails({
                                         setSaveNeeded(true);
                                     }}
                                     onValidate={() => {}}
+                                    userAttributes={autocompleteResult.map((attr) => ({
+                                        attribute: attr.name,
+                                        values: [],
+                                    })) || []}
                                 />
                             ) : (
                                 <TableEditor
