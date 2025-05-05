@@ -41,11 +41,11 @@
 
     .annnouncementBar__purchaseNow {
         display: block;
-        margin-top: 15px;
         padding: 12px 20px;
-        background: var(--sys-button-bg);
         border: none;
         border-radius: 4px;
+        margin-top: 15px;
+        background: var(--sys-button-bg);
         color: var(--sys-button-color);
 
         span {
@@ -53,5 +53,12 @@
             font-weight: 600;
             line-height: 14px;
         }
+    }
+
+    &__alertBanner {
+        padding: 12px 20px;
+        border: 1px solid rgba(var(--error-text-color-rgb), 0.16);
+        margin-top: 4px;
+        background: rgba(var(--error-text-color-rgb), 0.08);
     }
 }
