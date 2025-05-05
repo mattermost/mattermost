@@ -265,87 +265,6 @@ func TestOnConnectionStateChangeWithUserSync(t *testing.T) {
 	})
 }
 
-func TestSyncForRemoteWithEmptyChannelID(t *testing.T) {
-	t.Run("when channelID is empty and feature flag is enabled, it calls syncAllUsersForRemote", func(t *testing.T) {
-		// Setup test helper with store (real or mock)
-		th := SetupTestHelperWithStore(t)
-		defer th.TearDown()
-
-		// Set the feature flag to true
-		th.Server.config.FeatureFlags.SyncAllUsersForRemoteCluster = true
-
-		// Create the service with real store and mock app
-		mockApp := &MockAppIface{}
-		scs := &Service{
-			server: th.Server,
-			app:    mockApp,
-		}
-
-		// Set up a hook for syncAllUsersForRemote
-		syncAllUsersCalled := false
-		oldHook := syncAllUsersHook
-		syncAllUsersHook = func(scs *Service, rc *model.RemoteCluster) error {
-			syncAllUsersCalled = true
-			return nil
-		}
-		defer func() { syncAllUsersHook = oldHook }()
-
-		// Create a task with empty channelID
-		task := newSyncTask("", "", "remote1", nil, nil)
-		rc := &model.RemoteCluster{
-			RemoteId:    "remote1",
-			DisplayName: "Remote 1",
-			LastPingAt:  model.GetMillis(), // setting LastPingAt to current time makes IsOnline() return true
-		}
-
-		// Call the function
-		err := scs.syncForRemote(task, rc)
-
-		// Verify
-		require.NoError(t, err)
-		assert.True(t, syncAllUsersCalled, "Expected syncAllUsersForRemote to be called")
-	})
-
-	t.Run("when channelID is empty but feature flag is disabled, it does not call syncAllUsersForRemote", func(t *testing.T) {
-		// Setup test helper with real database
-		th := SetupTestHelperWithStore(t)
-		defer th.TearDown()
-
-		// Set the feature flag to false
-		th.Server.config.FeatureFlags.SyncAllUsersForRemoteCluster = false
-
-		// Create the service with real store and mock app
-		mockApp := &MockAppIface{}
-		scs := &Service{
-			server: th.Server,
-			app:    mockApp,
-		}
-
-		// Set up a hook for syncAllUsersForRemote
-		syncAllUsersCalled := false
-		oldHook := syncAllUsersHook
-		syncAllUsersHook = func(scs *Service, rc *model.RemoteCluster) error {
-			syncAllUsersCalled = true
-			return nil
-		}
-		defer func() { syncAllUsersHook = oldHook }()
-
-		// Create a task with empty channelID
-		task := newSyncTask("", "", "remote1", nil, nil)
-		rc := &model.RemoteCluster{
-			RemoteId:    "remote1",
-			DisplayName: "Remote 1",
-		}
-
-		// Call the function
-		err := scs.syncForRemote(task, rc)
-
-		// Verify
-		require.NoError(t, err)
-		assert.False(t, syncAllUsersCalled, "Did not expect syncAllUsersForRemote to be called")
-	})
-}
-
 func TestSyncAllUsersForRemote(t *testing.T) {
 	// This test works in both short and non-short mode
 	t.Run("successfully syncs users with database", func(t *testing.T) {
@@ -633,7 +552,7 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 			LastPingAt:  model.GetMillis(), // setting LastPingAt to current time makes IsOnline() return true
 		}
 
-			// Call the function directly
+		// Call the function directly
 		err := scs.syncAllUsersForRemote(rc)
 
 		// Verify

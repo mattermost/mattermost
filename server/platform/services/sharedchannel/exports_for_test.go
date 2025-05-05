@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-
 package sharedchannel
 
 import (
@@ -13,10 +12,6 @@ var MaxUsersPerSyncForTesting = MaxUsersPerSync
 
 // TestableMaxUsersPerSync allows tests to control batch size without modifying the constant
 var TestableMaxUsersPerSync = MaxUsersPerSync
-
-// TestHookSyncAllUsersForRemote is a hook for the syncAllUsersForRemote method used in testing
-// Tests can replace this function to track calls without modifying the original method
-var TestHookSyncAllUsersForRemote func(scs *Service, rc *model.RemoteCluster) error
 
 // SyncData represents a data container for testing sync operations
 type SyncData struct {

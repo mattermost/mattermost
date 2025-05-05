@@ -90,6 +90,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 			return nil // Skip if feature flag has been disabled
 		}
 
+		// Perform a full user sync with the remote cluster
 		return scs.syncAllUsersForRemote(rc)
 	}
 
@@ -689,16 +690,9 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 	}
 }
 
-// Define the test hook variable directly in this file to avoid undefined reference errors
-var syncAllUsersHook func(scs *Service, rc *model.RemoteCluster) error
-
 // syncAllUsersForRemote synchronizes all local users to a remote cluster.
 // This is called when a connection with a remote cluster is established.
 func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
-	// Tests can set the syncAllUsersHook variable to intercept calls to this method
-	if syncAllUsersHook != nil {
-		return syncAllUsersHook(scs, rc)
-	}
 	if !rc.IsOnline() {
 		return fmt.Errorf("remote cluster %s is not online", rc.RemoteId)
 	}
