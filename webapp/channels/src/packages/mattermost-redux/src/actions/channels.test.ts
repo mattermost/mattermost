@@ -1782,11 +1782,8 @@ describe('Actions.Channels', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${team.id}/channels/categories`).
-            reply(200, [
-                {...favoritesCategory, channel_ids: [channel.id]},
-                {...channelsCategory, channel_ids: []},
-            ]);
+            put(`/users/${currentUserId}/teams/${team.id}/channels/categories/${favoritesCategory.id}`).
+            reply(200, {...favoritesCategory, channel_ids: [channel.id]});
 
         await store.dispatch(Actions.favoriteChannel(channel.id));
 
@@ -1831,11 +1828,8 @@ describe('Actions.Channels', () => {
         });
 
         nock(Client4.getBaseRoute()).
-            put(`/users/${currentUserId}/teams/${team.id}/channels/categories`).
-            reply(200, [
-                {...favoritesCategory, channel_ids: []},
-                {...channelsCategory, channel_ids: [channel.id]},
-            ]);
+            put(`/users/${currentUserId}/teams/${team.id}/channels/categories/${channelsCategory.id}`).
+            reply(200, {...channelsCategory, channel_ids: [channel.id]});
 
         await store.dispatch(Actions.unfavoriteChannel(channel.id));
 
