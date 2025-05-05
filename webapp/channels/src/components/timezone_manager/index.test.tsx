@@ -28,41 +28,32 @@ describe('components/timezone_manager/TimezoneManager', () => {
         expect(autoUpdateTimezone).toHaveBeenCalledWith('America/New_York');
     });
 
-    it('should update timezone on window focus', () => {
+    it('should update timezone periodically every minute', () => {
         const autoUpdateTimezone = jest.fn();
         render(<TimezoneManager autoUpdateTimezone={autoUpdateTimezone}/>);
 
         // Clear initial call
         autoUpdateTimezone.mockClear();
 
-        // Simulate window focus
+        // Fast-forward 1 minute
         act(() => {
-            window.dispatchEvent(new Event('focus'));
+            jest.advanceTimersByTime(60 * 1000);
         });
 
         expect(autoUpdateTimezone).toHaveBeenCalledTimes(1);
         expect(autoUpdateTimezone).toHaveBeenCalledWith('America/New_York');
-    });
 
-    it('should update timezone periodically', () => {
-        const autoUpdateTimezone = jest.fn();
-        render(<TimezoneManager autoUpdateTimezone={autoUpdateTimezone}/>);
-
-        // Clear initial call
+        // Fast-forward another minute
         autoUpdateTimezone.mockClear();
-
-        // Fast-forward 30 minutes
         act(() => {
-            jest.advanceTimersByTime(30 * 60 * 1000);
+            jest.advanceTimersByTime(60 * 1000);
         });
 
         expect(autoUpdateTimezone).toHaveBeenCalledTimes(1);
         expect(autoUpdateTimezone).toHaveBeenCalledWith('America/New_York');
     });
 
-    it('should clean up listeners and interval on unmount', () => {
-        const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
-
+    it('should clean up interval on unmount', () => {
         const {unmount} = render(<TimezoneManager autoUpdateTimezone={jest.fn()}/>);
 
         // We should have 1 timer (the interval) before unmounting
@@ -70,11 +61,7 @@ describe('components/timezone_manager/TimezoneManager', () => {
 
         unmount();
 
-        expect(removeEventListenerSpy).toHaveBeenCalledWith('focus', expect.any(Function));
-
         // After unmounting, all timers should be cleared
         expect(jest.getTimerCount()).toBe(0);
-
-        removeEventListenerSpy.mockRestore();
     });
 });

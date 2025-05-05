@@ -5,8 +5,8 @@ import {useEffect} from 'react';
 
 import {getBrowserTimezone} from 'utils/timezone';
 
-// Timezone update frequency in milliseconds (30 minutes)
-const TIMEZONE_UPDATE_INTERVAL = 30 * 60 * 1000;
+// Timezone update frequency in milliseconds (1 minute)
+const TIMEZONE_UPDATE_INTERVAL = 60 * 1000;
 
 type Props = {
     autoUpdateTimezone: (timezone: string) => void;
@@ -21,15 +21,11 @@ const TimezoneManager = ({autoUpdateTimezone}: Props): null => {
         // Initial timezone update on mount
         updateTimezone();
 
-        // Setup events that trigger timezone checks
-        window.addEventListener('focus', updateTimezone);
-
-        // Set up interval to periodically check timezone
+        // Set up interval to periodically check timezone every minute
         const intervalId = window.setInterval(updateTimezone, TIMEZONE_UPDATE_INTERVAL);
 
         // Cleanup
         return () => {
-            window.removeEventListener('focus', updateTimezone);
             clearInterval(intervalId);
         };
     }, []);
