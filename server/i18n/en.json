@@ -7751,6 +7751,10 @@
     "translation": "Error loading LDAP TLS Certificate file."
   },
   {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Invalid AD/LDAP Id"
+  },
+  {
     "id": "ent.ldap.do_login.invalid_password.app_error",
     "translation": "Invalid Password."
   },
@@ -7841,6 +7845,10 @@
   {
     "id": "ent.ldap_groups.groups_search_error",
     "translation": "error retrieving ldap groups"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Invalid AD/LDAP id"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
