@@ -1017,6 +1017,12 @@ type SharedChannelStore interface {
 	SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error)
 	GetSingleUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error)
 	GetUsersForUser(userID string) ([]*model.SharedChannelUser, error)
+	// GetUsersByUser returns all SharedChannelUser entries for a user and remote combination.
+	// Used during global user sync to check sync status across all channels.
+	GetUsersByUser(userID string, remoteID string) ([]*model.SharedChannelUser, error)
+	// GetAllUsersByRemote returns all SharedChannelUser entries for a given remote cluster.
+	// Used to optimize global user sync by fetching all sync entries at once.
+	GetAllUsersByRemote(remoteID string) ([]*model.SharedChannelUser, error)
 	GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error)
 	UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error
 

@@ -762,6 +762,52 @@ func (s SqlSharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedCh
 	return users, nil
 }
 
+// GetUsersByUser returns all SharedChannelUser entries for a user and remote combination.
+// Used during global user sync to check sync status across all channels.
+func (s SqlSharedChannelStore) GetUsersByUser(userID string, remoteID string) ([]*model.SharedChannelUser, error) {
+	squery, args, err := s.getQueryBuilder().
+		Select(sharedChannelUserFields("")...).
+		From("SharedChannelUsers").
+		Where(sq.Eq{"SharedChannelUsers.UserId": userID, "SharedChannelUsers.RemoteId": remoteID}).
+		ToSql()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "getsharedchannelusersbyuser_tosql")
+	}
+
+	users := []*model.SharedChannelUser{}
+	if err := s.GetReplica().Select(&users, squery, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return make([]*model.SharedChannelUser, 0), nil
+		}
+		return nil, errors.Wrapf(err, "failed to find shared channel user entries with UserId=%s and RemoteId=%s", userID, remoteID)
+	}
+	return users, nil
+}
+
+// GetAllUsersByRemote returns all SharedChannelUser entries for a given remote cluster.
+// Used to optimize global user sync by fetching all sync entries at once.
+func (s SqlSharedChannelStore) GetAllUsersByRemote(remoteID string) ([]*model.SharedChannelUser, error) {
+	squery, args, err := s.getQueryBuilder().
+		Select(sharedChannelUserFields("")...).
+		From("SharedChannelUsers").
+		Where(sq.Eq{"SharedChannelUsers.RemoteId": remoteID}).
+		ToSql()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "getallusersbyremote_tosql")
+	}
+
+	users := []*model.SharedChannelUser{}
+	if err := s.GetReplica().Select(&users, squery, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return make([]*model.SharedChannelUser, 0), nil
+		}
+		return nil, errors.Wrapf(err, "failed to find shared channel user entries for RemoteId=%s", remoteID)
+	}
+	return users, nil
+}
+
 // GetUsersForSync fetches all shared channel users that need to be synchronized, meaning their
 // `SharedChannelUsers.LastSyncAt` is less than or equal to `User.UpdateAt`.
 func (s SqlSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {

@@ -551,7 +551,7 @@ func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 // User should be synchronized if it has no entry in the SharedChannelUsers table for the specified channel,
 // or there is an entry but the LastSyncAt is less than user.UpdateAt
 func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model.RemoteCluster) (sync bool, syncImage bool, err error) {
-	// don't sync users with the remote they originated from.
+	// don't sync users back to the remote cluster they originated from.
 	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
 		return false, false, nil
 	}

@@ -252,6 +252,7 @@ func (scs *Service) fetchUsersForSync(sd *syncData) error {
 		return err
 	}
 
+	// Don't sync users back to the remote cluster they originated from
 	for _, u := range users {
 		if u.GetRemoteID() != sd.rc.RemoteId {
 			sd.users[u.Id] = u
@@ -494,7 +495,7 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 			continue
 		}
 
-		// don't sync a post back to the remote it came from.
+		// don't sync a post back to the remote cluster it came from.
 		if p.GetRemoteID() == sd.rc.RemoteId {
 			continue
 		}
@@ -690,6 +691,74 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 	}
 }
 
+// userSyncData holds cached sync data for users to avoid multiple DB queries
+type userSyncData struct {
+	// map of userID -> map of channelID -> LastSyncAt timestamp
+	userSyncMap map[string]map[string]int64
+	initialized bool
+}
+
+// shouldUserSyncGlobal determines if a user needs to be synchronized globally.
+// User should be synchronized if there is no entry in any SharedChannelUsers table for the target remote cluster,
+// or if the LastSyncAt is less than user.UpdateAt for all entries.
+func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteCluster, syncData *userSyncData) (bool, error) {
+	// Don't sync users back to the remote cluster they originated from
+	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
+		return false, nil
+	}
+
+	// Calculate the latest time this user was updated (either profile or picture)
+	latestUpdateTime := user.UpdateAt
+	if user.LastPictureUpdate > latestUpdateTime {
+		latestUpdateTime = user.LastPictureUpdate
+	}
+
+	// First check cached data
+	if syncData != nil && syncData.initialized {
+		channelMap, exists := syncData.userSyncMap[user.Id]
+
+		// If user doesn't exist in our sync map, they need syncing
+		if !exists {
+			return true, nil
+		}
+
+		// Check if any channel entry needs updating
+		for _, lastSyncAt := range channelMap {
+			if latestUpdateTime > lastSyncAt {
+				return true, nil
+			}
+		}
+
+		// All entries are up to date
+		return false, nil
+	}
+
+	// Fallback to direct DB query if cache isn't available
+	scus, err := scs.server.GetStore().SharedChannel().GetUsersByUser(user.Id, rc.RemoteId)
+	if err != nil {
+		if _, ok := err.(errNotFound); !ok {
+			return false, err
+		}
+		// No entries found - user needs sync
+		return true, nil
+	}
+
+	// No sync entries found means user needs syncing
+	if len(scus) == 0 {
+		return true, nil
+	}
+
+	// Check if any channel entry needs updating
+	for _, scu := range scus {
+		if latestUpdateTime > scu.LastSyncAt {
+			return true, nil
+		}
+	}
+
+	// User has entries and all are up to date
+	return false, nil
+}
+
 // syncAllUsersForRemote synchronizes all local users to a remote cluster.
 // This is called when a connection with a remote cluster is established.
 func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
@@ -719,7 +788,6 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 	// We need to make a fake SharedChannelRemote since we don't have a channel
 	fakeSCR := &model.SharedChannelRemote{
 		RemoteId: rc.RemoteId,
-		// Other fields don't matter for user sync
 	}
 
 	sd := &syncData{
@@ -729,7 +797,32 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 		users: make(map[string]*model.User),
 	}
 
+	// Initialize user sync data cache
+	syncData := &userSyncData{
+		userSyncMap: make(map[string]map[string]int64),
+		initialized: false,
+	}
+
+	// Fetch all user sync records for the target remote cluster in a single query
+	allSyncRecords, err := scs.server.GetStore().SharedChannel().GetAllUsersByRemote(rc.RemoteId)
+	if err != nil && !isNotFoundError(err) {
+		scs.server.Log().Error("Error fetching user sync records",
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.Err(err),
+		)
+	} else {
+		// Build the user sync map
+		for _, record := range allSyncRecords {
+			if _, ok := syncData.userSyncMap[record.UserId]; !ok {
+				syncData.userSyncMap[record.UserId] = make(map[string]int64)
+			}
+			syncData.userSyncMap[record.UserId][record.ChannelId] = record.LastSyncAt
+		}
+		syncData.initialized = true
+	}
+
 	var processedCount int
+	var filteredCount int
 	merr := merror.New()
 
 	// We may need to page through all users
@@ -747,10 +840,21 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 			break
 		}
 
-		// Add users to sync data
+		// Add users to sync data, but only if they need syncing
 		for _, user := range users {
-			// Skip remote users belonging to the remote server we are syncing with (don't sync back to origin)
-			if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
+			// Check if this user needs syncing using our cached data and if user originated from the target remote cluster
+			needsSync, err := scs.shouldUserSyncGlobal(user, rc, syncData)
+			if err != nil {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error checking if user needs sync",
+					mlog.String("user_id", user.Id),
+					mlog.String("remote_id", rc.RemoteId),
+					mlog.Err(err),
+				)
+				continue
+			}
+
+			if !needsSync {
+				filteredCount++
 				continue
 			}
 
@@ -786,7 +890,7 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 	}
 
 	// Return any errors that occurred during batch processing so callers can handle them
-	// The sync is still considered partially successful since we'll retry individual users during normal operation
+	// If errors occur, the entire task may be retried as a whole based on the retry limits
 	return merr.ErrorOrNil()
 }
 
