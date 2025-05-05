@@ -762,9 +762,9 @@ func (s SqlSharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedCh
 	return users, nil
 }
 
-// GetUsersByUser returns all SharedChannelUser entries for a user and remote combination.
+// GetUsersByUserAndRemote returns all SharedChannelUser entries for a user and remote combination.
 // Used during global user sync to check sync status across all channels.
-func (s SqlSharedChannelStore) GetUsersByUser(userID string, remoteID string) ([]*model.SharedChannelUser, error) {
+func (s SqlSharedChannelStore) GetUsersByUserAndRemote(userID string, remoteID string) ([]*model.SharedChannelUser, error) {
 	squery, args, err := s.getQueryBuilder().
 		Select(sharedChannelUserFields("")...).
 		From("SharedChannelUsers").
@@ -772,7 +772,7 @@ func (s SqlSharedChannelStore) GetUsersByUser(userID string, remoteID string) ([
 		ToSql()
 
 	if err != nil {
-		return nil, errors.Wrapf(err, "getsharedchannelusersbyuser_tosql")
+		return nil, errors.Wrapf(err, "getsharedchannelusersbyuserandremote_tosql")
 	}
 
 	users := []*model.SharedChannelUser{}
@@ -785,9 +785,9 @@ func (s SqlSharedChannelStore) GetUsersByUser(userID string, remoteID string) ([
 	return users, nil
 }
 
-// GetAllUsersByRemote returns all SharedChannelUser entries for a given remote cluster.
+// GetUsersByRemote returns all SharedChannelUser entries for a given remote cluster.
 // Used to optimize global user sync by fetching all sync entries at once.
-func (s SqlSharedChannelStore) GetAllUsersByRemote(remoteID string) ([]*model.SharedChannelUser, error) {
+func (s SqlSharedChannelStore) GetUsersByRemote(remoteID string) ([]*model.SharedChannelUser, error) {
 	squery, args, err := s.getQueryBuilder().
 		Select(sharedChannelUserFields("")...).
 		From("SharedChannelUsers").
@@ -795,7 +795,7 @@ func (s SqlSharedChannelStore) GetAllUsersByRemote(remoteID string) ([]*model.Sh
 		ToSql()
 
 	if err != nil {
-		return nil, errors.Wrapf(err, "getallusersbyremote_tosql")
+		return nil, errors.Wrapf(err, "getusersbyremote_tosql")
 	}
 
 	users := []*model.SharedChannelUser{}

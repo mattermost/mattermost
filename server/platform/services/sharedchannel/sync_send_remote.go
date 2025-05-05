@@ -734,7 +734,7 @@ func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteClust
 	}
 
 	// Fallback to direct DB query if cache isn't available
-	scus, err := scs.server.GetStore().SharedChannel().GetUsersByUser(user.Id, rc.RemoteId)
+	scus, err := scs.server.GetStore().SharedChannel().GetUsersByUserAndRemote(user.Id, rc.RemoteId)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
 			return false, err
@@ -804,7 +804,7 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 	}
 
 	// Fetch all user sync records for the target remote cluster in a single query
-	allSyncRecords, err := scs.server.GetStore().SharedChannel().GetAllUsersByRemote(rc.RemoteId)
+	allSyncRecords, err := scs.server.GetStore().SharedChannel().GetUsersByRemote(rc.RemoteId)
 	if err != nil && !isNotFoundError(err) {
 		scs.server.Log().Error("Error fetching user sync records",
 			mlog.String("remote_id", rc.RemoteId),

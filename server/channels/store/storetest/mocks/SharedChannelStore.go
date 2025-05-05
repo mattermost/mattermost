@@ -158,12 +158,12 @@ func (_m *SharedChannelStore) GetAllCount(opts model.SharedChannelFilterOpts) (i
 	return r0, r1
 }
 
-// GetAllUsersByRemote provides a mock function with given fields: remoteID
-func (_m *SharedChannelStore) GetAllUsersByRemote(remoteID string) ([]*model.SharedChannelUser, error) {
+// GetUsersByRemote provides a mock function with given fields: remoteID
+func (_m *SharedChannelStore) GetUsersByRemote(remoteID string) ([]*model.SharedChannelUser, error) {
 	ret := _m.Called(remoteID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetAllUsersByRemote")
+		panic("no return value specified for GetUsersByRemote")
 	}
 
 	var r0 []*model.SharedChannelUser
@@ -398,12 +398,12 @@ func (_m *SharedChannelStore) GetSingleUser(userID string, channelID string, rem
 	return r0, r1
 }
 
-// GetUsersByUser provides a mock function with given fields: userID, remoteID
-func (_m *SharedChannelStore) GetUsersByUser(userID string, remoteID string) ([]*model.SharedChannelUser, error) {
+// GetUsersByUserAndRemote provides a mock function with given fields: userID, remoteID
+func (_m *SharedChannelStore) GetUsersByUserAndRemote(userID string, remoteID string) ([]*model.SharedChannelUser, error) {
 	ret := _m.Called(userID, remoteID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetUsersByUser")
+		panic("no return value specified for GetUsersByUserAndRemote")
 	}
 
 	var r0 []*model.SharedChannelUser
