@@ -22,6 +22,7 @@ func TestChannelStoreCategories(t *testing.T, rctx request.CTX, ss store.Store, 
 	t.Run("CreateSidebarCategory", func(t *testing.T) { testCreateSidebarCategory(t, rctx, ss) })
 	t.Run("GetSidebarCategory", func(t *testing.T) { testGetSidebarCategory(t, rctx, ss, s) })
 	t.Run("GetSidebarCategories", func(t *testing.T) { testGetSidebarCategories(t, rctx, ss) })
+	t.Run("UpdateSidebarCategory", func(t *testing.T) { testUpdateSidebarCategory(t, rctx, ss) })
 	t.Run("UpdateSidebarCategories", func(t *testing.T) { testUpdateSidebarCategories(t, rctx, ss) })
 	t.Run("ClearSidebarOnTeamLeave", func(t *testing.T) { testClearSidebarOnTeamLeave(t, rctx, ss, s) })
 	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, rctx, ss, s) })
@@ -1199,7 +1200,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 			Channels: favoritesCategory.Channels,
 		})
-		assert.NoError(t, nil)
+		assert.NoError(t, err)
 		assert.Equal(t, "Favorites", updatedFavoritesCategory.DisplayName)
 
 		// Try to change the type of Channels
@@ -1210,7 +1211,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 			Channels: channelsCategory.Channels,
 		})
-		assert.NoError(t, nil)
+		assert.NoError(t, err)
 		assert.Equal(t, "Channels", updatedChannelsCategory.DisplayName)
 
 		// Try to change the Channels of DMs
@@ -1218,7 +1219,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 			SidebarCategory: dmsCategory.SidebarCategory,
 			Channels:        []string{"fakechannel"},
 		})
-		assert.NoError(t, nil)
+		assert.NoError(t, err)
 		assert.Equal(t, []string{}, updatedDMsCategory.Channels)
 
 		// Try to change the UserId/TeamId of a custom category
@@ -1232,7 +1233,7 @@ func testUpdateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 			Channels: customCategory.Channels,
 		})
-		assert.NoError(t, nil)
+		assert.NoError(t, err)
 		assert.Equal(t, userID, updatedCustomCategory.UserId)
 		assert.Equal(t, team.Id, updatedCustomCategory.TeamId)
 	})

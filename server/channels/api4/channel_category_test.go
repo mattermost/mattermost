@@ -628,6 +628,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 				Sorting:     model.SidebarCategorySortManual,
 			},
 		})
+		require.NoError(t, err)
 
 		teamBCategory, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, teamB.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{

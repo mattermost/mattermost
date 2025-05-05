@@ -731,14 +731,14 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 
 	updatedCategories := []*model.SidebarCategoryWithChannels{}
 	for _, category := range categories {
-		srcCategory, err := s.getSidebarCategoryT(transaction, category.Id, false)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to find SidebarCategories")
+		srcCategory, nErr := s.getSidebarCategoryT(transaction, category.Id, false)
+		if nErr != nil {
+			return nil, errors.Wrap(nErr, "failed to find SidebarCategories")
 		}
 
-		destCategory, err := s.updateSidebarCategoryT(transaction, userId, teamId, category, srcCategory)
-		if err != nil {
-			return nil, err
+		destCategory, nErr := s.updateSidebarCategoryT(transaction, userId, teamId, category, srcCategory)
+		if nErr != nil {
+			return nil, nErr
 		}
 
 		updatedCategories = append(updatedCategories, destCategory)
