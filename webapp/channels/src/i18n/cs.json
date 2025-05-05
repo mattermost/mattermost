@@ -1553,6 +1553,7 @@
   "admin.metrics.listenAddressTitle": "Adresa poslechu:",
   "admin.mfa.bannerDesc": "<link>Vícefaktorové ověřování</link> je k dispozici pro přihlášení s účty AD/LDAP nebo e-mailu. Pokud jsou použity jiné přihlašovací metody, MFA musí být nakonfigurováno s poskytovatelem ověřování.",
   "admin.mobileSecurity.biometricsDescription": "Vynucuje biometrickou autentizaci (s možností záložního PINu/kódu) před přístupem do aplikace. Uživatelé budou vyzváni na základě aktivity relace a pravidel přepínání serveru.",
+  "admin.mobileSecurity.biometricsTitle": "Povolit biometrickou autentizaci:",
   "admin.mobile_security_feature_discovery.copy": "Povolit pokročilé bezpečnostní funkce, jako je biometrická autentizace, prevence snímání obrazovky a detekce jailbreaku/rootování pro vaše mobilní uživatele.",
   "admin.mobile_security_feature_discovery.title": "Zvýšte bezpečnost mobilní aplikace s Mattermost Enterprise",
   "admin.nav.administratorsGuide": "Příručka administrátora",
