@@ -25,7 +25,7 @@ const ContactUsButton: React.FC<Props> = (props: Props) => {
 
     return (
         <button
-            className={`btn btn-tertiary contact-us ${props.customClass ? props.customClass : ''}`}
+            className={`btn contact-us ${props.customClass || 'btn-tertiary'}`}
             onClick={(e) => handleContactUsLinkClick(e)}
         >
             {props.buttonTextElement || (
