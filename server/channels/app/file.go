@@ -1411,7 +1411,7 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 	// Create Zip File (temporarily stored on disk)
 	conglomerateZipFile, err := os.Create(zipFileName)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create temporary zip file %q: %w", zipFileName, err)
 	}
 	defer os.Remove(zipFileName)
 
@@ -1426,11 +1426,11 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 
 	_, err = conglomerateZipFile.Seek(0, 0)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to seek to beginning of zip file %q: %w", conglomerateZipFile.Name(), err)
 	}
 	_, err = fileBackend.WriteFile(conglomerateZipFile, path.Join(directory, zipFileName))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to write zip file to file backend at path %s: %w", path.Join(directory, zipFileName), err)
 	}
 
 	return nil
