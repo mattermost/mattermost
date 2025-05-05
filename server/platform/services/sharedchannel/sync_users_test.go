@@ -281,14 +281,14 @@ func TestSyncForRemoteWithEmptyChannelID(t *testing.T) {
 			app:    mockApp,
 		}
 
-		// Create a spy/mock for syncAllUsersForRemote
+		// Set up a hook for syncAllUsersForRemote
 		syncAllUsersCalled := false
-		oldSyncAllUsersForRemote := realSyncAllUsersForRemote
-		realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) error {
+		oldHook := syncAllUsersHook
+		syncAllUsersHook = func(scs *Service, rc *model.RemoteCluster) error {
 			syncAllUsersCalled = true
 			return nil
 		}
-		defer func() { realSyncAllUsersForRemote = oldSyncAllUsersForRemote }()
+		defer func() { syncAllUsersHook = oldHook }()
 
 		// Create a task with empty channelID
 		task := newSyncTask("", "", "remote1", nil, nil)
@@ -321,14 +321,14 @@ func TestSyncForRemoteWithEmptyChannelID(t *testing.T) {
 			app:    mockApp,
 		}
 
-		// Create a spy/mock for syncAllUsersForRemote
+		// Set up a hook for syncAllUsersForRemote
 		syncAllUsersCalled := false
-		oldSyncAllUsersForRemote := realSyncAllUsersForRemote
-		realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) error {
+		oldHook := syncAllUsersHook
+		syncAllUsersHook = func(scs *Service, rc *model.RemoteCluster) error {
 			syncAllUsersCalled = true
 			return nil
 		}
-		defer func() { realSyncAllUsersForRemote = oldSyncAllUsersForRemote }()
+		defer func() { syncAllUsersHook = oldHook }()
 
 		// Create a task with empty channelID
 		task := newSyncTask("", "", "remote1", nil, nil)
@@ -633,8 +633,8 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 			LastPingAt:  model.GetMillis(), // setting LastPingAt to current time makes IsOnline() return true
 		}
 
-		// Call the function directly using the real implementation
-		err := realSyncAllUsersForRemote(scs, rc)
+			// Call the function directly
+		err := scs.syncAllUsersForRemote(rc)
 
 		// Verify
 		require.Error(t, err)

@@ -689,10 +689,16 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 	}
 }
 
+// Define the test hook variable directly in this file to avoid undefined reference errors
+var syncAllUsersHook func(scs *Service, rc *model.RemoteCluster) error
+
 // syncAllUsersForRemote synchronizes all local users to a remote cluster.
 // This is called when a connection with a remote cluster is established.
-// Function is defined as a variable to make it easier to mock in tests.
-var realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) error {
+func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
+	// Tests can set the syncAllUsersHook variable to intercept calls to this method
+	if syncAllUsersHook != nil {
+		return syncAllUsersHook(scs, rc)
+	}
 	if !rc.IsOnline() {
 		return fmt.Errorf("remote cluster %s is not online", rc.RemoteId)
 	}
@@ -788,11 +794,6 @@ var realSyncAllUsersForRemote = func(scs *Service, rc *model.RemoteCluster) erro
 	// Return any errors that occurred during batch processing so callers can handle them
 	// The sync is still considered partially successful since we'll retry individual users during normal operation
 	return merr.ErrorOrNil()
-}
-
-// syncAllUsersForRemote delegates to the function variable to make it mockable in tests
-func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
-	return realSyncAllUsersForRemote(scs, rc)
 }
 
 // sendSyncMsgToRemote synchronously sends the sync message to the remote cluster (or plugin).
