@@ -35,6 +35,7 @@ const EnterpriseEditionRightPanel = ({
         'Advanced workflows with Playbooks',
         'High availability',
         'Advanced compliance',
+        'And more...',
     ];
 
     const isEnterpriseAdvanced = license?.SkuShortName === LicenseSkus.EnterpriseAdvanced;
