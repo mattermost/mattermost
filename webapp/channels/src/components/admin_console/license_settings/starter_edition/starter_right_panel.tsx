@@ -45,7 +45,7 @@ const StarterRightPanel = () => {
             <div className='purchase_buttons'>
                 <ContactUsButton
                     eventID='post_trial_contact_sales'
-                    customClass='btn-full-width'
+                    customClass='btn-full'
                 />
             </div>
         </div>
