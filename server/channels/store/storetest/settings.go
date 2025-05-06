@@ -69,7 +69,6 @@ func MySQLSettings(withReplica bool) *model.SqlSettings {
 	dsn := os.Getenv("TEST_DATABASE_MYSQL_DSN")
 	if dsn == "" {
 		dsn = getDefaultMysqlDSN()
-		mlog.Info("No TEST_DATABASE_MYSQL_DSN override, using default", mlog.String("default_dsn", dsn))
 	} else {
 		mlog.Info("Using TEST_DATABASE_MYSQL_DSN override", mlog.String("dsn", dsn))
 	}
@@ -96,7 +95,6 @@ func PostgreSQLSettings() *model.SqlSettings {
 	dsn := os.Getenv("TEST_DATABASE_POSTGRESQL_DSN")
 	if dsn == "" {
 		dsn = getDefaultPostgresqlDSN()
-		mlog.Info("No TEST_DATABASE_POSTGRESQL_DSN override, using default", mlog.String("default_dsn", dsn))
 	} else {
 		mlog.Info("Using TEST_DATABASE_POSTGRESQL_DSN override", mlog.String("dsn", dsn))
 	}
