@@ -574,7 +574,6 @@ type userSyncData struct {
 // with a remote cluster. It handles checking if the user is from the remote cluster and comparing
 // update timestamps against last sync times.
 func (scs *Service) baseUserSyncCheck(user *model.User, rc *model.RemoteCluster, lastSyncAt int64) (sync bool, syncImage bool, err error) {
-	// don't sync users back to the remote cluster they originated from.
 	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
 		return false, false, nil
 	}

@@ -85,13 +85,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	// Empty channelID indicates a global user sync task
 	// Normal syncTasks always include a valid channelID
 	if task.channelID == "" {
-		// Double-check that the feature flag is still enabled
-		if !scs.server.Config().FeatureFlags.SyncAllUsersForRemoteCluster {
-			return nil // Skip if feature flag has been disabled
-		}
-
-		// Perform a full user sync with the remote cluster
-		return scs.syncAllUsersForRemote(rc)
+		return scs.handleGlobalUserSyncTask(rc)
 	}
 
 	rcs := scs.server.GetRemoteClusterService()
@@ -691,6 +685,7 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 	}
 }
 
+
 // shouldUserSyncGlobal determines if a user needs to be synchronized globally.
 // Calls the unified shouldUserSyncWithOptions with global sync options.
 func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteCluster, syncData *userSyncData) (bool, error) {
@@ -748,28 +743,7 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 	var latestProcessedTime int64 = rc.LastGlobalUserSyncAt
 
 	// Initialize user sync data cache
-	syncData := &userSyncData{
-		userSyncMap: make(map[string]map[string]int64),
-		initialized: false,
-	}
-
-	// Fetch all user sync records for the target remote cluster in a single query
-	allSyncRecords, err := scs.server.GetStore().SharedChannel().GetUsersByRemote(rc.RemoteId)
-	if err != nil && !isNotFoundError(err) {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error fetching user sync records",
-			mlog.String("remote_id", rc.RemoteId),
-			mlog.Err(err),
-		)
-	} else {
-		// Build the user sync map
-		for _, record := range allSyncRecords {
-			if _, ok := syncData.userSyncMap[record.UserId]; !ok {
-				syncData.userSyncMap[record.UserId] = make(map[string]int64)
-			}
-			syncData.userSyncMap[record.UserId][record.ChannelId] = record.LastSyncAt
-		}
-		syncData.initialized = true
-	}
+	syncData := scs.initUserSyncCache(rc)
 
 	var processedCount int
 	merr := merror.New()
@@ -936,6 +910,44 @@ func (scs *Service) sendSyncMsgToPlugin(msg *model.SyncMsg, rc *model.RemoteClus
 	}
 
 	return errResp
+}
+
+// handleGlobalUserSyncTask checks if the feature flag is enabled and performs a global user sync
+func (scs *Service) handleGlobalUserSyncTask(rc *model.RemoteCluster) error {
+	if !scs.server.Config().FeatureFlags.SyncAllUsersForRemoteCluster {
+		return nil // Skip if feature flag has been disabled
+	}
+
+	// Perform a full user sync with the remote cluster
+	return scs.syncAllUsersForRemote(rc)
+}
+
+// initUserSyncCache initializes cache for user sync data from the database
+func (scs *Service) initUserSyncCache(rc *model.RemoteCluster) *userSyncData {
+	syncData := &userSyncData{
+		userSyncMap: make(map[string]map[string]int64),
+		initialized: false,
+	}
+
+	// Fetch all user sync records for the target remote cluster in a single query
+	allSyncRecords, err := scs.server.GetStore().SharedChannel().GetUsersByRemote(rc.RemoteId)
+	if err != nil && !isNotFoundError(err) {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error fetching user sync records",
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.Err(err),
+		)
+	} else {
+		// Build the user sync map
+		for _, record := range allSyncRecords {
+			if _, ok := syncData.userSyncMap[record.UserId]; !ok {
+				syncData.userSyncMap[record.UserId] = make(map[string]int64)
+			}
+			syncData.userSyncMap[record.UserId][record.ChannelId] = record.LastSyncAt
+		}
+		syncData.initialized = true
+	}
+
+	return syncData
 }
 
 func sanitizeSyncData(sd *syncData) {
