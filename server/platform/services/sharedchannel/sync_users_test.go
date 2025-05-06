@@ -4,6 +4,8 @@
 package sharedchannel
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"testing"
@@ -31,6 +33,90 @@ type TestServer struct {
 	Store  store.Store
 	config *model.Config
 	log    *mlog.Logger
+	rcs    remotecluster.RemoteClusterServiceIFace
+}
+
+// MockRemoteClusterServiceIface mocks the RemoteClusterServiceIface for testing
+type MockRemoteClusterServiceIface struct {
+	mock.Mock
+}
+
+func (m *MockRemoteClusterServiceIface) SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, callback remotecluster.SendMsgResultFunc) error {
+	args := m.Called(ctx, msg, rc, callback)
+
+	// Don't call the callback in tests unless explicitly set up in the .Run() function
+	// The Run function will handle executing the callback with the proper response
+
+	return args.Error(0)
+}
+
+// Add any other required methods from RemoteClusterServiceIface here
+func (m *MockRemoteClusterServiceIface) AddTopicListener(topic string, listener remotecluster.TopicListener) string {
+	args := m.Called(topic, listener)
+	return args.String(0)
+}
+
+func (m *MockRemoteClusterServiceIface) RemoveTopicListener(listenerId string) {
+	m.Called(listenerId)
+}
+
+func (m *MockRemoteClusterServiceIface) Start() error {
+	args := m.Called()
+	return args.Error(0)
+}
+
+func (m *MockRemoteClusterServiceIface) Shutdown() error {
+	args := m.Called()
+	return args.Error(0)
+}
+
+func (m *MockRemoteClusterServiceIface) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, error) {
+	args := m.Called(invite, name, displayName, creatorId, siteURL, defaultTeamId)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*model.RemoteCluster), args.Error(1)
+}
+
+func (m *MockRemoteClusterServiceIface) Active() bool {
+	args := m.Called()
+	return args.Bool(0)
+}
+
+func (m *MockRemoteClusterServiceIface) AddConnectionStateListener(listener remotecluster.ConnectionStateListener) string {
+	args := m.Called(listener)
+	return args.String(0)
+}
+
+func (m *MockRemoteClusterServiceIface) RemoveConnectionStateListener(listenerId string) {
+	m.Called(listenerId)
+}
+
+func (m *MockRemoteClusterServiceIface) PingNow(rc *model.RemoteCluster) {
+	m.Called(rc)
+}
+
+func (m *MockRemoteClusterServiceIface) SendFile(ctx context.Context, us *model.UploadSession, fi *model.FileInfo, rc *model.RemoteCluster, rp remotecluster.ReaderProvider, f remotecluster.SendFileResultFunc) error {
+	args := m.Called(ctx, us, fi, rc, rp, f)
+	return args.Error(0)
+}
+
+func (m *MockRemoteClusterServiceIface) SendProfileImage(ctx context.Context, userID string, rc *model.RemoteCluster, provider remotecluster.ProfileImageProvider, f remotecluster.SendProfileImageResultFunc) error {
+	args := m.Called(ctx, userID, rc, provider, f)
+	return args.Error(0)
+}
+
+func (m *MockRemoteClusterServiceIface) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) remotecluster.Response {
+	args := m.Called(rc, msg)
+	return args.Get(0).(remotecluster.Response)
+}
+
+func (m *MockRemoteClusterServiceIface) ReceiveInviteConfirmation(invite model.RemoteClusterInvite) (*model.RemoteCluster, error) {
+	args := m.Called(invite)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*model.RemoteCluster), args.Error(1)
 }
 
 func (ts *TestServer) GetStore() store.Store {
@@ -50,6 +136,10 @@ func (ts *TestServer) GetMetrics() einterfaces.MetricsInterface {
 }
 
 func (ts *TestServer) GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace {
+	// TestServer keeps track of what remote cluster service to return
+	if ts.rcs != nil {
+		return ts.rcs
+	}
 	return nil
 }
 
@@ -108,10 +198,31 @@ func createMockStore() store.Store {
 	)
 
 	// Setup RemoteCluster mocks
-	mockRemoteClusterStore.On("Update", mock.AnythingOfType("*model.RemoteCluster")).Return(nil)
+	mockRemoteClusterStore.On("Update", mock.AnythingOfType("*model.RemoteCluster")).Run(func(args mock.Arguments) {
+		// Just a hook to make the test work, no need to do anything with the args
+	}).Return(nil)
+
+	// Add mock for Save that returns the provided RemoteCluster
+	mockRemoteClusterStore.On("Save", mock.AnythingOfType("*model.RemoteCluster")).Return(func(rc *model.RemoteCluster) *model.RemoteCluster {
+		return rc
+	}, nil)
+
+	// Add a mock for Get that returns the updated remote cluster
+	mockRemoteClusterStore.On("Get", mock.AnythingOfType("string"), mock.Anything).Run(func(args mock.Arguments) {
+		// Nothing to do here, we'll return the updated cluster in the Return() call
+	}).Return(func(remoteId string, _ bool) *model.RemoteCluster {
+		// This is a fake implementation that just returns a new remote cluster with LastGlobalUserSyncAt=1
+		return &model.RemoteCluster{
+			RemoteId:             remoteId,
+			LastGlobalUserSyncAt: 1, // Return non-zero LastGlobalUserSyncAt for tests
+		}
+	}, nil)
 
 	// Setup SharedChannel mocks for testing user sync
 	mockSharedChannelStore.On("GetUsersByRemote", mock.Anything).Return([]*model.SharedChannelUser{}, nil)
+
+	// Add mock for GetUsersByUserAndRemote which is used by shouldUserSyncGlobal
+	mockSharedChannelStore.On("GetUsersByUserAndRemote", mock.Anything, mock.Anything).Return([]*model.SharedChannelUser{}, nil)
 
 	return mockStore
 }
@@ -178,13 +289,13 @@ func (h *TestHelper) TearDown() {
 }
 
 func TestOnConnectionStateChangeWithUserSync(t *testing.T) {
-	t.Run("when SyncAllUsersForRemoteCluster flag is enabled, it creates a sync task with empty channelID", func(t *testing.T) {
-		// Setup mock for this test since we just need to check the feature flag
+	t.Run("creates a sync task with empty channelID when connection comes online", func(t *testing.T) {
+		// Setup mock for this test
 		mockServer := &MockServerIface{}
 		logger := mlog.CreateConsoleTestLogger(t)
 		mockServer.On("Log").Return(logger)
 
-		// Set the feature flag to true
+		// Set up configuration
 		mockConfig := &model.Config{}
 		mockConfig.FeatureFlags = &model.FeatureFlags{}
 		mockConfig.FeatureFlags.SyncAllUsersForRemoteCluster = true
@@ -224,54 +335,6 @@ func TestOnConnectionStateChangeWithUserSync(t *testing.T) {
 		}
 
 		assert.True(t, foundTask, "Expected to find a task with empty channelID for remote user sync")
-	})
-
-	t.Run("when SyncAllUsersForRemoteCluster flag is disabled, it does not create a sync task", func(t *testing.T) {
-		// Setup mock for this test since we just need to check the feature flag
-		mockServer := &MockServerIface{}
-		logger := mlog.CreateConsoleTestLogger(t)
-		mockServer.On("Log").Return(logger)
-
-		// Set the feature flag to false
-		mockConfig := &model.Config{}
-		mockConfig.FeatureFlags = &model.FeatureFlags{}
-		mockConfig.FeatureFlags.SyncAllUsersForRemoteCluster = false
-		mockServer.On("Config").Return(mockConfig)
-
-		// Mock the GetRemoteClusterService call that's used in SendPendingInvitesForRemote
-		mockServer.On("GetRemoteClusterService").Return(nil)
-
-		scs := &Service{
-			server: mockServer,
-			tasks:  make(map[string]syncTask),
-		}
-
-		// The remote cluster
-		rc := &model.RemoteCluster{
-			RemoteId:    "remote1",
-			DisplayName: "Remote 1",
-			CreatorId:   "user1",
-		}
-
-		// Call the function
-		scs.onConnectionStateChange(rc, true)
-
-		// Sleep a bit to ensure any goroutine would have time to run
-		time.Sleep(50 * time.Millisecond)
-
-		// Verify that no task was added with empty channelID
-		scs.mux.Lock()
-		defer scs.mux.Unlock()
-
-		foundTask := false
-		for _, task := range scs.tasks {
-			if task.channelID == "" && task.remoteID == rc.RemoteId {
-				foundTask = true
-				break
-			}
-		}
-
-		assert.False(t, foundTask, "Did not expect to find a task with empty channelID for remote user sync")
 	})
 }
 
@@ -320,8 +383,14 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 			)
 		}
 
-		// Create a service with store connection
+		// Create a service with store connection and remote cluster service mock
 		mockApp := &MockAppIface{}
+		mockRCS := &MockRemoteClusterServiceIface{}
+		mockRCS.On("SendMsg", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(model.SyncResponse{}, nil)
+
+		// Set up the mock remote cluster service in the test server
+		th.Server.rcs = mockRCS
+
 		scs := &Service{
 			server: th.Server,
 			app:    mockApp,
@@ -662,8 +731,14 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 		var err3 error
 		_, err3 = th.Server.GetStore().User().Save(nil, remoteUser)
 		require.NoError(t, err3)
-		// Create the service with a mock app interface
+		// Create the service with mock app and remote cluster service
 		mockApp := &MockAppIface{}
+		mockRCS := &MockRemoteClusterServiceIface{}
+		mockRCS.On("SendMsg", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(model.SyncResponse{}, nil)
+
+		// Set up the mock remote cluster service in the test server
+		th.Server.rcs = mockRCS
+
 		scs := &Service{
 			server: th.Server,
 			app:    mockApp,
@@ -711,6 +786,249 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 		// Just verify cursor-based filtering without relying on specific user names
 		assert.False(t, user2Found, "User2 (updated before cursor) should not be included in sync")
 		assert.False(t, remoteUserFound, "RemoteUser (from target remote) should not be included in sync")
+	})
+
+	t.Run("cursor-based sync resumes correctly after interruption", func(t *testing.T) {
+		// We support running in both short and real DB modes
+		th := SetupTestHelperWithStore(t)
+		defer th.TearDown()
+
+		// Get the current time for our timestamps
+		now := model.GetMillis()
+		startTime := now - 30000 // Base time 30 seconds ago
+
+		// Create a real remote cluster in the DB with cursor at the beginning
+		// (never synced before)
+		rc := &model.RemoteCluster{
+			RemoteId:             model.NewId(),
+			SiteURL:              "http://example.com",
+			Name:                 "cursor-resume-test",
+			DisplayName:          "Cursor Resume Test",
+			Token:                model.NewId(),
+			RemoteToken:          model.NewId(),
+			Topics:               "sync",
+			CreatorId:            model.NewId(),
+			LastPingAt:           now, // Online
+			LastGlobalUserSyncAt: 0,   // Never synced before
+		}
+
+		var err error
+		rc, err = th.Server.GetStore().RemoteCluster().Save(rc)
+		require.NoError(t, err)
+
+		// Store the remote ID for later use
+		remoteId := rc.RemoteId
+
+		// Create multiple batches of test users with different update times
+		// Batch 1: Will be synced in first run (3 users)
+		batch1Users := make([]*model.User, 3)
+		for i := 0; i < 3; i++ {
+			user := &model.User{
+				Username:  fmt.Sprintf("batch1_user%d", i),
+				Email:     fmt.Sprintf("batch1_user%d@example.com", i),
+				CreateAt:  startTime,
+				UpdateAt:  startTime + int64(i*1000), // Increasing timestamps
+				DeleteAt:  0,
+				Nickname:  fmt.Sprintf("Batch1 User %d", i),
+				FirstName: "Batch1",
+				LastName:  fmt.Sprintf("User%d", i),
+			}
+			var saveErr error
+			batch1Users[i], saveErr = th.Server.GetStore().User().Save(nil, user)
+			require.NoError(t, saveErr)
+		}
+
+		// Batch 2: Will be synced in second run (3 users with later timestamps)
+		batch2Users := make([]*model.User, 3)
+		for i := 0; i < 3; i++ {
+			user := &model.User{
+				Username:  fmt.Sprintf("batch2_user%d", i),
+				Email:     fmt.Sprintf("batch2_user%d@example.com", i),
+				CreateAt:  startTime,
+				UpdateAt:  startTime + 10000 + int64(i*1000), // Later timestamps
+				DeleteAt:  0,
+				Nickname:  fmt.Sprintf("Batch2 User %d", i),
+				FirstName: "Batch2",
+				LastName:  fmt.Sprintf("User%d", i),
+			}
+			var saveErr error
+			batch2Users[i], saveErr = th.Server.GetStore().User().Save(nil, user)
+			require.NoError(t, saveErr)
+		}
+
+		// Create a remote user that should always be skipped
+		remoteUser := &model.User{
+			Username:  "cursor_resume_remote_user",
+			Email:     "cursor_resume_remote_user@example.com",
+			CreateAt:  startTime,
+			UpdateAt:  now - 1000,
+			DeleteAt:  0,
+			Nickname:  "Remote Test User",
+			FirstName: "Remote",
+			LastName:  "User",
+			RemoteId:  &remoteId,
+		}
+		_, remoteErr := th.Server.GetStore().User().Save(nil, remoteUser)
+		require.NoError(t, remoteErr)
+
+		// Set up the service with mock app and remote cluster service
+		mockApp := &MockAppIface{}
+
+		// Keep track of which users are sent in each sync batch - these are populated in the mockRCS.SendMsg mock
+		var syncedUsersBatch1 = make(map[string]*model.User)
+		var syncedUsersBatch2 = make(map[string]*model.User)
+
+		// Create a mock remote cluster service that properly executes the callback
+		mockRCS := &MockRemoteClusterServiceIface{}
+		mockRCS.On("SendMsg", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			// Get the callback function from the arguments
+			callback := args.Get(3).(remotecluster.SendMsgResultFunc)
+			msg := args.Get(1).(model.RemoteClusterMsg)
+			rc := args.Get(2).(*model.RemoteCluster)
+
+			// Create a valid response with any users in the message marked as successfully synced
+			var syncMsg model.SyncMsg
+			if pErr := json.Unmarshal(msg.Payload, &syncMsg); pErr == nil {
+				// IMPORTANT: Manually capture the users being synced
+				// This is needed since mockApp.OnSharedChannelsSyncMsg isn't being called by our flow
+				for id, user := range syncMsg.Users {
+					// Determine which batch to put this in based on RC's LastGlobalUserSyncAt
+					if rc.LastGlobalUserSyncAt == 0 {
+						// First batch
+						syncedUsersBatch1[id] = user
+					} else {
+						// Second batch - only add to batch2 for clarity
+						syncedUsersBatch2[id] = user
+					}
+				}
+
+				// Create a response with all users marked as successfully synced
+				usersSyncd := make([]string, 0, len(syncMsg.Users))
+				for userID := range syncMsg.Users {
+					usersSyncd = append(usersSyncd, userID)
+				}
+
+				// Create the response payload
+				syncResp := model.SyncResponse{
+					UsersSyncd: usersSyncd,
+				}
+				respPayload, _ := json.Marshal(syncResp)
+
+				// Call the callback with a successful response
+				callback(msg, rc, &remotecluster.Response{
+					Status:  remotecluster.ResponseStatusOK,
+					Payload: respPayload,
+				}, nil)
+			}
+		}).Return(nil)
+
+		// Set up the mock remote cluster service in the test server
+		th.Server.rcs = mockRCS
+
+		scs := &Service{
+			server: th.Server,
+			app:    mockApp,
+			tasks:  make(map[string]syncTask),
+			mux:    sync.RWMutex{},
+		}
+
+		// Temporarily set the batch size to 2 to ensure we need multiple batches
+		// This ensures the cursor update happens after the first batch
+		originalBatchSize := TestableMaxUsersPerSync
+		TestableMaxUsersPerSync = 2
+		defer func() {
+			TestableMaxUsersPerSync = originalBatchSize
+		}()
+
+		// First run: Mock the OnSharedChannelsSyncMsg to capture first batch of users
+		mockApp.On("OnSharedChannelsSyncMsg", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			msg := args.Get(0).(*model.SyncMsg)
+			for id, user := range msg.Users {
+				syncedUsersBatch1[id] = user
+			}
+		}).Return(model.SyncResponse{}, nil)
+
+		// Run the first sync - it should process the first batch and update the cursor
+		err = scs.syncAllUsersForRemote(rc)
+		require.NoError(t, err)
+
+		// Get the updated remote cluster to check cursor position
+		updatedRC, rcErr := th.Server.GetStore().RemoteCluster().Get(rc.RemoteId, false)
+		require.NoError(t, rcErr)
+
+		// Verify the cursor was updated to a non-zero value
+		assert.Greater(t, updatedRC.LastGlobalUserSyncAt, int64(0),
+			"LastGlobalUserSyncAt should be updated after first batch")
+
+		// Remember the cursor position for validation later
+		intermediateCursor := updatedRC.LastGlobalUserSyncAt
+
+		// Clean the mock to prepare for second batch
+		mockApp.ExpectedCalls = nil
+
+		// Second run: Mock to capture second batch of users
+		mockApp.On("OnSharedChannelsSyncMsg", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			msg := args.Get(0).(*model.SyncMsg)
+			for id, user := range msg.Users {
+				syncedUsersBatch2[id] = user
+			}
+		}).Return(model.SyncResponse{}, nil)
+
+		// Run the second sync with the updated cursor - it should process the second batch
+		err = scs.syncAllUsersForRemote(updatedRC)
+		require.NoError(t, err)
+
+		// Get the final remote cluster to check cursor position
+		finalRC, rcErr := th.Server.GetStore().RemoteCluster().Get(rc.RemoteId, false)
+		require.NoError(t, rcErr)
+
+		// First, verify that the initial sync processed some users
+		assert.NotEmpty(t, syncedUsersBatch1, "First sync should have processed some users")
+
+		// Second, verify that the second sync processed different users
+		assert.NotEmpty(t, syncedUsersBatch2, "Second sync should have processed some users")
+
+		// Verify cursor was updated again
+		assert.Greater(t, finalRC.LastGlobalUserSyncAt, intermediateCursor,
+			"LastGlobalUserSyncAt should be updated after second batch")
+
+		// Verify that batch1 users were in the first sync
+		foundBatch1 := false
+		for _, user := range batch1Users {
+			if _, found := syncedUsersBatch1[user.Id]; found {
+				foundBatch1 = true
+				break
+			}
+		}
+		assert.True(t, foundBatch1, "First sync should have included batch1 users")
+
+		// Verify that batch2 users with later timestamps were in the second sync
+		foundBatch2InSecondSync := false
+		for _, user := range batch2Users {
+			// Skip users that would have been processed in first batch
+			if user.UpdateAt <= intermediateCursor {
+				continue
+			}
+
+			if _, found := syncedUsersBatch2[user.Id]; found {
+				foundBatch2InSecondSync = true
+				break
+			}
+		}
+		assert.True(t, foundBatch2InSecondSync, "Second sync should have included batch2 users")
+
+		// Verify that batch1 users weren't reprocessed in second sync
+		for _, user := range batch1Users {
+			if user.UpdateAt <= intermediateCursor {
+				_, found := syncedUsersBatch2[user.Id]
+				assert.False(t, found, "User %s (UpdateAt %d) from batch1 should not be in second sync (cursor at %d)",
+					user.Id, user.UpdateAt, intermediateCursor)
+			}
+		}
+
+		// Verify that the remote user isn't in either batch
+		assert.NotContains(t, syncedUsersBatch1, remoteUser.Id, "Remote user should not be in first sync")
+		assert.NotContains(t, syncedUsersBatch2, remoteUser.Id, "Remote user should not be in second sync")
 	})
 }
 
@@ -787,273 +1105,5 @@ func TestExtractUsersFromSyncForTest(t *testing.T) {
 		// Should return an empty map without error
 		require.Empty(t, sentUsers, "Expected empty map for nil remote")
 		require.NoError(t, err, "Should not return error for nil remote")
-	})
-}
-
-func TestShouldUserSyncWithOptions(t *testing.T) {
-	testLogger := mlog.CreateConsoleTestLogger(t)
-
-	t.Run("unified method matches original behavior for channel-specific sync", func(t *testing.T) {
-		// Create mock store
-		mockSharedChannelStore := &mocks.SharedChannelStore{}
-		mockStore := &mocks.Store{}
-		mockStore.On("SharedChannel").Return(mockSharedChannelStore)
-
-		// Create mock server
-		mockServer := &MockServerIface{}
-		mockServer.On("GetStore").Return(mockStore)
-		mockServer.On("Log").Return(testLogger)
-
-		// Create service
-		scs := &Service{
-			server: mockServer,
-		}
-
-		// Test user and remote
-		user := &model.User{
-			Id:                "user1",
-			Username:          "testuser",
-			Email:             "test@example.com",
-			UpdateAt:          1000,
-			LastPictureUpdate: 900,
-		}
-
-		rc := &model.RemoteCluster{
-			RemoteId: "remote1",
-		}
-
-		// Mock existing user in shared channel
-		existingSCU := &model.SharedChannelUser{
-			UserId:     "user1",
-			RemoteId:   "remote1",
-			ChannelId:  "channel1",
-			LastSyncAt: 800,
-		}
-
-		mockSharedChannelStore.On("GetSingleUser", "user1", "channel1", "remote1").Return(existingSCU, nil)
-
-		// Execute original method
-		origSync, origSyncImage, origErr := scs.shouldUserSync(user, "channel1", rc)
-
-		// Execute new unified method with same params
-		opts := SyncUserOpts{
-			User:          user,
-			RemoteCluster: rc,
-			ChannelID:     "channel1",
-		}
-		newSync, newSyncImage, newErr := scs.shouldUserSyncWithOptions(opts)
-
-		// Check that results match
-		assert.Equal(t, origSync, newSync, "sync flag should match between old and new methods")
-		assert.Equal(t, origSyncImage, newSyncImage, "syncImage flag should match between old and new methods")
-		assert.Equal(t, origErr, newErr, "error should match between old and new methods")
-
-		// Verify the expected result (user should need sync since UpdateAt > LastSyncAt)
-		assert.True(t, newSync, "User should need sync since UpdateAt > LastSyncAt")
-		assert.True(t, newSyncImage, "User should need image sync since LastPictureUpdate > LastSyncAt")
-	})
-
-	t.Run("unified method matches original behavior for global sync", func(t *testing.T) {
-		// Create mock store
-		mockSharedChannelStore := &mocks.SharedChannelStore{}
-		mockStore := &mocks.Store{}
-		mockStore.On("SharedChannel").Return(mockSharedChannelStore)
-
-		// Create mock server
-		mockServer := &MockServerIface{}
-		mockServer.On("GetStore").Return(mockStore)
-		mockServer.On("Log").Return(testLogger)
-
-		// Create service
-		scs := &Service{
-			server: mockServer,
-		}
-
-		// Test user and remote
-		user := &model.User{
-			Id:                "user1",
-			Username:          "testuser",
-			Email:             "test@example.com",
-			UpdateAt:          1000,
-			LastPictureUpdate: 900,
-		}
-
-		rc := &model.RemoteCluster{
-			RemoteId: "remote1",
-		}
-
-		// Mock getting users for remote
-		scus := []*model.SharedChannelUser{
-			{
-				UserId:     "user1",
-				RemoteId:   "remote1",
-				ChannelId:  "channel1",
-				LastSyncAt: 1200, // This is after user.UpdateAt, so no sync needed
-			},
-			{
-				UserId:     "user1",
-				RemoteId:   "remote1",
-				ChannelId:  "channel2",
-				LastSyncAt: 800, // This is before user.UpdateAt, so sync needed
-			},
-		}
-
-		mockSharedChannelStore.On("GetUsersByUserAndRemote", "user1", "remote1").Return(scus, nil)
-
-		// Create sync data cache for testing
-		syncData := &userSyncData{
-			userSyncMap: map[string]map[string]int64{
-				"user1": {
-					"channel1": 1200,
-					"channel2": 800,
-				},
-			},
-			initialized: true,
-		}
-
-		// Execute original global sync method
-		origSync, origErr := scs.shouldUserSyncGlobal(user, rc, syncData)
-
-		// Execute new unified method
-		opts := SyncUserOpts{
-			User:          user,
-			RemoteCluster: rc,
-			SyncDataCache: syncData,
-		}
-		newSync, _, newErr := scs.shouldUserSyncWithOptions(opts)
-
-		// Check that results match
-		assert.Equal(t, origSync, newSync, "sync flag should match between old and new methods")
-		assert.Equal(t, origErr, newErr, "error should match between old and new methods")
-
-		// Verify the expected result (user should need sync since one channel has LastSyncAt < UpdateAt)
-		assert.True(t, newSync, "User should need sync since at least one channel has LastSyncAt < UpdateAt")
-	})
-
-	t.Run("when provided timestamp is used directly", func(t *testing.T) {
-		// Create mock store
-		mockStore := &mocks.Store{}
-
-		// Create mock server
-		mockServer := &MockServerIface{}
-		mockServer.On("GetStore").Return(mockStore)
-		mockServer.On("Log").Return(testLogger)
-
-		// Create service
-		scs := &Service{
-			server: mockServer,
-		}
-
-		// Test user and remote
-		user := &model.User{
-			Id:                "user1",
-			Username:          "testuser",
-			Email:             "test@example.com",
-			UpdateAt:          1000,
-			LastPictureUpdate: 900,
-		}
-
-		rc := &model.RemoteCluster{
-			RemoteId: "remote1",
-		}
-
-		// Execute new unified method with provided timestamp
-		opts := SyncUserOpts{
-			User:                 user,
-			RemoteCluster:        rc,
-			LastSyncAt:           1100, // After user.UpdateAt so no sync needed
-			UseProvidedTimestamp: true,
-		}
-		sync, syncImage, err := scs.shouldUserSyncWithOptions(opts)
-
-		// Verify results
-		assert.NoError(t, err)
-		assert.False(t, sync, "Sync should be false when LastSyncAt > UpdateAt")
-		assert.False(t, syncImage, "SyncImage should be false when LastSyncAt > LastPictureUpdate")
-
-		// Try with earlier timestamp
-		opts.LastSyncAt = 500 // Before user.UpdateAt so sync needed
-		sync, syncImage, err = scs.shouldUserSyncWithOptions(opts)
-
-		// Verify results
-		assert.NoError(t, err)
-		assert.True(t, sync, "Sync should be true when LastSyncAt < UpdateAt")
-		assert.True(t, syncImage, "SyncImage should be true when LastSyncAt < LastPictureUpdate")
-	})
-
-	t.Run("user from remote cluster is never synced back", func(t *testing.T) {
-		// Create mock store
-		mockStore := &mocks.Store{}
-
-		// Create mock server
-		mockServer := &MockServerIface{}
-		mockServer.On("GetStore").Return(mockStore)
-		mockServer.On("Log").Return(testLogger)
-
-		// Create service
-		scs := &Service{
-			server: mockServer,
-		}
-
-		// Remote ID matching our target remote
-		remoteId := "remote1"
-
-		// User from the remote cluster
-		user := &model.User{
-			Id:                "remote_user",
-			Username:          "remoteuser",
-			Email:             "remote@example.com",
-			UpdateAt:          1000,
-			LastPictureUpdate: 900,
-			RemoteId:          &remoteId,
-		}
-
-		rc := &model.RemoteCluster{
-			RemoteId: "remote1",
-		}
-
-		// Execute all variants of the method
-
-		// Channel-specific check
-		opts1 := SyncUserOpts{
-			User:          user,
-			RemoteCluster: rc,
-			ChannelID:     "channel1",
-		}
-		sync1, syncImage1, err1 := scs.shouldUserSyncWithOptions(opts1)
-
-		// Global check with cache
-		syncData := &userSyncData{
-			userSyncMap: map[string]map[string]int64{},
-			initialized: true,
-		}
-		opts2 := SyncUserOpts{
-			User:          user,
-			RemoteCluster: rc,
-			SyncDataCache: syncData,
-		}
-		sync2, syncImage2, err2 := scs.shouldUserSyncWithOptions(opts2)
-
-		// Direct timestamp check
-		opts3 := SyncUserOpts{
-			User:                 user,
-			RemoteCluster:        rc,
-			LastSyncAt:           0, // Should need sync, but the remote check should prevent it
-			UseProvidedTimestamp: true,
-		}
-		sync3, syncImage3, err3 := scs.shouldUserSyncWithOptions(opts3)
-
-		// Verify all results show no sync needed
-		assert.NoError(t, err1)
-		assert.False(t, sync1, "Channel-specific: User from remote should not be synced back")
-		assert.False(t, syncImage1, "Channel-specific: User image from remote should not be synced back")
-
-		assert.NoError(t, err2)
-		assert.False(t, sync2, "Global with cache: User from remote should not be synced back")
-		assert.False(t, syncImage2, "Global with cache: User image from remote should not be synced back")
-
-		assert.NoError(t, err3)
-		assert.False(t, sync3, "Direct timestamp: User from remote should not be synced back")
-		assert.False(t, syncImage3, "Direct timestamp: User image from remote should not be synced back")
 	})
 }

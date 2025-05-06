@@ -685,7 +685,6 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 	}
 }
 
-
 // shouldUserSyncGlobal determines if a user needs to be synchronized globally.
 // Checks if the user has any sync records for the remote cluster and if any of them need updating.
 func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteCluster, syncData *userSyncData) (bool, error) {
@@ -693,27 +692,27 @@ func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteClust
 	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
 		return false, nil
 	}
-	
+
 	// First check the cache if provided
 	if syncData != nil && syncData.initialized {
 		channelMap, exists := syncData.userSyncMap[user.Id]
-		
+
 		// If user doesn't exist in our sync map, they need syncing
 		if !exists {
 			return true, nil
 		}
-		
+
 		// Check if any channel entry needs updating
 		for _, lastSyncAt := range channelMap {
 			if user.UpdateAt > lastSyncAt || user.LastPictureUpdate > lastSyncAt {
 				return true, nil
 			}
 		}
-		
+
 		// All entries are up to date
 		return false, nil
 	}
-	
+
 	// No cache or cache not initialized - query the database
 	scus, err := scs.server.GetStore().SharedChannel().GetUsersByUserAndRemote(user.Id, rc.RemoteId)
 	if err != nil {
@@ -723,19 +722,19 @@ func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteClust
 		// No entries found - user needs sync
 		return true, nil
 	}
-	
+
 	// No sync entries found means user needs syncing
 	if len(scus) == 0 {
 		return true, nil
 	}
-	
+
 	// Check if any channel entry needs updating
 	for _, scu := range scus {
 		if user.UpdateAt > scu.LastSyncAt || user.LastPictureUpdate > scu.LastSyncAt {
 			return true, nil
 		}
 	}
-	
+
 	// User has entries and all are up to date
 	return false, nil
 }
@@ -858,8 +857,12 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 							mlog.Err(err),
 						)
 					} else {
-						// Update our working copy
+						// Update our working copy to ensure subsequent batches use updated cursor
 						*rc = rcCopy
+						scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated LastGlobalUserSyncAt cursor",
+							mlog.String("remote_id", rc.RemoteId),
+							mlog.Int("new_cursor", latestProcessedTime),
+						)
 					}
 				}
 				sd.users = make(map[string]*model.User)

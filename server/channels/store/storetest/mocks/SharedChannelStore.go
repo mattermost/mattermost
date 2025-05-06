@@ -158,36 +158,6 @@ func (_m *SharedChannelStore) GetAllCount(opts model.SharedChannelFilterOpts) (i
 	return r0, r1
 }
 
-// GetUsersByRemote provides a mock function with given fields: remoteID
-func (_m *SharedChannelStore) GetUsersByRemote(remoteID string) ([]*model.SharedChannelUser, error) {
-	ret := _m.Called(remoteID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetUsersByRemote")
-	}
-
-	var r0 []*model.SharedChannelUser
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]*model.SharedChannelUser, error)); ok {
-		return rf(remoteID)
-	}
-	if rf, ok := ret.Get(0).(func(string) []*model.SharedChannelUser); ok {
-		r0 = rf(remoteID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.SharedChannelUser)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(remoteID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetAttachment provides a mock function with given fields: fileID, remoteID
 func (_m *SharedChannelStore) GetAttachment(fileID string, remoteID string) (*model.SharedChannelAttachment, error) {
 	ret := _m.Called(fileID, remoteID)
@@ -391,6 +361,36 @@ func (_m *SharedChannelStore) GetSingleUser(userID string, channelID string, rem
 
 	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
 		r1 = rf(userID, channelID, remoteID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUsersByRemote provides a mock function with given fields: remoteID
+func (_m *SharedChannelStore) GetUsersByRemote(remoteID string) ([]*model.SharedChannelUser, error) {
+	ret := _m.Called(remoteID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUsersByRemote")
+	}
+
+	var r0 []*model.SharedChannelUser
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.SharedChannelUser, error)); ok {
+		return rf(remoteID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.SharedChannelUser); ok {
+		r0 = rf(remoteID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.SharedChannelUser)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(remoteID)
 	} else {
 		r1 = ret.Error(1)
 	}
