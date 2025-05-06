@@ -431,13 +431,13 @@ jobs:
       - name: Build FIPS enabled server
         if: ${{ inputs.fips-enabled }}
         run: |
-          make build-client BUILD_NUMBER='${BUILD_NUMBER}'
-          make build-cmd-linux-amd64 BUILD_NUMBER='${BUILD_NUMBER}'
-          make package-linux-amd64 BUILD_NUMBER='${BUILD_NUMBER}'
+          make build-client 
+          make build-cmd-linux-amd64
+          make package-linux-amd64
       - name: Build
         run: |
-          make build-cmd BUILD_NUMBER='${BUILD_NUMBER}'
-          make package BUILD_NUMBER='${BUILD_NUMBER}'
+          make build-cmd
+          make package
       - name: Persist dist artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
