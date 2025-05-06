@@ -10630,5 +10630,13 @@
   {
     "id": "web.incoming_webhook.parse_multipart.app_error",
     "translation": "Fout bij het parsen van het multipart formulier voor webhook {{.hook_id}}."
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Fout bij het berekenen van maandelijkse actieve gebruikers."
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "Er is geen gebruiker geregistreerd op de AD/LDAP-server die overeenkomt met de SAML-gebruiker."
   }
 ]
