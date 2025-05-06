@@ -3,8 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl';
-import type {WrappedComponentProps} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import type {Job, JobType} from '@mattermost/types/jobs';
 
@@ -44,16 +43,14 @@ export type Props = {
     };
 }
 
-type JobTableProps = Props & WrappedComponentProps;
-
 type State = {
     currentPage: number;
 }
 
-class JobTable extends React.PureComponent<JobTableProps, State> {
+class JobTable extends React.PureComponent<Props, State> {
     interval: ReturnType<typeof setInterval>|null = null;
 
-    constructor(props: JobTableProps) {
+    constructor(props: Props) {
         super(props);
         this.state = {
             currentPage: 0,
@@ -173,8 +170,6 @@ class JobTable extends React.PureComponent<JobTableProps, State> {
                 const firstPage = startIndex <= 0;
                 const lastPage = endIndex >= this.props.jobs.length;
 
-                const {formatMessage} = this.props.intl;
-
                 footer = (
                     <div className='DataGrid_footer'>
                         <div className='DataGrid_cell'>
@@ -192,7 +187,6 @@ class JobTable extends React.PureComponent<JobTableProps, State> {
                                 className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
                                 onClick={this.handlePrevPage}
                                 disabled={firstPage}
-                                aria-label={formatMessage({id: 'admin.jobTable.prevPage', defaultMessage: 'Previous page'})}
                             >
                                 <PreviousIcon/>
                             </button>
@@ -201,7 +195,6 @@ class JobTable extends React.PureComponent<JobTableProps, State> {
                                 className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
                                 onClick={this.handleNextPage}
                                 disabled={lastPage}
-                                aria-label={formatMessage({id: 'admin.jobTable.nextPage', defaultMessage: 'Next page'})}
                             >
                                 <NextIcon/>
                             </button>
@@ -293,4 +286,4 @@ class JobTable extends React.PureComponent<JobTableProps, State> {
     }
 }
 
-export default injectIntl(JobTable);
+export default JobTable;
