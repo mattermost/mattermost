@@ -218,15 +218,17 @@ func (a *App) SearchAccessControlPolicies(rctx request.CTX, opts model.AccessCon
 		return nil, 0, model.NewAppError("SearchAccessControlPolicies", "app.pap.search_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	var appErr *model.AppError
 	for i, policy := range policies {
 		if policy.Type != model.AccessControlPolicyTypeParent {
 			continue
 		}
-		policies[i], appErr = acs.NormalizePolicy(rctx, policy)
+
+		normlizedPolicy, appErr := acs.NormalizePolicy(rctx, policy)
 		if appErr != nil {
-			return nil, 0, appErr
+			mlog.Error("Failed to normalize policy", mlog.String("policy_id", policy.ID), mlog.Err(appErr))
+			continue
 		}
+		policies[i] = normlizedPolicy
 	}
 
 	return policies, total, nil

@@ -100,26 +100,32 @@ function PolicyDetails({
     };
 
     const loadPage = async () => {
-        if (!policyId) {
-            return;
-        }
-
-        await actions.fetchPolicy(policyId).then((result) => {
-            setPolicyName(result.data?.name || '');
-            setExpression(result.data?.rules?.[0]?.expression || '');
-            setAutoSyncMembership(result.data?.active || false);
-        });
-
-        // Search for channels after setting the policy details
-        await actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE}).then((result) => {
-            setChannelsCount(result.data?.total_count || 0);
-        });
-
-        await actions.getAccessControlFields('', 100).then((result) => {
+        // Fetch autocomplete fields first, as they are general and needed for both new and existing policies.
+        const fieldsPromise = actions.getAccessControlFields('', 100).then((result) => {
             if (result.data) {
                 setAutocompleteResult(result.data);
             }
         });
+
+        if (policyId) {
+            // For existing policies, fetch policy details and channels
+            const policyPromise = actions.fetchPolicy(policyId).then((result) => {
+                setPolicyName(result.data?.name || '');
+                setExpression(result.data?.rules?.[0]?.expression || '');
+                setAutoSyncMembership(result.data?.active || false);
+            });
+
+            const channelsPromise = actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE}).then((result) => {
+                setChannelsCount(result.data?.total_count || 0);
+            });
+
+            // Wait for all fetches for an existing policy
+            await Promise.all([fieldsPromise, policyPromise, channelsPromise]);
+        } else {
+            // For new policies, just ensure general fields are fetched.
+            // Policy name, expression, etc., are already initialized from props or defaults by useState.
+            await fieldsPromise;
+        }
     };
 
     const handleSubmit = async (apply = false) => {
@@ -356,7 +362,7 @@ function PolicyDetails({
                                     userAttributes={autocompleteResult.map((attr) => ({
                                         attribute: attr.name,
                                         values: [],
-                                    })) || []}
+                                    }))}
                                 />
                             ) : (
                                 <TableEditor
@@ -369,7 +375,7 @@ function PolicyDetails({
                                     userAttributes={autocompleteResult.map((attr) => ({
                                         attribute: attr.name,
                                         values: [],
-                                    })) || []}
+                                    }))}
                                 />
                             )}
                         </Card.Body>
