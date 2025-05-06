@@ -1,1 +1,1 @@
-ALTER TABLE remoteclusters DROP COLUMN IF EXISTS lastglobalusersync_at;
+ALTER TABLE remoteclusters DROP COLUMN IF EXISTS lastglobalusersyncat;

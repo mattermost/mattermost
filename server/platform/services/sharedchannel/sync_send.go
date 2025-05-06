@@ -547,22 +547,6 @@ func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 	return i18n.GetUserTranslations(locale)
 }
 
-// SyncUserOpts defines options for checking if a user needs synchronization
-type SyncUserOpts struct {
-	// User to check for sync
-	User *model.User
-	// Remote cluster to check against
-	RemoteCluster *model.RemoteCluster
-	// ChannelID for channel-specific syncs, empty for global syncs
-	ChannelID string
-	// Last sync timestamp from any source (can be passed directly instead of querying)
-	LastSyncAt int64
-	// When true, uses the provided LastSyncAt value directly
-	UseProvidedTimestamp bool
-	// Optional cache of user sync information to avoid DB queries
-	SyncDataCache *userSyncData
-}
-
 // userSyncData holds cached sync data for users to avoid multiple DB queries
 type userSyncData struct {
 	// map of userID -> map of channelID -> LastSyncAt timestamp
