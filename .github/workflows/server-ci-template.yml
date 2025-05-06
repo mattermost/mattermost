@@ -417,22 +417,22 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: "webapp/package-lock.json"
-      - name: Run setup-go-work
-        run: make setup-go-work
-      - name: Build FIPS enabled server
+      - name: Setup FIPS Go Bin
         if: ${{ inputs.fips-enabled }}
+        run: mkdir -p .go/bin          
+      - name: Run setup-go-work
         env:
           OUTPUT_CONFIG: config/config.json
         run: |
-          mkdir -p .go/bin
+          make setup-go-work
           make config-reset
+      - name: Build FIPS enabled server
+        if: ${{ inputs.fips-enabled }}
+        run: |
           make build-cmd-linux-amd64 BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
           make package-linux-amd64 BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
       - name: Build
-        env:
-          OUTPUT_CONFIG: config/config.json
         run: |
-          make config-reset
           make build-cmd BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
           make package BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
       - name: Persist dist artifacts
