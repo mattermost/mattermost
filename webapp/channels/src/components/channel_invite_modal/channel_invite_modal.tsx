@@ -4,7 +4,7 @@
 import './channel_invite_modal.scss';
 
 import isEqual from 'lodash/isEqual';
-import React from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 
@@ -31,6 +31,7 @@ import GenericTag from 'components/widgets/tag/generic_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
+import useAccessControlAttributes from 'hooks/useAccessControlAttributes';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {sortUsersAndGroups} from 'utils/utils';
 
@@ -83,201 +84,127 @@ export type Props = {
     };
 }
 
-type State = {
-    selectedUsers: UserProfileValue[];
-    groupAndUserOptions: Array<UserProfileValue | GroupValue>;
-    usersNotInTeam: UserProfileValue[];
-    guestsNotInTeam: UserProfileValue[];
-    term: string;
-    show: boolean;
-    saving: boolean;
-    loadingUsers: boolean;
-    inviteError?: string;
-    attributeTags: string[];
-    loadingAttributes: boolean;
-}
+// Helper function to check if an option is a user
+const isUser = (option: UserProfileValue | GroupValue): option is UserProfileValue => {
+    return (option as UserProfile).username !== undefined;
+};
 
-export class ChannelInviteModal extends React.PureComponent<Props, State> {
-    private searchTimeoutId = 0;
-    private selectedItemRef = React.createRef<HTMLDivElement>();
+const ChannelInviteModalComponent = (props: Props) => {
+    const [selectedUsers, setSelectedUsers] = useState<UserProfileValue[]>([]);
+    const [usersNotInTeam, setUsersNotInTeam] = useState<UserProfileValue[]>([]);
+    const [guestsNotInTeam, setGuestsNotInTeam] = useState<UserProfileValue[]>([]);
+    const [term, setTerm] = useState('');
+    const [show, setShow] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [loadingUsers, setLoadingUsers] = useState(true);
+    const [groupAndUserOptions, setGroupAndUserOptions] = useState<Array<UserProfileValue | GroupValue>>([]);
+    const [inviteError, setInviteError] = useState<string | undefined>(undefined);
 
-    public static defaultProps = {
-        includeUsers: {},
-        excludeUsers: {},
-        skipCommit: false,
-    };
+    const searchTimeoutId = useRef<number>(0);
+    const selectedItemRef = useRef<HTMLDivElement>(null);
 
-    constructor(props: Props) {
-        super(props);
-        this.state = {
-            selectedUsers: [],
-            usersNotInTeam: [],
-            guestsNotInTeam: [],
-            term: '',
-            show: true,
-            saving: false,
-            loadingUsers: true,
-            groupAndUserOptions: [],
-            attributeTags: [],
-            loadingAttributes: false,
-        } as State;
-    }
+    // Use the useAccessControlAttributes hook
+    const {attributeTags} = useAccessControlAttributes(
+        'channel',
+        props.channel.id,
+        props.channel.policy_enforced,
+    );
 
-    isUser = (option: UserProfileValue | GroupValue): option is UserProfileValue => {
-        return (option as UserProfile).username !== undefined;
-    };
-
-    private addValue = (value: UserProfileValue | GroupValue): void => {
-        if (this.isUser(value)) {
+    // Helper function to add a user or group to the selected list
+    const addValue = useCallback((value: UserProfileValue | GroupValue) => {
+        if (isUser(value)) {
             const profile = value;
-            if (!this.props.membersInTeam || !this.props.membersInTeam[profile.id]) {
+            if (!props.membersInTeam || !props.membersInTeam[profile.id]) {
                 if (isGuest(profile.roles)) {
-                    if (this.state.guestsNotInTeam.indexOf(profile) === -1) {
-                        this.setState((prevState) => {
-                            return {guestsNotInTeam: [...prevState.guestsNotInTeam, profile]};
-                        });
-                    }
+                    setGuestsNotInTeam((prevState) => {
+                        if (prevState.findIndex((p) => p.id === profile.id) === -1) {
+                            return [...prevState, profile];
+                        }
+                        return prevState;
+                    });
                     return;
                 }
-                if (this.state.usersNotInTeam.indexOf(profile) === -1) {
-                    this.setState((prevState) => {
-                        return {usersNotInTeam: [...prevState.usersNotInTeam, profile]};
-                    });
-                }
+                setUsersNotInTeam((prevState) => {
+                    if (prevState.findIndex((p) => p.id === profile.id) === -1) {
+                        return [...prevState, profile];
+                    }
+                    return prevState;
+                });
                 return;
             }
 
-            if (this.state.selectedUsers.indexOf(profile) === -1) {
-                this.setState((prevState) => {
-                    return {selectedUsers: [...prevState.selectedUsers, profile]};
-                });
-            }
-        }
-    };
-
-    private removeInvitedUsers = (profiles: UserProfile[]): void => {
-        const usersNotInTeam = this.state.usersNotInTeam.filter((profile) => {
-            const user = profile as UserProfileValue;
-
-            const index = profiles.indexOf(user);
-            if (index === -1) {
-                return true;
-            }
-            this.addValue(user);
-            return false;
-        });
-
-        this.setState({usersNotInTeam: [...usersNotInTeam], guestsNotInTeam: []});
-    };
-
-    private removeUsersFromValuesNotInTeam = (profiles: UserProfile[]): void => {
-        const usersNotInTeam = this.state.usersNotInTeam.filter((profile) => {
-            const index = profiles.indexOf(profile);
-            return index === -1;
-        });
-        this.setState({usersNotInTeam: [...usersNotInTeam], guestsNotInTeam: []});
-    };
-
-    public componentDidMount(): void {
-        this.props.actions.getProfilesNotInChannel(this.props.channel.team_id, this.props.channel.id, this.props.channel.group_constrained, 0).then(() => {
-            this.setUsersLoadingState(false);
-        });
-        this.props.actions.getProfilesInChannel(this.props.channel.id, 0, USERS_PER_PAGE, '', {active: true});
-        this.props.actions.getTeamStats(this.props.channel.team_id);
-        this.props.actions.loadStatusesForProfilesList(this.props.profilesNotInCurrentChannel);
-        this.props.actions.loadStatusesForProfilesList(this.props.profilesInCurrentChannel);
-
-        if (this.props.channel.policy_enforced) {
-            this.fetchChannelAccessControlAttributes();
-        }
-    }
-
-    private fetchChannelAccessControlAttributes = async () => {
-        this.setState({loadingAttributes: true});
-
-        try {
-            const url = `${Client4.getChannelsRoute()}/${this.props.channel.id}/access_control/attributes`;
-
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    Authorization: `Bearer ${Client4.getToken()}`,
-                },
+            setSelectedUsers((prevState) => {
+                if (prevState.findIndex((p) => p.id === profile.id) === -1) {
+                    return [...prevState, profile];
+                }
+                return prevState;
             });
+        }
+    }, [props.membersInTeam, isGuest]);
 
-            if (!response.ok) {
-                throw new Error(`Failed to fetch access control attributes: ${response.status}`);
-            }
-
-            const data = await response.json();
-            const tags: string[] = [];
-
-            // Extract values from all properties in the response
-            // Format: { "attributeName": ["value1", "value2"], "anotherAttribute": ["value3"] }
-            Object.entries(data).forEach(([, values]: [string, any]) => {
-                if (Array.isArray(values)) {
-                    values.forEach((value) => {
-                        if (value !== undefined && value !== null) {
-                            tags.push(value);
-                        }
-                    });
+    // These functions are kept for potential future use but are not currently used in the component
+    // They were part of the original class implementation and might be needed for future features
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const removeInvitedUsers = useCallback((profiles: UserProfile[]) => {
+        setUsersNotInTeam((prevState) => {
+            const updatedUsers = prevState.filter((profile) => {
+                const user = profile as UserProfileValue;
+                const index = profiles.indexOf(user);
+                if (index === -1) {
+                    return true;
                 }
+                addValue(user);
+                return false;
             });
+            return updatedUsers;
+        });
+        setGuestsNotInTeam([]);
+    }, [addValue]);
 
-            this.setState({attributeTags: tags});
-        } catch (err) {
-            // Silently handle the error, just don't show any tags
-        } finally {
-            this.setState({loadingAttributes: false});
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const removeUsersFromValuesNotInTeam = useCallback((profiles: UserProfile[]) => {
+        setUsersNotInTeam((prevState) => {
+            return prevState.filter((profile) => {
+                const index = profiles.indexOf(profile);
+                return index === -1;
+            });
+        });
+        setGuestsNotInTeam([]);
+    }, []);
+
+    // Get excluded users
+    const getExcludedUsers = useCallback(() => {
+        if (props.excludeUsers) {
+            return new Set([
+                ...props.profilesNotInCurrentTeam.map((user) => user.id),
+                ...Object.values(props.excludeUsers).map((user) => user.id),
+            ]);
         }
-    };
+        return new Set(props.profilesNotInCurrentTeam.map((user) => user.id));
+    }, [props.excludeUsers, props.profilesNotInCurrentTeam]);
 
-    public async componentDidUpdate(prevProps: Props, prevState: State) {
-        if (prevState.term !== this.state.term) {
-            const values = this.getOptions();
-            const userIds: string[] = [];
+    // Filter out deleted and excluded users
+    const filterOutDeletedAndExcludedAndNotInTeamUsers = useCallback((users: UserProfile[], excludeUserIds: Set<string>): UserProfileValue[] => {
+        return users.filter((user) => {
+            return user.delete_at === 0 && !excludeUserIds.has(user.id);
+        }) as UserProfileValue[];
+    }, []);
 
-            for (let index = 0; index < values.length; index++) {
-                const newValue = values[index];
-                if (this.isUser(newValue)) {
-                    userIds.push(newValue.id);
-                } else if (newValue.member_ids) {
-                    userIds.push(...newValue.member_ids);
-                }
-            }
+    // Get options for the multiselect
+    const getOptions = useCallback(() => {
+        const excludedAndNotInTeamUserIds = getExcludedUsers();
 
-            if (!isEqual(values, this.state.groupAndUserOptions)) {
-                if (userIds.length > 0) {
-                    this.props.actions.getTeamMembersByIds(this.props.channel.team_id, userIds);
-                }
-                this.setState({groupAndUserOptions: values});
-            }
-        }
-    }
-
-    getExcludedUsers = (): Set<string> => {
-        if (this.props.excludeUsers) {
-            return new Set(...this.props.profilesNotInCurrentTeam.map((user) => user.id), Object.values(this.props.excludeUsers).map((user) => user.id));
-        }
-        return new Set(this.props.profilesNotInCurrentTeam.map((user) => user.id));
-    };
-
-    // Options list prioritizes recent dms for the first 10 users and then the next 15 are a mix of users and groups
-    public getOptions = () => {
-        const excludedAndNotInTeamUserIds = this.getExcludedUsers();
-
-        const filteredDmUsers = filterProfilesStartingWithTerm(this.props.profilesFromRecentDMs, this.state.term);
-        const dmUsers = this.filterOutDeletedAndExcludedAndNotInTeamUsers(filteredDmUsers, excludedAndNotInTeamUserIds).slice(0, USERS_FROM_DMS) as UserProfileValue[];
+        const filteredDmUsers = filterProfilesStartingWithTerm(props.profilesFromRecentDMs, term);
+        const dmUsers = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredDmUsers, excludedAndNotInTeamUserIds).slice(0, USERS_FROM_DMS) as UserProfileValue[];
 
         let users: UserProfileValue[];
-        const filteredUsers: UserProfile[] = filterProfilesStartingWithTerm(this.props.profilesNotInCurrentChannel.concat(this.props.profilesInCurrentChannel), this.state.term);
-        users = this.filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
-        if (this.props.includeUsers) {
-            users = [...users, ...Object.values(this.props.includeUsers)];
+        const filteredUsers: UserProfile[] = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel.concat(props.profilesInCurrentChannel), term);
+        users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
+        if (props.includeUsers) {
+            users = [...users, ...Object.values(props.includeUsers)];
         }
         const groupsAndUsers = [
-            ...filterGroupsMatchingTerm(this.props.groups, this.state.term) as GroupValue[],
+            ...filterGroupsMatchingTerm(props.groups, term) as GroupValue[],
             ...users,
         ].sort(sortUsersAndGroups);
 
@@ -287,98 +214,106 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
         ].slice(0, MAX_USERS);
 
         return Array.from(new Set(optionValues));
-    };
+    }, [
+        term,
+        props.profilesFromRecentDMs,
+        props.profilesNotInCurrentChannel,
+        props.profilesInCurrentChannel,
+        props.includeUsers,
+        props.groups,
+        getExcludedUsers,
+        filterOutDeletedAndExcludedAndNotInTeamUsers,
+    ]);
 
-    public onHide = (): void => {
-        this.setState({show: false});
-        this.props.actions.loadStatusesForProfilesList(this.props.profilesNotInCurrentChannel);
-        this.props.actions.loadStatusesForProfilesList(this.props.profilesInCurrentChannel);
-    };
+    // Handle modal hide
+    const onHide = useCallback(() => {
+        setShow(false);
+        props.actions.loadStatusesForProfilesList(props.profilesNotInCurrentChannel);
+        props.actions.loadStatusesForProfilesList(props.profilesInCurrentChannel);
+    }, [props.actions, props.profilesNotInCurrentChannel, props.profilesInCurrentChannel]);
 
-    public handleInviteError = (err: any): void => {
+    // Handle invite error
+    const handleInviteError = useCallback((err: any) => {
         if (err) {
-            this.setState({
-                saving: false,
-                inviteError: err.message,
-            });
+            setSaving(false);
+            setInviteError(err.message);
         }
-    };
+    }, []);
 
-    private handleDelete = (values: Array<UserProfileValue | GroupValue>): void => {
+    // Handle delete (removing users from selection)
+    const handleDelete = useCallback((values: Array<UserProfileValue | GroupValue>) => {
         // Our values for this component are always UserProfileValue
         const profiles = values as UserProfileValue[];
-        this.setState({selectedUsers: profiles});
-    };
+        setSelectedUsers(profiles);
+    }, []);
 
-    private setUsersLoadingState = (loadingState: boolean): void => {
-        this.setState({
-            loadingUsers: loadingState,
-        });
-    };
+    // Set users loading state
+    const setUsersLoadingState = useCallback((loadingState: boolean) => {
+        setLoadingUsers(loadingState);
+    }, []);
 
-    private handlePageChange = (page: number, prevPage: number): void => {
+    // Handle page change
+    const handlePageChange = useCallback((page: number, prevPage: number) => {
         if (page > prevPage) {
-            this.setUsersLoadingState(true);
-            this.props.actions.getProfilesNotInChannel(
-                this.props.channel.team_id,
-                this.props.channel.id,
-                this.props.channel.group_constrained,
-                page + 1, USERS_PER_PAGE).then(() => this.setUsersLoadingState(false));
+            setUsersLoadingState(true);
+            props.actions.getProfilesNotInChannel(
+                props.channel.team_id,
+                props.channel.id,
+                props.channel.group_constrained,
+                page + 1, USERS_PER_PAGE).then(() => setUsersLoadingState(false));
 
-            this.props.actions.getProfilesInChannel(this.props.channel.id, page + 1, USERS_PER_PAGE, '', {active: true});
+            props.actions.getProfilesInChannel(props.channel.id, page + 1, USERS_PER_PAGE, '', {active: true});
         }
-    };
+    }, [props.actions, props.channel, setUsersLoadingState]);
 
-    public handleSubmit = (): void => {
-        const {actions, channel} = this.props;
+    // Handle form submission
+    const handleSubmit = useCallback(() => {
+        const {actions, channel} = props;
 
-        const userIds = this.state.selectedUsers.map((u) => u.id);
+        const userIds = selectedUsers.map((u) => u.id);
         if (userIds.length === 0) {
             return;
         }
 
-        if (this.props.skipCommit && this.props.onAddCallback) {
-            this.props.onAddCallback(this.state.selectedUsers);
-            this.setState({
-                saving: false,
-                inviteError: undefined,
-            });
-            this.onHide();
+        if (props.skipCommit && props.onAddCallback) {
+            props.onAddCallback(selectedUsers);
+            setSaving(false);
+            setInviteError(undefined);
+            onHide();
             return;
         }
 
-        this.setState({saving: true});
+        setSaving(true);
 
         actions.addUsersToChannel(channel.id, userIds).then((result) => {
             if (result.error) {
-                this.handleInviteError(result.error);
+                handleInviteError(result.error);
             } else {
-                this.setState({
-                    saving: false,
-                    inviteError: undefined,
-                });
-                this.onHide();
+                setSaving(false);
+                setInviteError(undefined);
+                onHide();
             }
         });
-    };
+    }, [props, selectedUsers, handleInviteError, onHide]);
 
-    public search = (searchTerm: string): void => {
+    // Handle search
+    const search = useCallback((searchTerm: string) => {
         const term = searchTerm.trim();
-        clearTimeout(this.searchTimeoutId);
-        this.setState({
-            term,
-        });
+        clearTimeout(searchTimeoutId.current);
+        setTerm(term);
 
-        this.searchTimeoutId = window.setTimeout(
+        if (!term) {
+            // If the search term is empty, don't make any API calls
+            setUsersLoadingState(false);
+            return;
+        }
+
+        searchTimeoutId.current = window.setTimeout(
             async () => {
-                if (!term) {
-                    return;
-                }
-
                 const options = {
-                    team_id: this.props.channel.team_id,
-                    not_in_channel_id: this.props.channel.id,
-                    group_constrained: this.props.channel.group_constrained,
+                    team_id: props.channel.team_id,
+                    not_in_channel_id: props.channel.id,
+                    group_constrained: Boolean(props.channel.group_constrained),
                 };
 
                 const opts = {
@@ -390,59 +325,55 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                     include_member_ids: true,
                 };
                 const promises = [
-                    this.props.actions.searchProfiles(term, options),
+                    props.actions.searchProfiles(term, options),
                 ];
-                if (this.props.isGroupsEnabled) {
-                    promises.push(this.props.actions.searchAssociatedGroupsForReference(term, this.props.channel.team_id, this.props.channel.id, opts));
+                if (props.isGroupsEnabled) {
+                    promises.push(props.actions.searchAssociatedGroupsForReference(term, props.channel.team_id, props.channel.id, opts));
                 }
                 await Promise.all(promises);
-                this.setUsersLoadingState(false);
+                setUsersLoadingState(false);
             },
             Constants.SEARCH_TIMEOUT_MILLISECONDS,
         );
-    };
+    }, [props.actions, props.channel, props.isGroupsEnabled, setUsersLoadingState]);
 
-    private renderAriaLabel = (option: UserProfileValue | GroupValue): string => {
+    // Render aria label for options
+    const renderAriaLabel = useCallback((option: UserProfileValue | GroupValue): string => {
         if (!option) {
             return '';
         }
-        if (this.isUser(option)) {
+        if (isUser(option)) {
             return option.username;
         }
         return option.name;
-    };
+    }, []);
 
-    private filterOutDeletedAndExcludedAndNotInTeamUsers = (users: UserProfile[], excludeUserIds: Set<string>): UserProfileValue[] => {
-        return users.filter((user) => {
-            return user.delete_at === 0 && !excludeUserIds.has(user.id);
-        }) as UserProfileValue[];
-    };
-
-    renderOption = (option: UserProfileValue | GroupValue, isSelected: boolean, onAdd: (option: UserProfileValue | GroupValue) => void, onMouseMove: (option: UserProfileValue | GroupValue) => void) => {
+    // Render option for multiselect
+    const renderOption = useCallback((option: UserProfileValue | GroupValue, isSelected: boolean, onAdd: (option: UserProfileValue | GroupValue) => void, onMouseMove: (option: UserProfileValue | GroupValue) => void) => {
         let rowSelected = '';
         if (isSelected) {
             rowSelected = 'more-modal__row--selected';
         }
 
-        if (this.isUser(option)) {
-            const ProfilesInGroup = this.props.profilesInCurrentChannel.map((user) => user.id);
+        if (isUser(option)) {
+            const ProfilesInGroup = props.profilesInCurrentChannel.map((user) => user.id);
 
             const userMapping: Record<string, string> = {};
             for (let i = 0; i < ProfilesInGroup.length; i++) {
                 userMapping[ProfilesInGroup[i]] = 'Already in channel';
             }
-            const displayName = displayUsername(option, this.props.teammateNameDisplaySetting);
+            const displayName = displayUsername(option, props.teammateNameDisplaySetting);
             return (
                 <div
                     key={option.id}
-                    ref={isSelected ? this.selectedItemRef : option.id}
+                    ref={isSelected ? selectedItemRef : undefined}
                     className={'more-modal__row clickable ' + rowSelected}
                     onClick={() => onAdd(option)}
                     onMouseMove={() => onMouseMove(option)}
                 >
                     <ProfilePicture
                         src={Client4.getProfilePictureUrl(option.id, option.last_picture_update)}
-                        status={this.props.userStatuses[option.id]}
+                        status={props.userStatuses[option.id]}
                         size='md'
                         username={option.username}
                     />
@@ -486,170 +417,230 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                 isSelected={isSelected}
                 rowSelected={rowSelected}
                 onMouseMove={onMouseMove}
-                selectedItemRef={this.selectedItemRef}
+                selectedItemRef={selectedItemRef}
             />
         );
-    };
+    }, [props.profilesInCurrentChannel, props.teammateNameDisplaySetting, props.userStatuses]);
 
-    public render = (): JSX.Element => {
-        let inviteError = null;
-        if (this.state.inviteError) {
-            inviteError = (<label className='has-error control-label'>{this.state.inviteError}</label>);
+    // Initial data loading - only run when channel changes or component mounts
+    useEffect(() => {
+        props.actions.getProfilesNotInChannel(props.channel.team_id, props.channel.id, props.channel.group_constrained, 0).then(() => {
+            setUsersLoadingState(false);
+        });
+        props.actions.getProfilesInChannel(props.channel.id, 0, USERS_PER_PAGE, '', {active: true});
+        props.actions.getTeamStats(props.channel.team_id);
+        props.actions.loadStatusesForProfilesList(props.profilesNotInCurrentChannel);
+        props.actions.loadStatusesForProfilesList(props.profilesInCurrentChannel);
+    }, [
+        props.channel.id,
+        props.channel.team_id,
+        props.channel.group_constrained,
+        props.actions,
+
+        // Removing these dependencies as they cause an infinite loop
+        // These profiles are updated by the actions above, which triggers the effect again
+        // props.profilesNotInCurrentChannel,
+        // props.profilesInCurrentChannel,
+    ]);
+
+    // Compute options with useMemo to ensure they're always fresh
+    const computedOptions = useMemo(() => getOptions(), [
+        term,
+        props.profilesFromRecentDMs,
+        props.profilesNotInCurrentChannel,
+        props.profilesInCurrentChannel,
+        props.includeUsers,
+        props.groups,
+        props.profilesNotInCurrentTeam,
+        props.excludeUsers,
+    ]);
+
+    // Update team members when options change
+    useEffect(() => {
+        const userIds: string[] = [];
+
+        for (let index = 0; index < computedOptions.length; index++) {
+            const newValue = computedOptions[index];
+            if (isUser(newValue)) {
+                userIds.push(newValue.id);
+            } else if (newValue.member_ids) {
+                userIds.push(...newValue.member_ids);
+            }
         }
 
-        const buttonSubmitText = defineMessage({id: 'multiselect.add', defaultMessage: 'Add'});
-        const buttonSubmitLoadingText = defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'});
+        if (!isEqual(computedOptions, groupAndUserOptions)) {
+            if (userIds.length > 0) {
+                props.actions.getTeamMembersByIds(props.channel.team_id, userIds);
+            }
+            setGroupAndUserOptions(computedOptions);
+        }
+    }, [computedOptions, props.actions, props.channel.team_id]);
 
-        const closeMembersInviteModal = () => {
-            this.props.actions.closeModal(ModalIdentifiers.CHANNEL_INVITE);
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            clearTimeout(searchTimeoutId.current);
         };
+    }, []);
 
-        const InviteModalLink = (props: {inviteAsGuest?: boolean; children: React.ReactNode; id?: string}) => {
-            return (
-                <ToggleModalButton
-                    className={`${props.inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
-                    modalId={ModalIdentifiers.INVITATION}
-                    dialogType={InvitationModal}
-                    dialogProps={{
-                        channelToInvite: this.props.channel,
-                        initialValue: this.state.term,
-                        inviteAsGuest: props.inviteAsGuest,
-                        focusOriginElement: 'customNoOptionsMessageLink',
-                    }}
-                    onClick={closeMembersInviteModal}
-                    id={props.id}
-                >
-                    {props.children}
-                </ToggleModalButton>
-            );
-        };
+    // Render the component
+    const buttonSubmitText = defineMessage({id: 'multiselect.add', defaultMessage: 'Add'});
+    const buttonSubmitLoadingText = defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'});
 
-        const customNoOptionsMessage = (
-            <div
-                className='custom-no-options-message'
-            >
-                <FormattedMessage
-                    id='channel_invite.no_options_message'
-                    defaultMessage='No matches found - <InvitationModalLink>Invite them to the team</InvitationModalLink>'
-                    values={{
-                        InvitationModalLink: (chunks: string) => (
-                            <InviteModalLink id='customNoOptionsMessageLink'>
-                                {chunks}
-                            </InviteModalLink>
-                        ),
-                    }}
-                />
-            </div>
-        );
+    const closeMembersInviteModal = () => {
+        props.actions.closeModal(ModalIdentifiers.CHANNEL_INVITE);
+    };
 
-        const content = (
-            <MultiSelect
-                key='addUsersToChannelKey'
-                options={this.state.groupAndUserOptions}
-                optionRenderer={this.renderOption}
-                intl={this.props.intl}
-                selectedItemRef={this.selectedItemRef}
-                values={this.state.selectedUsers}
-                ariaLabelRenderer={this.renderAriaLabel}
-                saveButtonPosition={'bottom'}
-                perPage={USERS_PER_PAGE}
-                handlePageChange={this.handlePageChange}
-                handleInput={this.search}
-                handleDelete={this.handleDelete}
-                handleAdd={this.addValue}
-                handleSubmit={this.handleSubmit}
-                handleCancel={closeMembersInviteModal}
-                buttonSubmitText={buttonSubmitText}
-                buttonSubmitLoadingText={buttonSubmitLoadingText}
-                saving={this.state.saving}
-                loading={this.state.loadingUsers}
-                placeholderText={this.props.isGroupsEnabled ? defineMessage({id: 'multiselect.placeholder.peopleOrGroups', defaultMessage: 'Search for people or groups'}) : defineMessage({id: 'multiselect.placeholder', defaultMessage: 'Search for people'})}
-                valueWithImage={true}
-                backButtonText={defineMessage({id: 'multiselect.cancel', defaultMessage: 'Cancel'})}
-                backButtonClick={closeMembersInviteModal}
-                backButtonClass={'btn-tertiary tertiary-button'}
-                customNoOptionsMessage={this.props.emailInvitationsEnabled ? customNoOptionsMessage : null}
-            />
-        );
-
-        const inviteGuestLink = (
-            <InviteModalLink inviteAsGuest={true}>
-                <FormattedMessage
-                    id='channel_invite.invite_guest'
-                    defaultMessage='Invite as a Guest'
-                />
-            </InviteModalLink>
-        );
-
+    const InviteModalLink = (props: {inviteAsGuest?: boolean; children: React.ReactNode; id?: string}) => {
         return (
-            <GenericModal
-                id='addUsersToChannelModal'
-                className='channel-invite'
-                show={this.state.show}
-                onHide={this.onHide}
-                onExited={this.props.onExited}
-                modalHeaderText={
-                    <FormattedMessage
-                        id='channel_invite.addNewMembers'
-                        defaultMessage='Add people to {channel}'
-                        values={{
-                            channel: this.props.channel.display_name,
-                        }}
-                    />
-                }
-                compassDesign={true}
-                bodyOverflowVisible={true}
+            <ToggleModalButton
+                className={`${props.inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
+                modalId={ModalIdentifiers.INVITATION}
+                dialogType={InvitationModal}
+                dialogProps={{
+                    channelToInvite: channel,
+                    initialValue: term,
+                    inviteAsGuest: props.inviteAsGuest,
+                    focusOriginElement: 'customNoOptionsMessageLink',
+                }}
+                onClick={closeMembersInviteModal}
+                id={props.id}
             >
-                <div className='channel-invite__wrapper'>
-                    {inviteError}
-                    {(this.props.channel.policy_enforced) && (
-                        <div className='channel-invite__policy-banner'>
-                            <AlertBanner
-                                mode='info'
-                                variant='app'
-                                title={(
-                                    <FormattedMessage
-                                        id='channel_invite.policy_enforced.title'
-                                        defaultMessage='Channel access is restricted by user attributes'
-                                    />
-                                )}
-                                message={(
-                                    <FormattedMessage
-                                        id='channel_invite.policy_enforced.description'
-                                        defaultMessage='Only people who match the specified access rules can be selected and added to this channel.'
-                                    />
-                                )}
-                            >
-                                {this.state.attributeTags.length > 0 && (
-                                    <TagGroup>
-                                        {this.state.attributeTags.map((tag) => (
-                                            <GenericTag
-                                                key={tag}
-                                                text={tag}
-                                            />
-                                        ))}
-                                    </TagGroup>
-                                )}
-                                {this.state.loadingAttributes && <span className='loading-indicator'>{'Loading...'}</span>}
-                                {this.state.attributeTags.length === 0 && !this.state.loadingAttributes && (
-                                    <span className='no-attributes-message'>{'No access control attributes found'}</span>
-                                )}
-                            </AlertBanner>
-                        </div>
-                    )}
-                    <div className='channel-invite__content'>
-                        {content}
-                        <TeamWarningBanner
-                            guests={this.state.guestsNotInTeam}
-                            teamId={this.props.channel.team_id}
-                            users={this.state.usersNotInTeam}
-                        />
-                        {(this.props.emailInvitationsEnabled && this.props.canInviteGuests) && inviteGuestLink}
-                    </div>
-                </div>
-            </GenericModal>
+                {props.children}
+            </ToggleModalButton>
         );
     };
-}
 
-export default injectIntl(ChannelInviteModal);
+    const customNoOptionsMessage = (
+        <div
+            className='custom-no-options-message'
+        >
+            <FormattedMessage
+                id='channel_invite.no_options_message'
+                defaultMessage='No matches found - <InvitationModalLink>Invite them to the team</InvitationModalLink>'
+                values={{
+                    InvitationModalLink: (chunks: string) => (
+                        <InviteModalLink id='customNoOptionsMessageLink'>
+                            {chunks}
+                        </InviteModalLink>
+                    ),
+                }}
+            />
+        </div>
+    );
+
+    const content = (
+        <MultiSelect
+            key='addUsersToChannelKey'
+            options={groupAndUserOptions}
+            optionRenderer={renderOption}
+            intl={props.intl}
+            selectedItemRef={selectedItemRef}
+            values={selectedUsers}
+            ariaLabelRenderer={renderAriaLabel}
+            saveButtonPosition={'bottom'}
+            perPage={USERS_PER_PAGE}
+            handlePageChange={handlePageChange}
+            handleInput={search}
+            handleDelete={handleDelete}
+            handleAdd={addValue}
+            handleSubmit={handleSubmit}
+            handleCancel={closeMembersInviteModal}
+            buttonSubmitText={buttonSubmitText}
+            buttonSubmitLoadingText={buttonSubmitLoadingText}
+            saving={saving}
+            loading={loadingUsers}
+            placeholderText={props.isGroupsEnabled ? defineMessage({id: 'multiselect.placeholder.peopleOrGroups', defaultMessage: 'Search for people or groups'}) : defineMessage({id: 'multiselect.placeholder', defaultMessage: 'Search for people'})}
+            valueWithImage={true}
+            backButtonText={defineMessage({id: 'multiselect.cancel', defaultMessage: 'Cancel'})}
+            backButtonClick={closeMembersInviteModal}
+            backButtonClass={'btn-tertiary tertiary-button'}
+            customNoOptionsMessage={props.emailInvitationsEnabled ? customNoOptionsMessage : null}
+        />
+    );
+
+    const inviteGuestLink = (
+        <InviteModalLink inviteAsGuest={true}>
+            <FormattedMessage
+                id='channel_invite.invite_guest'
+                defaultMessage='Invite as a Guest'
+            />
+        </InviteModalLink>
+    );
+
+    const {channel} = props;
+
+    return (
+        <GenericModal
+            id='addUsersToChannelModal'
+            className='channel-invite'
+            show={show}
+            onHide={onHide}
+            onExited={props.onExited}
+            modalHeaderText={
+                <FormattedMessage
+                    id='channel_invite.addNewMembers'
+                    defaultMessage='Add people to {channel}'
+                    values={{
+                        channel: channel.display_name,
+                    }}
+                />
+            }
+            compassDesign={true}
+            bodyOverflowVisible={true}
+        >
+            <div className='channel-invite__wrapper'>
+                {inviteError && <label className='has-error control-label'>{inviteError}</label>}
+                {(channel.policy_enforced) && (
+                    <div className='channel-invite__policy-banner'>
+                        <AlertBanner
+                            mode='info'
+                            variant='app'
+                            title={(
+                                <FormattedMessage
+                                    id='channel_invite.policy_enforced.title'
+                                    defaultMessage='Channel access is restricted by user attributes'
+                                />
+                            )}
+                            message={(
+                                <FormattedMessage
+                                    id='channel_invite.policy_enforced.description'
+                                    defaultMessage='Only people who match the specified access rules can be selected and added to this channel.'
+                                />
+                            )}
+                        >
+                            {attributeTags.length > 0 && (
+                                <TagGroup>
+                                    {attributeTags.map((tag) => (
+                                        <GenericTag
+                                            key={tag}
+                                            text={tag}
+                                        />
+                                    ))}
+                                </TagGroup>
+                            )}
+                        </AlertBanner>
+                    </div>
+                )}
+                <div className='channel-invite__content'>
+                    {content}
+                    <TeamWarningBanner
+                        guests={guestsNotInTeam}
+                        teamId={channel.team_id}
+                        users={usersNotInTeam}
+                    />
+                    {(props.emailInvitationsEnabled && props.canInviteGuests) && inviteGuestLink}
+                </div>
+            </div>
+        </GenericModal>
+    );
+};
+
+ChannelInviteModalComponent.defaultProps = {
+    includeUsers: {},
+    excludeUsers: {},
+    skipCommit: false,
+};
+
+export const ChannelInviteModal = ChannelInviteModalComponent;
+export default injectIntl(ChannelInviteModalComponent);
