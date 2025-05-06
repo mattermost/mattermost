@@ -153,7 +153,7 @@ const EnterpriseEditionRightPanel = ({
             return (
                 <FormattedMessage
                     id='admin.license.enterprisePlanSubtitle'
-                    defaultMessage="We're here to work with you and your needs. Contact us today to get more seats on your plan."
+                    defaultMessage='We’re here to work with you and your needs. Contact us today to get more seats on your plan.'
                 />
             );
         }
