@@ -37,30 +37,24 @@ const {createAndStartCycle} = require('./utils/dashboard');
 
 require('dotenv').config();
 
-const {
-    BRANCH,
-    BROWSER,
-    BUILD_ID,
-    HEADLESS,
-    REPO,
-} = process.env;
+const {BRANCH, BROWSER, BUILD_ID, HEADLESS, REPO} = process.env;
 
 function getSortedTestFiles(platform, browser, headless) {
     // Define the base directory for Playwright tests
     const baseDir = path.join(__dirname, 'specs', 'functional');
-    
+
     // Get only .spec.ts files
-    const specFiles = glob.sync('**/*.spec.ts', { cwd: baseDir });
-    
+    const specFiles = glob.sync('**/*.spec.ts', {cwd: baseDir});
+
     // Create simple metadata for each file
-    const weightedTestFiles = specFiles.map(file => {
+    const weightedTestFiles = specFiles.map((file) => {
         return {
             file,
             shouldSkip: false,
             weight: 1,
         };
     });
-    
+
     return {
         weightedTestFiles,
         specFiles,

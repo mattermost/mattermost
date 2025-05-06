@@ -26,17 +26,12 @@
 
 const axios = require('axios');
 const chalk = require('chalk');
-const { test } = require('@playwright/test');
+const {test} = require('@playwright/test');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-const {
-    getSpecToTest,
-    recordSpecResult,
-    updateCycle,
-    uploadScreenshot,
-} = require('./utils/dashboard');
+const {getSpecToTest, recordSpecResult, updateCycle, uploadScreenshot} = require('./utils/dashboard');
 const {writeJsonToFile} = require('../cypress/utils/report');
 
 // Use the same report directories as in playwright.config.ts
@@ -46,14 +41,7 @@ const TEST_OUTPUT_DIR = path.join(RESULTS_DIR, 'output');
 
 require('dotenv').config();
 
-const {
-    BRANCH,
-    BROWSER,
-    BUILD_ID,
-    CI_BASE_URL,
-    HEADLESS,
-    REPO,
-} = process.env;
+const {BRANCH, BROWSER, BUILD_ID, CI_BASE_URL, HEADLESS, REPO} = process.env;
 
 async function runPlaywrightTest(specExecution) {
     const browser = BROWSER || 'chromium';
@@ -61,13 +49,13 @@ async function runPlaywrightTest(specExecution) {
 
     // Create directories for reports if they don't exist
     if (!fs.existsSync(RESULTS_DIR)) {
-        fs.mkdirSync(RESULTS_DIR, { recursive: true });
+        fs.mkdirSync(RESULTS_DIR, {recursive: true});
     }
     if (!fs.existsSync(REPORT_OUTPUT_DIR)) {
-        fs.mkdirSync(REPORT_OUTPUT_DIR, { recursive: true });
+        fs.mkdirSync(REPORT_OUTPUT_DIR, {recursive: true});
     }
     if (!fs.existsSync(TEST_OUTPUT_DIR)) {
-        fs.mkdirSync(TEST_OUTPUT_DIR, { recursive: true });
+        fs.mkdirSync(TEST_OUTPUT_DIR, {recursive: true});
     }
 
     // Prepare result object similar to Cypress
@@ -75,10 +63,10 @@ async function runPlaywrightTest(specExecution) {
 
     try {
         // Run the Playwright test using the test runner
-        const { execSync } = require('child_process');
+        const {execSync} = require('child_process');
 
         const reportPath = path.join(REPORT_OUTPUT_DIR, path.basename(specExecution.file, '.ts') + '.json');
-        
+
         // Build the command with appropriate options
         const command = [
             'npx playwright test',
@@ -88,15 +76,15 @@ async function runPlaywrightTest(specExecution) {
             `--reporter=json,${reportPath}`,
             '--project=default',
         ].join(' ');
-        
+
         console.log(chalk.blue(`Running command: ${command}`));
-        execSync(command, { stdio: 'inherit' });
-        
+        execSync(command, {stdio: 'inherit'});
+
         // Read the test results from the JSON report
         const testResults = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
-        
+
         const endTime = new Date();
-        
+
         // Format results to match Cypress format for dashboard
         return {
             cypressVersion: 'Playwright', // Using this field to indicate Playwright
@@ -104,49 +92,66 @@ async function runPlaywrightTest(specExecution) {
             browserVersion: 'latest', // Would need browser context to get actual version
             osName: os.platform(),
             osVersion: os.release(),
-            runs: [{
-                stats: {
-                    passes: testResults.suites.reduce((sum, suite) => sum + suite.specs.filter(spec => spec.ok).length, 0),
-                    failures: testResults.suites.reduce((sum, suite) => sum + suite.specs.filter(spec => !spec.ok).length, 0),
-                    pending: 0,
-                    skipped: testResults.suites.reduce((sum, suite) => sum + suite.specs.filter(spec => spec.skipped).length, 0),
-                    duration: endTime - startTime,
-                    startedAt: startTime.toISOString(),
-                    endedAt: endTime.toISOString(),
+            runs: [
+                {
+                    stats: {
+                        passes: testResults.suites.reduce(
+                            (sum, suite) => sum + suite.specs.filter((spec) => spec.ok).length,
+                            0,
+                        ),
+                        failures: testResults.suites.reduce(
+                            (sum, suite) => sum + suite.specs.filter((spec) => !spec.ok).length,
+                            0,
+                        ),
+                        pending: 0,
+                        skipped: testResults.suites.reduce(
+                            (sum, suite) => sum + suite.specs.filter((spec) => spec.skipped).length,
+                            0,
+                        ),
+                        duration: endTime - startTime,
+                        startedAt: startTime.toISOString(),
+                        endedAt: endTime.toISOString(),
+                    },
+                    tests: testResults.suites.flatMap((suite) =>
+                        suite.specs.map((spec) => ({
+                            title: [suite.title, spec.title],
+                            body: spec.title,
+                            attempts: [
+                                {
+                                    state: spec.ok ? 'passed' : spec.skipped ? 'skipped' : 'failed',
+                                    duration: spec.duration || 0,
+                                    startedAt: startTime.toISOString(),
+                                    screenshots: spec.attachments
+                                        ? spec.attachments
+                                              .filter((a) => a.contentType.includes('image'))
+                                              .map((a) => ({path: a.path}))
+                                        : [],
+                                    error: spec.ok
+                                        ? null
+                                        : {
+                                              message: spec.errors ? spec.errors[0].message : 'Test failed',
+                                              codeFrame: {
+                                                  frame: spec.errors
+                                                      ? spec.errors[0].stack
+                                                      : 'No stack trace available',
+                                              },
+                                          },
+                                },
+                            ],
+                        })),
+                    ),
+                    spec: {
+                        relative: specExecution.file,
+                        tests: testResults.suites.reduce((sum, suite) => sum + suite.specs.length, 0),
+                    },
                 },
-                tests: testResults.suites.flatMap(suite => 
-                    suite.specs.map(spec => ({
-                        title: [suite.title, spec.title],
-                        body: spec.title,
-                        attempts: [{
-                            state: spec.ok ? 'passed' : (spec.skipped ? 'skipped' : 'failed'),
-                            duration: spec.duration || 0,
-                            startedAt: startTime.toISOString(),
-                            screenshots: spec.attachments ? 
-                                spec.attachments
-                                    .filter(a => a.contentType.includes('image'))
-                                    .map(a => ({ path: a.path })) : 
-                                [],
-                            error: spec.ok ? null : {
-                                message: spec.errors ? spec.errors[0].message : 'Test failed',
-                                codeFrame: {
-                                    frame: spec.errors ? spec.errors[0].stack : 'No stack trace available'
-                                }
-                            }
-                        }]
-                    }))
-                ),
-                spec: {
-                    relative: specExecution.file,
-                    tests: testResults.suites.reduce((sum, suite) => sum + suite.specs.length, 0),
-                }
-            }]
+            ],
         };
     } catch (error) {
         console.error(chalk.red('Error running Playwright test:'), error);
-        
+
         const endTime = new Date();
-        
+
         // Return a failure result
         return {
             cypressVersion: 'Playwright',
@@ -154,37 +159,43 @@ async function runPlaywrightTest(specExecution) {
             browserVersion: 'latest',
             osName: os.platform(),
             osVersion: os.release(),
-            runs: [{
-                stats: {
-                    passes: 0,
-                    failures: 1,
-                    pending: 0,
-                    skipped: 0,
-                    duration: endTime - startTime,
-                    startedAt: startTime.toISOString(),
-                    endedAt: endTime.toISOString(),
-                },
-                tests: [{
-                    title: ['Test execution error'],
-                    body: 'Test execution failed',
-                    attempts: [{
-                        state: 'failed',
+            runs: [
+                {
+                    stats: {
+                        passes: 0,
+                        failures: 1,
+                        pending: 0,
+                        skipped: 0,
                         duration: endTime - startTime,
                         startedAt: startTime.toISOString(),
-                        screenshots: [],
-                        error: {
-                            message: error.message,
-                            codeFrame: {
-                                frame: error.stack
-                            }
-                        }
-                    }]
-                }],
-                spec: {
-                    relative: specExecution.file,
-                    tests: 1,
-                }
-            }]
+                        endedAt: endTime.toISOString(),
+                    },
+                    tests: [
+                        {
+                            title: ['Test execution error'],
+                            body: 'Test execution failed',
+                            attempts: [
+                                {
+                                    state: 'failed',
+                                    duration: endTime - startTime,
+                                    startedAt: startTime.toISOString(),
+                                    screenshots: [],
+                                    error: {
+                                        message: error.message,
+                                        codeFrame: {
+                                            frame: error.stack,
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                    spec: {
+                        relative: specExecution.file,
+                        tests: 1,
+                    },
+                },
+            ],
         };
     }
 }
@@ -285,19 +296,21 @@ function printSummary(summary) {
         return acc;
     }, {});
 
-    Object.values(obj).sort((a, b) => {
-        return a.server.localeCompare(b.server);
-    }).forEach((item) => {
-        const {server, done, started} = item;
-        console.log(chalk.magenta(`${server}: done: ${done || 0}, started: ${started || 0}`));
-    });
+    Object.values(obj)
+        .sort((a, b) => {
+            return a.server.localeCompare(b.server);
+        })
+        .forEach((item) => {
+            const {server, done, started} = item;
+            console.log(chalk.magenta(`${server}: done: ${done || 0}, started: ${started || 0}`));
+        });
 }
 
 const maxRetryCount = 0;
 async function runSpecFragment(count) {
     // Get cycle ID from environment or use a default
     const cycleId = process.env.CYCLE_ID;
-    
+
     if (!cycleId) {
         console.log(chalk.yellow('No CYCLE_ID provided. Please set the CYCLE_ID environment variable.'));
         return {
@@ -343,7 +356,7 @@ async function runSpecFragment(count) {
     }
 
     const spec = response.specs[count];
-    
+
     // Check if we have a valid spec to run
     if (!spec || !spec.file) {
         console.log(chalk.yellow('Invalid spec at index', count));

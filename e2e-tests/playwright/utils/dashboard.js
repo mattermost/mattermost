@@ -7,14 +7,11 @@ const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
 const path = require('path');
-const { stringify } = require('querystring');
+const {stringify} = require('querystring');
 
 require('dotenv').config();
 
-const {
-    AUTOMATION_DASHBOARD_TOKEN,
-    AUTOMATION_DASHBOARD_URL,
-} = process.env;
+const {AUTOMATION_DASHBOARD_TOKEN, AUTOMATION_DASHBOARD_URL} = process.env;
 
 const config = {
     baseURL: AUTOMATION_DASHBOARD_URL,
@@ -31,7 +28,7 @@ const config = {
 async function createAndStartCycle(data) {
     try {
         console.log('Creating test cycle with dashboard at:', config.baseURL);
-        
+
         const response = await axios.post('/api/cycles/start', data, config);
         return response.data;
     } catch (err) {
@@ -59,10 +56,10 @@ async function getSpecToTest(data) {
                 message: 'Cycle ID is required',
             };
         }
-        
+
         console.log(`Getting specs for cycle: ${cycleId}`);
         const response = await axios.get(`/api/specs/to-test?cycle_id=${cycleId}`, config);
-        
+
         if (!response.data || !Array.isArray(response.data.specs)) {
             return {
                 code: 'INVALID_RESPONSE',
@@ -70,7 +67,7 @@ async function getSpecToTest(data) {
                 data: response.data,
             };
         }
-        
+
         // Return the specs array
         return {
             specs: response.data.specs,
