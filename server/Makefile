@@ -95,13 +95,17 @@ ifeq ($(HOME),/)
 	export XDG_CACHE_HOME = /tmp/go-cache/
 endif
 
+
+FIPS_IMAGE ?= cgr.dev/mattermost.com/go-msft-fips:1.22-dev
+
 # Go Flags
 GOFLAGS ?= $(GOFLAGS:)
 # We need to export GOBIN to allow it to be set
 # for processes spawned from the Makefile
 ifeq ($(FIPS_ENABLED),true)
 	export GOBIN ?= /root/go/bin
-	GO ?= docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH -e GOFLAGS -e OUTPUT_CONFIG cgr.dev/mattermost.com/go-msft-fips:1.22-dev
+	GO ?= docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOFLAGS -e OUTPUT_CONFIG $(FIPS_IMAGE)
+	BUILD_TAGS += requirefips
 else
 	export GOBIN ?= $(PWD)/bin
 	GO ?= go
@@ -111,7 +115,7 @@ endif
 # Usage: $(call execute_tool,toolname,arguments)
 define execute_tool
 @if [ "$(FIPS_ENABLED)" = "true" ]; then \
-	docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOOS -e GOARCH -e GOFLAGS -e OUTPUT_CONFIG --entrypoint $(GOBIN)/$(1) cgr.dev/mattermost.com/go-msft-fips:1.22-dev $(2); \
+	docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOFLAGS -e OUTPUT_CONFIG --entrypoint $(GOBIN)/$(1) $(FIPS_IMAGE) $(2); \
 else \
 	$(GOBIN)/$(1) $(2); \
 fi
