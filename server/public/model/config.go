@@ -3430,6 +3430,7 @@ type ConnectedWorkspacesSettings struct {
 	EnableSharedChannels            *bool
 	EnableRemoteClusterService      *bool
 	DisableSharedChannelsStatusSync *bool
+	SyncUsersOnConnectionOpen       *bool
 	MaxPostsPerSync                 *int
 }
 
@@ -3452,6 +3453,10 @@ func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalS
 
 	if c.DisableSharedChannelsStatusSync == nil {
 		c.DisableSharedChannelsStatusSync = NewPointer(false)
+	}
+
+	if c.SyncUsersOnConnectionOpen == nil {
+		c.SyncUsersOnConnectionOpen = NewPointer(false)
 	}
 
 	if c.MaxPostsPerSync == nil {

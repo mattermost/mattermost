@@ -547,15 +547,27 @@ func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 	return i18n.GetUserTranslations(locale)
 }
 
-// shouldUserSync determines if a user needs to be synchronized.
-// User should be synchronized if it has no entry in the SharedChannelUsers table for the specified channel,
-// or there is an entry but the LastSyncAt is less than user.UpdateAt
-func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model.RemoteCluster) (sync bool, syncImage bool, err error) {
+// baseUserSyncCheck contains the common logic for determining if a user needs to be synchronized
+// with a remote cluster. It handles checking if the user is from the remote cluster and comparing
+// update timestamps against last sync times.
+func (scs *Service) baseUserSyncCheck(user *model.User, rc *model.RemoteCluster, lastSyncAt int64) (sync bool, syncImage bool, err error) {
 	// don't sync users back to the remote cluster they originated from.
 	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
 		return false, false, nil
 	}
 
+	// If no sync record exists (lastSyncAt == 0) or user profile was updated after last sync
+	sync = lastSyncAt == 0 || user.UpdateAt > lastSyncAt
+	// If no sync record exists (lastSyncAt == 0) or user profile image was updated after last sync
+	syncImage = lastSyncAt == 0 || user.LastPictureUpdate > lastSyncAt
+
+	return sync, syncImage, nil
+}
+
+// shouldUserSync determines if a user needs to be synchronized.
+// User should be synchronized if it has no entry in the SharedChannelUsers table for the specified channel,
+// or there is an entry but the LastSyncAt is less than user.UpdateAt
+func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model.RemoteCluster) (sync bool, syncImage bool, err error) {
 	scu, err := scs.server.GetStore().SharedChannel().GetSingleUser(user.Id, channelID, rc.RemoteId)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
@@ -585,7 +597,8 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 		return true, true, nil
 	}
 
-	return user.UpdateAt > scu.LastSyncAt, user.LastPictureUpdate > scu.LastSyncAt, nil
+	// Use the base function to compare the user's update timestamps with the last sync time
+	return scs.baseUserSyncCheck(user, rc, scu.LastSyncAt)
 }
 
 func (scs *Service) syncProfileImage(user *model.User, channelID string, rc *model.RemoteCluster) {

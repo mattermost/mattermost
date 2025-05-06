@@ -702,29 +702,24 @@ type userSyncData struct {
 // User should be synchronized if there is no entry in any SharedChannelUsers table for the target remote cluster,
 // or if the LastSyncAt is less than user.UpdateAt for all entries.
 func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteCluster, syncData *userSyncData) (bool, error) {
-	// Don't sync users back to the remote cluster they originated from
-	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
-		return false, nil
-	}
-
-	// Calculate the latest time this user was updated (either profile or picture)
-	latestUpdateTime := user.UpdateAt
-	if user.LastPictureUpdate > latestUpdateTime {
-		latestUpdateTime = user.LastPictureUpdate
-	}
-
 	// First check cached data
 	if syncData != nil && syncData.initialized {
 		channelMap, exists := syncData.userSyncMap[user.Id]
 
 		// If user doesn't exist in our sync map, they need syncing
 		if !exists {
-			return true, nil
+			// Use the base function with lastSyncAt = 0 to check if user should be synced
+			sync, _, err := scs.baseUserSyncCheck(user, rc, 0)
+			return sync, err
 		}
 
 		// Check if any channel entry needs updating
 		for _, lastSyncAt := range channelMap {
-			if latestUpdateTime > lastSyncAt {
+			sync, _, err := scs.baseUserSyncCheck(user, rc, lastSyncAt)
+			if err != nil {
+				return false, err
+			}
+			if sync {
 				return true, nil
 			}
 		}
@@ -739,18 +734,25 @@ func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteClust
 		if _, ok := err.(errNotFound); !ok {
 			return false, err
 		}
-		// No entries found - user needs sync
-		return true, nil
+		// No entries found - user needs sync, use base function with lastSyncAt = 0
+		sync, _, err := scs.baseUserSyncCheck(user, rc, 0)
+		return sync, err
 	}
 
 	// No sync entries found means user needs syncing
 	if len(scus) == 0 {
-		return true, nil
+		// Use the base function with lastSyncAt = 0 to check if user should be synced
+		sync, _, err := scs.baseUserSyncCheck(user, rc, 0)
+		return sync, err
 	}
 
 	// Check if any channel entry needs updating
 	for _, scu := range scus {
-		if latestUpdateTime > scu.LastSyncAt {
+		sync, _, err := scs.baseUserSyncCheck(user, rc, scu.LastSyncAt)
+		if err != nil {
+			return false, err
+		}
+		if sync {
 			return true, nil
 		}
 	}
