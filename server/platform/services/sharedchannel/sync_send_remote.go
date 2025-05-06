@@ -781,11 +781,12 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 		}
 	}()
 
-	// Get all active users
+	// Get all active users updated since the last sync
 	options := &model.UserGetOptions{
-		Page:    0,
-		PerPage: 100, // Process in batches
-		Active:  true,
+		Page:         0,
+		PerPage:      100, // Process in batches
+		Active:       true,
+		UpdatedAfter: rc.LastGlobalUserSyncAt,
 	}
 
 	// We need to make a fake SharedChannelRemote since we don't have a channel
@@ -853,10 +854,8 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 				latestUserUpdateTime = user.LastPictureUpdate
 			}
 
-			// Skip users that haven't been updated since our last sync and
-			// users from the target remote cluster
-			if latestUserUpdateTime <= rc.LastGlobalUserSyncAt ||
-				(user.RemoteId != nil && *user.RemoteId == rc.RemoteId) {
+			// Skip users from the target remote cluster
+			if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
 				continue
 			}
 

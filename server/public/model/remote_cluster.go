@@ -73,19 +73,19 @@ type RemoteCluster struct {
 
 func (rc *RemoteCluster) Auditable() map[string]any {
 	return map[string]any{
-		"remote_id":               rc.RemoteId,
-		"remote_team_id":          rc.RemoteTeamId,
-		"name":                    rc.Name,
-		"display_name":            rc.DisplayName,
-		"site_url":                rc.SiteURL,
-		"default_team_id":         rc.DefaultTeamId,
-		"create_at":               rc.CreateAt,
-		"delete_at":               rc.DeleteAt,
-		"last_ping_at":            rc.LastPingAt,
+		"remote_id":                rc.RemoteId,
+		"remote_team_id":           rc.RemoteTeamId,
+		"name":                     rc.Name,
+		"display_name":             rc.DisplayName,
+		"site_url":                 rc.SiteURL,
+		"default_team_id":          rc.DefaultTeamId,
+		"create_at":                rc.CreateAt,
+		"delete_at":                rc.DeleteAt,
+		"last_ping_at":             rc.LastPingAt,
 		"last_global_user_sync_at": rc.LastGlobalUserSyncAt,
-		"creator_id":              rc.CreatorId,
-		"plugin_id":               rc.PluginID,
-		"options":                 rc.Options,
+		"creator_id":               rc.CreatorId,
+		"plugin_id":                rc.PluginID,
+		"options":                  rc.Options,
 	}
 }
 
