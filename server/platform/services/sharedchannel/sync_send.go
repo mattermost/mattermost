@@ -695,12 +695,41 @@ func (scs *Service) shouldUserSyncWithOptions(opts SyncUserOpts) (sync bool, syn
 // User should be synchronized if it has no entry in the SharedChannelUsers table for the specified channel,
 // or there is an entry but the LastSyncAt is less than user.UpdateAt
 func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model.RemoteCluster) (sync bool, syncImage bool, err error) {
-	opts := SyncUserOpts{
-		User:          user,
-		RemoteCluster: rc,
-		ChannelID:     channelID,
+	// don't sync users with the remote they originated from.
+	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
+		return false, false, nil
 	}
-	return scs.shouldUserSyncWithOptions(opts)
+
+	scu, err := scs.server.GetStore().SharedChannel().GetSingleUser(user.Id, channelID, rc.RemoteId)
+	if err != nil {
+		if _, ok := err.(errNotFound); !ok {
+			return false, false, err
+		}
+
+		// user not in the SharedChannelUsers table, so we must add them.
+		scu = &model.SharedChannelUser{
+			UserId:    user.Id,
+			RemoteId:  rc.RemoteId,
+			ChannelId: channelID,
+		}
+		if _, err = scs.server.GetStore().SharedChannel().SaveUser(scu); err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error adding user to shared channel users",
+				mlog.String("user_id", user.Id),
+				mlog.String("channel_id", channelID),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Err(err),
+			)
+		} else {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Added user to shared channel users",
+				mlog.String("user_id", user.Id),
+				mlog.String("channel_id", channelID),
+				mlog.String("remote_id", rc.RemoteId),
+			)
+		}
+		return true, true, nil
+	}
+
+	return user.UpdateAt > scu.LastSyncAt, user.LastPictureUpdate > scu.LastSyncAt, nil
 }
 
 func (scs *Service) syncProfileImage(user *model.User, channelID string, rc *model.RemoteCluster) {
