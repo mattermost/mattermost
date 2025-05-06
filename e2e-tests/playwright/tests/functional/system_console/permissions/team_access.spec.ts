@@ -3,7 +3,9 @@
 
 import {UserProfile} from '@mattermost/types/users';
 
-import {expect, PlaywrightExtended, test} from '@mattermost/playwright-lib';
+import {expect, PlaywrightExtended, test} from '@e2e-support/test_fixture';
+import {SystemConsolePage} from '@e2e-support/ui/pages';
+import {createRandomTeam} from '@e2e-support/server';
 
 // setupSystemManagerRole configures the system manager with the given permission ("Can Edit", "Read only", "No access")
 // for the given section and subsection (e.g. "permission_section_reporting_site_statistics" and "permission_section_reporting_team_statistics").
@@ -13,13 +15,15 @@ import {expect, PlaywrightExtended, test} from '@mattermost/playwright-lib';
 // merely a hand-created version of the same.
 const setupDefaultSystemManagerRole = async (
     pw: PlaywrightExtended,
-    adminUser: UserProfile,
+    adminUser: UserProfile | null,
     sectionTestId: string,
     subsectionTestId: string,
     permissionText: string,
 ) => {
     // Login as admin and navigate to System Console
-    const {systemConsolePage: adminConsolePage} = await pw.testBrowser.login(adminUser);
+    const {page} = await pw.testBrowser.login(adminUser);
+
+    const adminConsolePage = new SystemConsolePage(page);
 
     // Go to System Console
     await adminConsolePage.goto();
@@ -79,7 +83,7 @@ const setupDefaultSystemManagerRole = async (
     await adminConsolePage.page.waitForLoadState('networkidle');
 };
 
-test('MM-63378 System Manager without team access permissions cannot view team details', async ({pw}) => {
+test('MM-63378 System Manager without team access permissions cannot view team details', async ({pw, pages}) => {
     const {
         adminUser,
         adminClient,
@@ -92,10 +96,11 @@ test('MM-63378 System Manager without team access permissions cannot view team d
     await adminClient.updateUserRoles(systemManagerUser.id, 'system_user system_manager');
 
     // Create another team of which the user is not a member.
-    const otherTeam = await adminClient.createTeam(pw.random.team());
+    const otherTeam = await adminClient.createTeam(createRandomTeam());
 
     // Login as the user
-    const {systemConsolePage} = await pw.testBrowser.login(systemManagerUser);
+    const {page} = await pw.testBrowser.login(systemManagerUser);
+    const systemConsolePage = new pages.SystemConsolePage(page);
 
     // Configure the system manager with the default permissions.
     await setupDefaultSystemManagerRole(
