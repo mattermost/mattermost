@@ -2,19 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect} from 'react';
-import {Table} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {Job} from '@mattermost/types/jobs';
+import type {Team} from '@mattermost/types/teams';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as ChannelActions from 'mattermost-redux/actions/channels';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
+import DataGrid, {type Column, type Row} from 'components/admin_console/data_grid/data_grid';
 
 import type {GlobalState} from 'types/store';
 
@@ -25,11 +26,6 @@ import './job_details_modal.scss';
 // Types for sync results
 type SyncResults = {
     [channelId: string]: ChannelMembersSyncResults;
-};
-
-// Lookup structures for channel and user names
-type ChannelLookup = {
-    [channelId: string]: Channel;
 };
 
 // Component to display job status
@@ -63,14 +59,17 @@ const StatusIndicator = ({status}: StatusIndicatorProps): JSX.Element => {
 // Component to display sync results
 type SyncResultsProps = {
     syncResults: SyncResults;
-    channelLookup: ChannelLookup;
+    channelLookup: IDMappedObjects<Channel>;
+    teamLookup: IDMappedObjects<Team>;
     onViewDetails: (channelId: string, channelName: string, results: ChannelMembersSyncResults) => void;
     currentPage: number;
     pageSize: number;
     onPageChange: (page: number) => void;
 };
 
-const SyncResultsTable = ({syncResults, channelLookup, onViewDetails, currentPage, pageSize, onPageChange}: SyncResultsProps): JSX.Element => {
+const SyncResultsTable = ({syncResults, channelLookup, teamLookup, onViewDetails, currentPage, pageSize, onPageChange}: SyncResultsProps): JSX.Element => {
+    const intl = useIntl();
+
     if (!syncResults || Object.keys(syncResults).length === 0) {
         return (
             <div className='no-results-message'>
@@ -83,100 +82,71 @@ const SyncResultsTable = ({syncResults, channelLookup, onViewDetails, currentPag
     }
 
     const totalEntries = Object.entries(syncResults);
-    const totalPages = Math.ceil(totalEntries.length / pageSize);
+    const totalRows = totalEntries.length;
+
+    // const totalPages = Math.ceil(totalRows / pageSize); // DataGrid handles its own display of pages
     const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = Math.min(startIndex + pageSize, totalEntries.length);
+    const endIndex = Math.min(startIndex + pageSize, totalRows);
     const currentEntries = totalEntries.slice(startIndex, endIndex);
 
-    return (
-        <>
-            <Table className='sync-results-table'>
-                <thead>
-                    <tr>
-                        <th>
-                            <FormattedMessage
-                                id='admin.jobTable.syncResults.channel'
-                                defaultMessage='Channel'
-                            />
-                        </th>
-                        <th className='changes-column'>
-                            <FormattedMessage
-                                id='admin.jobTable.syncResults.changes'
-                                defaultMessage='Changes'
-                            />
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {currentEntries.map(([channelId, results]) => {
-                        const channel = channelLookup[channelId];
-                        const displayName = channel ? channel.display_name : channelId;
+    const columns: Column[] = [
+        {
+            name: intl.formatMessage({id: 'admin.jobTable.syncResults.channel', defaultMessage: 'Channel'}),
+            field: 'channel',
+            width: 0.85,
+        },
+        {
+            name: intl.formatMessage({id: 'admin.jobTable.syncResults.changes', defaultMessage: 'Changes'}),
+            field: 'changes',
+            width: 0.15,
+        },
+    ];
 
-                        return (
-                            <tr
-                                key={channelId}
-                                onClick={() => onViewDetails(channelId, displayName, results)}
-                                className='clickable-row'
-                            >
-                                <td>
-                                    <div className='channel-name'>
-                                        {displayName}
-                                        {channel && <div className='channel-id'>{'('}{channelId}{')'}</div>}
-                                    </div>
-                                </td>
-                                <td>
-                                    <span className='changes-summary'>
-                                        <span className='added'>
-                                            {'+'}{results.MembersAdded.length}
-                                        </span>
-                                        {' / '}
-                                        <span className='removed'>
-                                            {'-'}{results.MembersRemoved.length}
-                                        </span>
-                                    </span>
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </Table>
-            {totalPages > 1 && (
-                <div className='pagination-controls'>
-                    <span className='member-count-text'>
-                        <FormattedMessage
-                            id='admin.jobTable.syncResults.memberCountRange'
-                            defaultMessage='{firstUser} - {lastUser} of {totalUsers} total'
-                            values={{firstUser: startIndex + 1, lastUser: endIndex, totalUsers: totalEntries.length}}
-                        />
-                    </span>
-                    <div className='pagination-controls-buttons'>
-                        <button
-                            onClick={() => onPageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                            className='arrow'
-                            aria-label='Previous Page'
-                        >
-                            <PreviousIcon/>
-                        </button>
-                        <span>
-                            <FormattedMessage
-                                id='admin.jobTable.syncResults.pagination'
-                                defaultMessage='Page {currentPage} of {totalPages}'
-                                values={{currentPage, totalPages}}
-                            />
-                        </span>
-                        <button
-                            onClick={() => onPageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                            className='arrow'
-                            aria-label='Next Page'
-                        >
-                            <NextIcon/>
-                        </button>
+    const rows: Row[] = currentEntries.map(([channelId, results]) => {
+        const channel = channelLookup[channelId];
+        const team = teamLookup[channel?.team_id];
+        const displayName = channel ? channel.display_name : channelId;
+        return {
+
+            // id: channelId, // DataGrid Row does not have an id property, click is handled by onClick on Row
+            cells: {
+                channel: (
+                    <div className='channel-name-cell'>
+                        {displayName}
+                        {channel && team && <span className='team-name'>{`(${team.name})`}</span>}
                     </div>
-                </div>
-            )}
-        </>
+                ),
+                changes: (
+                    <div className='changes-cell'>
+                        <span className='changes-summary'>
+                            <span className='added'>
+                                {'+' + results.MembersAdded.length}
+                            </span>
+                            {' / '}
+                            <span className='removed'>
+                                {'-' + results.MembersRemoved.length}
+                            </span>
+                        </span>
+                    </div>
+                ),
+            },
+            onClick: () => onViewDetails(channelId, displayName, results),
+        };
+    });
+
+    return (
+        <DataGrid
+            columns={columns}
+            rows={rows}
+            loading={false} // Assuming not loading once we have syncResults. This might need to be dynamic.
+            page={currentPage}
+            startCount={startIndex + 1}
+            endCount={endIndex}
+            total={totalRows}
+            nextPage={() => onPageChange(currentPage + 1)}
+            previousPage={() => onPageChange(currentPage - 1)}
+            className='sync-results-datagrid'
+        />
     );
 };
 
@@ -191,10 +161,11 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
     const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
     const [selectedChannelName, setSelectedChannelName] = useState<string>('');
     const [selectedChannelResults, setSelectedChannelResults] = useState<ChannelMembersSyncResults | null>(null);
-    const [channelLookup, setChannelLookup] = useState<ChannelLookup>({});
+    const [channelLookup, setChannelLookup] = useState<IDMappedObjects<Channel>>({});
+    const [teamLookup, setTeamLookup] = useState<IDMappedObjects<Team>>({});
     const [syncResults, setSyncResults] = useState<SyncResults | null>(null);
 
-    const pageSize = 5;
+    const pageSize = 10;
 
     // Get state for lookups
     const state = useSelector((state: GlobalState) => state);
@@ -238,14 +209,23 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
     // Build channel lookup from state
     useEffect(() => {
         if (syncResults) {
-            const channels: ChannelLookup = {};
+            const channels: IDMappedObjects<Channel> = {};
+            const teams: IDMappedObjects<Team> = {};
 
             Object.keys(syncResults).forEach((channelId) => {
                 const channel = getChannel(state, channelId);
                 if (channel) {
                     channels[channelId] = channel;
+                    if (!teams[channel.team_id]) {
+                        const team = getTeam(state, channel.team_id);
+                        if (team) {
+                            teams[team.id] = team;
+                        }
+                    }
                 }
             });
+
+            setTeamLookup(teams);
 
             setChannelLookup(channels);
         }
@@ -269,7 +249,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
 
     return (
         <GenericModal
-            className='job-details-modal'
+            className='JobDetailsModal'
             onExited={onExited}
             modalHeaderText={
                 <div className='modal-header-custom'>
@@ -299,6 +279,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                     <SyncResultsTable
                         syncResults={syncResults || {}}
                         channelLookup={channelLookup}
+                        teamLookup={teamLookup}
                         onViewDetails={handleViewDetails}
                         currentPage={currentPage}
                         pageSize={pageSize}

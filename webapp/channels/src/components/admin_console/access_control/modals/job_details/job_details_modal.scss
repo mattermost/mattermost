@@ -1,170 +1,93 @@
-.job-details-modal {
-    // Custom modal header
+.JobDetailsModal {
+    padding: 12px;
+
+    // Header
     .modal-header-custom {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 24px 16px 0;
-    
-        .modal-header-with-status {
-            display: flex;
-            align-items: center;
-            font-size: 26px;
-            font-weight: 600;
-            gap: 10px;
-            padding-inline-end: 12px;
-        }
-    
-        .close-icon-container .icon-close {
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            cursor: pointer;
-            font-size: 24px;
+        padding: 24px 24px 0;
+    }
+
+    .modal-header-with-status {
+        display: flex;
+        align-items: center;
+        font-size: 26px;
+        font-weight: 600;
+        gap: 10px;
+        padding-inline: 14px;
+    }
+
+    .close-icon-container .icon-close {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+        font-size: 24px;
         
-            &:hover {
-                color: rgba(var(--center-channel-color-rgb), 0.72);
-            }
+        &:hover {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
         }
     }
 
     // Status indicator
-    .status-wrapper {
-        display: flex;
-        align-items: center;
-    
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
+    .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
         
-            &.status-success {
-                background-color: var(--online-indicator);
-            }
-        
-            &.status-error {
-                background-color: var(--error-text);
-            }
-        
-            &.status-in-progress {
-                background-color: var(--away-indicator);
-            }
-        
-            &.status-pending {
-                background-color: var(--offline-indicator);
-            }
-        }
+        &.status-success { background-color: var(--online-indicator); }
+        &.status-error { background-color: var(--error-text); }
+        &.status-in-progress { background-color: var(--away-indicator); }
+        &.status-pending { background-color: var(--offline-indicator); }
     }
 
-    .job-details-modal-body {
-        max-height: 60vh;
-        padding: 30px;
-        overflow-y: auto;
+    .DataGrid {
+        padding: 24px;
+        background-color: rgba(var(--sys-white-rgb), 0.04);
+        cursor: pointer;
 
-        .sync-results-table {
-            width: 100%;
-            margin-bottom: 16px;
-            border-collapse: collapse;
-        
-            th {
-                padding: 12px;
-                background-color: rgba(var(--center-channel-color-rgb), 0.08);
-                font-weight: 600;
-                text-align: left;
-            
-                &:last-child {
-                    text-align: right;
-                }
-            }
-        
-            td {
-                padding: 12px;
-                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-            
-                &:last-child {
-                    text-align: right;
-                }
-            }
+        .DataGrid_rows {
+            .DataGrid_row {
+                min-height: 40px;
+                border-left: none;
+                background-color: rgba(var(--sys-white-rgb), 0.04);
 
-            .clickable-row {
-                cursor: pointer;
-            
                 &:hover {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.05);
+                    border-left: none;
+                    background-color: rgba(0, 0, 0, 0.05);
                 }
-            }
 
-            .channel-name {
-                display: flex;
-                flex-direction: column;
-            
-                .channel-id {
-                    margin-top: 2px;
-                    color: rgba(var(--center-channel-color-rgb), 0.56);
-                    font-size: 12px;
-                }
-            }
-        
-            .changes-summary {
-                .added {
-                    color: var(--online-indicator);
-                }
-            
-                .removed {
-                    color: var(--error-text);
+                .DataGrid_cell {
+                    .channel-name-cell {
+                        display: flex;
+                        align-items: baseline;
+                        .team-name {
+                            margin-left: 6px;
+                            color: var(--center-channel-color-64);
+                            font-size: 0.85em;
+                        }
+                    }
+
+                    .changes-cell {
+                        text-align: center;
+                        
+                        .changes-summary {
+                            .added {
+                                color: var(--online-indicator);
+                                font-weight: 600;
+                            }
+                            .removed {
+                                color: var(--error-text);
+                                font-weight: 600;
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        .no-results-message {
-            padding: 20px;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            text-align: center;
-        }
-    }
-
-    // Pagination styles
-    .pagination-controls {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding-top: 24px;
-
-        .member-count-text {
-            color: var(--center-channel-color-64);
-            font-size: 12px;
-        }
-
-        .pagination-controls-buttons {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-
-            button {
-                padding: 5px;
-                border: none;
-                background: none;
-                color: var(--center-channel-color);
-                cursor: pointer;
-
-                &:disabled {
-                    cursor: not-allowed;
-                    opacity: 0.5;
-                }
-
-                &.arrow {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-            }
-
-            span {
-                color: var(--center-channel-text);
-                font-size: 12px;
-            }
+        &_footer {
+            border-bottom: 0;
         }
     }
-
-    width: 720px;
-    padding: 12px;
 }
