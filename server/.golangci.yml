@@ -95,13 +95,10 @@ issues:
         channels/app/permissions_test.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\
-        channels/app/platform/session.go|\
         channels/app/platform/status.go|\
         channels/app/slashcommands/command_test.go|\
         channels/app/slashcommands/helper_test.go|\
-        channels/app/team_test.go|\
         channels/app/upload.go|\
-        channels/jobs/batch_worker_test.go|\
         channels/store/localcachelayer/channel_layer.go|\
         channels/store/localcachelayer/channel_layer_test.go|\
         channels/store/localcachelayer/emoji_layer.go|\

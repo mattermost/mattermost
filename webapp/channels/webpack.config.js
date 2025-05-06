@@ -274,7 +274,7 @@ function generateCSP() {
     let csp = 'script-src \'self\' cdn.rudderlabs.com/ js.stripe.com/v3';
 
     if (DEV) {
-        // react-hot-loader and development source maps require eval
+        // Development source maps require eval
         csp += ' \'unsafe-eval\'';
     }
 
@@ -428,13 +428,6 @@ if (targetIsDevServer) {
         optimization: {
             ...config.optimization,
             splitChunks: false,
-        },
-        resolve: {
-            ...config.resolve,
-            alias: {
-                ...config.resolve.alias,
-                'react-dom': '@hot-loader/react-dom',
-            },
         },
     };
 }
