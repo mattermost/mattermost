@@ -70,8 +70,8 @@ function UrlInput({
             onBlur(event);
         }
     };
-
-    const handleOnButtonClick = () => {
+    const handleOnButtonClick = (event: React.KeyboardEvent<HTMLButtonElement> | React.MouseEvent<HTMLButtonElement>) => {
+        event.stopPropagation();
         if (!hasError) {
             setEditing(!editing);
         }
@@ -123,6 +123,7 @@ function UrlInput({
                     className={classNames('url-input-button', {disabled: hasError})}
                     disabled={hasError}
                     onClick={handleOnButtonClick}
+                    onKeyDown={handleOnButtonClick}
                 >
                     <span className='url-input-button-label'>
                         {editing ? formatMessage({id: 'url_input.buttonLabel.done', defaultMessage: 'Done'}) : formatMessage({id: 'url_input.buttonLabel.edit', defaultMessage: 'Edit'})}
