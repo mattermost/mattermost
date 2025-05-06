@@ -1453,6 +1453,22 @@ export function fetchMissingChannels(channelIDs: string[]): ActionFuncAsync<Arra
     };
 }
 
+export function getChannelAccessControlAttributes(channelId: string): ActionFuncAsync<Record<string, string[]>> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            // Use the Client4 method to fetch access control attributes
+            data = await Client4.getChannelAccessControlAttributes(channelId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        return {data};
+    };
+}
+
 export default {
     selectChannel,
     createChannel,
@@ -1482,4 +1498,5 @@ export default {
     membersMinusGroupMembers,
     getChannelModerations,
     getChannelMemberCountsByGroup,
+    getChannelAccessControlAttributes,
 };

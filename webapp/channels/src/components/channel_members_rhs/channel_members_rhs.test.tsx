@@ -43,6 +43,16 @@ jest.mock('./search', () => {
     return jest.fn(() => <div data-testid='search-bar'>{'Search Bar Mock'}</div>);
 });
 
+// Mock the useAccessControlAttributes hook
+jest.mock('hooks/useAccessControlAttributes', () => {
+    return jest.fn(() => ({
+        attributeTags: ['tag1', 'tag2'],
+        loading: false,
+        error: null,
+        fetchAttributes: jest.fn(),
+    }));
+});
+
 describe('channel_members_rhs/channel_members_rhs', () => {
     // Using 'as any' to bypass TypeScript errors in test data
     const baseProps = {

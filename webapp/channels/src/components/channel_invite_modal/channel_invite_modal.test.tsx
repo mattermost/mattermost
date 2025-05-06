@@ -26,6 +26,22 @@ jest.mock('utils/utils', () => {
     };
 });
 
+// Mock the getChannelAccessControlAttributes action
+jest.mock('mattermost-redux/actions/channels', () => {
+    const original = jest.requireActual('mattermost-redux/actions/channels');
+    return {
+        ...original,
+        getChannelAccessControlAttributes: jest.fn().mockImplementation(() => () => {
+            return {
+                data: {
+                    department: ['Engineering', 'Marketing'],
+                    location: ['San Francisco'],
+                },
+            };
+        }),
+    };
+});
+
 describe('components/channel_invite_modal', () => {
     const users = [{
         id: 'user-1',
@@ -243,7 +259,7 @@ describe('components/channel_invite_modal', () => {
         expect(screen.queryByText('Invite as a Guest')).not.toBeInTheDocument();
     });
 
-    test('should show policy banner when channel has policy_enforced flag', () => {
+    test('should show policy banner when channel has policy_enforced flag', async () => {
         renderWithContext(
             <ChannelInviteModal
                 {...baseProps}
@@ -258,6 +274,12 @@ describe('components/channel_invite_modal', () => {
         // Verify the policy banner is present
         expect(screen.getByText('Channel access is restricted by user attributes')).toBeInTheDocument();
         expect(screen.getByText('Only people who match the specified access rules can be selected and added to this channel.')).toBeInTheDocument();
+
+        // Wait for the attribute tags to be loaded and displayed
+        await screen.findByText('Engineering');
+        expect(screen.getByText('Engineering')).toBeInTheDocument();
+        expect(screen.getByText('Marketing')).toBeInTheDocument();
+        expect(screen.getByText('San Francisco')).toBeInTheDocument();
     });
 
     test('should not show policy banner when channel does not have policy_enforced flag', () => {
