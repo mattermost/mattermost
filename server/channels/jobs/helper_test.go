@@ -36,7 +36,6 @@ type TestHelper struct {
 	IncludeCacheLayer bool
 	ConfigStore       *config.Store
 
-	t                         testing.TB
 	tempWorkspace             string
 	oldWatcherPollingInterval int
 }
@@ -97,7 +96,6 @@ func setupTestHelper(t testing.TB, dbStore store.Store, enterprise bool, include
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
 		ConfigStore:       configStore,
-		t:                 t,
 		tempWorkspace:     tempWorkspace,
 	}
 
@@ -113,13 +111,14 @@ func setupTestHelper(t testing.TB, dbStore store.Store, enterprise bool, include
 	return th
 }
 
-func Setup(tb testing.TB, options ...app.Option) *TestHelper {
-	return SetupWithUpdateCfg(tb, nil, options...)
+func Setup(t testing.TB, options ...app.Option) *TestHelper {
+	return SetupWithUpdateCfg(t, nil, options...)
 }
 
-func SetupWithUpdateCfg(tb testing.TB, updateCfg func(cfg *model.Config), options ...app.Option) *TestHelper {
+func SetupWithUpdateCfg(t testing.TB, updateCfg func(cfg *model.Config), options ...app.Option) *TestHelper {
+	t.Helper()
 	if testing.Short() {
-		tb.SkipNow()
+		t.SkipNow()
 	}
 
 	oldWatcherPollingInterval := jobs.DefaultWatcherPollingInterval
@@ -130,32 +129,36 @@ func SetupWithUpdateCfg(tb testing.TB, updateCfg func(cfg *model.Config), option
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 
-	th := setupTestHelper(tb, dbStore, false, true, updateCfg, options)
+	th := setupTestHelper(t, dbStore, false, true, updateCfg, options)
 	th.oldWatcherPollingInterval = oldWatcherPollingInterval
 	return th
 }
 
-func (th *TestHelper) InitBasic() *TestHelper {
-	th.SystemAdminUser = th.CreateUser()
+func (th *TestHelper) InitBasic(t testing.TB) *TestHelper {
+	t.Helper()
+
+	th.SystemAdminUser = th.CreateUser(t)
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-	require.Nil(th.t, appErr)
+	require.Nil(t, appErr)
 	th.SystemAdminUser, appErr = th.App.GetUser(th.SystemAdminUser.Id)
-	require.Nil(th.t, appErr)
+	require.Nil(t, appErr)
 
-	th.BasicUser = th.CreateUser()
+	th.BasicUser = th.CreateUser(t)
 	th.BasicUser, appErr = th.App.GetUser(th.BasicUser.Id)
-	require.Nil(th.t, appErr)
+	require.Nil(t, appErr)
 
-	th.BasicUser2 = th.CreateUser()
+	th.BasicUser2 = th.CreateUser(t)
 	th.BasicUser2, appErr = th.App.GetUser(th.BasicUser2.Id)
-	require.Nil(th.t, appErr)
+	require.Nil(t, appErr)
 
-	th.BasicTeam = th.CreateTeam()
+	th.BasicTeam = th.CreateTeam(t)
 
 	return th
 }
 
-func (th *TestHelper) CreateTeam() *model.Team {
+func (th *TestHelper) CreateTeam(t testing.TB) *model.Team {
+	t.Helper()
+
 	id := model.NewId()
 	team := &model.Team{
 		DisplayName: "dn_" + id,
@@ -165,15 +168,17 @@ func (th *TestHelper) CreateTeam() *model.Team {
 	}
 
 	team, err := th.App.CreateTeam(th.Context, team)
-	require.Nil(th.t, err)
+	require.Nil(t, err)
 	return team
 }
 
-func (th *TestHelper) CreateUser() *model.User {
-	return th.CreateUserOrGuest(false)
+func (th *TestHelper) CreateUser(t testing.TB) *model.User {
+	t.Helper()
+	return th.CreateUserOrGuest(t, false)
 }
 
-func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
+func (th *TestHelper) CreateUserOrGuest(t testing.TB, guest bool) *model.User {
+	t.Helper()
 	id := model.NewId()
 
 	user := &model.User{
@@ -190,7 +195,7 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 	} else {
 		user, err = th.App.CreateUser(th.Context, user)
 	}
-	require.Nil(th.t, err)
+	require.Nil(t, err)
 	return user
 }
 
@@ -210,11 +215,13 @@ func (th *TestHelper) ShutdownApp() {
 	}
 }
 
-func (th *TestHelper) TearDown() {
+func (th *TestHelper) TearDown(t testing.TB) {
+	t.Helper()
+
 	if th.IncludeCacheLayer {
 		// Clean all the caches
 		appErr := th.App.Srv().InvalidateAllCaches()
-		require.Nil(th.t, appErr)
+		require.Nil(t, appErr)
 	}
 	th.ShutdownApp()
 
@@ -227,7 +234,7 @@ func (th *TestHelper) TearDown() {
 	}
 }
 
-func (th *TestHelper) SetupBatchWorker(t *testing.T, worker *jobs.BatchWorker) *model.Job {
+func (th *TestHelper) SetupBatchWorker(t testing.TB, worker *jobs.BatchWorker) *model.Job {
 	t.Helper()
 
 	jobId := model.NewId()
@@ -255,7 +262,7 @@ func (th *TestHelper) SetupBatchWorker(t *testing.T, worker *jobs.BatchWorker) *
 	return job
 }
 
-func (th *TestHelper) WaitForJobStatus(t *testing.T, job *model.Job, status string) {
+func (th *TestHelper) WaitForJobStatus(t testing.TB, job *model.Job, status string) {
 	t.Helper()
 
 	require.Eventuallyf(t, func() bool {
@@ -267,7 +274,7 @@ func (th *TestHelper) WaitForJobStatus(t *testing.T, job *model.Job, status stri
 	}, 5*time.Second, 250*time.Millisecond, "job never transitioned to %s", status)
 }
 
-func (th *TestHelper) WaitForBatchNumber(t *testing.T, job *model.Job, batchNumber int) {
+func (th *TestHelper) WaitForBatchNumber(t testing.TB, job *model.Job, batchNumber int) {
 	t.Helper()
 
 	require.Eventuallyf(t, func() bool {
@@ -281,7 +288,7 @@ func (th *TestHelper) WaitForBatchNumber(t *testing.T, job *model.Job, batchNumb
 	}, 5*time.Second, 250*time.Millisecond, "job did not stop at batch %d", batchNumber)
 }
 
-func waitDone(t *testing.T, done chan bool, msg string) {
+func waitDone(t testing.TB, done chan bool, msg string) {
 	t.Helper()
 
 	require.Eventually(t, func() bool {
@@ -294,12 +301,14 @@ func waitDone(t *testing.T, done chan bool, msg string) {
 	}, 5*time.Second, 100*time.Millisecond, msg)
 }
 
-func (th *TestHelper) SetupWorkers(t *testing.T) {
+func (th *TestHelper) SetupWorkers(t testing.TB) {
+	t.Helper()
+
 	err := th.App.Srv().Jobs.StartWorkers()
 	require.NoError(t, err)
 }
 
-func (th *TestHelper) RunJob(t *testing.T, jobType string, jobData map[string]string) *model.Job {
+func (th *TestHelper) RunJob(t testing.TB, jobType string, jobData map[string]string) *model.Job {
 	t.Helper()
 
 	job, appErr := th.Server.Jobs.CreateJob(th.Context, jobType, jobData)
@@ -313,13 +322,13 @@ func (th *TestHelper) RunJob(t *testing.T, jobType string, jobData map[string]st
 	return job
 }
 
-func (th *TestHelper) checkJobStatus(t *testing.T, jobId string, status string) {
+func (th *TestHelper) checkJobStatus(t testing.TB, jobId string, status string) {
 	t.Helper()
 
 	require.Eventuallyf(t, func() bool {
 		// it's ok if there's an error, it might take awhile for the job to finish.
 		job, appErr := th.Server.Jobs.GetJob(th.Context, jobId)
-		assert.Nil(th.t, appErr)
+		assert.Nil(t, appErr)
 		if jobId == job.Id {
 			return job.Status == status
 		}

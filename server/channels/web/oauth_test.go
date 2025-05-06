@@ -24,8 +24,8 @@ import (
 )
 
 func TestOAuthComplete_AccessDenied(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	c := &Context{
 		App: th.App,
@@ -51,9 +51,9 @@ func TestOAuthComplete_AccessDenied(t *testing.T) {
 }
 
 func TestAuthorizeOAuthApp(t *testing.T) {
-	th := Setup(t).InitBasic()
-	th.Login(apiClient, th.SystemAdminUser)
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	th.Login(t, apiClient, th.SystemAdminUser)
+	defer th.TearDown(t)
 
 	enableOAuth := *th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
@@ -178,9 +178,9 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 }
 
 func TestDeauthorizeOAuthApp(t *testing.T) {
-	th := Setup(t).InitBasic()
-	th.Login(apiClient, th.SystemAdminUser)
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	th.Login(t, apiClient, th.SystemAdminUser)
+	defer th.TearDown(t)
 
 	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
@@ -231,9 +231,9 @@ func TestOAuthAccessToken(t *testing.T) {
 		t.SkipNow()
 	}
 
-	th := Setup(t).InitBasic()
-	th.Login(apiClient, th.SystemAdminUser)
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	th.Login(t, apiClient, th.SystemAdminUser)
+	defer th.TearDown(t)
 
 	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
@@ -399,8 +399,8 @@ func TestOAuthAccessToken(t *testing.T) {
 }
 
 func TestMobileLoginWithOAuth(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 	c := &Context{
 		App:        th.App,
 		AppContext: th.Context,
@@ -465,9 +465,9 @@ func TestOAuthComplete(t *testing.T) {
 		t.SkipNow()
 	}
 
-	th := Setup(t).InitBasic()
-	th.Login(apiClient, th.SystemAdminUser)
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	th.Login(t, apiClient, th.SystemAdminUser)
+	defer th.TearDown(t)
 
 	gitLabSettingsEnable := th.App.Config().GitLabSettings.Enable
 	gitLabSettingsAuthEndpoint := th.App.Config().GitLabSettings.AuthEndpoint
@@ -622,8 +622,8 @@ func TestOAuthComplete(t *testing.T) {
 }
 
 func TestOAuthComplete_ErrorMessages(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 	c := &Context{
 		App:        th.App,
 		AppContext: th.Context,
@@ -753,14 +753,14 @@ func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
 	checkHTTPStatus(t, resp, http.StatusBadRequest)
 }
 
-func (th *TestHelper) Login(client *model.Client4, user *model.User) {
+func (th *TestHelper) Login(t testing.TB, client *model.Client4, user *model.User) {
 	session := &model.Session{
 		UserId:  user.Id,
 		Roles:   user.GetRawRoles(),
 		IsOAuth: false,
 	}
 	session, appErr := th.App.CreateSession(th.Context, session)
-	require.Nil(th.t, appErr)
+	require.Nil(t, appErr)
 	client.AuthToken = session.Token
 	client.AuthType = model.HeaderBearer
 }
