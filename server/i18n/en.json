@@ -6275,6 +6275,10 @@
     "translation": "An attribute is missing from the expression."
   },
   {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "Could not normalize policy expression."
+  },
+  {
     "id": "app.pap.query_expression.app_error",
     "translation": "Could not query for expression."
   },
