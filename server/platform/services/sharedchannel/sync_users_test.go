@@ -789,3 +789,271 @@ func TestExtractUsersFromSyncForTest(t *testing.T) {
 		require.NoError(t, err, "Should not return error for nil remote")
 	})
 }
+
+func TestShouldUserSyncWithOptions(t *testing.T) {
+	testLogger := mlog.CreateConsoleTestLogger(t)
+
+	t.Run("unified method matches original behavior for channel-specific sync", func(t *testing.T) {
+		// Create mock store
+		mockSharedChannelStore := &mocks.SharedChannelStore{}
+		mockStore := &mocks.Store{}
+		mockStore.On("SharedChannel").Return(mockSharedChannelStore)
+
+		// Create mock server
+		mockServer := &MockServerIface{}
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("Log").Return(testLogger)
+
+		// Create service
+		scs := &Service{
+			server: mockServer,
+		}
+
+		// Test user and remote
+		user := &model.User{
+			Id:                "user1",
+			Username:          "testuser",
+			Email:             "test@example.com",
+			UpdateAt:          1000,
+			LastPictureUpdate: 900,
+		}
+
+		rc := &model.RemoteCluster{
+			RemoteId: "remote1",
+		}
+
+		// Mock existing user in shared channel
+		existingSCU := &model.SharedChannelUser{
+			UserId:     "user1",
+			RemoteId:   "remote1",
+			ChannelId:  "channel1",
+			LastSyncAt: 800,
+		}
+
+		mockSharedChannelStore.On("GetSingleUser", "user1", "channel1", "remote1").Return(existingSCU, nil)
+
+		// Execute original method
+		origSync, origSyncImage, origErr := scs.shouldUserSync(user, "channel1", rc)
+
+		// Execute new unified method with same params
+		opts := SyncUserOpts{
+			User:          user,
+			RemoteCluster: rc,
+			ChannelID:     "channel1",
+		}
+		newSync, newSyncImage, newErr := scs.shouldUserSyncWithOptions(opts)
+
+		// Check that results match
+		assert.Equal(t, origSync, newSync, "sync flag should match between old and new methods")
+		assert.Equal(t, origSyncImage, newSyncImage, "syncImage flag should match between old and new methods")
+		assert.Equal(t, origErr, newErr, "error should match between old and new methods")
+
+		// Verify the expected result (user should need sync since UpdateAt > LastSyncAt)
+		assert.True(t, newSync, "User should need sync since UpdateAt > LastSyncAt")
+		assert.True(t, newSyncImage, "User should need image sync since LastPictureUpdate > LastSyncAt")
+	})
+
+	t.Run("unified method matches original behavior for global sync", func(t *testing.T) {
+		// Create mock store
+		mockSharedChannelStore := &mocks.SharedChannelStore{}
+		mockStore := &mocks.Store{}
+		mockStore.On("SharedChannel").Return(mockSharedChannelStore)
+
+		// Create mock server
+		mockServer := &MockServerIface{}
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("Log").Return(testLogger)
+
+		// Create service
+		scs := &Service{
+			server: mockServer,
+		}
+
+		// Test user and remote
+		user := &model.User{
+			Id:                "user1",
+			Username:          "testuser",
+			Email:             "test@example.com",
+			UpdateAt:          1000,
+			LastPictureUpdate: 900,
+		}
+
+		rc := &model.RemoteCluster{
+			RemoteId: "remote1",
+		}
+
+		// Mock getting users for remote
+		scus := []*model.SharedChannelUser{
+			{
+				UserId:     "user1",
+				RemoteId:   "remote1",
+				ChannelId:  "channel1",
+				LastSyncAt: 1200, // This is after user.UpdateAt, so no sync needed
+			},
+			{
+				UserId:     "user1",
+				RemoteId:   "remote1",
+				ChannelId:  "channel2",
+				LastSyncAt: 800, // This is before user.UpdateAt, so sync needed
+			},
+		}
+
+		mockSharedChannelStore.On("GetUsersByUserAndRemote", "user1", "remote1").Return(scus, nil)
+
+		// Create sync data cache for testing
+		syncData := &userSyncData{
+			userSyncMap: map[string]map[string]int64{
+				"user1": {
+					"channel1": 1200,
+					"channel2": 800,
+				},
+			},
+			initialized: true,
+		}
+
+		// Execute original global sync method
+		origSync, origErr := scs.shouldUserSyncGlobal(user, rc, syncData)
+
+		// Execute new unified method
+		opts := SyncUserOpts{
+			User:          user,
+			RemoteCluster: rc,
+			SyncDataCache: syncData,
+		}
+		newSync, _, newErr := scs.shouldUserSyncWithOptions(opts)
+
+		// Check that results match
+		assert.Equal(t, origSync, newSync, "sync flag should match between old and new methods")
+		assert.Equal(t, origErr, newErr, "error should match between old and new methods")
+
+		// Verify the expected result (user should need sync since one channel has LastSyncAt < UpdateAt)
+		assert.True(t, newSync, "User should need sync since at least one channel has LastSyncAt < UpdateAt")
+	})
+
+	t.Run("when provided timestamp is used directly", func(t *testing.T) {
+		// Create mock store
+		mockStore := &mocks.Store{}
+
+		// Create mock server
+		mockServer := &MockServerIface{}
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("Log").Return(testLogger)
+
+		// Create service
+		scs := &Service{
+			server: mockServer,
+		}
+
+		// Test user and remote
+		user := &model.User{
+			Id:                "user1",
+			Username:          "testuser",
+			Email:             "test@example.com",
+			UpdateAt:          1000,
+			LastPictureUpdate: 900,
+		}
+
+		rc := &model.RemoteCluster{
+			RemoteId: "remote1",
+		}
+
+		// Execute new unified method with provided timestamp
+		opts := SyncUserOpts{
+			User:                 user,
+			RemoteCluster:        rc,
+			LastSyncAt:           1100, // After user.UpdateAt so no sync needed
+			UseProvidedTimestamp: true,
+		}
+		sync, syncImage, err := scs.shouldUserSyncWithOptions(opts)
+
+		// Verify results
+		assert.NoError(t, err)
+		assert.False(t, sync, "Sync should be false when LastSyncAt > UpdateAt")
+		assert.False(t, syncImage, "SyncImage should be false when LastSyncAt > LastPictureUpdate")
+
+		// Try with earlier timestamp
+		opts.LastSyncAt = 500 // Before user.UpdateAt so sync needed
+		sync, syncImage, err = scs.shouldUserSyncWithOptions(opts)
+
+		// Verify results
+		assert.NoError(t, err)
+		assert.True(t, sync, "Sync should be true when LastSyncAt < UpdateAt")
+		assert.True(t, syncImage, "SyncImage should be true when LastSyncAt < LastPictureUpdate")
+	})
+
+	t.Run("user from remote cluster is never synced back", func(t *testing.T) {
+		// Create mock store
+		mockStore := &mocks.Store{}
+
+		// Create mock server
+		mockServer := &MockServerIface{}
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("Log").Return(testLogger)
+
+		// Create service
+		scs := &Service{
+			server: mockServer,
+		}
+
+		// Remote ID matching our target remote
+		remoteId := "remote1"
+
+		// User from the remote cluster
+		user := &model.User{
+			Id:                "remote_user",
+			Username:          "remoteuser",
+			Email:             "remote@example.com",
+			UpdateAt:          1000,
+			LastPictureUpdate: 900,
+			RemoteId:          &remoteId,
+		}
+
+		rc := &model.RemoteCluster{
+			RemoteId: "remote1",
+		}
+
+		// Execute all variants of the method
+
+		// Channel-specific check
+		opts1 := SyncUserOpts{
+			User:          user,
+			RemoteCluster: rc,
+			ChannelID:     "channel1",
+		}
+		sync1, syncImage1, err1 := scs.shouldUserSyncWithOptions(opts1)
+
+		// Global check with cache
+		syncData := &userSyncData{
+			userSyncMap: map[string]map[string]int64{},
+			initialized: true,
+		}
+		opts2 := SyncUserOpts{
+			User:          user,
+			RemoteCluster: rc,
+			SyncDataCache: syncData,
+		}
+		sync2, syncImage2, err2 := scs.shouldUserSyncWithOptions(opts2)
+
+		// Direct timestamp check
+		opts3 := SyncUserOpts{
+			User:                 user,
+			RemoteCluster:        rc,
+			LastSyncAt:           0, // Should need sync, but the remote check should prevent it
+			UseProvidedTimestamp: true,
+		}
+		sync3, syncImage3, err3 := scs.shouldUserSyncWithOptions(opts3)
+
+		// Verify all results show no sync needed
+		assert.NoError(t, err1)
+		assert.False(t, sync1, "Channel-specific: User from remote should not be synced back")
+		assert.False(t, syncImage1, "Channel-specific: User image from remote should not be synced back")
+
+		assert.NoError(t, err2)
+		assert.False(t, sync2, "Global with cache: User from remote should not be synced back")
+		assert.False(t, syncImage2, "Global with cache: User image from remote should not be synced back")
+
+		assert.NoError(t, err3)
+		assert.False(t, sync3, "Direct timestamp: User from remote should not be synced back")
+		assert.False(t, syncImage3, "Direct timestamp: User image from remote should not be synced back")
+	})
+}

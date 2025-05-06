@@ -691,74 +691,17 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 	}
 }
 
-// userSyncData holds cached sync data for users to avoid multiple DB queries
-type userSyncData struct {
-	// map of userID -> map of channelID -> LastSyncAt timestamp
-	userSyncMap map[string]map[string]int64
-	initialized bool
-}
-
 // shouldUserSyncGlobal determines if a user needs to be synchronized globally.
-// User should be synchronized if there is no entry in any SharedChannelUsers table for the target remote cluster,
-// or if the LastSyncAt is less than user.UpdateAt for all entries.
+// Calls the unified shouldUserSyncWithOptions with global sync options.
 func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteCluster, syncData *userSyncData) (bool, error) {
-	// First check cached data
-	if syncData != nil && syncData.initialized {
-		channelMap, exists := syncData.userSyncMap[user.Id]
-
-		// If user doesn't exist in our sync map, they need syncing
-		if !exists {
-			// Use the base function with lastSyncAt = 0 to check if user should be synced
-			sync, _, err := scs.baseUserSyncCheck(user, rc, 0)
-			return sync, err
-		}
-
-		// Check if any channel entry needs updating
-		for _, lastSyncAt := range channelMap {
-			sync, _, err := scs.baseUserSyncCheck(user, rc, lastSyncAt)
-			if err != nil {
-				return false, err
-			}
-			if sync {
-				return true, nil
-			}
-		}
-
-		// All entries are up to date
-		return false, nil
+	opts := SyncUserOpts{
+		User:          user,
+		RemoteCluster: rc,
+		SyncDataCache: syncData,
 	}
 
-	// Fallback to direct DB query if cache isn't available
-	scus, err := scs.server.GetStore().SharedChannel().GetUsersByUserAndRemote(user.Id, rc.RemoteId)
-	if err != nil {
-		if _, ok := err.(errNotFound); !ok {
-			return false, err
-		}
-		// No entries found - user needs sync, use base function with lastSyncAt = 0
-		sync, _, err := scs.baseUserSyncCheck(user, rc, 0)
-		return sync, err
-	}
-
-	// No sync entries found means user needs syncing
-	if len(scus) == 0 {
-		// Use the base function with lastSyncAt = 0 to check if user should be synced
-		sync, _, err := scs.baseUserSyncCheck(user, rc, 0)
-		return sync, err
-	}
-
-	// Check if any channel entry needs updating
-	for _, scu := range scus {
-		sync, _, err := scs.baseUserSyncCheck(user, rc, scu.LastSyncAt)
-		if err != nil {
-			return false, err
-		}
-		if sync {
-			return true, nil
-		}
-	}
-
-	// User has entries and all are up to date
-	return false, nil
+	sync, _, err := scs.shouldUserSyncWithOptions(opts)
+	return sync, err
 }
 
 // syncAllUsersForRemote synchronizes all local users to a remote cluster.

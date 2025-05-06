@@ -547,6 +547,29 @@ func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 	return i18n.GetUserTranslations(locale)
 }
 
+// SyncUserOpts defines options for checking if a user needs synchronization
+type SyncUserOpts struct {
+	// User to check for sync
+	User *model.User
+	// Remote cluster to check against
+	RemoteCluster *model.RemoteCluster
+	// ChannelID for channel-specific syncs, empty for global syncs
+	ChannelID string
+	// Last sync timestamp from any source (can be passed directly instead of querying)
+	LastSyncAt int64
+	// When true, uses the provided LastSyncAt value directly
+	UseProvidedTimestamp bool
+	// Optional cache of user sync information to avoid DB queries
+	SyncDataCache *userSyncData
+}
+
+// userSyncData holds cached sync data for users to avoid multiple DB queries
+type userSyncData struct {
+	// map of userID -> map of channelID -> LastSyncAt timestamp
+	userSyncMap map[string]map[string]int64
+	initialized bool
+}
+
 // baseUserSyncCheck contains the common logic for determining if a user needs to be synchronized
 // with a remote cluster. It handles checking if the user is from the remote cluster and comparing
 // update timestamps against last sync times.
@@ -564,41 +587,121 @@ func (scs *Service) baseUserSyncCheck(user *model.User, rc *model.RemoteCluster,
 	return sync, syncImage, nil
 }
 
-// shouldUserSync determines if a user needs to be synchronized.
-// User should be synchronized if it has no entry in the SharedChannelUsers table for the specified channel,
-// or there is an entry but the LastSyncAt is less than user.UpdateAt
-func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model.RemoteCluster) (sync bool, syncImage bool, err error) {
-	scu, err := scs.server.GetStore().SharedChannel().GetSingleUser(user.Id, channelID, rc.RemoteId)
+// shouldUserSyncWithOptions provides a unified approach to determine if a user needs to be synchronized.
+func (scs *Service) shouldUserSyncWithOptions(opts SyncUserOpts) (sync bool, syncImage bool, err error) {
+	user := opts.User
+	rc := opts.RemoteCluster
+
+	// First, do the basic origin check - never sync users back to their source remote
+	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
+		return false, false, nil
+	}
+
+	// If caller provided a timestamp to use directly, use it
+	if opts.UseProvidedTimestamp {
+		return scs.baseUserSyncCheck(user, rc, opts.LastSyncAt)
+	}
+
+	// For channel-specific sync
+	if opts.ChannelID != "" {
+		scu, errGet := scs.server.GetStore().SharedChannel().GetSingleUser(user.Id, opts.ChannelID, rc.RemoteId)
+		if errGet != nil {
+			if _, ok := errGet.(errNotFound); !ok {
+				return false, false, errGet
+			}
+
+			// User not in the SharedChannelUsers table, create a new entry
+			scu = &model.SharedChannelUser{
+				UserId:    user.Id,
+				RemoteId:  rc.RemoteId,
+				ChannelId: opts.ChannelID,
+			}
+			if _, err = scs.server.GetStore().SharedChannel().SaveUser(scu); err != nil {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error adding user to shared channel users",
+					mlog.String("user_id", user.Id),
+					mlog.String("channel_id", opts.ChannelID),
+					mlog.String("remote_id", rc.RemoteId),
+					mlog.Err(err),
+				)
+			} else {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Added user to shared channel users",
+					mlog.String("user_id", user.Id),
+					mlog.String("channel_id", opts.ChannelID),
+					mlog.String("remote_id", rc.RemoteId),
+				)
+			}
+			return true, true, nil
+		}
+
+		// User exists, check sync status against their LastSyncAt timestamp
+		return scs.baseUserSyncCheck(user, rc, scu.LastSyncAt)
+	}
+
+	// Global sync - check if user needs syncing without a specific channel
+	// First check the cache if provided
+	if opts.SyncDataCache != nil && opts.SyncDataCache.initialized {
+		channelMap, exists := opts.SyncDataCache.userSyncMap[user.Id]
+
+		// If user doesn't exist in our sync map, they need syncing
+		if !exists {
+			return scs.baseUserSyncCheck(user, rc, 0)
+		}
+
+		// Check if any channel entry needs updating
+		for _, lastSyncAt := range channelMap {
+			sync, syncImage, errCheck := scs.baseUserSyncCheck(user, rc, lastSyncAt)
+			if errCheck != nil {
+				return false, false, errCheck
+			}
+			if sync || syncImage {
+				return sync, syncImage, nil
+			}
+		}
+
+		// All entries are up to date
+		return false, false, nil
+	}
+
+	// No cache or cache not initialized - query the database
+	scus, err := scs.server.GetStore().SharedChannel().GetUsersByUserAndRemote(user.Id, rc.RemoteId)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
 			return false, false, err
 		}
-
-		// user not in the SharedChannelUsers table, so we must add them.
-		scu = &model.SharedChannelUser{
-			UserId:    user.Id,
-			RemoteId:  rc.RemoteId,
-			ChannelId: channelID,
-		}
-		if _, err = scs.server.GetStore().SharedChannel().SaveUser(scu); err != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error adding user to shared channel users",
-				mlog.String("user_id", user.Id),
-				mlog.String("channel_id", user.Id),
-				mlog.String("remote_id", rc.RemoteId),
-				mlog.Err(err),
-			)
-		} else {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Added user to shared channel users",
-				mlog.String("user_id", user.Id),
-				mlog.String("channel_id", user.Id),
-				mlog.String("remote_id", rc.RemoteId),
-			)
-		}
-		return true, true, nil
+		// No entries found - user needs sync with lastSyncAt = 0
+		return scs.baseUserSyncCheck(user, rc, 0)
 	}
 
-	// Use the base function to compare the user's update timestamps with the last sync time
-	return scs.baseUserSyncCheck(user, rc, scu.LastSyncAt)
+	// No sync entries found means user needs syncing
+	if len(scus) == 0 {
+		return scs.baseUserSyncCheck(user, rc, 0)
+	}
+
+	// Check if any channel entry needs updating
+	for _, scu := range scus {
+		sync, syncImage, errSCU := scs.baseUserSyncCheck(user, rc, scu.LastSyncAt)
+		if errSCU != nil {
+			return false, false, errSCU
+		}
+		if sync || syncImage {
+			return sync, syncImage, nil
+		}
+	}
+
+	// User has entries and all are up to date
+	return false, false, nil
+}
+
+// shouldUserSync determines if a user needs to be synchronized.
+// User should be synchronized if it has no entry in the SharedChannelUsers table for the specified channel,
+// or there is an entry but the LastSyncAt is less than user.UpdateAt
+func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model.RemoteCluster) (sync bool, syncImage bool, err error) {
+	opts := SyncUserOpts{
+		User:          user,
+		RemoteCluster: rc,
+		ChannelID:     channelID,
+	}
+	return scs.shouldUserSyncWithOptions(opts)
 }
 
 func (scs *Service) syncProfileImage(user *model.User, channelID string, rc *model.RemoteCluster) {
