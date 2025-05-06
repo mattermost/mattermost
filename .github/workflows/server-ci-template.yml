@@ -424,7 +424,7 @@ jobs:
         env:
           OUTPUT_CONFIG: config/config.json
         run: |
-          mkdir -p server/.go/bin
+          mkdir -p .go/bin
           make config-reset
           make build-cmd-linux-amd64 BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
           make package-linux-amd64 BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
