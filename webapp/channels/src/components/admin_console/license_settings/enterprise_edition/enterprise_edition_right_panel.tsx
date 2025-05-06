@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {ClientLicense} from '@mattermost/types/config';
 
@@ -20,58 +20,59 @@ const EnterpriseEditionRightPanel = ({
     isTrialLicense,
     license,
 }: EnterpriseEditionProps) => {
+    const intl = useIntl();
     const upgradeAdvantages = [
-        {
+        intl.formatMessage({
             id: 'admin.license.upgradeAdvantage.adLdapSync',
             defaultMessage: 'AD/LDAP Group sync',
-        },
-        {
+        }),
+        intl.formatMessage({
             id: 'admin.license.upgradeAdvantage.highAvailability',
             defaultMessage: 'High Availability',
-        },
-        {
+        }),
+        intl.formatMessage({
             id: 'admin.license.upgradeAdvantage.advancedCompliance',
             defaultMessage: 'Advanced compliance',
-        },
-        {
+        }),
+        intl.formatMessage({
             id: 'admin.license.upgradeAdvantage.advancedRoles',
             defaultMessage: 'Advanced roles and permissions',
-        },
-        {
+        }),
+        intl.formatMessage({
             id: 'admin.license.upgradeAdvantage.andMore',
             defaultMessage: 'And more...',
-        },
+        }),
     ];
 
     const enterpriseToAdvancedAdvantages = [
-        {
+        intl.formatMessage({
             id: 'admin.license.enterpriseToAdvancedAdvantage.attributeBasedAccess',
             defaultMessage: 'Attribute-based access control',
-        },
-        {
+        }),
+        intl.formatMessage({
             id: 'admin.license.enterpriseToAdvancedAdvantage.channelWarningBanners',
             defaultMessage: 'Channel warning banners',
-        },
-        {
+        }),
+        intl.formatMessage({
             id: 'admin.license.enterpriseToAdvancedAdvantage.adLdapGroupSync',
             defaultMessage: 'AD/LDAP group sync',
-        },
-        {
+        }),
+        intl.formatMessage({
             id: 'admin.license.enterpriseToAdvancedAdvantage.advancedWorkflows',
             defaultMessage: 'Advanced workflows with Playbooks',
-        },
-        {
+        }),
+        intl.formatMessage({
             id: 'admin.license.enterpriseToAdvancedAdvantage.highAvailability',
             defaultMessage: 'High availability',
-        },
-        {
+        }),
+        intl.formatMessage({
             id: 'admin.license.enterpriseToAdvancedAdvantage.advancedCompliance',
             defaultMessage: 'Advanced compliance',
-        },
-        {
+        }),
+        intl.formatMessage({
             id: 'admin.license.upgradeAdvantage.andMore',
             defaultMessage: 'And more...',
-        },
+        }),
     ];
 
     const isEnterpriseAdvanced = license?.SkuShortName === LicenseSkus.EnterpriseAdvanced;
@@ -153,7 +154,7 @@ const EnterpriseEditionRightPanel = ({
             return (
                 <FormattedMessage
                     id='admin.license.enterprisePlanSubtitle'
-                    defaultMessage='We’re here to work with you and your needs. Contact us today to get more seats on your plan.'
+                    defaultMessage='We're here to work with you and your needs. Contact us today to get more seats on your plan.'
                 />
             );
         }

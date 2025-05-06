@@ -1452,7 +1452,7 @@
   "admin.license.trialUpgradeAndRequest.submit": "Upgrade Server And Start trial",
   "admin.license.upgrade-and-trial-request.accept-terms-final-part": "Also, I agree to the terms of the Mattermost {eeModalTerms}. Upgrading will download the binary and update your Team Edition instance.",
   "admin.license.upgrade-and-trial-request.accept-terms-initial-part": "By selecting <strong>Upgrade Server And Start trial</strong>, I agree to the <linkEvaluation>Mattermost Software Evaluation Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy>, and receiving product emails. ",
-  "admin.license.upgrade-and-trial-request.title": "Upgrade to Enterprise Edition and experience all that Mattermost Enterprise Advanced has to offer with a free trial for the next 30 days. No obligation to buy and no credit card required. ",
+  "admin.license.upgrade-and-trial-request.title": "Upgrade to the Enterprise Edition to unlock a free 30-day trial of Mattermost Enterprise Advanced—our most powerful plan. No credit card required, no obligation to buy. ",
   "admin.license.upgradeAdvantage.adLdapSync": "AD/LDAP Group sync",
   "admin.license.upgradeAdvantage.highAvailability": "High Availability",
   "admin.license.upgradeAdvantage.advancedCompliance": "Advanced compliance",
