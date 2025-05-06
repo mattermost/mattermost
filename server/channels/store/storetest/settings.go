@@ -188,7 +188,7 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 // execAsRoot executes the given sql as root against the testing database
 func execAsRoot(settings *model.SqlSettings, sqlCommand string) error {
 	var dsn string
-	var driver = *settings.DriverName
+	driver := *settings.DriverName
 
 	switch driver {
 	case model.DatabaseDriverMysql:
@@ -258,14 +258,13 @@ func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 		panic("unsupported driver " + driver)
 	}
 
-	log("Created temporary " + driver + " database " + dbName)
 	settings.ReplicaMonitorIntervalSeconds = model.NewPointer(5)
 
 	return settings
 }
 
 func CleanupSqlSettings(settings *model.SqlSettings) {
-	var driver = *settings.DriverName
+	driver := *settings.DriverName
 	var dbName string
 
 	switch driver {
@@ -280,6 +279,4 @@ func CleanupSqlSettings(settings *model.SqlSettings) {
 	if err := execAsRoot(settings, "DROP DATABASE "+dbName); err != nil {
 		panic("failed to drop temporary database " + dbName + ": " + err.Error())
 	}
-
-	log("Dropped temporary database " + dbName)
 }
