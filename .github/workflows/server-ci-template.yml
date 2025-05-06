@@ -435,6 +435,7 @@ jobs:
           make build-cmd-linux-amd64
           make package-linux-amd64
       - name: Build
+        if: ${{ ! inputs.fips-enabled }}
         run: |
           make build-cmd
           make package
