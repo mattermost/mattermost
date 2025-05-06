@@ -682,9 +682,9 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	wc3.SetConnectionID("conn3")
 	wc3.SetSession(&model.Session{})
 
-	connIndex.Add(wc1)
-	connIndex.Add(wc2)
-	connIndex.Add(wc3)
+	require.NoError(b, connIndex.Add(wc1))
+	require.NoError(b, connIndex.Add(wc2))
+	require.NoError(b, connIndex.Add(wc3))
 
 	b.ResetTimer()
 	b.Run("2 users", func(b *testing.B) {
@@ -701,7 +701,7 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	wc4.SetConnectionID("conn4")
 	wc4.SetSession(&model.Session{})
 
-	connIndex.Add(wc4)
+	require.NoError(b, connIndex.Add(wc4))
 	b.ResetTimer()
 	b.Run("3 users", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
@@ -717,7 +717,7 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	wc5.SetConnectionID("conn5")
 	wc5.SetSession(&model.Session{})
 
-	connIndex.Add(wc5)
+	require.NoError(b, connIndex.Add(wc5))
 	b.ResetTimer()
 	b.Run("4 users", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
@@ -778,9 +778,9 @@ func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
 	wc3.SetConnectionID(wc3ID)
 	wc3.SetSession(&model.Session{})
 
-	connIndex.Add(wc1)
-	connIndex.Add(wc2)
-	connIndex.Add(wc3)
+	require.NoError(b, connIndex.Add(wc1))
+	require.NoError(b, connIndex.Add(wc2))
+	require.NoError(b, connIndex.Add(wc3))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
