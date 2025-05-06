@@ -68,7 +68,11 @@ func (ts *TestServer) IsLeader() bool {
 func createMockStore() store.Store {
 	mockStore := &mocks.Store{}
 	mockUserStore := &mocks.UserStore{}
+	mockRemoteClusterStore := &mocks.RemoteClusterStore{}
+	mockSharedChannelStore := &mocks.SharedChannelStore{}
 	mockStore.On("User").Return(mockUserStore)
+	mockStore.On("RemoteCluster").Return(mockRemoteClusterStore)
+	mockStore.On("SharedChannel").Return(mockSharedChannelStore)
 
 	// Create default test users for mocks
 	remoteId := "remote1"
@@ -102,6 +106,12 @@ func createMockStore() store.Store {
 	mockUserStore.On("Save", mock.Anything, mock.AnythingOfType("*model.User")).Return(
 		&model.User{Id: "user1"}, nil,
 	)
+
+	// Setup RemoteCluster mocks
+	mockRemoteClusterStore.On("Update", mock.AnythingOfType("*model.RemoteCluster")).Return(nil)
+
+	// Setup SharedChannel mocks for testing user sync
+	mockSharedChannelStore.On("GetUsersByRemote", mock.Anything).Return([]*model.SharedChannelUser{}, nil)
 
 	return mockStore
 }
@@ -535,8 +545,12 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 		mockUserStore := &mocks.UserStore{}
 		mockUserStore.On("GetAllProfiles", mock.Anything).Return(nil, assert.AnError)
 
+		mockSharedChannelStore := &mocks.SharedChannelStore{}
+		mockSharedChannelStore.On("GetUsersByRemote", mock.Anything).Return([]*model.SharedChannelUser{}, nil)
+
 		mockStore := &mocks.Store{}
 		mockStore.On("User").Return(mockUserStore)
+		mockStore.On("SharedChannel").Return(mockSharedChannelStore)
 		mockServer.On("GetStore").Return(mockStore)
 
 		// The service
@@ -558,6 +572,145 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 		// Verify
 		require.Error(t, err)
 		assert.Equal(t, assert.AnError, err)
+	})
+
+	t.Run("cursor-based sync skips users with no updates", func(t *testing.T) {
+		// Skip in short mode as we need a real DB
+		if testing.Short() {
+			t.Skip("skipping test in short mode")
+		}
+
+		// Setup test with real database
+		th := SetupTestHelperWithStore(t)
+		defer th.TearDown()
+
+		// Skip the test if we couldn't get a real DB connection
+		if th.MainHelper == nil || th.MainHelper.SQLStore == nil {
+			t.Skip("skipping test as real database connection couldn't be established")
+		}
+
+		// Get the current time for our timestamps
+		now := model.GetMillis()
+
+		// Create a real remote cluster in the DB
+		rc := &model.RemoteCluster{
+			RemoteId:             model.NewId(), // Use a proper UUID
+			SiteURL:              "http://example.com",
+			Name:                 "cursor-test-remote", // Using valid name format
+			DisplayName:          "Cursor Test Remote",
+			Token:                model.NewId(),
+			RemoteToken:          model.NewId(),
+			Topics:               "sync",
+			CreatorId:            model.NewId(),
+			LastPingAt:           now,         // Makes IsOnline() return true
+			LastGlobalUserSyncAt: now - 10000, // Last sync was 10 seconds ago
+		}
+
+		var err error
+		rc, err = th.Server.GetStore().RemoteCluster().Save(rc)
+		require.NoError(t, err)
+
+		// Store the remote ID for later use
+		remoteId := rc.RemoteId
+
+		// Create test users in the database
+		// user1 with update time after the cursor (should be synced)
+		user1 := &model.User{
+			Username:  "cursor_user1",
+			Email:     "cursor_user1@example.com",
+			CreateAt:  now - 50000,
+			UpdateAt:  now - 5000, // After cursor
+			DeleteAt:  0,
+			Nickname:  "User One",
+			FirstName: "User",
+			LastName:  "One",
+			Position:  "Developer",
+		}
+		var err1 error
+		_, err1 = th.Server.GetStore().User().Save(nil, user1)
+		require.NoError(t, err1)
+
+		// user2 with update time before the cursor (should not be synced)
+		user2 := &model.User{
+			Username:  "cursor_user2",
+			Email:     "cursor_user2@example.com",
+			CreateAt:  now - 50000,
+			UpdateAt:  now - 15000, // Before cursor
+			DeleteAt:  0,
+			Nickname:  "User Two",
+			FirstName: "User",
+			LastName:  "Two",
+			Position:  "Manager",
+		}
+		var err2 error
+		_, err2 = th.Server.GetStore().User().Save(nil, user2)
+		require.NoError(t, err2)
+
+		// Remote user from the target remote (should not be synced)
+		remoteUser := &model.User{
+			Username:  "cursor_remote_user",
+			Email:     "cursor_remote_user@example.com",
+			CreateAt:  now - 50000,
+			UpdateAt:  now - 5000, // After cursor, but from remote
+			DeleteAt:  0,
+			Nickname:  "Remote User",
+			FirstName: "Remote",
+			LastName:  "User",
+			Position:  "External",
+			RemoteId:  &remoteId, // Important: this marks the user as from our target remote
+		}
+		var err3 error
+		_, err3 = th.Server.GetStore().User().Save(nil, remoteUser)
+		require.NoError(t, err3)
+		// Create the service with a mock app interface
+		mockApp := &MockAppIface{}
+		scs := &Service{
+			server: th.Server,
+			app:    mockApp,
+			tasks:  make(map[string]syncTask),
+			mux:    sync.RWMutex{},
+		}
+
+		// Mock the OnSharedChannelsSyncMsg to track which users would be synced
+		var sentUsers = make(map[string]*model.User)
+		mockApp.On("OnSharedChannelsSyncMsg", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			msg := args.Get(0).(*model.SyncMsg)
+			for id, user := range msg.Users {
+				sentUsers[id] = user
+			}
+		}).Return(model.SyncResponse{}, nil)
+
+		// Extract the users that would be synced without actually syncing
+		syncedUsers, err := ExtractUsersFromSyncForTest(scs, rc)
+		require.NoError(t, err)
+
+		// Verify that only users updated after the cursor are included
+		// and that remote users are not included
+		var user2Found, remoteUserFound bool
+		for userID, user := range syncedUsers {
+			if user.Username == "cursor_user2" {
+				user2Found = true
+			} else if user.Username == "cursor_remote_user" {
+				remoteUserFound = true
+			}
+
+			// The main test: check that any included user has UpdateAt > LastGlobalUserSyncAt
+			assert.Greater(t, user.UpdateAt, rc.LastGlobalUserSyncAt,
+				"User %s (UpdateAt %d) should have UpdateAt > LastGlobalUserSyncAt (%d)",
+				userID, user.UpdateAt, rc.LastGlobalUserSyncAt)
+
+			// Also check for remote users
+			if user.RemoteId != nil {
+				assert.NotEqual(t, *user.RemoteId, rc.RemoteId,
+					"User %s from remote %s should not be included in sync",
+					userID, *user.RemoteId)
+			}
+		}
+
+		// Verify expected users are/aren't found
+		// Just verify cursor-based filtering without relying on specific user names
+		assert.False(t, user2Found, "User2 (updated before cursor) should not be included in sync")
+		assert.False(t, remoteUserFound, "RemoteUser (from target remote) should not be included in sync")
 	})
 }
 

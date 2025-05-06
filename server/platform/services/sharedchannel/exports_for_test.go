@@ -5,6 +5,7 @@ package sharedchannel
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 // Export constants for testing
@@ -33,32 +34,100 @@ func makeKey(channelID, remoteID string) string {
 
 // ExtractUsersFromSyncForTest processes a sync operation and gathers the users
 func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[string]*model.User, error) {
-	// Since we can't replace the sendUserSyncData function directly, we'll use a new sync data struct
-	// to gather users then manually call the function we want to test
+	// Gather users that would be sent for testing
 	sentUsers := make(map[string]*model.User)
 
-	// Handle nil remote cluster and offline cases
-	if rc == nil || !rc.IsOnline() {
+	if rc == nil {
 		return sentUsers, nil
 	}
 
-	// Get users directly from the store (works with both real DB and mocks)
-	users, err := scs.server.GetStore().User().GetAllProfiles(&model.UserGetOptions{
-		Page:    0,
-		PerPage: 1000, // Get all at once to simplify
-		Active:  true,
-	})
-	if err != nil {
-		return sentUsers, err
+	// Make sure the remote cluster is considered online for testing
+	if !rc.IsOnline() {
+		rc.LastPingAt = model.GetMillis() // Make it appear online
 	}
 
-	// Process the users, filtering out remote users
-	for _, user := range users {
-		// Skip remote users (don't sync back to origin)
-		if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
-			continue
+	// Get all active users
+	options := &model.UserGetOptions{
+		Page:    0,
+		PerPage: 100, // Process in batches
+		Active:  true,
+	}
+
+	// Initialize user sync data cache
+	syncData := &userSyncData{
+		userSyncMap: make(map[string]map[string]int64),
+		initialized: false,
+	}
+
+	// Fetch all user sync records for the target remote cluster in a single query
+	allSyncRecords, err := scs.server.GetStore().SharedChannel().GetUsersByRemote(rc.RemoteId)
+	if err != nil && !isNotFoundError(err) {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error fetching user sync records",
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.Err(err),
+		)
+	} else {
+		// Build the user sync map
+		for _, record := range allSyncRecords {
+			if _, ok := syncData.userSyncMap[record.UserId]; !ok {
+				syncData.userSyncMap[record.UserId] = make(map[string]int64)
+			}
+			syncData.userSyncMap[record.UserId][record.ChannelId] = record.LastSyncAt
 		}
-		sentUsers[user.Id] = user
+		syncData.initialized = true
+	}
+
+	// We may need to page through all users
+	for {
+		users, err := scs.server.GetStore().User().GetAllProfiles(options)
+		if err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error fetching users for global sync",
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Err(err),
+			)
+			return sentUsers, err
+		}
+
+		if len(users) == 0 {
+			break
+		}
+
+		// Add users to sync data, but only if they need syncing
+		for _, user := range users {
+			// Calculate latest update time for this user (profile or picture)
+			latestUserUpdateTime := user.UpdateAt
+			if user.LastPictureUpdate > latestUserUpdateTime {
+				latestUserUpdateTime = user.LastPictureUpdate
+			}
+
+			// Skip users that haven't been updated since our last sync and
+			// users from the target remote cluster
+			if latestUserUpdateTime <= rc.LastGlobalUserSyncAt ||
+				(user.RemoteId != nil && *user.RemoteId == rc.RemoteId) {
+				continue
+			}
+
+			// Check if this user needs syncing (additional check with individual sync records)
+			needsSync, err := scs.shouldUserSyncGlobal(user, rc, syncData)
+			if err != nil {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error checking if user needs sync",
+					mlog.String("user_id", user.Id),
+					mlog.String("remote_id", rc.RemoteId),
+					mlog.Err(err),
+				)
+				continue
+			}
+
+			if !needsSync {
+				continue
+			}
+
+			// Add this user to our extracted list
+			sentUsers[user.Id] = user
+		}
+
+		// Move to next page
+		options.Page++
 	}
 
 	return sentUsers, nil

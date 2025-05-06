@@ -763,7 +763,6 @@ func (s SqlSharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedCh
 }
 
 // GetUsersByUserAndRemote returns all SharedChannelUser entries for a user and remote combination.
-// Used during global user sync to check sync status across all channels.
 func (s SqlSharedChannelStore) GetUsersByUserAndRemote(userID string, remoteID string) ([]*model.SharedChannelUser, error) {
 	squery, args, err := s.getQueryBuilder().
 		Select(sharedChannelUserFields("")...).
@@ -786,7 +785,6 @@ func (s SqlSharedChannelStore) GetUsersByUserAndRemote(userID string, remoteID s
 }
 
 // GetUsersByRemote returns all SharedChannelUser entries for a given remote cluster.
-// Used to optimize global user sync by fetching all sync entries at once.
 func (s SqlSharedChannelStore) GetUsersByRemote(remoteID string) ([]*model.SharedChannelUser, error) {
 	squery, args, err := s.getQueryBuilder().
 		Select(sharedChannelUserFields("")...).
