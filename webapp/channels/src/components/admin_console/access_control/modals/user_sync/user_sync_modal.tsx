@@ -2,9 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
+import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {GenericModal} from '@mattermost/components';
+import {getProfilesByIds} from 'mattermost-redux/actions/users';
 
 import {SyncedUserList} from './synced_user_list';
 
@@ -34,11 +35,15 @@ export const UserListModal = ({channelId, channelName, syncResults, onClose}: Us
     const displayName = channelName || channelId;
 
     return (
-        <GenericModal
-            className='user-sync-modal'
+        <Modal
+            className='UserListModal'
+            dialogClassName='user-list-modal-dialog'
             onExited={onClose}
-            modalHeaderText={
-                <div className='modal-header-custom'>
+            show={true}
+            onHide={onClose}
+        >
+            <Modal.Header closeButton={true}>
+                <Modal.Title>
                     <FormattedMessage
                         id='admin.jobTable.syncResults.userListTitle'
                         defaultMessage='Channel Members Changes - {channelName}'
@@ -46,21 +51,9 @@ export const UserListModal = ({channelId, channelName, syncResults, onClose}: Us
                             channelName: displayName,
                         }}
                     />
-                    <div className='close-icon-container'>
-                        <i
-                            className='icon icon-close'
-                            onClick={onClose}
-                            aria-label='Close'
-                            role='button'
-                            tabIndex={0}
-                        />
-                    </div>
-                </div>
-            }
-            show={true}
-            showHeader={false}
-        >
-            <div className='user-sync-modal-body'>
+                </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
                 <div className='tabs'>
                     <button
                         className={`tab-button ${activeTab === 'added' ? 'active' : ''}`}
@@ -93,6 +86,9 @@ export const UserListModal = ({channelId, channelName, syncResults, onClose}: Us
                             userIds={syncResults.MembersAdded}
                             noResultsMessageId='admin.jobTable.syncResults.noUsersAdded'
                             noResultsDefaultMessage='No users were added'
+                            actions={{
+                                getProfilesByIds,
+                            }}
                         />
                     )}
                     {activeTab === 'removed' && (
@@ -100,11 +96,14 @@ export const UserListModal = ({channelId, channelName, syncResults, onClose}: Us
                             userIds={syncResults.MembersRemoved}
                             noResultsMessageId='admin.jobTable.syncResults.noUsersRemoved'
                             noResultsDefaultMessage='No users were removed'
+                            actions={{
+                                getProfilesByIds,
+                            }}
                         />
                     )}
                 </div>
-            </div>
-        </GenericModal>
+            </Modal.Body>
+        </Modal>
     );
 };
 

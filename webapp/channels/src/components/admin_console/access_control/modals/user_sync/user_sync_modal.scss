@@ -1,82 +1,60 @@
-.user-sync-modal {
-    // Custom modal header
-    .modal-header-custom {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px 16px 0;
-        font-size: 24px;
-
-        .close-icon-container .icon-close {
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            cursor: pointer;
-            font-size: 24px;
-        
-            &:hover {
-                color: rgba(var(--center-channel-color-rgb), 0.72);
-            }
-        }
-    }
-
-    // User List Modal Styles
-    .user-sync-modal-body {
-        max-height: 60vh;
-        padding: 30px;
-        overflow-y: auto;
-
-        .tabs {
-            display: flex;
-
-            .tab-button {
-                border: none;
-                background: none;
-                color: rgba(var(--center-channel-color-rgb), 0.75);
-                cursor: pointer;
-                font-size: 14px;
-                font-weight: 600;
-                padding-block: 12px;
-                padding-inline-end: 16px;
-
-                &.active {
-                    border-bottom: 2px solid var(--button-bg);
-                    color: var(--button-bg);
-                }
-
-                &:hover {
-                    color: var(--center-channel-color);
-                }
-            }
-        }
-
-        .tab-content {
-            .user-list {
-                ul {
-                    padding: 0;
-                    margin: 0;
-                    list-style: none;
-
-                    li {
-                        padding: 12px 16px;
-                        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-                    
-                        &:last-child {
-                            border-bottom: none;
-                        }
-                    }
-                }
-
-                .no-results {
-                    padding: 20px;
-                    color: rgba(var(--center-channel-color-rgb), 0.6);
-                    text-align: center;
-                }
-            }
-        }
-    }
-
+.user-list-modal-dialog {
     width: 660px;
+    max-width: 90vw;
+    padding: 0;
 
-    .modal-title {
-        padding-inline: 12px;
+    .modal-body {
+        max-height: fit-content;
+        padding: 0;
+    }
+
+    .col-sm-12 {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        padding-left: 0;
+    }
+
+    .col-xs-12 {
+        padding-right: 0;
+        padding-left: 0;
+    }
+
+    .more-modal__row {
+        padding: 10px 0;
+    }
+}
+
+.tabs {
+    display: flex;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--center-channel-color-08);
+}
+
+.tab-button {
+    padding: 10px 15px;
+    border: none;
+    margin-bottom: -1px;
+    background: none;
+    color: var(--center-channel-color-64);
+    cursor: pointer;
+    font-weight: 600;
+
+    &.active {
+        border-bottom: 2px solid var(--button-bg);
+        color: var(--button-bg);
+    }
+
+    &:hover:not(.active) {
+        color: var(--center-channel-color);
+    }
+}
+
+.tab-content {
+    padding: 16px;
+
+    .no-results {
+        padding: 20px;
+        color: var(--center-channel-color-64);
+        text-align: center;
     }
 }
