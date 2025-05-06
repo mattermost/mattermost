@@ -5,7 +5,6 @@ package storetest
 
 import (
 	"database/sql"
-	"flag"
 	"fmt"
 	"net/url"
 	"os"
@@ -33,20 +32,6 @@ func getEnv(name, defaultValue string) string {
 		return value
 	}
 	return defaultValue
-}
-
-func log(message string) {
-	verbose := false
-	if verboseFlag := flag.Lookup("test.v"); verboseFlag != nil {
-		verbose = verboseFlag.Value.String() != ""
-	}
-	if verboseFlag := flag.Lookup("v"); verboseFlag != nil {
-		verbose = verboseFlag.Value.String() != ""
-	}
-
-	if verbose {
-		fmt.Println(message)
-	}
 }
 
 func getDefaultMysqlDSN() string {
