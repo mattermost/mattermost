@@ -128,13 +128,37 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
 
         const wrapper = shallow(<PolicyDetails {...props}/>);
 
-        // Find the delete button within the TitleAndButtonCardHeader in the delete-policy card
-        const deleteButton = wrapper.find('.delete-policy TitleAndButtonCardHeader');
-        const onClickProp = deleteButton.props().onClick;
+        // Find the delete-policy card
+        const deleteCard = wrapper.find('Card.delete-policy');
+        expect(deleteCard.exists()).toBe(true);
+
+        // Find the header with button inside the card
+        const deleteButtonHeader = deleteCard.find('TitleAndButtonCardHeader');
+        expect(deleteButtonHeader.exists()).toBe(true);
+
+        const onClickProp = deleteButtonHeader.props().onClick;
         expect(onClickProp).toBeDefined();
+
+        // Click the delete button
         await act(async () => {
             if (onClickProp) {
                 await onClickProp({} as React.MouseEvent);
+            }
+        });
+
+        // Update the wrapper to see the modal
+        wrapper.update();
+
+        // Find the confirmation modal
+        const confirmationModal = wrapper.find('GenericModal');
+        expect(confirmationModal.exists()).toBe(true);
+
+        // Trigger the confirmation
+        await act(async () => {
+            // Get the handleConfirm prop with proper type assertion
+            const handleConfirm = (confirmationModal.props() as any).handleConfirm;
+            if (handleConfirm) {
+                await handleConfirm();
             }
         });
 

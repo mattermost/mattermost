@@ -50,36 +50,23 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       >
         <CardHeader>
           <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Switch to Simple Mode"
+                id="admin.access_control.policy.edit_policy.switch_to_simple"
+              />
+            }
+            isDisabled={false}
+            onClick={[Function]}
             subtitle="Select user attributes and values as rules to restrict channel membership."
             title="Attribute based access rules"
           />
         </CardHeader>
         <CardBody>
-          <div
-            className="editor-tabs"
-          >
-            <button
-              className="editor-tab "
-              onClick={[Function]}
-            >
-              <MemoizedFormattedMessage
-                defaultMessage="Simple Expressions"
-                id="admin.access_control.editor.table"
-              />
-            </button>
-            <button
-              className="editor-tab active"
-              onClick={[Function]}
-            >
-              <MemoizedFormattedMessage
-                defaultMessage="Advanced Expressions"
-                id="admin.access_control.editor.cel"
-              />
-            </button>
-          </div>
           <CELEditor
             onChange={[Function]}
             onValidate={[Function]}
+            userAttributes={Array []}
             value=""
           />
         </CardBody>
@@ -230,36 +217,23 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       >
         <CardHeader>
           <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Switch to Simple Mode"
+                id="admin.access_control.policy.edit_policy.switch_to_simple"
+              />
+            }
+            isDisabled={false}
+            onClick={[Function]}
             subtitle="Select user attributes and values as rules to restrict channel membership."
             title="Attribute based access rules"
           />
         </CardHeader>
         <CardBody>
-          <div
-            className="editor-tabs"
-          >
-            <button
-              className="editor-tab "
-              onClick={[Function]}
-            >
-              <MemoizedFormattedMessage
-                defaultMessage="Simple Expressions"
-                id="admin.access_control.editor.table"
-              />
-            </button>
-            <button
-              className="editor-tab active"
-              onClick={[Function]}
-            >
-              <MemoizedFormattedMessage
-                defaultMessage="Advanced Expressions"
-                id="admin.access_control.editor.cel"
-              />
-            </button>
-          </div>
           <CELEditor
             onChange={[Function]}
             onValidate={[Function]}
+            userAttributes={Array []}
             value=""
           />
         </CardBody>
