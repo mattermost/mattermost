@@ -388,6 +388,8 @@ jobs:
   build-mattermost-server:
     name: Build mattermost server app
     runs-on: ubuntu-latest
+    env:
+      BUILD_NUMBER: "${{ github.head_ref }}-${{ github.run_id }}"
     defaults:
       run:
         working-directory: server
@@ -429,12 +431,13 @@ jobs:
       - name: Build FIPS enabled server
         if: ${{ inputs.fips-enabled }}
         run: |
-          make build-cmd-linux-amd64 BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
-          make package-linux-amd64 BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+          make build-client BUILD_NUMBER='${BUILD_NUMBER}'
+          make build-cmd-linux-amd64 BUILD_NUMBER='${BUILD_NUMBER}'
+          make package-linux-amd64 BUILD_NUMBER='${BUILD_NUMBER}'
       - name: Build
         run: |
-          make build-cmd BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
-          make package BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+          make build-cmd BUILD_NUMBER='${BUILD_NUMBER}'
+          make package BUILD_NUMBER='${BUILD_NUMBER}'
       - name: Persist dist artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
