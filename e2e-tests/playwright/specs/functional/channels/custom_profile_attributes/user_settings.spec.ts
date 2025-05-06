@@ -17,7 +17,6 @@ import {
     verifyAttributesExistInSettings,
     verifyAttributeInPopover,
     verifyAttributeNotInPopover,
-    openProfilePopover,
     editTextAttribute,
     editSelectAttribute,
     editMultiselectAttribute,
@@ -171,7 +170,8 @@ test('MM-T5768 Editing Custom Profile Attributes @custom_profile_attributes', as
     await otherChannelsPage.goto();
 
     // 9. View the test user's profile popover
-    await openProfilePopover(otherChannelsPage);
+    const lastPost = await otherChannelsPage.getLastPost();
+    await otherChannelsPage.openProfilePopover(lastPost);
 
     // * Profile popover shows updated custom attributes
     await verifyAttributeInPopover(otherChannelsPage, 'Department', TEST_UPDATED_DEPARTMENT);
@@ -220,7 +220,8 @@ test('MM-T5769 Clearing Custom Profile Attributes @custom_profile_attributes', a
     await otherChannelsPage.goto();
 
     // 7. View the test user's profile popover
-    await openProfilePopover(otherChannelsPage);
+    const lastPost = await channelsPage.getLastPost();
+    await channelsPage.openProfilePopover(lastPost);
 
     // * Department attribute is not displayed in the profile popover
     await verifyAttributeNotInPopover(otherChannelsPage, 'Department');
@@ -311,7 +312,8 @@ test('MM-T5771 Editing Phone and URL Type Custom Profile Attributes @custom_prof
     await otherChannelsPage.goto();
 
     // 8. View the test user's profile popover
-    await openProfilePopover(otherChannelsPage);
+    const lastPost = await otherChannelsPage.getLastPost();
+    await otherChannelsPage.openProfilePopover(lastPost);
 
     // * Profile popover shows updated attributes
     await verifyAttributeInPopover(otherChannelsPage, 'Phone', TEST_UPDATED_PHONE);

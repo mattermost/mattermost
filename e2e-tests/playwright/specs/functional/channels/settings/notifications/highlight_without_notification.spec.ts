@@ -23,7 +23,7 @@ test('MM-T5465-1 Should add the keyword when enter, comma or tab is pressed on t
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    await channelsPage.centerView.postCreate.postMessage('Hello World');
+    await channelsPage.postMessage('Hello World');
 
     // # Open settings modal
     const settingsModal = await channelsPage.globalHeader.openSettings();
@@ -97,7 +97,7 @@ test('MM-T5465-2 Should highlight the keywords when a message is sent with the k
 
     // # Post a message without the keyword
     const messageWithoutKeyword = 'This message does not contain the keyword';
-    await channelsPage.centerView.postCreate.postMessage(messageWithoutKeyword);
+    await channelsPage.postMessage(messageWithoutKeyword);
     const lastPostWithoutHighlight = await channelsPage.getLastPost();
 
     // * Verify that the keywords are not highlighted
@@ -108,7 +108,7 @@ test('MM-T5465-2 Should highlight the keywords when a message is sent with the k
 
     // # Post a message with the keyword
     const messageWithKeyword = `This message contains the keyword ${keywords[3]}`;
-    await channelsPage.centerView.postCreate.postMessage(messageWithKeyword);
+    await channelsPage.postMessage(messageWithKeyword);
     const lastPostWithHighlight = await channelsPage.getLastPost();
 
     // * Verify that the keywords are highlighted
@@ -151,7 +151,7 @@ test('MM-T5465-3 Should highlight the keywords when a message is sent with the k
 
     // # Post a message without the keyword
     const messageWithoutKeyword = 'This message does not contain the keyword';
-    await channelsPage.centerView.postCreate.postMessage(messageWithoutKeyword);
+    await channelsPage.postMessage(messageWithoutKeyword);
     const lastPostWithoutHighlight = await channelsPage.getLastPost();
 
     // # Open the message in the RHS
@@ -162,7 +162,7 @@ test('MM-T5465-3 Should highlight the keywords when a message is sent with the k
 
     // # Post a message with the keyword in the RHS
     const messageWithKeyword = `This message contains the keyword ${keywords[3]}`;
-    await channelsPage.sidebarRight.postCreate.postMessage(messageWithKeyword);
+    await channelsPage.sidebarRight.postMessage(messageWithKeyword);
 
     // * Verify that the keywords are highlighted
     const lastPostWithHighlightInRHS = await channelsPage.sidebarRight.getLastPost();
