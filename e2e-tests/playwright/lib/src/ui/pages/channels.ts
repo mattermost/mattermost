@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {expect, Page} from '@playwright/test';
+import {waitUntil} from 'async-wait-until';
 
 import {ChannelsPost, components} from '@/ui/components';
 import SettingsModal from '@/ui/components/channels/settings/settings_modal';
-
+import {duration} from '@/util';
 export default class ChannelsPage {
     readonly channels = 'Channels';
 
@@ -15,7 +16,6 @@ export default class ChannelsPage {
     readonly userAccountMenuButton;
     readonly searchPopover;
     readonly centerView;
-    readonly scheduledDraftDropdown;
     readonly scheduledDraftModal;
     readonly sidebarLeft;
     readonly sidebarRight;
@@ -32,6 +32,8 @@ export default class ChannelsPage {
     readonly postReminderMenu;
     readonly userAccountMenu;
     readonly emojiGifPickerPopup;
+    readonly scheduleMessageMenu;
+    readonly scheduleMessageModal;
 
     constructor(page: Page) {
         this.page = page;
@@ -56,11 +58,14 @@ export default class ChannelsPage {
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
         this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for:'}));
         this.userAccountMenu = new components.UserAccountMenu(page.locator('#userAccountMenu'));
+        this.scheduleMessageMenu = new components.ScheduleMessageMenu(page.locator('#dropdown_send_post_options'));
 
         // Popovers
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
-        this.scheduledDraftDropdown = new components.ScheduledDraftMenu(page.locator('#dropdown_send_post_options'));
         this.scheduledDraftModal = new components.ScheduledDraftModal(page.locator('div.modal-content'));
+        this.scheduleMessageModal = new components.ScheduleMessageModal(
+            page.getByRole('dialog', {name: 'Schedule message'}),
+        );
         this.userProfilePopover = new components.UserProfilePopover(page.locator('.user-profile-popover'));
 
         // Posts
@@ -87,6 +92,8 @@ export default class ChannelsPage {
             }
         }
         await this.page.goto(channelsUrl);
+
+        return channelsUrl;
     }
 
     /**
@@ -96,6 +103,30 @@ export default class ChannelsPage {
      */
     async postMessage(message: string, files?: string[]) {
         await this.centerView.postMessage(message, files);
+    }
+
+    async replyToLastPost(message: string) {
+        const rootPost = await this.getLastPost();
+        await rootPost.reply();
+
+        const sidebarRight = this.sidebarRight;
+        await sidebarRight.toBeVisible();
+        await sidebarRight.postMessage('Replying to a thread');
+
+        // * Verify the message has been sent
+        await waitUntil(
+            async () => {
+                const post = await this.sidebarRight.getLastPost();
+                const content = await post.container.textContent();
+
+                return content?.includes(message);
+            },
+            {timeout: duration.ten_sec},
+        );
+
+        const lastPost = await sidebarRight.getLastPost();
+
+        return {rootPost, sidebarRight, lastPost};
     }
 
     async openChannelSettings(): Promise<SettingsModal> {
@@ -143,5 +174,29 @@ export default class ChannelsPage {
         await expect(popover.container).toBeVisible();
 
         return popover;
+    }
+
+    async scheduleMessage(message: string, dayFromToday: number = 0, timeOptionIndex: number = 0) {
+        await this.centerView.postCreate.writeMessage(message);
+
+        await expect(this.centerView.postCreate.scheduleMessageButton).toBeVisible();
+        await this.centerView.postCreate.scheduleMessageButton.click();
+
+        await this.scheduleMessageMenu.toBeVisible();
+        await this.scheduleMessageMenu.selectCustomTime();
+
+        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+    }
+
+    async scheduleMessageFromThread(message: string, dayFromToday: number = 0, timeOptionIndex: number = 0) {
+        await this.sidebarRight.postCreate.writeMessage(message);
+
+        await expect(this.sidebarRight.postCreate.scheduleMessageButton).toBeVisible();
+        await this.sidebarRight.postCreate.scheduleMessageButton.click();
+
+        await this.scheduleMessageMenu.toBeVisible();
+        await this.scheduleMessageMenu.selectCustomTime();
+
+        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }
 }
