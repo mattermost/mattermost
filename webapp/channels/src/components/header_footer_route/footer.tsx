@@ -6,7 +6,6 @@ import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {isEmbedded} from 'utils/embedded';
 
 import './footer.scss';
 import ExternalLink from 'components/external_link';
@@ -15,11 +14,6 @@ const Footer = () => {
     const {formatMessage} = useIntl();
 
     const {AboutLink, PrivacyPolicyLink, TermsOfServiceLink, HelpLink} = useSelector(getConfig);
-
-    // Don't show footer when embedded in an iframe
-    if (isEmbedded()) {
-        return null;
-    }
 
     return (
         <div className='hfroute-footer'>
