@@ -4512,6 +4512,13 @@ export default class Client4 {
             {method: 'post', body: JSON.stringify({expression})},
         );
     };
+
+    getChannelAccessControlAttributes = (channelId: string) => {
+        return this.doFetch<Record<string, string[]>>(
+            `${this.getChannelRoute(channelId)}/access_control/attributes`,
+            {method: 'get'},
+        );
+    };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {
