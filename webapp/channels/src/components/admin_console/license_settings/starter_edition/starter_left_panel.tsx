@@ -95,7 +95,7 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
                 </div>
                 <div className='uploadButtons'>
                     <button
-                        className='btn btn-tertiary'
+                        className='btn btn-primary'
                         onClick={() => fileInputRef.current?.click()}
                         id='open-modal'
                     >
