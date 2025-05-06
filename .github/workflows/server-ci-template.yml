@@ -31,6 +31,18 @@ jobs:
           identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Setup Go
+        if: ${{ inputs.fips-enabled }}
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Install mock deps
@@ -52,6 +64,18 @@ jobs:
           identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run go mod tidy
@@ -71,6 +95,17 @@ jobs:
           identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run golangci
@@ -90,6 +125,17 @@ jobs:
           identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run make-gen-serialized
@@ -109,6 +155,17 @@ jobs:
           identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Reset config
@@ -134,6 +191,17 @@ jobs:
           identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run mattermost-vet-api
@@ -151,6 +219,17 @@ jobs:
           identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Extract migrations files
         run: make migrations-extract
       - name: Check migration files
@@ -183,6 +262,17 @@ jobs:
           identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Generate store layers
@@ -202,6 +292,17 @@ jobs:
           identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Generate app layers
@@ -221,6 +322,17 @@ jobs:
           identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost-server
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Check docs
@@ -287,6 +399,17 @@ jobs:
           identity: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f      
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: ci/setup-node
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         id: setup_node
