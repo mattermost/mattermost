@@ -546,6 +546,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 id={'hideJoinedPreferenceCheckbox'}
                 onClick={this.handleChecked}
                 onKeyDown={(e) => {
+                    e.stopPropagation();
                     if (e.key === 'Enter' || e.key === ' ') {
                         this.handleChecked();
                     }
