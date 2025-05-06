@@ -115,7 +115,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         );
 
         expect(wrapper.find('.upgrade-title').text()).toEqual('Need to increase your headcount?');
-        expect(wrapper.find('.upgrade-subtitle').text()).toEqual("We're here to work with you and your needs. Contact us today to get more seats on your plan.");
+        expect(wrapper.find('.upgrade-subtitle').text()).toEqual('We’re here to work with you and your needs. Contact us today to get more seats on your plan.');
     });
 
     test('should render for Trial license', () => {
