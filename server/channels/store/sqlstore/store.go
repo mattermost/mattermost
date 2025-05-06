@@ -146,6 +146,7 @@ type SqlStore struct {
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
 	skipMigrations            bool
+	disableMorphLogging       bool
 
 	quitMonitor chan struct{}
 	wgMonitor   *sync.WaitGroup
@@ -154,6 +155,13 @@ type SqlStore struct {
 func SkipMigrations() Option {
 	return func(s *SqlStore) error {
 		s.skipMigrations = true
+		return nil
+	}
+}
+
+func DisableMorphLogging() Option {
+	return func(s *SqlStore) error {
+		s.disableMorphLogging = true
 		return nil
 	}
 }
@@ -199,7 +207,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	}
 
 	if !store.skipMigrations {
-		err = store.migrate(migrationsDirectionUp, false)
+		err = store.migrate(migrationsDirectionUp, false, store.disableMorphLogging)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to apply database migrations")
 		}
@@ -640,7 +648,6 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 			`SELECT count(relname) FROM pg_class WHERE relname=$1`,
 			strings.ToLower(tableName),
 		)
-
 		if err != nil {
 			mlog.Fatal("Failed to check if table exists", mlog.Err(err))
 		}
@@ -659,7 +666,6 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 		    `,
 			tableName,
 		)
-
 		if err != nil {
 			mlog.Fatal("Failed to check if table exists", mlog.Err(err))
 		}
@@ -682,7 +688,6 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 			strings.ToLower(tableName),
 			strings.ToLower(columnName),
 		)
-
 		if err != nil {
 			if err.Error() == "pq: relation \""+strings.ToLower(tableName)+"\" does not exist" {
 				return false
@@ -706,7 +711,6 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 			tableName,
 			columnName,
 		)
-
 		if err != nil {
 			mlog.Fatal("Failed to check if column exists", mlog.Err(err))
 		}
@@ -728,7 +732,6 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 			WHERE
 				tgname = $1
 		`, triggerName)
-
 		if err != nil {
 			mlog.Fatal("Failed to check if trigger exists", mlog.Err(err))
 		}
@@ -745,7 +748,6 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 				trigger_schema = DATABASE()
 			AND	trigger_name = ?
 		`, triggerName)
-
 		if err != nil {
 			mlog.Fatal("Failed to check if trigger exists", mlog.Err(err))
 		}
