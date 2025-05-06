@@ -92,8 +92,9 @@
     }
 
     .btn.btn-tertiary.btn-xs.btn-inverted {
-        color: variables.$white;
         background-color: rgba(variables.$white, 0.08);
+        color: variables.$white;
+
         &:hover {
             background-color: rgba(variables.$white, 0.16);
         }
