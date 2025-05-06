@@ -19,21 +19,21 @@ const (
 	LicenseGracePeriod  = DayInMilliseconds * 10 //10 days
 	LicenseRenewalLink  = "https://mattermost.com/renew/"
 
-	LicenseShortSkuE10          = "E10"
-	LicenseShortSkuE20          = "E20"
-	LicenseShortSkuProfessional = "professional"
-	LicenseShortSkuEnterprise   = "enterprise"
-	LicenseShortSkuPremium      = "premium"
+	LicenseShortSkuE10                = "E10"
+	LicenseShortSkuE20                = "E20"
+	LicenseShortSkuProfessional       = "professional"
+	LicenseShortSkuEnterprise         = "enterprise"
+	LicenseShortSkuEnterpriseAdvanced = "advanced"
 
-	ProfessionalTier = 10
-	EnterpriseTier   = 20
-	PremiumTier      = 30
+	ProfessionalTier       = 10
+	EnterpriseTier         = 20
+	EnterpriseAdvancedTier = 30
 )
 
 var LicenseToLicenseTier = map[string]int{
-	LicenseShortSkuProfessional: ProfessionalTier,
-	LicenseShortSkuEnterprise:   EnterpriseTier,
-	LicenseShortSkuPremium:      PremiumTier,
+	LicenseShortSkuProfessional:       ProfessionalTier,
+	LicenseShortSkuEnterprise:         EnterpriseTier,
+	LicenseShortSkuEnterpriseAdvanced: EnterpriseAdvancedTier,
 }
 
 const (
@@ -474,7 +474,7 @@ func MinimumEnterpriseLicense(license *License) bool {
 	return license != nil && LicenseToLicenseTier[license.SkuShortName] >= EnterpriseTier
 }
 
-// MinimumPremiumLicense returns true if the provided license is at least a premium license.
-func MinimumPremiumLicense(license *License) bool {
-	return license != nil && LicenseToLicenseTier[license.SkuShortName] >= PremiumTier
+// MinimumEnterpriseAdvancedLicense returns true if the provided license is at least an Enterprise Advanced license.
+func MinimumEnterpriseAdvancedLicense(license *License) bool {
+	return license != nil && LicenseToLicenseTier[license.SkuShortName] >= EnterpriseAdvancedTier
 }

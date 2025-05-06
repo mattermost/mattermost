@@ -132,7 +132,7 @@ describe('Collapsed Reply Threads', () => {
         cy.uiClickSidebarItem('threads');
 
         // * There should be a single thread item
-        cy.get('article.ThreadItem').should('have.lengthOf', 1);
+        cy.get('div.ThreadItem').should('have.lengthOf', 1);
 
         // # Delete thread root post
         cy.apiDeletePost(rootPost.id);
@@ -141,13 +141,13 @@ describe('Collapsed Reply Threads', () => {
          * TODO: this should not be there once the root post is deleted, so remove it once the feature is adjusted
          */
         // * There should be a single thread item showing '(message deleted)'
-        cy.get('article.ThreadItem').should('have.lengthOf', 1).should('contain.text', '(message deleted)');
+        cy.get('div.ThreadItem').should('have.lengthOf', 1).should('contain.text', '(message deleted)');
 
         // # Refresh the page
         cy.reload(true);
 
         // * There should be no thread item anymore
-        cy.get('article.ThreadItem').should('have.lengthOf', 0);
+        cy.get('div.ThreadItem').should('have.lengthOf', 0);
     });
 
     it('MM-T4446 CRT - Delete single reply post on a thread', () => {
@@ -171,7 +171,7 @@ describe('Collapsed Reply Threads', () => {
             cy.uiClickSidebarItem('threads');
 
             // * There should be a single thread item
-            cy.get('article.ThreadItem').should('have.lengthOf', 1).first().click();
+            cy.get('div.ThreadItem').should('have.lengthOf', 1).first().click();
 
             // * Reply should be in RHS
             cy.get(`#rhsPostMessageText_${replyPost1.id}`).should('be.visible').should('contain.text', messages.REPLY1);
@@ -180,7 +180,7 @@ describe('Collapsed Reply Threads', () => {
             cy.apiDeletePost(replyPost1.id);
 
             // * There should be a single thread item
-            cy.get('article.ThreadItem').should('have.lengthOf', 1);
+            cy.get('div.ThreadItem').should('have.lengthOf', 1);
 
             // * The reply should be in RHS showing '(message deleted)'
             cy.get(`#rhsPost_${replyPost1.id}`).should('be.visible').should('contain.text', '(message deleted)');
@@ -189,7 +189,7 @@ describe('Collapsed Reply Threads', () => {
             cy.reload(true);
 
             // * There should be a single thread item with no reply
-            cy.get('article.ThreadItem').should('have.lengthOf', 0);
+            cy.get('div.ThreadItem').should('have.lengthOf', 0);
 
             // * The reply post should not exist anymore
             cy.get(`#rhsPost_${replyPost1.id}`).should('not.exist');
@@ -226,7 +226,7 @@ describe('Collapsed Reply Threads', () => {
             cy.uiClickSidebarItem('threads');
 
             // * There should be a single thread item
-            cy.get('article.ThreadItem').should('have.lengthOf', 1).first().click().within(() => {
+            cy.get('div.ThreadItem').should('have.lengthOf', 1).first().click().within(() => {
                 // * Activity section in ThreadItem should say '2 replies'
                 cy.get('.activity').should('have.text', '2 replies');
 
@@ -244,7 +244,7 @@ describe('Collapsed Reply Threads', () => {
             cy.reload(true);
 
             // * There should be a single thread item
-            cy.get('article.ThreadItem').should('have.lengthOf', 1).first().click().within(() => {
+            cy.get('div.ThreadItem').should('have.lengthOf', 1).first().click().within(() => {
                 // * Activity section in ThreadItem should say '1 reply'
                 cy.get('.activity').should('have.text', '1 reply');
 
@@ -295,7 +295,7 @@ describe('Collapsed Reply Threads', () => {
             cy.get('#threads-list-unread-button .dot').should('have.lengthOf', 1);
 
             // * There should be a single thread item
-            cy.get('article.ThreadItem').should('have.lengthOf', 1).within(() => {
+            cy.get('div.ThreadItem').should('have.lengthOf', 1).within(() => {
                 // * The unread indicator (blue dot) should be present
                 cy.get('.dot-unreads').should('have.lengthOf', 1);
 
@@ -319,7 +319,7 @@ describe('Collapsed Reply Threads', () => {
             cy.get('#threads-list-unread-button .dot').should('not.exist');
 
             // * There should be a single thread item
-            cy.get('article.ThreadItem').should('have.lengthOf', 1).within(() => {
+            cy.get('div.ThreadItem').should('have.lengthOf', 1).within(() => {
                 // * The unread indicator (blue dot) should NOT be present
                 cy.get('.dot-unreads').should('have.lengthOf', 0);
 
@@ -352,7 +352,7 @@ describe('Collapsed Reply Threads', () => {
             cy.get('#threads-list-unread-button .dot').should('have.lengthOf', 1);
 
             // * There should be a single thread item
-            cy.get('article.ThreadItem').should('have.lengthOf', 1).within(() => {
+            cy.get('div.ThreadItem').should('have.lengthOf', 1).within(() => {
                 // * The unread indicator (blue dot) should be present
                 cy.get('.dot-unreads').should('have.lengthOf', 1);
 
@@ -403,7 +403,7 @@ describe('Collapsed Reply Threads', () => {
             cy.get('#threads-list-unread-button .dot').should('exist');
 
             // * There should be a single thread item
-            cy.get('article.ThreadItem').should('have.lengthOf', 1).within(() => {
+            cy.get('div.ThreadItem').should('have.lengthOf', 1).within(() => {
                 // * The unread indicator (blue dot) should be present
                 cy.get('.dot-unreads').should('have.lengthOf', 1);
 
@@ -455,7 +455,7 @@ describe('Collapsed Reply Threads', () => {
             cy.get('a').contains('Threads').click();
 
             // * There should be a three threads in the threads list
-            cy.get('article.ThreadItem').should('have.lengthOf', 3);
+            cy.get('div.ThreadItem').should('have.lengthOf', 3);
 
             // * No thread should be selected at first
             cy.contains('Catch up on your threads').should('be.visible');

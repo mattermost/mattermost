@@ -60,8 +60,16 @@
     "translation": "You cannot save an acknowledgment in an archived channel."
   },
   {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Failed to add certificate."
+  },
+  {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "No file under 'certificate' in request."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Too many files under 'certificate' in request."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
@@ -94,6 +102,10 @@
   {
     "id": "api.admin.ldap.not_available.app_error",
     "translation": "LDAP is not available."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Failed to remove certificate."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -1866,14 +1878,6 @@
     "translation": "remote_id must be blank for custom group"
   },
   {
-    "id": "api.custom_profile_attributes.field_conversion_error",
-    "translation": "Unable to convert the property field to a custom profile attribute field"
-  },
-  {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "trying to patch a field that does not exist"
-  },
-  {
     "id": "api.custom_profile_attributes.invalid_field_patch",
     "translation": "invalid custom profile attribute field patch"
   },
@@ -2325,6 +2329,10 @@
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Failed to compute monthly active users."
+  },
+  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Failed to send the disable license email successfully."
   },
@@ -2346,7 +2354,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Failed to apply new trial license. You have previously applied a trial license to this Mattermost instance.. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+    "translation": "Failed to apply new trial license as your workspace has already applied a trial license. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -5047,6 +5055,10 @@
     "translation": "Unable to create Custom Profile Attribute field"
   },
   {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Unable to delete Custom Profile Attribute Values for user"
+  },
+  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Unable to get Custom Profile Attribute field"
   },
@@ -5067,6 +5079,10 @@
     "translation": "Unable to delete Custom Profile Attribute field"
   },
   {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Cannot update value for a synced Custom Profile Attribute field"
+  },
+  {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
     "translation": "Custom Profile Attribute field not found"
   },
@@ -5085,6 +5101,10 @@
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Unable to search Custom Profile Attribute fields"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Failed to validate property value"
   },
   {
     "id": "app.delete_scheduled_post.delete_error",
@@ -5545,6 +5565,14 @@
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
     "translation": "Unable to read the version of the data import file."
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "Failed to open the profile image file: {{.FileName}}"
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "Failed to read profile image data."
   },
   {
     "id": "app.import.validate_bot_import_data.owner_missing.error",
@@ -6877,8 +6905,16 @@
     "translation": "No entry for that status exists."
   },
   {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "Encountered an error decoding JSON response from interactive dialog submission."
+  },
+  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Encountered an error encoding JSON for the interactive dialog."
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Encountered an error reading response body from interactive dialog submission."
   },
   {
     "id": "app.system.complete_onboarding_request.app_error",
@@ -8037,6 +8073,10 @@
     "translation": "ldap interface was nil."
   },
   {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "Failed to retrieve CPA fields"
+  },
+  {
     "id": "ent.ldap.create_fail",
     "translation": "Unable to create LDAP user."
   },
@@ -8051,6 +8091,10 @@
   {
     "id": "ent.ldap.do_login.certificate.app_error",
     "translation": "Error loading LDAP TLS Certificate file."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "Invalid AD/LDAP Id"
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -8125,6 +8169,14 @@
     "translation": "Size Limit Exceeded. Try increasing your Maximum page size setting. Check out https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded for more details."
   },
   {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "Empty LDAP attribute value"
+  },
+  {
+    "id": "ent.ldap.update_cpa.multiple_errors",
+    "translation": "Error(s) patching CPA value"
+  },
+  {
     "id": "ent.ldap.validate_admin_filter.app_error",
     "translation": "Invalid AD/LDAP Admin Filter."
   },
@@ -8143,6 +8195,10 @@
   {
     "id": "ent.ldap_groups.groups_search_error",
     "translation": "error retrieving ldap groups"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "Invalid AD/LDAP id"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
@@ -8293,6 +8349,10 @@
     "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator."
   },
   {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "Failed to retrieve CPA field(s)"
+  },
+  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "We received an empty response from the Identity Provider."
   },
@@ -8313,6 +8373,10 @@
     "translation": "Your license does not support SAML authentication."
   },
   {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "No user registered on AD/LDAP server that matches the SAML user."
+  },
+  {
     "id": "ent.saml.metadata.app_error",
     "translation": "An error occurred while building Service Provider Metadata."
   },
@@ -8327,6 +8391,14 @@
   {
     "id": "ent.saml.service_disable.app_error",
     "translation": "SAML 2.0 is not configured or supported on this server."
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "SAML assertion attribute statement is invalid"
+  },
+  {
+    "id": "ent.saml.update_cpa.multiple_errors",
+    "translation": "Error(s) updating CPA values"
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
@@ -8405,6 +8477,10 @@
     "translation": "Feature is not available for the current license"
   },
   {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} feature is not available for the current license"
+  },
+  {
     "id": "manaultesting.manual_test.parse.app_error",
     "translation": "Unable to parse URL."
   },
@@ -8474,7 +8550,7 @@
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
-    "translation": "Invalid policyy id."
+    "translation": "Invalid policy id."
   },
   {
     "id": "model.access_policy.is_valid.imports.app_error",
@@ -9235,6 +9311,22 @@
   {
     "id": "model.config.is_valid.read_timeout.app_error",
     "translation": "Invalid value for read timeout."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Invalid report a problem link. Must be a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Report a problem link is required."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Invalid report a problem mail. Must be a valid email address."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Report a problem mail is required."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
@@ -10454,15 +10546,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Version 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -10531,6 +10623,14 @@
   {
     "id": "web.incoming_webhook.parse.app_error",
     "translation": "Unable to parse incoming data."
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "Failed to parse form for webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "Failed to parse multipart form for webhook {{.hook_id}}."
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",

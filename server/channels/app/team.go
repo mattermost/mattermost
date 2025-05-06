@@ -606,7 +606,9 @@ func (a *App) AddUserToTeamByToken(c request.CTX, userID string, tokenID string)
 	}
 
 	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
-		a.DeleteToken(token)
+		if err := a.DeleteToken(token); err != nil {
+			c.Logger().Warn("Error deleting expired team invitation token during team join", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
+		}
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1752,7 +1754,9 @@ func (a *App) PermanentDeleteTeam(c request.CTX, team *model.Team) *model.AppErr
 		}
 	} else {
 		for _, ch := range channels {
-			a.PermanentDeleteChannel(c, ch)
+			if err := a.PermanentDeleteChannel(c, ch); err != nil {
+				c.Logger().Warn("Error permanently deleting channel during team deletion", mlog.String("channel_id", ch.Id), mlog.String("team_id", team.Id), mlog.Err(err))
+			}
 		}
 	}
 
@@ -1874,7 +1878,7 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 	if tokenID != "" {
 		token, err := a.Srv().Store().Token().GetByToken(tokenID)
 		if err != nil {
-			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
 		if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation {
@@ -1882,7 +1886,9 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 		}
 
 		if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
-			a.DeleteToken(token)
+			if err := a.DeleteToken(token); err != nil {
+				rctx.Logger().Warn("Error deleting expired invitation token during team ID lookup", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
+			}
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -2057,9 +2063,14 @@ func (a *App) InvalidateAllResendInviteEmailJobs(c request.CTX) *model.AppError 
 	}
 
 	for _, j := range jobs {
-		a.Srv().Jobs.SetJobCanceled(j)
+		if err := a.Srv().Jobs.SetJobCanceled(j); err != nil {
+			c.Logger().Warn("Error canceling resend invitation email job during team invitation invalidation", mlog.String("job_id", j.Id), mlog.Err(err))
+		}
 		// clean up any system values this job was using
-		a.Srv().Store().System().PermanentDeleteByName(j.Id)
+		_, err := a.Srv().Store().System().PermanentDeleteByName(j.Id)
+		if err != nil {
+			c.Logger().Warn("Error deleting system values for resend invitation email job during team invitation invalidation", mlog.String("job_id", j.Id), mlog.Err(err))
+		}
 	}
 
 	return nil

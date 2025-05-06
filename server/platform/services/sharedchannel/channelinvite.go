@@ -28,13 +28,26 @@ type channelInviteMsg struct {
 	Purpose              string            `json:"purpose"`
 	Type                 model.ChannelType `json:"type"`
 	DirectParticipantIDs []string          `json:"direct_participant_ids"`
+	DirectParticipants   []*model.User     `json:"direct_participants"`
+}
+
+func (cim channelInviteMsg) DirectParticipantsMap() map[string]*model.User {
+	dim := make(map[string]*model.User)
+	for _, user := range cim.DirectParticipants {
+		dim[user.Id] = user
+	}
+	return dim
 }
 
 type InviteOption func(msg *channelInviteMsg)
 
-func WithDirectParticipantID(participantID string) InviteOption {
+func WithDirectParticipant(participant *model.User) InviteOption {
 	return func(msg *channelInviteMsg) {
-		msg.DirectParticipantIDs = append(msg.DirectParticipantIDs, participantID)
+		msg.DirectParticipantIDs = append(msg.DirectParticipantIDs, participant.Id)
+		// if the participant is local, send it as part of the invite payload
+		if !participant.IsRemote() {
+			msg.DirectParticipants = append(msg.DirectParticipants, sanitizeUserForSync(participant))
+		}
 	}
 }
 
@@ -355,6 +368,32 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 	return channel, true, nil
 }
 
+// getOrCreateUser will try to fetch a user by its ID from the
+// database and if it fails, it will try to create it if is present in
+// the participantsMap
+func (scs *Service) getOrCreateUser(userID string, participantsMap map[string]*model.User, rc *model.RemoteCluster) (*model.User, error) {
+	user, err := scs.server.GetStore().User().Get(context.TODO(), userID)
+	if err == nil {
+		return user, nil
+	}
+
+	inviteUser, ok := participantsMap[userID]
+	if !ok {
+		// at this point we couldn't fetch the user nor we can create
+		// it from the invite information, so we return an error
+		return nil, fmt.Errorf("cannot fetch user `%q`: %w", userID, err)
+	}
+
+	var rctx request.CTX = request.EmptyContext(scs.server.Log())
+	inviteUser.RemoteId = model.NewPointer(rc.RemoteId)
+	user, iErr := scs.insertSyncUser(rctx, inviteUser, nil, rc)
+	if iErr != nil {
+		return nil, fmt.Errorf("cannot create user `%q` for remote `%q`: %w", inviteUser.Id, rc.RemoteId, iErr)
+	}
+
+	return user, nil
+}
+
 // createDirectChannel creates a DM channel, or fetches an existing channel, and returns the channel plus a boolean
 // indicating if the channel is new.
 func (scs *Service) createDirectChannel(invite channelInviteMsg, rc *model.RemoteCluster) (*model.Channel, bool, error) {
@@ -362,14 +401,16 @@ func (scs *Service) createDirectChannel(invite channelInviteMsg, rc *model.Remot
 		return nil, false, fmt.Errorf("cannot create direct channel `%s` insufficient participant count `%d`", invite.ChannelId, len(invite.DirectParticipantIDs))
 	}
 
-	user1, err := scs.server.GetStore().User().Get(context.TODO(), invite.DirectParticipantIDs[0])
+	participantsMap := invite.DirectParticipantsMap()
+
+	user1, err := scs.getOrCreateUser(invite.DirectParticipantIDs[0], participantsMap, rc)
 	if err != nil {
-		return nil, false, fmt.Errorf("cannot create direct channel `%s` cannot fetch user1 (%s): %w", invite.ChannelId, invite.DirectParticipantIDs[0], err)
+		return nil, false, fmt.Errorf("cannot create direct channel `%s` from invite: %w", invite.ChannelId, err)
 	}
 
-	user2, err := scs.server.GetStore().User().Get(context.TODO(), invite.DirectParticipantIDs[1])
+	user2, err := scs.getOrCreateUser(invite.DirectParticipantIDs[1], participantsMap, rc)
 	if err != nil {
-		return nil, false, fmt.Errorf("cannot create direct channel `%s` cannot fetch user2 (%s): %w", invite.ChannelId, invite.DirectParticipantIDs[1], err)
+		return nil, false, fmt.Errorf("cannot create direct channel `%s` from invite: %w", invite.ChannelId, err)
 	}
 
 	// determine the remote user
