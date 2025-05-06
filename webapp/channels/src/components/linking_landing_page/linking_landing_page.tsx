@@ -80,7 +80,6 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         return landingPreference && landingPreference === LandingPreferenceTypes.BROWSER;
     };
 
-
     checkLandingPreferenceApp = () => {
         const landingPreference = BrowserStore.getLandingPreference(this.props.siteUrl);
         return landingPreference && landingPreference === LandingPreferenceTypes.MATTERMOSTAPP;
