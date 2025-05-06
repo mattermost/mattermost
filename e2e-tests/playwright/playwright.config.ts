@@ -36,7 +36,7 @@ export default defineConfig({
             slowMo: testConfig.slowMo,
         },
         screenshot: 'only-on-failure',
-        timezoneId: 'America/Los_Angeles',
+        timezoneId: Intl.DateTimeFormat().resolvedOptions().timeZone,
         trace: 'off',
         video: 'retain-on-failure',
         actionTimeout: duration.half_min,

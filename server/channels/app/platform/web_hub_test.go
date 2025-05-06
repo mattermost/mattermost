@@ -153,6 +153,10 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	time.Sleep(2 * time.Second)
 	// We override the LastActivityAt which happens in NewWebConn.
 	// This is needed to call RevokeSessionById which triggers the race.
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
 	err = th.Service.AddSessionToCache(session)
 	require.NoError(t, err)
 

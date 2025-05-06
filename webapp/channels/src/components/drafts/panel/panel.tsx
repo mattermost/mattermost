@@ -16,6 +16,8 @@ type Props = {
     isHighlighted?: boolean;
     style?: React.CSSProperties;
     className?: string;
+    dataTestId?: string;
+    dataPostId?: string;
 };
 
 const isEligibleForClick = makeIsEligibleForClick('.hljs, code');
@@ -28,6 +30,8 @@ function Panel({
     isHighlighted,
     style,
     className,
+    dataTestId,
+    dataPostId,
 }: Props) {
     const [hover, setHover] = useState(false);
 
@@ -47,6 +51,8 @@ function Panel({
 
     return (
         <article
+            data-testid={dataTestId}
+            data-postid={dataPostId}
             className={classNames(
                 'Panel',
                 {
