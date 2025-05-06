@@ -289,7 +289,9 @@ func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
 	}
 
 	session.LastActivityAt = now
-	ps.AddSessionToCache(&session)
+	if err := ps.AddSessionToCache(&session); err != nil {
+		mlog.Warn("Failed to add session to cache", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
