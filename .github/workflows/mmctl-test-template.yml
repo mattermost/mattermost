@@ -44,8 +44,10 @@ jobs:
         run: |
           if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
             echo "IMAGE=cgr.dev/mattermost.com/go-msft-fips:1.22-dev" >> "${GITHUB_OUTPUT}"
+            echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}-fips" >> "${GITHUB_OUTPUT}"
           else
             echo "IMAGE=mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}" >> "${GITHUB_OUTPUT}"
+            echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}" >> "${GITHUB_OUTPUT}"
           fi
 
       - name: Store required variables for publishing results
@@ -131,7 +133,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
-          name: ${{ inputs.logsartifact }}
+          name: ${{ steps.build.outputs.LOG_ARTIFACT_NAME }}
           path: |
             server/gotestsum.json
             server/report.xml

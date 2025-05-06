@@ -419,6 +419,15 @@ jobs:
           cache-dependency-path: "webapp/package-lock.json"
       - name: Run setup-go-work
         run: make setup-go-work
+      - name: Build FIPS enabled server
+        if: ${{ inputs.fips-enabled }}
+        env:
+          OUTPUT_CONFIG: config/config.json
+        run: |
+          mkdir -p server/.go/bin
+          make config-reset
+          make build-cmd-linux-amd64 BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+          make package-linux-amd64 BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
       - name: Build
         env:
           OUTPUT_CONFIG: config/config.json
