@@ -100,8 +100,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 	}
 
 	t.Run("done after three batches", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		mockApp := &MockApp{}
 
@@ -128,8 +127,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 	})
 
 	t.Run("clusters not in sync before first batch", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		mockApp := &MockApp{}
 		mockApp.SetOutOfSync()
@@ -155,8 +153,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 	})
 
 	t.Run("clusters not in sync after first batch", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		mockApp := &MockApp{}
 
