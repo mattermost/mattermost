@@ -13,8 +13,8 @@ test('should be able to scroll the RHS with page up and down', async ({pw}) => {
     await channelsPage.toBeVisible();
 
     await channelsPage.centerView.postCreate.postMessage('post');
-    const lastPost = await channelsPage.centerView.getLastPost();
-    await lastPost.openRhs();
+    const lastPost = await channelsPage.getLastPost();
+    await lastPost.reply();
 
     for (let i = 0; i < 10; i++) {
         await channelsPage.sidebarRight.postCreate.postMessage('a\n'.repeat(10));

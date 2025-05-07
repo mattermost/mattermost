@@ -268,6 +268,10 @@ function ThreadItem({
                             <Button
                                 marginTop={true}
                                 className='Button___icon'
+                                aria-label={formatMessage({
+                                    id: 'threading.threadItem.menu',
+                                    defaultMessage: 'Actions',
+                                })}
                             >
                                 <DotsVerticalIcon size={18}/>
                             </Button>

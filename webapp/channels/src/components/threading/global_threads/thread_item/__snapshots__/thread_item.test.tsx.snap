@@ -59,6 +59,7 @@ exports[`components/threading/global_threads/thread_item should report total num
           }
         >
           <Memo(Button)
+            aria-label="Actions"
             className="Button___icon"
             marginTop={true}
           >
@@ -211,6 +212,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
           }
         >
           <Memo(Button)
+            aria-label="Actions"
             className="Button___icon"
             marginTop={true}
           >
@@ -361,6 +363,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
           }
         >
           <Memo(Button)
+            aria-label="Actions"
             className="Button___icon"
             marginTop={true}
           >
