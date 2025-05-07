@@ -439,10 +439,22 @@ jobs:
         run: |
           make build-cmd
           make package
+
+      - name: Setup LOG_ARTIFACT_NAME
+        id: build
+        run: |
+          if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
+            echo "SERVER_DIST_ARTIFACT_NAME=server-dist-artifact-fips" >> "${GITHUB_OUTPUT}"
+            echo "SERVER_BUILD_ARTIFACT_NAME=server-build-artifact-fips" >> "${GITHUB_OUTPUT}"
+          else
+            echo "SERVER_DIST_ARTIFACT_NAME=server-dist-artifact" >> "${GITHUB_OUTPUT}"
+            echo "SERVER_BUILD_ARTIFACT_NAME=server-build-artifact" >> "${GITHUB_OUTPUT}"
+          fi
+  
       - name: Persist dist artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: server-dist-artifact
+          name: ${{ steps.build.outputs.SERVER_DIST_ARTIFACT_NAME }}
           path: server/dist/
           if-no-files-found: error
           compression-level: 0
@@ -450,7 +462,7 @@ jobs:
       - name: Persist build artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: server-build-artifact
+          name: ${{ steps.build.outputs.SERVER_BUILD_ARTIFACT_NAME }}
           path: server/build/
           retention-days: 2
   test-migration:
