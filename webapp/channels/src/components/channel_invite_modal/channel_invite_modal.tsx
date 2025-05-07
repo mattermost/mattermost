@@ -636,11 +636,4 @@ const ChannelInviteModalComponent = (props: Props) => {
     );
 };
 
-ChannelInviteModalComponent.defaultProps = {
-    includeUsers: {},
-    excludeUsers: {},
-    skipCommit: false,
-};
-
-export const ChannelInviteModal = ChannelInviteModalComponent;
 export default injectIntl(ChannelInviteModalComponent);

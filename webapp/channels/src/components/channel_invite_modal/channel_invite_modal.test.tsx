@@ -1,10 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen, waitFor} from '@testing-library/react';
+import {fireEvent, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
+import {act} from 'react-dom/test-utils';
 
+import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
+import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -13,10 +17,21 @@ import {General} from 'mattermost-redux/constants';
 import ChannelInviteModal from 'components/channel_invite_modal/channel_invite_modal';
 import type {Value} from 'components/multiselect/multiselect';
 
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext} from 'tests/react_testing_utils';
-import {ModalIdentifiers} from 'utils/constants';
 
 type UserProfileValue = Value & UserProfile;
+
+// Mock the useAccessControlAttributes hook
+jest.mock('hooks/useAccessControlAttributes', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+        attributeTags: ['tag1', 'tag2'],
+        loading: false,
+        error: null,
+        fetchAttributes: jest.fn(),
+    })),
+}));
 
 jest.mock('utils/utils', () => {
     const original = jest.requireActual('utils/utils');
@@ -26,37 +41,22 @@ jest.mock('utils/utils', () => {
     };
 });
 
-// Mock the getChannelAccessControlAttributes action
-jest.mock('mattermost-redux/actions/channels', () => {
-    const original = jest.requireActual('mattermost-redux/actions/channels');
-    return {
-        ...original,
-        getChannelAccessControlAttributes: jest.fn().mockImplementation(() => () => {
-            return {
-                data: {
-                    department: ['Engineering', 'Marketing'],
-                    location: ['San Francisco'],
-                },
-            };
-        }),
-    };
-});
-
 describe('components/channel_invite_modal', () => {
     const users = [{
         id: 'user-1',
         label: 'user-1',
         value: 'user-1',
+        username: 'user-1',
         delete_at: 0,
     } as UserProfileValue, {
         id: 'user-2',
         label: 'user-2',
         value: 'user-2',
+        username: 'user-2',
         delete_at: 0,
     } as UserProfileValue];
 
-    // Define user statuses for testing
-    const userStatusesData = {
+    const userStatuses = {
         'user-1': 'online',
         'user-2': 'offline',
     } as RelationOneToOne<UserProfile, string>;
@@ -84,7 +84,7 @@ describe('components/channel_invite_modal', () => {
         profilesFromRecentDMs: [],
         membersInTeam: {},
         groups: [],
-        userStatuses: userStatusesData,
+        userStatuses: {},
         teammateNameDisplaySetting: General.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME,
         isGroupsEnabled: true,
         actions: {
@@ -108,46 +108,8 @@ describe('components/channel_invite_modal', () => {
         onExited: jest.fn(),
     };
 
-    const initialState = {
-        entities: {
-            general: {
-                config: {},
-            },
-            users: {
-                currentUserId: 'currentUserId',
-            },
-            teams: {
-                teams: {
-                    eatxocwc3bg9ffo9xyybnj4omr: {
-                        id: 'eatxocwc3bg9ffo9xyybnj4omr',
-                        name: 'test-team',
-                        display_name: 'Test Team',
-                    },
-                },
-                myMembers: {},
-            },
-        },
-    };
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
-    beforeAll(() => {
-        // Make rAF synchronous so it never tries to queue work
-        window.requestAnimationFrame = (cb: FrameRequestCallback) => {
-            cb(0);
-            return 0;
-        };
-
-        // No-op focus so that ref.current!.focus() never throws
-        // (This covers HTMLInputElement, HTMLDivElement, etc.)
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        HTMLElement.prototype.focus = function() {};
-    });
-
-    test('should render the modal with profiles not in channel', () => {
-        renderWithContext(
+    test('should match snapshot for channel_invite_modal with profiles', () => {
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal
                 {...baseProps}
                 profilesNotInCurrentChannel={users}
@@ -155,15 +117,12 @@ describe('components/channel_invite_modal', () => {
                 profilesNotInCurrentTeam={[]}
                 profilesFromRecentDMs={[]}
             />,
-            initialState,
         );
-
-        // Verify modal is rendered with expected title
-        expect(screen.getByText(`Add people to ${channel.display_name}`)).toBeInTheDocument();
+        expect(wrapper).toMatchSnapshot();
     });
 
-    test('should render the modal with profiles from DMs', () => {
-        renderWithContext(
+    test('should match snapshot for channel_invite_modal with profiles from DMs', () => {
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal
                 {...baseProps}
                 profilesNotInCurrentChannel={[]}
@@ -171,284 +130,445 @@ describe('components/channel_invite_modal', () => {
                 profilesNotInCurrentTeam={[]}
                 profilesFromRecentDMs={users}
             />,
-            initialState,
         );
-
-        // Verify modal is rendered
-        expect(screen.getByText(`Add people to ${channel.display_name}`)).toBeInTheDocument();
+        expect(wrapper).toMatchSnapshot();
     });
 
-    test('should render with exclude and include users', () => {
-        renderWithContext(
+    test('should match snapshot with exclude and include users', () => {
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal
                 {...baseProps}
                 profilesNotInCurrentChannel={users}
                 profilesInCurrentChannel={[]}
                 profilesNotInCurrentTeam={[]}
                 profilesFromRecentDMs={[]}
-                includeUsers={{
-                    'user-3': {
-                        id: 'user-3',
-                        label: 'user-3',
-                        value: 'user-3',
-                        delete_at: 0,
-                    } as UserProfileValue,
-                }}
-                excludeUsers={{
-                    'user-1': {
-                        id: 'user-1',
-                        label: 'user-1',
-                        value: 'user-1',
-                        delete_at: 0,
-                    } as UserProfileValue,
-                }}
+                includeUsers={
+                    {
+                        'user-3': {
+                            id: 'user-3',
+                            label: 'user-3',
+                            value: 'user-3',
+                            delete_at: 0,
+                        } as UserProfileValue,
+                    }
+                }
+                excludeUsers={
+                    {
+                        'user-1': {
+                            id: 'user-1',
+                            label: 'user-1',
+                            value: 'user-1',
+                            delete_at: 0,
+                        } as UserProfileValue,
+                    }
+                }
             />,
-            initialState,
         );
-
-        // Verify modal is rendered
-        expect(screen.getByText(`Add people to ${channel.display_name}`)).toBeInTheDocument();
+        expect(wrapper).toMatchSnapshot();
     });
 
-    test('should close the modal when cancel button is clicked', () => {
-        const closeModal = jest.fn();
-
-        renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                actions={{
-                    ...baseProps.actions,
-                    closeModal,
-                }}
-            />,
-            initialState,
-        );
-
-        // Click the Cancel button
-        fireEvent.click(screen.getByText('Cancel'));
-
-        // Verify closeModal was called with the correct modal identifier
-        expect(closeModal).toHaveBeenCalledWith(ModalIdentifiers.CHANNEL_INVITE);
-    });
-
-    test('should show invitation link when email invitations are enabled', () => {
-        renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                canInviteGuests={true}
-                emailInvitationsEnabled={true}
-            />,
-            initialState,
-        );
-
-        // Verify the "Invite as a Guest" link is present
-        expect(screen.getByText('Invite as a Guest')).toBeInTheDocument();
-    });
-
-    test('should not show invitation link when email invitations are disabled', () => {
-        renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                canInviteGuests={false}
-                emailInvitationsEnabled={false}
-            />,
-            initialState,
-        );
-
-        // Verify the "Invite as a Guest" link is not present
-        expect(screen.queryByText('Invite as a Guest')).not.toBeInTheDocument();
-    });
-
-    test('should show policy banner when channel has policy_enforced flag', async () => {
-        renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                channel={{
-                    ...channel,
-                    policy_enforced: true,
-                }}
-            />,
-            initialState,
-        );
-
-        // Verify the policy banner is present
-        expect(screen.getByText('Channel access is restricted by user attributes')).toBeInTheDocument();
-        expect(screen.getByText('Only people who match the specified access rules can be selected and added to this channel.')).toBeInTheDocument();
-
-        // Wait for the attribute tags to be loaded and displayed
-        await screen.findByText('Engineering');
-        expect(screen.getByText('Engineering')).toBeInTheDocument();
-        expect(screen.getByText('Marketing')).toBeInTheDocument();
-        expect(screen.getByText('San Francisco')).toBeInTheDocument();
-    });
-
-    test('should not show policy banner when channel does not have policy_enforced flag', () => {
-        renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                channel={{
-                    ...channel,
-                    policy_enforced: false,
-                }}
-            />,
-            initialState,
-        );
-
-        // Verify the policy banner is not present
-        expect(screen.queryByText('Channel access is restricted by user attributes')).not.toBeInTheDocument();
-    });
-
-    test('should search for users when typing in the search box', async () => {
-        const searchProfiles = jest.fn().mockImplementation(() => Promise.resolve());
-
-        renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                actions={{
-                    ...baseProps.actions,
-                    searchProfiles,
-                }}
-            />,
-            initialState,
-        );
-
-        // Find the search input by aria-label
-        const searchInput = screen.getByRole('combobox', {name: 'Search for people or groups'});
-
-        // Type in the search box
-        fireEvent.change(searchInput, {target: {value: 'test'}});
-
-        // Wait for the debounced search to be called
-        await waitFor(() => {
-            expect(searchProfiles).toHaveBeenCalled();
-        }, {timeout: 1000});
-    });
-
-    test('should successfully add users on submit', async () => {
-        const addUsersToChannel = jest.fn().mockResolvedValue({data: true});
-
-        renderWithContext(
+    test('should match snapshot for channel_invite_modal with userStatuses', () => {
+        const wrapper = shallowWithIntl(
             <ChannelInviteModal
                 {...baseProps}
                 profilesNotInCurrentChannel={users}
-                actions={{
-                    ...baseProps.actions,
-                    addUsersToChannel,
-                }}
+                profilesInCurrentChannel={[]}
+                userStatuses={userStatuses}
+                profilesFromRecentDMs={[]}
             />,
-            initialState,
         );
 
-        // Simulate selecting a user
-        // Since we can't directly manipulate the component's state in the test,
-        // we'll mock the behavior by simulating user interaction
+        // Since renderOption is now an internal function in the component,
+        // we can't test it directly. Instead, we'll test the rendered component.
+        expect(wrapper).toMatchSnapshot();
+    });
 
-        // First, find the user option and click it
-        const userOption = screen.getByText('user-1');
-        fireEvent.click(userOption);
+    test('should hide modal when onHide is called', () => {
+        const wrapper = shallowWithIntl(
+            <ChannelInviteModal {...baseProps}/>,
+        );
 
-        // Then click the Add button
-        const addButton = screen.getByText('Add');
-        fireEvent.click(addButton);
+        // Find the GenericModal and trigger its onHide prop
+        const modal = wrapper.find(GenericModal);
+        const onHide = modal.props().onHide;
+        if (onHide) {
+            onHide();
+        }
 
-        // Verify addUsersToChannel was called with the correct parameters
-        await waitFor(() => {
-            expect(addUsersToChannel).toHaveBeenCalledWith(channel.id, ['user-1']);
+        // Re-render to reflect state changes
+        wrapper.update();
+
+        // The modal should now be hidden (show prop should be false)
+        expect(wrapper.find(GenericModal).props().show).toEqual(false);
+    });
+
+    test('should have called props.onExited when GenericModal.onExited is called', () => {
+        const props = {...baseProps};
+        const wrapper = shallowWithIntl(
+            <ChannelInviteModal {...props}/>,
+        );
+
+        const modal = wrapper.find(GenericModal);
+        const onExited = modal.props().onExited;
+        if (onExited) {
+            onExited();
+        }
+        expect(props.onExited).toHaveBeenCalledTimes(1);
+    });
+
+    test('should fail to add users on handleSubmit', async () => {
+        // Mock the addUsersToChannel function to return an error
+        const addUsersToChannelMock = jest.fn().mockImplementation(() => {
+            return Promise.resolve({error: {message: 'Failed'}});
+        });
+
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                addUsersToChannel: addUsersToChannelMock,
+            },
+            profilesNotInCurrentChannel: [users[0]],
+            includeUsers: {'user-1': users[0]},
+            membersInTeam: {'user-1': {user_id: 'user-1', team_id: channel.team_id, roles: '', delete_at: 0, scheme_admin: false, scheme_guest: false, scheme_user: true, mention_count: 0, mention_count_root: 0, msg_count: 0, msg_count_root: 0} as TeamMembership},
+        };
+
+        await act(async () => {
+            const {getByText} = renderWithContext(
+                <ChannelInviteModal
+                    {...props}
+                />,
+            );
+
+            // First, we need to simulate selecting a user
+            const input = screen.getByRole('combobox', {name: /search for people/i});
+
+            // Type the search term
+            await userEvent.type(input, 'user-1');
+
+            // Wait for the promise to resolve
+            await act(async () => {
+                // Wait for the dropdown option to appear
+                const option = await screen.findByText('user-1');
+
+                // Click the option
+                userEvent.click(option);
+
+                // Confirm that the user is now displayed in the selected users
+                expect(screen.getByText('user-1')).toBeInTheDocument();
+
+                // Find and click the save button
+                const saveButton = getByText('Add');
+                fireEvent.click(saveButton);
+            });
+
+            // Wait for the promise to resolve
+            await act(async () => {
+                await new Promise((resolve) => setTimeout(resolve, 0));
+            });
+
+            // Check that addUsersToChannel was called
+            expect(addUsersToChannelMock).toHaveBeenCalled();
         });
     });
 
-    test('should fail to add users on submit', async () => {
-        const addUsersToChannel = jest.fn().mockResolvedValue({
-            error: {message: 'Failed'},
+    test('should add users on handleSubmit', async () => {
+        // Mock the addUsersToChannel function to return success
+        const addUsersToChannelMock = jest.fn().mockImplementation(() => {
+            return Promise.resolve({data: true});
         });
 
-        renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                profilesNotInCurrentChannel={users}
-                actions={{
-                    ...baseProps.actions,
-                    addUsersToChannel,
-                }}
-            />,
-            initialState,
-        );
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                addUsersToChannel: addUsersToChannelMock,
+            },
+            profilesNotInCurrentChannel: [users[0]],
+            includeUsers: {'user-1': users[0]},
+            membersInTeam: {'user-1': {user_id: 'user-1', team_id: channel.team_id, roles: '', delete_at: 0, scheme_admin: false, scheme_guest: false, scheme_user: true, mention_count: 0, mention_count_root: 0, msg_count: 0, msg_count_root: 0} as TeamMembership},
+        };
 
-        // Find the user option and click it
-        const userOption = screen.getByText('user-1');
-        fireEvent.click(userOption);
+        await act(async () => {
+            const {getByText} = renderWithContext(
+                <ChannelInviteModal
+                    {...props}
+                />,
+            );
 
-        // Then click the Add button
-        const addButton = screen.getByText('Add');
-        fireEvent.click(addButton);
+            // First, we need to simulate selecting a user
+            const input = screen.getByRole('combobox', {name: /search for people/i});
 
-        // Verify addUsersToChannel was called with the correct parameters
-        await waitFor(() => {
-            expect(addUsersToChannel).toHaveBeenCalledWith(channel.id, ['user-1']);
+            // Type the search term
+            await userEvent.type(input, 'user-1');
+
+            // Wait for the promise to resolve
+            await act(async () => {
+                // Wait for the dropdown option to appear
+                const option = await screen.findByText('user-1');
+
+                // Click the option
+                userEvent.click(option);
+
+                // Confirm that the user is now displayed in the selected users
+                expect(screen.getByText('user-1')).toBeInTheDocument();
+
+                // Find and click the save button
+                const saveButton = getByText('Add');
+                fireEvent.click(saveButton);
+            });
+
+            // Wait for the promise to resolve
+            await act(async () => {
+                await new Promise((resolve) => setTimeout(resolve, 0));
+            });
+
+            // Check that addUsersToChannel was called
+            expect(addUsersToChannelMock).toHaveBeenCalled();
         });
     });
 
-    test('should call onAddCallback when skipCommit is true', async () => {
+    test('should call onAddCallback on handleSubmit with skipCommit', async () => {
         const onAddCallback = jest.fn();
-        const addUsersToChannel = jest.fn();
-        const localOnExited = jest.fn();
 
-        renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                onExited={localOnExited}
-                skipCommit={true}
-                onAddCallback={onAddCallback}
-                profilesNotInCurrentChannel={users}
-                actions={{...baseProps.actions, addUsersToChannel}}
-            />,
-            initialState,
-        );
+        const props = {
+            ...baseProps,
+            skipCommit: true,
+            onAddCallback,
+            profilesNotInCurrentChannel: [users[0]],
+            includeUsers: {'user-1': users[0]},
+            membersInTeam: {'user-1': {user_id: 'user-1', team_id: channel.team_id, roles: '', delete_at: 0, scheme_admin: false, scheme_guest: false, scheme_user: true, mention_count: 0, mention_count_root: 0, msg_count: 0, msg_count_root: 0} as TeamMembership},
 
-        // Find the user option and click it
-        const userOption = screen.getByText('user-1');
-        fireEvent.click(userOption);
+        };
 
-        // Then click the Add button
-        const addButton = screen.getByText('Add');
-        fireEvent.click(addButton);
+        await act(async () => {
+            const {getByText} = renderWithContext(
+                <ChannelInviteModal
+                    {...props}
+                />,
+            );
 
-        // Verify onAddCallback was called with the selected users
-        await waitFor(() => {
+            // First, we need to simulate selecting a user
+            const input = screen.getByRole('combobox', {name: /search for people/i});
+
+            await userEvent.type(input, 'user-1');
+
+            await act(async () => {
+                const option = await screen.findByText('user-1');
+
+                userEvent.click(option);
+
+                expect(screen.getByText('user-1')).toBeInTheDocument();
+
+                const saveButton = getByText('Add');
+                fireEvent.click(saveButton);
+            });
+
+            // Check that onAddCallback was called and addUsersToChannel was not
             expect(onAddCallback).toHaveBeenCalled();
-        });
-
-        // Verify addUsersToChannel was not called
-        expect(addUsersToChannel).not.toHaveBeenCalled();
-
-        // Verify onExited was called
-        await waitFor(() => {
-            expect(localOnExited).toHaveBeenCalled();
+            expect(props.actions.addUsersToChannel).not.toHaveBeenCalled();
         });
     });
 
-    /* ------------------------------------------------------------------------- */
+    test('should trim the search term', async () => {
+        const searchProfilesMock = jest.fn().mockImplementation(() => {
+            return Promise.resolve({});
+        });
 
-    /* ------------------------------------------------------------------------- */
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                searchProfiles: searchProfilesMock,
+            },
+        };
 
-    test('should close modal when closeModal action is called', () => {
-        const closeModal = jest.fn();
+        await act(async () => {
+            renderWithContext(
+                <ChannelInviteModal
+                    {...props}
+                />,
+            );
 
-        renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                actions={{
-                    ...baseProps.actions,
-                    closeModal,
-                }}
-            />,
-            initialState,
+            // Find the search input
+            const input = screen.getByRole('combobox', {name: /search for people/i});
+
+            // Directly trigger the change event with a value that has spaces
+            fireEvent.change(input, {target: {value: ' something '}});
+
+            // Wait for the search timeout plus some extra time
+            await act(async () => {
+                await new Promise((resolve) => setTimeout(resolve, 200));
+            });
+
+            // Verify the search was called with the trimmed term
+            expect(searchProfilesMock).toHaveBeenCalledWith(
+                expect.stringContaining('something'),
+                expect.any(Object),
+            );
+        });
+    });
+
+    test('should send the invite as guest param through the link', () => {
+        const props = {
+            ...baseProps,
+            canInviteGuests: true,
+            emailInvitationsEnabled: true,
+        };
+        const wrapper = shallowWithIntl(
+            <ChannelInviteModal {...props}/>,
         );
 
-        // Click the Cancel button
-        fireEvent.click(screen.getByText('Cancel'));
+        const invitationLink = wrapper.find('InviteModalLink');
 
-        // Verify closeModal was called with the correct modal identifier
-        expect(closeModal).toHaveBeenCalledWith(ModalIdentifiers.CHANNEL_INVITE);
+        expect(invitationLink).toHaveLength(1);
+
+        expect(invitationLink.prop('inviteAsGuest')).toBeTruthy();
+    });
+
+    test('should hide the invite as guest param when can not invite guests', () => {
+        const props = {
+            ...baseProps,
+            canInviteGuests: false,
+            emailInvitationsEnabled: false,
+        };
+        const wrapper = shallowWithIntl(
+            <ChannelInviteModal {...props}/>,
+        );
+
+        const invitationLink = wrapper.find('InviteModalLink');
+
+        expect(invitationLink).toHaveLength(0);
+    });
+
+    test('should show AlertBanner when policy_enforced is true', () => {
+        const channelWithPolicy = {
+            ...channel,
+            policy_enforced: true,
+        };
+
+        const props = {
+            ...baseProps,
+            channel: channelWithPolicy,
+        };
+
+        const wrapper = shallowWithIntl(
+            <ChannelInviteModal {...props}/>,
+        );
+
+        // Check that the AlertBanner is shown
+        expect(wrapper.find('AlertBanner').exists()).toBe(true);
+    });
+
+    test('should show attribute tags in AlertBanner', () => {
+        const channelWithPolicy = {
+            ...channel,
+            policy_enforced: true,
+        };
+
+        const props = {
+            ...baseProps,
+            channel: channelWithPolicy,
+        };
+
+        const wrapper = shallowWithIntl(
+            <ChannelInviteModal {...props}/>,
+        );
+
+        // Check that the AlertBanner is shown
+        expect(wrapper.find('AlertBanner').exists()).toBe(true);
+
+        // Check that the TagGroup exists
+        expect(wrapper.find('TagGroup').exists()).toBe(true);
+
+        // Check that the attribute tags are shown
+        const tagGroup = wrapper.find('TagGroup');
+        const genericTags = tagGroup.find('GenericTag');
+        expect(genericTags).toHaveLength(2);
+
+        // Verify the tag text
+        expect(genericTags.at(0).prop('text')).toBe('tag1');
+        expect(genericTags.at(1).prop('text')).toBe('tag2');
+    });
+
+    test('should not show AlertBanner when policy_enforced is false', () => {
+        const channelWithoutPolicy = {
+            ...channel,
+            policy_enforced: false,
+        };
+
+        const props = {
+            ...baseProps,
+            channel: channelWithoutPolicy,
+        };
+
+        const wrapper = shallowWithIntl(
+            <ChannelInviteModal {...props}/>,
+        );
+
+        // Check that the AlertBanner is not shown
+        expect(wrapper.find('AlertBanner').exists()).toBe(false);
+    });
+
+    test('should show loading state for access attributes', () => {
+        // Mock the useAccessControlAttributes hook to return loading state
+        const useAccessControlAttributesMock = require('hooks/useAccessControlAttributes').default;
+        useAccessControlAttributesMock.mockReturnValueOnce({
+            attributeTags: [],
+            loading: true,
+            error: null,
+            fetchAttributes: jest.fn(),
+        });
+
+        const channelWithPolicy = {
+            ...channel,
+            policy_enforced: true,
+        };
+
+        const props = {
+            ...baseProps,
+            channel: channelWithPolicy,
+        };
+
+        const wrapper = shallowWithIntl(
+            <ChannelInviteModal {...props}/>,
+        );
+
+        // Check that the AlertBanner is shown
+        expect(wrapper.find('AlertBanner').exists()).toBe(true);
+
+        // Check that no tags are shown
+        expect(wrapper.find('GenericTag').exists()).toBe(false);
+    });
+
+    test('should handle error state for access attributes', () => {
+        // Mock the useAccessControlAttributes hook to return error state
+        const useAccessControlAttributesMock = require('hooks/useAccessControlAttributes').default;
+        useAccessControlAttributesMock.mockReturnValueOnce({
+            attributeTags: [],
+            loading: false,
+            error: 'Failed to load attributes',
+            fetchAttributes: jest.fn(),
+        });
+
+        const channelWithPolicy = {
+            ...channel,
+            policy_enforced: true,
+        };
+
+        const props = {
+            ...baseProps,
+            channel: channelWithPolicy,
+        };
+
+        const wrapper = shallowWithIntl(
+            <ChannelInviteModal {...props}/>,
+        );
+
+        // Check that the AlertBanner is shown
+        expect(wrapper.find('AlertBanner').exists()).toBe(true);
+
+        // Check that no tags are shown
+        expect(wrapper.find('GenericTag').exists()).toBe(false);
     });
 });
