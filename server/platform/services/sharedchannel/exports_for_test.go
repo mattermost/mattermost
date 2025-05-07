@@ -156,17 +156,29 @@ func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[str
 		usersAtTime := usersByUpdateTime[updateTime]
 
 		for _, user := range usersAtTime {
+			// Skip users with update times <= current cursor position in tests
+			latestUserUpdateTime := user.UpdateAt
+			if user.LastPictureUpdate > latestUserUpdateTime {
+				latestUserUpdateTime = user.LastPictureUpdate
+			}
+
+			if latestUserUpdateTime <= rc.LastGlobalUserSyncAt {
+				continue // Skip users that wouldn't be included based on cursor
+			}
+
 			// Add user to the result set
 			sentUsers[user.Id] = user
 			userCount++
 
 			// Update the latestProcessedTime
-			if updateTime > latestProcessedTime {
-				latestProcessedTime = updateTime
+			if latestUserUpdateTime > latestProcessedTime {
+				latestProcessedTime = latestUserUpdateTime
 			}
 
 			// If we've reached the batch size, simulate a cursor update
 			if userCount >= TestableMaxUsersPerSync {
+				// Simulate updating the cursor in the test code
+				rc.LastGlobalUserSyncAt = latestProcessedTime
 				break
 			}
 		}

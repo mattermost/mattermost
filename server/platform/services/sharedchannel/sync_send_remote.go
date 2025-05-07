@@ -740,8 +740,9 @@ func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteClust
 }
 
 // syncAllUsersForRemote synchronizes all local users to a remote cluster.
-// This is called when a connection with a remote cluster is established.
+// This is called when a connection with a remote cluster is established or when handling a global user sync task.
 // Uses cursor-based approach with LastGlobalUserSyncAt to resume after interruptions.
+// Leverages the task queue infrastructure to process users in batches.
 func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 	if !rc.IsOnline() {
 		return fmt.Errorf("remote cluster %s is not online", rc.RemoteId)
@@ -759,10 +760,20 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 		}
 	}()
 
+	// Use configurable batch size with a reasonable default
+	// This determines how many users we'll sync in one batch
+	effectiveBatchSize := MaxUsersPerSync
+	if scs.server.Config().ConnectedWorkspacesSettings.GlobalUserSyncBatchSize != nil {
+		configValue := *scs.server.Config().ConnectedWorkspacesSettings.GlobalUserSyncBatchSize
+		if configValue > 0 && configValue <= 200 { // Set reasonable limits
+			effectiveBatchSize = configValue
+		}
+	}
+
 	// Get all active users updated since the last sync
 	options := &model.UserGetOptions{
 		Page:         0,
-		PerPage:      100, // Process in batches
+		PerPage:      100, // Process database records in larger batches
 		Active:       true,
 		UpdatedAfter: rc.LastGlobalUserSyncAt,
 	}
@@ -786,7 +797,9 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 	syncData := scs.initUserSyncCache(rc)
 
 	var processedCount int
+	var totalUserCount int
 	merr := merror.New()
+	var hasMoreUsers bool
 
 	// We may need to page through all users
 	for {
@@ -803,7 +816,9 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 			break
 		}
 
-		// Add users to sync data, but only if they need syncing
+		totalUserCount += len(users)
+
+		// Add users to the sync batch (sd.users), but only if they need syncing
 		for _, user := range users {
 			// Calculate latest update time for this user (profile or picture)
 			latestUserUpdateTime := user.UpdateAt
@@ -840,60 +855,67 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 			}
 
 			// Send in batches to avoid overwhelming the connection
-			if len(sd.users) >= MaxUsersPerSync {
-				if err := scs.sendUserSyncData(sd); err != nil {
-					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error sending user batch during sync",
-						mlog.String("remote_id", rc.RemoteId),
-						mlog.Err(err),
-					)
-					merr.Append(fmt.Errorf("error sending user batch during sync: %w", err))
-				} else {
-					// Update cursor after successful batch processing
-					rcCopy := *rc
-					rcCopy.LastGlobalUserSyncAt = latestProcessedTime
-					if _, err := scs.server.GetStore().RemoteCluster().Update(&rcCopy); err != nil {
-						scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update sync cursor",
-							mlog.String("remote_id", rc.RemoteId),
-							mlog.Err(err),
-						)
-					} else {
-						// Update our working copy to ensure subsequent batches use updated cursor
-						*rc = rcCopy
-						scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated LastGlobalUserSyncAt cursor",
-							mlog.String("remote_id", rc.RemoteId),
-							mlog.Int("new_cursor", latestProcessedTime),
-						)
-					}
-				}
-				sd.users = make(map[string]*model.User)
+			if len(sd.users) >= effectiveBatchSize {
+				hasMoreUsers = true
+				break
 			}
+		}
+
+		// If we've reached the batch size limit, stop adding more users
+		if len(sd.users) >= effectiveBatchSize {
+			hasMoreUsers = true
+			break
 		}
 
 		// Move to next page
 		options.Page++
 	}
 
-	// Send any remaining users
+	// Send users in the current batch
 	if len(sd.users) > 0 {
 		if err := scs.sendUserSyncData(sd); err != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error sending final user batch during sync",
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error sending user batch during sync",
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.Err(err),
 			)
-			merr.Append(fmt.Errorf("error sending final user batch during sync: %w", err))
+			merr.Append(fmt.Errorf("error sending user batch during sync: %w", err))
+		} else {
+			// Update cursor after successful batch processing
+			rcCopy := *rc
+			rcCopy.LastGlobalUserSyncAt = latestProcessedTime
+			updatedRC, err := scs.server.GetStore().RemoteCluster().Update(&rcCopy)
+			if err != nil {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update sync cursor",
+					mlog.String("remote_id", rc.RemoteId),
+					mlog.Err(err),
+				)
+			} else if updatedRC != nil {
+				// Update our working copy to ensure subsequent batches use updated cursor
+				*rc = *updatedRC
+			}
 		}
 	}
 
-	// Final cursor update if we processed any users
-	if processedCount > 0 && latestProcessedTime > rc.LastGlobalUserSyncAt {
-		rcCopy := *rc
-		rcCopy.LastGlobalUserSyncAt = latestProcessedTime
-		if _, err := scs.server.GetStore().RemoteCluster().Update(&rcCopy); err != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update final sync cursor",
-				mlog.String("remote_id", rc.RemoteId),
-				mlog.Err(err),
-			)
-		}
+	// If there are more users to process, schedule another task for the next batch
+	if hasMoreUsers {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Scheduling next batch for global user sync",
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.Int("processed_in_current_batch", len(sd.users)),
+			mlog.Int("batch_size", effectiveBatchSize),
+			mlog.Int("cursor", int(latestProcessedTime)),
+		)
+
+		// Schedule the next batch
+		task := newSyncTask("", "", rc.RemoteId, nil, nil)
+		task.schedule = time.Now().Add(NotifyMinimumDelay)
+		scs.addTask(task)
+	} else {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Global user sync complete",
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.Int("total_processed", processedCount),
+			mlog.Int("total_users_found", totalUserCount),
+			mlog.Int("cursor", int(latestProcessedTime)),
+		)
 	}
 
 	// Return any errors that occurred during batch processing so callers can handle them
