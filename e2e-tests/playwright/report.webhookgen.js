@@ -5,9 +5,10 @@
 
 const fs = require('fs');
 const path = require('path');
+const mime = require('mime-types');
+
 const {S3} = require('@aws-sdk/client-s3');
 const {Upload} = require('@aws-sdk/lib-storage');
-const mime = require('mime-types');
 
 const dayjs = require('dayjs');
 const duration = require('dayjs/plugin/duration');
@@ -67,6 +68,7 @@ async function uploadFile(filePath, s3Key) {
         await upload.done();
         return `https://${bucketName}.s3.${region}.amazonaws.com/${s3Key}`;
     } catch (err) {
+        // eslint-disable-next-line no-console
         console.error('Error uploading file:', err);
         throw err;
     }
@@ -99,6 +101,7 @@ function walkAndUpload(baseDir, relativeRoot = '') {
  */
 async function saveArtifacts() {
     if (!AWS_S3_BUCKET || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+        // eslint-disable-next-line no-console
         console.log('Missing AWS S3 environment variables');
         return {success: false};
     }
