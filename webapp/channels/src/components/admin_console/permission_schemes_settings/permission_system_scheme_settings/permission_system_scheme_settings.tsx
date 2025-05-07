@@ -381,6 +381,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
         if (!this.state.loaded) {
             return <LoadingScreen/>;
         }
+
         const isLicensed = this.props.license?.IsLicensed === 'true';
         return (
             <div className='wrapper--fixed'>

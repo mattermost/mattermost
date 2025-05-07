@@ -25,6 +25,7 @@ import {
     createRandomUser,
     getAdminClient,
     initSetup,
+    isOutsideRemoteUserHour,
 } from './server';
 import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
 import {pages} from './ui/pages';
@@ -90,6 +91,7 @@ export class PlaywrightExtended {
 
     // ./server
     readonly createNewUserProfile;
+    readonly isOutsideRemoteUserHour;
 
     // ./visual
     readonly matchSnapshot;
@@ -131,7 +133,7 @@ export class PlaywrightExtended {
         this.ensurePluginsLoaded = ensurePluginsLoaded;
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
-
+        this.isOutsideRemoteUserHour = isOutsideRemoteUserHour;
         // ./test_action
         this.hideDynamicChannelsContent = hideDynamicChannelsContent;
         this.waitForAnimationEnd = waitForAnimationEnd;

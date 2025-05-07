@@ -459,9 +459,17 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 }
             }
             if (attributeField.attrs.value_type === 'url') {
-                if (attributeValue !== '' && !validHttpUrl(attributeValue)) {
-                    this.setState({clientError: formatMessage(holders.validUrl), emailError: '', serverError: ''});
-                    return;
+                if (attributeValue !== '') {
+                    const validURL = validHttpUrl(attributeValue);
+                    if (!validURL) {
+                        this.setState({clientError: formatMessage(holders.validUrl), emailError: '', serverError: ''});
+                        return;
+                    }
+                    let validLink = validURL.toString();
+                    if (validLink.endsWith('/')) {
+                        validLink = validLink.slice(0, -1);
+                    }
+                    attributeValue = validLink;
                 }
             }
         }
@@ -1419,13 +1427,19 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     if (Array.isArray(attributeValue)) {
                         return attributeValue.map((value) => {
                             const option = attribOptions.find((o) => o.id === value);
-                            return {label: option?.name, value: option?.id};
-                        });
+                            if (option) {
+                                return {label: option?.name, value: option?.id};
+                            }
+                            return null;
+                        }).filter((value) => value != null);
                     }
 
                     // Handle single select
                     const option = attribOptions.find((o) => o.id === attributeValue);
-                    return {label: option?.name, value: option?.id};
+                    if (option) {
+                        return {label: option?.name, value: option?.id};
+                    }
+                    return '';
                 }
 
                 return attributeValue as string;
@@ -1535,12 +1549,14 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             let describe: JSX.Element|string = '';
             if (this.props.user.custom_profile_attributes?.[attribute.id]) {
                 const attributeValue = getDisplayValue(this.props.user.custom_profile_attributes?.[attribute.id]);
-                if (typeof attributeValue === 'string') {
-                    describe = attributeValue;
-                } else if (Array.isArray(attributeValue) && attributeValue.length > 0) {
-                    describe = <FormattedList value={attributeValue.map((attrib) => attrib.label)}/>;
-                } else if (!Array.isArray(attributeValue) && Object.hasOwn(attributeValue, 'label')) {
-                    describe = attributeValue.label || '';
+                if (attributeValue) {
+                    if (typeof attributeValue === 'string') {
+                        describe = attributeValue;
+                    } else if (Array.isArray(attributeValue) && attributeValue.length > 0) {
+                        describe = <FormattedList value={attributeValue.map((attrib) => attrib?.label || null)}/>;
+                    } else if (!Array.isArray(attributeValue) && Object.hasOwn(attributeValue, 'label')) {
+                        describe = attributeValue.label || '';
+                    }
                 }
             }
             if (!describe) {

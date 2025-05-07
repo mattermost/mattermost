@@ -60,8 +60,8 @@ func TestCache(t *testing.T) {
 	clear(rkeys)
 	rkeys = []string{}
 
-	th.Service.ClearAllUsersSessionCache()
-
+	err = th.Service.ClearAllUsersSessionCache()
+	require.NoError(t, err)
 	err = th.Service.sessionCache.Scan(func(in []string) error {
 		rkeys = append(rkeys, in...)
 		return nil

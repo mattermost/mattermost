@@ -7,6 +7,7 @@ import ChannelsHeader from './header';
 import ChannelsPostCreate from './post_create';
 import ChannelsPostEdit from './post_edit';
 import ChannelsPost from './post';
+import ScheduledPostIndicator from './scheduled_post_indicator';
 
 import {duration, hexToRgb} from '@/util';
 import {waitUntil} from '@/test_action';
@@ -18,14 +19,7 @@ export default class ChannelsCenterView {
     readonly header;
     readonly postCreate;
     readonly scheduledDraftOptions;
-    readonly postBoxIndicator;
-    readonly scheduledDraftChannelIcon;
-    readonly scheduledDraftChannelInfoMessage;
-    readonly scheduledDraftChannelInfoMessageLocator;
-    readonly scheduledDraftDMChannelLocator;
-    readonly scheduledDraftChannelInfoMessageText;
-    readonly scheduledDraftDMChannelLocatorString;
-    readonly scheduledDraftSeeAllLink;
+    readonly scheduledPostIndicator;
     readonly postEdit;
     readonly editedPostIcon;
     readonly channelBanner;
@@ -34,18 +28,11 @@ export default class ChannelsCenterView {
         this.container = container;
         this.page = page;
 
-        this.scheduledDraftChannelInfoMessageLocator = 'span:has-text("Message scheduled for")';
-        this.scheduledDraftDMChannelLocatorString = 'div.ScheduledPostIndicator span a';
         this.header = new ChannelsHeader(this.container.locator('.channel-header'));
         this.postCreate = new ChannelsPostCreate(container.getByTestId('post-create'));
         this.scheduledDraftOptions = new ChannelsPostCreate(container.locator('#dropdown_send_post_options'));
         this.postEdit = new ChannelsPostEdit(container.locator('.post-edit__container'));
-        this.postBoxIndicator = container.locator('div.postBoxIndicator');
-        this.scheduledDraftChannelIcon = container.locator('#create_post i.icon-draft-indicator');
-        this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
-        this.scheduledDraftChannelInfoMessageText = container.locator(this.scheduledDraftChannelInfoMessageLocator);
-        this.scheduledDraftDMChannelLocator = container.locator(this.scheduledDraftDMChannelLocatorString);
-        this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all")');
+        this.scheduledPostIndicator = new ScheduledPostIndicator(container.getByTestId('scheduledPostIndicator'));
         this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
         this.channelBanner = container.getByTestId('channel_banner_container');
     }
@@ -57,14 +44,6 @@ export default class ChannelsCenterView {
 
     async postMessage(message: string, files?: string[]) {
         await this.postCreate.postMessage(message, files);
-    }
-
-    /**
-     * Click on "See all scheduled messages"
-     */
-    async clickOnSeeAllscheduledDrafts() {
-        await this.scheduledDraftSeeAllLink.isVisible();
-        await this.scheduledDraftSeeAllLink.click();
     }
 
     /**
@@ -138,22 +117,6 @@ export default class ChannelsCenterView {
             },
             {timeout},
         );
-    }
-
-    async goToScheduledDraftsFromDMChannel() {
-        if (await this.scheduledDraftDMChannelLocator.isVisible()) {
-            await this.scheduledDraftDMChannelLocator.click();
-            return;
-        }
-        await this.scheduledDraftSeeAllLink.isVisible();
-        await this.scheduledDraftSeeAllLink.click();
-    }
-
-    async verifyscheduledDraftChannelInfo() {
-        await this.postBoxIndicator.isVisible();
-        await this.scheduledDraftChannelIcon.isVisible();
-        const messageLocator = this.scheduledDraftChannelInfoMessage.first();
-        await expect(messageLocator).toContainText('Message scheduled for');
     }
 
     async clickOnLastEditedPost(postID: string | null) {

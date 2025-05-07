@@ -396,7 +396,7 @@ const defaultServerConfig: AdminConfig = {
         AboutLink: 'https://mattermost.com/pl/about-mattermost',
         HelpLink: 'https://mattermost.com/pl/help/',
         ReportAProblemLink: 'https://mattermost.com/pl/report-a-bug',
-        ReportAProblemType: 'link',
+        ReportAProblemType: 'default',
         ReportAProblemMail: '',
         AllowDownloadLogs: true,
         ForgotPasswordLink: '',

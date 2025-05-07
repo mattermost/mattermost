@@ -54,7 +54,17 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
-    const shouldShowConfigurationTab = useSelector(selectChannelBannerEnabled);
+    const channelBannerEnabled = useSelector(selectChannelBannerEnabled);
+
+    const canManagePublicChannelBanner = useSelector((state: GlobalState) =>
+        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_PUBLIC_CHANNEL_BANNER),
+    );
+    const canManagePrivateChannelBanner = useSelector((state: GlobalState) =>
+        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_BANNER),
+    );
+    const hasManageChannelBannerPermission = (channel.type === 'O' && canManagePublicChannelBanner) || (channel.type === 'P' && canManagePrivateChannelBanner);
+
+    const shouldShowConfigurationTab = channelBannerEnabled && hasManageChannelBannerPermission;
 
     const canArchivePrivateChannels = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DELETE_PRIVATE_CHANNEL),

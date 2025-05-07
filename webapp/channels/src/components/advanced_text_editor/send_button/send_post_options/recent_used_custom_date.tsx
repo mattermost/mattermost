@@ -118,6 +118,7 @@ function RecentUsedCustomDate({handleOnSelect, userCurrentTimezone, nextMonday, 
             <Menu.Separator key='recent_custom_separator'/>
             <Menu.Item
                 key='recently_used_custom_time'
+                data-testid='recently_used_custom_time'
                 onClick={handleRecentlyUsedCustomTime}
                 labels={timestamp}
                 className='core-menu-options'

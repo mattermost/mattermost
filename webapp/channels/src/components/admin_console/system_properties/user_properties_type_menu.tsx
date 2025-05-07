@@ -119,12 +119,15 @@ export default SelectType;
 
 const getTypeDescriptor = (field: UserPropertyField): TypeDescriptor => {
     for (const descriptor of Object.values(TYPE_DESCRIPTOR)) {
-        if (descriptor.fieldType === field.type && descriptor.valueType === field.attrs?.value_type) {
+        if (
+            descriptor.fieldType === field.type &&
+            descriptor.valueType === (field.attrs?.value_type ?? '')
+        ) {
             return descriptor;
         }
     }
 
-    throw new Error('Invalid type');
+    return TYPE_DESCRIPTOR.text;
 };
 
 type TypeID = 'text' | 'email' | 'phone' | 'url' | 'select' | 'multiselect';

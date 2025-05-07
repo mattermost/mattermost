@@ -83,6 +83,29 @@ describe('ChannelSettingsConfigurationTab', () => {
         expect(screen.queryByTestId('channel_banner_banner_background_color_picker')).not.toBeInTheDocument();
     });
 
+    it('should render with the correct default values when banner is enabled', async () => {
+        const channelWithNoColor = {...mockChannelWithBanner, banner_info: undefined};
+        renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: channelWithNoColor}}/>);
+
+        // Check that the toggle is enabled
+        const toggle = screen.getByTestId('channelBannerToggle-button');
+        expect(toggle).toBeInTheDocument();
+        expect(toggle).not.toHaveClass('active');
+
+        // Click the toggle to enable the banner
+        await act(async () => {
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+        });
+
+        // Banner text and color inputs should be visible when banner is enabled
+        expect(screen.getByTestId('channel_banner_banner_text_textbox')).toBeInTheDocument();
+        expect(screen.getByTestId('channel_banner_banner_text_textbox')).toHaveValue('');
+
+        // Check that the color picker has the correct value
+        expect(screen.getByTestId('color-inputColorValue')).toBeInTheDocument();
+        expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#DDDDDD');
+    });
+
     it('should render with the correct initial values when banner is enabled', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
 
@@ -97,6 +120,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         // Check that the color picker has the correct value
         expect(screen.getByTestId('color-inputColorValue')).toBeInTheDocument();
+        expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#ff0000');
     });
 
     it('should show banner settings when toggle is clicked', async () => {

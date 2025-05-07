@@ -24,7 +24,7 @@ const CHANNEL_BANNER_MIN_CHARACTER_LIMIT = 0;
 
 const DEFAULT_CHANNEL_BANNER = {
     enabled: false,
-    background_color: '',
+    background_color: '#DDDDDD',
     text: '',
 };
 
@@ -69,6 +69,11 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
         setUpdatedChannelBanner(toUpdate);
     }, [initialBannerInfo, updatedChannelBanner]);
 
+    const resetFormErrors = useCallback(() => {
+        setFormError('');
+        setSaveChangesPanelState(undefined);
+    }, []);
+
     const handleTextChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
         setUpdatedChannelBanner({
             ...updatedChannelBanner,
@@ -88,17 +93,21 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
             }));
             setCharacterLimitExceeded(true);
         } else {
-            setFormError('');
+            resetFormErrors();
             setCharacterLimitExceeded(false);
         }
-    }, [formatMessage, updatedChannelBanner]);
+    }, [formatMessage, resetFormErrors, updatedChannelBanner]);
 
     const handleColorChange = useCallback((color: string) => {
         setUpdatedChannelBanner({
             ...updatedChannelBanner,
             background_color: color,
         });
-    }, [updatedChannelBanner]);
+
+        if (color) {
+            resetFormErrors();
+        }
+    }, [resetFormErrors, updatedChannelBanner]);
 
     const toggleTextPreview = useCallback(() => setShowBannerTextPreview((show) => !show), []);
 
@@ -165,8 +174,10 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
             setSaveChangesPanelState('error');
             return;
         }
+
+        resetFormErrors();
         setSaveChangesPanelState('saved');
-    }, [handleSave]);
+    }, [handleSave, resetFormErrors]);
 
     const handleCancel = useCallback(() => {
         setRequireConfirm(false);
@@ -175,6 +186,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
 
         setUpdatedChannelBanner(initialBannerInfo);
         setFormError('');
+        setSaveChangesPanelState(undefined);
         setCharacterLimitExceeded(false);
     }, [initialBannerInfo]);
 
@@ -186,6 +198,8 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
     const hasErrors = Boolean(formError) ||
         characterLimitExceeded ||
         showTabSwitchError;
+
+    const showSaveChangesPanel = requireConfirm || saveChangesPanelState === 'saved';
 
     return (
         <div className='ChannelSettingsModal__configurationTab'>
@@ -270,7 +284,7 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
                 </div>
             }
 
-            {requireConfirm && (
+            {showSaveChangesPanel && (
                 <SaveChangesPanel
                     handleSubmit={handleSaveChanges}
                     handleCancel={handleCancel}

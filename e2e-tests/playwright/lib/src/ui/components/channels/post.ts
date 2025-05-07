@@ -51,7 +51,14 @@ export default class ChannelsPost {
         return this.profileIcon.getByAltText(`${username} profile image`);
     }
 
-    async openRhs() {
+    async openAThread() {
+        await this.container.hover();
+        await this.postMenu.toBeVisible();
+        await this.postMenu.replyButton.waitFor();
+        await this.postMenu.replyButton.click();
+    }
+
+    async reply() {
         await this.container.hover();
         await this.postMenu.toBeVisible();
         await this.postMenu.reply();

@@ -10638,5 +10638,25 @@
   {
     "id": "ent.saml.login.ldap_user_missing",
     "translation": "Er is geen gebruiker geregistreerd op de AD/LDAP-server die overeenkomt met de SAML-gebruiker."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} functie is niet beschikbaar binnen de huidige licentie"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Ongeldige link om een probleem te melden. Moet een geldige URL zijn en beginnen met http:// of https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "De link Een probleem melden is vereist."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Ongeldig e-mailadres voor Een probleem melden. Moet een geldig e-mailadres zijn."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Een probleem melden mail is vereist."
   }
 ]

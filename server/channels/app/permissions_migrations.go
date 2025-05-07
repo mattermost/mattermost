@@ -1173,6 +1173,22 @@ func (a *App) addSysConsoleMobileSecurityPermission() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) getAddChannelBannerPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: permissionOr(
+				isRole(model.ChannelAdminRoleId),
+				isRole(model.TeamAdminRoleId),
+				isRole(model.SystemAdminRoleId),
+			),
+			Add: []string{
+				model.PermissionManagePublicChannelBanner.Id,
+				model.PermissionManagePrivateChannelBanner.Id,
+			},
+		},
+	}, nil
+}
+
 // Only sysadmins, team admins, and users with channels and groups managements have access to "convert channel to public"
 func (a *App) getRestrictAcessToChannelConversionToPublic() (permissionsMap, error) {
 	return []permissionTransformation{
@@ -1243,6 +1259,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyFixReadAuditsPermission, Migration: a.getFixReadAuditsPermissionMigration},
 		{Key: model.MigrationRemoveGetAnalyticsPermission, Migration: a.removeGetAnalyticsPermissionMigration},
 		{Key: model.MigrationAddSysconsoleMobileSecurityPermission, Migration: a.addSysConsoleMobileSecurityPermission},
+		{Key: model.MigrationKeyAddChannelBannerPermissions, Migration: a.getAddChannelBannerPermissionMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

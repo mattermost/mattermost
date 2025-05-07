@@ -167,6 +167,8 @@ var PermissionGetLogs *Permission
 var PermissionGetAnalytics *Permission
 var PermissionReadLicenseInformation *Permission
 var PermissionManageLicenseInformation *Permission
+var PermissionManagePublicChannelBanner *Permission
+var PermissionManagePrivateChannelBanner *Permission
 
 var PermissionSysconsoleReadAbout *Permission
 var PermissionSysconsoleWriteAbout *Permission
@@ -1278,6 +1280,20 @@ func initializePermissions() {
 	}
 	PermissionOrderBookmarkPrivateChannel = &Permission{
 		"order_bookmark_private_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+
+	PermissionManagePublicChannelBanner = &Permission{
+		"manage_public_channel_banner",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+
+	PermissionManagePrivateChannelBanner = &Permission{
+		"manage_private_channel_banner",
 		"",
 		"",
 		PermissionScopeChannel,
@@ -2520,6 +2536,8 @@ func initializePermissions() {
 		PermissionEditBookmarkPrivateChannel,
 		PermissionDeleteBookmarkPrivateChannel,
 		PermissionOrderBookmarkPrivateChannel,
+		PermissionManagePublicChannelBanner,
+		PermissionManagePrivateChannelBanner,
 	}
 
 	GroupScopedPermissions := []*Permission{

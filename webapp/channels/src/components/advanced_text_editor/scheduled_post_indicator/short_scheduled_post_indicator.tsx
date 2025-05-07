@@ -18,7 +18,10 @@ export function ShortScheduledPostIndicator({scheduledPostData, scheduledPostLin
     }
 
     return (
-        <div className='ScheduledPostIndicator'>
+        <div
+            className='ScheduledPostIndicator'
+            data-testid='scheduledPostIndicator'
+        >
             <FormattedMessage
                 id='scheduled_post.channel_indicator.with_other_user_late_time'
                 defaultMessage='You have {count, plural, =1 {one} other {#}} <a>scheduled {count, plural, =1 {message} other {messages}}</a>.'

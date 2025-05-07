@@ -296,7 +296,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
       PW_RESET_BEFORE_TEST: "false"
       PW_HEADLESS: "true"
       PW_SLOWMO: 0
-      PW_WORKERS: 2
+      PW_WORKERS: 1
       PW_SNAPSHOT_ENABLE: "false"
       PW_PERCY_ENABLE: "false"
     ulimits:

@@ -58,6 +58,8 @@ type Props = {
     isRemote?: boolean;
     scrollIntoView?: boolean;
     containerClassName?: string;
+    dataTestId?: string;
+    dataPostId?: string;
 }
 
 const mockLastBlurAt = {current: 0};
@@ -360,8 +362,12 @@ function DraftRow({
         );
     }
 
+    const kind = isScheduledPost ? 'scheduledPost' : 'draft';
+
     return (
         <Panel
+            dataTestId={`${kind}View`}
+            dataPostId={(item as ScheduledPost).id}
             onClick={goToMessage}
             hasError={Boolean(postError)}
             innerRef={scrollIntoView ? alertRef : undefined}
@@ -371,7 +377,7 @@ function DraftRow({
             {({hover}) => (
                 <>
                     <Header
-                        kind={isScheduledPost ? 'scheduledPost' : 'draft'}
+                        kind={kind}
                         hover={hover}
                         actions={actions}
                         title={title}

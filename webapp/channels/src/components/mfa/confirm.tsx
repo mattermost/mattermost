@@ -47,7 +47,7 @@ export default function Confirm() {
                 <p>
                     <FormattedMessage
                         id='mfa.confirm.secure'
-                        defaultMessage='Your account is now secure. Next time you sign in, you will be asked to enter a code from the Google Authenticator app on your phone.'
+                        defaultMessage='Your account is now secure. Next time you sign in, you will be asked to enter a code from your authenticator app on your phone.'
                     />
                 </p>
                 <button

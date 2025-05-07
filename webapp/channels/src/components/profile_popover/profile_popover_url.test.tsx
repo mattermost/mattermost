@@ -91,4 +91,14 @@ describe('components/ProfilePopoverUrl', () => {
         expect(container).toBeInTheDocument();
         expect(screen.getByRole('link')).toHaveTextContent(url);
     });
+
+    test('should render url with ExternalLink component', () => {
+        renderWithContext(<ProfilePopoverUrl {...baseProps}/>);
+
+        const url = 'https://example.com';
+        const link = screen.getByRole('link');
+        expect(link).toHaveAttribute('href', url);
+        expect(link).toHaveAttribute('target', '_blank');
+        expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    });
 });

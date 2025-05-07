@@ -23,7 +23,6 @@ const config = {
         }],
     ],
     plugins: [
-        'react-hot-loader/babel',
         'babel-plugin-typescript-to-proptypes',
         [
             'babel-plugin-styled-components',
