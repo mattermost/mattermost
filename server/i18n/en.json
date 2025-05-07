@@ -5367,6 +5367,10 @@
     "translation": "group member already exists"
   },
   {
+    "id": "app.group.user_not_found",
+    "translation": "Error updating group. User with username \"{{.Username}}\" could not be found."
+  },
+  {
     "id": "app.group.username_conflict",
     "translation": "user with username \"{{.Username}}\" already exists."
   },
