@@ -67,7 +67,7 @@ function PolicyDetails({
     const [policyName, setPolicyName] = useState(policy?.name || '');
     const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
     const [autoSyncMembership, setAutoSyncMembership] = useState(policy?.active || false);
-    const [serverError, setServerError] = useState(false);
+    const [serverError, setServerError] = useState<string | undefined>(undefined);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
     const [editorMode, setEditorMode] = useState<'cel' | 'table'>('cel');
     const [channelChanges, setChannelChanges] = useState<ChannelChanges>({
@@ -133,23 +133,23 @@ function PolicyDetails({
         let currentPolicyId = policyId;
 
         // --- Step 1: Create/Update Policy ---
-        try {
-            await actions.createPolicy({
-                id: currentPolicyId || '',
-                name: policyName,
-                rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
-                type: 'parent',
-                version: 'v0.1',
-            }).then((result) => {
-                currentPolicyId = result.data?.id;
-                setPolicyName(result.data?.name || '');
-                setExpression(result.data?.rules?.[0]?.expression || '');
-                setAutoSyncMembership(result.data?.active || false);
-            });
-        } catch (error) {
-            setServerError(true);
-            success = false;
-        }
+        await actions.createPolicy({
+            id: currentPolicyId || '',
+            name: policyName,
+            rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
+            type: 'parent',
+            version: 'v0.1',
+        }).then((result) => {
+            if (result.error) {
+                setServerError(result.error.message);
+                success = false;
+                return;
+            }
+            currentPolicyId = result.data?.id;
+            setPolicyName(result.data?.name || '');
+            setExpression(result.data?.rules?.[0]?.expression || '');
+            setAutoSyncMembership(result.data?.active || false);
+        });
 
         if (!currentPolicyId || !success) {
             return;
@@ -159,7 +159,7 @@ function PolicyDetails({
         try {
             await actions.updateAccessControlPolicyActive(currentPolicyId, autoSyncMembership);
         } catch (error) {
-            setServerError(true);
+            setServerError(`Error updating policy active status: ${error.message}`);
             success = false;
         }
 
@@ -175,7 +175,7 @@ function PolicyDetails({
 
                 setChannelChanges({removed: {}, added: {}, removedCount: 0});
             } catch (error) {
-                setServerError(true);
+                setServerError(`Error assigning channels: ${error.message}`);
                 success = false;
             }
         }
@@ -189,7 +189,7 @@ function PolicyDetails({
                 };
                 await actions.createJob(job);
             } catch (error) {
-                setServerError(true);
+                setServerError(`Error creating job: ${error.message}`);
                 success = false;
             }
         }
@@ -213,7 +213,7 @@ function PolicyDetails({
             try {
                 await actions.unassignChannelsFromAccessControlPolicy(policyId, Object.keys(channelChanges.removed));
             } catch (error) {
-                setServerError(true);
+                setServerError(`Error unassigning channels: ${error.message}`);
                 success = false;
             }
         }
@@ -223,7 +223,7 @@ function PolicyDetails({
             try {
                 await actions.deletePolicy(policyId);
             } catch (error) {
-                setServerError(true);
+                setServerError(`Error deleting policy: ${error.message}`);
             }
         }
 
@@ -542,7 +542,8 @@ function PolicyDetails({
                         <i className='icon icon-alert-outline'/>
                         <FormattedMessage
                             id='admin.access_control.edit_policy.serverError'
-                            defaultMessage='There are errors in the form above'
+                            defaultMessage='There are errors in the form above: {serverError}'
+                            values={{serverError}}
                         />
                     </span>
                 )}

@@ -264,7 +264,7 @@
   "admin.access_control.edit_policy.cancel": "Cancel",
   "admin.access_control.edit_policy.save": "Save",
   "admin.access_control.edit_policy.save_policy": "Save policy",
-  "admin.access_control.edit_policy.serverError": "There are errors in the form above",
+  "admin.access_control.edit_policy.serverError": "There are errors in the form above: {serverError}",
   "admin.access_control.policies.applies_to": "Applies to",
   "admin.access_control.policies.description": "Create policies containing attribute based access rules and the resources they apply to.",
   "admin.access_control.policies.name": "Name",

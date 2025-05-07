@@ -30,7 +30,6 @@
     &__cursor-position {
         position: absolute;
         right: 8px;
-        padding: 2px 4px;
         border-radius: 4px;
         color: var(--button-color);
         font-family: monospace;
@@ -153,7 +152,7 @@
 
     &__status-bar {
         display: flex;
-        height: 24px;
+        min-height: 24px;
         align-items: center;
         justify-content: space-between;
         padding: 0 8px;
