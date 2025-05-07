@@ -283,17 +283,17 @@ func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncab
 	}
 
 	var since int64
-	includeRemovedMembers := true
+	reAddRemovedMembers := true
 	if group.Source == model.GroupSourceLdap {
 		lastJob, _ := a.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
 		if lastJob != nil {
 			since = lastJob.StartAt
 		}
 
-		includeRemovedMembers = false
+		reAddRemovedMembers = false
 	}
 
-	params := model.CreateDefaultMembershipParams{Since: since, ReAddRemovedMembers: includeRemovedMembers}
+	params := model.CreateDefaultMembershipParams{Since: since, ReAddRemovedMembers: reAddRemovedMembers}
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
