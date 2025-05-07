@@ -318,6 +318,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
           readOnly={false}
           role={
             Object {
+              "name": "team_admin",
               "permissions": Array [
                 "add_user_to_team",
               ],
@@ -415,6 +416,7 @@ Object {
     ],
   },
   "team_admin": Object {
+    "name": "team_admin",
     "permissions": Array [
       "add_user_to_team",
     ],
