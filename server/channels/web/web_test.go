@@ -49,28 +49,28 @@ type TestHelper struct {
 	TestLogger *mlog.Logger
 }
 
-func SetupWithStoreMock(t testing.TB) *TestHelper {
+func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	if testing.Short() {
-		t.SkipNow()
+		tb.SkipNow()
 	}
 
-	th := setupTestHelper(t, false, nil)
+	th := setupTestHelper(tb, false, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().SetStore(&emptyMockStore)
 	return th
 }
 
-func Setup(t testing.TB) *TestHelper {
+func Setup(tb testing.TB) *TestHelper {
 	if testing.Short() {
-		t.SkipNow()
+		tb.SkipNow()
 	}
 	store := mainHelper.GetStore()
 	store.DropAllTables()
-	return setupTestHelper(t, true, nil)
+	return setupTestHelper(tb, true, nil)
 }
 
-func setupTestHelper(t testing.TB, includeCacheLayer bool, options []app.Option) *TestHelper {
+func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option) *TestHelper {
 	memoryStore := config.NewTestMemoryStore()
 	newConfig := memoryStore.Get().Clone()
 	newConfig.SqlSettings = *mainHelper.GetSQLSettings()
@@ -90,23 +90,23 @@ func setupTestHelper(t testing.TB, includeCacheLayer bool, options []app.Option)
 	}
 
 	testLogger, err := mlog.NewLogger()
-	require.NoError(t, err)
+	require.NoError(tb, err)
 	logCfg, err := config.MloggerConfigFromLoggerConfig(&newConfig.LogSettings, nil, config.GetLogFileLocation)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 	err = testLogger.ConfigureTargets(logCfg, nil)
-	require.NoError(t, err, "failed to configure test logger")
+	require.NoError(tb, err, "failed to configure test logger")
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
 	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	a := app.New(app.ServerConnector(s.Channels()))
 	prevListenAddress := *s.Config().ServiceSettings.ListenAddress
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = "localhost:0" })
 	err = s.Start()
-	require.NoError(t, err)
+	require.NoError(tb, err)
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
 	// Disable strict password requirements for test
@@ -137,6 +137,15 @@ func setupTestHelper(t testing.TB, includeCacheLayer bool, options []app.Option)
 		TestLogger:        testLogger,
 	}
 
+	tb.Cleanup(func() {
+		if th.IncludeCacheLayer {
+			// Clean all the caches
+			appErr := th.App.Srv().InvalidateAllCaches()
+			require.Nil(tb, appErr)
+		}
+		th.Server.Shutdown()
+	})
+
 	return th
 }
 
@@ -153,40 +162,30 @@ func (th *TestHelper) NewPluginAPI(manifest *model.Manifest) plugin.API {
 	return th.App.NewPluginAPI(th.Context, manifest)
 }
 
-func (th *TestHelper) InitBasic(t testing.TB) *TestHelper {
-	t.Helper()
+func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
+	tb.Helper()
 
 	var appErr *model.AppError
 	th.SystemAdminUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemAdminRoleId})
-	require.Nil(t, appErr)
+	require.Nil(tb, appErr)
 
 	th.BasicUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemUserRoleId})
-	require.Nil(t, appErr)
+	require.Nil(tb, appErr)
 
 	th.BasicTeam, appErr = th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: th.BasicUser.Email, Type: model.TeamOpen})
-	require.Nil(t, appErr)
+	require.Nil(tb, appErr)
 
 	_, appErr = th.App.JoinUserToTeam(th.Context, th.BasicTeam, th.BasicUser, "")
-	require.Nil(t, appErr)
+	require.Nil(tb, appErr)
 
 	th.BasicChannel, appErr = th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id, CreatorId: th.BasicUser.Id}, true)
-	require.Nil(t, appErr)
+	require.Nil(tb, appErr)
 
 	return th
 }
 
-func (th *TestHelper) TearDown(t testing.TB) {
-	if th.IncludeCacheLayer {
-		// Clean all the caches
-		appErr := th.App.Srv().InvalidateAllCaches()
-		require.Nil(t, appErr)
-	}
-	th.Server.Shutdown()
-}
-
 func TestStaticFilesRequest(t *testing.T) {
 	th := Setup(t).InitPlugins()
-	defer th.TearDown(t)
 
 	pluginID := "com.mattermost.sample"
 
@@ -277,7 +276,6 @@ func TestStaticFilesRequest(t *testing.T) {
 
 func TestPublicFilesRequest(t *testing.T) {
 	th := Setup(t).InitPlugins()
-	defer th.TearDown(t)
 
 	pluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
@@ -372,7 +370,6 @@ func TestStatic(t *testing.T) {
 
 func TestStaticFilesCaching(t *testing.T) {
 	th := Setup(t).InitPlugins()
-	defer th.TearDown(t)
 
 	wd, err := os.Getwd()
 	require.NoError(t, err)
