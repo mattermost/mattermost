@@ -183,17 +183,16 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 	record.Id = license.Id
 	record.Bytes = string(licenseBytes)
 
-	nErr := ps.Store.License().Save(record)
-	if nErr != nil {
-		if appErr2 := ps.RemoveLicense(); appErr2 != nil {
-			ps.logger.Error("Failed to remove license after saving it to the license store failed", mlog.Err(appErr2))
+	if err := ps.Store.License().Save(record); err != nil {
+		if appErr := ps.RemoveLicense(); appErr != nil {
+			ps.logger.Error("Failed to remove license after saving it to the license store failed", mlog.Err(appErr))
 		}
 		var appErr *model.AppError
 		switch {
-		case errors.As(nErr, &appErr):
+		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -203,7 +202,7 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 	if err := ps.Store.System().SaveOrUpdate(sysVar); err != nil {
 		appErr := ps.RemoveLicense()
 		if appErr != nil {
-			ps.logger.Error("Failed to remove license after saving it to the system store failed", mlog.Err(err))
+			ps.logger.Error("Failed to remove license after saving it to the system store failed", mlog.Err(appErr))
 		}
 		return nil, model.NewAppError("addLicense", "api.license.add_license.save_active.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
