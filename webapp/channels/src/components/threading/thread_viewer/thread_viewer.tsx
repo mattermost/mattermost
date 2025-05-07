@@ -40,11 +40,12 @@ export type Props = Attrs & {
     actions: {
         fetchRHSAppsBindings: (channelId: string, rootID: string) => unknown;
         getNewestPostThread: (rootId: string) => Promise<ActionResult>;
-        getPostThread: (rootId: string, fetchThreads: boolean) => Promise<ActionResult>;
+        getPostThread: (rootId: string, fetchThreads: boolean, lastUpdateAt: number) => Promise<ActionResult>;
         getThread: (userId: string, teamId: string, threadId: string, extended: boolean) => Promise<ActionResult>;
         selectPostCard: (post: Post) => void;
         updateThreadLastOpened: (threadId: string, lastViewedAt: number) => unknown;
         updateThreadRead: (userId: string, teamId: string, threadId: string, timestamp: number) => unknown;
+        updateThreadLastUpdateAt: (threadId: string, lastUpdateAt: number) => unknown;
     };
     useRelativeTimestamp?: boolean;
     postIds: string[];
@@ -54,6 +55,7 @@ export type Props = Attrs & {
     inputPlaceholder?: string;
     rootPostId: string;
     enableWebSocketEventScope: boolean;
+    lastUpdateAt: number;
 };
 
 type State = {
@@ -95,7 +97,6 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         }
 
         const selectedChanged = this.props.selected.id !== prevProps.selected?.id;
-
         if (reconnected || selectedChanged) {
             this.onInit(reconnected);
         }
@@ -108,7 +109,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         }
 
         if (this.props.appsEnabled && (
-            this.props.channel?.id !== prevProps.channel?.id || this.props.selected.id !== prevProps.selected?.id
+            this.props.channel?.id !== prevProps.channel?.id || selectedChanged
         )) {
             this.props.actions.fetchRHSAppsBindings(this.props.channel?.id || '', this.props.selected.id);
         }
@@ -173,7 +174,26 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
     // scrolls to either bottom or new messages line
     private onInit = async (reconnected = false): Promise<void> => {
         this.setState({isLoading: !reconnected});
-        await this.props.actions.getPostThread(this.props.selected?.id || this.props.rootPostId, !reconnected);
+        const res = await this.props.actions.getPostThread(this.props.selected?.id || this.props.rootPostId, !reconnected, this.props.lastUpdateAt);
+
+        if (this.props.selected && res.data) {
+            const {order, posts} = res.data;
+            if (order.length > 0 && posts[order[0]]) {
+                let highestUpdateAt = posts[order[0]].update_at;
+
+                // Check all posts to find the highest update_at
+                for (const postId in posts) {
+                    if (Object.hasOwn(posts, postId)) {
+                        const post = posts[postId];
+                        if (post.update_at > highestUpdateAt) {
+                            highestUpdateAt = post.update_at;
+                        }
+                    }
+                }
+
+                this.props.actions.updateThreadLastUpdateAt(this.props.selected.id, highestUpdateAt);
+            }
+        }
 
         if (
             this.props.isCollapsedThreadsEnabled &&

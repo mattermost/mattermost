@@ -33,7 +33,7 @@ type AdminDefinitionSettingCustom = Omit<AdminDefinitionSettingBase, 'label'> & 
     key: string;
     showTitle?: boolean;
     component: Component;
-    label?: string;
+    label?: string | MessageDescriptor;
 }
 
 type AdminDefinitionSettingBase = {

@@ -23,7 +23,7 @@ func isValidSkuShortName(license *model.License) bool {
 	}
 
 	switch license.SkuShortName {
-	case model.LicenseShortSkuE10, model.LicenseShortSkuE20, model.LicenseShortSkuProfessional, model.LicenseShortSkuEnterprise, model.LicenseShortSkuPremium:
+	case model.LicenseShortSkuE10, model.LicenseShortSkuE20, model.LicenseShortSkuProfessional, model.LicenseShortSkuEnterprise, model.LicenseShortSkuEnterpriseAdvanced:
 		return true
 	default:
 		return false
@@ -74,10 +74,10 @@ func IsE20LicensedOrDevelopment(config *model.Config, license *model.License) bo
 	return IsConfiguredForDevelopment(config)
 }
 
-// IsPremiumLicensedOrDevelopment returns true when the server is licensed with a Mattermost
-// Premium License, or has `EnableDeveloper` and `EnableTesting` configuration settings
-func IsPremiumLicensedOrDevelopment(config *model.Config, license *model.License) bool {
-	if license != nil && license.SkuShortName == model.LicenseShortSkuPremium {
+// IsEnterpriseAdvancedLicensedOrDevelopment returns true when the server is licensed with a Mattermost
+// Enterprise Advanced License, or has `EnableDeveloper` and `EnableTesting` configuration settings
+func IsEnterpriseAdvancedLicensedOrDevelopment(config *model.Config, license *model.License) bool {
+	if license != nil && license.SkuShortName == model.LicenseShortSkuEnterpriseAdvanced {
 		return true
 	}
 

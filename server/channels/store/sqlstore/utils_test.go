@@ -4,8 +4,11 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"testing"
 
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -132,4 +135,133 @@ func TestMySQLJSONArgs(t *testing.T) {
 		assert.ElementsMatch(t, test.args, args)
 		assert.Equal(t, test.argString, argString)
 	}
+}
+
+func TestScanRowsIntoMap(t *testing.T) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
+		sqlStore := ss.(*SqlStore)
+
+		t.Run("basic mapping", func(t *testing.T) {
+			// Create a test table
+			_, err := sqlStore.GetMaster().Exec(`
+				CREATE TEMPORARY TABLE IF NOT EXISTS MapTest (
+					id VARCHAR(50) PRIMARY KEY,
+					value INT
+				)
+			`)
+			require.NoError(t, err)
+
+			// Insert test data
+			_, err = sqlStore.GetMaster().Exec(`
+				INSERT INTO MapTest VALUES ('key1', 10), ('key2', 20), ('key3', 30)
+			`)
+			require.NoError(t, err)
+
+			// Query the data
+			rows, err := sqlStore.GetMaster().Query(`SELECT id, value FROM MapTest ORDER BY id`)
+			require.NoError(t, err)
+			defer rows.Close()
+
+			// Create scanner function
+			scanner := func(rows *sql.Rows) (string, int, error) {
+				var key string
+				var value int
+				return key, value, rows.Scan(&key, &value)
+			}
+
+			// Call the function under test
+			result, err := scanRowsIntoMap(rows, scanner, nil)
+
+			// Assert results
+			require.NoError(t, err)
+			require.Len(t, result, 3)
+			require.Equal(t, 10, result["key1"])
+			require.Equal(t, 20, result["key2"])
+			require.Equal(t, 30, result["key3"])
+		})
+
+		t.Run("with default values", func(t *testing.T) {
+			// Create a test table
+			_, err := sqlStore.GetMaster().Exec(`
+				CREATE TEMPORARY TABLE IF NOT EXISTS MapTestDefaults (
+					id VARCHAR(50) PRIMARY KEY,
+					value INT
+				)
+			`)
+			require.NoError(t, err)
+
+			// Insert test data - only insert one key to test defaults
+			_, err = sqlStore.GetMaster().Exec(`
+				INSERT INTO MapTestDefaults VALUES ('key1', 10)
+			`)
+			require.NoError(t, err)
+
+			// Query the data
+			rows, err := sqlStore.GetMaster().Query(`SELECT id, value FROM MapTestDefaults`)
+			require.NoError(t, err)
+			defer rows.Close()
+
+			// Create scanner function
+			scanner := func(rows *sql.Rows) (string, int, error) {
+				var key string
+				var value int
+				return key, value, rows.Scan(&key, &value)
+			}
+
+			// Define defaults
+			defaults := map[string]int{
+				"key1": 100, // Should be overwritten
+				"key2": 200, // Should remain
+				"key3": 300, // Should remain
+			}
+
+			// Call the function under test
+			result, err := scanRowsIntoMap(rows, scanner, defaults)
+
+			// Assert results
+			require.NoError(t, err)
+			require.Len(t, result, 3)
+			require.Equal(t, 10, result["key1"])  // Should be from DB, not default
+			require.Equal(t, 200, result["key2"]) // Should be from defaults
+			require.Equal(t, 300, result["key3"]) // Should be from defaults
+		})
+
+		t.Run("with empty result set", func(t *testing.T) {
+			// Create a test table
+			_, err := sqlStore.GetMaster().Exec(`
+				CREATE TEMPORARY TABLE IF NOT EXISTS MapTestEmpty (
+					id VARCHAR(50) PRIMARY KEY,
+					value INT
+				)
+			`)
+			require.NoError(t, err)
+
+			// Query the empty table
+			rows, err := sqlStore.GetMaster().Query(`SELECT id, value FROM MapTestEmpty`)
+			require.NoError(t, err)
+			defer rows.Close()
+
+			// Create scanner function
+			scanner := func(rows *sql.Rows) (string, int, error) {
+				var key string
+				var value int
+				return key, value, rows.Scan(&key, &value)
+			}
+
+			// Define defaults
+			defaults := map[string]int{
+				"key1": 100,
+				"key2": 200,
+			}
+
+			// Call the function under test
+			result, err := scanRowsIntoMap(rows, scanner, defaults)
+
+			// Assert results
+			require.NoError(t, err)
+			require.Len(t, result, 2)
+			require.Equal(t, 100, result["key1"]) // Should be from defaults
+			require.Equal(t, 200, result["key2"]) // Should be from defaults
+		})
+	})
 }
