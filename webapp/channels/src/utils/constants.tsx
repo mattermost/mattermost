@@ -7,13 +7,13 @@ import solarizedDarkCSS from 'highlight.js/styles/base16/solarized-dark.css';
 import solarizedLightCSS from 'highlight.js/styles/base16/solarized-light.css';
 import githubCSS from 'highlight.js/styles/github.css';
 import monokaiCSS from 'highlight.js/styles/monokai.css';
-import keyMirror from 'key-mirror';
 import {defineMessage, defineMessages} from 'react-intl';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {Preferences as ReduxPreferences} from 'mattermost-redux/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
+import keyMirror from 'mattermost-redux/utils/key_mirror';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
 import audioIcon from 'images/icons/audio.svg';
@@ -195,6 +195,7 @@ export const ActionTypes = keyMirror({
 
     UPDATE_RHS_STATE: null,
     UPDATE_RHS_SEARCH_TERMS: null,
+    UPDATE_RHS_SEARCH_TEAM: null,
     UPDATE_RHS_SEARCH_TYPE: null,
     UPDATE_RHS_SEARCH_RESULTS_TERMS: null,
     UPDATE_RHS_SEARCH_RESULTS_TYPE: null,
@@ -249,8 +250,6 @@ export const ActionTypes = keyMirror({
     INCREMENT_EMOJI_PICKER_PAGE: null,
     SET_RECENT_SKIN: null,
 
-    STATUS_DROPDOWN_TOGGLE: null,
-    ADD_CHANNEL_DROPDOWN_TOGGLE: null,
     ADD_CHANNEL_CTA_DROPDOWN_TOGGLE: null,
 
     SHOW_ONBOARDING_TASK_COMPLETION: null,
@@ -266,6 +265,8 @@ export const ActionTypes = keyMirror({
     SET_SHOW_PREVIEW_ON_CREATE_COMMENT: null,
     SET_SHOW_PREVIEW_ON_CREATE_POST: null,
     SET_SHOW_PREVIEW_ON_EDIT_CHANNEL_HEADER_MODAL: null,
+    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL: null,
+    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL: null,
 
     TOGGLE_RHS_MENU: null,
     OPEN_RHS_MENU: null,
@@ -341,6 +342,7 @@ export const ModalIdentifiers = {
     CHANNEL_NOTIFICATIONS: 'channel_notifications',
     CHANNEL_INVITE: 'channel_invite',
     CHANNEL_MEMBERS: 'channel_members',
+    CHANNEL_SETTINGS: 'channel_settings',
     TEAM_MEMBERS: 'team_members',
     ADD_USER_TO_CHANNEL: 'add_user_to_channel',
     ADD_USER_TO_ROLE: 'add_user_to_role',
@@ -404,7 +406,6 @@ export const ModalIdentifiers = {
     EDIT_GROUP_MODAL: 'edit_group_modal',
     POST_DELETED_MODAL: 'post_deleted_modal',
     FILE_PREVIEW_MODAL: 'file_preview_modal',
-    IMPORT_THEME_MODAL: 'import_theme_modal',
     LEAVE_PRIVATE_CHANNEL_MODAL: 'leave_private_channel_modal',
     GET_PUBLIC_LINK_MODAL: 'get_public_link_modal',
     KEYBOARD_SHORTCUTS_MODAL: 'keyboar_shortcuts_modal',
@@ -469,6 +470,8 @@ export const ModalIdentifiers = {
     SECURE_CONNECTION_ACCEPT_INVITE: 'secure_connection_accept_invite',
     SHARED_CHANNEL_REMOTE_INVITE: 'shared_channel_remote_invite',
     SHARED_CHANNEL_REMOTE_UNINVITE: 'shared_channel_remote_uninvite',
+    CONFIRM_RESET_FAILED_ATTEMPTS_MODAL: 'confirm_reset_failed_attempts_modal',
+    USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
 };
 
 export const UserStatuses = {
@@ -539,6 +542,20 @@ export enum LicenseSkus {
     Starter = 'starter',
     Professional = 'professional',
     Enterprise = 'enterprise',
+    EnterpriseAdvanced = 'advanced',
+}
+
+export function getLicenseTier(licenseSku: string): number {
+    switch (licenseSku) {
+    case LicenseSkus.Professional:
+        return 10;
+    case LicenseSkus.Enterprise:
+        return 20;
+    case LicenseSkus.EnterpriseAdvanced:
+        return 30;
+    default:
+        return 0;
+    }
 }
 
 export const CloudProductToSku = {
@@ -666,6 +683,10 @@ export const SocketEvents = {
     PERSISTENT_NOTIFICATION_TRIGGERED: 'persistent_notification_triggered',
     HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED: 'hosted_customer_signup_progress_updated',
     WEBHOOK_EVENT_LISTENER_DATA_RECEIVED: 'webhook_event_listener_data_received',
+    CPA_FIELD_CREATED: 'custom_profile_attributes_field_created',
+    CPA_FIELD_UPDATED: 'custom_profile_attributes_field_updated',
+    CPA_FIELD_DELETED: 'custom_profile_attributes_field_deleted',
+    CPA_VALUES_UPDATED: 'custom_profile_attributes_values_updated',
 };
 
 export const TutorialSteps = {
@@ -730,6 +751,7 @@ export const Threads = {
     CHANGED_SELECTED_THREAD: 'changed_selected_thread',
     CHANGED_LAST_VIEWED_AT: 'changed_last_viewed_at',
     MANUALLY_UNREAD_THREAD: 'manually_unread_thread',
+    CHANGED_LAST_UPDATE_AT: 'changed_last_update_at',
 };
 
 export const CloudBanners = {
@@ -751,6 +773,14 @@ export const AdvancedTextEditor = {
     COMMENT: 'comment',
     POST: 'post',
     EDIT: 'edit',
+};
+
+export const AdvancedTextEditorTextboxIds = {
+    InCenter: 'post_textbox',
+    InRHSComment: 'reply_textbox',
+    InModal: 'modal_textbox',
+    InEditMode: 'edit_textbox',
+    Default: 'textbox',
 };
 
 export const TELEMETRY_CATEGORIES = {
@@ -826,8 +856,6 @@ export const StatTypes = keyMirror({
     TOTAL_PRIVATE_GROUPS: null,
     TOTAL_POSTS: null,
     TOTAL_TEAMS: null,
-    TOTAL_FILE_POSTS: null,
-    TOTAL_HASHTAG_POSTS: null,
     TOTAL_IHOOKS: null,
     TOTAL_OHOOKS: null,
     TOTAL_COMMANDS: null,
@@ -842,6 +870,8 @@ export const StatTypes = keyMirror({
     TOTAL_READ_DB_CONNECTIONS: null,
     DAILY_ACTIVE_USERS: null,
     MONTHLY_ACTIVE_USERS: null,
+    TOTAL_FILE_COUNT: null,
+    TOTAL_FILE_SIZE: null,
 });
 
 export const SearchTypes = keyMirror({
@@ -1449,6 +1479,11 @@ export const exportFormats = {
     EXPORT_FORMAT_GLOBALRELAY: 'globalrelay',
 };
 
+export const CacheTypes = {
+    REDIS: 'redis',
+    LRU: 'lru',
+};
+
 export const ZoomSettings = {
     DEFAULT_SCALE: 1.75,
     SCALE_DELTA: 0.25,
@@ -1654,11 +1689,7 @@ export const Constants = {
     OPEN_TEAM: 'O',
     THREADS: 'threads',
     MAX_POST_LEN: 4000,
-    EMOJI_SIZE: 16,
-    DEFAULT_EMOJI_PICKER_LEFT_OFFSET: 87,
-    DEFAULT_EMOJI_PICKER_RIGHT_OFFSET: 15,
-    EMOJI_PICKER_WIDTH_OFFSET: 295,
-    SIDEBAR_MINIMUM_WIDTH: 400,
+    SIDEBAR_MINIMUM_WIDTH: 640,
     THEME_ELEMENTS: [
         {
             group: 'sidebarElements',
@@ -2005,9 +2036,6 @@ export const Constants = {
         COMMAND_SUGGESTION_CHANNEL: 'channel',
         COMMAND_SUGGESTION_USER: 'user',
     },
-    OVERLAY_TIME_DELAY_SMALL: 100,
-    OVERLAY_TIME_DELAY: 400,
-    OVERLAY_DEFAULT_TRIGGER: ['hover', 'focus'],
     PERMALINK_FADEOUT: 5000,
     DEFAULT_MAX_USERS_PER_TEAM: 50,
     DEFAULT_MAX_CHANNELS_PER_TEAM: 2000,
@@ -2019,6 +2047,9 @@ export const Constants = {
     MAX_CHANNELNAME_LENGTH: 64,
     DEFAULT_CHANNELURL_SHORTEN_LENGTH: 52,
     MAX_CHANNELPURPOSE_LENGTH: 250,
+    MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH: 40,
+    MAX_CUSTOM_ATTRIBUTES: 20,
+    MAX_CUSTOM_ATTRIBUTE_LENGTH: 64,
     MAX_FIRSTNAME_LENGTH: 64,
     MAX_LASTNAME_LENGTH: 64,
     MAX_EMAIL_LENGTH: 128,
@@ -2210,7 +2241,7 @@ export enum ClaimErrors {
 export const DataSearchTypes = {
     FILES_SEARCH_TYPE: 'files',
     MESSAGES_SEARCH_TYPE: 'messages',
-};
+} as const;
 
 export const OverActiveUserLimits = {
     MIN: 0.05,
@@ -2222,7 +2253,39 @@ export const PageLoadContext = {
     RECONNECT: 'reconnect',
 } as const;
 
+export const DRAFT_URL_SUFFIX = 'drafts';
 export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
 
-export default Constants;
+export const scheduledPosts = {
+    RECENTLY_USED_CUSTOM_TIME: 'recently_used_custom_time',
+    SCHEDULED_POSTS: 'scheduled_posts',
+};
 
+/**
+ * This is the ID of the root portal container that is used to render modals and other components
+ * that need to be rendered outside of the main app container.
+ */
+export const RootHtmlPortalId = 'root-portal';
+
+export const OverlaysTimings = {
+    CURSOR_REST_TIME_BEFORE_OPEN: 400, // in ms
+    CURSOR_MOUSEOVER_TO_OPEN: 400, // in ms
+    CURSOR_MOUSEOUT_TO_CLOSE: 0,
+    CURSOR_MOUSEOUT_TO_CLOSE_WITH_DELAY: 200, // in ms
+    FADE_IN_DURATION: 250, // in ms
+    FADE_OUT_DURATION: 150, // in ms
+};
+
+export const OverlayTransitionStyles = {
+    START: {
+        opacity: 0,
+    },
+};
+
+export const OverlayArrow = {
+    WIDTH: 10, // in px
+    HEIGHT: 6, // in px
+    OFFSET: 8, // in px
+};
+
+export default Constants;

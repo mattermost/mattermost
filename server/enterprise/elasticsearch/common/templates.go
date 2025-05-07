@@ -181,6 +181,9 @@ func GetChannelTemplate(cfg *model.Config) *putindextemplate.Request {
 			"type": types.KeywordProperty{
 				Type: "keyword",
 			},
+			"delete_at": types.LongNumberProperty{
+				Type: "long",
+			},
 		},
 	}
 

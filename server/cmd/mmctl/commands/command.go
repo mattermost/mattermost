@@ -226,9 +226,9 @@ func archiveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	}
 
 	if resp.StatusCode == http.StatusOK {
-		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "ok"})
+		printer.PrintT("Status: {{.status}}", map[string]any{"status": "ok"})
 	} else {
-		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "error"})
+		printer.PrintT("Status: {{.status}}", map[string]any{"status": "error"})
 	}
 	return nil
 }
@@ -294,7 +294,7 @@ func modifyCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 	modifiedCommand, _, err := c.UpdateCommand(context.TODO(), command)
 	if err != nil {
-		return fmt.Errorf("unable to modify command '%s'. %s", command.DisplayName, err.Error())
+		return fmt.Errorf("unable to modify command '%s': %w", command.DisplayName, err)
 	}
 
 	printer.PrintT("modified command {{.DisplayName}}", modifiedCommand)
@@ -316,13 +316,13 @@ func moveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	resp, err := c.MoveCommand(context.TODO(), newTeam.Id, command.Id)
 	if err != nil {
-		return fmt.Errorf("unable to move command '%s'. %s", command.Id, err.Error())
+		return fmt.Errorf("unable to move command '%s': %w", command.Id, err)
 	}
 
 	if resp.StatusCode == http.StatusOK {
-		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "ok"})
+		printer.PrintT("Status: {{.status}}", map[string]any{"status": "ok"})
 	} else {
-		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "error"})
+		printer.PrintT("Status: {{.status}}", map[string]any{"status": "error"})
 	}
 	return nil
 }

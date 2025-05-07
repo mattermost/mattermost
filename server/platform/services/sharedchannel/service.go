@@ -58,7 +58,7 @@ type AppIface interface {
 	AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
 	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, err *model.AppError)
-	UpdatePost(c request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
+	UpdatePost(c request.CTX, post *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError)
 	DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
 	SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError

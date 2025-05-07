@@ -65,8 +65,6 @@ export function ElapsedDurationCell(props: Props) {
 
     return (
         <WithTooltip
-            id='system-users-cell-elapsed-duration-tooltip'
-            placement='bottom'
             title={exactPassedInDate}
         >
             <span>{elapsedDaysText}</span>

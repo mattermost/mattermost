@@ -95,7 +95,25 @@ const (
 	WebsocketScheduledPostUpdated                     WebsocketEventType = "scheduled_post_updated"
 	WebsocketScheduledPostDeleted                     WebsocketEventType = "scheduled_post_deleted"
 	WebsocketWebhookEventListenerDataReceived         WebsocketEventType = "webhook_event_listener_data_received"
+	WebsocketEventCPAFieldCreated                     WebsocketEventType = "custom_profile_attributes_field_created"
+	WebsocketEventCPAFieldUpdated                     WebsocketEventType = "custom_profile_attributes_field_updated"
+	WebsocketEventCPAFieldDeleted                     WebsocketEventType = "custom_profile_attributes_field_deleted"
+	WebsocketEventCPAValuesUpdated                    WebsocketEventType = "custom_profile_attributes_values_updated"
+
+	WebSocketMsgTypeResponse = "response"
+	WebSocketMsgTypeEvent    = "event"
 )
+
+type ActiveQueueItem struct {
+	Type string          `json:"type"` // websocket event or websocket response
+	Buf  json.RawMessage `json:"buf"`
+}
+
+type WSQueues struct {
+	ActiveQ    []ActiveQueueItem `json:"active_queue"` // websocketEvent|websocketResponse
+	DeadQ      []json.RawMessage `json:"dead_queue"`   // websocketEvent
+	ReuseCount int               `json:"reuse_count"`
+}
 
 type WebSocketMessage interface {
 	ToJSON() ([]byte, error)

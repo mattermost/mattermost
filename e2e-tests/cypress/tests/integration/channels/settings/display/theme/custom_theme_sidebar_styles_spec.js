@@ -92,18 +92,18 @@ describe('Custom Theme - Sidebar Styles', () => {
         cy.uiOpenUserMenu('Online');
 
         // * Check Online Indicator color
-        cy.get('.icon-check-circle').should('have.css', 'color', rgbArrayToString(themeRgbColor.onlineIndicator));
+        cy.uiGetSetStatusButton().find('svg').should('have.css', 'color', rgbArrayToString(themeRgbColor.onlineIndicator));
 
         // # Set user status to away
         cy.uiOpenUserMenu('Away');
 
         // * Check Away Indicator color
-        cy.get('.icon-clock').should('have.css', 'color', rgbArrayToString(themeRgbColor.awayIndicator));
+        cy.uiGetSetStatusButton().find('svg').should('have.css', 'color', rgbArrayToString(themeRgbColor.awayIndicator));
 
         // # Set user status to do not disturb
-        cy.uiOpenDndStatusSubMenu().find('#dndTime-thirty_minutes_menuitem').click();
+        cy.uiOpenDndStatusSubMenuAndClick30Mins();
 
         // * Check Do Not Disturb Indicator color
-        cy.get('.icon-minus-circle').should('have.css', 'color', rgbArrayToString(themeRgbColor.dndIndicator));
+        cy.uiGetSetStatusButton().find('svg').should('have.css', 'color', rgbArrayToString(themeRgbColor.dndIndicator));
     });
 });

@@ -185,9 +185,11 @@ export type IntegrationsState = {
     systemCommands: IDMappedObjects<Command>;
     commands: IDMappedObjects<Command>;
     incomingWebhookPayload: any;
+    dialogTriggerId: string;
     dialog?: {
         url: string;
         dialog: Dialog;
+        trigger_id: string;
     };
 };
 

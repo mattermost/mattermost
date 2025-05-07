@@ -18,7 +18,7 @@ describe('Messaging', () => {
     let testUser;
     let otherUser;
 
-    before(() => {
+    beforeEach(() => {
         cy.apiInitSetup().then(({team, channel, user}) => {
             testTeam = team;
             testChannel = channel;

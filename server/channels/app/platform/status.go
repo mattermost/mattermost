@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -21,7 +22,7 @@ func (ps *PlatformService) AddStatusCacheSkipClusterSend(status *model.Status) {
 func (ps *PlatformService) AddStatusCache(status *model.Status) {
 	ps.AddStatusCacheSkipClusterSend(status)
 
-	if ps.Cluster() != nil && *ps.Config().CacheSettings.CacheType == model.CacheTypeLRU {
+	if ps.Cluster() != nil {
 		statusJSON, err := json.Marshal(status)
 		if err != nil {
 			ps.logger.Warn("Failed to encode status to JSON", mlog.Err(err))
@@ -417,12 +418,25 @@ func (ps *PlatformService) SetStatusDoNotDisturbTimed(userID string, endtime int
 	status.Status = model.StatusDnd
 	status.Manual = true
 
-	status.DNDEndTime = endtime
+	status.DNDEndTime = truncateDNDEndTime(endtime)
 
 	ps.SaveAndBroadcastStatus(status)
 	if ps.sharedChannelService != nil {
 		ps.sharedChannelService.NotifyUserStatusChanged(status)
 	}
+}
+
+// truncateDNDEndTime takes a user-provided timestamp (in seconds) for when their DND expiry should end and truncates
+// it to line up with the DND expiry job so that the user's DND time doesn't expire late by an interval. The job to
+// expire statuses runs every minute currently, so this trims the seconds and milliseconds off the given timestamp.
+//
+// This will result in statuses expiring slightly earlier than specified in the UI, but the status will expire at
+// the correct time on the wall clock. For example, if the time is currently 13:04:29 and the user sets the expiry to
+// 5 minutes, truncating will make the status will expire at 13:09:00 instead of at 13:10:00.
+//
+// Note that the timestamps used by this are in seconds, not milliseconds. This matches UserStatus.DNDEndTime.
+func truncateDNDEndTime(endtime int64) int64 {
+	return time.Unix(endtime, 0).Truncate(model.DNDExpiryInterval).Unix()
 }
 
 func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {

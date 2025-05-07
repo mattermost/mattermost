@@ -15,7 +15,7 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {deleteScheduledPost, updateScheduledPost} from 'mattermost-redux/actions/scheduled_posts';
 import {Permissions} from 'mattermost-redux/constants';
-import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isDeactivatedDirectChannel, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -34,9 +34,10 @@ import {useScrollOnRender} from 'components/common/hooks/use_scroll_on_render';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 import PlaceholderScheduledPostsTitle
     from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
-import EditPost from 'components/edit_post';
+import EditScheduledPost from 'components/edit_scheduled_post';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
+import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -49,8 +50,6 @@ import PanelBody from './panel/panel_body';
 import Header from './panel/panel_header';
 import {getErrorStringFromCode} from './utils';
 
-import './draft_row.scss';
-
 type Props = {
     user: UserProfile;
     status: UserStatus['status'];
@@ -58,6 +57,7 @@ type Props = {
     item: PostDraft | ScheduledPost;
     isRemote?: boolean;
     scrollIntoView?: boolean;
+    containerClassName?: string;
 }
 
 const mockLastBlurAt = {current: 0};
@@ -69,6 +69,7 @@ function DraftRow({
     displayName,
     isRemote,
     scrollIntoView,
+    containerClassName,
 }: Props) {
     const [isEditing, setIsEditing] = useState(false);
 
@@ -107,13 +108,17 @@ function DraftRow({
 
     const connectionId = useSelector(getConnectionId);
 
+    const isChannelArchived = Boolean(channel?.delete_at);
+    const isDeactivatedDM = useSelector((state: GlobalState) => isDeactivatedDirectChannel(state, channelId));
+
     let postError = '';
 
     if (isScheduledPost) {
         // This is applicable only for scheduled post.
         if (item.error_code) {
             postError = getErrorStringFromCode(intl, item.error_code);
-            postError = getErrorStringFromCode(intl, item.error_code);
+        } else if (isChannelArchived || isDeactivatedDM) {
+            postError = getErrorStringFromCode(intl, 'channel_archived');
         }
     } else if (rootPostDeleted) {
         postError = intl.formatMessage({id: 'drafts.error.post_not_found', defaultMessage: 'Thread not found'});
@@ -274,28 +279,29 @@ function DraftRow({
         setIsEditing((isEditing) => !isEditing);
     }, []);
 
+    const handleCopyText = useCallback(() => {
+        copyToClipboard(item.message);
+    }, [item]);
+
     const handleScheduledPostOnSend = useCallback(() => {
         handleCancelEdit();
 
         isScheduledPostBeingSent.current = true;
         const postDraft = scheduledPostToPostDraft(item as ScheduledPost);
-        handleOnSend(postDraft, undefined, {keepDraft: true});
+        handleOnSend(postDraft, undefined, {keepDraft: true, ignorePostError: true});
         return Promise.resolve({});
     }, [handleOnSend, item, handleCancelEdit]);
 
     const scheduledPostActions = useMemo(() => {
-        if (!channel) {
-            return null;
-        }
-
         return (
             <ScheduledPostActions
                 scheduledPost={item as ScheduledPost}
-                channelDisplayName={channel.display_name}
+                channel={channel}
                 onReschedule={handleSchedulePostOnReschedule}
                 onDelete={handleSchedulePostOnDelete}
                 onSend={handleScheduledPostOnSend}
                 onEdit={handleSchedulePostEdit}
+                onCopyText={handleCopyText}
             />
         );
     }, [
@@ -304,6 +310,7 @@ function DraftRow({
         handleSchedulePostOnReschedule,
         handleScheduledPostOnSend,
         handleSchedulePostEdit,
+        handleCopyText,
         item,
     ]);
 
@@ -359,6 +366,7 @@ function DraftRow({
             hasError={Boolean(postError)}
             innerRef={scrollIntoView ? alertRef : undefined}
             isHighlighted={scrollIntoView}
+            className={containerClassName}
         >
             {({hover}) => (
                 <>
@@ -371,19 +379,15 @@ function DraftRow({
                         remote={isRemote || false}
                         error={postError || serverError?.message}
                     />
-
-                    {
-                        isEditing &&
-                        <EditPost
+                    {isEditing && (
+                        <EditScheduledPost
                             scheduledPost={item as ScheduledPost}
                             onCancel={handleCancelEdit}
                             afterSave={handleCancelEdit}
                             onDeleteScheduledPost={handleSchedulePostOnDelete}
                         />
-                    }
-
-                    {
-                        !isEditing &&
+                    )}
+                    {!isEditing && (
                         <PanelBody
                             channelId={channel?.id}
                             displayName={displayName}
@@ -395,7 +399,7 @@ function DraftRow({
                             userId={user.id}
                             username={user.username}
                         />
-                    }
+                    )}
                 </>
             )}
         </Panel>

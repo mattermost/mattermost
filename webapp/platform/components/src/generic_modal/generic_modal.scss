@@ -1,15 +1,15 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-@charset 'UTF-8';
-
-@import '../../../../channels/src/sass/utils/variables';
-@import '../../../../channels/src/sass/utils/mixins';
-
 .console__body .modal .GenericModal,
 .app__body .modal .GenericModal {
-    &.modal-dialog {
+    &__location--top {
+        margin-top: 5vh;
+    }
+
+    &__location--center {
         margin-top: calc(50vh - 240px);
+    }
+
+    &__location--bottom {
+        margin-top: calc(50vh + 240px);
     }
 
     &.modal-overflow {
@@ -32,7 +32,7 @@
             }
         }
 
-        p#genericModalSubheading {
+        div#genericModalSubheading {
             font-size: 12px;
             margin-block: 10px;
         }
@@ -139,7 +139,7 @@
         }
 
         @media screen and (max-width: 640px) {
-            margin: 0;
+            margin: 0 !important;
 
             .modal-header {
                 box-shadow: var(--elevation-2);

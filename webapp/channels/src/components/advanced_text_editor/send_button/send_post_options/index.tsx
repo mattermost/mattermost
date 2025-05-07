@@ -63,13 +63,12 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
 
     return (
         <Menu.Container
-            hideTooltipWhenDisabled={true}
             menuButtonTooltip={{
-                id: 'send_post_option_schedule_post',
                 text: formatMessage({
                     id: 'create_post_button.option.schedule_message',
                     defaultMessage: 'Schedule message',
                 }),
+                disabled,
             }}
             menuButton={{
                 id: 'button_send_post_options',
@@ -103,7 +102,10 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
                 }
             />
 
-            <CoreMenuOptions handleOnSelect={handleOnSelect}/>
+            <CoreMenuOptions
+                handleOnSelect={handleOnSelect}
+                channelId={channelId}
+            />
 
             <Menu.Separator/>
 

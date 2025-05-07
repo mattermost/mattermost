@@ -36,7 +36,7 @@ export default abstract class Provider {
         this.forceDispatch = false;
     }
 
-    abstract handlePretextChanged(pretext: string, callback: (res: ProviderResult<unknown>) => void): boolean;
+    abstract handlePretextChanged(pretext: string, callback: (res: ProviderResult<unknown>) => void, teamId?: string): boolean;
 
     resetRequest() {
         this.requestStarted = false;

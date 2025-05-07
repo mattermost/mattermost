@@ -53,7 +53,7 @@ const SubMenuModal = ({
             onExited={onExited}
             enforceFocus={false}
             id='submenuModal'
-            role='dialog'
+            role='none'
         >
             <Modal.Body
                 data-testid={'SubMenuModalBody'}

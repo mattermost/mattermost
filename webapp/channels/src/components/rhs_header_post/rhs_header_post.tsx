@@ -19,7 +19,7 @@ import {RHSStates} from 'utils/constants';
 
 import type {RhsState} from 'types/store/rhs';
 
-interface Props extends WrappedComponentProps {
+type Props = WrappedComponentProps & {
     isExpanded: boolean;
     isMobileView: boolean;
     rootPostId: string;
@@ -40,7 +40,7 @@ interface Props extends WrappedComponentProps {
     closeRightHandSide: (e?: React.MouseEvent) => void;
     toggleRhsExpanded: (e: React.MouseEvent) => void;
     setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
-}
+};
 
 class RhsHeaderPost extends React.PureComponent<Props> {
     handleBack = (e: React.MouseEvent) => {
@@ -147,8 +147,6 @@ class RhsHeaderPost extends React.PureComponent<Props> {
         if (backToResultsTooltip) {
             back = (
                 <WithTooltip
-                    id='backToResultsTooltip'
-                    placement='top'
                     title={backToResultsTooltip}
                 >
                     <button
@@ -164,9 +162,15 @@ class RhsHeaderPost extends React.PureComponent<Props> {
             );
         }
 
+        const collapseIconLabel = formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'});
+        const expandIconLabel = formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'});
+
         return (
             <div className='sidebar--right__header'>
-                <span className='sidebar--right__title'>
+                <span
+                    className='sidebar--right__title'
+                    id='rhsPanelTitle'
+                >
                     {back}
                     <FormattedMessage
                         id='rhs_header.details'
@@ -191,30 +195,24 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                     ) : null}
 
                     <WithTooltip
-                        id={this.props.isExpanded ? 'shrinkSidebarTooltip' : 'expandSidebarTooltip'}
-                        placement='bottom'
                         title={rhsHeaderTooltipContent}
                     >
                         <button
                             type='button'
                             className='sidebar--right__expand btn btn-icon btn-sm'
-                            aria-label='Expand'
+                            aria-label={this.props.isExpanded ? collapseIconLabel : expandIconLabel}
                             onClick={this.props.toggleRhsExpanded}
                         >
                             <i
                                 className='icon icon-arrow-expand'
-                                aria-label={formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
                             />
                             <i
                                 className='icon icon-arrow-collapse'
-                                aria-label={formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
                             />
                         </button>
                     </WithTooltip>
 
                     <WithTooltip
-                        id='closeSidebarTooltip'
-                        placement='top'
                         title={closeSidebarTooltip}
                     >
                         <button

@@ -25,7 +25,6 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
     menuButtonTooltip={
       Object {
         "class": "hidden-xs",
-        "id": "SidebarCategorySortingMenu-ButtonTooltip-category_id",
         "text": "Category options",
       }
     }
