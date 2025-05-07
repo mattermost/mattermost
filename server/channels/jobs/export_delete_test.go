@@ -36,7 +36,6 @@ func TestExportDelete(t *testing.T) {
 	}
 
 	th := SetupWithUpdateCfg(t, updateConfig)
-	defer th.TearDown(t)
 
 	// Create test files with different timestamps
 	files := []string{
