@@ -69,6 +69,9 @@ type TestHelper struct {
 
 	LogBuffer  *mlog.Buffer
 	TestLogger *mlog.Logger
+
+	tb        testing.TB
+	workspace string
 }
 
 var mainHelper *testlib.MainHelper
@@ -77,13 +80,11 @@ func SetMainHelper(mh *testlib.MainHelper) {
 	mainHelper = mh
 }
 
-func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
+func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
 	updateConfig func(*model.Config), options []app.Option,
 ) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
 	if err != nil {
@@ -96,7 +97,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	memoryConfig.SetDefaults()
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
-	memoryConfig.ServiceSettings.EnableLocalMode = model.NewPointer(true)
+	*memoryConfig.FileSettings.Directory = filepath.Join(tempWorkspace, "data")
+	*memoryConfig.ServiceSettings.EnableLocalMode = true
 	*memoryConfig.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
@@ -161,6 +163,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		IncludeCacheLayer: includeCache,
 		TestLogger:        testLogger,
 		LogBuffer:         buffer,
+		tb:                tb,
+		workspace:         tempWorkspace,
 	}
 
 	if s.Platform().SearchEngine != nil && s.Platform().SearchEngine.BleveEngine != nil && searchEngine != nil {
@@ -249,7 +253,7 @@ func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, true, true, nil, options)
+	th := setupTestHelper(tb, dbStore, searchEngine, true, true, nil, options)
 	th.InitLogin()
 	return th
 }
@@ -268,7 +272,7 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, nil, nil)
+	th := setupTestHelper(tb, dbStore, searchEngine, false, true, nil, nil)
 	th.InitLogin()
 	return th
 }
@@ -287,7 +291,7 @@ func SetupAndApplyConfigBeforeLogin(tb testing.TB, updateConfig func(cfg *model.
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, nil, nil)
+	th := setupTestHelper(tb, dbStore, searchEngine, false, true, nil, nil)
 	th.App.UpdateConfig(updateConfig)
 	th.InitLogin()
 	return th
@@ -307,13 +311,13 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, updateConfig, nil)
+	th := setupTestHelper(tb, dbStore, searchEngine, false, true, updateConfig, nil)
 	th.InitLogin()
 	return th
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig, nil)
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -327,7 +331,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, nil)
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -341,7 +345,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB, options ...app.Option) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, options)
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, options)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -368,7 +372,7 @@ func SetupWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, nil, options)
+	th := setupTestHelper(tb, dbStore, searchEngine, false, true, nil, options)
 	th.InitLogin()
 	return th
 }
@@ -387,7 +391,7 @@ func SetupEnterpriseWithServerOptions(tb testing.TB, options []app.Option) *Test
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, true, true, nil, options)
+	th := setupTestHelper(tb, dbStore, searchEngine, true, true, nil, options)
 	th.InitLogin()
 	return th
 }
@@ -413,7 +417,14 @@ func (th *TestHelper) TearDown() {
 		// Clean all the caches
 		th.App.Srv().InvalidateAllCaches()
 	}
+
 	th.ShutdownApp()
+
+	// Cleanup the workspace
+	if th.workspace != "" {
+		err := os.RemoveAll(th.workspace)
+		require.NoError(th.tb, err)
+	}
 }
 
 func closeBody(r *http.Response) {
