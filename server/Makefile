@@ -104,7 +104,7 @@ ifeq ($(HOME),/)
 	export XDG_CACHE_HOME = /tmp/go-cache/
 endif
 
-
+OUTPUT_CONFIG ?= config/config.json
 FIPS_IMAGE ?= cgr.dev/mattermost.com/go-msft-fips:1.22-dev
 
 # Go Flags
