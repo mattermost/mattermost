@@ -3,15 +3,15 @@
 
 .GenericTag {
     display: inline-flex;
+    overflow: hidden;
+    max-width: 100%;
     align-items: center;
     border-radius: 4px;
-    font-weight: 600;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     margin-right: 8px;
     margin-bottom: 8px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 
     
     &--clickable {
@@ -45,20 +45,20 @@
     
     // Sizes
     &--small {
-        font-size: 10px;
-        padding: 0 6px;
         height: 16px;
+        padding: 0 6px;
+        font-size: 10px;
     }
     
     &--medium {
-        font-size: 12px;
-        padding: 2px 8px;
         height: 20px;
+        padding: 2px 8px;
+        font-size: 12px;
     }
     
     &--large {
-        font-size: 14px;
-        padding: 4px 12px;
         height: 24px;
+        padding: 4px 12px;
+        font-size: 14px;
     }
 }
