@@ -5,7 +5,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const AWS = require('aws-sdk');
+const {S3} = require('@aws-sdk/client-s3');
+const {Upload} = require('@aws-sdk/lib-storage');
 const mime = require('mime-types');
 
 const dayjs = require('dayjs');
@@ -35,55 +36,39 @@ const passRate = (summary.passed * 100) / (summary.passed + summary.failed);
 const totalSpecs = summary.passed + summary.failed;
 const playwrightVersion = results.config.version;
 const playwrightDuration = dayjs.duration(results.stats.duration, 'millisecond').format('HH:mm:ss');
+const bucketName = process.env.AWS_S3_BUCKET;
+const region = process.env.AWS_REGION || 'us-east-1';
+const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 
-AWS.config.update({
-    accessKeyId: AWS_ACCESS_KEY_ID,
-    secretAccessKey: AWS_SECRET_ACCESS_KEY,
+const s3 = new S3({
+    region,
+    credentials: {
+        accessKeyId,
+        secretAccessKey,
+    },
 });
 
-const s3 = new AWS.S3();
-
-/**
- * Upload a single file to AWS S3
- * @param {string} filePath - Full path to the file
- * @param {string} s3Key - Relative key for S3 storage
- */
 async function uploadFile(filePath, s3Key) {
-    try {
-        const fileContent = fs.readFileSync(filePath);
-        const contentType = mime.lookup(filePath) || 'application/octet-stream';
-        const params = {
-            Bucket: AWS_S3_BUCKET,
-            Key: `e2e-reports/${BUILD_ID}/${s3Key}`,
-            Body: fileContent,
+    const fileStream = fs.createReadStream(filePath);
+    const contentType = mime.lookup(filePath) || 'application/octet-stream';
+
+    const upload = new Upload({
+        client: s3,
+        params: {
+            Bucket: bucketName,
+            Key: s3Key,
+            Body: fileStream,
             ContentType: contentType,
-        };
-
-        await s3.upload(params).promise();
-        console.log(`✅ Uploaded: ${filePath}`);
-    } catch (err) {
-        console.error('❌ Error uploading file:', err);
-    }
-}
-
-async function uploadFile(filePath, s3Key) {
-    const s3 = new AWS.S3({
-        accessKeyId: AWS_ACCESS_KEY_ID,
-        secretAccessKey: AWS_SECRET_ACCESS_KEY,
+        },
     });
 
     try {
-        const fileContent = fs.readFileSync(filePath);
-        const params = {
-            Bucket: AWS_S3_BUCKET,
-            Key: `e2e-reports/${BUILD_ID}/${s3Key}`,
-            Body: fileContent,
-            ContentType: mime.lookup(filePath) || 'application/octet-stream',
-        };
-        await s3.upload(params).promise();
-        console.log(`Uploaded ${filePath}`);
+        await upload.done();
+        return `https://${bucketName}.s3.${region}.amazonaws.com/${s3Key}`;
     } catch (err) {
         console.error('Error uploading file:', err);
+        throw err;
     }
 }
 
@@ -113,8 +98,6 @@ function walkAndUpload(baseDir, relativeRoot = '') {
  * @return {Object} - {reportLink} when successful
  */
 async function saveArtifacts() {
-    console.log('Saving artifacts to AWS S3...');
-
     if (!AWS_S3_BUCKET || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
         console.log('Missing AWS S3 environment variables');
         return {success: false};
@@ -128,7 +111,6 @@ async function saveArtifacts() {
         const stats = fs.statSync(filePath);
 
         if (stats.isDirectory()) {
-            console.log(`🔁 Uploading directory: ${filePath}`);
             walkAndUpload(filePath, path.join(file)); // preserve directory structure
         } else {
             await uploadFile(filePath, file);
@@ -194,13 +176,12 @@ async function generateWebhookBody() {
     }
 
     // Upload artifacts to S3 if environment variables are set
-    let reportLinkField = '';
+    let summaryField = `${passRate.toFixed(2)}% (${summary.passed}/${totalSpecs}) | ${playwrightDuration} | playwright@${playwrightVersion}`;
     const artifactResult = await saveArtifacts();
     if (artifactResult && artifactResult.success) {
-        reportLinkField = `\nReport: ${artifactResult.reportLink}`;
+        summaryField += ` | [Report](${artifactResult.reportLink})`;
     }
 
-    const summaryField = `${passRate.toFixed(2)}% (${summary.passed}/${totalSpecs}) | ${playwrightDuration} | playwright@${playwrightVersion}`;
     const serverTypeField = SERVER_TYPE ? '\nTest server: ' + SERVER_TYPE : '';
     const mmEnvField = MM_ENV ? '\nTest server override: ' + MM_ENV : '';
     const rollingReleaseMatchRegex = BUILD_ID?.match(/-rolling(?<version>[^-]+)-/);
@@ -216,7 +197,7 @@ async function generateWebhookBody() {
                 author_icon: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
                 author_link: 'https://www.mattermost.com',
                 title: generateTitle(),
-                text: `${summaryField}${serverTypeField}${rollingReleaseFromField}${mmEnvField}${reportLinkField}`,
+                text: `${summaryField}${serverTypeField}${rollingReleaseFromField}${mmEnvField}`,
             },
         ],
     };
