@@ -796,19 +796,37 @@ export function getUserOrGroupFromMentionName(
     groups: Record<string, Group>,
     groupsDisabled?: boolean,
     getMention = getMentionDetails,
+    remoteClusters?: Array<{remote_id: string; name: string; display_name: string}>,
 ): [UserProfile?, Group?] {
-    // Handle special case for remote user mentions in the format username:servername
+    // Handle special case for remote user mentions in the format username:clustername
     if (mentionName.includes(':')) {
         const parts = mentionName.split(':');
         const username = parts[0];
-        const serverName = parts[1];
-        if (username && serverName) {
+        const clusterName = parts[1];
+        if (username && clusterName) {
             // Search for all users with matching username (could be multiple remote users)
             const userValues = Object.values(users);
-            for (let i = 0; i < userValues.length; i++) {
-                const user = userValues[i];
-                if (user.username === username && user.remote_id === serverName) {
-                    return [user, undefined];
+
+            // Find remote users with matching username
+            const matchingRemoteUsers = userValues.filter((user) =>
+                user.username === username && user.remote_id,
+            );
+            if (matchingRemoteUsers.length === 1) {
+                // If we only have one remote user with this username, use it
+                return [matchingRemoteUsers[0], undefined];
+            } else if (matchingRemoteUsers.length > 1 && remoteClusters?.length) {
+                // Create a map of remote_id to name once
+                const remoteIdToName = new Map();
+                for (const cluster of remoteClusters) {
+                    remoteIdToName.set(cluster.remote_id, cluster.name);
+                }
+
+                // Find user with the cluster name matching provided clusterName (case-insensitive)
+                for (const user of matchingRemoteUsers) {
+                    const userClusterName = remoteIdToName.get(user.remote_id);
+                    if (userClusterName && userClusterName.toLowerCase() === clusterName.toLowerCase()) {
+                        return [user, undefined];
+                    }
                 }
             }
         }

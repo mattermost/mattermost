@@ -1405,7 +1405,7 @@ describe('getUserOrGroupFromMentionName', () => {
             remote_user: TestHelper.getUserMock({
                 username: 'remote_user',
                 id: 'remote_user_id',
-                remote_id: 'server1',
+                remote_id: 'abc123',
             }),
         };
 
@@ -1415,43 +1415,85 @@ describe('getUserOrGroupFromMentionName', () => {
         const [normalUser] = PostUtils.getUserOrGroupFromMentionName('user1', users, groups);
         expect(normalUser).toBeDefined();
         expect(normalUser?.id).toBe('user1_id');
-
-        // Test a remote user mention with server name
-        const [remoteUser] = PostUtils.getUserOrGroupFromMentionName('remote_user:server1', users, groups);
-        expect(remoteUser).toBeDefined();
-        expect(remoteUser?.id).toBe('remote_user_id');
     });
 
-    test('should handle remote user mentions with server name verification', () => {
-        // Set up users with two remote users having the same username but on different servers
+    test('should handle single remote user case', () => {
+        // Set up users with just one remote user
         const users = {
-            remote_user1: TestHelper.getUserMock({
+            remote_user: TestHelper.getUserMock({
                 username: 'remote_user',
-                id: 'remote_user_id1',
-                remote_id: 'server1',
-            }),
-            remote_user2: TestHelper.getUserMock({
-                username: 'remote_user',
-                id: 'remote_user_id2',
-                remote_id: 'server2',
+                id: 'remote_user_id',
+                remote_id: 'abc123',
             }),
         };
 
         const groups = {};
 
-        // Test with correct server matches
-        const [remoteUser1] = PostUtils.getUserOrGroupFromMentionName('remote_user:server1', users, groups);
+        // When there's only one remote user with a given username, it should match
+        // regardless of the cluster name (as long as it's in username:cluster format)
+        const [remoteUser] = PostUtils.getUserOrGroupFromMentionName('remote_user:whatever', users, groups);
+        expect(remoteUser).toBeDefined();
+        expect(remoteUser?.id).toBe('remote_user_id');
+
+        // With remote clusters provided
+        const remoteClusters = [
+            {remote_id: 'abc123', name: 'cluster_one', display_name: 'Cluster One'},
+        ];
+        const [remoteUserWithClusters] = PostUtils.getUserOrGroupFromMentionName(
+            'remote_user:incorrect_name',
+            users,
+            groups,
+            false,
+            undefined,
+            remoteClusters,
+        );
+        expect(remoteUserWithClusters).toBeDefined();
+        expect(remoteUserWithClusters?.id).toBe('remote_user_id');
+    });
+
+    test('should handle remote user mentions with cluster name verification using remoteClusters', () => {
+        // Set up users with two remote users having the same username but on different clusters
+        const users = {
+            remote_user1: TestHelper.getUserMock({
+                username: 'remote_user',
+                id: 'remote_user_id1',
+                remote_id: 'abc123', // Technical ID, not normalized name
+            }),
+            remote_user2: TestHelper.getUserMock({
+                username: 'remote_user',
+                id: 'remote_user_id2',
+                remote_id: 'def456', // Technical ID, not normalized name
+            }),
+        };
+
+        const groups = {};
+
+        // Set up remote clusters mapping technical IDs to normalized names
+        const remoteClusters = [
+            {remote_id: 'abc123', name: 'cluster_one', display_name: 'Cluster One'},
+            {remote_id: 'def456', name: 'cluster_two', display_name: 'Cluster Two'},
+        ];
+
+        // Test with correct cluster name matches
+        const [remoteUser1] = PostUtils.getUserOrGroupFromMentionName('remote_user:cluster_one', users, groups, false, undefined, remoteClusters);
         expect(remoteUser1).toBeDefined();
         expect(remoteUser1?.id).toBe('remote_user_id1');
-        const [remoteUser2] = PostUtils.getUserOrGroupFromMentionName('remote_user:server2', users, groups);
+
+        const [remoteUser2] = PostUtils.getUserOrGroupFromMentionName('remote_user:cluster_two', users, groups, false, undefined, remoteClusters);
         expect(remoteUser2).toBeDefined();
         expect(remoteUser2?.id).toBe('remote_user_id2');
 
-        // Test with incorrect or missing server specifications
-        const [remoteUserWrongServer] = PostUtils.getUserOrGroupFromMentionName('remote_user:server3', users, groups);
-        expect(remoteUserWrongServer).toBeUndefined();
-        const [userWithEmptyServer] = PostUtils.getUserOrGroupFromMentionName('remote_user:', users, groups);
-        expect(userWithEmptyServer).toBeUndefined();
+        // Test case-insensitive matching
+        const [remoteUserCaseInsensitive] = PostUtils.getUserOrGroupFromMentionName('remote_user:CLUSTER_ONE', users, groups, false, undefined, remoteClusters);
+        expect(remoteUserCaseInsensitive).toBeDefined();
+        expect(remoteUserCaseInsensitive?.id).toBe('remote_user_id1');
+
+        // Test with incorrect or missing cluster specifications
+        const [remoteUserWrongCluster] = PostUtils.getUserOrGroupFromMentionName('remote_user:cluster3', users, groups, false, undefined, remoteClusters);
+        expect(remoteUserWrongCluster).toBeUndefined();
+
+        const [userWithEmptyCluster] = PostUtils.getUserOrGroupFromMentionName('remote_user:', users, groups, false, undefined, remoteClusters);
+        expect(userWithEmptyCluster).toBeUndefined();
     });
 
     test('should not match when mention includes a colon but does not match remote pattern', () => {
@@ -1464,18 +1506,18 @@ describe('getUserOrGroupFromMentionName', () => {
             remote_user: TestHelper.getUserMock({
                 username: 'remote_user',
                 id: 'remote_user_id',
-                remote_id: 'server1',
+                remote_id: 'cluster1',
             }),
         };
 
         const groups = {};
 
         // Test a mention with a colon where the username part doesn't match any user
-        const [nonExistentUser] = PostUtils.getUserOrGroupFromMentionName('nonexistent:server1', users, groups);
+        const [nonExistentUser] = PostUtils.getUserOrGroupFromMentionName('nonexistent:cluster1', users, groups);
         expect(nonExistentUser).toBeUndefined();
 
         // Test a mention with a colon where the username matches a non-remote user
-        const [normalUserWithColon] = PostUtils.getUserOrGroupFromMentionName('user1:server1', users, groups);
+        const [normalUserWithColon] = PostUtils.getUserOrGroupFromMentionName('user1:cluster1', users, groups);
         expect(normalUserWithColon).toBeUndefined();
     });
 });
