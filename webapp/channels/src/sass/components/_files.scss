@@ -330,6 +330,7 @@
     display: flex;
     overflow: hidden;
     width: 320px;
+    min-width: 204px;
     max-width: 100%;
     height: 6.4rem;
     align-items: center;
@@ -352,6 +353,7 @@
     &:hover,
     &:focus-within,
     &.keep-open {
+        overflow: visible;
         box-shadow: 0 2px 3px 0 rgba(variables.$black, 0.1), 0 2px 3px 0 rgba(variables.$black, 0.1);
 
         .file-dropdown-icon {
@@ -528,10 +530,12 @@
         }
 
         .post-image__detail {
+            overflow: hidden;
             width: 100%;
             min-width: 0;
-            height: 100%;
+            height: 36px;
             line-height: normal;
+            text-overflow: ellipsis;
 
             .post-image__name {
                 display: block;
@@ -575,8 +579,10 @@
             }
 
             .post-image__size {
+                overflow: hidden;
                 margin-left: 4px;
                 opacity: 0.73;
+                text-overflow: ellipsis;
             }
         }
     }
