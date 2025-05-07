@@ -13,7 +13,7 @@ import (
 
 func TestMeProviderDoCommand(t *testing.T) {
 	th := setup(t)
-	defer th.tearDown()
+	defer th.tearDown(t)
 
 	mp := MeProvider{}
 

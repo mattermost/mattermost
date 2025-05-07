@@ -36,9 +36,7 @@ type TestHelper struct {
 	LogBuffer         *bytes.Buffer
 	TestLogger        *mlog.Logger
 	IncludeCacheLayer bool
-
-	tb            testing.TB
-	tempWorkspace string
+	tempWorkspace     string
 }
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
@@ -90,7 +88,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
-		tb:                tb,
 	}
 
 	if enterprise {
@@ -172,23 +169,23 @@ func setupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	return setupTestHelper(dbStore, false, true, tb, updateConfig)
 }
 
-func (th *TestHelper) initBasic() *TestHelper {
-	th.SystemAdminUser = th.createUser()
+func (th *TestHelper) initBasic(tb testing.TB) *TestHelper {
+	th.SystemAdminUser = th.createUser(tb)
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-	require.Nil(th.tb, appErr)
+	require.Nil(tb, appErr)
 
-	th.BasicUser = th.createUser()
-	th.BasicUser2 = th.createUser()
-	th.BasicTeam = th.createTeam()
+	th.BasicUser = th.createUser(tb)
+	th.BasicUser2 = th.createUser(tb)
+	th.BasicTeam = th.createTeam(tb)
 
-	th.linkUserToTeam(th.BasicUser, th.BasicTeam)
-	th.linkUserToTeam(th.BasicUser2, th.BasicTeam)
-	th.BasicChannel = th.CreateChannel(th.BasicTeam)
-	th.BasicPost = th.createPost(th.BasicChannel)
+	th.linkUserToTeam(tb, th.BasicUser, th.BasicTeam)
+	th.linkUserToTeam(tb, th.BasicUser2, th.BasicTeam)
+	th.BasicChannel = th.CreateChannel(tb, th.BasicTeam)
+	th.BasicPost = th.createPost(tb, th.BasicChannel)
 	return th
 }
 
-func (th *TestHelper) createTeam() *model.Team {
+func (th *TestHelper) createTeam(tb testing.TB) *model.Team {
 	id := model.NewId()
 	team := &model.Team{
 		DisplayName: "dn_" + id,
@@ -198,20 +195,20 @@ func (th *TestHelper) createTeam() *model.Team {
 	}
 
 	team, appErr := th.App.CreateTeam(th.Context, team)
-	require.Nil(th.tb, appErr)
+	require.Nil(tb, appErr)
 
 	return team
 }
 
-func (th *TestHelper) createUser() *model.User {
-	return th.createUserOrGuest(false)
+func (th *TestHelper) createUser(tb testing.TB) *model.User {
+	return th.createUserOrGuest(tb, false)
 }
 
-func (th *TestHelper) createGuest() *model.User {
-	return th.createUserOrGuest(true)
+func (th *TestHelper) createGuest(tb testing.TB) *model.User {
+	return th.createUserOrGuest(tb, true)
 }
 
-func (th *TestHelper) createUserOrGuest(guest bool) *model.User {
+func (th *TestHelper) createUserOrGuest(tb testing.TB, guest bool) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
@@ -225,10 +222,10 @@ func (th *TestHelper) createUserOrGuest(guest bool) *model.User {
 	var appErr *model.AppError
 	if guest {
 		user, appErr = th.App.CreateGuest(th.Context, user)
-		require.Nil(th.tb, appErr)
+		require.Nil(tb, appErr)
 	} else {
 		user, appErr = th.App.CreateUser(th.Context, user)
-		require.Nil(th.tb, appErr)
+		require.Nil(tb, appErr)
 	}
 	return user
 }
@@ -241,15 +238,15 @@ func WithShared(v bool) ChannelOption {
 	}
 }
 
-func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) *model.Channel {
-	return th.createChannel(team, model.ChannelTypeOpen, options...)
+func (th *TestHelper) CreateChannel(tb testing.TB, team *model.Team, options ...ChannelOption) *model.Channel {
+	return th.createChannel(tb, team, model.ChannelTypeOpen, options...)
 }
 
-func (th *TestHelper) createPrivateChannel(team *model.Team) *model.Channel {
-	return th.createChannel(team, model.ChannelTypePrivate)
+func (th *TestHelper) createPrivateChannel(tb testing.TB, team *model.Team) *model.Channel {
+	return th.createChannel(tb, team, model.ChannelTypePrivate)
 }
 
-func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelType, options ...ChannelOption) *model.Channel {
+func (th *TestHelper) createChannel(tb testing.TB, team *model.Team, channelType model.ChannelType, options ...ChannelOption) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -265,7 +262,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 	}
 
 	channel, appErr := th.App.CreateChannel(th.Context, channel, true)
-	require.Nil(th.tb, appErr)
+	require.Nil(tb, appErr)
 
 	if channel.IsShared() {
 		id := model.NewId()
@@ -279,12 +276,12 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 			CreatorId:        th.BasicUser.Id,
 			RemoteId:         model.NewId(),
 		})
-		require.NoError(th.tb, err)
+		require.NoError(tb, err)
 	}
 	return channel
 }
 
-func (th *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType model.ChannelType, userID string) *model.Channel {
+func (th *TestHelper) createChannelWithAnotherUser(tb testing.TB, team *model.Team, channelType model.ChannelType, userID string) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -296,23 +293,23 @@ func (th *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType
 	}
 
 	channel, appErr := th.App.CreateChannel(th.Context, channel, true)
-	require.Nil(th.tb, appErr)
+	require.Nil(tb, appErr)
 	return channel
 }
 
-func (th *TestHelper) createDmChannel(user *model.User) *model.Channel {
+func (th *TestHelper) createDmChannel(tb testing.TB, user *model.User) *model.Channel {
 	channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id)
-	require.Nil(th.tb, appErr)
+	require.Nil(tb, appErr)
 	return channel
 }
 
-func (th *TestHelper) createGroupChannel(user1 *model.User, user2 *model.User) *model.Channel {
+func (th *TestHelper) createGroupChannel(tb testing.TB, user1 *model.User, user2 *model.User) *model.Channel {
 	channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
-	require.Nil(th.tb, appErr)
+	require.Nil(tb, appErr)
 	return channel
 }
 
-func (th *TestHelper) createPost(channel *model.Channel) *model.Post {
+func (th *TestHelper) createPost(tb testing.TB, channel *model.Channel) *model.Post {
 	id := model.NewId()
 
 	post := &model.Post{
@@ -323,22 +320,22 @@ func (th *TestHelper) createPost(channel *model.Channel) *model.Post {
 	}
 
 	post, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
-	require.Nil(th.tb, appErr)
+	require.Nil(tb, appErr)
 	return post
 }
 
-func (th *TestHelper) linkUserToTeam(user *model.User, team *model.Team) {
+func (th *TestHelper) linkUserToTeam(tb testing.TB, user *model.User, team *model.Team) {
 	_, appErr := th.App.JoinUserToTeam(th.Context, team, user, "")
-	require.Nil(th.tb, appErr)
+	require.Nil(tb, appErr)
 }
 
-func (th *TestHelper) addUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
+func (th *TestHelper) addUserToChannel(tb testing.TB, user *model.User, channel *model.Channel) *model.ChannelMember {
 	member, appErr := th.App.AddUserToChannel(th.Context, user, channel, false)
-	require.Nil(th.tb, appErr)
+	require.Nil(tb, appErr)
 	return member
 }
 
-func (th *TestHelper) shutdownApp() {
+func (th *TestHelper) shutdownApp(tb testing.TB) {
 	done := make(chan bool)
 	go func() {
 		th.Server.Shutdown()
@@ -350,25 +347,25 @@ func (th *TestHelper) shutdownApp() {
 	case <-time.After(30 * time.Second):
 		// Use require.FailNow to terminate all tests in this package, otherwise the
 		// still running App could spuriously fail subsequent tests.
-		require.FailNow(th.tb, "failed to shutdown App within 30 seconds")
+		require.FailNow(tb, "failed to shutdown App within 30 seconds")
 	}
 }
 
-func (th *TestHelper) tearDown() {
+func (th *TestHelper) tearDown(tb testing.TB) {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
 		appErr := th.App.Srv().InvalidateAllCaches()
-		require.Nil(th.tb, appErr)
+		require.Nil(tb, appErr)
 	}
-	th.shutdownApp()
+	th.shutdownApp(tb)
 	if th.tempWorkspace != "" {
 		os.RemoveAll(th.tempWorkspace)
 	}
 }
 
-func (th *TestHelper) removePermissionFromRole(permission string, roleName string) {
+func (th *TestHelper) removePermissionFromRole(tb testing.TB, permission string, roleName string) {
 	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
-	require.Nil(th.tb, appErr)
+	require.Nil(tb, appErr)
 
 	var newPermissions []string
 	for _, p := range role.Permissions {
@@ -384,12 +381,12 @@ func (th *TestHelper) removePermissionFromRole(permission string, roleName strin
 	role.Permissions = newPermissions
 
 	_, appErr = th.App.UpdateRole(role)
-	require.Nil(th.tb, appErr)
+	require.Nil(tb, appErr)
 }
 
-func (th *TestHelper) addPermissionToRole(permission string, roleName string) {
+func (th *TestHelper) addPermissionToRole(tb testing.TB, permission string, roleName string) {
 	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
-	require.Nil(th.tb, appErr)
+	require.Nil(tb, appErr)
 
 	for _, existingPermission := range role.Permissions {
 		if existingPermission == permission {
@@ -400,5 +397,5 @@ func (th *TestHelper) addPermissionToRole(permission string, roleName string) {
 	role.Permissions = append(role.Permissions, permission)
 
 	_, appErr = th.App.UpdateRole(role)
-	require.Nil(th.tb, appErr)
+	require.Nil(tb, appErr)
 }

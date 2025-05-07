@@ -27,10 +27,10 @@ func setupForSharedChannels(tb testing.TB) *TestHelper {
 
 func TestShareProviderDoCommand(t *testing.T) {
 	t.Run("share command sends a websocket channel updated event", func(t *testing.T) {
-		th := setupForSharedChannels(t).initBasic()
-		defer th.tearDown()
+		th := setupForSharedChannels(t).initBasic(t)
+		defer th.tearDown(t)
 
-		th.addPermissionToRole(model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
+		th.addPermissionToRole(t, model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
 
 		mockSyncService := app.NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
 		th.Server.SetSharedChannelSyncService(mockSyncService)
@@ -39,7 +39,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 		th.Server.Platform().SetCluster(testCluster)
 
 		commandProvider := ShareProvider{}
-		channel := th.CreateChannel(th.BasicTeam, WithShared(false))
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(false))
 
 		args := &model.CommandArgs{
 			T:         func(s string, args ...any) string { return s },
@@ -60,10 +60,10 @@ func TestShareProviderDoCommand(t *testing.T) {
 	})
 
 	t.Run("unshare command sends a websocket channel updated event", func(t *testing.T) {
-		th := setupForSharedChannels(t).initBasic()
-		defer th.tearDown()
+		th := setupForSharedChannels(t).initBasic(t)
+		defer th.tearDown(t)
 
-		th.addPermissionToRole(model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
+		th.addPermissionToRole(t, model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
 
 		mockSyncService := app.NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
 		th.Server.SetSharedChannelSyncService(mockSyncService)
@@ -72,7 +72,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 		th.Server.Platform().SetCluster(testCluster)
 
 		commandProvider := ShareProvider{}
-		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 		args := &model.CommandArgs{
 			T:         func(s string, args ...any) string { return s },
 			ChannelId: channel.Id,
@@ -92,10 +92,10 @@ func TestShareProviderDoCommand(t *testing.T) {
 	})
 
 	t.Run("invite remote to channel shared with us", func(t *testing.T) {
-		th := setupForSharedChannels(t).initBasic()
-		defer th.tearDown()
+		th := setupForSharedChannels(t).initBasic(t)
+		defer th.tearDown(t)
 
-		th.addPermissionToRole(model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
+		th.addPermissionToRole(t, model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
 
 		mockSyncService := app.NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
 		th.Server.SetSharedChannelSyncService(mockSyncService)
@@ -116,7 +116,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 		require.Nil(t, err)
 
 		commandProvider := ShareProvider{}
-		channel := th.CreateChannel(th.BasicTeam, WithShared(true)) // will create with generated remoteID
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true)) // will create with generated remoteID
 		args := &model.CommandArgs{
 			T:         func(s string, args ...any) string { return s },
 			ChannelId: channel.Id,
