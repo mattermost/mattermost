@@ -62,10 +62,7 @@ const StarterRightPanel = () => {
                             key={i.toString()}
                         >
                             <i className='fa fa-lock'/>
-                            <FormattedMessage
-                                id={item.id}
-                                defaultMessage={item.defaultMessage}
-                            />
+                            {item}
                         </div>
                     );
                 })}
