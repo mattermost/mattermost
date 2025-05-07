@@ -1736,6 +1736,7 @@
   "admin.reporting.workspace_optimization.access.descriptionOk": "Tilgang til arbeidsområdet ditt virker å være tilgjengelig!",
   "admin.reporting.workspace_optimization.access.site_url.cta": "Konfigurer webserver",
   "admin.reporting.workspace_optimization.access.site_url.title": "Feilkonfigurert webserver",
+  "admin.reporting.workspace_optimization.access.title": "Tilgang til arbeidsområdet",
   "admin.reporting.workspace_optimization.chip_problems": "Problemer: {count}",
   "admin.reporting.workspace_optimization.chip_suggestions": "Forslag: {count}",
   "admin.reporting.workspace_optimization.chip_warnings": "Advarsler: {count}",
