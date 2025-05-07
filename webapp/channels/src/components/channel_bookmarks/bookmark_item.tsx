@@ -74,6 +74,18 @@ const useBookmarkLink = (bookmark: ChannelBookmark) => {
                 <Label>{bookmark.display_name}</Label>
             </DynamicLink>
         );
+    } else if (bookmark.type === 'inapp_link' && bookmark.link_url) {
+        link = (
+            <DynamicLink
+                href={bookmark.link_url}
+                ref={linkRef}
+                isFile={false}
+                isInAppLink={true}
+            >
+                {icon}
+                <Label>{bookmark.display_name}</Label>
+            </DynamicLink>
+        );
     } else if (bookmark.type === 'file' && bookmark.file_id) {
         link = (
             <DynamicLink
@@ -193,11 +205,13 @@ type DynamicLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
     href: string;
     children: React.ReactNode;
     isFile: boolean;
+    isInAppLink?: boolean;
 };
 const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
     href,
     children,
     isFile,
+    isInAppLink,
     onClick,
     ...otherProps
 }, ref) => {
@@ -205,6 +219,21 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
     const openInNewTab = shouldOpenInNewTab(href, siteURL);
 
     const prefixed = href[0] === TARGET_BLANK_URL_PREFIX;
+
+    // Handle mattermost:// URLs
+    if (isInAppLink && href.startsWith('mattermost://')) {
+        return (
+            <StyledAnchor
+                {...otherProps}
+                href={href}
+                ref={ref}
+                onClick={onClick}
+                className="inapp-link"
+            >
+                {children}
+            </StyledAnchor>
+        );
+    }
 
     if (prefixed || openInNewTab) {
         return (
