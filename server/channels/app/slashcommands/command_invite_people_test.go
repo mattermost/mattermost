@@ -13,7 +13,6 @@ import (
 
 func TestInvitePeopleProvider(t *testing.T) {
 	th := setup(t).initBasic(t)
-	defer th.tearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.SendEmailNotifications = true

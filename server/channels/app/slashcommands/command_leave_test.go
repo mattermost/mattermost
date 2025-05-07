@@ -14,7 +14,6 @@ import (
 
 func TestLeaveProviderDoCommand(t *testing.T) {
 	th := setup(t).initBasic(t)
-	defer th.tearDown(t)
 
 	lp := LeaveProvider{}
 

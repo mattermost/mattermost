@@ -134,6 +134,31 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		th.tempWorkspace = tempWorkspace
 	}
 
+	tb.Cleanup(func() {
+		if th.IncludeCacheLayer {
+			// Clean all the caches
+			appErr := th.App.Srv().InvalidateAllCaches()
+			require.Nil(tb, appErr)
+		}
+
+		done := make(chan bool)
+		go func() {
+			th.Server.Shutdown()
+			close(done)
+		}()
+
+		select {
+		case <-done:
+		case <-time.After(30 * time.Second):
+			// Use require.FailNow to terminate all tests in this package, otherwise the
+			// still running App could spuriously fail subsequent tests.
+			require.FailNow(tb, "failed to shutdown App within 30 seconds")
+		}
+		if th.tempWorkspace != "" {
+			os.RemoveAll(th.tempWorkspace)
+		}
+	})
+
 	return th
 }
 
@@ -333,34 +358,6 @@ func (th *TestHelper) addUserToChannel(tb testing.TB, user *model.User, channel 
 	member, appErr := th.App.AddUserToChannel(th.Context, user, channel, false)
 	require.Nil(tb, appErr)
 	return member
-}
-
-func (th *TestHelper) shutdownApp(tb testing.TB) {
-	done := make(chan bool)
-	go func() {
-		th.Server.Shutdown()
-		close(done)
-	}()
-
-	select {
-	case <-done:
-	case <-time.After(30 * time.Second):
-		// Use require.FailNow to terminate all tests in this package, otherwise the
-		// still running App could spuriously fail subsequent tests.
-		require.FailNow(tb, "failed to shutdown App within 30 seconds")
-	}
-}
-
-func (th *TestHelper) tearDown(tb testing.TB) {
-	if th.IncludeCacheLayer {
-		// Clean all the caches
-		appErr := th.App.Srv().InvalidateAllCaches()
-		require.Nil(tb, appErr)
-	}
-	th.shutdownApp(tb)
-	if th.tempWorkspace != "" {
-		os.RemoveAll(th.tempWorkspace)
-	}
 }
 
 func (th *TestHelper) removePermissionFromRole(tb testing.TB, permission string, roleName string) {

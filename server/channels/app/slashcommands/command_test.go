@@ -35,7 +35,6 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 
 func TestMoveCommand(t *testing.T) {
 	th := setup(t)
-	defer th.tearDown(t)
 
 	sourceTeam := th.createTeam(t)
 	targetTeam := th.createTeam(t)
@@ -50,10 +49,10 @@ func TestMoveCommand(t *testing.T) {
 	command, err := th.App.CreateCommand(command)
 	assert.Nil(t, err)
 
-	defer func() {
+	t.Cleanup(func() {
 		th.App.PermanentDeleteTeam(th.Context, sourceTeam)
 		th.App.PermanentDeleteTeam(th.Context, targetTeam)
-	}()
+	})
 
 	// Move a command and check the team is updated.
 	assert.Nil(t, th.App.MoveCommand(targetTeam, command))
@@ -70,7 +69,6 @@ func TestMoveCommand(t *testing.T) {
 
 func TestCreateCommandPost(t *testing.T) {
 	th := setup(t).initBasic(t)
-	defer th.tearDown(t)
 
 	post := &model.Post{
 		ChannelId: th.BasicChannel.Id,
@@ -90,7 +88,6 @@ func TestCreateCommandPost(t *testing.T) {
 
 func TestExecuteCommand(t *testing.T) {
 	th := setup(t).initBasic(t)
-	defer th.tearDown(t)
 
 	t.Run("valid tests with different whitespace characters", func(t *testing.T) {
 		TestCases := map[string]string{
@@ -138,7 +135,6 @@ func TestExecuteCommand(t *testing.T) {
 
 func TestHandleCommandResponsePost(t *testing.T) {
 	th := setup(t).initBasic(t)
-	defer th.tearDown(t)
 
 	command := &model.Command{}
 	args := &model.CommandArgs{
@@ -293,7 +289,6 @@ func TestHandleCommandResponsePost(t *testing.T) {
 
 func TestHandleCommandResponse(t *testing.T) {
 	th := setup(t).initBasic(t)
-	defer th.tearDown(t)
 
 	command := &model.Command{}
 
@@ -351,7 +346,6 @@ func TestHandleCommandResponse(t *testing.T) {
 
 func TestDoCommandRequest(t *testing.T) {
 	th := setup(t)
-	defer th.tearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("127.0.0.1")
@@ -362,7 +356,7 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			io.Copy(w, strings.NewReader("Hello, World!"))
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
@@ -377,7 +371,7 @@ func TestDoCommandRequest(t *testing.T) {
 
 			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
@@ -390,7 +384,7 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			io.Copy(w, InfiniteReader{})
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		// Since we limit the length of the response, no error will be returned and resp.Text will be a finite string
 
@@ -405,7 +399,7 @@ func TestDoCommandRequest(t *testing.T) {
 
 			io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
@@ -418,7 +412,7 @@ func TestDoCommandRequest(t *testing.T) {
 
 			io.Copy(w, InfiniteReader{})
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
@@ -431,7 +425,7 @@ func TestDoCommandRequest(t *testing.T) {
 			<-done
 			io.Copy(w, strings.NewReader("Hello, World!"))
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
@@ -449,7 +443,7 @@ func TestDoCommandRequest(t *testing.T) {
 
 			io.Copy(w, strings.NewReader("Hello, World!"))
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(2))
@@ -476,7 +470,7 @@ func TestDoCommandRequest(t *testing.T) {
 		serverCommand := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			io.Copy(w, strings.NewReader(r.Header.Get("Authorization")))
 		}))
-		defer serverCommand.Close()
+		t.Cleanup(serverCommand.Close)
 
 		connection := &model.OutgoingOAuthConnection{
 			Id:            model.NewId(),
@@ -510,7 +504,6 @@ func TestDoCommandRequest(t *testing.T) {
 
 func TestMentionsToTeamMembers(t *testing.T) {
 	th := setup(t).initBasic(t)
-	defer th.tearDown(t)
 
 	otherTeam := th.createTeam(t)
 	otherUser := th.createUser(t)
@@ -596,7 +589,6 @@ func TestMentionsToTeamMembers(t *testing.T) {
 
 func TestMentionsToPublicChannels(t *testing.T) {
 	th := setup(t).initBasic(t)
-	defer th.tearDown(t)
 
 	otherPublicChannel := th.CreateChannel(t, th.BasicTeam)
 	privateChannel := th.createPrivateChannel(t, th.BasicTeam)

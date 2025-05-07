@@ -55,7 +55,6 @@ func TestGroupMsgUsernames(t *testing.T) {
 
 func TestGroupMsgProvider(t *testing.T) {
 	th := setup(t).initBasic(t)
-	defer th.tearDown(t)
 
 	user3 := th.createUser(t)
 	targetUsers := "@" + th.BasicUser2.Username + ",@" + user3.Username + " "
@@ -82,7 +81,7 @@ func TestGroupMsgProvider(t *testing.T) {
 
 	t.Run("Check without permissions to view a user in the list.", func(t *testing.T) {
 		th.removePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
-		defer th.addPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+		t.Cleanup(func() { th.addPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId) })
 		resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 			T:       i18n.IdentityTfunc(),
 			SiteURL: "http://test.url",
