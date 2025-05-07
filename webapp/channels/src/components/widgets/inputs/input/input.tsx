@@ -290,6 +290,8 @@ const Input = React.forwardRef((
                             'icon-information-outline': (customInputLabel?.type || 'error') === ItemStatus.INFO,
                             'icon-check': (customInputLabel?.type || 'error') === ItemStatus.SUCCESS,
                         })}
+                        role='img'
+                        aria-label={customInputLabel?.type || 'error'}
                     />
                     <span>{customInputLabel?.value || derivedErrorMessage}</span>
                 </div>
