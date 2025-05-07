@@ -101,7 +101,7 @@ export default class Setup extends React.PureComponent<Props, State> {
                 error: (
                     <FormattedMessage
                         id='mfa.setup.codeError'
-                        defaultMessage='Please enter the code from Google Authenticator.'
+                        defaultMessage='Please enter the code from your authenticator app.'
                     />
                 ),
             });
