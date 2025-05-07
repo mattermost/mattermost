@@ -16,6 +16,8 @@ type Props = {
     isHighlighted?: boolean;
     style?: React.CSSProperties;
     className?: string;
+    dataTestId?: string;
+    dataPostId?: string;
 };
 
 const isEligibleForClick = makeIsEligibleForClick('.hljs, code');
@@ -28,6 +30,8 @@ function Panel({
     isHighlighted,
     style,
     className,
+    dataTestId,
+    dataPostId,
 }: Props) {
     const handleOnClick = (e: React.MouseEvent<HTMLElement>) => {
         if (isEligibleForClick(e)) {
@@ -43,6 +47,8 @@ function Panel({
 
     return (
         <div
+            data-testid={dataTestId}
+            data-postid={dataPostId}
             className={classNames(
                 'Panel',
                 {

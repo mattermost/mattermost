@@ -232,7 +232,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["ScheduledPosts"] = strconv.FormatBool(*c.ServiceSettings.ScheduledPosts)
 		}
 
-		if license.SkuShortName == model.LicenseShortSkuEnterprise {
+		if model.MinimumEnterpriseLicense(license) {
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
@@ -402,7 +402,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["OpenIdButtonText"] = *c.OpenIdSettings.ButtonText
 		}
 
-		if license.SkuShortName == model.LicenseShortSkuEnterprise {
+		if model.MinimumEnterpriseLicense(license) {
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
