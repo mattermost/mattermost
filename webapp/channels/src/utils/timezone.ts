@@ -5,7 +5,7 @@ import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
 
 export function getBrowserTimezone() {
-    return moment.tz.guess();
+    return moment.tz.guess(true);
 }
 
 export function getBrowserUtcOffset() {
