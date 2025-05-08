@@ -16,7 +16,9 @@ import (
 )
 
 func (ps *PlatformService) AddStatusCacheSkipClusterSend(status *model.Status) {
-	ps.statusCache.SetWithDefaultExpiry(status.UserId, status)
+	if err := ps.statusCache.SetWithDefaultExpiry(status.UserId, status); err != nil {
+		ps.logger.Warn("Failed to set cache entry for status", mlog.String("user_id", status.UserId), mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) AddStatusCache(status *model.Status) {
@@ -287,7 +289,9 @@ func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
 	}
 
 	session.LastActivityAt = now
-	ps.AddSessionToCache(&session)
+	if err := ps.AddSessionToCache(&session); err != nil {
+		mlog.Warn("Failed to add session to cache", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {

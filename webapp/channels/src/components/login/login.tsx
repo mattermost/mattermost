@@ -474,6 +474,12 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         };
     }, []);
 
+    useEffect(() => {
+        if (hasError) {
+            loginIdInput.current?.focus();
+        }
+    }, [hasError]);
+
     if (initializing) {
         return (<LoadingScreen/>);
     }
@@ -848,7 +854,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
                             className='login-body-card-content'
-                            tabIndex={0}
                         >
                             <p className='login-body-card-title'>
                                 {getCardTitle()}
@@ -856,6 +861,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                             {enableCustomBrand && getMessageSubtitle()}
                             {alertBanner && (
                                 <AlertBanner
+                                    id='login-body-card-banner'
                                     className='login-body-card-banner'
                                     mode={alertBanner.mode}
                                     title={alertBanner.title}
@@ -870,6 +876,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                 >
                                     <div className='login-body-card-form'>
                                         <Input
+                                            data-testid='login-id-input'
                                             ref={loginIdInput}
                                             name='loginId'
                                             containerClassName='login-body-card-form-input'
@@ -881,6 +888,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             placeholder={getInputPlaceholder()}
                                             disabled={isWaiting}
                                             autoFocus={true}
+                                            aria-describedby={alertBanner ? 'login-body-card-banner' : undefined}
                                         />
                                         <PasswordInput
                                             ref={passwordInput}
