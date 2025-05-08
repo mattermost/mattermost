@@ -285,7 +285,7 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 func (scs *Service) tryScheduleGlobalUserSync(rc *model.RemoteCluster) {
 	cfg := scs.server.Config()
 
-	if !cfg.FeatureFlags.SyncAllUsersForRemoteCluster {
+	if !cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster {
 		return
 	}
 

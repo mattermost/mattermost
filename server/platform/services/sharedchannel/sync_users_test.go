@@ -283,7 +283,7 @@ func SetupTestHelperWithStore(tb testing.TB) *TestHelper {
 	serverConfig := &model.Config{}
 	serverConfig.SetDefaults()
 	serverConfig.FeatureFlags = &model.FeatureFlags{}
-	serverConfig.FeatureFlags.SyncAllUsersForRemoteCluster = true
+	serverConfig.FeatureFlags.EnableSyncAllUsersForRemoteCluster = true
 
 	testServer := &TestServer{
 		Store:  store,
@@ -321,7 +321,7 @@ func TestOnConnectionStateChangeWithUserSync(t *testing.T) {
 		// Set up configuration
 		mockConfig := &model.Config{}
 		mockConfig.FeatureFlags = &model.FeatureFlags{}
-		mockConfig.FeatureFlags.SyncAllUsersForRemoteCluster = true
+		mockConfig.FeatureFlags.EnableSyncAllUsersForRemoteCluster = true
 		mockServer.On("Config").Return(mockConfig)
 
 		// Mock the GetRemoteClusterService call that's used in SendPendingInvitesForRemote

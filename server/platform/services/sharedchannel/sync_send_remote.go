@@ -977,9 +977,9 @@ func (scs *Service) sendSyncMsgToPlugin(msg *model.SyncMsg, rc *model.RemoteClus
 	return errResp
 }
 
-// handleGlobalUserSyncTask checks if the feature flag is enabled and performs a global user sync
+// Performs a global user sync
 func (scs *Service) handleGlobalUserSyncTask(rc *model.RemoteCluster) error {
-	if !scs.server.Config().FeatureFlags.SyncAllUsersForRemoteCluster {
+	if !scs.server.Config().FeatureFlags.EnableSyncAllUsersForRemoteCluster {
 		return nil // Skip if feature flag has been disabled
 	}
 
