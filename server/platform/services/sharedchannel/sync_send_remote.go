@@ -686,57 +686,21 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 }
 
 // shouldUserSyncGlobal determines if a user needs to be synchronized globally.
-// Checks if the user has any sync records for the remote cluster and if any of them need updating.
-func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteCluster, syncData *userSyncData) (bool, error) {
+// Compares user's update timestamp with the remote cluster's LastGlobalUserSyncAt.
+func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteCluster) (bool, error) {
 	// Don't sync users back to the remote cluster they originated from
 	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
 		return false, nil
 	}
 
-	// First check the cache if provided
-	if syncData != nil {
-		channelMap, exists := syncData.userSyncMap[user.Id]
-
-		// If user doesn't exist in our sync map, they need syncing
-		if !exists {
-			return true, nil
-		}
-
-		// Check if any channel entry needs updating
-		for _, lastSyncAt := range channelMap {
-			if user.UpdateAt > lastSyncAt || user.LastPictureUpdate > lastSyncAt {
-				return true, nil
-			}
-		}
-
-		// All entries are up to date
-		return false, nil
+	// Calculate latest update time for this user (profile or picture)
+	latestUserUpdateTime := user.UpdateAt
+	if user.LastPictureUpdate > latestUserUpdateTime {
+		latestUserUpdateTime = user.LastPictureUpdate
 	}
 
-	// No cache or cache not initialized - query the database
-	scus, err := scs.server.GetStore().SharedChannel().GetUsersByUserAndRemote(user.Id, rc.RemoteId)
-	if err != nil {
-		if _, ok := err.(errNotFound); !ok {
-			return false, err
-		}
-		// No entries found - user needs sync
-		return true, nil
-	}
-
-	// No sync entries found means user needs syncing
-	if len(scus) == 0 {
-		return true, nil
-	}
-
-	// Check if any channel entry needs updating
-	for _, scu := range scus {
-		if user.UpdateAt > scu.LastSyncAt || user.LastPictureUpdate > scu.LastSyncAt {
-			return true, nil
-		}
-	}
-
-	// User has entries and all are up to date
-	return false, nil
+	// Simple check: user needs sync if their latest update is newer than the last global sync
+	return latestUserUpdateTime > rc.LastGlobalUserSyncAt, nil
 }
 
 // syncAllUsersForRemote synchronizes all local users to a remote cluster.
@@ -792,9 +756,6 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 	// Keep track of the highest timestamp we've processed to save as the cursor
 	var latestProcessedTime int64 = rc.LastGlobalUserSyncAt
 
-	// Initialize user sync data cache
-	syncData := scs.initUserSyncCache(rc)
-
 	var processedCount int
 	var totalUserCount int
 	merr := merror.New()
@@ -830,8 +791,8 @@ func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 				continue
 			}
 
-			// Check if this user needs syncing (additional check with individual sync records)
-			needsSync, err := scs.shouldUserSyncGlobal(user, rc, syncData)
+			// Simple check: user needs sync if their latest update is newer than the last global sync
+			needsSync, err := scs.shouldUserSyncGlobal(user, rc)
 			if err != nil {
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error checking if user needs sync",
 					mlog.String("user_id", user.Id),
@@ -985,32 +946,6 @@ func (scs *Service) handleGlobalUserSyncTask(rc *model.RemoteCluster) error {
 
 	// Perform a full user sync with the remote cluster
 	return scs.syncAllUsersForRemote(rc)
-}
-
-// initUserSyncCache initializes cache for user sync data from the database
-func (scs *Service) initUserSyncCache(rc *model.RemoteCluster) *userSyncData {
-	syncData := &userSyncData{
-		userSyncMap: make(map[string]map[string]int64),
-	}
-
-	// Fetch all user sync records for the target remote cluster in a single query
-	allSyncRecords, err := scs.server.GetStore().SharedChannel().GetUsersByRemote(rc.RemoteId)
-	if err != nil && !isNotFoundError(err) {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error fetching user sync records",
-			mlog.String("remote_id", rc.RemoteId),
-			mlog.Err(err),
-		)
-	} else {
-		// Build the user sync map
-		for _, record := range allSyncRecords {
-			if _, ok := syncData.userSyncMap[record.UserId]; !ok {
-				syncData.userSyncMap[record.UserId] = make(map[string]int64)
-			}
-			syncData.userSyncMap[record.UserId][record.ChannelId] = record.LastSyncAt
-		}
-	}
-
-	return syncData
 }
 
 func sanitizeSyncData(sd *syncData) {

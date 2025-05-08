@@ -114,28 +114,6 @@ func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[str
 	// Full implementation for normal tests with real DB
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "ExtractUsersFromSyncForTest running in normal mode with DB")
 
-	// Initialize user sync data cache
-	syncData := &userSyncData{
-		userSyncMap: make(map[string]map[string]int64),
-	}
-
-	// Fetch all user sync records for the target remote cluster in a single query
-	allSyncRecords, err := scs.server.GetStore().SharedChannel().GetUsersByRemote(rc.RemoteId)
-	if err != nil && !isNotFoundError(err) {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error fetching user sync records",
-			mlog.String("remote_id", rc.RemoteId),
-			mlog.Err(err),
-		)
-	} else {
-		// Build the user sync map
-		for _, record := range allSyncRecords {
-			if _, ok := syncData.userSyncMap[record.UserId]; !ok {
-				syncData.userSyncMap[record.UserId] = make(map[string]int64)
-			}
-			syncData.userSyncMap[record.UserId][record.ChannelId] = record.LastSyncAt
-		}
-	}
-
 	// Track the highest processed timestamp to update LastGlobalUserSyncAt
 	var latestProcessedTime int64 = rc.LastGlobalUserSyncAt
 
@@ -179,16 +157,8 @@ func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[str
 				latestUserUpdateTime = user.LastPictureUpdate
 			}
 
-			// Check if this user needs syncing (additional check with individual sync records)
-			needsSync, err := scs.shouldUserSyncGlobal(user, rc, syncData)
-			if err != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error checking if user needs sync",
-					mlog.String("user_id", user.Id),
-					mlog.String("remote_id", rc.RemoteId),
-					mlog.Err(err),
-				)
-				continue
-			}
+			// Simple timestamp comparison - user needs sync if updated after the last sync
+			needsSync := latestUserUpdateTime > rc.LastGlobalUserSyncAt
 
 			if !needsSync {
 				continue

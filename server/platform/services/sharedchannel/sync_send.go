@@ -547,12 +547,6 @@ func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 	return i18n.GetUserTranslations(locale)
 }
 
-// userSyncData holds cached sync data for users
-type userSyncData struct {
-	// map of userID -> map of channelID -> LastSyncAt timestamp
-	userSyncMap map[string]map[string]int64
-}
-
 // shouldUserSync determines if a user needs to be synchronized.
 // User should be synchronized if it has no entry in the SharedChannelUsers table for the specified channel,
 // or there is an entry but the LastSyncAt is less than user.UpdateAt
