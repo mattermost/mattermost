@@ -62,3 +62,14 @@ export type AccessControlAttribute = {
     name: string;
     values: string[];
 }
+
+export type AccessControlVisualAST = {
+    conditions: AccessControlVisualASTNode[];
+}
+
+export type AccessControlVisualASTNode = {
+    attribute: string;
+    operator: string;
+    value: any;
+    value_type: number;
+}

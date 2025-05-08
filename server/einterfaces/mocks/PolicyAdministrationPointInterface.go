@@ -67,6 +67,38 @@ func (_m *PolicyAdministrationPointInterface) DeletePolicy(rctx request.CTX, id 
 	return r0
 }
 
+// ExpressionToVisualAST provides a mock function with given fields: rctx, expression
+func (_m *PolicyAdministrationPointInterface) ExpressionToVisualAST(rctx request.CTX, expression string) (*model.VisualExpression, *model.AppError) {
+	ret := _m.Called(rctx, expression)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ExpressionToVisualAST")
+	}
+
+	var r0 *model.VisualExpression
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.VisualExpression, *model.AppError)); ok {
+		return rf(rctx, expression)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.VisualExpression); ok {
+		r0 = rf(rctx, expression)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.VisualExpression)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
+		r1 = rf(rctx, expression)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetChannelMembersToRemove provides a mock function with given fields: rctx, channelID
 func (_m *PolicyAdministrationPointInterface) GetChannelMembersToRemove(rctx request.CTX, channelID string) ([]*model.ChannelMember, *model.AppError) {
 	ret := _m.Called(rctx, channelID)

@@ -16,10 +16,12 @@ import (
 
 func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessControlPolicy)).Methods(http.MethodPut)
-	api.BaseRoutes.AccessControlPolicies.Handle("/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicies.Handle("/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicies.Handle("/autocomplete/fields", api.APISessionRequired(getFieldsAutocomplete)).Methods(http.MethodGet)
+
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/autocomplete/fields", api.APISessionRequired(getFieldsAutocomplete)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/visual_ast", api.APISessionRequired(convertToVisualAST)).Methods(http.MethodPost)
 
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(getAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(deleteAccessControlPolicy)).Methods(http.MethodDelete)
@@ -476,6 +478,35 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	var cel struct {
+		Expression string `json:"expression"`
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&cel); jsonErr != nil {
+		c.SetInvalidParamWithErr("user", jsonErr)
+		return
+	}
+	visualAST, appErr := c.App.ExpressionToVisualAST(c.AppContext, cel.Expression)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	b, err := json.Marshal(visualAST)
+	if err != nil {
+		c.Err = model.NewAppError("convertToVisualAST", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

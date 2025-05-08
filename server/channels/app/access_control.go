@@ -277,3 +277,17 @@ func (a *App) UpdateAccessControlPolicyActive(rctx request.CTX, policyID string,
 
 	return nil
 }
+
+func (a *App) ExpressionToVisualAST(rctx request.CTX, expression string) (*model.VisualExpression, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("ExpressionToVisualAST", "app.pap.expression_to_visual_ast.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	visualAST, appErr := acs.ExpressionToVisualAST(rctx, expression)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return visualAST, nil
+}

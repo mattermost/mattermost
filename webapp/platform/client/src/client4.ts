@@ -3,7 +3,7 @@
 
 /* eslint-disable max-lines */
 
-import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
@@ -4482,22 +4482,29 @@ export default class Client4 {
 
     getAccessControlFields = (after: string, limit: number) => {
         return this.doFetch<PropertyField[]>(
-            `${this.getBaseRoute()}/access_control_policies/autocomplete/fields?after=${after}&limit=${limit}`,
+            `${this.getBaseRoute()}/access_control_policies/cel/autocomplete/fields?after=${after}&limit=${limit}`,
             {method: 'get'},
         );
     };
 
     checkAccessControlExpression = (expression: string) => {
         return this.doFetch<CELExpressionError[]>(
-            `${this.getBaseRoute()}/access_control_policies/check`,
+            `${this.getBaseRoute()}/access_control_policies/cel/check`,
             {method: 'post', body: JSON.stringify({expression})},
         );
     };
 
     testAccessControlExpression = (expression: string, term: string, after: string, limit: number) => {
         return this.doFetch<AccessControlTestResult>(
-            `${this.getBaseRoute()}/access_control_policies/test`,
+            `${this.getBaseRoute()}/access_control_policies/cel/test`,
             {method: 'post', body: JSON.stringify({expression, term, after, limit})},
+        );
+    };
+
+    expressionToVisualFormat = (expression: string) => {
+        return this.doFetch<AccessControlVisualAST>(
+            `${this.getBaseRoute()}/access_control_policies/cel/visual_ast`,
+            {method: 'post', body: JSON.stringify({expression})},
         );
     };
 }

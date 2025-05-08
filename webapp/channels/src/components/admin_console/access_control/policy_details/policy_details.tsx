@@ -94,7 +94,7 @@ function PolicyDetails({
         // Expression is simple if it only contains user.attributes.X == "Y" or user.attributes.X in ["Y", "Z"]
         return expr.split('&&').every((condition) => {
             const trimmed = condition.trim();
-            return trimmed.match(/^user\.attributes\.\w+\s*==\s*['"][^'"]+['"]$/) ||
+            return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]+['"]$/) ||
                    trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/);
         });
     };

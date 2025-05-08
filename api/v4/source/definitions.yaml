@@ -4079,6 +4079,35 @@ components:
         after:
           type: string
           description: The ID of the user to start the test after (for pagination).
+    CELExpression:
+      type: object
+      properties:
+        expression:
+          type: string
+          description: The CEL expression to visualize.
+    VisualExpression:
+      type: object
+      properties:
+        conditions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Condition"
+          description: The visual AST for the CEL expression
+    Condition:
+      type: object
+      properties:
+        attribute:
+          type: string
+          description: The attribute name.
+        operator:
+          type: string
+          description: The operator of a single condition.
+        value:
+          type: string
+          description: The value.
+        value_type:
+          type: string
+          description: The value type.
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

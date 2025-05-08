@@ -625,6 +625,10 @@ func (c *Client4) accessControlPoliciesRoute() string {
 	return "/access_control_policies"
 }
 
+func (c *Client4) celRoute() string {
+	return "/access_control_policies/cel"
+}
+
 func (c *Client4) accessControlPolicyRoute(policyID string) string {
 	return fmt.Sprintf(c.accessControlPoliciesRoute()+"/%v", policyID)
 }
@@ -9600,7 +9604,7 @@ func (c *Client4) CheckExpression(ctx context.Context, expression string) ([]CEL
 		return nil, nil, NewAppError("CheckExpression", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	r, err := c.DoAPIPostBytes(ctx, c.accessControlPoliciesRoute()+"/check", b)
+	r, err := c.DoAPIPostBytes(ctx, c.celRoute()+"/check", b)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -9620,7 +9624,7 @@ func (c *Client4) TestExpression(ctx context.Context, params QueryExpressionPara
 		return nil, nil, NewAppError("TestExpression", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	r, err := c.DoAPIPostBytes(ctx, c.accessControlPoliciesRoute()+"/test", b)
+	r, err := c.DoAPIPostBytes(ctx, c.celRoute()+"/test", b)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

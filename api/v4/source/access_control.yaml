@@ -29,7 +29,7 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  /api/v4/access_control_policies/check:
+  /api/v4/access_control_policies/cel/check:
     post:
       tags:
         - access control
@@ -66,7 +66,7 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  /api/v4/access_control_policies/test:
+  /api/v4/access_control_policies/cel/test:
     post:
       tags:
         - access control
@@ -128,7 +128,7 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  /api/v4/access_control_policies/autocomplete/fields:
+  /api/v4/access_control_policies/cel/autocomplete/fields:
     get:
       tags:
         - access control
@@ -489,5 +489,36 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v4/access_control_policies/cel/visual_ast:
+    post:
+      tags:
+        - access control
+      summary: Get the visual AST for a CEL expression
+      description: |
+        Retrieves the visual AST for a CEL expression.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: GetCELVisualAST
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CELExpression"
+      responses:
+        "200":
+          description: Visual AST retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisualExpression" 
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"

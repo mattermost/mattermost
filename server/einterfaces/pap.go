@@ -22,6 +22,8 @@ type PolicyAdministrationPointInterface interface {
 	// It returns a list of CELExpressionError if the expression is invalid.
 	// If the expression is valid, it returns an empty list.
 	CheckExpression(rctx request.CTX, expression string) ([]model.CELExpressionError, *model.AppError)
+	// ExpressionToVisualAST converts the given expression to a visual AST.
+	ExpressionToVisualAST(rctx request.CTX, expression string) (*model.VisualExpression, *model.AppError)
 	// NormalizePolicy normalizes the given policy by restoring ids back to names.
 	NormalizePolicy(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)
 	// QueryUsersForExpression evaluates the given expression using the CEL engine.

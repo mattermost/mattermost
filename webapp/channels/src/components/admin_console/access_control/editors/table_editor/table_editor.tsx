@@ -5,6 +5,7 @@ import React, {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
+import {Client4} from 'mattermost-redux/client';
 
 import Markdown from 'components/markdown';
 
@@ -27,7 +28,7 @@ interface TableEditorProps {
 
 interface TableRow {
     attribute: string;
-    operator: 'is' | 'in';
+    operator: string;
     values: string[];
 }
 
@@ -122,46 +123,54 @@ function AttributeDropdown({
 }
 
 // Parse CEL expression into table rows
-const parseExpression = (expr: string): TableRow[] => {
+const parseExpression = async (expr: string): Promise<TableRow[]> => {
+    const tableRows: TableRow[] = [];
+
     if (!expr) {
-        return [];
+        return tableRows;
     }
 
-    const rows: TableRow[] = [];
-    const conditions = expr.split('&&').map((c) => c.trim());
+    const rawVisualAST = await Client4.expressionToVisualFormat(expr);
+    for (const node of rawVisualAST.conditions) {
+        let attr;
 
-    for (const condition of conditions) {
-        // Handle "is" operator (==)
-        const isMatch = condition.match(/user\.attributes\.(\w+)\s*==\s*['"]([^'"]+)['"]/);
-        if (isMatch) {
-            rows.push({
-                attribute: isMatch[1],
-                operator: 'is',
-                values: [isMatch[2]],
-            });
-            continue;
+        if (node.attribute.startsWith('user.attributes.')) {
+            attr = node.attribute.slice(16); // wow, there is no trim-prefix
+        } else {
+            throw new Error(`Unknown attribute: ${node.attribute}`);
         }
 
-        // Handle "in" operator
-        const inMatch = condition.match(/user\.attributes\.(\w+)\s+in\s+\[(.*?)\]/);
-        if (inMatch) {
-            const attribute = inMatch[1];
-            const valuesStr = inMatch[2];
+        let op;
 
-            // Extract values from array notation
-            const values = valuesStr.split(',').map((v) => {
-                return v.trim().replace(/^["']|["']$/g, '');
-            });
-
-            rows.push({
-                attribute,
-                operator: 'in',
-                values,
-            });
+        switch (node.operator) {
+        case '==':
+            op = 'is';
+            break;
+        case 'in':
+            op = 'in';
+            break;
+        case '!=':
+            op = 'is not';
+            break;
+        default:
+            throw new Error(`Unknown operator: ${node.operator}`);
         }
+
+        let values;
+        if (Array.isArray(node.value)) {
+            values = node.value;
+        } else {
+            values = [node.value];
+        }
+
+        tableRows.push({
+            attribute: attr,
+            operator: op,
+            values,
+        });
     }
 
-    return rows;
+    return tableRows;
 };
 
 function TableEditor({
@@ -171,7 +180,7 @@ function TableEditor({
     disabled = false,
     userAttributes,
 }: TableEditorProps): JSX.Element {
-    const [rows, setRows] = useState<TableRow[]>(parseExpression(value));
+    const [rows, setRows] = useState<TableRow[]>([]);
     const [showTestResults, setShowTestResults] = useState(false);
     const [showAttributeDropdown, setShowAttributeDropdown] = useState(false);
     const [newValue, setNewValue] = useState('');
@@ -180,15 +189,9 @@ function TableEditor({
 
     // Update rows when value changes externally
     useEffect(() => {
-        const isSimpleExpression = !value || value.split('&&').every((condition) => {
-            const trimmed = condition.trim();
-            return trimmed.match(/^user\.attributes\.\w+\s*==\s*['"][^'"]+['"]$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/);
+        parseExpression(value).then((rows) => {
+            setRows(rows);
         });
-
-        if (isSimpleExpression) {
-            setRows(parseExpression(value));
-        }
     }, [value]);
 
     // Update the CEL expression when table changes
@@ -197,6 +200,10 @@ function TableEditor({
         const expr = validRows.map((row) => {
             if (row.operator === 'is') {
                 return `user.attributes.${row.attribute} == "${row.values[0]}"`;
+            }
+
+            if (row.operator === 'is not') {
+                return `user.attributes.${row.attribute} != "${row.values[0]}"`;
             }
 
             const valuesStr = row.values.map((val) => `"${val}"`).join(', ');
@@ -222,12 +229,12 @@ function TableEditor({
         updateExpression(newRows);
     };
 
-    const updateRowOperator = (index: number, newOperator: 'is' | 'in') => {
+    const updateRowOperator = (index: number, newOperator: string) => {
         const newRows = [...rows];
         newRows[index].operator = newOperator;
 
         // If changing from 'in' to 'is', keep only the first value
-        if (newOperator === 'is' && newRows[index].values.length > 1) {
+        if ((newOperator === 'is' || newOperator === 'is not') && newRows[index].values.length > 1) {
             newRows[index].values = [newRows[index].values[0]];
         }
 
@@ -243,7 +250,7 @@ function TableEditor({
         const newRows = [...rows];
 
         // For 'is' operator, replace the value; for 'in', add to the array
-        if (newRows[index].operator === 'is') {
+        if (newRows[index].operator === 'is' || newRows[index].operator === 'is not') {
             newRows[index].values = [value];
         } else if (!newRows[index].values.includes(value)) {
             // Only add if not already in the array
@@ -294,20 +301,21 @@ function TableEditor({
         </div>
     );
 
-    const renderOperator = (rowIndex: number, operator: 'is' | 'in') => (
+    const renderOperator = (rowIndex: number, operator: string) => (
         <div className='table-editor__cell table-editor__operator'>
             <select
                 value={operator}
-                onChange={(e) => updateRowOperator(rowIndex, e.target.value as 'is' | 'in')}
+                onChange={(e) => updateRowOperator(rowIndex, e.target.value)}
                 disabled={disabled}
             >
                 <option value='is'>{'is'}</option>
                 <option value='in'>{'in'}</option>
+                <option value='is not'>{'is not'}</option>
             </select>
         </div>
     );
 
-    const renderValues = (rowIndex: number, rowValues: string[], rowOperator: 'is' | 'in') => (
+    const renderValues = (rowIndex: number, rowValues: string[], rowOperator: string) => (
         <div className='table-editor__cell table-editor__values'>
             <div className='table-editor__values-container'>
                 {rowValues.map((value, valueIndex) => (
