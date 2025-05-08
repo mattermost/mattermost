@@ -69,24 +69,26 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		mlog.Int("status_count", len(syncMsg.Statuses)),
 	)
 
-	// make sure target channel is shared with the remote
-	// First, check if the channel is shared at all
-	_, err = scs.server.GetStore().SharedChannel().Get(syncMsg.ChannelId)
-	if err != nil {
-		// Channel is not shared
-		return fmt.Errorf("%w: %s", ErrChannelNotShared, syncMsg.ChannelId)
-	}
-
-	// Then check if it's shared with this specific remote
+	// Check if the channel is shared with this remote
 	exists, err := scs.server.GetStore().SharedChannel().HasRemote(syncMsg.ChannelId, rc.RemoteId)
 	if err != nil {
 		return fmt.Errorf("cannot check channel share state for sync message: %w", err)
 	}
+
+	// If it's not shared with this remote, we need to determine if the channel
+	// is not shared at all (ErrChannelNotShared) or just not with this remote (ErrRemoteIDMismatch)
 	if !exists {
+		// Check if the channel is shared with any remote
+		_, getErr := scs.server.GetStore().SharedChannel().Get(syncMsg.ChannelId)
+		if getErr != nil {
+			// Channel is not shared at all
+			return fmt.Errorf("%w: %s", ErrChannelNotShared, syncMsg.ChannelId)
+		}
+		// Channel is shared but not with this remote
 		return fmt.Errorf("cannot process sync message; channel not shared with remote: %w", ErrRemoteIDMismatch)
 	}
 
-	// Now that we've verified the channel is shared, get the channel details
+	// Now that we've verified the channel is shared with this remote, get the channel details
 	if targetChannel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
 		// if the channel doesn't exist then none of these sync items are going to work.
 		return fmt.Errorf("channel not found processing sync message: %w", err)
