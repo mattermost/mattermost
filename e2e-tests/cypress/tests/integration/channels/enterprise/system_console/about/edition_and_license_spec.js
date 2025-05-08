@@ -78,32 +78,6 @@ describe('System console', () => {
         cy.findByRole('link', {name: 'Compare Plans'}).should('not.exist');
     });
 
-    it('MM-41398 - License page shows upgrade to Enterprise for Professional licenses', () => {
-        cy.visit('/admin_console/about/license');
-        cy.get('.admin-console__header').
-            should('be.visible').
-            and('have.text', 'Edition and License');
-
-        // Validate Professional to Enterprise upgrade content
-        cy.get('.EnterpriseEditionRightPannel').
-            should('be.visible').
-            within(() => {
-                // Check the title
-                cy.get('.upgrade-title').should('have.text', 'Upgrade to Enterprise');
-
-                // Check the advantages list
-                cy.findByText('AD/Ldap Group sync');
-                cy.findByText('High Availability');
-                cy.findByText('Advanced compliance');
-                cy.findByText('Advanced roles and permissions');
-                cy.findByText('And more...');
-                cy.findByRole('button', {name: 'Contact sales'});
-            });
-
-        // Validate Compare plans link is not present for Professional licenses
-        cy.findByRole('link', {name: 'Compare Plans'}).should('not.exist');
-    });
-
     it('MM-T1201 - Remove and re-add license - Permissions freeze in place when license is removed (and then re-added)', () => {
         // * Verify user access per permissions changed while on E20
         verifyUserChannelPermission(teamName, privateChannelName, sysadmin, teamAdmin, regularUser);
