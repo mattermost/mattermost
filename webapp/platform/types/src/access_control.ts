@@ -53,11 +53,6 @@ export type AccessControlTestResult = {
     total: number;
 }
 
-export type AccessControlEntity = {
-    name: string;
-    attributes: AccessControlAttribute[];
-}
-
 export type AccessControlAttribute = {
     name: string;
     values: string[];

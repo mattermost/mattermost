@@ -42,7 +42,7 @@ jest.mock('./search', () => {
 });
 
 // Mock the useAccessControlAttributes hook
-jest.mock('hooks/useAccessControlAttributes', () => {
+jest.mock('components/common/hooks/useAccessControlAttributes', () => {
     return jest.fn(() => ({
         attributeTags: ['tag1', 'tag2'],
         loading: false,
