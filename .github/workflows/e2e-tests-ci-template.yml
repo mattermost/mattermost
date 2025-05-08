@@ -422,6 +422,7 @@ jobs:
           MM_ENV: "${{ inputs.MM_ENV }}"
           TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
           TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
+          CI: true
         run: |
           make report
       # The results dir may have been modified as part of the reporting: re-upload
@@ -434,6 +435,12 @@ jobs:
             e2e-tests/${{ inputs.TEST }}/logs/
             e2e-tests/${{ inputs.TEST }}/results/
           overwrite: true
+      - name: ci/upload-report-url
+        if: "${{ inputs.enable_reporting && inputs.TEST == 'playwright' }}"
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-url
+          path: e2e-tests/playwright/report-url.txt
       - name: ci/report-calculate-results
         id: calculate-results
         env:
@@ -479,6 +486,19 @@ jobs:
       - test
       - report
     steps:
+      - name: ci/download-report-url
+        if: ${{ inputs.TEST == 'playwright' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report-url
+      - name: ci/set-target-url
+        id: target
+        run: |
+          if [ "${{ inputs.TEST }}" = "playwright" ] && [ -f report-url.txt ]; then
+            echo "target_url=$(cat report-url.txt)" >> $GITHUB_OUTPUT
+          else
+            echo "target_url=${{ needs.generate-test-cycle.outputs.status_check_url }}" >> $GITHUB_OUTPUT
+          fi
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -488,7 +508,7 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: failure
-          target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
+          target_url: "${{ steps.target.outputs.target_url }}"
 
   update-success-final-status:
     runs-on: ubuntu-latest
@@ -498,6 +518,19 @@ jobs:
       - test
       - report
     steps:
+      - name: ci/download-report-url
+        if: ${{ inputs.TEST == 'playwright' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report-url
+      - name: ci/set-target-url
+        id: target
+        run: |
+          if [ "${{ inputs.TEST }}" = "playwright" ] && [ -f report-url.txt ]; then
+            echo "target_url=$(cat report-url.txt)" >> $GITHUB_OUTPUT
+          else
+            echo "target_url=${{ needs.generate-test-cycle.outputs.status_check_url }}" >> $GITHUB_OUTPUT
+          fi
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -507,4 +540,4 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: success
-          target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
+          target_url: "${{ steps.target.outputs.target_url }}"
