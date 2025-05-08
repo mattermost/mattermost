@@ -694,7 +694,7 @@ func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteClust
 	}
 
 	// First check the cache if provided
-	if syncData != nil && syncData.initialized {
+	if syncData != nil {
 		channelMap, exists := syncData.userSyncMap[user.Id]
 
 		// If user doesn't exist in our sync map, they need syncing
@@ -980,7 +980,7 @@ func (scs *Service) sendSyncMsgToPlugin(msg *model.SyncMsg, rc *model.RemoteClus
 // Performs a global user sync
 func (scs *Service) handleGlobalUserSyncTask(rc *model.RemoteCluster) error {
 	if !scs.server.Config().FeatureFlags.EnableSyncAllUsersForRemoteCluster {
-		return nil // Skip if feature flag has been disabled
+		return nil
 	}
 
 	// Perform a full user sync with the remote cluster
@@ -991,7 +991,6 @@ func (scs *Service) handleGlobalUserSyncTask(rc *model.RemoteCluster) error {
 func (scs *Service) initUserSyncCache(rc *model.RemoteCluster) *userSyncData {
 	syncData := &userSyncData{
 		userSyncMap: make(map[string]map[string]int64),
-		initialized: false,
 	}
 
 	// Fetch all user sync records for the target remote cluster in a single query
@@ -1009,7 +1008,6 @@ func (scs *Service) initUserSyncCache(rc *model.RemoteCluster) *userSyncData {
 			}
 			syncData.userSyncMap[record.UserId][record.ChannelId] = record.LastSyncAt
 		}
-		syncData.initialized = true
 	}
 
 	return syncData

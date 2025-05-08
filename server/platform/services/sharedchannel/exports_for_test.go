@@ -117,7 +117,6 @@ func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[str
 	// Initialize user sync data cache
 	syncData := &userSyncData{
 		userSyncMap: make(map[string]map[string]int64),
-		initialized: false,
 	}
 
 	// Fetch all user sync records for the target remote cluster in a single query
@@ -135,7 +134,6 @@ func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[str
 			}
 			syncData.userSyncMap[record.UserId][record.ChannelId] = record.LastSyncAt
 		}
-		syncData.initialized = true
 	}
 
 	// Track the highest processed timestamp to update LastGlobalUserSyncAt

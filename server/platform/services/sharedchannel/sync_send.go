@@ -551,7 +551,6 @@ func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 type userSyncData struct {
 	// map of userID -> map of channelID -> LastSyncAt timestamp
 	userSyncMap map[string]map[string]int64
-	initialized bool
 }
 
 // shouldUserSync determines if a user needs to be synchronized.
