@@ -442,10 +442,7 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 		return category, nil
 	}
 
-	isMySQL := false
-	if s.DriverName() == model.DatabaseDriverMysql {
-		isMySQL = true
-	}
+	isMySQL := s.DriverName() == model.DatabaseDriverMysql
 
 	var channelTypeFilter sq.Sqlizer
 	if category.Type == model.SidebarCategoryDirectMessages {
