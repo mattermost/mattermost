@@ -21,6 +21,7 @@ import {filterGroupsMatchingTerm} from 'mattermost-redux/utils/group_utils';
 import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermost-redux/utils/user_utils';
 
 import AlertBanner from 'components/alert_banner';
+import useAccessControlAttributes, {EntityType} from 'components/common/hooks/useAccessControlAttributes';
 import InvitationModal from 'components/invitation_modal';
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
@@ -31,7 +32,6 @@ import GenericTag from 'components/widgets/tag/generic_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
-import useAccessControlAttributes from 'hooks/useAccessControlAttributes';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {sortUsersAndGroups} from 'utils/utils';
 
@@ -105,7 +105,7 @@ const ChannelInviteModalComponent = (props: Props) => {
 
     // Use the useAccessControlAttributes hook
     const {attributeTags} = useAccessControlAttributes(
-        'channel',
+        EntityType.Channel,
         props.channel.id,
         props.channel.policy_enforced,
     );
