@@ -48,8 +48,26 @@ func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[str
 		rc.LastPingAt = model.GetMillis() // Make it appear online
 	}
 
+	// For both short and normal modes, ensure rc is valid
+	if rc.RemoteId == "" {
+		rc.RemoteId = model.NewId() // Ensure we have a valid ID
+	}
+	
+	// Ensure required fields exist for both test modes
+	if rc.SiteURL == "" {
+		rc.SiteURL = "http://example.com"
+	}
+	if rc.Token == "" {
+		rc.Token = model.NewId()
+	}
+	if rc.RemoteToken == "" {
+		rc.RemoteToken = model.NewId()
+	}
+
 	// Fast path for short testing mode
 	if testing.Short() {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "ExtractUsersFromSyncForTest running in short mode")
+		
 		// In short mode, just get users directly from the mock store
 		// and do minimal processing
 		users, err := scs.server.GetStore().User().GetAllProfiles(&model.UserGetOptions{
@@ -67,13 +85,34 @@ func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[str
 			if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
 				continue
 			}
+			
+			// In short mode, we don't need to check shouldUserSyncGlobal to keep it simple
+			// We're essentially simulating that all users need sync for testing purposes
 			sentUsers[user.Id] = user
+		}
+		
+		// Apply batch size limitations in short mode too for consistency
+		if len(sentUsers) > TestableMaxUsersPerSync {
+			// Trim the map to match the batch size
+			// Make a slice of keys for deterministic trimming
+			keys := make([]string, 0, len(sentUsers))
+			for key := range sentUsers {
+				keys = append(keys, key)
+			}
+			
+			// Create a new map with just TestableMaxUsersPerSync entries
+			trimmedUsers := make(map[string]*model.User)
+			for i := 0; i < min(len(keys), TestableMaxUsersPerSync); i++ {
+				trimmedUsers[keys[i]] = sentUsers[keys[i]]
+			}
+			sentUsers = trimmedUsers
 		}
 		
 		return sentUsers, nil
 	}
 
 	// Full implementation for normal tests with real DB
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "ExtractUsersFromSyncForTest running in normal mode with DB")
 	
 	// Initialize user sync data cache
 	syncData := &userSyncData{
@@ -220,8 +259,8 @@ func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[str
 	// Log information about the simulation
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "ExtractUsersFromSyncForTest simulation",
 		mlog.String("remote_id", rc.RemoteId),
-		mlog.Int("initial_cursor", rc.LastGlobalUserSyncAt),
-		mlog.Int("simulated_new_cursor", latestProcessedTime),
+		mlog.Int("initial_cursor", int(rc.LastGlobalUserSyncAt)),
+		mlog.Int("simulated_new_cursor", int(latestProcessedTime)),
 		mlog.Int("users_in_batch", userCount),
 		mlog.Int("max_users_per_batch", TestableMaxUsersPerSync),
 	)
