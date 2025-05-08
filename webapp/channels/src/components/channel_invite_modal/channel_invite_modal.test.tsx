@@ -23,7 +23,7 @@ import {renderWithContext} from 'tests/react_testing_utils';
 type UserProfileValue = Value & UserProfile;
 
 // Mock the useAccessControlAttributes hook
-jest.mock('hooks/useAccessControlAttributes', () => ({
+jest.mock('components/common/hooks/useAccessControlAttributes', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         attributeTags: ['tag1', 'tag2'],
@@ -512,7 +512,7 @@ describe('components/channel_invite_modal', () => {
 
     test('should show loading state for access attributes', () => {
         // Mock the useAccessControlAttributes hook to return loading state
-        const useAccessControlAttributesMock = require('hooks/useAccessControlAttributes').default;
+        const useAccessControlAttributesMock = require('components/common/hooks/useAccessControlAttributes').default;
         useAccessControlAttributesMock.mockReturnValueOnce({
             attributeTags: [],
             loading: true,
@@ -543,7 +543,7 @@ describe('components/channel_invite_modal', () => {
 
     test('should handle error state for access attributes', () => {
         // Mock the useAccessControlAttributes hook to return error state
-        const useAccessControlAttributesMock = require('hooks/useAccessControlAttributes').default;
+        const useAccessControlAttributesMock = require('components/common/hooks/useAccessControlAttributes').default;
         useAccessControlAttributesMock.mockReturnValueOnce({
             attributeTags: [],
             loading: false,
