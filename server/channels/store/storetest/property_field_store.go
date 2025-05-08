@@ -184,10 +184,10 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	groupID := model.NewId()
 	targetID := model.NewId()
 	newField := &model.PropertyField{
-		GroupID:    groupID,
-		TargetID:   targetID,
-		Name:       "unique-field-name",
-		Type:       model.PropertyFieldTypeText,
+		GroupID:  groupID,
+		TargetID: targetID,
+		Name:     "unique-field-name",
+		Type:     model.PropertyFieldTypeText,
 		Attrs: map[string]any{
 			"locked":  true,
 			"special": "value",
@@ -221,10 +221,10 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	// Test with multiple fields with the same name but different groups
 	anotherGroupID := model.NewId()
 	duplicateNameField := &model.PropertyField{
-		GroupID:    anotherGroupID,
-		TargetID:   targetID,
-		Name:       "unique-field-name", // Same name as the first field
-		Type:       model.PropertyFieldTypeSelect,
+		GroupID:  anotherGroupID,
+		TargetID: targetID,
+		Name:     "unique-field-name", // Same name as the first field
+		Type:     model.PropertyFieldTypeSelect,
 		Attrs: map[string]any{
 			"options": []string{"a", "b", "c"},
 		},
@@ -250,10 +250,10 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	// Test with multiple fields with the same name and same group but different target IDs
 	anotherTargetID := model.NewId()
 	sameGroupDifferentTargetField := &model.PropertyField{
-		GroupID:    groupID,
-		TargetID:   anotherTargetID,
-		Name:       "unique-field-name", // Same name as the first field
-		Type:       model.PropertyFieldTypeText,
+		GroupID:  groupID,
+		TargetID: anotherTargetID,
+		Name:     "unique-field-name", // Same name as the first field
+		Type:     model.PropertyFieldTypeText,
 		Attrs: map[string]any{
 			"min": 1,
 			"max": 100,
@@ -275,6 +275,58 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, sameGroupDifferentTargetField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldTypeText, field.Type)
+	})
+
+	// Test with a deleted field
+	t.Run("should not retrieve deleted fields", func(t *testing.T) {
+		// Create another field with a unique name
+		deletedField := &model.PropertyField{
+			GroupID:  groupID,
+			TargetID: targetID,
+			Name:     "to-be-deleted-field",
+			Type:     model.PropertyFieldTypeText,
+		}
+		_, cErr := ss.PropertyField().Create(deletedField)
+		require.NoError(t, cErr)
+		require.NotZero(t, deletedField.ID)
+
+		// Verify it can be retrieved before deletion
+		field, err := ss.PropertyField().GetFieldByName(groupID, targetID, "to-be-deleted-field")
+		require.NoError(t, err)
+		require.Equal(t, deletedField.ID, field.ID)
+
+		// Delete the field
+		err = ss.PropertyField().Delete("", deletedField.ID)
+		require.NoError(t, err)
+
+		// Verify it can't be retrieved after deletion
+		field, err = ss.PropertyField().GetFieldByName(groupID, targetID, "to-be-deleted-field")
+		require.Zero(t, field)
+		require.ErrorIs(t, err, sql.ErrNoRows)
+	})
+
+	t.Run("should not retrieve fields with matching name but different DeleteAt status", func(t *testing.T) {
+		// Create a field with the same name/group/target as the deleted one
+		replacementField := &model.PropertyField{
+			GroupID:  groupID,
+			TargetID: targetID,
+			Name:     "to-be-deleted-field", // Same name as the deleted field
+			Type:     model.PropertyFieldTypeText,
+			Attrs: map[string]any{
+				"min": 0,
+				"max": 10,
+			},
+		}
+		_, cErr := ss.PropertyField().Create(replacementField)
+		require.NoError(t, cErr)
+		require.NotZero(t, replacementField.ID)
+
+		// Verify only the non-deleted field is retrieved
+		field, err := ss.PropertyField().GetFieldByName(groupID, targetID, "to-be-deleted-field")
+		require.NoError(t, err)
+		require.Equal(t, replacementField.ID, field.ID)
+		require.Equal(t, model.PropertyFieldTypeText, field.Type)
+		require.Zero(t, field.DeleteAt)
 	})
 }
 

@@ -71,7 +71,8 @@ func (s *SqlPropertyFieldStore) GetFieldByName(groupID, targetID, name string) (
 	builder := s.tableSelectQuery.
 		Where(sq.Eq{"GroupID": groupID}).
 		Where(sq.Eq{"TargetID": targetID}).
-		Where(sq.Eq{"Name": name})
+		Where(sq.Eq{"Name": name}).
+		Where(sq.Eq{"DeleteAt": 0})
 
 	var field model.PropertyField
 	if err := s.GetReplica().GetBuilder(&field, builder); err != nil {
