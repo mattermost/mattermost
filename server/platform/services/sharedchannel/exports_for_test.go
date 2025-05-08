@@ -52,7 +52,7 @@ func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[str
 	if rc.RemoteId == "" {
 		rc.RemoteId = model.NewId() // Ensure we have a valid ID
 	}
-	
+
 	// Ensure required fields exist for both test modes
 	if rc.SiteURL == "" {
 		rc.SiteURL = "http://example.com"
@@ -67,14 +67,14 @@ func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[str
 	// Fast path for short testing mode
 	if testing.Short() {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "ExtractUsersFromSyncForTest running in short mode")
-		
+
 		// In short mode, just get users directly from the mock store
 		// and do minimal processing
 		users, err := scs.server.GetStore().User().GetAllProfiles(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 100,
 		})
-		
+
 		if err != nil {
 			return nil, err
 		}
@@ -85,12 +85,12 @@ func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[str
 			if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
 				continue
 			}
-			
+
 			// In short mode, we don't need to check shouldUserSyncGlobal to keep it simple
 			// We're essentially simulating that all users need sync for testing purposes
 			sentUsers[user.Id] = user
 		}
-		
+
 		// Apply batch size limitations in short mode too for consistency
 		if len(sentUsers) > TestableMaxUsersPerSync {
 			// Trim the map to match the batch size
@@ -99,21 +99,21 @@ func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[str
 			for key := range sentUsers {
 				keys = append(keys, key)
 			}
-			
+
 			// Create a new map with just TestableMaxUsersPerSync entries
 			trimmedUsers := make(map[string]*model.User)
-			for i := 0; i < min(len(keys), TestableMaxUsersPerSync); i++ {
+			for i := 0; i < minInt(len(keys), TestableMaxUsersPerSync); i++ {
 				trimmedUsers[keys[i]] = sentUsers[keys[i]]
 			}
 			sentUsers = trimmedUsers
 		}
-		
+
 		return sentUsers, nil
 	}
 
 	// Full implementation for normal tests with real DB
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "ExtractUsersFromSyncForTest running in normal mode with DB")
-	
+
 	// Initialize user sync data cache
 	syncData := &userSyncData{
 		userSyncMap: make(map[string]map[string]int64),

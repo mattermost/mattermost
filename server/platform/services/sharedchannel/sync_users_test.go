@@ -241,7 +241,7 @@ func createMockStore() store.Store {
 
 	// Add mock for GetUsersByUserAndRemote which is used by shouldUserSyncGlobal
 	mockSharedChannelStore.On("GetUsersByUserAndRemote", mock.Anything, mock.Anything).Return([]*model.SharedChannelUser{}, nil)
-	
+
 	// Add mock for UpdateUserLastSyncAt which is called during user sync
 	mockSharedChannelStore.On("UpdateUserLastSyncAt", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil)
 
@@ -376,7 +376,7 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 		if os.Getenv("CI") != "" && testing.Short() {
 			t.Skip("Skipping test in CI with short mode")
 		}
-		
+
 		if testing.Short() {
 			t.Log("Running in short mode with mocks")
 		} else {
@@ -756,7 +756,7 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 			RemoteToken:          model.NewId(),
 			Topics:               "sync",
 			CreatorId:            model.NewId(),
-			LastPingAt:           now,         // Makes IsOnline() return true
+			LastPingAt:           now,   // Makes IsOnline() return true
 			LastGlobalUserSyncAt: 10000, // Last sync was at timestamp 10000 (before our mock users)
 		}
 
@@ -935,10 +935,10 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 		// Create a service instance
 		mockApp := &MockAppIface{}
 		scs := &Service{
-			server: th.Server,
-			app:    mockApp,
-			tasks:  make(map[string]syncTask),
-			mux:    sync.RWMutex{},
+			server:       th.Server,
+			app:          mockApp,
+			tasks:        make(map[string]syncTask),
+			mux:          sync.RWMutex{},
 			changeSignal: make(chan struct{}),
 		}
 
@@ -949,9 +949,9 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 			TestableMaxUsersPerSync = originalBatchSize
 		}()
 		setupTestSyncConfig(th, 2)
-		
+
 		now := model.GetMillis()
-		
+
 		// Create a remote cluster
 		rc := &model.RemoteCluster{
 			RemoteId:             model.NewId(),
@@ -962,7 +962,7 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 			RemoteToken:          model.NewId(),
 			CreatorId:            model.NewId(),
 			Topics:               "sync",
-			LastPingAt:           now, // online
+			LastPingAt:           now,         // online
 			LastGlobalUserSyncAt: now - 50000, // 50 seconds ago
 		}
 
@@ -986,17 +986,17 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 			mockUserStore.ExpectedCalls = mockUserStore.ExpectedCalls[:0]
 			mockUserStore.On("GetAllProfiles", mock.Anything).Return(users, nil)
 		}
-		
+
 		// Call syncAllUsersForRemote to start the process
 		// This should process TestableMaxUsersPerSync users and schedule a task for more
 		err := scs.syncAllUsersForRemote(rc)
 		require.NoError(t, err)
-		
+
 		// Short wait to ensure any asynchronous operations complete
 		time.Sleep(100 * time.Millisecond)
-		
+
 		// Verify that a task was scheduled for the next batch
-		// This is the key thing we're testing - that more tasks are scheduled when 
+		// This is the key thing we're testing - that more tasks are scheduled when
 		// there are more users than fit in a single batch
 		scs.mux.Lock()
 		var foundContinuationTask bool
@@ -1007,26 +1007,25 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 			}
 		}
 		scs.mux.Unlock()
-		
+
 		assert.True(t, foundContinuationTask, "Expected a continuation task to be scheduled for next batch")
 	})
 }
 
-// min returns the smaller of x or y.
-func min(x, y int) int {
+// minInt returns the smaller of x or y.
+func minInt(x, y int) int {
 	if x < y {
 		return x
 	}
 	return y
 }
 
-
 func TestRemoteClusterOfflineDuringSync(t *testing.T) {
 	// Skip in CI with short mode to avoid long-running tests
 	if os.Getenv("CI") != "" && testing.Short() {
 		t.Skip("Skipping test in CI with short mode")
 	}
-	
+
 	if testing.Short() {
 		t.Log("Running in short mode with mocks")
 	} else {
@@ -1068,7 +1067,8 @@ func TestRemoteClusterOfflineDuringSync(t *testing.T) {
 	if _, ok := th.Server.GetStore().RemoteCluster().(*mocks.RemoteClusterStore); ok {
 		// In short mode, mock is already set up in SetupTestHelperWithStore
 		// But we need to make sure our rc is properly tracked in the mock cache
-		th.Server.GetStore().RemoteCluster().Save(rc)
+		_, err := th.Server.GetStore().RemoteCluster().Save(rc)
+		require.NoError(t, err)
 	} else {
 		// For real DB mode
 		var err error
@@ -1088,7 +1088,7 @@ func TestRemoteClusterOfflineDuringSync(t *testing.T) {
 	var err error
 	updatedRC, err = th.Server.GetStore().RemoteCluster().Update(rc)
 	require.NoError(t, err)
-	
+
 	// Use the updated RC return value if available (important for DB mode)
 	if updatedRC != nil {
 		rc = updatedRC
@@ -1133,7 +1133,8 @@ func TestSyncUsersInMultipleSharedChannels(t *testing.T) {
 	// Add remote cluster to store depending on which mode we're in
 	if _, ok := th.Server.GetStore().RemoteCluster().(*mocks.RemoteClusterStore); ok {
 		// In short mode, ensure our remote cluster is tracked in the mock
-		th.Server.GetStore().RemoteCluster().Save(rc)
+		_, err := th.Server.GetStore().RemoteCluster().Save(rc)
+		require.NoError(t, err)
 	} else {
 		// In DB mode, save to the database
 		var err error
@@ -1143,7 +1144,7 @@ func TestSyncUsersInMultipleSharedChannels(t *testing.T) {
 
 	// Get current time for consistent timestamp values
 	now := model.GetMillis()
-	
+
 	// Create a test user with a consistent ID across test modes
 	var userId string
 	if testing.Short() {
@@ -1153,7 +1154,7 @@ func TestSyncUsersInMultipleSharedChannels(t *testing.T) {
 		// In normal mode, let the database generate the ID
 		userId = model.NewId()
 	}
-	
+
 	user := &model.User{
 		Id:       userId, // Will be overwritten in non-short mode
 		Username: "multi_channel_user",
@@ -1167,7 +1168,7 @@ func TestSyncUsersInMultipleSharedChannels(t *testing.T) {
 		// For mock mode, set up the mock store with our test user
 		mockUserStore.ExpectedCalls = mockUserStore.ExpectedCalls[:0]
 		mockUserStore.On("Get", mock.Anything, user.Id).Return(user, nil)
-		
+
 		// Mock GetAllProfiles with pagination check to avoid infinite loops
 		mockUserStore.On("GetAllProfiles", mock.MatchedBy(func(opts *model.UserGetOptions) bool {
 			return opts.Page == 0
@@ -1198,15 +1199,15 @@ func TestSyncUsersInMultipleSharedChannels(t *testing.T) {
 		// Mock GetUsersByUserAndRemote to return records for both channels
 		mockSCStore.On("GetUsersByUserAndRemote", userId, rc.RemoteId).Return([]*model.SharedChannelUser{
 			{
-				UserId:    userId,
-				ChannelId: channel1ID,
-				RemoteId:  rc.RemoteId,
+				UserId:     userId,
+				ChannelId:  channel1ID,
+				RemoteId:   rc.RemoteId,
 				LastSyncAt: now - 10000, // Older than user.UpdateAt to ensure sync happens
 			},
 			{
-				UserId:    userId,
-				ChannelId: channel2ID,
-				RemoteId:  rc.RemoteId,
+				UserId:     userId,
+				ChannelId:  channel2ID,
+				RemoteId:   rc.RemoteId,
 				LastSyncAt: now - 10000, // Older than user.UpdateAt to ensure sync happens
 			},
 		}, nil)
@@ -1221,26 +1222,26 @@ func TestSyncUsersInMultipleSharedChannels(t *testing.T) {
 		// For real DB, create the shared channel records
 		// First create channel records in the database
 		sc1 := &model.SharedChannel{
-			ChannelId: channel1ID,
-			TeamId:    model.NewId(),
-			CreatorId: model.NewId(),
-			RemoteId:  rc.RemoteId,
-			ShareName: "multi-channel-test-1",
+			ChannelId:        channel1ID,
+			TeamId:           model.NewId(),
+			CreatorId:        model.NewId(),
+			RemoteId:         rc.RemoteId,
+			ShareName:        "multi-channel-test-1",
 			ShareDisplayName: "Multi Channel Test 1",
-			SharePurpose: "Test Purpose 1",
-			ShareHeader: "Test Header 1",
+			SharePurpose:     "Test Purpose 1",
+			ShareHeader:      "Test Header 1",
 		}
 		sc2 := &model.SharedChannel{
-			ChannelId: channel2ID,
-			TeamId:    model.NewId(),
-			CreatorId: model.NewId(),
-			RemoteId:  rc.RemoteId,
-			ShareName: "multi-channel-test-2",
+			ChannelId:        channel2ID,
+			TeamId:           model.NewId(),
+			CreatorId:        model.NewId(),
+			RemoteId:         rc.RemoteId,
+			ShareName:        "multi-channel-test-2",
 			ShareDisplayName: "Multi Channel Test 2",
-			SharePurpose: "Test Purpose 2",
-			ShareHeader: "Test Header 2",
+			SharePurpose:     "Test Purpose 2",
+			ShareHeader:      "Test Header 2",
 		}
-		
+
 		var err error
 		_, err = th.Server.GetStore().SharedChannel().Save(sc1)
 		require.NoError(t, err)
@@ -1249,18 +1250,18 @@ func TestSyncUsersInMultipleSharedChannels(t *testing.T) {
 
 		// Then create user entries for these channels
 		scu1 := &model.SharedChannelUser{
-			UserId:    userId,
-			ChannelId: channel1ID,
-			RemoteId:  rc.RemoteId,
+			UserId:     userId,
+			ChannelId:  channel1ID,
+			RemoteId:   rc.RemoteId,
 			LastSyncAt: now - 10000, // Older than user.UpdateAt to ensure sync happens
 		}
 		scu2 := &model.SharedChannelUser{
-			UserId:    userId,
-			ChannelId: channel2ID,
-			RemoteId:  rc.RemoteId,
+			UserId:     userId,
+			ChannelId:  channel2ID,
+			RemoteId:   rc.RemoteId,
 			LastSyncAt: now - 10000, // Older than user.UpdateAt to ensure sync happens
 		}
-		
+
 		_, err = th.Server.GetStore().SharedChannel().SaveUser(scu1)
 		require.NoError(t, err)
 		_, err = th.Server.GetStore().SharedChannel().SaveUser(scu2)
@@ -1274,7 +1275,7 @@ func TestSyncUsersInMultipleSharedChannels(t *testing.T) {
 	// Set up SendMsg mock to track what's sent
 	var sentUserIDs []string
 	var mutex sync.Mutex // Protect sentUserIDs during concurrent access
-	
+
 	mockRCS.On("SendMsg", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 		// Extract the callback from args
 		callback := args.Get(3).(remotecluster.SendMsgResultFunc)
@@ -1333,7 +1334,7 @@ func TestSyncUsersInMultipleSharedChannels(t *testing.T) {
 
 	// Verify the user was sent exactly once
 	assert.Contains(t, sentUserIDs, userId, "User should be synced")
-	
+
 	// Count occurrences of the user ID in the sent list
 	userSyncCount := 0
 	for _, id := range sentUserIDs {
@@ -1341,7 +1342,7 @@ func TestSyncUsersInMultipleSharedChannels(t *testing.T) {
 			userSyncCount++
 		}
 	}
-	
+
 	// User should be synced exactly once, not multiple times for different channels
 	assert.Equal(t, 1, userSyncCount, "User should be synced exactly once, not once per channel")
 }
@@ -1354,7 +1355,7 @@ func TestExtractUsersFromSyncForTest(t *testing.T) {
 		} else {
 			t.Log("Running in normal mode with DB")
 		}
-		
+
 		// For both modes, use the standard test helper
 		th := SetupTestHelperWithStore(t)
 		defer th.TearDown()
@@ -1383,7 +1384,7 @@ func TestExtractUsersFromSyncForTest(t *testing.T) {
 			// In short mode, set up the mock store
 			mockUserStore.ExpectedCalls = mockUserStore.ExpectedCalls[:0]
 			mockUserStore.On("GetAllProfiles", mock.Anything).Return([]*model.User{user1}, nil)
-			
+
 			// No need to save in mock mode - it's already in the mock's response
 		} else {
 			// In DB mode, save the user
@@ -1411,14 +1412,15 @@ func TestExtractUsersFromSyncForTest(t *testing.T) {
 			RemoteToken:          model.NewId(),
 			CreatorId:            model.NewId(),
 			Topics:               "sync",
-			LastPingAt:           now, // Setting LastPingAt to current time makes IsOnline() return true
+			LastPingAt:           now,         // Setting LastPingAt to current time makes IsOnline() return true
 			LastGlobalUserSyncAt: now - 20000, // Set to older than user.UpdateAt to ensure the user is picked up
 		}
 
 		// Save remote cluster to store based on mode
 		if _, ok := th.Server.GetStore().RemoteCluster().(*mocks.RemoteClusterStore); ok {
 			// In short mode with mocks, just need to make sure it's tracked
-			th.Server.GetStore().RemoteCluster().Save(rc)
+			_, err := th.Server.GetStore().RemoteCluster().Save(rc)
+			require.NoError(t, err)
 		} else {
 			// In DB mode, save to DB
 			var err error
@@ -1446,11 +1448,11 @@ func TestExtractUsersFromSyncForTest(t *testing.T) {
 		} else {
 			t.Log("Running in normal mode")
 		}
-		
+
 		// Setup with proper test helper for both modes
 		th := SetupTestHelperWithStore(t)
 		defer th.TearDown()
-		
+
 		scs := &Service{
 			server: th.Server,
 			app:    &MockAppIface{},
