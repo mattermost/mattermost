@@ -713,20 +713,7 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 	}
 
 	// Post a system message to notify users that the channel is no longer shared
-	post := &model.Post{
-		UserId:    scr.CreatorId,
-		ChannelId: msg.ChannelId,
-		Message:   UnshareMessage,
-		Type:      model.PostTypeSystemGeneric,
-	}
-
-	if _, appErr := scs.app.CreatePost(request.EmptyContext(logger), post, channel, model.CreatePostFlags{}); appErr != nil {
-		logger.Log(mlog.LvlSharedChannelServiceError, "Error creating unshare notification post",
-			mlog.String("channel_id", msg.ChannelId),
-			mlog.String("remote", rc.Name),
-			mlog.Err(appErr),
-		)
-	}
+	scs.postUnshareNotification(msg.ChannelId, scr.CreatorId, channel, rc.Name)
 
 	// Remove this remote from the shared channel and potentially unshare the channel completely
 	if _, deleteErr := scs.server.GetStore().SharedChannel().DeleteRemote(scr.Id); deleteErr != nil {
@@ -739,11 +726,18 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 	}
 
 	// Check if there are any remaining remotes, and if not, unshare the channel completely
-	if _, unshareErr := scs.unshareChannelIfNoActiveRemotes(msg.ChannelId); unshareErr != nil {
+	unshared, unshareErr := scs.unshareChannelIfNoActiveRemotes(msg.ChannelId)
+	if unshareErr != nil {
 		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to auto-unshare channel after removing last remote",
 			mlog.String("channel_id", msg.ChannelId),
 			mlog.Err(unshareErr),
 		)
+	}
+
+	// If the channel is still shared (not unshared), update the UI to reflect the current state
+	if !unshared {
+		// Update the channel in the clients to remove the link icon for this specific remote
+		scs.notifyClientsForSharedChannelUpdate(channel)
 	}
 }
 
