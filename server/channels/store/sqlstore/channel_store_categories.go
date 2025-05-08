@@ -5,6 +5,8 @@ package sqlstore
 
 import (
 	"fmt"
+	"slices"
+	"strings"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -719,11 +721,23 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			destCategory.Muted = category.Muted
 		}
 
-		// The order in which the queries are executed in the transaction is important.
-		// SidebarCategories need to be update first, and then SidebarChannels should be deleted.
-		// The net effect remains the same, but it prevents deadlocks from other transactions
-		// operating on the tables in reverse order.
+		updatedCategories = append(updatedCategories, destCategory)
+		originalCategories = append(originalCategories, srcCategory)
+	}
 
+	// The order in which the queries are executed in the transaction is important.
+	// SidebarCategories need to be update first, and then SidebarChannels should be deleted.
+	// The net effect remains the same, but it prevents deadlocks from other transactions
+	// operating on the tables in reverse order.
+
+	// Similarly, sort the categories when updating SidebarCategories to prevent deadlocks that would occur
+	// if multiple transactions were to update the table in reverse order.
+	sortedUpdatedCategories := slices.Clone(updatedCategories)
+	slices.SortFunc(sortedUpdatedCategories, func(a *model.SidebarCategoryWithChannels, b *model.SidebarCategoryWithChannels) int {
+		return strings.Compare(a.Id, b.Id)
+	})
+
+	for _, destCategory := range sortedUpdatedCategories {
 		updateQuery, updateParams, err2 := s.getQueryBuilder().
 			Update("SidebarCategories").
 			Set("DisplayName", destCategory.DisplayName).
@@ -737,6 +751,10 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 		if _, err = transaction.Exec(updateQuery, updateParams...); err != nil {
 			return nil, nil, errors.Wrap(err, "failed to update SidebarCategories")
 		}
+	}
+
+	for i, category := range categories {
+		srcCategory := originalCategories[i]
 
 		// if we are updating DM category, it's order can't channel order cannot be changed.
 		if category.Type != model.SidebarCategoryDirectMessages {
@@ -829,9 +847,6 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 				return nil, nil, errors.Wrap(nErr, "failed to delete Preferences")
 			}
 		}
-
-		updatedCategories = append(updatedCategories, destCategory)
-		originalCategories = append(originalCategories, srcCategory)
 	}
 
 	// Ensure Channels are populated for Channels/Direct Messages category if they change
