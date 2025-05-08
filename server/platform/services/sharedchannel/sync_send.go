@@ -547,7 +547,7 @@ func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 	return i18n.GetUserTranslations(locale)
 }
 
-// userSyncData holds cached sync data for users to avoid multiple DB queries
+// userSyncData holds cached sync data for users
 type userSyncData struct {
 	// map of userID -> map of channelID -> LastSyncAt timestamp
 	userSyncMap map[string]map[string]int64

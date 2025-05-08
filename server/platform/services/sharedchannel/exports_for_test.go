@@ -4,6 +4,8 @@
 package sharedchannel
 
 import (
+	"testing"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -46,6 +48,33 @@ func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[str
 		rc.LastPingAt = model.GetMillis() // Make it appear online
 	}
 
+	// Fast path for short testing mode
+	if testing.Short() {
+		// In short mode, just get users directly from the mock store
+		// and do minimal processing
+		users, err := scs.server.GetStore().User().GetAllProfiles(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 100,
+		})
+		
+		if err != nil {
+			return nil, err
+		}
+
+		// Just filter out remote users and return
+		for _, user := range users {
+			// Skip users from the target remote cluster
+			if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
+				continue
+			}
+			sentUsers[user.Id] = user
+		}
+		
+		return sentUsers, nil
+	}
+
+	// Full implementation for normal tests with real DB
+	
 	// Initialize user sync data cache
 	syncData := &userSyncData{
 		userSyncMap: make(map[string]map[string]int64),

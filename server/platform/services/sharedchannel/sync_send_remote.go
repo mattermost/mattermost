@@ -742,7 +742,6 @@ func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteClust
 // syncAllUsersForRemote synchronizes all local users to a remote cluster.
 // This is called when a connection with a remote cluster is established or when handling a global user sync task.
 // Uses cursor-based approach with LastGlobalUserSyncAt to resume after interruptions.
-// Leverages the task queue infrastructure to process users in batches.
 func (scs *Service) syncAllUsersForRemote(rc *model.RemoteCluster) error {
 	if !rc.IsOnline() {
 		return fmt.Errorf("remote cluster %s is not online", rc.RemoteId)
