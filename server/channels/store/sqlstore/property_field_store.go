@@ -67,9 +67,10 @@ func (s *SqlPropertyFieldStore) Get(groupID, id string) (*model.PropertyField, e
 	return &field, nil
 }
 
-func (s *SqlPropertyFieldStore) GetFieldByName(groupID, name string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
 	builder := s.tableSelectQuery.
 		Where(sq.Eq{"GroupID": groupID}).
+		Where(sq.Eq{"TargetID": targetID}).
 		Where(sq.Eq{"Name": name})
 
 	var field model.PropertyField

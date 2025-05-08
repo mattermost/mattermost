@@ -21,8 +21,8 @@ func (ps *PropertyService) GetPropertyFields(groupID string, ids []string) ([]*m
 	return ps.fieldStore.GetMany(groupID, ids)
 }
 
-func (ps *PropertyService) GetPropertyFieldByName(groupID, name string) (*model.PropertyField, error) {
-	return ps.fieldStore.GetFieldByName(groupID, name)
+func (ps *PropertyService) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
+	return ps.fieldStore.GetFieldByName(groupID, targetID, name)
 }
 
 func (ps *PropertyService) CountActivePropertyFieldsForGroup(groupID string) (int64, error) {

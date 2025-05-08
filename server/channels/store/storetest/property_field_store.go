@@ -176,16 +176,18 @@ func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 
 func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
-		field, err := ss.PropertyField().GetFieldByName("", "nonexistent-field-name")
+		field, err := ss.PropertyField().GetFieldByName("", "", "nonexistent-field-name")
 		require.Zero(t, field)
 		require.ErrorIs(t, err, sql.ErrNoRows)
 	})
 
 	groupID := model.NewId()
+	targetID := model.NewId()
 	newField := &model.PropertyField{
-		GroupID: groupID,
-		Name:    "unique-field-name",
-		Type:    model.PropertyFieldTypeText,
+		GroupID:    groupID,
+		TargetID:   targetID,
+		Name:       "unique-field-name",
+		Type:       model.PropertyFieldTypeText,
 		Attrs: map[string]any{
 			"locked":  true,
 			"special": "value",
@@ -196,7 +198,7 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	require.NotZero(t, newField.ID)
 
 	t.Run("should be able to retrieve an existing property field by name", func(t *testing.T) {
-		field, err := ss.PropertyField().GetFieldByName(groupID, "unique-field-name")
+		field, err := ss.PropertyField().GetFieldByName(groupID, targetID, "unique-field-name")
 		require.NoError(t, err)
 		require.Equal(t, newField.ID, field.ID)
 		require.Equal(t, "unique-field-name", field.Name)
@@ -205,7 +207,13 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 
 	t.Run("should not be able to retrieve an existing field when specifying a different group ID", func(t *testing.T) {
-		field, err := ss.PropertyField().GetFieldByName(model.NewId(), "unique-field-name")
+		field, err := ss.PropertyField().GetFieldByName(model.NewId(), targetID, "unique-field-name")
+		require.Zero(t, field)
+		require.ErrorIs(t, err, sql.ErrNoRows)
+	})
+
+	t.Run("should not be able to retrieve an existing field when specifying a different target ID", func(t *testing.T) {
+		field, err := ss.PropertyField().GetFieldByName(groupID, model.NewId(), "unique-field-name")
 		require.Zero(t, field)
 		require.ErrorIs(t, err, sql.ErrNoRows)
 	})
@@ -213,9 +221,10 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	// Test with multiple fields with the same name but different groups
 	anotherGroupID := model.NewId()
 	duplicateNameField := &model.PropertyField{
-		GroupID: anotherGroupID,
-		Name:    "unique-field-name", // Same name as the first field
-		Type:    model.PropertyFieldTypeSelect,
+		GroupID:    anotherGroupID,
+		TargetID:   targetID,
+		Name:       "unique-field-name", // Same name as the first field
+		Type:       model.PropertyFieldTypeSelect,
 		Attrs: map[string]any{
 			"options": []string{"a", "b", "c"},
 		},
@@ -226,16 +235,46 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 
 	t.Run("should retrieve the correct field when multiple fields have the same name but different groups", func(t *testing.T) {
 		// Get the field from the first group
-		field, err := ss.PropertyField().GetFieldByName(groupID, "unique-field-name")
+		field, err := ss.PropertyField().GetFieldByName(groupID, targetID, "unique-field-name")
 		require.NoError(t, err)
 		require.Equal(t, newField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldTypeText, field.Type)
 
 		// Get the field from the second group
-		field, err = ss.PropertyField().GetFieldByName(anotherGroupID, "unique-field-name")
+		field, err = ss.PropertyField().GetFieldByName(anotherGroupID, targetID, "unique-field-name")
 		require.NoError(t, err)
 		require.Equal(t, duplicateNameField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldTypeSelect, field.Type)
+	})
+
+	// Test with multiple fields with the same name and same group but different target IDs
+	anotherTargetID := model.NewId()
+	sameGroupDifferentTargetField := &model.PropertyField{
+		GroupID:    groupID,
+		TargetID:   anotherTargetID,
+		Name:       "unique-field-name", // Same name as the first field
+		Type:       model.PropertyFieldTypeText,
+		Attrs: map[string]any{
+			"min": 1,
+			"max": 100,
+		},
+	}
+	_, cErr = ss.PropertyField().Create(sameGroupDifferentTargetField)
+	require.NoError(t, cErr)
+	require.NotZero(t, sameGroupDifferentTargetField.ID)
+
+	t.Run("should retrieve the correct field when multiple fields have the same name and group but different target IDs", func(t *testing.T) {
+		// Get the field with the first target ID
+		field, err := ss.PropertyField().GetFieldByName(groupID, targetID, "unique-field-name")
+		require.NoError(t, err)
+		require.Equal(t, newField.ID, field.ID)
+		require.Equal(t, model.PropertyFieldTypeText, field.Type)
+
+		// Get the field with the second target ID
+		field, err = ss.PropertyField().GetFieldByName(groupID, anotherTargetID, "unique-field-name")
+		require.NoError(t, err)
+		require.Equal(t, sameGroupDifferentTargetField.ID, field.ID)
+		require.Equal(t, model.PropertyFieldTypeText, field.Type)
 	})
 }
 
