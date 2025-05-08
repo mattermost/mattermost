@@ -68,7 +68,6 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 	channel.Shared = model.NewPointer(true)
 
 	scs.notifyClientsForSharedChannelConverted(channel)
-
 	return scNew, nil
 }
 
@@ -114,6 +113,7 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 	// to avoid fetching the channel again, we manually set the shared
 	// flag before notifying the clients
 	channel.Shared = model.NewPointer(false)
+
 	scs.notifyClientsForSharedChannelConverted(channel)
 
 	scs.postUnshareNotification(channelID, sc.CreatorId, channel, "")
@@ -220,13 +220,6 @@ func (scs *Service) UninviteRemoteFromChannel(channelID, remoteID string) error 
 			map[string]any{"RemoteId": remoteID}, "", http.StatusInternalServerError)
 	}
 
-	// Get channel details before deletion for notifications
-	channel, channelErr := scs.server.GetStore().Channel().Get(channelID, true)
-	if channelErr != nil {
-		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.fetch_channel.error",
-			map[string]any{"ChannelId": channelID, "Error": channelErr.Error()}, "", http.StatusInternalServerError)
-	}
-
 	deleted, err := scs.server.GetStore().SharedChannel().DeleteRemote(scr.Id)
 	if err != nil || !deleted {
 		code := http.StatusInternalServerError
@@ -250,6 +243,16 @@ func (scs *Service) UninviteRemoteFromChannel(channelID, remoteID string) error 
 	// If the channel wasn't completely unshared (there are still other remotes),
 	// notify clients to update the UI state for this specific remote
 	if !unshared {
+		// Get channel details only if we need to update the UI
+		channel, channelErr := scs.server.GetStore().Channel().Get(channelID, true)
+		if channelErr != nil {
+			scs.server.Log().Error("Failed to get channel details for UI update after uninvite",
+				mlog.String("channel_id", channelID),
+				mlog.Err(channelErr),
+			)
+			return nil // Don't fail the uninvite operation if we can't update the UI
+		}
+
 		// This ensures the link icon is properly updated in both workspaces
 		scs.notifyClientsForSharedChannelUpdate(channel)
 	}

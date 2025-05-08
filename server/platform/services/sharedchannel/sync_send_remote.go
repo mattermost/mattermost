@@ -715,7 +715,7 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 	// Post a system message to notify users that the channel is no longer shared
 	scs.postUnshareNotification(msg.ChannelId, scr.CreatorId, channel, rc.Name)
 
-	// Remove this remote from the shared channel and potentially unshare the channel completely
+	// Remove this remote from the shared channel
 	if _, deleteErr := scs.server.GetStore().SharedChannel().DeleteRemote(scr.Id); deleteErr != nil {
 		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to unshare channel locally",
 			mlog.String("remote", rc.Name),
