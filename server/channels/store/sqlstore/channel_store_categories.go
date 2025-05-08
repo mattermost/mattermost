@@ -777,26 +777,35 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 	}
 
 	for _, category := range categories {
-		// if we are updating DM category, it's order can't channel order cannot be changed.
-		if category.Type != model.SidebarCategoryDirectMessages {
-			runningOrder := 0
-			insertQuery := s.getQueryBuilder().
-				Insert("SidebarChannels").
-				Columns("ChannelId", "UserId", "CategoryId", "SortOrder")
-			for _, channelID := range category.Channels {
-				insertQuery = insertQuery.Values(channelID, userId, category.Id, int64(runningOrder))
-				runningOrder += model.MinimalSidebarSortDistance
+		if category.Type == model.SidebarCategoryDirectMessages {
+			// The order of the DM category isn't stored explicitly, so there's nothing to do here
+			continue
+		}
+
+		runningOrder := 0
+		insertQuery := s.getQueryBuilder().
+			Insert("SidebarChannels").
+			Columns("ChannelId", "UserId", "CategoryId", "SortOrder")
+
+		if s.DriverName() == model.DatabaseDriverMysql {
+			insertQuery = insertQuery.Suffix("ON DUPLICATE KEY UPDATE SortOrder = VALUES(SortOrder)")
+		} else {
+			insertQuery = insertQuery.Suffix("ON CONFLICT (ChannelId, UserId, CategoryId) DO UPDATE SET SortOrder = excluded.SortOrder")
+		}
+
+		for _, channelID := range category.Channels {
+			insertQuery = insertQuery.Values(channelID, userId, category.Id, int64(runningOrder))
+			runningOrder += model.MinimalSidebarSortDistance
+		}
+
+		if len(category.Channels) > 0 {
+			sql, args, err2 := insertQuery.ToSql()
+			if err2 != nil {
+				return nil, nil, errors.Wrap(err2, "InsertSidebarChannels_Tosql")
 			}
 
-			if len(category.Channels) > 0 {
-				sql, args, err2 := insertQuery.ToSql()
-				if err2 != nil {
-					return nil, nil, errors.Wrap(err2, "InsertSidebarChannels_Tosql")
-				}
-
-				if _, err2 := transaction.Exec(sql, args...); err2 != nil {
-					return nil, nil, errors.Wrap(err2, "failed to save SidebarChannels")
-				}
+			if _, err2 := transaction.Exec(sql, args...); err2 != nil {
+				return nil, nil, errors.Wrap(err2, "failed to save SidebarChannels")
 			}
 		}
 	}
