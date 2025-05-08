@@ -90,15 +90,6 @@ func (scs *Service) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedC
 // UnshareChannel unshares the channel by deleting the SharedChannels record and unsets the Channel `shared` flag.
 // Returns true if a shared channel existed and was deleted.
 func (scs *Service) UnshareChannel(channelID string) (bool, error) {
-	// First check if the channel is shared at all
-	sc, err := scs.server.GetStore().SharedChannel().Get(channelID)
-	if err != nil {
-		// Channel is not shared - this is not an error condition,
-		// just return false indicating nothing was unshared
-		return false, nil
-	}
-
-	// Only if channel is shared, get channel details
 	channel, err := scs.server.GetStore().Channel().Get(channelID, true)
 	if err != nil {
 		return false, err
@@ -110,14 +101,15 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 		return false, err
 	}
 
-	// to avoid fetching the channel again, we manually set the shared
-	// flag before notifying the clients
-	channel.Shared = model.NewPointer(false)
+	// Check if channel is nil before using it
+	if channel != nil {
+		// to avoid fetching the channel again, we manually set the shared
+		// flag before notifying the clients
+		channel.Shared = model.NewPointer(false)
 
-	scs.notifyClientsForSharedChannelConverted(channel)
-
-	scs.postUnshareNotification(channelID, sc.CreatorId, channel, "")
-
+		scs.notifyClientsForSharedChannelConverted(channel)
+		scs.postUnshareNotification(channelID, channel.CreatorId, channel, "")
+	}
 	return deleted, nil
 }
 
@@ -231,30 +223,15 @@ func (scs *Service) UninviteRemoteFromChannel(channelID, remoteID string) error 
 			map[string]any{"RemoteId": remoteID, "Error": err.Error()}, "", code)
 	}
 
-	unshared, unshareErr := scs.unshareChannelIfNoActiveRemotes(channelID)
+	// Use the common helper function to handle checking if the channel should be unshared
+	// and updating the UI appropriately
+	_, unshareErr := scs.checkAndHandleRemoteRemoval(channelID, nil)
 	if unshareErr != nil {
 		// We don't want to fail the uninvite operation if the unshare fails
 		scs.server.Log().Error("Error during automatic unshare after uninvite",
 			mlog.String("channel_id", channelID),
 			mlog.Err(unshareErr),
 		)
-	}
-
-	// If the channel wasn't completely unshared (there are still other remotes),
-	// notify clients to update the UI state for this specific remote
-	if !unshared {
-		// Get channel details only if we need to update the UI
-		channel, channelErr := scs.server.GetStore().Channel().Get(channelID, true)
-		if channelErr != nil {
-			scs.server.Log().Error("Failed to get channel details for UI update after uninvite",
-				mlog.String("channel_id", channelID),
-				mlog.Err(channelErr),
-			)
-			return nil // Don't fail the uninvite operation if we can't update the UI
-		}
-
-		// This ensures the link icon is properly updated in both workspaces
-		scs.notifyClientsForSharedChannelUpdate(channel)
 	}
 
 	return nil

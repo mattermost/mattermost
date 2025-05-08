@@ -304,3 +304,47 @@ func (scs *Service) postUnshareNotification(channelID string, creatorID string, 
 		logger.Log(mlog.LvlSharedChannelServiceError, "Error creating unshare notification post", fields...)
 	}
 }
+
+// checkAndHandleRemoteRemoval is a helper function that handles the common pattern of:
+// 1. Checking if we need to completely unshare a channel after removing a remote
+// 2. Updating the UI appropriately based on whether the channel was unshared or not
+// Returns true if the channel was unshared.
+func (scs *Service) checkAndHandleRemoteRemoval(channelID string, providedChannel *model.Channel) (bool, error) {
+	logger := scs.server.Log()
+
+	// Check if this was the last remote and unshare if needed
+	unshared, unshareErr := scs.unshareChannelIfNoActiveRemotes(channelID)
+	if unshareErr != nil {
+		logger.Error("Failed to check if channel should be unshared after remote removal",
+			mlog.String("channel_id", channelID),
+			mlog.Err(unshareErr),
+		)
+		return false, unshareErr
+	}
+
+	// If the channel wasn't unshared (still has other remotes), update UI
+	if !unshared {
+		var channel *model.Channel
+		var channelErr error
+
+		// Use provided channel if available, otherwise fetch it
+		if providedChannel != nil {
+			channel = providedChannel
+		} else {
+			channel, channelErr = scs.server.GetStore().Channel().Get(channelID, true)
+			if channelErr != nil {
+				logger.Error("Failed to get channel details for UI update after remote removal",
+					mlog.String("channel_id", channelID),
+					mlog.Err(channelErr),
+				)
+				// Don't fail the operation just because we couldn't update UI
+				return unshared, nil
+			}
+		}
+
+		// Update UI to reflect the change in shared status
+		scs.notifyClientsForSharedChannelUpdate(channel)
+	}
+
+	return unshared, nil
+}

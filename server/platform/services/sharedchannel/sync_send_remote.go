@@ -725,19 +725,14 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 		return
 	}
 
-	// Check if there are any remaining remotes, and if not, unshare the channel completely
-	unshared, unshareErr := scs.unshareChannelIfNoActiveRemotes(msg.ChannelId)
+	// Use the common helper function to handle checking if the channel should be unshared
+	// and updating the UI appropriately - we pass in the channel we already fetched
+	_, unshareErr := scs.checkAndHandleRemoteRemoval(msg.ChannelId, channel)
 	if unshareErr != nil {
 		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to auto-unshare channel after removing last remote",
 			mlog.String("channel_id", msg.ChannelId),
 			mlog.Err(unshareErr),
 		)
-	}
-
-	// If the channel is still shared (not unshared), update the UI to reflect the current state
-	if !unshared {
-		// Update the channel in the clients to remove the link icon for this specific remote
-		scs.notifyClientsForSharedChannelUpdate(channel)
 	}
 }
 
