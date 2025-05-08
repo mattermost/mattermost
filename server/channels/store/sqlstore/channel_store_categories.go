@@ -737,6 +737,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 		return strings.Compare(a.Id, b.Id)
 	})
 
+	// First, update the categories themselves
 	for _, destCategory := range sortedUpdatedCategories {
 		updateQuery, updateParams, err2 := s.getQueryBuilder().
 			Update("SidebarCategories").
@@ -753,31 +754,31 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 		}
 	}
 
+	// Second, update the channels in those categories
+	categoryIds := make([]string, len(categories))
 	for i, category := range categories {
-		srcCategory := originalCategories[i]
+		categoryIds[i] = category.Id
+	}
 
+	// Remove any SidebarChannels entries that were previously in this category. This needs to be done for all
+	// categories at once to prevent deadlocks.
+	//
+	// Note that this means that moving channels between categories requires updating both the source and
+	// destination categories.
+	query, args, err2 := s.getQueryBuilder().
+		Delete("SidebarChannels").
+		Where(sq.Eq{"CategoryId": categoryIds}).ToSql()
+	if err2 != nil {
+		return nil, nil, errors.Wrap(err2, "update_sidebar_categories_tosql2")
+	}
+
+	if _, err = transaction.Exec(query, args...); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to delete SidebarChannels")
+	}
+
+	for _, category := range categories {
 		// if we are updating DM category, it's order can't channel order cannot be changed.
 		if category.Type != model.SidebarCategoryDirectMessages {
-			// Remove any SidebarChannels entries that were either:
-			// - previously in this category (and any ones that are still in the category will be recreated below)
-			// - in another category and are being added to this category
-			query, args, err2 := s.getQueryBuilder().
-				Delete("SidebarChannels").
-				Where(
-					sq.And{
-						sq.Eq{"ChannelId": srcCategory.Channels},
-						sq.Eq{"CategoryId": category.Id},
-					},
-				).ToSql()
-
-			if err2 != nil {
-				return nil, nil, errors.Wrap(err2, "update_sidebar_categories_tosql2")
-			}
-
-			if _, err = transaction.Exec(query, args...); err != nil {
-				return nil, nil, errors.Wrap(err, "failed to delete SidebarChannels")
-			}
-
 			runningOrder := 0
 			insertQuery := s.getQueryBuilder().
 				Insert("SidebarChannels").
@@ -798,6 +799,11 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 				}
 			}
 		}
+	}
+
+	// Finally, update preferences for Favorites
+	for i, category := range categories {
+		srcCategory := originalCategories[i]
 
 		// Update the favorites preferences based on channels moving into or out of the Favorites category for compatibility
 		if category.Type == model.SidebarCategoryFavorites {
