@@ -794,9 +794,7 @@ func (scs *Service) getGlobalUserSyncBatchSize() int {
 }
 
 // collectUsersForGlobalSync fetches users that need to be synced to the remote
-func (scs *Service) collectUsersForGlobalSync(rc *model.RemoteCluster, batchSize int) (
-	users map[string]*model.User, latestTimestamp int64, totalCount int, hasMore bool, err error) {
-	
+func (scs *Service) collectUsersForGlobalSync(rc *model.RemoteCluster, batchSize int) (users map[string]*model.User, latestTimestamp int64, totalCount int, hasMore bool, err error) {
 	options := &model.UserGetOptions{
 		Page:         0,
 		PerPage:      100, // Database fetch batch size (different from sync batch size)
@@ -845,7 +843,7 @@ func (scs *Service) collectUsersForGlobalSync(rc *model.RemoteCluster, batchSize
 
 			// Add user to result and update timestamp cursor
 			users[user.Id] = user
-			
+
 			// Update latest timestamp for cursor
 			latestUserUpdateTime := user.UpdateAt
 			if user.LastPictureUpdate > latestUserUpdateTime {
