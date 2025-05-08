@@ -23,7 +23,6 @@ import (
 const (
 	TopicSync                    = "sharedchannel_sync"
 	TopicChannelInvite           = "sharedchannel_invite"
-	TopicChannelUnshare          = "sharedchannel_unshare"
 	TopicUploadCreate            = "sharedchannel_upload"
 	MaxRetries                   = 3
 	MaxUsersPerSync              = 25
@@ -98,7 +97,6 @@ type Service struct {
 	tasks                     map[string]syncTask
 	syncTopicListenerId       string
 	inviteTopicListenerId     string
-	unshareTopicListenerId    string
 	uploadTopicListenerId     string
 	siteURL                   *url.URL
 }
@@ -131,7 +129,6 @@ func (scs *Service) Start() error {
 	scs.leaderListenerId = scs.server.AddClusterLeaderChangedListener(scs.onClusterLeaderChange)
 	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
 	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
-	scs.unshareTopicListenerId = rcs.AddTopicListener(TopicChannelUnshare, scs.onReceiveChannelUnshare)
 	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
 	scs.connectionStateListenerId = rcs.AddConnectionStateListener(scs.onConnectionStateChange)
 	scs.mux.Unlock()
@@ -154,8 +151,6 @@ func (scs *Service) Shutdown() error {
 	scs.syncTopicListenerId = ""
 	rcs.RemoveTopicListener(scs.inviteTopicListenerId)
 	scs.inviteTopicListenerId = ""
-	rcs.RemoveTopicListener(scs.unshareTopicListenerId)
-	scs.unshareTopicListenerId = ""
 	rcs.RemoveConnectionStateListener(scs.connectionStateListenerId)
 	scs.connectionStateListenerId = ""
 	scs.mux.Unlock()

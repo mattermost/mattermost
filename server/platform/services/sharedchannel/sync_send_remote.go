@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -704,18 +705,58 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 	err = rcs.SendMsg(ctx, rcMsg, rc, func(rcMsg model.RemoteClusterMsg, rc *model.RemoteCluster, rcResp *remotecluster.Response, errResp error) {
 		defer wg.Done()
 
-		var syncResp model.SyncResponse
-		if err2 := json.Unmarshal(rcResp.Payload, &syncResp); err2 != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Invalid sync msg response from remote cluster",
+		// Check for ErrChannelNotShared in the response error
+		if errResp != nil && strings.Contains(errResp.Error(), ErrChannelNotShared.Error()) {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Remote indicated channel is no longer shared; unsharing locally",
 				mlog.String("remote", rc.Name),
 				mlog.String("channel_id", msg.ChannelId),
-				mlog.Err(err2),
 			)
+
+			// Get the SharedChannelRemote record for this channel and remote
+			scr, getErr := scs.server.GetStore().SharedChannel().GetRemoteByIds(msg.ChannelId, rc.RemoteId)
+			if getErr != nil {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to get shared channel remote",
+					mlog.String("remote", rc.Name),
+					mlog.String("channel_id", msg.ChannelId),
+					mlog.Err(getErr),
+				)
+				return
+			}
+
+			// Remove this remote from the shared channel
+			if _, deleteErr := scs.server.GetStore().SharedChannel().DeleteRemote(scr.Id); deleteErr != nil {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to unshare channel locally after remote indicated not shared",
+					mlog.String("remote", rc.Name),
+					mlog.String("channel_id", msg.ChannelId),
+					mlog.Err(deleteErr),
+				)
+			} else {
+				// Check if there are any remaining remotes, and if not, unshare the channel completely
+				_, unshareErr := scs.unshareChannelIfNoActiveRemotes(msg.ChannelId)
+				if unshareErr != nil {
+					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to auto-unshare channel after removing last remote",
+						mlog.String("channel_id", msg.ChannelId),
+						mlog.Err(unshareErr),
+					)
+				}
+			}
 			return
 		}
 
-		if f != nil {
-			f(syncResp, errResp)
+		var syncResp model.SyncResponse
+		if errResp == nil && rcResp != nil && len(rcResp.Payload) > 0 {
+			if err2 := json.Unmarshal(rcResp.Payload, &syncResp); err2 != nil {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Invalid sync msg response from remote cluster",
+					mlog.String("remote", rc.Name),
+					mlog.String("channel_id", msg.ChannelId),
+					mlog.Err(err2),
+				)
+				return
+			}
+
+			if f != nil {
+				f(syncResp, errResp)
+			}
 		}
 	})
 

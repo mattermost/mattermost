@@ -21,6 +21,7 @@ var (
 	ErrRemoteIDMismatch  = errors.New("remoteID mismatch")
 	ErrChannelIDMismatch = errors.New("channelID mismatch")
 	ErrUserDMPermission  = errors.New("users cannot DM each other")
+	ErrChannelNotShared  = errors.New("channel is no longer shared")
 )
 
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
@@ -74,6 +75,14 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 	}
 
 	// make sure target channel is shared with the remote
+	// First, check if the channel is shared at all
+	_, err = scs.server.GetStore().SharedChannel().Get(targetChannel.Id)
+	if err != nil {
+		// Channel is not shared anymore
+		return fmt.Errorf("%w: %s", ErrChannelNotShared, targetChannel.Id)
+	}
+
+	// Then check if it's shared with this specific remote
 	exists, err := scs.server.GetStore().SharedChannel().HasRemote(targetChannel.Id, rc.RemoteId)
 	if err != nil {
 		return fmt.Errorf("cannot check channel share state for sync message: %w", err)
