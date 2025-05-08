@@ -78,7 +78,7 @@ export default class ItemMeasurer extends PureComponent {
 
         // Force sync measure for the initial mount.
         // This is necessary to support the DynamicSizeList layout logic.
-        if (isSafari() && this.props.size) {
+        if (isSafari() && this.props.height) {
             this.measureItemAnimFrame = window.requestAnimationFrame(() => {
                 this.measureItem(false);
             });
@@ -86,7 +86,7 @@ export default class ItemMeasurer extends PureComponent {
             this.measureItem(false);
         }
 
-        if (this.props.size) {
+        if (this.props.height) {
             // Don't wait for positioning scrollbars when we have size
             // This is needed triggering an event for remounting a post
             this.positionScrollBars();
@@ -94,7 +94,7 @@ export default class ItemMeasurer extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if ((prevProps.size === 0 && this.props.size !== 0) || prevProps.size !== this.props.size) {
+        if ((prevProps.height === 0 && this.props.height !== 0) || prevProps.height !== this.props.height) {
             this.positionScrollBars();
         }
     }
@@ -116,20 +116,20 @@ export default class ItemMeasurer extends PureComponent {
     }
 
     measureItem = (forceScrollCorrection) => {
-        const {handleNewMeasurements, size: oldSize, itemId} = this.props;
+        const {onHeightChange, height: oldHeight, itemId} = this.props;
 
         const node = this.node;
 
         if (node && node.ownerDocument && node.ownerDocument.defaultView && node instanceof node.ownerDocument.defaultView.HTMLElement) {
-            const newSize = Math.ceil(node.offsetHeight);
+            const newHeight = Math.ceil(node.offsetHeight);
 
-            if (oldSize !== newSize) {
-                handleNewMeasurements(itemId, newSize, forceScrollCorrection);
+            if (oldHeight !== newHeight) {
+                onHeightChange(itemId, newHeight, forceScrollCorrection);
             }
         }
     };
 
-    positionScrollBars = (height = this.props.size) => {
+    positionScrollBars = (height = this.props.height) => {
         // we are position these hidden div scroll bars to the end so they can emit
         // scroll event when height in the div changes
         // Heavily inspired from https://github.com/marcj/css-element-queries/blob/master/src/ResizeSensor.js

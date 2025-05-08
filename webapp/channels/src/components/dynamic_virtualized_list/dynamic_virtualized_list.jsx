@@ -3,10 +3,15 @@
 
 /* eslint-disable react/prop-types */
 
+import classNames from 'classnames';
 import memoizeOne from 'memoize-one';
 import React, {createElement, PureComponent} from 'react';
 
-import ItemMeasurer from './item_measurer';
+// import ItemMeasurer from './item_measurer';
+
+import ItemMeasurer from './item_measurer_new';
+
+import './dynamic_virtualized_list.scss';
 
 const atBottomMargin = 10;
 
@@ -303,13 +308,14 @@ export default class DynamicVirtualizedList extends PureComponent {
             scrollOffset,
             this.listMetaData,
         );
-        if (!offsetOfItem) {
+        if (!offsetOfItem && offsetOfItem !== 0) {
             const itemSize = getItemSize(this.props, index, this.listMetaData);
             if (!itemSize && this.props.scrollToFailed) {
                 if (this.state.scrolledToInitIndex) {
                     this.props.scrollToFailed(index);
                 }
             }
+            return;
         }
 
         this.scrollTo(offsetOfItem + offset);
@@ -417,10 +423,7 @@ export default class DynamicVirtualizedList extends PureComponent {
     };
 
     heightChange = (prevHeight, prevOffset) => {
-        const wasAtBottom =
-      prevOffset + prevHeight >=
-      this.listMetaData.totalMeasuredSize - atBottomMargin;
-
+        const wasAtBottom = prevOffset + prevHeight >= this.listMetaData.totalMeasuredSize - atBottomMargin;
         if (wasAtBottom) {
             this.scrollToItem(0, 'end');
         }
@@ -428,7 +431,6 @@ export default class DynamicVirtualizedList extends PureComponent {
 
     widthChange = (prevHeight, prevOffset) => {
         const wasAtBottom = prevOffset + prevHeight >= this.listMetaData.totalMeasuredSize - atBottomMargin;
-
         if (wasAtBottom) {
             this.scrollToItem(0, 'end');
         }
@@ -538,21 +540,23 @@ export default class DynamicVirtualizedList extends PureComponent {
         }
     };
 
-    handleNewMeasurements = (key, newSize, forceScrollCorrection) => {
+    handleNewMeasurements = (itemId, newSize, forceScrollCorrection) => {
         const {itemSizeMap} = this.listMetaData;
         const {itemData} = this.props;
-        const index = itemData.findIndex((item) => item === key);
+        const index = itemData.findIndex((item) => item === itemId);
+
+        console.log('handleNewMeasurements', itemId, newSize, forceScrollCorrection);
 
         // In some browsers (e.g. Firefox) fast scrolling may skip rows.
         // In this case, our assumptions about last measured indices may be incorrect.
         // Handle this edge case to prevent NaN values from breaking styles.
         // Slow scrolling back over these skipped rows will adjust their sizes.
-        const oldSize = itemSizeMap[key] || 0;
+        const oldSize = itemSizeMap[itemId] || 0;
         if (oldSize === newSize) {
             return;
         }
 
-        itemSizeMap[key] = newSize;
+        itemSizeMap[itemId] = newSize;
 
         if (!this.state.scrolledToInitIndex) {
             this.generateOffsetMeasurements();
@@ -631,7 +635,7 @@ export default class DynamicVirtualizedList extends PureComponent {
     };
 
     renderItems = () => {
-        const {children, direction, itemData, loaderId} = this.props;
+        const {children, itemData, loaderId} = this.props;
         const width = this.innerRefWidth;
         const [startIndex, stopIndex] = this.getRangeToRender();
         const itemCount = itemData.length;
@@ -659,16 +663,14 @@ export default class DynamicVirtualizedList extends PureComponent {
                     // Always wrap children in a ItemMeasurer to detect changes in size.
                     items.push(
                         createElement(ItemMeasurer, {
-                            direction,
-                            handleNewMeasurements: this.handleNewMeasurements,
-                            index,
-                            item,
                             key: itemId,
-                            size,
+                            item,
                             itemId,
+                            index,
+                            height: size,
                             width,
+                            onHeightChange: this.handleNewMeasurements,
                             onUnmount: this.onItemRowUnmount,
-                            itemCount,
                         }),
                     );
                 } else {
@@ -743,7 +745,7 @@ export default class DynamicVirtualizedList extends PureComponent {
             <div
                 id={this.props.id}
                 ref={this.outerRefSetter}
-                className={this.props.className}
+                className={classNames('dynamic_virtualized_list', this.props.className)}
                 onScroll={this.onScrollVertical}
                 style={{
                     WebkitOverflowScrolling: 'touch',
