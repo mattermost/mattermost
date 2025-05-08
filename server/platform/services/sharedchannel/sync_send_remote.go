@@ -680,6 +680,46 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 }
 
 // sendSyncMsgToRemote synchronously sends the sync message to the remote cluster (or plugin).
+// handleChannelNotSharedError processes the case when a remote indicates a channel
+// is no longer shared. It removes the remote from the shared channel locally and,
+// if it was the last remote, completely unshares the channel.
+func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.RemoteCluster) {
+	logger := scs.server.Log()
+	logger.Log(mlog.LvlSharedChannelServiceDebug, "Remote indicated channel is no longer shared; unsharing locally",
+		mlog.String("remote", rc.Name),
+		mlog.String("channel_id", msg.ChannelId),
+	)
+
+	// Get the SharedChannelRemote record for this channel and remote
+	scr, getErr := scs.server.GetStore().SharedChannel().GetRemoteByIds(msg.ChannelId, rc.RemoteId)
+	if getErr != nil {
+		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to get shared channel remote",
+			mlog.String("remote", rc.Name),
+			mlog.String("channel_id", msg.ChannelId),
+			mlog.Err(getErr),
+		)
+		return
+	}
+
+	// Remove this remote from the shared channel and potentially unshare the channel completely
+	if _, deleteErr := scs.server.GetStore().SharedChannel().DeleteRemote(scr.Id); deleteErr != nil {
+		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to unshare channel locally",
+			mlog.String("remote", rc.Name),
+			mlog.String("channel_id", msg.ChannelId),
+			mlog.Err(deleteErr),
+		)
+		return
+	}
+
+	// Check if there are any remaining remotes, and if not, unshare the channel completely
+	if _, unshareErr := scs.unshareChannelIfNoActiveRemotes(msg.ChannelId); unshareErr != nil {
+		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to auto-unshare channel after removing last remote",
+			mlog.String("channel_id", msg.ChannelId),
+			mlog.Err(unshareErr),
+		)
+	}
+}
+
 func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
@@ -707,39 +747,7 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 
 		// Check for ErrChannelNotShared in the response error
 		if errResp != nil && strings.Contains(errResp.Error(), ErrChannelNotShared.Error()) {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Remote indicated channel is no longer shared; unsharing locally",
-				mlog.String("remote", rc.Name),
-				mlog.String("channel_id", msg.ChannelId),
-			)
-
-			// Get the SharedChannelRemote record for this channel and remote
-			scr, getErr := scs.server.GetStore().SharedChannel().GetRemoteByIds(msg.ChannelId, rc.RemoteId)
-			if getErr != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to get shared channel remote",
-					mlog.String("remote", rc.Name),
-					mlog.String("channel_id", msg.ChannelId),
-					mlog.Err(getErr),
-				)
-				return
-			}
-
-			// Remove this remote from the shared channel
-			if _, deleteErr := scs.server.GetStore().SharedChannel().DeleteRemote(scr.Id); deleteErr != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to unshare channel locally after remote indicated not shared",
-					mlog.String("remote", rc.Name),
-					mlog.String("channel_id", msg.ChannelId),
-					mlog.Err(deleteErr),
-				)
-			} else {
-				// Check if there are any remaining remotes, and if not, unshare the channel completely
-				_, unshareErr := scs.unshareChannelIfNoActiveRemotes(msg.ChannelId)
-				if unshareErr != nil {
-					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to auto-unshare channel after removing last remote",
-						mlog.String("channel_id", msg.ChannelId),
-						mlog.Err(unshareErr),
-					)
-				}
-			}
+			scs.handleChannelNotSharedError(msg, rc)
 			return
 		}
 

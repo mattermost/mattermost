@@ -92,20 +92,18 @@ func (scs *Service) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedC
 // UnshareChannel unshares the channel by deleting the SharedChannels record and unsets the Channel `shared` flag.
 // Returns true if a shared channel existed and was deleted.
 func (scs *Service) UnshareChannel(channelID string) (bool, error) {
+	// First check if the channel is shared at all
+	sc, err := scs.server.GetStore().SharedChannel().Get(channelID)
+	if err != nil {
+		// Channel is not shared - this is not an error condition,
+		// just return false indicating nothing was unshared
+		return false, nil
+	}
+
+	// Only if channel is shared, get channel details
 	channel, err := scs.server.GetStore().Channel().Get(channelID, true)
 	if err != nil {
 		return false, err
-	}
-
-	// Check feature flag for DMs/GMs (consistent with ShareChannel)
-	if !scs.server.Config().FeatureFlags.EnableSharedChannelsDMs &&
-		(channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
-		return false, errors.New("cannot unshare a direct or group channel")
-	}
-
-	sc, err := scs.server.GetStore().SharedChannel().Get(channelID)
-	if err != nil {
-		return false, nil
 	}
 
 	// deletes the ShareChannel, unsets the share flag on the channel, deletes all records in SharedChannelRemotes for the channel.
