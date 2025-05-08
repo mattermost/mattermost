@@ -373,6 +373,22 @@ function DraftRow({
             innerRef={scrollIntoView ? alertRef : undefined}
             isHighlighted={scrollIntoView}
             className={containerClassName}
+            ariaLabel={intl.formatMessage({
+                id: 'drafts.draft_row.aria_label',
+                defaultMessage: '{type} in {channelName}',
+            }, {
+                type: isScheduledPost ? intl.formatMessage({
+                    id: 'drafts.draft_row.scheduled_post',
+                    defaultMessage: 'scheduled post',
+                }) : intl.formatMessage({
+                    id: 'drafts.draft_row.draft',
+                    defaultMessage: 'draft',
+                }),
+                channelName: channel?.display_name || intl.formatMessage({
+                    id: 'drafts.draft_row.deleted_channel',
+                    defaultMessage: 'deleted channel',
+                }),
+            })}
         >
             <Header
                 kind={kind}

@@ -18,6 +18,7 @@ type Props = {
     className?: string;
     dataTestId?: string;
     dataPostId?: string;
+    ariaLabel?: string;
 };
 
 const isEligibleForClick = makeIsEligibleForClick('.hljs, code');
@@ -32,6 +33,7 @@ function Panel({
     className,
     dataTestId,
     dataPostId,
+    ariaLabel,
 }: Props) {
     const handleOnClick = (e: React.MouseEvent<HTMLElement>) => {
         if (isEligibleForClick(e)) {
@@ -63,6 +65,7 @@ function Panel({
             role='link'
             tabIndex={0}
             ref={innerRef}
+            aria-label={ariaLabel}
         >
             {children}
         </div>
