@@ -399,7 +399,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.com", Password: "Password1", Username: GenerateTestUsername()}
 			u, _, err := client.CreateUser(context.Background(), user) // we need the returned created user to use its Id for deletion.
 			require.NoError(t, err)
-			_, err = client.PermanentDeleteUser(context.Background(), u.Id)
+			_, _, err = client.PermanentDeleteUser(context.Background(), u.Id)
 			require.NoError(t, err)
 		}, "ValidUser")
 
@@ -420,7 +420,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 				}
 				u, _, err := th.SystemAdminClient.CreateUser(context.Background(), user)
 				require.NoError(t, err)
-				_, err = th.SystemAdminClient.PermanentDeleteUser(context.Background(), u.Id)
+				_, _, err = th.SystemAdminClient.PermanentDeleteUser(context.Background(), u.Id)
 				require.NoError(t, err)
 			})
 			t.Run("LocalClient", func(t *testing.T) {
@@ -432,7 +432,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 				}
 				u, _, err := th.LocalClient.CreateUser(context.Background(), user)
 				require.NoError(t, err)
-				_, err = th.LocalClient.PermanentDeleteUser(context.Background(), u.Id)
+				_, _, err = th.LocalClient.PermanentDeleteUser(context.Background(), u.Id)
 				require.NoError(t, err)
 			})
 		})
@@ -461,7 +461,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 			ruser, appErr := th.App.GetUserByEmail(emailAddr)
 			require.Nil(t, appErr)
 			assert.NotEqual(t, ruser.Roles, "system_user system_admin")
-			_, err = client.PermanentDeleteUser(context.Background(), ruser.Id)
+			_, _, err = client.PermanentDeleteUser(context.Background(), ruser.Id)
 			require.NoError(t, err)
 		}, "InvalidRole")
 	})
@@ -2588,26 +2588,26 @@ func TestPermanentDeleteUser(t *testing.T) {
 	userToDelete := th.CreateUser()
 
 	t.Run("Permanent deletion not available through API if EnableAPIUserDeletion is not set", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.PermanentDeleteUser(context.Background(), userToDelete.Id)
+		_, resp, err := th.SystemAdminClient.PermanentDeleteUser(context.Background(), userToDelete.Id)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
 
 	t.Run("Permanent deletion available through local mode even if EnableAPIUserDeletion is not set", func(t *testing.T) {
-		_, err := th.LocalClient.PermanentDeleteUser(context.Background(), userToDelete.Id)
+		_, _, err := th.LocalClient.PermanentDeleteUser(context.Background(), userToDelete.Id)
 		require.NoError(t, err)
 	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = true })
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		userToDelete = th.CreateUser()
-		_, err := c.PermanentDeleteUser(context.Background(), userToDelete.Id)
+		_, _, err := c.PermanentDeleteUser(context.Background(), userToDelete.Id)
 		require.NoError(t, err)
 
 		_, appErr := th.App.GetTeam(userToDelete.Id)
 		assert.NotNil(t, appErr)
 
-		resp, err := c.PermanentDeleteUser(context.Background(), "junk")
+		_, resp, err := c.PermanentDeleteUser(context.Background(), "junk")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	}, "Permanent deletion with EnableAPIUserDeletion set")

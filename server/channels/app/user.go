@@ -1776,66 +1776,79 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 }
 
 func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.AppError {
-	rctx.Logger().Warn("Attempting to permanently delete account", mlog.String("user_id", user.Id), mlog.String("user_email", user.Email))
+	// Create a contextual logger with user_id field already included
+	logger := rctx.Logger().With(mlog.String("user_id", user.Id))
+
+	logger.Warn("Attempting to permanently delete account", mlog.String("user_email", user.Email))
+
 	if user.IsInRole(model.SystemAdminRoleId) {
-		rctx.Logger().Warn("You are deleting a user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
+		logger.Warn("You are deleting a user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
 	}
 
 	if _, err := a.UpdateActive(rctx, user, false); err != nil {
 		return err
 	}
+	logger.Info("User deactivated before deletion")
 
 	if err := a.Srv().Store().Session().PermanentDeleteSessionsByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.session.permanent_delete_sessions_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User sessions deleted")
 
 	if err := a.Srv().Store().UserAccessToken().DeleteAllForUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User access tokens deleted")
 
 	if err := a.Srv().Store().OAuth().PermanentDeleteAuthDataByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.oauth.permanent_delete_auth_data_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User OAuth data deleted")
 
 	if err := a.Srv().Store().Webhook().PermanentDeleteIncomingByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_incoming_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User incoming webhooks deleted")
 
 	if err := a.Srv().Store().Webhook().PermanentDeleteOutgoingByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_outgoing_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User outgoing webhooks deleted")
 
 	if err := a.Srv().Store().Command().PermanentDeleteByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.user.permanentdeleteuser.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User commands deleted")
 
 	if err := a.Srv().Store().Preference().PermanentDeleteByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.preference.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User preferences deleted")
 
 	if err := a.Srv().Store().Channel().PermanentDeleteMembersByUser(rctx, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User channel memberships deleted")
 
 	if err := a.Srv().Store().Group().PermanentDeleteMembersByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.group.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User group memberships deleted")
 
 	if err := a.Srv().Store().Post().PermanentDeleteByUser(rctx, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
-	if err := a.Srv().Store().Reaction().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.reaction.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
+	logger.Info("User posts deleted")
 
 	if err := a.Srv().Store().ScheduledPost().PermanentDeleteByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.scheduled_post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User scheduled posts deleted")
 
 	if err := a.Srv().Store().Draft().PermanentDeleteByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.drafts.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User drafts deleted")
 
 	if err := a.Srv().Store().Bot().PermanentDelete(user.Id); err != nil {
 		var invErr *store.ErrInvalidInput
@@ -1846,13 +1859,15 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 			return model.NewAppError("PermanentDeleteUser", "app.bot.permanent_delete.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+	logger.Info("User bot accounts deleted")
 
 	infos, err := a.Srv().Store().FileInfo().GetForUser(user.Id)
 	if err != nil {
-		rctx.Logger().Warn("Error getting file list for user from FileInfoStore", mlog.Err(err))
+		logger.Warn("Error getting file list for user from FileInfoStore", mlog.Err(err))
 	}
 
 	a.RemoveFilesFromFileStore(rctx, infos)
+	logger.Info("User files removed from file store")
 
 	// delete directory containing user's profile image
 	profileImageDirectory := getProfileImageDirectory(user.Id)
@@ -1863,7 +1878,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 
 	if errProfileImageExists != nil {
 		fileHandlingErrorsFound = true
-		rctx.Logger().Warn(
+		logger.Warn(
 			"Error checking existence of profile image.",
 			mlog.String("path", profileImagePath),
 			mlog.Err(errProfileImageExists),
@@ -1875,37 +1890,44 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 
 		if errRemoveDirectory != nil {
 			fileHandlingErrorsFound = true
-			rctx.Logger().Warn(
+			logger.Warn(
 				"Unable to remove profile image directory",
 				mlog.String("path", profileImageDirectory),
 				mlog.Err(errRemoveDirectory),
 			)
+		} else {
+			logger.Info("User profile image directory removed")
 		}
 	}
 
 	if _, err := a.Srv().Store().FileInfo().PermanentDeleteByUser(rctx, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User file info deleted from database")
 
 	if err := a.Srv().Store().User().PermanentDelete(rctx, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User record permanently deleted")
 
 	if err := a.Srv().Store().Audit().PermanentDeleteByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.audit.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User audit records deleted")
 
 	if err := a.Srv().Store().Team().RemoveAllMembersByUser(rctx, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.team.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	logger.Info("User team memberships deleted")
 
 	a.InvalidateCacheForUser(user.Id)
+	logger.Info("User cache invalidated")
 
 	if fileHandlingErrorsFound {
 		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "Couldn't delete profile image of the user.", http.StatusAccepted)
 	}
 
-	rctx.Logger().Warn("Permanently deleted account", mlog.String("user_email", user.Email), mlog.String("user_id", user.Id))
+	logger.Warn("Permanently deleted account", mlog.String("user_email", user.Email))
 
 	return nil
 }

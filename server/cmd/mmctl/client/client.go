@@ -66,7 +66,7 @@ type Client interface {
 	GetUsersByIds(ctx context.Context, userIDs []string) ([]*model.User, *model.Response, error)
 	GetUsersWithCustomQueryParameters(ctx context.Context, page, perPage int, queryParameters string, etag string) ([]*model.User, *model.Response, error)
 	GetUsersInTeam(ctx context.Context, teamID string, page, perPage int, etag string) ([]*model.User, *model.Response, error)
-	PermanentDeleteUser(ctx context.Context, userID string) (*model.Response, error)
+	PermanentDeleteUser(ctx context.Context, userID string) (*model.Job, *model.Response, error)
 	PermanentDeleteAllUsers(ctx context.Context) (*model.Response, error)
 	CreateUser(ctx context.Context, user *model.User) (*model.User, *model.Response, error)
 	VerifyUserEmailWithoutToken(ctx context.Context, userID string) (*model.User, *model.Response, error)

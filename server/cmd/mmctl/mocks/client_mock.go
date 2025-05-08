@@ -1813,12 +1813,13 @@ func (mr *MockClientMockRecorder) PermanentDeleteTeam(arg0, arg1 interface{}) *g
 }
 
 // PermanentDeleteUser mocks base method.
-func (m *MockClient) PermanentDeleteUser(arg0 context.Context, arg1 string) (*model.Response, error) {
+func (m *MockClient) PermanentDeleteUser(arg0 context.Context, arg1 string) (*model.Job, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PermanentDeleteUser", arg0, arg1)
-	ret0, _ := ret[0].(*model.Response)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(*model.Job)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // PermanentDeleteUser indicates an expected call of PermanentDeleteUser.
