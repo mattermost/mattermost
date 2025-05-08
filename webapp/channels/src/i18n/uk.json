@@ -5488,7 +5488,7 @@
   "threading.threadHeader.menu": "Більше дій",
   "threading.threadItem.ariaLabel": "Обговорення від {author}",
   "threading.threadItem.menu": "Дії",
-  "threading.threadList.markRead": "Позначити все як прочитане",
+  "threading.threadList.markRead": "Позначити всі обговорення як прочитані",
   "threading.threadMenu.copy": "Скопіювати посилання",
   "threading.threadMenu.follow": "Слідкувати за обговоренням",
   "threading.threadMenu.followExtra": "Вам приходитимуть сповіщення про відповіді",
