@@ -800,15 +800,10 @@ export function getUserOrGroupFromMentionName(
 ): [UserProfile?, Group?] {
     // Handle special case for remote user mentions in the format username:clustername
     if (mentionName.includes(':')) {
-        const parts = mentionName.split(':');
-        const username = parts[0];
-        const clusterName = parts[1];
+        const [username, clusterName] = mentionName.split(':');
         if (username && clusterName) {
-            // Search for all users with matching username (could be multiple remote users)
-            const userValues = Object.values(users);
-
-            // Find remote users with matching username
-            const matchingRemoteUsers = userValues.filter((user) =>
+            // Find remote users with matching username (could be multiple)
+            const matchingRemoteUsers = Object.values(users).filter((user) =>
                 user.username === username && user.remote_id,
             );
             if (matchingRemoteUsers.length === 1) {
