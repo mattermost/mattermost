@@ -227,7 +227,6 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                         <span
                             className='sr-only'
                             role='alert'
-                            aria-live='assertive'
                         >
                             <FormattedMessage
                                 id='more_channels.joinedChannel'
@@ -553,7 +552,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 }}
                 role='checkbox'
                 aria-checked={this.props.rememberHideJoinedChannelsChecked}
-                aria-label={this.props.rememberHideJoinedChannelsChecked ? this.props.intl.formatMessage({id: 'more_channels.hide_joined_checked', defaultMessage: 'Hide joined channels checkbox, checked'}) : this.props.intl.formatMessage({id: 'more_channels.hide_joined_not_checked', defaultMessage: 'Hide joined channels checkbox, not checked'})}
+                aria-label={this.props.intl.formatMessage({id: 'more_channels.hide_joined_channels_checkbox', defaultMessage: 'Hide joined channels checkbox'})}
                 tabIndex={0}
             >
                 <div className={hideJoinedButtonClass}>
