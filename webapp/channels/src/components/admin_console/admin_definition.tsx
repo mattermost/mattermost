@@ -670,6 +670,7 @@ const AdminDefinition: AdminDefinitionType = {
             access_control_policy_details_edit: {
                 url: `user_management/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 ),
@@ -683,6 +684,7 @@ const AdminDefinition: AdminDefinitionType = {
             access_control_policy_details: {
                 url: 'user_management/attribute_based_access_control/edit_policy',
                 isHidden: it.any(
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 ),
@@ -717,7 +719,10 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             key: 'admin.accesscontrol.policies',
-                            isHidden: it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
+                            isHidden: it.any(
+                                it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
+                            ),
                             settings: [
                                 {
                                     type: 'custom',
@@ -728,7 +733,10 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             key: 'admin.accesscontrol.policyjobs',
-                            isHidden: it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
+                            isHidden: it.any(
+                                it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
+                            ),
                             settings: [
                                 {
                                     type: 'custom',

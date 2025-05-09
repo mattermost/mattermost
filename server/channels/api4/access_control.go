@@ -39,6 +39,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 
 	auditRec := c.MakeAuditRecord("createAccessControlPolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameterAuditable(auditRec, "requested", &policy)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -50,6 +51,10 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		c.Err = appErr
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddEventObjectType("access_control_policy")
+	auditRec.AddEventResultState(np)
 
 	js, err := json.Marshal(np)
 	if err != nil {
@@ -103,14 +108,21 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 	policyID := c.Params.PolicyId
 
+	auditRec := c.MakeAuditRecord("deleteAccessControlPolicy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameter(auditRec, "id", policyID)
+
 	appErr := c.App.DeleteAccessControlPolicy(c.AppContext, policyID)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
+	auditRec.Success()
 }
 
 func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
+	// request type reserved for future expansion
+	// for now, we only support the expression check
 	checkExpressionRequest := struct {
 		Expression string `json:"expression"`
 	}{}
@@ -118,9 +130,6 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
-
-	auditRec := c.MakeAuditRecord("checkExpression", audit.Fail)
-	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -150,9 +159,6 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
-
-	auditRec := c.MakeAuditRecord("checkExpression", audit.Fail)
-	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -233,6 +239,12 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	policyID := c.Params.PolicyId
+
+	auditRec := c.MakeAuditRecord("deleteAccessControlPolicy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameter(auditRec, "id", policyID)
+
 	active := r.URL.Query().Get("active")
 	if active != "true" && active != "false" {
 		c.SetInvalidParam("active")
@@ -243,14 +255,15 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("active", err)
 		return
 	}
-
-	policyID := c.Params.PolicyId
+	audit.AddEventParameter(auditRec, "active", activeBool)
 
 	appErr := c.App.UpdateAccessControlPolicyActive(c.AppContext, policyID, activeBool)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
+
+	auditRec.Success()
 }
 
 func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -275,6 +288,11 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("assignAccessPolicy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameter(auditRec, "id", policyID)
+	audit.AddEventParameter(auditRec, "channel_ids", assignments.ChannelIds)
+
 	if len(assignments.ChannelIds) != 0 {
 		_, appErr := c.App.AssignAccessControlPolicyToChannels(c.AppContext, policyID, assignments.ChannelIds)
 		if appErr != nil {
@@ -282,6 +300,8 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	auditRec.Success()
 }
 
 func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -300,6 +320,11 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		ChannelIds []string `json:"channel_ids"`
 	}
 
+	auditRec := c.MakeAuditRecord("unassignAccessPolicy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameter(auditRec, "id", policyID)
+	audit.AddEventParameter(auditRec, "channel_ids", assignments.ChannelIds)
+
 	err := json.NewDecoder(r.Body).Decode(&assignments)
 	if err != nil {
 		c.SetInvalidParamWithErr("assignments", err)
@@ -313,6 +338,8 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	auditRec.Success()
 }
 
 func getChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {

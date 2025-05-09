@@ -195,3 +195,11 @@ func (c *AccessControlPolicyCursor) IsValid() error {
 
 	return nil
 }
+
+func (p *AccessControlPolicy) Auditable() map[string]any {
+	return map[string]any{
+		"id":       p.ID,
+		"type":     p.Type,
+		"revision": p.Revision,
+	}
+}
