@@ -65,6 +65,60 @@ func TestGetCPAField(t *testing.T) {
 		require.Equal(t, "Test Field", fetchedField.Name)
 		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, fetchedField.Attrs["visibility"])
 	})
+
+	t.Run("should validate LDAP/SAML synced fields", func(t *testing.T) {
+		// Create LDAP synced field
+		ldapField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "LDAP Field",
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsLDAP: "ldap_attribute",
+			},
+		})
+		require.NoError(t, err)
+		createdLDAPField, appErr := th.App.CreateCPAField(ldapField)
+		require.Nil(t, appErr)
+
+		// Create SAML synced field
+		samlField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "SAML Field",
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsSAML: "saml_attribute",
+			},
+		})
+		require.NoError(t, err)
+		createdSAMLField, appErr := th.App.CreateCPAField(samlField)
+		require.Nil(t, appErr)
+
+		// Test with allowSynced=false
+		userID := model.NewId()
+
+		// Test LDAP field
+		_, appErr = th.App.PatchCPAValue(userID, createdLDAPField.ID, json.RawMessage(`"test value"`), false)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.custom_profile_attributes.property_field_is_synced.app_error", appErr.Id)
+
+		// Test SAML field
+		_, appErr = th.App.PatchCPAValue(userID, createdSAMLField.ID, json.RawMessage(`"test value"`), false)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.custom_profile_attributes.property_field_is_synced.app_error", appErr.Id)
+
+		// Test with allowSynced=true
+		// LDAP field should work
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdLDAPField.ID, json.RawMessage(`"test value"`), true)
+		require.Nil(t, appErr)
+		require.NotNil(t, patchedValue)
+		require.Equal(t, json.RawMessage(`"test value"`), patchedValue.Value)
+
+		// SAML field should work
+		patchedValue, appErr = th.App.PatchCPAValue(userID, createdSAMLField.ID, json.RawMessage(`"test value"`), true)
+		require.Nil(t, appErr)
+		require.NotNil(t, patchedValue)
+		require.Equal(t, json.RawMessage(`"test value"`), patchedValue.Value)
+	})
 }
 
 func TestListCPAFields(t *testing.T) {
@@ -584,7 +638,7 @@ func TestPatchCPAValue(t *testing.T) {
 
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
 		invalidFieldID := model.NewId()
-		_, appErr := th.App.PatchCPAValue(model.NewId(), invalidFieldID, json.RawMessage(`"fieldValue"`))
+		_, appErr := th.App.PatchCPAValue(model.NewId(), invalidFieldID, json.RawMessage(`"fieldValue"`), true)
 		require.NotNil(t, appErr)
 	})
 
@@ -598,14 +652,14 @@ func TestPatchCPAValue(t *testing.T) {
 		require.NoError(t, err)
 
 		userID := model.NewId()
-		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"test value"`))
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"test value"`), true)
 		require.Nil(t, appErr)
 		require.NotNil(t, patchedValue)
 		require.Equal(t, json.RawMessage(`"test value"`), patchedValue.Value)
 		require.Equal(t, userID, patchedValue.TargetID)
 
 		t.Run("should correctly patch the CPA property value", func(t *testing.T) {
-			patch2, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"new patched value"`))
+			patch2, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"new patched value"`), true)
 			require.Nil(t, appErr)
 			require.NotNil(t, patch2)
 			require.Equal(t, patchedValue.ID, patch2.ID)
@@ -626,7 +680,7 @@ func TestPatchCPAValue(t *testing.T) {
 		require.NoError(t, err)
 
 		userID := model.NewId()
-		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"test value"`))
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"test value"`), true)
 		require.NotNil(t, appErr)
 		require.Nil(t, patchedValue)
 	})
@@ -653,7 +707,7 @@ func TestPatchCPAValue(t *testing.T) {
 		optionJSON := fmt.Sprintf(`["%s", "%s", "%s"]`, optionsID[0], optionsID[1], optionsID[2])
 
 		userID := model.NewId()
-		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(optionJSON))
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(optionJSON), true)
 		require.Nil(t, appErr)
 		require.NotNil(t, patchedValue)
 		var arrayValues []string
@@ -663,7 +717,7 @@ func TestPatchCPAValue(t *testing.T) {
 
 		// Update array values with valid option IDs
 		updatedOptionJSON := fmt.Sprintf(`["%s", "%s"]`, optionsID[1], optionsID[3])
-		updatedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(updatedOptionJSON))
+		updatedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(updatedOptionJSON), true)
 		require.Nil(t, appErr)
 		require.NotNil(t, updatedValue)
 		require.Equal(t, patchedValue.ID, updatedValue.ID)
@@ -677,21 +731,21 @@ func TestPatchCPAValue(t *testing.T) {
 			invalidID := model.NewId()
 			invalidOptionJSON := fmt.Sprintf(`["%s", "%s"]`, optionsID[0], invalidID)
 
-			invalidValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(invalidOptionJSON))
+			invalidValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(invalidOptionJSON), true)
 			require.NotNil(t, appErr)
 			require.Nil(t, invalidValue)
 			require.Equal(t, "app.custom_profile_attributes.validate_value.app_error", appErr.Id)
 
 			// Test with completely invalid JSON format
 			invalidJSON := `[not valid json]`
-			invalidValue, appErr = th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(invalidJSON))
+			invalidValue, appErr = th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(invalidJSON), true)
 			require.NotNil(t, appErr)
 			require.Nil(t, invalidValue)
 			require.Equal(t, "app.custom_profile_attributes.validate_value.app_error", appErr.Id)
 
 			// Test with wrong data type (sending string instead of array)
 			wrongTypeJSON := `"not an array"`
-			invalidValue, appErr = th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(wrongTypeJSON))
+			invalidValue, appErr = th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(wrongTypeJSON), true)
 			require.NotNil(t, appErr)
 			require.Nil(t, invalidValue)
 			require.Equal(t, "app.custom_profile_attributes.validate_value.app_error", appErr.Id)
@@ -725,7 +779,7 @@ func TestDeleteCPAValues(t *testing.T) {
 		createdFields = append(createdFields, createdField)
 
 		// Create a value for this field
-		value, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(fmt.Sprintf(`"Value %d"`, i)))
+		value, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(fmt.Sprintf(`"Value %d"`, i)), false)
 		require.Nil(t, appErr)
 		require.NotNil(t, value)
 	}
@@ -754,7 +808,7 @@ func TestDeleteCPAValues(t *testing.T) {
 	t.Run("should not affect values for other users", func(t *testing.T) {
 		// Create values for another user
 		for _, field := range createdFields {
-			value, appErr := th.App.PatchCPAValue(otherUserID, field.ID, json.RawMessage(`"Other user value"`))
+			value, appErr := th.App.PatchCPAValue(otherUserID, field.ID, json.RawMessage(`"Other user value"`), false)
 			require.Nil(t, appErr)
 			require.NotNil(t, value)
 		}

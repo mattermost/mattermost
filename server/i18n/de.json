@@ -4644,15 +4644,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Version 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10618,5 +10618,33 @@
   {
     "id": "ent.saml.update_cpa.multiple_errors",
     "translation": "Fehler bei der Aktualisierung der CPA-Werte"
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Die Berechnung der monatlich aktiven Nutzer ist fehlgeschlagen."
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "Auf dem AD/LDAP-Server ist kein Benutzer registriert, der dem SAML-Benutzer entspricht."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} Funktion ist für die aktuelle Lizenz nicht verfügbar"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Ungültiger Link zum Melden eines Problems. Muss eine gültige URL sein und mit http:// oder https:// beginnen."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "Problem-melden-Link ist erforderlich."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Ungültige Mail zum Melden eines Problems. Muss eine gültige E-Mail Adresse sein."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "\"Melde ein Problem\"-Mail ist erforderlich."
   }
 ]
