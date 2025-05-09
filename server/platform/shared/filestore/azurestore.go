@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/sas"
@@ -54,13 +53,12 @@ func (b *AzureFileBackend) Reader(path string) (ReadCloseSeeker, error) {
 		return nil, errors.Wrapf(err, "unable to read file %s", path)
 	}
 
-	// Wrap the body in a seekable reader
-	retryReader := download.Body(&blob.RetryReaderOptions{})
-	data, err := io.ReadAll(retryReader)
+	// Wrap the body in a seekable reader - Body ya es un ReadCloser, no una función
+	data, err := io.ReadAll(download.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read response body")
 	}
-	retryReader.Close()
+	download.Body.Close()
 
 	return &seekableReader{
 		reader: bytes.NewReader(data),
