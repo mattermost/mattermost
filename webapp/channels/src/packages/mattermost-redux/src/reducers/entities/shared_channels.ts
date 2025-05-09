@@ -4,17 +4,19 @@
 import {combineReducers} from 'redux';
 import type {AnyAction} from 'redux';
 
+import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
+
 export const ActionTypes = {
-    RECEIVED_CHANNEL_REMOTE_NAMES: 'RECEIVED_CHANNEL_REMOTE_NAMES',
+    RECEIVED_CHANNEL_REMOTES: 'RECEIVED_CHANNEL_REMOTES',
 };
 
-export function remoteNames(state: Record<string, string[]> = {}, action: AnyAction) {
+export function remotes(state: Record<string, RemoteClusterInfo[]> = {}, action: AnyAction) {
     switch (action.type) {
-    case ActionTypes.RECEIVED_CHANNEL_REMOTE_NAMES: {
-        const {channelId, remoteNames} = action.data;
+    case ActionTypes.RECEIVED_CHANNEL_REMOTES: {
+        const {channelId, remotes} = action.data;
         return {
             ...state,
-            [channelId]: remoteNames,
+            [channelId]: remotes,
         };
     }
     default:
@@ -23,5 +25,5 @@ export function remoteNames(state: Record<string, string[]> = {}, action: AnyAct
 }
 
 export default combineReducers({
-    remoteNames,
+    remotes,
 });

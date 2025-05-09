@@ -15,7 +15,7 @@ import (
 func (api *API) InitSharedChannels() {
 	api.BaseRoutes.SharedChannels.Handle("/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getSharedChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.SharedChannels.Handle("/remote_info/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(getRemoteClusterInfo)).Methods(http.MethodGet)
-	api.BaseRoutes.SharedChannels.Handle("/{channel_id:[A-Za-z0-9]+}/remotes/names", api.APISessionRequired(getChannelRemoteNames)).Methods(http.MethodGet)
+	api.BaseRoutes.SharedChannels.Handle("/{channel_id:[A-Za-z0-9]+}/remotes", api.APISessionRequired(getSharedChannelRemotes)).Methods(http.MethodGet)
 
 	api.BaseRoutes.SharedChannelRemotes.Handle("", api.APISessionRequired(getSharedChannelRemotesByRemoteCluster)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelForRemote.Handle("/invite", api.APISessionRequired(inviteRemoteClusterToChannel)).Methods(http.MethodPost)
@@ -248,8 +248,8 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 	ReturnStatusOK(w)
 }
 
-// getChannelRemoteNames returns a list of remote names for a shared channel
-func getChannelRemoteNames(c *Context, w http.ResponseWriter, r *http.Request) {
+// getSharedChannelRemotes returns info about remote clusters for a shared channel
+func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -276,17 +276,29 @@ func getChannelRemoteNames(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Get the remotes status
 	remoteStatuses, err := c.App.GetSharedChannelRemotesStatus(c.Params.ChannelId)
 	if err != nil {
-		c.Err = model.NewAppError("getChannelRemoteNames", "api.shared_channel.get_remote_names.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("getSharedChannelRemotes", "api.shared_channel.get_remote_names.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
-	// Extract just the names
-	remoteNames := make([]string, 0, len(remoteStatuses))
+	// For each remote status, get the RemoteClusterInfo
+	remoteInfos := make([]*model.RemoteClusterInfo, 0, len(remoteStatuses))
 	for _, status := range remoteStatuses {
-		remoteNames = append(remoteNames, status.DisplayName)
+		// Use GetRemoteCluster to get the full remote cluster
+		remoteCluster, appErr := c.App.GetRemoteCluster(status.ChannelId, false)
+		if appErr == nil && remoteCluster != nil {
+			info := remoteCluster.ToRemoteClusterInfo()
+			remoteInfos = append(remoteInfos, &info)
+		} else {
+			// If we can't find the detailed info, create a basic RemoteClusterInfo from the status
+			remoteInfos = append(remoteInfos, &model.RemoteClusterInfo{
+				Name:        status.ChannelId,
+				DisplayName: status.DisplayName,
+				LastPingAt:  status.LastPingAt,
+			})
+		}
 	}
 
-	b, jsonErr := json.Marshal(remoteNames)
+	b, jsonErr := json.Marshal(remoteInfos)
 	if jsonErr != nil {
 		c.SetJSONEncodingError(jsonErr)
 		return

@@ -17,7 +17,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func TestGetChannelRemoteNames(t *testing.T) {
+func TestGetSharedChannelRemotes(t *testing.T) {
 	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
 
@@ -83,11 +83,11 @@ func TestGetChannelRemoteNames(t *testing.T) {
 	require.NoError(t, sErr)
 
 	// Test the API endpoint
-	url := fmt.Sprintf("/sharedchannels/%s/remotes/names", channel1.Id)
+	url := fmt.Sprintf("/sharedchannels/%s/remotes", channel1.Id)
 	resp, err := th.Client.DoAPIGet(context.Background(), url, "")
 	require.NoError(t, err)
 
-	var result []string
+	var result []*model.RemoteClusterInfo
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 
@@ -95,10 +95,20 @@ func TestGetChannelRemoteNames(t *testing.T) {
 	require.NotNil(t, result)
 	require.Len(t, result, 2)
 
-	// Check remote names (sort first for consistent testing)
-	sort.Strings(result)
-	assert.Equal(t, remote1.DisplayName, result[0])
-	assert.Equal(t, remote2.DisplayName, result[1])
+	// Sort remote infos by display name for consistent testing
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].DisplayName < result[j].DisplayName
+	})
+
+	// Verify the RemoteClusterInfo objects contain the expected data
+	assert.Equal(t, remote1.DisplayName, result[0].DisplayName)
+	assert.Equal(t, remote2.DisplayName, result[1].DisplayName)
+	
+	// Should also contain other fields
+	assert.NotEmpty(t, result[0].Name)
+	assert.NotEmpty(t, result[1].Name)
+	assert.NotZero(t, result[0].LastPingAt)
+	assert.NotZero(t, result[1].LastPingAt)
 
 	// Test access control - user without permissions should not be able to access
 	user2 := th.CreateUser()
