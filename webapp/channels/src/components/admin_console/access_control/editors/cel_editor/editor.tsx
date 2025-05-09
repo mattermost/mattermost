@@ -14,6 +14,7 @@ import Markdown from 'components/markdown';
 
 import {MonacoLanguageProvider} from './language_provider';
 
+import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
 
 import './editor.scss';
@@ -107,6 +108,7 @@ function CELEditor({
 
     const editorRef = useRef(null);
     const monacoRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+    const [showHelpModal, setShowHelpModal] = useState(false);
 
     useEffect(() => {
         setEditorState((prev) => ({...prev, expression: value}));
@@ -315,6 +317,7 @@ function CELEditor({
                 <a
                     href='#'
                     className='cel-editor__learn-more'
+                    onClick={() => setShowHelpModal(true)}
                 >
                     <FormattedMessage
                         id='admin.access_control.cel.learnMore'
@@ -331,6 +334,11 @@ function CELEditor({
                             return searchUsersForExpression(editorState.expression, term, after, limit);
                         },
                     }}
+                />
+            )}
+            {showHelpModal && (
+                <CELHelpModal
+                    onExited={() => setShowHelpModal(false)}
                 />
             )}
         </div>

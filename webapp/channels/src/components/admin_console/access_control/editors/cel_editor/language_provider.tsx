@@ -33,7 +33,6 @@ export function MonacoLanguageProvider({schemas}: MonacoLanguageProviderProps) {
             monaco.languages.setMonarchTokensProvider(POLICY_LANGUAGE_NAME, {
                 tokenizer: {
                     root: [
-
                         // Comments
                         [/\/\/.*$/, 'comment'],
 
@@ -43,7 +42,7 @@ export function MonacoLanguageProvider({schemas}: MonacoLanguageProviderProps) {
                         [/[a-zA-Z][\w$]*/, 'property'],
 
                         // Operators
-                        [/&&|\|\||==|!=|>=|<=|>|</, 'operator'],
+                        [/&&|\|\||==|!=/, 'operator'],
 
                         // Whitespace
                         [/[ \t\r\n]+/, 'white'],
@@ -186,7 +185,7 @@ export function MonacoLanguageProvider({schemas}: MonacoLanguageProviderProps) {
 
                     if (operatorMatch) {
                         // We have an entity followed by space - suggest operators
-                        const operators = ['&&', '||', '==', '!=', '>', '<', '>=', '<='];
+                        const operators = ['&&', '||', '==', '!=', 'in'];
 
                         return {
                             suggestions: operators.map((op) => ({
