@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Create a post
+This command cammand can be use to create a post on a channel and to send a direct message to a user.
 
 ::
 
@@ -20,7 +20,11 @@ Examples
 
 ::
 
-    post create myteam:mychannel --message "some text for the post"
+   # Example of post on a channel
+  	post create myteam:mychannel "some text for the post"
+
+  	# Example of a direct message
+  	post create @some-user "some direct message"
 
 Options
 ~~~~~~~
