@@ -1314,6 +1314,7 @@ Object {
                     <div
                       class="AlertBanner info AlertBanner--app"
                       data-testid="channelNotificationsMutedBanner"
+                      id="channelNotificationsMutedBanner"
                     >
                       <div
                         class="AlertBanner__icon"
