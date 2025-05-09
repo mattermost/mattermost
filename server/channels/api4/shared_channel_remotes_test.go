@@ -103,7 +103,7 @@ func TestGetSharedChannelRemotes(t *testing.T) {
 	// Verify the RemoteClusterInfo objects contain the expected data
 	assert.Equal(t, remote1.DisplayName, result[0].DisplayName)
 	assert.Equal(t, remote2.DisplayName, result[1].DisplayName)
-	
+
 	// Should also contain other fields
 	assert.NotEmpty(t, result[0].Name)
 	assert.NotEmpty(t, result[1].Name)
