@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-storage-blob-go/azblob"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -54,7 +54,7 @@ func (s *AzureFileBackendTestSuite) SetupTest() {
 	if err != nil {
 		azureBackend := s.backend.(*AzureFileBackend)
 		ctx := context.Background()
-		_, err = azureBackend.containerURL.Create(ctx, azblob.Metadata{}, azblob.PublicAccessNone)
+		_, err = azureBackend.containerClient.Create(ctx, nil)
 		require.NoError(s.T(), err)
 	}
 }

@@ -15,25 +15,29 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-storage-blob-go/azblob"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/sas"
 	"github.com/pkg/errors"
 )
 
 type AzureFileBackend struct {
-	containerURL   azblob.ContainerURL
-	container      string
-	pathPrefix     string
-	timeout        time.Duration
-	presignExpires time.Duration
-	storageAccount string
-	accessKey      string
+	containerClient *container.Client
+	container       string
+	pathPrefix      string
+	timeout         time.Duration
+	presignExpires  time.Duration
+	storageAccount  string
+	accessKey       string
 }
 
 func (b *AzureFileBackend) TestConnection() error {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	_, err := b.containerURL.GetProperties(ctx, azblob.LeaseAccessConditions{})
+	_, err := b.containerClient.GetProperties(ctx, nil)
 	if err != nil {
 		return errors.Wrap(err, "unable to connect to Azure blob storage")
 	}
@@ -46,19 +50,19 @@ func (b *AzureFileBackend) Reader(path string) (ReadCloseSeeker, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	blobURL := b.containerURL.NewBlockBlobURL(path)
-	download, err := blobURL.Download(ctx, 0, azblob.CountToEnd, azblob.BlobAccessConditions{}, false, azblob.ClientProvidedKeyOptions{})
+	blobClient := b.containerClient.NewBlockBlobClient(path)
+	download, err := blobClient.Download(ctx, &blob.DownloadOptions{})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to read file %s", path)
 	}
 
 	// Wrap the body in a seekable reader
-	body := download.Body(azblob.RetryReaderOptions{})
-	data, err := io.ReadAll(body)
+	retryReader := download.Body(&blob.RetryReaderOptions{})
+	data, err := io.ReadAll(retryReader)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read response body")
 	}
-	body.Close()
+	retryReader.Close()
 
 	return &seekableReader{
 		reader: bytes.NewReader(data),
@@ -81,11 +85,12 @@ func (b *AzureFileBackend) FileExists(path string) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	blobURL := b.containerURL.NewBlockBlobURL(path)
-	_, err := blobURL.GetProperties(ctx, azblob.BlobAccessConditions{}, azblob.ClientProvidedKeyOptions{})
+	blobClient := b.containerClient.NewBlockBlobClient(path)
+	_, err := blobClient.GetProperties(ctx, nil)
 	if err != nil {
-		if serr, ok := err.(azblob.StorageError); ok {
-			if serr.ServiceCode() == azblob.ServiceCodeBlobNotFound {
+		var storageErr *azblob.StorageError
+		if errors.As(err, &storageErr) {
+			if storageErr.ErrorCode == "BlobNotFound" {
 				return false, nil
 			}
 		}
@@ -100,13 +105,13 @@ func (b *AzureFileBackend) FileSize(path string) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	blobURL := b.containerURL.NewBlockBlobURL(path)
-	props, err := blobURL.GetProperties(ctx, azblob.BlobAccessConditions{}, azblob.ClientProvidedKeyOptions{})
+	blobClient := b.containerClient.NewBlockBlobClient(path)
+	props, err := blobClient.GetProperties(ctx, nil)
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to get file size for %s", path)
 	}
 
-	return props.ContentLength(), nil
+	return *props.ContentLength, nil
 }
 
 func (b *AzureFileBackend) FileModTime(path string) (time.Time, error) {
@@ -114,13 +119,13 @@ func (b *AzureFileBackend) FileModTime(path string) (time.Time, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	blobURL := b.containerURL.NewBlockBlobURL(path)
-	props, err := blobURL.GetProperties(ctx, azblob.BlobAccessConditions{}, azblob.ClientProvidedKeyOptions{})
+	blobClient := b.containerClient.NewBlockBlobClient(path)
+	props, err := blobClient.GetProperties(ctx, nil)
 	if err != nil {
 		return time.Time{}, errors.Wrapf(err, "unable to get modification time for file %s", path)
 	}
 
-	return props.LastModified(), nil
+	return *props.LastModified, nil
 }
 
 func (b *AzureFileBackend) CopyFile(oldPath, newPath string) error {
@@ -129,10 +134,10 @@ func (b *AzureFileBackend) CopyFile(oldPath, newPath string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	source := b.containerURL.NewBlockBlobURL(oldPath)
-	destination := b.containerURL.NewBlockBlobURL(newPath)
+	sourceBlobClient := b.containerClient.NewBlockBlobClient(oldPath)
+	destinationBlobClient := b.containerClient.NewBlockBlobClient(newPath)
 
-	_, err := destination.StartCopyFromURL(ctx, source.URL(), nil, azblob.ModifiedAccessConditions{}, azblob.BlobAccessConditions{}, azblob.DefaultAccessTier, nil)
+	_, err := destinationBlobClient.StartCopyFromURL(ctx, sourceBlobClient.URL(), nil)
 	if err != nil {
 		return errors.Wrapf(err, "unable to copy file from %s to %s", oldPath, newPath)
 	}
@@ -154,18 +159,14 @@ func (b *AzureFileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	blobURL := b.containerURL.NewBlockBlobURL(path)
-	uploadOptions := azblob.UploadStreamToBlockBlobOptions{
-		BufferSize: 3 * 1024 * 1024,
-		MaxBuffers: 2,
-	}
+	blobClient := b.containerClient.NewBlockBlobClient(path)
 
 	data, err := io.ReadAll(fr)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to read input")
 	}
 
-	_, err = azblob.UploadStreamToBlockBlob(ctx, bytes.NewReader(data), blobURL, uploadOptions)
+	_, err = blobClient.UploadBuffer(ctx, data, &blockblob.UploadBufferOptions{})
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to write file %s", path)
 	}
@@ -183,18 +184,49 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, path string) (int64, error) 
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to read input")
 	}
-	readSeeker := bytes.NewReader(data)
-
-	blobURL := b.containerURL.NewAppendBlobURL(path)
-	response, err := blobURL.AppendBlock(ctx, readSeeker, azblob.AppendBlobAccessConditions{}, nil, azblob.ClientProvidedKeyOptions{})
+	
+	// La nueva API no tiene un AppendBlobClient específico, necesitamos usar ContainerClient para crear un cliente específico
+	blobClient := b.containerClient.NewBlockBlobClient(path)
+	
+	// Primera, verificamos si el blob existe
+	exists, err := b.FileExists(strings.TrimPrefix(path, b.pathPrefix))
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to append to file %s", path)
+		return 0, errors.Wrapf(err, "unable to check if file %s exists", path)
 	}
-
-	offset, err := strconv.ParseInt(response.BlobAppendOffset(), 10, 64)
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to parse blob append offset")
+	
+	var offset int64
+	if !exists {
+		// Si no existe, creamos un nuevo blob
+		_, err = blobClient.Upload(ctx, bytes.NewReader(data), nil)
+		if err != nil {
+			return 0, errors.Wrapf(err, "unable to create new file %s", path)
+		}
+		offset = 0
+	} else {
+		// Si existe, obtenemos el tamaño actual y luego agregamos datos
+		size, err := b.FileSize(strings.TrimPrefix(path, b.pathPrefix))
+		if err != nil {
+			return 0, errors.Wrapf(err, "unable to get size of file %s", path)
+		}
+		
+		// Descargamos el contenido existente
+		existingContent, err := b.ReadFile(strings.TrimPrefix(path, b.pathPrefix))
+		if err != nil {
+			return 0, errors.Wrapf(err, "unable to read existing file %s", path)
+		}
+		
+		// Concatenamos el contenido existente con los nuevos datos
+		newContent := append(existingContent, data...)
+		
+		// Subimos el contenido combinado
+		_, err = blobClient.Upload(ctx, bytes.NewReader(newContent), nil)
+		if err != nil {
+			return 0, errors.Wrapf(err, "unable to append to file %s", path)
+		}
+		
+		offset = size
 	}
+	
 	return offset, nil
 }
 
@@ -203,8 +235,8 @@ func (b *AzureFileBackend) RemoveFile(path string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	blobURL := b.containerURL.NewBlockBlobURL(path)
-	_, err := blobURL.Delete(ctx, azblob.DeleteSnapshotsOptionNone, azblob.BlobAccessConditions{})
+	blobClient := b.containerClient.NewBlockBlobClient(path)
+	_, err := blobClient.Delete(ctx, nil)
 	if err != nil {
 		return errors.Wrapf(err, "unable to remove file %s", path)
 	}
@@ -222,23 +254,26 @@ func (b *AzureFileBackend) ListDirectory(path string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	for marker := (azblob.Marker{}); marker.NotDone(); {
-		listBlob, err := b.containerURL.ListBlobsHierarchySegment(ctx, marker, "/", azblob.ListBlobsSegmentOptions{Prefix: path})
+	// Usar el nuevo paginador para listar blobs jerárquicamente
+	pager := b.containerClient.NewListBlobsHierarchyPager("/", &container.ListBlobsHierarchyOptions{
+		Prefix: &path,
+	})
+
+	for pager.More() {
+		page, err := pager.NextPage(ctx)
 		if err != nil {
 			return nil, errors.Wrapf(err, "unable to list directory %s", path)
 		}
 
-		marker = listBlob.NextMarker
-
 		// Add files
-		for _, blob := range listBlob.Segment.BlobItems {
-			name := strings.TrimPrefix(blob.Name, b.pathPrefix)
+		for _, blob := range page.Segment.BlobItems {
+			name := strings.TrimPrefix(*blob.Name, b.pathPrefix)
 			files = append(files, name)
 		}
 
 		// Add directories
-		for _, prefix := range listBlob.Segment.BlobPrefixes {
-			name := strings.TrimPrefix(prefix.Name, b.pathPrefix)
+		for _, prefix := range page.Segment.BlobPrefixes {
+			name := strings.TrimPrefix(*prefix.Name, b.pathPrefix)
 			name = strings.TrimSuffix(name, "/")
 			files = append(files, name)
 		}
@@ -257,16 +292,19 @@ func (b *AzureFileBackend) ListDirectoryRecursively(path string) ([]string, erro
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	for marker := (azblob.Marker{}); marker.NotDone(); {
-		listBlob, err := b.containerURL.ListBlobsFlatSegment(ctx, marker, azblob.ListBlobsSegmentOptions{Prefix: path})
+	// Usar el nuevo paginador para listar blobs de forma plana (sin jerarquía)
+	pager := b.containerClient.NewListBlobsFlatPager(&container.ListBlobsFlatOptions{
+		Prefix: &path,
+	})
+
+	for pager.More() {
+		page, err := pager.NextPage(ctx)
 		if err != nil {
 			return nil, errors.Wrapf(err, "unable to list directory %s recursively", path)
 		}
 
-		marker = listBlob.NextMarker
-
-		for _, blob := range listBlob.Segment.BlobItems {
-			files = append(files, strings.TrimPrefix(blob.Name, b.pathPrefix))
+		for _, blob := range page.Segment.BlobItems {
+			files = append(files, strings.TrimPrefix(*blob.Name, b.pathPrefix))
 		}
 	}
 
@@ -290,27 +328,36 @@ func (b *AzureFileBackend) RemoveDirectory(path string) error {
 
 func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duration, error) {
 	path = filepath.Join(b.pathPrefix, path)
-	blobURL := b.containerURL.NewBlockBlobURL(path)
+	blobClient := b.containerClient.NewBlockBlobClient(path)
 
 	// Create SAS query parameters with the specified permissions and expiry
 	credential, err := azblob.NewSharedKeyCredential(b.storageAccount, b.accessKey)
 	if err != nil {
 		return "", 0, errors.Wrap(err, "failed to create shared key credential")
 	}
-	sasQueryParams, err := azblob.BlobSASSignatureValues{
-		Protocol:      azblob.SASProtocolHTTPS,
-		ExpiryTime:    time.Now().Add(b.presignExpires),
+	
+	permissions := sas.BlobPermissions{
+		Read: true,
+	}
+	
+	startTime := time.Now().UTC().Add(-1 * time.Minute) // Comenzar 1 minuto antes para evitar problemas de reloj
+	expiryTime := time.Now().UTC().Add(b.presignExpires)
+	
+	blobSASBuilder := sas.BlobSignatureValues{
+		Protocol:      sas.ProtocolHTTPS,
+		StartTime:     startTime,
+		ExpiryTime:    expiryTime,
 		ContainerName: b.container,
 		BlobName:      path,
-		Permissions:   azblob.BlobSASPermissions{Read: true}.String(),
-	}.NewSASQueryParameters(credential)
+		Permissions:   permissions.String(),
+	}
 
+	sasQueryParams, err := blobSASBuilder.SignWithSharedKey(credential)
 	if err != nil {
 		return "", 0, errors.Wrapf(err, "unable to generate public link for %s", path)
 	}
 
-	url := blobURL.URL()
-	sasURL := fmt.Sprintf("%s?%s", (&url).String(), sasQueryParams.Encode())
+	sasURL := fmt.Sprintf("%s?%s", blobClient.URL(), sasQueryParams.Encode())
 	return sasURL, b.presignExpires, nil
 }
 
@@ -340,15 +387,15 @@ func (b *AzureFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 		defer cancel()
 
 		// Try to check if this is a single file
-		blobURL := b.containerURL.NewBlockBlobURL(path)
-		props, err := blobURL.GetProperties(ctx, azblob.BlobAccessConditions{}, azblob.ClientProvidedKeyOptions{})
+		blobClient := b.containerClient.NewBlockBlobClient(path)
+		props, err := blobClient.GetProperties(ctx, nil)
 
 		if err == nil {
 			// Create zip header for the file
 			header := &zip.FileHeader{
 				Name:     filepath.Base(path),
 				Method:   deflateMethod,
-				Modified: props.LastModified(),
+				Modified: *props.LastModified,
 			}
 			header.SetMode(0644) // rw-r--r-- permissions
 
@@ -449,22 +496,25 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 		return nil, err
 	}
 
-	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
-	URL, err := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net/%s", settings.AzureStorageAccount, settings.AzureContainer))
+	serviceURL := fmt.Sprintf("https://%s.blob.core.windows.net", settings.AzureStorageAccount)
+	
+	// Crear el cliente del servicio primero
+	serviceClient, err := azblob.NewClientWithSharedKeyCredential(serviceURL, credential, nil)
 	if err != nil {
 		return nil, err
 	}
-
-	containerURL := azblob.NewContainerURL(*URL, pipeline)
+	
+	// Obtener el cliente del contenedor
+	containerClient := serviceClient.ServiceClient().NewContainerClient(settings.AzureContainer)
 
 	backend := &AzureFileBackend{
-		containerURL:   containerURL,
-		container:      settings.AzureContainer,
-		pathPrefix:     settings.AzurePathPrefix,
-		timeout:        time.Duration(settings.AzureRequestTimeoutMilliseconds) * time.Millisecond,
-		presignExpires: time.Duration(settings.AzurePresignExpiresSeconds) * time.Second,
-		storageAccount: settings.AzureStorageAccount,
-		accessKey:      settings.AzureAccessKey,
+		containerClient: containerClient,
+		container:       settings.AzureContainer,
+		pathPrefix:      settings.AzurePathPrefix,
+		timeout:         time.Duration(settings.AzureRequestTimeoutMilliseconds) * time.Millisecond,
+		presignExpires:  time.Duration(settings.AzurePresignExpiresSeconds) * time.Second,
+		storageAccount:  settings.AzureStorageAccount,
+		accessKey:       settings.AzureAccessKey,
 	}
 
 	return backend, nil
