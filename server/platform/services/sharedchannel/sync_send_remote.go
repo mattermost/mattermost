@@ -270,9 +270,10 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	}()
 
 	options := model.GetPostsSinceForSyncOptions{
-		ChannelId:      sd.task.channelID,
-		IncludeDeleted: true,
-		SinceCreateAt:  true,
+		ChannelId:                         sd.task.channelID,
+		IncludeDeleted:                    true,
+		SinceCreateAt:                     true,
+		ExcludeChannelMetadataSystemPosts: true,
 	}
 	cursor := model.GetPostsSinceForSyncCursor{
 		LastPostUpdateAt: sd.scr.LastPostUpdateAt,
@@ -291,9 +292,6 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		return fmt.Errorf("could not fetch new posts for sync: %w", err)
 	}
 
-	// Filter out channel metadata system posts that shouldn't be synchronized
-	posts = filterChannelMetadataSystemPosts(posts)
-
 	count := len(posts)
 	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt, scs.server.Log())
 
@@ -307,9 +305,6 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		if err != nil {
 			return fmt.Errorf("could not fetch modified posts for sync: %w", err)
 		}
-
-		// Filter out channel metadata system posts from the updated posts as well
-		posts = filterChannelMetadataSystemPosts(posts)
 
 		posts = reducePostsSliceInCache(posts, cache)
 		count += len(posts)

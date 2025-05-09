@@ -405,15 +405,7 @@ func (scs *Service) processTask(task syncTask) error {
 		remotesMap[rc.RemoteId] = rc
 	}
 
-	// Filter out channel metadata system posts that don't need to be synchronized
-	if task.existingMsg != nil && task.existingMsg.Posts != nil {
-		task.existingMsg.Posts = filterChannelMetadataSystemPosts(task.existingMsg.Posts)
-	}
-
-	// Similarly for retry messages with posts
-	if task.retryMsg != nil && task.retryMsg.Posts != nil {
-		task.retryMsg.Posts = filterChannelMetadataSystemPosts(task.retryMsg.Posts)
-	}
+	// Database query filters out channel metadata system posts using the ExcludeChannelMetadataSystemPosts flag
 
 	for _, rc := range remotesMap {
 		rtask := task

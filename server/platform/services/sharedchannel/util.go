@@ -139,31 +139,3 @@ func reducePostsSliceInCache(posts []*model.Post, cache map[string]*model.Post) 
 	}
 	return reduced
 }
-
-// isChannelMetadataSystemPost returns true if the post is a system post about channel metadata changes
-// (header, display name, purpose) that should be excluded from synchronization
-func isChannelMetadataSystemPost(post *model.Post) bool {
-	return post.Type == model.PostTypeHeaderChange ||
-		post.Type == model.PostTypeDisplaynameChange ||
-		post.Type == model.PostTypePurposeChange
-}
-
-// filterChannelMetadataSystemPosts filters out system posts about channel metadata changes
-// (header, display name, purpose) that don't need to be synchronized between instances
-func filterChannelMetadataSystemPosts(posts []*model.Post) []*model.Post {
-	if posts == nil {
-		return nil
-	}
-
-	j := 0
-	for i := 0; i < len(posts); i++ {
-		if !isChannelMetadataSystemPost(posts[i]) {
-			// Only copy if we need to
-			if i != j {
-				posts[j] = posts[i]
-			}
-			j++
-		}
-	}
-	return posts[:j]
-}
