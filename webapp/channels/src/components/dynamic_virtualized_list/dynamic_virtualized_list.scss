@@ -1,4 +1,16 @@
 .dynamic_virtualized_list {
+    overflow-y: auto;
+    overflow-anchor: none;
+    will-change: transform;
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    max-height: 100%;
+
+    .inner_list[role='list'] {
+        padding: 14px 0px 7px;
+    }
+
     .item_measurer[role='listitem'] {
         position: relative;
     }

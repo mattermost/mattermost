@@ -545,8 +545,6 @@ export default class DynamicVirtualizedList extends PureComponent {
         const {itemData} = this.props;
         const index = itemData.findIndex((item) => item === itemId);
 
-        console.log('handleNewMeasurements', itemId, newSize, forceScrollCorrection);
-
         // In some browsers (e.g. Firefox) fast scrolling may skip rows.
         // In this case, our assumptions about last measured indices may be incorrect.
         // Handle this edge case to prevent NaN values from breaking styles.
@@ -747,19 +745,12 @@ export default class DynamicVirtualizedList extends PureComponent {
                 ref={this.outerRefSetter}
                 className={classNames('dynamic_virtualized_list', this.props.className)}
                 onScroll={this.onScrollVertical}
-                style={{
-                    WebkitOverflowScrolling: 'touch',
-                    overflowY: 'auto',
-                    overflowAnchor: 'none',
-                    willChange: 'transform',
-                    width: '100%',
-                    ...this.props.style,
-                }}
+                style={this.props.style}
             >
                 <div
                     ref={this.props.innerRef}
                     role='list'
-                    style={this.props.innerListStyle}
+                    className='inner_list'
                 >
                     {items}
                 </div>

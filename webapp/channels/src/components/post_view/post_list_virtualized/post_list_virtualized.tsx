@@ -36,16 +36,6 @@ const MAXIMUM_POSTS_FOR_SLICING = {
     permalink: 100,
 };
 
-const postListStyle = {
-    padding: '14px 0px 7px',
-};
-
-const virtListStyles = {
-    position: 'absolute',
-    bottom: '0',
-    maxHeight: '100%',
-};
-
 const OFFSET_TO_SHOW_TOAST = -50;
 
 type Props = {
@@ -728,8 +718,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                                             initScrollToIndex={this.initScrollToIndex}
                                             canLoadMorePosts={this.props.actions.canLoadMorePosts}
                                             innerRef={this.postListRef}
-                                            style={{...virtListStyles, ...dynamicListStyle}}
-                                            innerListStyle={postListStyle}
+                                            style={dynamicListStyle}
                                             initRangeToRender={this.initRangeToRender}
                                             loaderId={PostListRowListIds.OLDER_MESSAGES_LOADER}
                                             correctScrollToBottom={this.props.atLatestPost}
