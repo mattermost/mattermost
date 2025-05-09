@@ -207,7 +207,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	}
 
 	if !store.skipMigrations {
-		err = store.migrate(migrationsDirectionUp, false, store.disableMorphLogging)
+		err = store.migrate(migrationsDirectionUp, false, !store.disableMorphLogging)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to apply database migrations")
 		}

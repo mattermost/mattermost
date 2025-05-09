@@ -96,7 +96,7 @@ func (m *Migrator) GetFileName(plan *models.Plan) (string, error) {
 	return fmt.Sprintf("migration_plan_%d_%d", from, to), nil
 }
 
-func (ss *SqlStore) initMorph(dryRun, disableLogging bool) (*morph.Morph, error) {
+func (ss *SqlStore) initMorph(dryRun, enableLogging bool) (*morph.Morph, error) {
 	assets := db.Assets()
 
 	assetsList, err := assets.ReadDir(path.Join("migrations", ss.DriverName()))
@@ -151,10 +151,10 @@ func (ss *SqlStore) initMorph(dryRun, disableLogging bool) (*morph.Morph, error)
 	}
 
 	var logWriter io.Writer
-	if disableLogging {
-		logWriter = io.Discard
-	} else {
+	if enableLogging {
 		logWriter = &morphWriter{}
+	} else {
+		logWriter = io.Discard
 	}
 
 	opts := []morph.EngineOption{
@@ -172,8 +172,8 @@ func (ss *SqlStore) initMorph(dryRun, disableLogging bool) (*morph.Morph, error)
 	return engine, nil
 }
 
-func (ss *SqlStore) migrate(direction migrationDirection, dryRun, disableMorphLogging bool) error {
-	engine, err := ss.initMorph(dryRun, disableMorphLogging)
+func (ss *SqlStore) migrate(direction migrationDirection, dryRun, enableMorphLogging bool) error {
+	engine, err := ss.initMorph(dryRun, enableMorphLogging)
 	if err != nil {
 		return err
 	}
