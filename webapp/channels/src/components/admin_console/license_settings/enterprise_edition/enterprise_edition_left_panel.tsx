@@ -35,6 +35,7 @@ export interface EnterpriseEditionProps {
     fileInputRef: RefObject<HTMLInputElement>;
     handleChange: () => void;
     statsActiveUsers: number;
+    isLicenseSetByEnvVar: boolean;
 }
 
 export const messages = defineMessages({
@@ -52,6 +53,7 @@ const EnterpriseEditionLeftPanel = ({
     fileInputRef,
     handleChange,
     statsActiveUsers,
+    isLicenseSetByEnvVar,
 }: EnterpriseEditionProps) => {
     const {formatMessage} = useIntl();
     const [unsanitizedLicense, setUnsanitizedLicense] = useState(license);
@@ -148,6 +150,7 @@ const EnterpriseEditionLeftPanel = ({
                         handleChange,
                         statsActiveUsers,
                         expirationDays,
+                        isLicenseSetByEnvVar,
                     )
                 }
             </div>
@@ -245,6 +248,7 @@ const renderLicenseContent = (
     handleChange: () => void,
     statsActiveUsers: number,
     expirationDays: number,
+    isLicenseSetByEnvVar: boolean,
 ) => {
     // Note: DO NOT LOCALISE THESE STRINGS. Legally we can not since the license is in English.
 
@@ -284,7 +288,7 @@ const renderLicenseContent = (
         <div className='licenseElements'>
             {licenseValues.map(renderLicenseValues(statsActiveUsers, parseInt(license.Users, 10), expirationDays))}
             <hr/>
-            {renderAddNewLicenseButton(fileInputRef, handleChange)}
+            {renderAddNewLicenseButton(fileInputRef, handleChange, isLicenseSetByEnvVar)}
             {renderRemoveButton(handleRemove, isDisabled, removing)}
         </div>
     );
@@ -293,12 +297,14 @@ const renderLicenseContent = (
 const renderAddNewLicenseButton = (
     fileInputRef: RefObject<HTMLInputElement>,
     handleChange: () => void,
+    isLicenseSetByEnvVar: boolean,
 ) => {
     return (
         <>
             <button
-                className='add-new-licence-btn'
+                className={'btn btn-secondary'}
                 onClick={() => fileInputRef.current?.click()}
+                disabled={isLicenseSetByEnvVar}
             >
                 <FormattedMessage
                     id='admin.license.keyAddNew'
