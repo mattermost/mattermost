@@ -4483,7 +4483,7 @@
   "more_channels.count_zero": "0 Results",
   "more_channels.create": "Create New Channel",
   "more_channels.hide_joined": "Hide Joined",
-  "more_channels.hide_joined_channels_checkbox": "Hide joined channels checkbox",
+  "more_channels.hide_joined_channels": "Hide joined channels",
   "more_channels.joined": "Joined",
   "more_channels.joinedChannel": "Joined channel {channelName}",
   "more_channels.membership_indicator": "Membership Indicator: Joined",
