@@ -348,9 +348,13 @@ func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader,
 	if e != nil {
 		return nil, e
 	}
-	user, err1 := provider.GetUserFromJSON(c, userData, tokenUser)
-	if err1 != nil {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err1)
+	settings, err := provider.GetSSOSettings(c, a.Config(), service)
+	if err != nil {
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.oauth.get_settings.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
+	}
+	user, err := provider.GetUserFromJSON(c, userData, tokenUser, settings)
+	if err != nil {
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if user.AuthService == "" {
 		user.AuthService = service
@@ -387,20 +391,18 @@ func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader,
 
 	user.EmailVerified = true
 
-	ruser, err := a.CreateUser(c, user)
-	if err != nil {
-		return nil, err
+	ruser, appErr := a.CreateUser(c, user)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	if teamID != "" {
-		err = a.AddUserToTeamByTeamId(c, teamID, user)
-		if err != nil {
-			return nil, err
+		if appErr = a.AddUserToTeamByTeamId(c, teamID, user); appErr != nil {
+			return nil, appErr
 		}
 
-		err = a.AddDirectChannels(c, teamID, user)
-		if err != nil {
-			c.Logger().Warn("Failed to add direct channels", mlog.Err(err))
+		if appErr = a.AddDirectChannels(c, teamID, user); appErr != nil {
+			c.Logger().Warn("Failed to add direct channels", mlog.Err(appErr))
 		}
 	}
 
@@ -2210,7 +2212,11 @@ func (a *App) AutocompleteUsersInTeam(rctx request.CTX, teamID string, term stri
 }
 
 func (a *App) UpdateOAuthUserAttrs(c request.CTX, userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
-	oauthUser, err1 := provider.GetUserFromJSON(c, userData, tokenUser)
+	settings, err := provider.GetSSOSettings(c, a.Config(), service)
+	if err != nil {
+		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.oauth.get_settings.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
+	}
+	oauthUser, err1 := provider.GetUserFromJSON(c, userData, tokenUser, settings)
 	if err1 != nil {
 		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err1)
 	}
