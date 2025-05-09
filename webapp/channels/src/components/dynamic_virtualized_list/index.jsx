@@ -28,9 +28,7 @@ export class DynamicVirtualizedList extends PureComponent {
     _correctedInstances = 0;
 
     static defaultProps = {
-        innerTagName: 'div',
         itemData: undefined,
-        outerTagName: 'div',
         overscanCountForward: 30,
         overscanCountBackward: 10,
     };
