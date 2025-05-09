@@ -33,7 +33,7 @@ export type FilterOption = {
     values: FilterValues;
 
     // Filter Component type, optional parameter defaults to FilterCheckbox
-    type?: React.ElementType | React.ComponentType;
+    type?: React.ElementType;
 }
 
 export type FilterOptions = {

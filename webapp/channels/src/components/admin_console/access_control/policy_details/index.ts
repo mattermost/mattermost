@@ -25,7 +25,7 @@ type OwnProps = {
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const policyId = ownProps.match.params.policy_id;
-    const policy = getPolicy()(state, policyId);
+    const policy = getPolicy(state, policyId);
     return {
         policy,
         policyId,

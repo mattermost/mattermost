@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import cloneDeep from 'lodash/cloneDeep';
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -161,6 +162,7 @@ function PolicyDetails({
         } catch (error) {
             setServerError(`Error updating policy active status: ${error.message}`);
             success = false;
+            return;
         }
 
         // --- Step 3: Assign Channels ---
@@ -177,6 +179,7 @@ function PolicyDetails({
             } catch (error) {
                 setServerError(`Error assigning channels: ${error.message}`);
                 success = false;
+                return;
             }
         }
 
@@ -191,6 +194,7 @@ function PolicyDetails({
             } catch (error) {
                 setServerError(`Error creating job: ${error.message}`);
                 success = false;
+                return;
             }
         }
 
@@ -234,7 +238,7 @@ function PolicyDetails({
 
     const handleChannelChanges = (channels: ChannelWithTeamData[], isAdding: boolean) => {
         setChannelChanges((prev) => {
-            const newChanges = {...prev};
+            const newChanges = cloneDeep(prev);
 
             channels.forEach((channel) => {
                 if (isAdding) {
@@ -260,7 +264,7 @@ function PolicyDetails({
 
     const handleUndoRemove = (channel: ChannelWithTeamData) => {
         setChannelChanges((prev) => {
-            const newChanges = {...prev};
+            const newChanges = cloneDeep(prev);
             if (newChanges.removed[channel.id]) {
                 delete newChanges.removed[channel.id];
                 newChanges.removedCount--;
@@ -288,7 +292,7 @@ function PolicyDetails({
                         className='fa fa-angle-left back'
                     />
                     <FormattedMessage
-                        id='admin.access_control.policy.editPolicyTitle'
+                        id='admin.access_control.policy.edit_policy.title'
                         defaultMessage='Edit Access Control Policy'
                     />
                 </div>
@@ -297,8 +301,13 @@ function PolicyDetails({
                 <div className='admin-console__content'>
                     <div className='admin-console__setting-group'>
                         <TextSetting
-                            id='policyName'
-                            label='Access control policy name:'
+                            id='admin.access_control.policy.edit_policy.policyName'
+                            label={
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.policyName'
+                                    defaultMessage='Access control policy name:'
+                                />
+                            }
                             value={policyName}
                             onChange={(_, value) => {
                                 setPolicyName(value);
@@ -308,8 +317,12 @@ function PolicyDetails({
                             inputClassName='col-sm-8'
                         />
                         <BooleanSetting
-                            id='autoSyncMembership'
-                            label='Auto-sync membership based on access rules:'
+                            id='admin.access_control.policy.edit_policy.autoSyncMembership'
+                            label={
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.autoSyncMembership'
+                                    defaultMessage='Auto-sync membership based on access rules:'
+                                />}
                             value={autoSyncMembership}
                             onChange={(_, value) => {
                                 setAutoSyncMembership(value);

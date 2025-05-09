@@ -6239,6 +6239,10 @@
     "translation": "Unable to delete access control policy."
   },
   {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "Could not genereate visual AST from expression."
+  },
+  {
     "id": "app.pap.get_access_control_auto_complete.app_error",
     "translation": "Could not get access control auto complete."
   },

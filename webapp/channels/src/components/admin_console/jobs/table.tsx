@@ -187,6 +187,7 @@ class JobTable extends React.PureComponent<Props, State> {
                                 className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
                                 onClick={this.handlePrevPage}
                                 disabled={firstPage}
+                                aria-label={'Previous page'}
                             >
                                 <PreviousIcon/>
                             </button>
@@ -195,6 +196,7 @@ class JobTable extends React.PureComponent<Props, State> {
                                 className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
                                 onClick={this.handleNextPage}
                                 disabled={lastPage}
+                                aria-label={'Next page'}
                             >
                                 <NextIcon/>
                             </button>

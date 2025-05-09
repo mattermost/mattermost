@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useRef, useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, {useState, useEffect, useMemo} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
@@ -36,23 +36,15 @@ export default function PolicyList(props: Props): JSX.Element {
     const [searchErrored, setSearchErrored] = useState(false);
     const [cursorHistory, setCursorHistory] = useState<string[]>([]);
     const [total, setTotal] = useState(0);
+    const intl = useIntl();
 
     const history = useMemo(() => getHistory(), []);
-    const mounted = useRef(false);
 
     useEffect(() => {
-        mounted.current = true;
         fetchPolicies();
-        return () => {
-            mounted.current = false;
-        };
     }, []);
 
     const fetchPolicies = async (term = '', afterParam = '', resetPage = false) => {
-        if (!mounted.current) {
-            return;
-        }
-
         setLoading(true);
 
         try {
@@ -137,12 +129,23 @@ export default function PolicyList(props: Props): JSX.Element {
     const getResources = (policy: AccessControlPolicy) => {
         const childIds = policy.props?.child_ids as string[];
         if (!childIds || childIds.length === 0) {
-            return 'None';
+            return (
+                <FormattedMessage
+                    id='admin.access_control.policies.resources.none'
+                    defaultMessage='None'
+                />
+            );
         }
-        if (childIds.length === 1) {
-            return '1 channel';
-        }
-        return `${childIds.length} channels`;
+
+        return (
+            <FormattedMessage
+                id='admin.access_control.policies.resources.channels'
+                defaultMessage='{count, number} {count, plural, one {channel} other {channels}}'
+                values={{
+                    count: childIds.length,
+                }}
+            />
+        );
     };
 
     const handleDelete = async (policyId: string) => {
@@ -151,10 +154,6 @@ export default function PolicyList(props: Props): JSX.Element {
     };
 
     const getRows = (): Row[] => {
-        if (!policies.length) {
-            return [];
-        }
-
         return policies.map((policy: AccessControlPolicy) => {
             const descriptionId = `customDescription-${policy.id}`;
             const appliedToId = `customAppliedTo-${policy.id}`;
@@ -189,7 +188,10 @@ export default function PolicyList(props: Props): JSX.Element {
                                     }}
                                     menu={{
                                         id: `policy-menu-dropdown-${policy.id}`,
-                                        'aria-label': 'Policy actions menu',
+                                        'aria-label': intl.formatMessage({
+                                            id: 'admin.access_control.policies.menu.aria_label',
+                                            defaultMessage: 'Policy actions menu',
+                                        }),
                                     }}
                                 >
                                     <Menu.Item
@@ -328,7 +330,12 @@ export default function PolicyList(props: Props): JSX.Element {
                         }}
                     >
                         <i className='icon icon-plus'/>
-                        <span>{'Add policy'}</span>
+                        <span>
+                            <FormattedMessage
+                                id='admin.access_control.policies.add_policy'
+                                defaultMessage='Add policy'
+                            />
+                        </span>
                     </button>
                 </div>
             )}

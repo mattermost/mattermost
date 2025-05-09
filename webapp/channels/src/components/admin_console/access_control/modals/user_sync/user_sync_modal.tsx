@@ -37,7 +37,7 @@ export const UserListModal = ({channelId, channelName, syncResults, onClose}: Us
     return (
         <Modal
             className='UserListModal'
-            dialogClassName='user-list-modal-dialog'
+            dialogClassName='a11y__modal more-modal user-list-modal-dialog'
             onExited={onClose}
             show={true}
             onHide={onClose}
@@ -61,7 +61,7 @@ export const UserListModal = ({channelId, channelName, syncResults, onClose}: Us
                     >
                         <FormattedMessage
                             id='admin.jobTable.syncResults.added'
-                            defaultMessage='Added ({count})'
+                            defaultMessage='Added ({count, number})'
                             values={{
                                 count: syncResults.MembersAdded.length,
                             }}
@@ -73,7 +73,7 @@ export const UserListModal = ({channelId, channelName, syncResults, onClose}: Us
                     >
                         <FormattedMessage
                             id='admin.jobTable.syncResults.removed'
-                            defaultMessage='Removed ({count})'
+                            defaultMessage='Removed ({count, number})'
                             values={{
                                 count: syncResults.MembersRemoved.length,
                             }}

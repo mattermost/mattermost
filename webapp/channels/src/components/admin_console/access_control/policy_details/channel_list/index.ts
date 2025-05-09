@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import memoize from 'memoize-one';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
@@ -23,25 +24,29 @@ type OwnProps = {
     channelsToAdd: Record<string, ChannelWithTeamData>;
 }
 
+const EMPTY_FILTERS: ChannelSearchOpts = {};
+const EMPTY_SEARCH_TERM = '';
+
 function searchChannelsToAdd(channels: Record<string, Channel>, term: string, filters: ChannelSearchOpts): Record<string, Channel> {
     const filteredChannels = filterChannelsMatchingTerm(Object.values(channels), term);
     const filteredWithFilters = filterChannelList(filteredChannels, filters);
     return channelListToMap(filteredWithFilters);
 }
 
-function mapStateToProps() {
+function makeMapStateToProps() {
     const getPolicyChannels = makeGetChannelsInAccessControlPolicy();
+    const memoizedSearchChannelsToAdd = memoize(searchChannelsToAdd);
     return (state: GlobalState, ownProps: OwnProps) => {
         const {channelsToAdd, policyId} = ownProps;
-        const searchTerm = state.views.search.channelListSearch.term || '';
-        const filters = state.views.search.channelListSearch?.filters || {};
+        const searchTerm = state.views.search.channelListSearch.term || EMPTY_SEARCH_TERM;
+        const filters = state.views.search.channelListSearch?.filters || EMPTY_FILTERS;
 
         let channels: ChannelWithTeamData[] = [];
         let totalCount = 0;
 
         if (searchTerm || Object.keys(filters).length !== 0) {
             channels = policyId ? searchChannelsInheritsPolicy(state, policyId, searchTerm, filters) as ChannelWithTeamData[] : [];
-            const filteredChannelsToAdd = searchChannelsToAdd(channelsToAdd, searchTerm, filters) as Record<string, ChannelWithTeamData>;
+            const filteredChannelsToAdd = memoizedSearchChannelsToAdd(channelsToAdd, searchTerm, filters) as Record<string, ChannelWithTeamData>;
             totalCount = channels.length;
             return {
                 channels,
@@ -75,4 +80,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ChannelList);
+export default connect(makeMapStateToProps, mapDispatchToProps)(ChannelList);

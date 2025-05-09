@@ -16,8 +16,6 @@ import SearchableUserList from 'components/searchable_user_list/searchable_user_
 import type {ModalData} from 'types/actions';
 import type {ActionFuncAsync} from 'types/store';
 
-import './test_modal.scss';
-
 const USERS_TO_FETCH = 50;
 const USERS_PER_PAGE = 10;
 
@@ -82,7 +80,7 @@ function TestResultsModal({
 
     return (
         <Modal
-            dialogClassName='a11y__modal test-results-modal'
+            dialogClassName='a11y__modal more-modal'
             show={true}
             onHide={onExited}
             role='none'

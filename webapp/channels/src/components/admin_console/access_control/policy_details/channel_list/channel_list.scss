@@ -1,10 +1,20 @@
-.PolicyChannelsList {
+.AccessControlPolicyChannelsList {
     .Filter_content.Filter__show {
         width: 320px;
     }
 
     .FilterList {
         width: auto;
+    }
+
+    .ChannelList__nameColumn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        span.channel-icon {
+            margin: 3px 8px 0 0;
+        }
     }
 
     .DataGrid {

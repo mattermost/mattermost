@@ -366,7 +366,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         };
 
         return (
-            <div className='PolicyChannelsList'>
+            <div className='AccessControlPolicyChannelsList'>
                 <DataGrid
                     columns={columns}
                     rows={rows}

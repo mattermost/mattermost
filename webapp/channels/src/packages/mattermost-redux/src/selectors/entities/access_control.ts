@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {Channel, ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -11,17 +10,15 @@ import {filterChannelList} from './channels';
 
 import {createSelector} from '../create_selector';
 
-export function getAccessControlPolicy() {
-    return (createSelector(
-        'getAccessControlPolicy',
-        (state: GlobalState, id: string) => state.entities.admin.accessControlPolicies[id],
-        (policy: AccessControlPolicy) => policy,
-    )) as (state: GlobalState, id: string) => AccessControlPolicy;
+export function getAccessControlPolicy(state: GlobalState, id: string) {
+    return state.entities.admin.accessControlPolicies[id];
 }
 
-export function getChannelIdsForAccessControlPolicy(state: GlobalState, parentId: string): string[] {
-    return Array.isArray(state.entities.admin.channelsForAccessControlPolicy[parentId]) ? state.entities.admin.channelsForAccessControlPolicy[parentId] : [];
-}
+export const getChannelIdsForAccessControlPolicy = createSelector(
+    'getChannelIdsForAccessControlPolicy',
+    (state: GlobalState, parentId: string) => state.entities.admin.channelsForAccessControlPolicy[parentId],
+    (channelIds) => (Array.isArray(channelIds) ? channelIds : []),
+) as (state: GlobalState, parentId: string) => string[];
 
 export function makeGetChannelsInAccessControlPolicy() {
     return (createSelector(
