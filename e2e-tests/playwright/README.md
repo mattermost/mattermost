@@ -84,7 +84,7 @@ npm run playwright-ui
 
 #### 1. Run Playwright's docker container
 
-Change to the `e2e-tests/playwright` directory, then run the docker container. (See https://playwright.dev/docs/docker for reference.)
+Change to the `./` project directory, then run the docker container. (See https://playwright.dev/docs/docker for reference.)
 
 ```bash
 docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.52.0-noble /bin/bash
