@@ -291,7 +291,6 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	if err != nil {
 		return fmt.Errorf("could not fetch new posts for sync: %w", err)
 	}
-
 	count := len(posts)
 	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt, scs.server.Log())
 
@@ -305,7 +304,6 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		if err != nil {
 			return fmt.Errorf("could not fetch modified posts for sync: %w", err)
 		}
-
 		posts = reducePostsSliceInCache(posts, cache)
 		count += len(posts)
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt, scs.server.Log())

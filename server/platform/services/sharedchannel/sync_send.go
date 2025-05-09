@@ -405,8 +405,6 @@ func (scs *Service) processTask(task syncTask) error {
 		remotesMap[rc.RemoteId] = rc
 	}
 
-	// Database query filters out channel metadata system posts using the ExcludeChannelMetadataSystemPosts flag
-
 	for _, rc := range remotesMap {
 		rtask := task
 		rtask.remoteID = rc.RemoteId
