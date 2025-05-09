@@ -54,6 +54,12 @@ type AppIface interface {
 	OnSharedChannelsPing(rc *model.RemoteCluster) bool
 }
 
+// RemoteClusterClient defines the interface for a client that communicates with a remote cluster.
+type RemoteClusterClient interface {
+	// SendMsg sends a message to the remote cluster.
+	SendMsg(ctx context.Context, msg model.RemoteClusterMsg, f SendMsgResultFunc) error
+}
+
 // RemoteClusterServiceIFace is used to allow mocking where a remote cluster service is used (for testing).
 // Unfortunately it lives here because the shared channel service, app layer, and server interface all need it.
 // Putting it in app layer means shared channel service must import app package.
@@ -72,6 +78,8 @@ type RemoteClusterServiceIFace interface {
 	ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) Response
 	ReceiveInviteConfirmation(invite model.RemoteClusterInvite) (*model.RemoteCluster, error)
 	PingNow(rc *model.RemoteCluster)
+	GetMyClusterId() string
+	GetRemoteCluster(remoteId string) (*model.RemoteCluster, error)
 }
 
 // TopicListener is a callback signature used to listen for incoming messages for
@@ -96,6 +104,16 @@ type Service struct {
 	connectionStateListeners map[string]ConnectionStateListener  // maps listener id to listener
 	done                     chan struct{}
 	pingFreq                 time.Duration
+}
+
+// GetMyClusterId returns the ID of this cluster.
+func (rcs *Service) GetMyClusterId() string {
+	return model.NewId()
+}
+
+// GetRemoteCluster retrieves a remote cluster from the database.
+func (rcs *Service) GetRemoteCluster(remoteId string) (*model.RemoteCluster, error) {
+	return rcs.server.GetStore().RemoteCluster().Get(remoteId, false)
 }
 
 // NewRemoteClusterService creates a RemoteClusterService instance. In product this is called a "Secured Connection".

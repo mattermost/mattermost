@@ -1610,6 +1610,36 @@ func (_m *ChannelStore) GetMembers(channelID string, offset int, limit int) (mod
 	return r0, r1
 }
 
+// GetMembersAfterTimestamp provides a mock function with given fields: channelID, timestamp, limit
+func (_m *ChannelStore) GetMembersAfterTimestamp(channelID string, timestamp int64, limit int) (model.ChannelMembers, error) {
+	ret := _m.Called(channelID, timestamp, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMembersAfterTimestamp")
+	}
+
+	var r0 model.ChannelMembers
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64, int) (model.ChannelMembers, error)); ok {
+		return rf(channelID, timestamp, limit)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64, int) model.ChannelMembers); ok {
+		r0 = rf(channelID, timestamp, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelMembers)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64, int) error); ok {
+		r1 = rf(channelID, timestamp, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMembersByChannelIds provides a mock function with given fields: channelIds, userID
 func (_m *ChannelStore) GetMembersByChannelIds(channelIds []string, userID string) (model.ChannelMembers, error) {
 	ret := _m.Called(channelIds, userID)

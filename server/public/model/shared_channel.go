@@ -118,6 +118,7 @@ type SharedChannelRemote struct {
 	LastPostUpdateID  string `json:"last_post_id"`
 	LastPostCreateAt  int64  `json:"last_post_create_at"`
 	LastPostCreateID  string `json:"last_post_create_id"`
+	LastMembersSyncAt int64  `json:"last_members_sync_at"`
 }
 
 func (sc *SharedChannelRemote) IsValid() *AppError {
@@ -272,13 +273,32 @@ type SharedChannelRemoteFilterOpts struct {
 
 // SyncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
 // It is sent to remote clusters as the payload of a `RemoteClusterMsg`.
+// MembershipChangeMsg represents a change in channel membership
+type MembershipChangeMsg struct {
+	ChannelId  string `json:"channel_id"`
+	UserId     string `json:"user_id"`
+	IsAdd      bool   `json:"is_add"`
+	RemoteId   string `json:"remote_id"`
+	ChangeTime int64  `json:"change_time"`
+}
+
+// MembershipChangeBatchMsg represents a batch of membership changes
+type MembershipChangeBatchMsg struct {
+	ChannelId  string                 `json:"channel_id"`
+	Changes    []*MembershipChangeMsg `json:"changes"`
+	RemoteId   string                 `json:"remote_id"`
+	ChangeTime int64                  `json:"change_time"`
+}
+
 type SyncMsg struct {
-	Id        string           `json:"id"`
-	ChannelId string           `json:"channel_id"`
-	Users     map[string]*User `json:"users,omitempty"`
-	Posts     []*Post          `json:"posts,omitempty"`
-	Reactions []*Reaction      `json:"reactions,omitempty"`
-	Statuses  []*Status        `json:"statuses,omitempty"`
+	Id                  string                    `json:"id"`
+	ChannelId           string                    `json:"channel_id"`
+	Users               map[string]*User          `json:"users,omitempty"`
+	Posts               []*Post                   `json:"posts,omitempty"`
+	Reactions           []*Reaction               `json:"reactions,omitempty"`
+	Statuses            []*Status                 `json:"statuses,omitempty"`
+	MembershipInfo      *MembershipChangeMsg      `json:"membership_info,omitempty"`
+	MembershipBatchInfo *MembershipChangeBatchMsg `json:"membership_batch_info,omitempty"`
 }
 
 func NewSyncMsg(channelID string) *SyncMsg {

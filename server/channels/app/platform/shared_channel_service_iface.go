@@ -23,6 +23,7 @@ type SharedChannelServiceIFace interface {
 	CheckChannelNotShared(channelID string) error
 	CheckChannelIsShared(channelID string) error
 	CheckCanInviteToSharedChannel(channelId string) error
+	HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string)
 }
 
 type MockOptionSharedChannelService func(service *mockSharedChannelService)
@@ -76,4 +77,8 @@ func (mrcs *mockSharedChannelService) SendChannelInvite(channel *model.Channel, 
 
 func (mrcs *mockSharedChannelService) NumInvitations() int {
 	return mrcs.numInvitations
+}
+
+func (mrcs *mockSharedChannelService) HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string) {
+	// This is a mock implementation - it doesn't need to do anything
 }

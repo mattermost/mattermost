@@ -26,6 +26,9 @@ type SharedChannelServiceIFace interface {
 	CheckChannelNotShared(channelID string) error
 	CheckChannelIsShared(channelID string) error
 	CheckCanInviteToSharedChannel(channelId string) error
+	HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string)
+	CheckAndTriggerMembershipMigration()
+	MigrationWorkerDoJob(job *model.Job)
 }
 
 func NewMockSharedChannelService(service SharedChannelServiceIFace) *mockSharedChannelService {
@@ -90,4 +93,25 @@ func (mrcs *mockSharedChannelService) SendChannelInvite(channel *model.Channel, 
 
 func (mrcs *mockSharedChannelService) NumInvitations() int {
 	return mrcs.numInvitations
+}
+
+func (mrcs *mockSharedChannelService) HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string) {
+	// This is a mock implementation - it doesn't need to do anything
+	if mrcs.SharedChannelServiceIFace != nil {
+		mrcs.SharedChannelServiceIFace.HandleMembershipChange(channelID, userID, isAdd, remoteID)
+	}
+}
+
+func (mrcs *mockSharedChannelService) CheckAndTriggerMembershipMigration() {
+	// This is a mock implementation - it doesn't need to do anything
+	if mrcs.SharedChannelServiceIFace != nil {
+		mrcs.SharedChannelServiceIFace.CheckAndTriggerMembershipMigration()
+	}
+}
+
+func (mrcs *mockSharedChannelService) MigrationWorkerDoJob(job *model.Job) {
+	// This is a mock implementation - it doesn't need to do anything
+	if mrcs.SharedChannelServiceIFace != nil {
+		mrcs.SharedChannelServiceIFace.MigrationWorkerDoJob(job)
+	}
 }

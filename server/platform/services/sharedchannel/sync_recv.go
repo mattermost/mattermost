@@ -59,6 +59,16 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		ReactionErrors: make([]string, 0),
 	}
 
+	// Check if this is a membership change message
+	if syncMsg.MembershipInfo != nil {
+		return scs.onReceiveMembershipChange(syncMsg, rc, response)
+	}
+
+	// Check if this is a batch membership change message
+	if syncMsg.MembershipBatchInfo != nil {
+		return scs.onReceiveMembershipBatch(syncMsg, rc, response)
+	}
+
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Sync msg received",
 		mlog.String("remote", rc.Name),
 		mlog.String("channel_id", syncMsg.ChannelId),

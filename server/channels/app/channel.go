@@ -1596,6 +1596,14 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 	a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)
 	a.invalidateCacheForChannelMembers(channel.Id)
 
+	// Synchronize membership change for shared channels
+	sc, err := a.GetSharedChannel(channel.Id)
+	if err == nil && sc != nil {
+		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+			scs.HandleMembershipChange(channel.Id, user.Id, true, "")
+		}
+	}
+
 	return newMember, nil
 }
 
@@ -2597,7 +2605,9 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	}
 
 	a.Srv().Platform().InvalidateChannelCacheForUser(userIDToRemove)
-	a.invalidateCacheForChannelMembers(channel.Id)
+	if channel != nil {
+		a.invalidateCacheForChannelMembers(channel.Id)
+	}
 
 	var actorUser *model.User
 	if removerUserId != "" {
@@ -2612,16 +2622,29 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 		}, plugin.UserHasLeftChannelID)
 	})
 
-	message := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", channel.Id, "", nil, "")
-	message.Add("user_id", userIDToRemove)
-	message.Add("remover_id", removerUserId)
-	a.Publish(message)
+	if channel != nil {
+		message := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", channel.Id, "", nil, "")
+		message.Add("user_id", userIDToRemove)
+		message.Add("remover_id", removerUserId)
+		a.Publish(message)
 
-	// because the removed user no longer belongs to the channel we need to send a separate websocket event
-	userMsg := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", "", userIDToRemove, nil, "")
-	userMsg.Add("channel_id", channel.Id)
-	userMsg.Add("remover_id", removerUserId)
-	a.Publish(userMsg)
+		// because the removed user no longer belongs to the channel we need to send a separate websocket event
+		userMsg := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", "", userIDToRemove, nil, "")
+		userMsg.Add("channel_id", channel.Id)
+		userMsg.Add("remover_id", removerUserId)
+		a.Publish(userMsg)
+	}
+
+	// Synchronize membership change for shared channels
+	if channel != nil {
+		sc, err := a.GetSharedChannel(channel.Id)
+		// isAdd=false, empty remoteId means locally initiated
+		if err == nil && sc != nil {
+			if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
+				scs.HandleMembershipChange(channel.Id, userIDToRemove, false, "")
+			}
+		}
+	}
 
 	return nil
 }

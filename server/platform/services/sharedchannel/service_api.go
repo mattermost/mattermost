@@ -68,6 +68,10 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 	channel.Shared = model.NewPointer(true)
 
 	scs.notifyClientsForSharedChannelConverted(channel)
+
+	// We don't sync members here because this just marks the channel as shared.
+	// Member sync happens when a remote is invited to the channel via InviteRemoteToChannel.
+
 	return scNew, nil
 }
 
@@ -175,6 +179,18 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite.error",
 			map[string]any{"Name": rc.DisplayName, "Error": err.Error()}, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Sync all channel members to the remote
+	if err := scs.SyncAllChannelMembers(channelID, remoteID); err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to sync channel members when inviting remote",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+			mlog.Err(err),
+		)
+		// We don't return an error here as the invite has already been sent successfully
+		// The channel membership will be synchronized during regular sync operations
+	}
+
 	return nil
 }
 
@@ -277,3 +293,4 @@ func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
 	}
 	return nil
 }
+

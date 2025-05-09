@@ -1,0 +1,1 @@
+ALTER TABLE sharedchannelremotes ADD COLUMN IF NOT EXISTS lastmemberssyncat bigint DEFAULT 0;
