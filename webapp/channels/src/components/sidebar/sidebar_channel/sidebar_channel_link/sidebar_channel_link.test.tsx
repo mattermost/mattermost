@@ -16,7 +16,7 @@ jest.mock('packages/mattermost-redux/src/selectors/entities/shared_channels', ()
 }));
 
 jest.mock('packages/mattermost-redux/src/actions/shared_channels', () => ({
-    fetchChannelRemoteNames: jest.fn(() => ({type: 'MOCK_ACTION'})),
+    fetchChannelRemotes: jest.fn(() => ({type: 'MOCK_ACTION'})),
 }));
 
 describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
@@ -49,7 +49,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         showChannelsTutorialStep: false,
         remoteNames: [],
         isSharedChannel: false,
-        fetchChannelRemoteNames: jest.fn(),
+        fetchChannelRemotes: jest.fn(),
         intl: defaultIntl,
         actions: {
             markMostRecentPostInChannelAsUnread: jest.fn(),
@@ -60,7 +60,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             openLhs: jest.fn(),
             unsetEditingPost: jest.fn(),
             closeRightHandSide: jest.fn(),
-            fetchChannelRemoteNames: jest.fn(),
+            fetchChannelRemotes: jest.fn(),
         },
     };
 
@@ -134,7 +134,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             <SidebarChannelLink {...props}/>,
         );
 
-        expect(props.actions.fetchChannelRemoteNames).not.toHaveBeenCalled();
+        expect(props.actions.fetchChannelRemotes).not.toHaveBeenCalled();
     });
 
     test('should fetch shared channels data when channel is shared', () => {
@@ -148,7 +148,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             <SidebarChannelLink {...props}/>,
         );
 
-        expect(props.actions.fetchChannelRemoteNames).toHaveBeenCalledWith('channel_id');
+        expect(props.actions.fetchChannelRemotes).toHaveBeenCalledWith('channel_id');
     });
 
     test('should not fetch shared channels data when data already exists', () => {
@@ -163,7 +163,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         );
 
         // Should not fetch since data already exists
-        expect(props.actions.fetchChannelRemoteNames).not.toHaveBeenCalled();
+        expect(props.actions.fetchChannelRemotes).not.toHaveBeenCalled();
     });
 
     test('should refetch when channel changes', () => {
@@ -178,7 +178,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         );
 
         // Clear the mock count from componentDidMount
-        props.actions.fetchChannelRemoteNames.mockClear();
+        props.actions.fetchChannelRemotes.mockClear();
 
         // Change the channel ID to simulate channel change
         wrapper.setProps({
@@ -189,6 +189,6 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             },
         });
 
-        expect(props.actions.fetchChannelRemoteNames).toHaveBeenCalledWith('new_channel_id');
+        expect(props.actions.fetchChannelRemotes).toHaveBeenCalledWith('new_channel_id');
     });
 });

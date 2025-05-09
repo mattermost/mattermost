@@ -43,7 +43,7 @@ class ChannelHeader extends React.PureComponent<Props> {
 
         // Initial fetch of remote names if the channel is shared and we don't already have them
         if (this.props.channel?.shared && (!this.props.remoteNames || this.props.remoteNames.length === 0)) {
-            this.props.actions.fetchChannelRemoteNames(this.props.channel.id);
+            this.props.actions.fetchChannelRemotes(this.props.channel.id);
         }
     }
 
@@ -59,7 +59,7 @@ class ChannelHeader extends React.PureComponent<Props> {
             (this.props.channel.id !== prevProps.channel?.id ||
             this.props.channel.shared !== prevProps.channel?.shared) &&
             (!this.props.remoteNames || this.props.remoteNames.length === 0)) {
-            this.props.actions.fetchChannelRemoteNames(this.props.channel.id);
+            this.props.actions.fetchChannelRemotes(this.props.channel.id);
         }
     }
 

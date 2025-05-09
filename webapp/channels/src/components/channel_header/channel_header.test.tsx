@@ -25,7 +25,7 @@ describe('components/ChannelHeader', () => {
             getCustomEmojisInText: jest.fn(),
             updateChannelNotifyProps: jest.fn(),
             showChannelMembers: jest.fn(),
-            fetchChannelRemoteNames: jest.fn(),
+            fetchChannelRemotes: jest.fn(),
         },
         teamId: 'team_id',
         channel: TestHelper.getChannelMock({}),

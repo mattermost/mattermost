@@ -4,7 +4,7 @@
 import {Client4} from 'mattermost-redux/client';
 
 import {ActionTypes} from '../../reducers/entities/shared_channels';
-import {fetchChannelRemoteNames, receivedChannelRemotes} from '../shared_channels';
+import {fetchChannelRemotes, receivedChannelRemotes} from '../shared_channels';
 
 jest.mock('mattermost-redux/client');
 
@@ -55,7 +55,7 @@ describe('shared_channels actions', () => {
         });
     });
 
-    test('fetchChannelRemoteNames should fetch and dispatch remotes', async () => {
+    test('fetchChannelRemotes should fetch and dispatch remotes', async () => {
         const channelId = 'channel1';
         const remotes = [
             {
@@ -103,7 +103,7 @@ describe('shared_channels actions', () => {
         });
         const dispatch = jest.fn();
 
-        await fetchChannelRemoteNames(channelId)(dispatch, getState, {});
+        await fetchChannelRemotes(channelId)(dispatch, getState, {});
 
         // Verify Client4 was called
         expect(Client4.getSharedChannelRemoteInfo).toHaveBeenCalledWith(channelId);
@@ -118,7 +118,7 @@ describe('shared_channels actions', () => {
         });
     });
 
-    test('fetchChannelRemoteNames should not fetch if remotes already exist', async () => {
+    test('fetchChannelRemotes should not fetch if remotes already exist', async () => {
         const channelId = 'channel1';
         const remotes = [
             {
@@ -150,7 +150,7 @@ describe('shared_channels actions', () => {
         });
         const dispatch = jest.fn();
 
-        await fetchChannelRemoteNames(channelId)(dispatch, getState, {});
+        await fetchChannelRemotes(channelId)(dispatch, getState, {});
 
         // Verify Client4 was NOT called
         expect(Client4.getSharedChannelRemoteInfo).not.toHaveBeenCalled();

@@ -110,7 +110,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
-import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword, RemoteClusterInfo} from '@mattermost/types/remote_clusters';
+import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
@@ -118,7 +118,7 @@ import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Session} from '@mattermost/types/sessions';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
-import type {SharedChannelRemote} from '@mattermost/types/shared_channels';
+import type {RemoteClusterInfo, SharedChannelRemote} from '@mattermost/types/shared_channels';
 import type {
     GetTeamMembersOpts,
     Team,
@@ -1958,14 +1958,14 @@ export default class Client4 {
     };
 
     getChannelCategoryOrder = (userId: string, teamId: string) => {
-        return this.doFetch<RemoteCluster[]>(
+        return this.doFetch<string[]>(
             `${this.getChannelCategoriesRoute(userId, teamId)}/order`,
             {method: 'get'},
         );
     };
 
     updateChannelCategoryOrder = (userId: string, teamId: string, categoryOrder: string[]) => {
-        return this.doFetch<RemoteCluster[]>(
+        return this.doFetch<string[]>(
             `${this.getChannelCategoriesRoute(userId, teamId)}/order`,
             {method: 'put', body: JSON.stringify(categoryOrder)},
         );
@@ -2837,14 +2837,14 @@ export default class Client4 {
     };
 
     getAppsOAuthAppIDs = () => {
-        return this.doFetch<RemoteClusterInfo[]>(
+        return this.doFetch<string[]>(
             `${this.getAppsProxyRoute()}/api/v1/oauth-app-ids`,
             {method: 'get'},
         );
     };
 
     getAppsBotIDs = () => {
-        return this.doFetch<RemoteClusterInfo[]>(
+        return this.doFetch<string[]>(
             `${this.getAppsProxyRoute()}/api/v1/bot-ids`,
             {method: 'get'},
         );
@@ -3144,14 +3144,14 @@ export default class Client4 {
     // Admin Routes
 
     getLogs = (logFilter: LogFilterQuery) => {
-        return this.doFetch<RemoteClusterInfo[]>(
+        return this.doFetch<string[]>(
             `${this.getBaseRoute()}/logs/query`,
             {method: 'post', body: JSON.stringify(logFilter)},
         );
     };
 
     getPlainLogs = (page = 0, perPage = LOGS_PER_PAGE_DEFAULT) => {
-        return this.doFetch<RemoteClusterInfo[]>(
+        return this.doFetch<string[]>(
             `${this.getBaseRoute()}/logs${buildQueryString({page, logs_per_page: perPage})}`,
             {method: 'get'},
         );

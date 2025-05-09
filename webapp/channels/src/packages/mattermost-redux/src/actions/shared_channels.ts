@@ -19,7 +19,7 @@ export function receivedChannelRemotes(channelId: string, remotes: RemoteCluster
     };
 }
 
-export function fetchChannelRemoteNames(channelId: string): ActionFuncAsync<RemoteClusterInfo[]> {
+export function fetchChannelRemotes(channelId: string): ActionFuncAsync<RemoteClusterInfo[]> {
     return async (dispatch: any, getState: () => GlobalState) => {
         // Check if we already have the data in the Redux store
         const state = getState();

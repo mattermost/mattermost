@@ -72,7 +72,7 @@ type OwnProps = WrappedComponentProps & {
         multiSelectChannelAdd: (channelId: string) => void;
         unsetEditingPost: () => void;
         closeRightHandSide: () => void;
-        fetchChannelRemoteNames: (channelId: string) => void;
+        fetchChannelRemotes: (channelId: string) => void;
     };
 };
 
@@ -99,7 +99,7 @@ export class SidebarChannelLink extends React.PureComponent<OwnProps, State> {
         this.enableToolTipIfNeeded();
 
         if (this.props.isSharedChannel && this.props.channel?.id && this.props.remoteNames.length === 0) {
-            this.props.actions.fetchChannelRemoteNames(this.props.channel.id);
+            this.props.actions.fetchChannelRemotes(this.props.channel.id);
         }
     }
 
@@ -112,7 +112,7 @@ export class SidebarChannelLink extends React.PureComponent<OwnProps, State> {
             (prevProps.channel?.id !== this.props.channel?.id || prevProps.channel?.team_id !== this.props.channel?.team_id) &&
             this.props.remoteNames.length === 0 &&
             this.props.channel?.id) {
-            this.props.actions.fetchChannelRemoteNames(this.props.channel.id);
+            this.props.actions.fetchChannelRemotes(this.props.channel.id);
         }
     }
 

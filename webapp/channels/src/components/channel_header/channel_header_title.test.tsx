@@ -8,7 +8,7 @@ import configureStore from 'redux-mock-store';
 
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
-import {fetchChannelRemoteNames} from 'packages/mattermost-redux/src/actions/shared_channels';
+import {fetchChannelRemotes} from 'packages/mattermost-redux/src/actions/shared_channels';
 import {getRemoteNamesForChannel} from 'packages/mattermost-redux/src/selectors/entities/shared_channels';
 
 import ChannelHeaderTitle from './channel_header_title';
@@ -77,12 +77,12 @@ jest.mock('packages/mattermost-redux/src/selectors/entities/shared_channels', ()
 
 // Use a mock name prefix to avoid the Jest variable scoping issue
 jest.mock('packages/mattermost-redux/src/actions/shared_channels', () => ({
-    fetchChannelRemoteNames: jest.fn(() => ({type: 'MOCK_ACTION'})),
+    fetchChannelRemotes: jest.fn(() => ({type: 'MOCK_ACTION'})),
 }));
 
 // Also mock for the actual path used in the test
 jest.mock('mattermost-redux/actions/shared_channels', () => ({
-    fetchChannelRemoteNames: jest.fn(() => ({type: 'MOCK_ACTION'})),
+    fetchChannelRemotes: jest.fn(() => ({type: 'MOCK_ACTION'})),
 }));
 
 describe('components/channel_header/ChannelHeaderTitle', () => {
@@ -113,7 +113,7 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
             </Provider>,
         );
 
-        expect(fetchChannelRemoteNames).not.toHaveBeenCalled();
+        expect(fetchChannelRemotes).not.toHaveBeenCalled();
     });
 
     test('should fetch shared channels data when channel is shared', () => {

@@ -7,7 +7,7 @@ import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {fetchChannelRemoteNames} from 'mattermost-redux/actions/shared_channels';
+import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -81,7 +81,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             multiSelectChannelTo,
             multiSelectChannelAdd,
             closeRightHandSide,
-            fetchChannelRemoteNames,
+            fetchChannelRemotes,
         }, dispatch),
     };
 }
