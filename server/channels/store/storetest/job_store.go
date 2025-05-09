@@ -199,7 +199,7 @@ func testJobGetAllByTypePage(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, received[0].Id, jobs[2].Id, "should've received newest job first")
 	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
 
-	received, err = ss.Job().GetAllByTypePage(rctx, jobType, 2, 2)
+	received, err = ss.Job().GetAllByTypePage(rctx, jobType, 1, 2)
 	require.NoError(t, err)
 	require.Len(t, received, 1)
 	require.Equal(t, received[0].Id, jobs[1].Id, "should've received oldest job last")
@@ -254,7 +254,7 @@ func testJobGetAllByTypesPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, received[0].Id, jobs[2].Id, "should've received newest job first")
 	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
 
-	received, err = ss.Job().GetAllByTypesPage(rctx, jobTypes, 2, 2)
+	received, err = ss.Job().GetAllByTypesPage(rctx, jobTypes, 1, 2)
 	require.NoError(t, err)
 	require.Len(t, received, 1)
 	require.Equal(t, received[0].Id, jobs[1].Id, "should've received oldest job last")

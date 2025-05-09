@@ -249,13 +249,13 @@ func TestGetJobByType(t *testing.T) {
 		}()
 	}
 
-	received, err := th.App.GetJobsByType(th.Context, jobType, 0, 2)
+	received, err := th.App.GetJobsByTypePage(th.Context, jobType, 0, 2)
 	require.Nil(t, err)
 	require.Len(t, received, 2, "received wrong number of statuses")
 	require.Equal(t, statuses[2], received[0], "should've received newest job first")
 	require.Equal(t, statuses[0], received[1], "should've received second newest job second")
 
-	received, err = th.App.GetJobsByType(th.Context, jobType, 2, 2)
+	received, err = th.App.GetJobsByTypePage(th.Context, jobType, 1, 2)
 	require.Nil(t, err)
 	require.Len(t, received, 1, "received wrong number of statuses")
 	require.Equal(t, statuses[1], received[0], "should've received oldest job last")
@@ -297,19 +297,19 @@ func TestGetJobsByTypes(t *testing.T) {
 	}
 
 	jobTypes := []string{jobType, jobType1, jobType2}
-	received, err := th.App.GetJobsByTypes(th.Context, jobTypes, 0, 2)
+	received, err := th.App.GetJobsByTypesPage(th.Context, jobTypes, 0, 2)
 	require.Nil(t, err)
 	require.Len(t, received, 2, "received wrong number of jobs")
 	require.Equal(t, statuses[2], received[0], "should've received newest job first")
 	require.Equal(t, statuses[0], received[1], "should've received second newest job second")
 
-	received, err = th.App.GetJobsByTypes(th.Context, jobTypes, 2, 2)
+	received, err = th.App.GetJobsByTypesPage(th.Context, jobTypes, 1, 2)
 	require.Nil(t, err)
 	require.Len(t, received, 1, "received wrong number of jobs")
 	require.Equal(t, statuses[1], received[0], "should've received oldest job last")
 
 	jobTypes = []string{jobType1, jobType2}
-	received, err = th.App.GetJobsByTypes(th.Context, jobTypes, 0, 3)
+	received, err = th.App.GetJobsByTypesPage(th.Context, jobTypes, 0, 3)
 	require.Nil(t, err)
 	require.Len(t, received, 2, "received wrong number of jobs")
 	require.Equal(t, statuses[2], received[0], "received wrong job type")
