@@ -14,7 +14,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       />
       <MemoizedFormattedMessage
         defaultMessage="Edit Access Control Policy"
-        id="admin.access_control.policy.editPolicyTitle"
+        id="admin.access_control.policy.edit_policy.title"
       />
     </div>
   </AdminHeader>
@@ -28,17 +28,27 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         className="admin-console__setting-group"
       >
         <TextSetting
-          id="policyName"
+          id="admin.access_control.policy.edit_policy.policyName"
           inputClassName="col-sm-8"
-          label="Access control policy name:"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Access control policy name:"
+              id="admin.access_control.policy.edit_policy.policyName"
+            />
+          }
           labelClassName="col-sm-4"
           onChange={[Function]}
           value=""
         />
         <Memo(BooleanSetting)
           helpText="All users matching the property values configured below will be added as members, and membership will be automatically maintained as user property values change."
-          id="autoSyncMembership"
-          label="Auto-sync membership based on access rules:"
+          id="admin.access_control.policy.edit_policy.autoSyncMembership"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Auto-sync membership based on access rules:"
+              id="admin.access_control.policy.edit_policy.autoSyncMembership"
+            />
+          }
           onChange={[Function]}
           setByEnv={false}
           value={false}
@@ -181,7 +191,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       />
       <MemoizedFormattedMessage
         defaultMessage="Edit Access Control Policy"
-        id="admin.access_control.policy.editPolicyTitle"
+        id="admin.access_control.policy.edit_policy.title"
       />
     </div>
   </AdminHeader>
@@ -195,17 +205,27 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         className="admin-console__setting-group"
       >
         <TextSetting
-          id="policyName"
+          id="admin.access_control.policy.edit_policy.policyName"
           inputClassName="col-sm-8"
-          label="Access control policy name:"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Access control policy name:"
+              id="admin.access_control.policy.edit_policy.policyName"
+            />
+          }
           labelClassName="col-sm-4"
           onChange={[Function]}
           value=""
         />
         <Memo(BooleanSetting)
           helpText="All users matching the property values configured below will be added as members, and membership will be automatically maintained as user property values change."
-          id="autoSyncMembership"
-          label="Auto-sync membership based on access rules:"
+          id="admin.access_control.policy.edit_policy.autoSyncMembership"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Auto-sync membership based on access rules:"
+              id="admin.access_control.policy.edit_policy.autoSyncMembership"
+            />
+          }
           onChange={[Function]}
           setByEnv={false}
           value={false}

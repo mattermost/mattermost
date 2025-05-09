@@ -31,7 +31,10 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
         className="icon icon-plus"
       />
       <span>
-        Add policy
+        <MemoizedFormattedMessage
+          defaultMessage="Add policy"
+          id="admin.access_control.policies.add_policy"
+        />
       </span>
     </button>
   </div>
@@ -119,7 +122,10 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
         className="icon icon-plus"
       />
       <span>
-        Add policy
+        <MemoizedFormattedMessage
+          defaultMessage="Add policy"
+          id="admin.access_control.policies.add_policy"
+        />
       </span>
     </button>
   </div>
@@ -207,7 +213,10 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
         className="icon icon-plus"
       />
       <span>
-        Add policy
+        <MemoizedFormattedMessage
+          defaultMessage="Add policy"
+          id="admin.access_control.policies.add_policy"
+        />
       </span>
     </button>
   </div>

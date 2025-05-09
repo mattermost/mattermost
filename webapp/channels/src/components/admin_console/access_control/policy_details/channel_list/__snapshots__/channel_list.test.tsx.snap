@@ -2,7 +2,7 @@
 
 exports[`components/admin_console/access_control/channel_list should match snapshot with channels 1`] = `
 <div
-  className="PolicyChannelsList"
+  className="AccessControlPolicyChannelsList"
 >
   <DataGrid
     className="customTable"
@@ -79,7 +79,7 @@ exports[`components/admin_console/access_control/channel_list should match snaps
 
 exports[`components/admin_console/access_control/channel_list should match snapshot with channels to add 1`] = `
 <div
-  className="PolicyChannelsList"
+  className="AccessControlPolicyChannelsList"
 >
   <DataGrid
     className="customTable"
@@ -194,7 +194,7 @@ exports[`components/admin_console/access_control/channel_list should match snaps
 
 exports[`components/admin_console/access_control/channel_list should match snapshot with channels to remove 1`] = `
 <div
-  className="PolicyChannelsList"
+  className="AccessControlPolicyChannelsList"
 >
   <DataGrid
     className="customTable"
@@ -271,7 +271,7 @@ exports[`components/admin_console/access_control/channel_list should match snaps
 
 exports[`components/admin_console/access_control/channel_list should match snapshot with no channels 1`] = `
 <div
-  className="PolicyChannelsList"
+  className="AccessControlPolicyChannelsList"
 >
   <DataGrid
     className="customTable"
