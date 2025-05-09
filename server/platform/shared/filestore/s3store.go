@@ -519,7 +519,7 @@ func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path
 	}
 
 	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
-	options.DisableContentSha256 = true // Disable MD5 checksum for FIPS compliance
+	options.SendContentMd5 = false
 
 	objSize := int64(-1)
 	if b.isCloud {
@@ -621,26 +621,6 @@ func (b *S3FileBackend) RemoveFile(path string) error {
 	}
 
 	return nil
-}
-
-func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
-	out := make(chan s3.ObjectInfo, 1)
-
-	go func() {
-		defer close(out)
-
-		for {
-			info, done := <-in
-
-			if !done {
-				break
-			}
-
-			out <- info
-		}
-	}()
-
-	return out
 }
 
 func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, error) {
@@ -886,8 +866,8 @@ func s3PutOptions(encrypted bool, contentType string, uploadPartSize int64, stor
 	options.StorageClass = storageClass
 
 	// FIPS compliance settings
-	options.DisableContentSha256 = true // Disable MD5 checksum
-	options.DisableMultipart = false    // Enable multipart upload for large files
+	options.SendContentMd5 = false   // Disable MD5 checksum
+	options.DisableMultipart = false // Enable multipart upload for large files
 
 	return options
 }
