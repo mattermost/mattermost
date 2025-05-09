@@ -1218,7 +1218,7 @@ const AdminDefinition: AdminDefinitionType = {
                             loading: defineMessage({id: 'admin.s3.testing', defaultMessage: 'Testing...'}),
                             error_message: defineMessage({id: 'admin.s3.s3Fail', defaultMessage: 'Connection unsuccessful: {error}'}),
                             success_message: defineMessage({id: 'admin.s3.s3Success', defaultMessage: 'Connection was successful'}),
-                            isDisabled: it.any(it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE))),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                         },
                     ],
                 },
