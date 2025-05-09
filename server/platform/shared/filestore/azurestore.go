@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
@@ -49,9 +48,8 @@ func (b *AzureFileBackend) Reader(path string) (ReadCloseSeeker, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	// Usamos un BlobClient en lugar de BlockBlobClient para Download
-	blobClient := b.containerClient.NewBlobClient(path)
-	download, err := blobClient.Download(ctx, nil)
+	// Usamos DownloadStream en el cliente principal
+	download, err := b.containerClient.NewBlobClient(path).DownloadStream(ctx, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to read file %s", path)
 	}
@@ -88,11 +86,9 @@ func (b *AzureFileBackend) FileExists(path string) (bool, error) {
 	blobClient := b.containerClient.NewBlockBlobClient(path)
 	_, err := blobClient.GetProperties(ctx, nil)
 	if err != nil {
-		var respErr *azblob.ResponseError
-		if errors.As(err, &respErr) {
-			if respErr.ErrorCode == "BlobNotFound" {
-				return false, nil
-			}
+		// La estructura de errores cambió en la nueva versión del SDK
+		if strings.Contains(err.Error(), "BlobNotFound") {
+			return false, nil
 		}
 		return false, errors.Wrapf(err, "unable to check if file %s exists", path)
 	}
@@ -211,7 +207,7 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, path string) (int64, error) 
 	var offset int64
 	if !exists {
 		// Si no existe, creamos un nuevo blob
-		_, err = blobClient.Upload(ctx, newNoCopyReader(data), nil)
+		_, err = blobClient.UploadBuffer(ctx, data, nil)
 		if err != nil {
 			return 0, errors.Wrapf(err, "unable to create new file %s", path)
 		}
@@ -233,7 +229,7 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, path string) (int64, error) 
 		newContent := append(existingContent, data...)
 		
 		// Subimos el contenido combinado
-		_, err = blobClient.Upload(ctx, newNoCopyReader(newContent), nil)
+		_, err = blobClient.UploadBuffer(ctx, newContent, nil)
 		if err != nil {
 			return 0, errors.Wrapf(err, "unable to append to file %s", path)
 		}
