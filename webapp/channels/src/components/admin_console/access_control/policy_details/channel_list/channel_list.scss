@@ -1,0 +1,47 @@
+.AccessControlPolicyChannelsList {
+    .Filter_content.Filter__show {
+        width: 320px;
+    }
+
+    .FilterList {
+        width: auto;
+    }
+
+    .ChannelList__nameColumn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        span.channel-icon {
+            margin: 3px 8px 0 0;
+        }
+    }
+
+    .DataGrid {
+        padding: 0;
+        background-color: rgba(var(--sys-white-rgb), 0.04);
+
+        &_search {
+            border-bottom: none;
+        }
+
+        &_searchBar {
+            margin-left: 0;
+        }
+
+        .DataGrid_rows {
+            .DataGrid_row {
+                display: flex;
+                min-height: 40px;
+                border-left: none;
+                background-color: rgba(var(--sys-white-rgb), 0.04);
+                cursor: pointer;
+
+                &:hover {
+                    border-left: none;
+                    background-color: rgba(0, 0, 0, 0.05);
+                }
+            }
+        }
+    }
+}

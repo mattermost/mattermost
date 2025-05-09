@@ -181,6 +181,7 @@ export type AdminDefinitionConfigSchemaSection = {
     header?: string | MessageDescriptor;
     footer?: string | MessageDescriptor;
     component?: Component;
+    isHidden?: Check;
 }
 
 type RestrictedIndicatorType = {

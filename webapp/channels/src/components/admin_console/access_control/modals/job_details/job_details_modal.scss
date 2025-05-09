@@ -1,0 +1,93 @@
+.JobDetailsModal {
+    padding: 12px;
+
+    // Header
+    .modal-header-custom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px 24px 0;
+    }
+
+    .modal-header-with-status {
+        display: flex;
+        align-items: center;
+        font-size: 26px;
+        font-weight: 600;
+        gap: 10px;
+        padding-inline: 14px;
+    }
+
+    .close-icon-container .icon-close {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+        font-size: 24px;
+        
+        &:hover {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+    }
+
+    // Status indicator
+    .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        
+        &.status-success { background-color: var(--online-indicator); }
+        &.status-error { background-color: var(--error-text); }
+        &.status-in-progress { background-color: var(--away-indicator); }
+        &.status-pending { background-color: var(--offline-indicator); }
+    }
+
+    .DataGrid {
+        padding: 24px;
+        background-color: rgba(var(--sys-white-rgb), 0.04);
+        cursor: pointer;
+
+        .DataGrid_rows {
+            .DataGrid_row {
+                min-height: 40px;
+                border-left: none;
+                background-color: rgba(var(--sys-white-rgb), 0.04);
+
+                &:hover {
+                    border-left: none;
+                    background-color: rgba(0, 0, 0, 0.05);
+                }
+
+                .DataGrid_cell {
+                    .channel-name-cell {
+                        display: flex;
+                        align-items: baseline;
+                        .team-name {
+                            margin-left: 6px;
+                            color: var(--center-channel-color-64);
+                            font-size: 0.85em;
+                        }
+                    }
+
+                    .changes-cell {
+                        text-align: center;
+                        
+                        .changes-summary {
+                            .added {
+                                color: var(--online-indicator);
+                                font-weight: 600;
+                            }
+                            .removed {
+                                color: var(--error-text);
+                                font-weight: 600;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        &_footer {
+            border-bottom: 0;
+        }
+    }
+}

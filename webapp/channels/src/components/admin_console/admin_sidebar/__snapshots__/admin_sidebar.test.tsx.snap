@@ -2543,6 +2543,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="user_management.attribute_based_access_control"
+              key="user_management.attribute_based_access_control"
+              name="user_management/attribute_based_access_control"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="environment"

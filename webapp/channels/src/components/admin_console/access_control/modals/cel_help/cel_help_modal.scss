@@ -1,0 +1,60 @@
+// Center the modal
+.cel-help-modal--centered {
+    .GenericModal__body {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+}
+
+// Content layout and styling
+.cel-help-modal__content-container {
+    display: flex;
+    flex-direction: column;
+    padding: 32px;
+    gap: 16px;
+}
+
+// Important notes section
+.cel-help-additional-info-modal__content {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: rgba(var(--button-bg-rgb), 0.08);
+}
+
+// Header with icon
+.cel-help-additional-info-modal__header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    
+    i {
+        margin-right: 8px;
+        color: var(--button-bg);
+        font-size: 24px;
+    }
+    
+    .cel-help-additional-info-modal__title {
+        font-size: 16px;
+        font-weight: 600;
+    }
+}
+
+// Text content area
+.cel-help-additional-info-modal__text {
+    ul {
+        padding-left: 20px;
+        margin: 0 0 12px;
+    }
+    
+    a {
+        color: var(--button-bg);
+        font-weight: 600;
+        text-decoration: none;
+        
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}

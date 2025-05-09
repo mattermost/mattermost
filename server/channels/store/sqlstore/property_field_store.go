@@ -256,3 +256,18 @@ func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
 
 	return nil
 }
+
+func (s *SqlPropertyFieldStore) GetByName(groupID, name string) (*model.PropertyField, error) {
+	builder := s.tableSelectQuery.Where(sq.Eq{"Name": name})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
+
+	var field model.PropertyField
+	if err := s.GetReplica().GetBuilder(&field, builder); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_by_name_select")
+	}
+
+	return &field, nil
+}

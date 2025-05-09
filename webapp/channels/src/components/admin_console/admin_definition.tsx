@@ -41,6 +41,9 @@ import {isCloudLicense} from 'utils/license_utils';
 import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 
+import PolicyList from './access_control';
+import AccessControlPolicyJobs from './access_control/jobs';
+import PolicyDetails from './access_control/policy_details';
 import * as DefinitionConstants from './admin_definition_constants';
 import AuditLoggingCertificateUploadSetting from './audit_logging';
 import Audits from './audits';
@@ -663,6 +666,88 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.Enterprise),
+            },
+            access_control_policy_details_edit: {
+                url: `user_management/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
+                isHidden: it.any(
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'AccessControlPolicy',
+                    component: PolicyDetails,
+                },
+
+            },
+            access_control_policy_details: {
+                url: 'user_management/attribute_based_access_control/edit_policy',
+                isHidden: it.any(
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'AccessControlPolicy',
+                    component: PolicyDetails,
+                },
+            },
+            attribute_based_access_control: {
+                url: 'user_management/attribute_based_access_control',
+                title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
+                isHidden: it.any(
+                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'AttributeBasedAccessControl',
+                    name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access (Beta)'}),
+                    sections: [
+                        {
+                            key: 'admin.accesscontrol.settings',
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.EnableAttributeBasedAccessControl',
+                                    label: defineMessage({id: 'admin.accesscontrol.enableTitle', defaultMessage: 'Allow attribute based access controls on this server'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies'}),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'admin.accesscontrol.policies',
+                            isHidden: it.any(
+                                it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
+                            ),
+                            settings: [
+                                {
+                                    type: 'custom',
+                                    component: PolicyList,
+                                    key: 'PolicyListPanel',
+                                },
+                            ],
+                        },
+                        {
+                            key: 'admin.accesscontrol.policyjobs',
+                            isHidden: it.any(
+                                it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
+                            ),
+                            settings: [
+                                {
+                                    type: 'custom',
+                                    component: AccessControlPolicyJobs,
+                                    key: 'AcessControlPolicyJobs',
+                                },
+                            ],
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
             },
         },
     },

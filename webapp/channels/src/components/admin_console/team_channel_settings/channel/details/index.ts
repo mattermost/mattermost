@@ -7,6 +7,7 @@ import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
+import {getAccessControlPolicy, deleteAccessControlPolicy, assignChannelsToAccessControlPolicy, searchAccessControlPolicies} from 'mattermost-redux/actions/access_control';
 import {
     addChannelMember,
     deleteChannel,
@@ -85,6 +86,9 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
+    const assignChannelToAccessControlPolicy = (policyId: string, channelId: string) => {
+        return assignChannelsToAccessControlPolicy(policyId, [channelId]);
+    };
     return {
         actions: bindActionCreators({
             getGroups: fetchAssociatedGroups,
@@ -105,6 +109,10 @@ function mapDispatchToProps(dispatch: Dispatch) {
             updateChannelMemberSchemeRoles,
             deleteChannel,
             unarchiveChannel,
+            getAccessControlPolicy,
+            assignChannelToAccessControlPolicy,
+            deleteAccessControlPolicy,
+            searchPolicies: searchAccessControlPolicies,
         }, dispatch),
     };
 }

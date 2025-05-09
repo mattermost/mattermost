@@ -108,6 +108,8 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeCloud,
 		model.JobTypeExtractContent:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
+	case model.JobTypeAccessControlSync:
+		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
 	}
 
 	return false, nil
@@ -142,6 +144,8 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 		model.JobTypeCloud,
 		model.JobTypeExtractContent:
 		permission = model.PermissionManageJobs
+	case model.JobTypeAccessControlSync:
+		permission = model.PermissionManageSystem
 	}
 
 	if permission == nil {
@@ -178,6 +182,8 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeMobileSessionMetadata,
 		model.JobTypeExtractContent:
 		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
+	case model.JobTypeAccessControlSync:
+		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
 	}
 
 	return false, nil

@@ -1,0 +1,11 @@
+.AccessControlPolicySettings {
+    .form-group {
+        min-height: 40px;
+    }
+
+    .delete-policy {
+        .btn-primary:not(:disabled) {
+            background-color: var(--dnd-indicator);
+        }
+    }
+}
