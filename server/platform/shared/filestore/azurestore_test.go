@@ -9,7 +9,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
