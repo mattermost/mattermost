@@ -22,14 +22,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 const (
-	PendingPostIDsCacheSize = 25000
-	PendingPostIDsCacheTTL  = 30 * time.Second
-	PageDefault             = 0
+	PageDefault = 0
 )
 
 var atMentionPattern = regexp.MustCompile(`\B@`)
@@ -131,81 +128,10 @@ func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerW
 	return a.CreatePost(c, post, channel, model.CreatePostFlags{TriggerWebhooks: triggerWebhooks, SetOnline: setOnline})
 }
 
-// deduplicateCreatePost attempts to make posting idempotent within a caching window.
-func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPost *model.Post, err *model.AppError) {
-	// We rely on the client sending the pending post id across "duplicate" requests. If there
-	// isn't one, we can't deduplicate, so allow creation normally.
-	if post.PendingPostId == "" {
-		return nil, nil
-	}
-
-	const unknownPostId = ""
-
-	// Query the cache atomically for the given pending post id, saving a record if
-	// it hasn't previously been seen.
-	var postID string
-	nErr := a.Srv().seenPendingPostIdsCache.Get(post.PendingPostId, &postID)
-	if nErr == cache.ErrKeyNotFound {
-		if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, PendingPostIDsCacheTTL); appErr != nil {
-			return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
-		}
-		return nil, nil
-	}
-
-	if nErr != nil {
-		return nil, model.NewAppError("errorGetPostId", "api.post.error_get_post_id.pending", nil, "", http.StatusInternalServerError).Wrap(nErr)
-	}
-
-	// If another thread saved the cache record, but hasn't yet updated it with the actual post
-	// id (because it's still saving), notify the client with an error. Ideally, we'd wait
-	// for the other thread, but coordinating that adds complexity to the happy path.
-	if postID == unknownPostId {
-		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.pending", nil, "", http.StatusInternalServerError)
-	}
-
-	// If the other thread finished creating the post, return the created post back to the
-	// client, making the API call feel idempotent.
-	actualPost, err := a.GetSinglePost(rctx, postID, false)
-	if err != nil {
-		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	rctx.Logger().Debug("Deduplicated create post", mlog.String("post_id", actualPost.Id), mlog.String("pending_post_id", post.PendingPostId))
-
-	return actualPost, nil
-}
-
 func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, err *model.AppError) {
 	if !a.Config().FeatureFlags.EnableSharedChannelsDMs && channel.IsShared() && (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
 		return nil, model.NewAppError("CreatePost", "app.post.create_post.shared_dm_or_gm.app_error", nil, "", http.StatusBadRequest)
 	}
-
-	foundPost, err := a.deduplicateCreatePost(c, post)
-	if err != nil {
-		return nil, err
-	}
-	if foundPost != nil {
-		return foundPost, nil
-	}
-
-	// If we get this far, we've recorded the client-provided pending post id to the cache.
-	// Remove it if we fail below, allowing a proper retry by the client.
-	defer func() {
-		if post.PendingPostId == "" {
-			return
-		}
-
-		if err != nil {
-			if appErr := a.Srv().seenPendingPostIdsCache.Remove(post.PendingPostId); appErr != nil {
-				err = model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
-			}
-			return
-		}
-
-		if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PendingPostIDsCacheTTL); appErr != nil {
-			err = model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
-		}
-	}()
 
 	// Validate recipients counts in case it's not DM
 	if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification && channel.Type != model.ChannelTypeDirect {
@@ -364,12 +290,6 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		default:
 			return nil, model.NewAppError("CreatePost", "app.post.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
-	}
-
-	// Update the mapping from pending post id to the actual post id, for any clients that
-	// might be duplicating requests.
-	if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PendingPostIDsCacheTTL); appErr != nil {
-		return nil, model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	if a.Metrics() != nil {
@@ -1380,6 +1300,7 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	originalList.NextPostId = nextPostId
 	originalList.PrevPostId = prevPostId
 }
+
 func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
 	var lastViewedAt int64
 	var err *model.AppError
@@ -2153,7 +2074,6 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 
 func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError) {
 	posts, err := a.Srv().Store().Post().GetEditHistoryForPost(postID)
-
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

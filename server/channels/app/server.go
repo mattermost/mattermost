@@ -125,7 +125,6 @@ type Server struct {
 	timezones *timezones.Timezones
 
 	htmlTemplateWatcher     *templates.Container
-	seenPendingPostIdsCache cache.Cache
 	openGraphDataCache      cache.Cache
 	clusterLeaderListenerId string
 	loggerLicenseListenerId string
@@ -311,12 +310,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	model.AppErrorInit(i18n.T)
 
-	if s.seenPendingPostIdsCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
-		Name: "seen_pending_post_ids",
-		Size: PendingPostIDsCacheSize,
-	}); err != nil {
-		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
-	}
 	if s.openGraphDataCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
 		Name: "opengraph_data",
 		Size: openGraphMetadataCacheSize,
@@ -1439,7 +1432,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		})
 	}
 
-	//remove the license
+	// remove the license
 	if appErr := s.RemoveLicense(); appErr != nil {
 		mlog.Error("Error while removing the license.", mlog.Err(appErr))
 	}
