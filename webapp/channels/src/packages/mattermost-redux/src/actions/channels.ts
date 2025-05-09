@@ -4,6 +4,7 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
+import type {AccessControlAttributes} from '@mattermost/types/access_control';
 import type {
     Channel,
     ChannelNotifyProps,
@@ -1453,6 +1454,21 @@ export function fetchMissingChannels(channelIDs: string[]): ActionFuncAsync<Arra
     };
 }
 
+export function getChannelAccessControlAttributes(channelId: string): ActionFuncAsync<AccessControlAttributes> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.getChannelAccessControlAttributes(channelId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        return {data};
+    };
+}
+
 export default {
     selectChannel,
     createChannel,
@@ -1482,4 +1498,5 @@ export default {
     membersMinusGroupMembers,
     getChannelModerations,
     getChannelMemberCountsByGroup,
+    getChannelAccessControlAttributes,
 };
