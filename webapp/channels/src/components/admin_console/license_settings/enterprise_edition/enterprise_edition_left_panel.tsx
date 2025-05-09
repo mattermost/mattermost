@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import type {RefObject} from 'react';
-import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessages, useIntl} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessage, defineMessages, useIntl} from 'react-intl';
 
 import type {ClientLicense} from '@mattermost/types/config';
 
@@ -13,6 +13,7 @@ import {Client4} from 'mattermost-redux/client';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import Tag from 'components/widgets/tag/tag';
+import WithTooltip from 'components/with_tooltip';
 
 import {FileTypes} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';
@@ -301,16 +302,24 @@ const renderAddNewLicenseButton = (
 ) => {
     return (
         <>
-            <button
-                className={'btn btn-secondary'}
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLicenseSetByEnvVar}
+            <WithTooltip
+                title={defineMessage({
+                    id: 'admin.license.setByEnvVar',
+                    defaultMessage: 'License location is set by environment variable',
+                })}
+                disabled={!isLicenseSetByEnvVar}
             >
-                <FormattedMessage
-                    id='admin.license.keyAddNew'
-                    defaultMessage='Add a new license'
-                />
-            </button>
+                <button
+                    className={'btn btn-secondary'}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isLicenseSetByEnvVar}
+                >
+                    <FormattedMessage
+                        id='admin.license.keyAddNew'
+                        defaultMessage='Add a new license'
+                    />
+                </button>
+            </WithTooltip>
             <input
                 ref={fileInputRef}
                 type='file'
