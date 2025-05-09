@@ -33,6 +33,7 @@ export function MonacoLanguageProvider({schemas}: MonacoLanguageProviderProps) {
             monaco.languages.setMonarchTokensProvider(POLICY_LANGUAGE_NAME, {
                 tokenizer: {
                     root: [
+
                         // Comments
                         [/\/\/.*$/, 'comment'],
 
