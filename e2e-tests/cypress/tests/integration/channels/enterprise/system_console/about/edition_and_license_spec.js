@@ -66,7 +66,7 @@ describe('System console', () => {
                 // Check the advantages list
                 cy.findByText('Attribute-based access control');
                 cy.findByText('Channel warning banners');
-                cy.findByText('AD/Ldap group sync');
+                cy.findByText('AD/LDAP group sync');
                 cy.findByText('Advanced workflows with Playbooks');
                 cy.findByText('High availability');
                 cy.findByText('Advanced compliance');
