@@ -8069,15 +8069,15 @@
   },
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
-    "translation": "Não é permitido remover uma confirmação de leitura em um canal arquivado."
+    "translation": "Não é permitido remover uma confirmação de recebimento em um canal arquivado."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
-    "translation": "Não é possível deletar uma confirmação de leitura após 5 minutos."
+    "translation": "Não é possível deletar uma confirmação de recebimento após 5 minutos."
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Não é possível confirmar leitura em um canal arquivado."
+    "translation": "Não é possível confirmar recebimento em um canal arquivado."
   },
   {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
