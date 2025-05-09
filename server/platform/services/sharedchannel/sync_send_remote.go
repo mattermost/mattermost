@@ -725,9 +725,8 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 		return
 	}
 
-	// Use the common helper function to handle checking if the channel should be unshared
-	// and updating the UI appropriately - we pass in the channel we already fetched
-	_, unshareErr := scs.checkAndHandleRemoteRemoval(msg.ChannelId, channel)
+	// Check if the channel should be unshared and update the UI appropriately
+	_, unshareErr := scs.CheckAndHandleRemoteRemoval(msg.ChannelId, channel)
 	if unshareErr != nil {
 		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to auto-unshare channel after removing last remote",
 			mlog.String("channel_id", msg.ChannelId),

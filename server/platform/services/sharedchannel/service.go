@@ -305,11 +305,11 @@ func (scs *Service) postUnshareNotification(channelID string, creatorID string, 
 	}
 }
 
-// checkAndHandleRemoteRemoval is a helper function that handles the common pattern of:
+// CheckAndHandleRemoteRemoval handles the common pattern of:
 // 1. Checking if we need to completely unshare a channel after removing a remote
 // 2. Updating the UI appropriately based on whether the channel was unshared or not
 // Returns true if the channel was unshared.
-func (scs *Service) checkAndHandleRemoteRemoval(channelID string, providedChannel *model.Channel) (bool, error) {
+func (scs *Service) CheckAndHandleRemoteRemoval(channelID string, providedChannel *model.Channel) (bool, error) {
 	logger := scs.server.Log()
 
 	// Check if this was the last remote and unshare if needed
