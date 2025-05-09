@@ -97,9 +97,9 @@ const (
 type TrackSKU string
 
 const (
-	TrackProfessionalSKU TrackSKU = "professional"
-	TrackEnterpriseSKU   TrackSKU = "enterprise"
-	TrackPremiumSKU      TrackSKU = "premium"
+	TrackProfessionalSKU       TrackSKU = "professional"
+	TrackEnterpriseSKU         TrackSKU = "enterprise"
+	TrackEnterpriseAdvancedSKU TrackSKU = "advanced"
 )
 
 type TrackFeature string
