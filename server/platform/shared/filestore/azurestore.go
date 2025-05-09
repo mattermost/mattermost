@@ -9,12 +9,11 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net/url"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
@@ -50,8 +49,9 @@ func (b *AzureFileBackend) Reader(path string) (ReadCloseSeeker, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	blobClient := b.containerClient.NewBlockBlobClient(path)
-	download, err := blobClient.Download(ctx, &blob.DownloadOptions{})
+	// Usamos un BlobClient en lugar de BlockBlobClient para Download
+	blobClient := b.containerClient.NewBlobClient(path)
+	download, err := blobClient.Download(ctx, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to read file %s", path)
 	}
@@ -88,9 +88,9 @@ func (b *AzureFileBackend) FileExists(path string) (bool, error) {
 	blobClient := b.containerClient.NewBlockBlobClient(path)
 	_, err := blobClient.GetProperties(ctx, nil)
 	if err != nil {
-		var storageErr *azblob.StorageError
-		if errors.As(err, &storageErr) {
-			if storageErr.ErrorCode == "BlobNotFound" {
+		var respErr *azblob.ResponseError
+		if errors.As(err, &respErr) {
+			if respErr.ErrorCode == "BlobNotFound" {
 				return false, nil
 			}
 		}
@@ -166,12 +166,26 @@ func (b *AzureFileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 		return 0, errors.Wrap(err, "failed to read input")
 	}
 
+	// Usar UploadBuffer en lugar de Upload ya que acepta []byte directamente
 	_, err = blobClient.UploadBuffer(ctx, data, &blockblob.UploadBufferOptions{})
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to write file %s", path)
 	}
 
 	return int64(len(data)), nil
+}
+
+// noCopyReader es un wrapper sobre bytes.Reader que también implementa Close()
+type noCopyReader struct {
+	*bytes.Reader
+}
+
+func (r *noCopyReader) Close() error {
+	return nil
+}
+
+func newNoCopyReader(data []byte) *noCopyReader {
+	return &noCopyReader{bytes.NewReader(data)}
 }
 
 func (b *AzureFileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
@@ -197,7 +211,7 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, path string) (int64, error) 
 	var offset int64
 	if !exists {
 		// Si no existe, creamos un nuevo blob
-		_, err = blobClient.Upload(ctx, bytes.NewReader(data), nil)
+		_, err = blobClient.Upload(ctx, newNoCopyReader(data), nil)
 		if err != nil {
 			return 0, errors.Wrapf(err, "unable to create new file %s", path)
 		}
@@ -219,7 +233,7 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, path string) (int64, error) 
 		newContent := append(existingContent, data...)
 		
 		// Subimos el contenido combinado
-		_, err = blobClient.Upload(ctx, bytes.NewReader(newContent), nil)
+		_, err = blobClient.Upload(ctx, newNoCopyReader(newContent), nil)
 		if err != nil {
 			return 0, errors.Wrapf(err, "unable to append to file %s", path)
 		}
