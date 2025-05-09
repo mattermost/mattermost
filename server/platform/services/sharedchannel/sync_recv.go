@@ -81,7 +81,6 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		return fmt.Errorf("channel not found processing sync message: %w", err)
 	}
 
-	// If it's not shared with this remote, update UI and return error
 	if !exists {
 		// Update the UI to ensure the link icon is removed
 		scs.notifyClientsForSharedChannelUpdate(targetChannel)
