@@ -21,9 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
-type InfiniteReader struct {
-	Prefix string
-}
+type InfiniteReader struct{}
 
 func (r InfiniteReader) Read(p []byte) (n int, err error) {
 	for i := range p {
@@ -39,6 +37,12 @@ func TestMoveCommand(t *testing.T) {
 
 	sourceTeam := th.createTeam()
 	targetTeam := th.createTeam()
+	defer func() {
+		appErr := th.App.PermanentDeleteTeam(th.Context, sourceTeam)
+		require.Nil(t, appErr)
+		appErr = th.App.PermanentDeleteTeam(th.Context, targetTeam)
+		require.Nil(t, appErr)
+	}()
 
 	command := &model.Command{}
 	command.CreatorId = model.NewId()
@@ -49,11 +53,6 @@ func TestMoveCommand(t *testing.T) {
 
 	command, err := th.App.CreateCommand(command)
 	assert.Nil(t, err)
-
-	defer func() {
-		th.App.PermanentDeleteTeam(th.Context, sourceTeam)
-		th.App.PermanentDeleteTeam(th.Context, targetTeam)
-	}()
 
 	// Move a command and check the team is updated.
 	assert.Nil(t, th.App.MoveCommand(targetTeam, command))
@@ -360,7 +359,8 @@ func TestDoCommandRequest(t *testing.T) {
 
 	t.Run("with a valid text response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, strings.NewReader("Hello, World!"))
+			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -375,7 +375,8 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
 
-			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -388,7 +389,8 @@ func TestDoCommandRequest(t *testing.T) {
 
 	t.Run("with a large text response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, InfiniteReader{})
+			_, err := io.Copy(w, InfiniteReader{})
+			require.Error(t, err) // InfiniteReader never returns EOF, so this will error
 		}))
 		defer server.Close()
 
@@ -403,7 +405,8 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
 
-			io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
+			_, err := io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
+			require.Error(t, err) // InfiniteReader never returns EOF, so this will error
 		}))
 		defer server.Close()
 
@@ -416,7 +419,8 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
 
-			io.Copy(w, InfiniteReader{})
+			_, err := io.Copy(w, InfiniteReader{})
+			require.Error(t, err) // InfiniteReader never returns EOF, so this will error
 		}))
 		defer server.Close()
 
@@ -429,7 +433,8 @@ func TestDoCommandRequest(t *testing.T) {
 		done := make(chan bool)
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			<-done
-			io.Copy(w, strings.NewReader("Hello, World!"))
+			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -447,7 +452,8 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			time.Sleep(1 * time.Second)
 
-			io.Copy(w, strings.NewReader("Hello, World!"))
+			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -455,9 +461,8 @@ func TestDoCommandRequest(t *testing.T) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(2))
 		})
 
-		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
-		require.Nil(t, err)
-
+		_, resp, appErr := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
+		require.Nil(t, appErr)
 		require.NotNil(t, resp)
 		assert.Equal(t, "Hello, World!", resp.Text)
 	})
@@ -474,7 +479,8 @@ func TestDoCommandRequest(t *testing.T) {
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		serverCommand := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, strings.NewReader(r.Header.Get("Authorization")))
+			_, err := io.Copy(w, strings.NewReader(r.Header.Get("Authorization")))
+			require.NoError(t, err)
 		}))
 		defer serverCommand.Close()
 

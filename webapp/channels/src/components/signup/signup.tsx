@@ -142,6 +142,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const [alertBanner, setAlertBanner] = useState<AlertBannerProps | null>(null);
     const [isMobileView, setIsMobileView] = useState(false);
     const [subscribeToSecurityNewsletter, setSubscribeToSecurityNewsletter] = useState(false);
+    const [submitClicked, setSubmitClicked] = useState(false);
 
     const cwsAvailability = useCWSAvailabilityCheck();
 
@@ -354,10 +355,14 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     }, []);
 
     useEffect(() => {
-        if (SiteName) {
-            document.title = SiteName;
-        }
-    }, [SiteName]);
+        document.title = formatMessage(
+            {
+                id: 'signup.title',
+                defaultMessage: 'Create Account | {siteName}',
+            },
+            {siteName: SiteName || 'Mattermost'},
+        );
+    }, [formatMessage, SiteName]);
 
     useEffect(() => {
         if (onCustomizeHeader) {
@@ -368,18 +373,25 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
     }, [onCustomizeHeader, handleHeaderBackButtonOnClick, isMobileView, getAlternateLink, search]);
 
+    useEffect(() => {
+        if (submitClicked) {
+            if (emailError && emailInput.current) {
+                emailInput.current.focus();
+            } else if (nameError && nameInput.current) {
+                nameInput.current.focus();
+            } else if (passwordError && passwordInput.current) {
+                passwordInput.current.focus();
+            }
+            setSubmitClicked(false);
+        }
+    }, [emailError, nameError, passwordError, submitClicked]);
+
     if (loading) {
         return (<LoadingScreen/>);
     }
 
     const handleBrandImageError = () => {
         setBrandImageError(true);
-    };
-
-    const onEnterKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === Constants.KeyCodes.ENTER[0] && canSubmit) {
-            handleSubmit(e);
-        }
     };
 
     const getCardTitle = () => {
@@ -579,6 +591,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         e.preventDefault();
         sendSignUpTelemetryEvents('click_create_account', getRoleFromTrackFlow());
         setIsWaiting(true);
+        setSubmitClicked(true);
 
         if (isUserValid()) {
             setNameError('');
@@ -604,6 +617,12 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     onDismiss: dismissAlert,
                 });
                 setIsWaiting(false);
+
+                // Special case for accessibility to show the error message when the username is already taken
+                if (error.server_error_id === 'app.user.save.username_exists.app_error') {
+                    setNameError(error.message);
+                    setSubmitClicked(true);
+                }
                 return;
             }
 
@@ -785,8 +804,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     <div className={classNames('signup-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
                             className='signup-body-card-content'
-                            onKeyDown={onEnterKeyDown}
-                            tabIndex={0}
                         >
                             <p className='signup-body-card-title'>
                                 {getCardTitle()}
@@ -801,8 +818,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                 />
                             )}
                             {enableSignUpWithEmail && (
-                                <div className='signup-body-card-form'>
+                                <form className='signup-body-card-form'>
                                     <Input
+                                        data-testid='signup-body-card-form-email-input'
                                         ref={emailInput}
                                         name='email'
                                         className='signup-body-card-form-email-input'
@@ -820,6 +838,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         onBlur={(e) => handleOnBlur(e, 'email')}
                                     />
                                     <Input
+                                        data-testid='signup-body-card-form-name-input'
                                         ref={nameInput}
                                         name='name'
                                         className='signup-body-card-form-name-input'
@@ -842,6 +861,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         onBlur={(e) => handleOnBlur(e, 'username')}
                                     />
                                     <PasswordInput
+                                        data-testid='signup-body-card-form-password-input'
                                         ref={passwordInput}
                                         className='signup-body-card-form-password-input'
                                         value={password}
@@ -862,7 +882,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         defaultMessage={formatMessage({id: 'signup_user_completed.create', defaultMessage: 'Create account'})}
                                         savingMessage={formatMessage({id: 'signup_user_completed.saving', defaultMessage: 'Creating account…'})}
                                     />
-                                </div>
+                                </form>
                             )}
                             {enableSignUpWithEmail && enableExternalSignup && (
                                 <div className='signup-body-card-form-divider'>
