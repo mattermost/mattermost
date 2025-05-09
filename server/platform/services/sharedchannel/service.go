@@ -343,7 +343,9 @@ func (scs *Service) CheckAndHandleRemoteRemoval(channelID string, providedChanne
 		}
 
 		// Update UI to reflect the change in shared status
-		scs.notifyClientsForSharedChannelUpdate(channel)
+		if channel != nil {
+			scs.notifyClientsForSharedChannelUpdate(channel)
+		}
 	}
 
 	return unshared, nil
