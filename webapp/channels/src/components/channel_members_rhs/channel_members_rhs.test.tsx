@@ -43,12 +43,24 @@ jest.mock('./search', () => {
 
 // Mock the useAccessControlAttributes hook
 jest.mock('components/common/hooks/useAccessControlAttributes', () => {
-    return jest.fn(() => ({
+    // Define the EntityType enum in the mock
+    const EntityType = {
+        Channel: 'channel',
+    };
+
+    const mockHook = jest.fn(() => ({
         attributeTags: ['tag1', 'tag2'],
         loading: false,
         error: null,
         fetchAttributes: jest.fn(),
     }));
+
+    // Export both the default export (the hook) and the named export (EntityType)
+    return {
+        __esModule: true,
+        default: mockHook,
+        EntityType,
+    };
 });
 
 describe('channel_members_rhs/channel_members_rhs', () => {
