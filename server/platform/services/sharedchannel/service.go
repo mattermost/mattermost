@@ -247,6 +247,9 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 		// when a previously offline remote comes back online force a sync.
 		scs.SendPendingInvitesForRemote(rc)
 		scs.ForceSyncForRemote(rc)
+
+		// Schedule global user sync if feature is enabled
+		scs.tryScheduleGlobalUserSync(rc)
 	}
 
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Remote cluster connection status changed",
@@ -276,4 +279,33 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
 	scs.app.Publish(messageWs)
+}
+
+// tryScheduleGlobalUserSync schedules a task to sync all users with a remote cluster
+func (scs *Service) tryScheduleGlobalUserSync(rc *model.RemoteCluster) {
+	cfg := scs.server.Config()
+
+	if !cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster {
+		return
+	}
+
+	// Skip if config explicitly disables the feature
+	if cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen != nil &&
+		!*cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen {
+		return
+	}
+
+	// Schedule the sync task
+	go func() {
+		// Create a special sync task with empty channelID
+		// This empty channelID is a deliberate marker for a global user sync task
+		task := newSyncTask("", "", rc.RemoteId, nil, nil)
+		task.schedule = time.Now().Add(NotifyMinimumDelay)
+		scs.addTask(task)
+
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Scheduled global user sync task for remote",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+		)
+	}()
 }

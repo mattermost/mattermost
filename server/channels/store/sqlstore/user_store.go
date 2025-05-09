@@ -599,6 +599,10 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.U
 		query = query.Where("Users.DeleteAt = 0")
 	}
 
+	if options.UpdatedAfter > 0 {
+		query = query.Where(sq.Gt{"Users.UpdateAt": options.UpdatedAfter})
+	}
+
 	users := []*model.User{}
 	if err := us.GetReplica().SelectBuilder(&users, query); err != nil {
 		return nil, errors.Wrap(err, "failed to get User profiles")
