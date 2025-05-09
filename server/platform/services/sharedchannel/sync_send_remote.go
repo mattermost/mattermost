@@ -717,7 +717,7 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 
 	// Remove this remote from the shared channel
 	if _, deleteErr := scs.server.GetStore().SharedChannel().DeleteRemote(scr.Id); deleteErr != nil {
-		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to unshare channel locally",
+		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to remove remote from shared channel",
 			mlog.String("remote", rc.Name),
 			mlog.String("channel_id", msg.ChannelId),
 			mlog.Err(deleteErr),
@@ -725,12 +725,16 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 		return
 	}
 
-	// Check if the channel should be unshared and update the UI appropriately
-	_, unshareErr := scs.CheckAndHandleRemoteRemoval(msg.ChannelId, channel)
+	// Directly unshare the channel regardless of whether there are other remotes
+	unshared, unshareErr := scs.UnshareChannel(msg.ChannelId)
 	if unshareErr != nil {
-		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to auto-unshare channel after removing last remote",
+		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to unshare channel after remote indicated it's no longer shared",
 			mlog.String("channel_id", msg.ChannelId),
 			mlog.Err(unshareErr),
+		)
+	} else if !unshared {
+		logger.Log(mlog.LvlSharedChannelServiceWarn, "Failed to unshare channel - channel may not exist or is already unshared",
+			mlog.String("channel_id", msg.ChannelId),
 		)
 	}
 }

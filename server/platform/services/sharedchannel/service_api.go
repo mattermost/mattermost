@@ -222,8 +222,7 @@ func (scs *Service) UninviteRemoteFromChannel(channelID, remoteID string) error 
 			map[string]any{"RemoteId": remoteID, "Error": err.Error()}, "", code)
 	}
 
-	// Check if the channel should be unshared and update the UI appropriately
-	_, unshareErr := scs.CheckAndHandleRemoteRemoval(channelID, nil)
+	_, unshareErr := scs.unshareChannelIfNoActiveRemotes(channelID)
 	if unshareErr != nil {
 		// We don't want to fail the uninvite operation if the unshare fails
 		scs.server.Log().Error("Error during automatic unshare after uninvite",
