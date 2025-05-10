@@ -172,7 +172,7 @@ func TestCreateChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         model.NewPointer(true),
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -767,7 +767,7 @@ func TestPatchChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         model.NewPointer(true),
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -799,7 +799,7 @@ func TestPatchChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         model.NewPointer(true),
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -831,7 +831,7 @@ func TestPatchChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         model.NewPointer(true),
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -841,7 +841,7 @@ func TestPatchChannel(t *testing.T) {
 		require.NotNil(t, patchedChannel.BannerInfo)
 		require.True(t, *patchedChannel.BannerInfo.Enabled)
 		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
-		require.Equal(t, "color", *patchedChannel.BannerInfo.BackgroundColor)
+		require.Equal(t, "#dddddd", *patchedChannel.BannerInfo.BackgroundColor)
 	})
 
 	t.Run("Should not be able to configure channel banner on a channel as a non-admin channel member", func(t *testing.T) {
@@ -856,7 +856,7 @@ func TestPatchChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         model.NewPointer(true),
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -877,7 +877,7 @@ func TestPatchChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         model.NewPointer(true),
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -923,7 +923,7 @@ func TestPatchChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         nil,
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -966,7 +966,7 @@ func TestPatchChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         model.NewPointer(true),
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
@@ -994,7 +994,7 @@ func TestPatchChannel(t *testing.T) {
 			BannerInfo: &model.ChannelBannerInfo{
 				Enabled:         model.NewPointer(true),
 				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("color"),
+				BackgroundColor: model.NewPointer("#dddddd"),
 			},
 		}
 
