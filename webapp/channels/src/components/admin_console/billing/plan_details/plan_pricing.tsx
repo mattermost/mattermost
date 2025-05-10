@@ -45,16 +45,6 @@ const PlanPricing = ({
                         id='admin.billing.subscription.planDetails.perUserPerMonth'
                         defaultMessage='/user/month. '
                     />) }
-                <ExternalLink
-                    location='plan_pricing'
-                    href={CloudLinks.BILLING_DOCS}
-                    onClick={() => trackEvent('cloud_admin', 'click_how_billing_works', {screen: 'payment'})}
-                >
-                    <FormattedMessage
-                        id='admin.billing.subscription.planDetails.howBillingWorks'
-                        defaultMessage='See how billing works'
-                    />
-                </ExternalLink>
             </div>
         </div>
     );
