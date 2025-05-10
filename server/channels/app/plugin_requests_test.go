@@ -12,10 +12,14 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
@@ -150,4 +154,55 @@ func TestServePluginPublicRequest(t *testing.T) {
 		require.Equal(t, http.StatusMovedPermanently, rr.Code)
 		assert.Equal(t, "/subpath/plugins/testplugin2/file.txt", rr.Header()["Location"][0])
 	})
+}
+
+// TestUnauthRequestsMFAWarningFix tests the fix for https://mattermost.atlassian.net/browse/MM-63805.
+func TestUnauthRequestsMFAWarningFix(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Enable MFA and require it
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableMultifactorAuthentication = true
+		*cfg.ServiceSettings.EnforceMultifactorAuthentication = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	// Setup a buffer to capture logs
+	buffer := &mlog.Buffer{}
+	err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+	require.NoError(t, err)
+
+	// Test the fix by simulating an unauthenticated request (no token at all)
+	unauthReq := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
+	unauthReq = mux.SetURLVars(unauthReq, map[string]string{"plugin_id": "foo"})
+
+	// Handler function for the plugin request
+	handlerCalled := false
+	handler := func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
+		handlerCalled = true
+		// Verify URL path was properly stripped
+		require.Equal(t, "/bar", r.URL.Path)
+		// Verify no user ID header (indicating the request is unauthenticated)
+		require.Empty(t, r.Header.Get("Mattermost-User-Id"))
+	}
+
+	// Call servePluginRequest directly
+	th.App.ch.servePluginRequest(nil, unauthReq, handler)
+
+	// Verify the handler was actually called
+	require.True(t, handlerCalled, "Plugin request handler should be called")
+
+	// Check the logs for the MFA warning
+	err = th.TestLogger.Flush()
+	require.NoError(t, err)
+	entries := testlib.ParseLogEntries(t, buffer)
+	for _, e := range entries {
+		if e.Msg == "Treating session as unauthenticated since MFA required" {
+			assert.Fail(t, "MFA warning should not be logged for unauthenticated requests")
+		}
+		if e.Msg == "Error while creating session for user access token" {
+			assert.Fail(t, "MFA warning should not be logged for unauthenticated requests")
+		}
+	}
 }
