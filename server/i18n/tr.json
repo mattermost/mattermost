@@ -5664,15 +5664,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 132+"
+    "translation": "Sürüm 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 132+"
+    "translation": "Sürüm 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Sürüm 119+"
+    "translation": "Sürüm 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -8195,7 +8195,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Yeni deneme lisansı kullanılamadı. Bu Mattermost kopyasında daha önce deneme lisansı kullanmışsınız. Deneme sürenizi uzatmak istiyorsanız [satış ekibimizle](https://mattermost.com/contact-us/) görüşebilirsiniz."
+    "translation": "Çalışma alanınız daha önce bir deneme lisansı kullandığı için yeni deneme lisansı için başvurulamadı. Deneme sürenizi uzatmak istiyorsanız [satış ekibimizle](https://mattermost.com/contact-us/) görüşebilirsiniz."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -10454,5 +10454,49 @@
   {
     "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
     "translation": "Kanal duyurusu bilgi metni çok uzun. En fazla {{.maxLength}} karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Kullanıcının özel profil öznitelik değerleri silinemedi"
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Sertifika eklenemedi."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "İstekte 'certificate' altında çok fazla dosya var."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Sertifika kaldırılamadı."
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Aylık etkin kullanıcı sayısı hesaplanamadı."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Eşitlenmiş bir özel profil özniteliği alanının değeri güncellenemedi"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Çok fazla başarısız olan parola denendiği için hesabınız kilitlendi. Lütfen sistem yöneticinizle görüşün."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Kullanıcı kimlik doğrulama hizmeti LDAP ya da E-posta olmalıdır."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Bu kaynağı güncelleme izniniz yok."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Özellik alanı özel bir profil öznitelik alanına dönüştürülemedi"
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Özel profil öznitelik alanı yaması geçersiz"
   }
 ]
