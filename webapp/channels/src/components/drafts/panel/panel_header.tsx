@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import cn from 'classnames';
 import React, {useMemo} from 'react';
 import type {ComponentProps} from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -33,7 +32,6 @@ export const scheduledPostTimeFormat: ComponentProps<typeof Timestamp>['useTime'
 type Props = {
     kind: 'draft' | 'scheduledPost';
     actions: React.ReactNode;
-    hover: boolean;
     timestamp: number;
     remote: boolean;
     title: React.ReactNode;
@@ -43,7 +41,6 @@ type Props = {
 function PanelHeader({
     kind,
     actions,
-    hover,
     timestamp,
     remote,
     title,
@@ -55,10 +52,10 @@ function PanelHeader({
         <header className='PanelHeader'>
             <div className='PanelHeader__left'>{title}</div>
             <div className='PanelHeader__right'>
-                <div className={cn('PanelHeader__actions', {show: hover})}>
+                <div className='PanelHeader__actions'>
                     {actions}
                 </div>
-                <div className={cn('PanelHeader__info', {hide: hover})}>
+                <div className='PanelHeader__info'>
                     {remote && (
                         <div className='PanelHeader__sync-icon'>
                             <WithTooltip

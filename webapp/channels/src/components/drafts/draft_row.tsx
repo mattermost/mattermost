@@ -373,40 +373,51 @@ function DraftRow({
             innerRef={scrollIntoView ? alertRef : undefined}
             isHighlighted={scrollIntoView}
             className={containerClassName}
+            ariaLabel={intl.formatMessage({
+                id: 'drafts.draft_row.aria_label',
+                defaultMessage: '{type} in {channelName}',
+            }, {
+                type: isScheduledPost ? intl.formatMessage({
+                    id: 'drafts.draft_row.scheduled_post',
+                    defaultMessage: 'scheduled post',
+                }) : intl.formatMessage({
+                    id: 'drafts.draft_row.draft',
+                    defaultMessage: 'draft',
+                }),
+                channelName: channel?.display_name || intl.formatMessage({
+                    id: 'drafts.draft_row.deleted_channel',
+                    defaultMessage: 'deleted channel',
+                }),
+            })}
         >
-            {({hover}) => (
-                <>
-                    <Header
-                        kind={kind}
-                        hover={hover}
-                        actions={actions}
-                        title={title}
-                        timestamp={timestamp}
-                        remote={isRemote || false}
-                        error={postError || serverError?.message}
-                    />
-                    {isEditing && (
-                        <EditScheduledPost
-                            scheduledPost={item as ScheduledPost}
-                            onCancel={handleCancelEdit}
-                            afterSave={handleCancelEdit}
-                            onDeleteScheduledPost={handleSchedulePostOnDelete}
-                        />
-                    )}
-                    {!isEditing && (
-                        <PanelBody
-                            channelId={channel?.id}
-                            displayName={displayName}
-                            fileInfos={fileInfos}
-                            message={item.message}
-                            status={status}
-                            priority={rootId ? undefined : item.metadata?.priority}
-                            uploadsInProgress={uploadsInProgress}
-                            userId={user.id}
-                            username={user.username}
-                        />
-                    )}
-                </>
+            <Header
+                kind={kind}
+                actions={actions}
+                title={title}
+                timestamp={timestamp}
+                remote={isRemote || false}
+                error={postError || serverError?.message}
+            />
+            {isEditing && (
+                <EditScheduledPost
+                    scheduledPost={item as ScheduledPost}
+                    onCancel={handleCancelEdit}
+                    afterSave={handleCancelEdit}
+                    onDeleteScheduledPost={handleSchedulePostOnDelete}
+                />
+            )}
+            {!isEditing && (
+                <PanelBody
+                    channelId={channel?.id}
+                    displayName={displayName}
+                    fileInfos={fileInfos}
+                    message={item.message}
+                    status={status}
+                    priority={rootId ? undefined : item.metadata?.priority}
+                    uploadsInProgress={uploadsInProgress}
+                    userId={user.id}
+                    username={user.username}
+                />
             )}
         </Panel>
     );
