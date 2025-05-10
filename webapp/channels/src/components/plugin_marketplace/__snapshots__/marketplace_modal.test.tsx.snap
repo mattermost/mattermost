@@ -40,7 +40,7 @@ exports[`components/marketplace/ doesn't show web marketplace banner in FeatureF
   >
     <ModalHeader
       bsClass="modal-header"
-      closeButton={true}
+      closeButton={false}
       closeLabel="Close"
     >
       <div
@@ -57,6 +57,26 @@ exports[`components/marketplace/ doesn't show web marketplace banner in FeatureF
           </h1>
         </div>
       </div>
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic_modal.close"
+          />
+        </span>
+      </button>
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
@@ -132,7 +152,7 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
   >
     <ModalHeader
       bsClass="modal-header"
-      closeButton={true}
+      closeButton={false}
       closeLabel="Close"
     >
       <div
@@ -149,6 +169,26 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
           </h1>
         </div>
       </div>
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic_modal.close"
+          />
+        </span>
+      </button>
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
@@ -225,7 +265,7 @@ exports[`components/marketplace/ should render default 1`] = `
   >
     <ModalHeader
       bsClass="modal-header"
-      closeButton={true}
+      closeButton={false}
       closeLabel="Close"
     >
       <div
@@ -262,6 +302,26 @@ exports[`components/marketplace/ should render default 1`] = `
           value=""
         />
       </div>
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic_modal.close"
+          />
+        </span>
+      </button>
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
@@ -369,7 +429,7 @@ exports[`components/marketplace/ should render with error banner 1`] = `
   >
     <ModalHeader
       bsClass="modal-header"
-      closeButton={true}
+      closeButton={false}
       closeLabel="Close"
     >
       <div
@@ -406,6 +466,26 @@ exports[`components/marketplace/ should render with error banner 1`] = `
           value=""
         />
       </div>
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic_modal.close"
+          />
+        </span>
+      </button>
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
@@ -530,7 +610,7 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
   >
     <ModalHeader
       bsClass="modal-header"
-      closeButton={true}
+      closeButton={false}
       closeLabel="Close"
     >
       <div
@@ -567,6 +647,26 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
           value=""
         />
       </div>
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic_modal.close"
+          />
+        </span>
+      </button>
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
@@ -682,7 +782,7 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
   >
     <ModalHeader
       bsClass="modal-header"
-      closeButton={true}
+      closeButton={false}
       closeLabel="Close"
     >
       <div
@@ -719,6 +819,26 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
           value=""
         />
       </div>
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic_modal.close"
+          />
+        </span>
+      </button>
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
@@ -852,7 +972,7 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
   >
     <ModalHeader
       bsClass="modal-header"
-      closeButton={true}
+      closeButton={false}
       closeLabel="Close"
     >
       <div
@@ -889,6 +1009,26 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
           value=""
         />
       </div>
+      <button
+        aria-label="Close"
+        className="close"
+        onClick={[Function]}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+        <span
+          className="sr-only"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Close"
+            id="generic_modal.close"
+          />
+        </span>
+      </button>
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
