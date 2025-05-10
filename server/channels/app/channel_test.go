@@ -1324,6 +1324,22 @@ func TestRenameChannel(t *testing.T) {
 			"",
 			"",
 		},
+		{
+			"Success on rename channel with category",
+			th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen),
+			false,
+			"category / channel",
+			"category/channel",
+			"New Display Name",
+		},
+		{
+			"Success on rename channel with category and extra spaces",
+			th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen),
+			false,
+			"  category  /  channel  ",
+			"category/channel",
+			"New Display Name",
+		},
 	}
 
 	for _, tc := range testCases {

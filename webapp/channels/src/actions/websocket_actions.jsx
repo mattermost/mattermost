@@ -7,6 +7,7 @@ import {batchActions} from 'redux-batched-actions';
 
 import {
     ChannelTypes,
+    ChannelCategoryTypes,
     EmojiTypes,
     GroupTypes,
     PostTypes,
@@ -25,7 +26,7 @@ import {
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
-import {addChannelToInitialCategory, fetchMyCategories, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
+import {addChannelToInitialCategory, fetchMyCategories, receivedCategoryOrder, createCategory, addChannelToCategory} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
     getMyChannelMember,
@@ -70,7 +71,9 @@ import {
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {Client4} from 'mattermost-redux/client';
 import {General, Permissions} from 'mattermost-redux/constants';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {getCategoryIdsForTeam, getCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {
     getChannel,
     getChannelMembersInChannels,
@@ -96,6 +99,7 @@ import {
 } from 'mattermost-redux/selectors/entities/teams';
 import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
@@ -674,7 +678,7 @@ function handleChannelConvertedEvent(msg) {
 }
 
 export function handleChannelUpdatedEvent(msg) {
-    return (doDispatch, doGetState) => {
+    return async (doDispatch, doGetState) => {
         const channel = JSON.parse(msg.data.channel);
 
         const actions = [{type: ChannelTypes.RECEIVED_CHANNEL, data: channel}];
@@ -692,6 +696,46 @@ export function handleChannelUpdatedEvent(msg) {
         }
 
         doDispatch(batchActions(actions));
+
+        // Handle default category name
+        if (channel.default_category_name) {
+            const categories = getCategoryIdsForTeam(state, channel.team_id).map((id) => getCategory(state, id));
+            const isInCustomCategory = categories.some((category) =>
+                category.channel_ids.includes(channel.id) &&
+                category.type !== CategoryTypes.CHANNELS,
+            );
+
+            if (!isInCustomCategory) {
+                // Find or create the category
+                let targetCategory = categories.find((category) =>
+                    category.type === CategoryTypes.CUSTOM &&
+                    category.display_name.toLowerCase() === channel.default_category_name.toLowerCase(),
+                );
+
+                if (!targetCategory) {
+                    // Create new category if it doesn't exist
+                    const result = await dispatch(createCategory(channel.team_id, channel.default_category_name));
+                    if (result.error) {
+                        // If category creation fails, fall back to default behavior
+                        // eslint-disable-next-line no-console
+                        console.error('Failed to create category:', result.error);
+                    } else {
+                        targetCategory = result.data;
+                    }
+                }
+
+                if (targetCategory) {
+                    await dispatch({
+                        type: ChannelCategoryTypes.RECEIVED_CATEGORIES,
+                        data: [{
+                            ...targetCategory,
+                            channel_ids: insertWithoutDuplicates(targetCategory.channel_ids ?? [], channel.id, 0),
+                        }],
+                    });
+                    await dispatch(addChannelToCategory(targetCategory.id, channel.id));
+                }
+            }
+        }
 
         if (channel.id === getCurrentChannelId(state)) {
             // using channel's team_id to ensure we always redirect to current channel even if channel's team changes.

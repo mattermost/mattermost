@@ -15,6 +15,8 @@ import (
 	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type ChannelType string
@@ -72,28 +74,29 @@ func (c ChannelBannerInfo) Value() (driver.Value, error) {
 }
 
 type Channel struct {
-	Id                string             `json:"id"`
-	CreateAt          int64              `json:"create_at"`
-	UpdateAt          int64              `json:"update_at"`
-	DeleteAt          int64              `json:"delete_at"`
-	TeamId            string             `json:"team_id"`
-	Type              ChannelType        `json:"type"`
-	DisplayName       string             `json:"display_name"`
-	Name              string             `json:"name"`
-	Header            string             `json:"header"`
-	Purpose           string             `json:"purpose"`
-	LastPostAt        int64              `json:"last_post_at"`
-	TotalMsgCount     int64              `json:"total_msg_count"`
-	ExtraUpdateAt     int64              `json:"extra_update_at"`
-	CreatorId         string             `json:"creator_id"`
-	SchemeId          *string            `json:"scheme_id"`
-	Props             map[string]any     `json:"props"`
-	GroupConstrained  *bool              `json:"group_constrained"`
-	Shared            *bool              `json:"shared"`
-	TotalMsgCountRoot int64              `json:"total_msg_count_root"`
-	PolicyID          *string            `json:"policy_id"`
-	LastRootPostAt    int64              `json:"last_root_post_at"`
-	BannerInfo        *ChannelBannerInfo `json:"banner_info"`
+	Id                  string             `json:"id"`
+	CreateAt            int64              `json:"create_at"`
+	UpdateAt            int64              `json:"update_at"`
+	DeleteAt            int64              `json:"delete_at"`
+	TeamId              string             `json:"team_id"`
+	Type                ChannelType        `json:"type"`
+	DisplayName         string             `json:"display_name"`
+	Name                string             `json:"name"`
+	Header              string             `json:"header"`
+	Purpose             string             `json:"purpose"`
+	LastPostAt          int64              `json:"last_post_at"`
+	TotalMsgCount       int64              `json:"total_msg_count"`
+	ExtraUpdateAt       int64              `json:"extra_update_at"`
+	CreatorId           string             `json:"creator_id"`
+	SchemeId            *string            `json:"scheme_id"`
+	Props               map[string]any     `json:"props"`
+	GroupConstrained    *bool              `json:"group_constrained"`
+	Shared              *bool              `json:"shared"`
+	TotalMsgCountRoot   int64              `json:"total_msg_count_root"`
+	PolicyID            *string            `json:"policy_id"`
+	LastRootPostAt      int64              `json:"last_root_post_at"`
+	BannerInfo          *ChannelBannerInfo `json:"banner_info"`
+	DefaultCategoryName string             `json:"default_category_name"`
 }
 
 func (o *Channel) Auditable() map[string]any {
@@ -347,8 +350,15 @@ func (o *Channel) IsOpen() bool {
 
 func (o *Channel) Patch(patch *ChannelPatch) {
 	if patch.DisplayName != nil {
-		o.DisplayName = *patch.DisplayName
+		if strings.Contains(*patch.DisplayName, "/") {
+			parts := strings.Split(*patch.DisplayName, "/")
+			o.DisplayName = strings.Join(parts[1:], "/")
+			o.DefaultCategoryName = strings.TrimSpace(parts[0])
+		} else {
+			o.DisplayName = *patch.DisplayName
+		}
 	}
+	mlog.Info("channel.DefaultCategoryName", mlog.String("channel.DefaultCategoryName", o.DefaultCategoryName))
 
 	if patch.Name != nil {
 		o.Name = *patch.Name
