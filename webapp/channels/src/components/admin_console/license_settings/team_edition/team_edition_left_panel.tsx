@@ -4,7 +4,7 @@
 import React from 'react';
 
 import './team_edition.scss';
-export interface TeamEditionProps {
+interface TeamEditionProps {
     openEELicenseModal: () => void;
     currentPlan: JSX.Element;
 }

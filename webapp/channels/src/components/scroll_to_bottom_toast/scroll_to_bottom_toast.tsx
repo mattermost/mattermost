@@ -12,7 +12,7 @@ import './scroll_to_bottom_toast.scss';
 export const SCROLL_TO_BOTTOM_TOAST_TESTID = 'scroll-to-bottom-toast';
 export const SCROLL_TO_BOTTOM_DISMISS_BUTTON_TESTID = 'scroll-to-bottom-toast--dismiss-button';
 
-type ScrollToBottomToastProps = {
+interface ScrollToBottomToastProps {
     onDismiss: () => void;
     onClick: () => void;
 }

@@ -348,7 +348,6 @@ export function getProfilesWithoutTeam(page: number, perPage: number = General.P
 }
 
 export enum ProfilesInChannelSortBy {
-    None = '',
     Admin = 'admin',
 }
 
