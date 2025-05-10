@@ -531,6 +531,7 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	force, _ := cmd.Flags().GetBool("force")
+	autoAddUsers, _ := cmd.Flags().GetBool("auto-add-users")
 
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
@@ -548,6 +549,47 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 		if channel.TeamId == team.Id {
 			continue
+		}
+
+		users, _, err := c.GetUsersInChannel(context.TODO(), channel.Id, 0, 10000, "")
+		if err != nil {
+			result = multierror.Append(result, fmt.Errorf("unable to get users in channel %q: %w", channel.Name, err))
+			continue
+		}
+
+		teamUsers, _, err := c.GetUsersInTeam(context.TODO(), team.Id, 0, 10000, "")
+		if err != nil {
+			result = multierror.Append(result, fmt.Errorf("unable to get users in team %q: %w", team.Name, err))
+			continue
+		}
+
+		usersToAdd := []string{}
+		teamUserIds := map[string]bool{}
+		for _, user := range teamUsers {
+			teamUserIds[user.Id] = true
+		}
+		for _, user := range users {
+			if !teamUserIds[user.Id] {
+				usersToAdd = append(usersToAdd, user.Username)
+			}
+		}
+
+		if len(usersToAdd) > 0 {
+			printer.PrintT(fmt.Sprintf("Users to be added to team %q: %v", team.Name, usersToAdd), map[string]interface{}{
+				"TeamName": team.Name,
+				"Users":    usersToAdd,
+			})
+
+			if autoAddUsers {
+				for _, user := range users {
+					if !teamUserIds[user.Id] {
+						_, _, err := c.AddTeamMember(context.TODO(), team.Id, user.Id)
+						if err != nil {
+							result = multierror.Append(result, fmt.Errorf("failed to add user %q to team %q: %w", user.Username, team.Name, err))
+						}
+					}
+				}
+			}
 		}
 
 		newChannel, _, err := c.MoveChannel(context.TODO(), channel.Id, team.Id, force)
