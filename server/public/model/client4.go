@@ -125,7 +125,7 @@ func NewAPIv4Client(url string) *Client4 {
 	return &Client4{url, url + APIURLSuffix, &http.Client{}, "", "", map[string]string{}, "", ""}
 }
 
-func NewAPIv4SocketClient(socketPath string) *Client4 {
+func NewAPIv4SocketClient(socketPath string, userID string) *Client4 {
 	tr := &http.Transport{
 		Dial: func(network, addr string) (net.Conn, error) {
 			return net.Dial("unix", socketPath)
@@ -134,6 +134,7 @@ func NewAPIv4SocketClient(socketPath string) *Client4 {
 
 	client := NewAPIv4Client("http://_")
 	client.HTTPClient = &http.Client{Transport: tr}
+	client.HTTPHeader = map[string]string{"X-Mattermost-Id": userID}
 
 	return client
 }
