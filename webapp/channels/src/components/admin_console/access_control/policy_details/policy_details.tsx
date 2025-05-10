@@ -70,7 +70,7 @@ function PolicyDetails({
     const [autoSyncMembership, setAutoSyncMembership] = useState(policy?.active || false);
     const [serverError, setServerError] = useState<string | undefined>(undefined);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
-    const [editorMode, setEditorMode] = useState<'cel' | 'table'>('cel');
+    const [editorMode, setEditorMode] = useState<'cel' | 'table'>('table');
     const [channelChanges, setChannelChanges] = useState<ChannelChanges>({
         removed: {},
         added: {},
@@ -93,10 +93,14 @@ function PolicyDetails({
         }
 
         // Expression is simple if it only contains user.attributes.X == "Y" or user.attributes.X in ["Y", "Z"]
+        // or user.attributes.X.startsWith/endsWith/contains("Y")
         return expr.split('&&').every((condition) => {
             const trimmed = condition.trim();
             return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]+['"]$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/);
+                   trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
+                   trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]+['"].*?\)$/) ||
+                   trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]+['"].*?\)$/) ||
+                   trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]+['"].*?\)$/);
         });
     };
 

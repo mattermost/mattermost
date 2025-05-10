@@ -10,12 +10,11 @@ import type {AccessControlTestResult} from '@mattermost/types/access_control';
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {Client4} from 'mattermost-redux/client';
 
-import Markdown from 'components/markdown';
-
 import {MonacoLanguageProvider} from './language_provider';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
+import {TestButton, HelpText} from '../shared';
 
 import './editor.scss';
 
@@ -294,36 +293,17 @@ function CELEditor({
                     </div>
                 </div>
             </div>
-
             <div className='cel-editor__footer'>
-                <button
-                    className='cel-editor__test-btn'
+                <TestButton
                     onClick={() => setEditorState((prev) => ({...prev, showTestResults: true}))}
                     disabled={!editorState.isValid || editorState.isValidating}
-                >
-                    <i className='icon icon-lock-outline'/>
-                    <FormattedMessage
-                        id='admin.access_control.cel.testAccessRule'
-                        defaultMessage='Test access rule'
-                    />
-                </button>
-            </div>
-
-            <div className='cel-editor__help-text'>
-                <Markdown
-                    message={'Write rules like `user.<attribute> == <value>`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.'}
-                    options={{mentionHighlight: false}}
                 />
-                <a
-                    href='#'
-                    className='cel-editor__learn-more'
-                    onClick={() => setShowHelpModal(true)}
-                >
-                    <FormattedMessage
-                        id='admin.access_control.cel.learnMore'
-                        defaultMessage='Learn more about creating access expressions with examples.'
-                    />
-                </a>
+            </div>
+            <div>
+                <HelpText
+                    message={'Write rules like `user.<attribute> == <value>`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.'}
+                    onLearnMoreClick={() => setShowHelpModal(true)}
+                />
             </div>
             {editorState.showTestResults && (
                 <TestResultsModal

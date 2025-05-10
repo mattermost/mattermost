@@ -57,7 +57,7 @@ const CELHelpModal: React.FC<Props> = ({onExited, onHide}: Props) => {
                         <Markdown
                             message={formatMessage({
                                 id: 'admin.access_control.cel_help_modal.additional_info',
-                                defaultMessage: '- Operators like `<` or `>` are forbidden due to incorrect string comparison.\n- Only `user.attributes` are supported; any other variables are not supported yet. For more information, visit the [CEL documentation](https://cel.dev/).',
+                                defaultMessage: '- Operators like `<` or `>` are forbidden due to incorrect string comparison.\n- Only `user.attributes` are supported; any other variables are not supported yet.\n-For more information, visit the [CEL documentation](https://cel.dev/).',
                             })}
                             options={{
                                 markdown: true,

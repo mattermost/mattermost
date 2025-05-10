@@ -62,8 +62,8 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           <TitleAndButtonCardHeader
             buttonText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Switch to Simple Mode"
-                id="admin.access_control.policy.edit_policy.switch_to_simple"
+                defaultMessage="Switch to Advanced Mode"
+                id="admin.access_control.policy.edit_policy.switch_to_advanced"
               />
             }
             isDisabled={false}
@@ -73,7 +73,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           />
         </CardHeader>
         <CardBody>
-          <CELEditor
+          <TableEditor
             onChange={[Function]}
             onValidate={[Function]}
             userAttributes={Array []}
@@ -239,8 +239,8 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           <TitleAndButtonCardHeader
             buttonText={
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Switch to Simple Mode"
-                id="admin.access_control.policy.edit_policy.switch_to_simple"
+                defaultMessage="Switch to Advanced Mode"
+                id="admin.access_control.policy.edit_policy.switch_to_advanced"
               />
             }
             isDisabled={false}
@@ -250,7 +250,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           />
         </CardHeader>
         <CardBody>
-          <CELEditor
+          <TableEditor
             onChange={[Function]}
             onValidate={[Function]}
             userAttributes={Array []}
