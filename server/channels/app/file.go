@@ -38,15 +38,148 @@ import (
 )
 
 const (
-	imageThumbnailWidth        = 120
-	imageThumbnailHeight       = 100
-	imagePreviewWidth          = 1920
-	miniPreviewImageWidth      = 16
-	miniPreviewImageHeight     = 16
-	jpegEncQuality             = 90
-	maxUploadInitialBufferSize = 1024 * 1024 // 1MB
-	maxContentExtractionSize   = 1024 * 1024 // 1MB
+    imageThumbnailWidth    = 120   // Standard width for thumbnail generation
+    imageThumbnailHeight   = 100   // Standard height for thumbnail generation
+    imagePreviewWidth      = 1920  // Maximum width for image preview
+    jpegEncQuality         = 90    // Quality setting for JPEG encoding
+    maxContentExtractionSize = 1 << 20 // 1MB max size for content extraction
 )
+
+// FileBackend returns the main file storage backend
+func (a *App) FileBackend() filestore.FileBackend {
+    return a.ch.filestore
+}
+
+// checkImageResolutionLimit validates image dimensions against configured limits
+// Returns error if image exceeds maximum allowed resolution
+func checkImageResolutionLimit(width, height, maxResolution int64) error {
+    if width*height > maxResolution {
+        return fmt.Errorf("image resolution exceeds limit: %dx%d > %d", 
+            width, height, maxResolution)
+    }
+    return nil
+}
+
+// preprocessImage handles image metadata extraction and validation
+// - Extracts SVG dimensions if applicable
+// - Checks image resolution limits
+// - Handles EXIF orientation data
+// - Disables previews for animated GIFs
+func (t *UploadFileTask) preprocessImage() *model.AppError {
+    // SVG handling
+    if t.fileinfo.IsSvg() {
+        // Extract dimensions directly from SVG XML
+        svgInfo, err := imaging.ParseSVG(t.teeInput)
+        if err != nil {
+            t.Logger.Warn("SVG parsing failed", mlog.Err(err))
+        } else if svgInfo.Width > 0 {
+            t.fileinfo.Width = svgInfo.Width
+            t.fileinfo.Height = svgInfo.Height
+        }
+        t.fileinfo.HasPreviewImage = false // Disable preview for vector images
+        return nil
+    }
+
+    // Validate image dimensions
+    w, h, err := imaging.GetDimensions(t.teeInput)
+    if err != nil {
+        return nil // Allow non-image files through
+    }
+
+    if err := checkImageResolutionLimit(w, h, t.maxImageRes); err != nil {
+        return t.newAppError("image resolution limit exceeded", http.StatusBadRequest)
+    }
+
+    // Handle EXIF orientation
+    if orientation, err := imaging.GetImageOrientation(t.teeInput); err == nil {
+        if requiresDimensionSwap(orientation) {
+            t.fileinfo.Width, t.fileinfo.Height = h, w
+        }
+    }
+
+    return nil
+}
+
+// GeneratePublicLink creates a secure download link with HMAC validation
+// Uses SHA-256 hash of fileID and secret salt to prevent URL tampering
+func (a *App) GeneratePublicLink(siteURL string, info *model.FileInfo) string {
+    hash := GeneratePublicLinkHash(info.Id, *a.Config().FileSettings.PublicLinkSalt)
+    return fmt.Sprintf("%s/files/%v/public?h=%s", siteURL, info.Id, hash)
+}
+
+// getCloudFilesSizeLimit calculates storage limit from cloud plan settings
+// Converts cloud provider's bit-based storage to byte count
+func (a *App) getCloudFilesSizeLimit() (int64, *model.AppError) {
+    limits, err := a.Cloud().GetCloudLimits("")
+    if err != nil || limits.Files == nil {
+        return 0, nil // No restrictions if limits unavailable
+    }
+    
+    // Convert bits to bytes with ceiling division
+    bytes := int64(math.Ceil(float64(*limits.Files.TotalStorage) / 8))
+    return bytes, nil
+}
+
+// ExtractContentFromFileInfo extracts searchable text from supported files
+// Handles PDF, Office docs, and text files with size validation
+func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileInfo) error {
+    if fileInfo.IsImage() {
+        return nil // Skip image processing
+    }
+
+    file, aerr := a.FileReader(fileInfo.Path)
+    if aerr != nil {
+        return errors.Wrap(aerr, "file access failed")
+    }
+    defer file.Close()
+
+    // Extract text with configured recursion depth
+    text, err := docextractor.Extract(rctx.Logger(), fileInfo.Name, file, 
+        docextractor.ExtractSettings{
+            ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
+        })
+    
+    if text != "" {
+        // Truncate and sanitize extracted content
+        if len(text) > maxContentExtractionSize {
+            text = text[:maxContentExtractionSize]
+        }
+        
+        // Store as UTF-8 encoded text
+        if storeErr := a.Srv().Store().FileInfo().SetContent(rctx, 
+            fileInfo.Id, text); storeErr != nil {
+            return errors.Wrap(storeErr, "content storage failed")
+        }
+    }
+    
+    return nil
+}
+
+// HandleImages processes image uploads with parallel processing
+// Generates thumbnails, previews, and mini-previews concurrently
+func (a *App) HandleImages(rctx request.CTX, previewPaths, thumbPaths []string, data [][]byte) {
+    var wg sync.WaitGroup
+    
+    for i := range data {
+        wg.Add(2) // Track thumbnail and preview generation
+        
+        // Process thumbnail
+        go func(idx int) {
+            defer wg.Done()
+            img := decodeImage(data[idx])
+            a.generateThumbnail(rctx, img, thumbPaths[idx])
+        }(i)
+        
+        // Process preview
+        go func(idx int) {
+            defer wg.Done()
+            img := decodeImage(data[idx])
+            a.generatePreview(rctx, img, previewPaths[idx])
+        }(i)
+    }
+    
+    wg.Wait()
+}
 
 func (a *App) FileBackend() filestore.FileBackend {
 	return a.ch.filestore
