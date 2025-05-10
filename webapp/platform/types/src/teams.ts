@@ -106,6 +106,7 @@ export type PagedTeamSearchOpts = {
 export type NotPagedTeamSearchOpts = {
     allow_open_invite?: boolean;
     group_constrained?: boolean;
+    invite_only?: boolean;
 };
 
 export type TeamInviteWithError = {

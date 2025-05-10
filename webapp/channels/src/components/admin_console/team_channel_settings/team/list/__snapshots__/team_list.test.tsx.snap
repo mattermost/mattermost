@@ -1,5 +1,98 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`admin_console/team_channel_settings/team/TeamList should call setAdminConsoleTeamsManagementTableProperties and set state 1`] = `
+<div
+  className="TeamsList"
+>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.team_settings.team_list.nameHeader"
+          />,
+          "width": 4,
+        },
+        Object {
+          "field": "management",
+          "fixed": true,
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Management"
+            id="admin.team_settings.team_list.mappingHeader"
+          />,
+        },
+        Object {
+          "field": "edit",
+          "fixed": true,
+          "name": "",
+          "textAlign": "right",
+        },
+      ]
+    }
+    endCount={0}
+    filterProps={
+      Object {
+        "keys": Array [
+          "management",
+        ],
+        "onFilter": [Function],
+        "options": Object {
+          "management": Object {
+            "keys": Array [
+              "allow_open_invite",
+              "invite_only",
+            ],
+            "name": <Memo(MemoizedFormattedMessage)
+              defaultMessage="Management"
+              id="admin.team_settings.team_list.mappingHeader"
+            />,
+            "values": Object {
+              "allow_open_invite": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Anyone Can Join"
+                  id="admin.team_settings.team_row.managementMethod.anyoneCanJoin"
+                />,
+                "value": true,
+              },
+              "invite_only": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Invite Only"
+                  id="admin.team_settings.team_row.managementMethod.inviteOnly"
+                />,
+                "value": true,
+              },
+            },
+          },
+        },
+      }
+    }
+    loading={false}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No teams found"
+        id="admin.team_settings.team_list.no_teams_found"
+      />
+    }
+    previousPage={[Function]}
+    rows={Array []}
+    rowsContainerStyles={
+      Object {
+        "minHeight": "0px",
+      }
+    }
+    startCount={1}
+    term="test"
+    total={0}
+  />
+</div>
+`;
+
 exports[`admin_console/team_channel_settings/team/TeamList should match snapshot 1`] = `
 <div
   className="TeamsList"

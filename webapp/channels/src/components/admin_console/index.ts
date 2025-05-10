@@ -18,7 +18,7 @@ import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin, currentUserHasAnAdminRole, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setNavigationBlocked, deferNavigation, cancelNavigation, confirmNavigation} from 'actions/admin_actions.jsx';
-import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
+import {setAdminConsoleUsersManagementTableProperties, setAdminConsoleTeamsManagementTableProperties, setAdminConsoleChannelsManagementTableProperties} from 'actions/views/admin';
 import {selectLhsItem} from 'actions/views/lhs';
 import {getAdminDefinition, getConsoleAccess} from 'selectors/admin_console';
 import {showNavigationPrompt} from 'selectors/views/admin';
@@ -70,6 +70,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
             selectLhsItem,
             selectTeam,
             setAdminConsoleUsersManagementTableProperties,
+            setAdminConsoleTeamsManagementTableProperties,
+            setAdminConsoleChannelsManagementTableProperties,
         }, dispatch),
     };
 }
