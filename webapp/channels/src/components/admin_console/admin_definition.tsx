@@ -80,6 +80,7 @@ import {
     GroupsFeatureDiscovery,
     MobileSecurityFeatureDiscovery,
 } from './feature_discovery/features';
+import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/features/attribute_based_access_control';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
@@ -748,6 +749,28 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
                 restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+            },
+            attribute_based_access_control_feature_discovery: {
+                url: 'user_management/attribute_based_access_control',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
+                isHidden: it.any(
+                    it.licensedForSku(LicenseSkus.EnterpriseAdvanced),
+                    it.not(it.enterpriseReady),
+                ),
+                schema: {
+                    id: 'AttributeBasedAccessControl',
+                    name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access (Beta)'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: AttributeBasedAccessControlFeatureDiscovery,
+                            key: 'AttributeBasedAccessControlFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
             },
         },
     },

@@ -324,6 +324,8 @@
   "admin.advance.metrics": "Performance Monitoring",
   "admin.announcement_banner_feature_discovery.copy": "Create announcement banners to notify all members of important information.",
   "admin.announcement_banner_feature_discovery.title": "Create custom announcement banners with Mattermost Professional",
+  "admin.attribute_based_access_control_feature_discovery.desc": "Create policies containing access rules based on user attributes and apply them to channels and other resources within Mattermost.",
+  "admin.attribute_based_access_control_feature_discovery.title": "Use attribute based access policies to control channel access with Mattermost Enterprise Advanced",
   "admin.audit_logging_experimental.certificate.help_text": "The certificate file used for audit logging encryption.",
   "admin.audit_logging_experimental.certificate.remove_button": "Remove Certificate",
   "admin.audit_logging_experimental.certificate.remove_help_text": "Remove the certificate used for audit logging encryption.",
