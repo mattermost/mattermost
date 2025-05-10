@@ -1705,13 +1705,18 @@ func (c *Client4) DeleteUser(ctx context.Context, userId string) (*Response, err
 }
 
 // PermanentDeleteUser deletes a user in the system based on the provided user id string.
-func (c *Client4) PermanentDeleteUser(ctx context.Context, userId string) (*Response, error) {
+func (c *Client4) PermanentDeleteUser(ctx context.Context, userId string) (*Job, *Response, error) {
 	r, err := c.DoAPIDelete(ctx, c.userRoute(userId)+"?permanent="+c.boolString(true))
 	if err != nil {
-		return BuildResponse(r), err
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return BuildResponse(r), nil
+	var job *Job
+	err = json.NewDecoder(r.Body).Decode(&job)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("PermanentDeleteUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return job, BuildResponse(r), nil
 }
 
 // ConvertUserToBot converts a user to a bot user.

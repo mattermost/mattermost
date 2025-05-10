@@ -176,7 +176,8 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
 		model.JobTypeMobileSessionMetadata,
-		model.JobTypeExtractContent:
+		model.JobTypeExtractContent,
+		model.JobTypeUserDeletion:
 		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
 	}
 

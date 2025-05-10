@@ -44,6 +44,7 @@ const (
 	JobTypeExportUsersToCSV              = "export_users_to_csv"
 	JobTypeDeleteDmsPreferencesMigration = "delete_dms_preferences_migration"
 	JobTypeMobileSessionMetadata         = "mobile_session_metadata"
+	JobTypeUserDeletion                  = "permanent_delete_user"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -77,6 +78,7 @@ var AllJobTypes = [...]string{
 	JobTypeCleanupDesktopTokens,
 	JobTypeRefreshMaterializedViews,
 	JobTypeMobileSessionMetadata,
+	JobTypeUserDeletion,
 }
 
 type Job struct {
