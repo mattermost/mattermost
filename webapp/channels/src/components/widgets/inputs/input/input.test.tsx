@@ -65,17 +65,17 @@ describe('components/widgets/inputs/Input', () => {
             renderWithContext(
                 <Input
                     value={''}
-                    minLength={5}
+                    minLength={2}
                 />,
             );
-
-            // Check for the +X indicator
-            const indicator = screen.getByText('+5');
-            expect(indicator).toBeInTheDocument();
 
             // Check for error styling
             const fieldset = screen.getByRole('group');
             expect(fieldset).toHaveClass('Input_fieldset___error');
+
+            // Check for error message
+            const errorMessage = screen.getByText(/Must be at least 2 characters/i);
+            expect(errorMessage).toBeInTheDocument();
         });
 
         test('should show error styling and message when input length < minLength', async () => {
@@ -97,10 +97,6 @@ describe('components/widgets/inputs/Input', () => {
                 // Then type the new value
                 userEvent.type(inputElement, 'abc');
             });
-
-            // Check for the +X indicator
-            const indicator = screen.getByText('+2');
-            expect(indicator).toBeInTheDocument();
 
             // Check for error styling
             const fieldset = screen.getByRole('group');
@@ -257,17 +253,16 @@ describe('components/widgets/inputs/Input', () => {
             expect(screen.queryByText(/Must be at least 5 characters/i)).not.toBeInTheDocument();
         });
 
-        test('should show both minLength indicator and limit indicator when applicable', () => {
+        test('should show max length indicator when exceeding limit', () => {
             renderWithContext(
                 <Input
-                    value={'abc'}
-                    minLength={5}
+                    value={'abcdefghijk'} // 11 characters, exceeds limit of 10
                     limit={10}
                 />,
             );
 
-            // Check for the +X indicator for minLength
-            const indicator = screen.getByText('+2');
+            // Check for the -X indicator for limit
+            const indicator = screen.getByText('-1');
             expect(indicator).toBeInTheDocument();
         });
     });

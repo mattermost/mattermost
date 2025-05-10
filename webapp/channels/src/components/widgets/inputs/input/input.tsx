@@ -263,11 +263,6 @@ const Input = React.forwardRef((
                             {'-'}{limitExceeded}
                         </span>
                     )}
-                    {isMinLengthError && (
-                        <span className='Input_limit-exceeded'>
-                            {'+'}{minLengthNotMet}
-                        </span>
-                    )}
                     {inputSuffix}
                     {clearButton}
                 </div>
