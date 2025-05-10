@@ -600,7 +600,6 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 
 	var err error
 	appInstance := New(ServerConnector(s.Channels()))
-
 	rcs, err := remotecluster.NewRemoteClusterService(s, appInstance)
 	if err != nil {
 		return err
@@ -610,9 +609,6 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 		return err
 	}
 
-	// The full RemoteClusterServiceIFace interface isn't implemented by rcs,
-	// but we only use the methods it does implement in practice.
-	// TODO: Either implement all required methods or update the interface.
 	s.serviceMux.Lock()
 	s.remoteClusterService = rcs
 	s.serviceMux.Unlock()
@@ -1660,8 +1656,6 @@ func (s *Server) initJobs() {
 		model.JobTypeDeleteDmsPreferencesMigration,
 		delete_dms_preferences_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 		nil)
-		
-
 	s.platform.Jobs = s.Jobs
 }
 

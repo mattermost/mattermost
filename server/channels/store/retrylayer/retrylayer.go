@@ -1987,32 +1987,11 @@ func (s *RetryLayerChannelStore) GetMemberLastViewedAt(ctx context.Context, chan
 
 }
 
-func (s *RetryLayerChannelStore) GetMembers(channelID string, offset int, limit int) (model.ChannelMembers, error) {
+func (s *RetryLayerChannelStore) GetMembers(opts model.ChannelMembersGetOptions) (model.ChannelMembers, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetMembers(channelID, offset, limit)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerChannelStore) GetMembersAfterTimestamp(channelID string, timestamp int64, limit int) (model.ChannelMembers, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelStore.GetMembersAfterTimestamp(channelID, timestamp, limit)
+		result, err := s.ChannelStore.GetMembers(opts)
 		if err == nil {
 			return result, nil
 		}

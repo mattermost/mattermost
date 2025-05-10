@@ -143,7 +143,6 @@ func (scs *Service) Start() error {
 
 	scs.onClusterLeaderChange()
 
-
 	return nil
 }
 
@@ -226,10 +225,23 @@ func (scs *Service) pause() {
 	scs.server.Log().Debug("Shared Channel Service inactive")
 }
 
-// GetMyClusterId returns the ID of this cluster
-func (scs *Service) GetMyClusterId() string {
+// getMyClusterId returns the ID of this cluster
+func (scs *Service) getMyClusterId() string {
 	scs.mux.RLock()
 	defer scs.mux.RUnlock()
+
+	// If myClusterId is not set, generate a new one
+	if scs.myClusterId == "" {
+		scs.mux.RUnlock()
+		scs.mux.Lock()
+		defer scs.mux.Unlock()
+
+		// Double-check after acquiring write lock
+		if scs.myClusterId == "" {
+			scs.myClusterId = model.NewId()
+		}
+		return scs.myClusterId
+	}
 
 	return scs.myClusterId
 }

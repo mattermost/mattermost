@@ -104,12 +104,17 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 	// First, get the latest cursor position
 	lastSyncAt := remote.LastMembersSyncAt
 	maxPerPage := 200 // Process in reasonable batches
-	
+
 	// Process members incrementally with cursor-based pagination
 	var allMembers model.ChannelMembers
 	var processedCount int
 	for {
-		members, err := scs.server.GetStore().Channel().GetMembersAfterTimestamp(channelID, lastSyncAt, maxPerPage)
+		opts := model.ChannelMembersGetOptions{
+			ChannelID:    channelID,
+			UpdatedAfter: lastSyncAt,
+			Limit:        maxPerPage,
+		}
+		members, err := scs.server.GetStore().Channel().GetMembers(opts)
 		if err != nil {
 			return fmt.Errorf("failed to get members for channel %s: %w", channelID, err)
 		}
@@ -127,7 +132,7 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 		lastSyncAt = lastMember.LastUpdateAt
 
 		// Log progress when processing large channels
-		if processedCount % 1000 == 0 {
+		if processedCount%1000 == 0 {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Processing channel members in batches",
 				mlog.String("channel_id", channelID),
 				mlog.String("remote_id", remoteID),
@@ -139,10 +144,10 @@ func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) err
 			break // Last page
 		}
 	}
-	
+
 	// Use allMembers instead of single-call members
 	members := allMembers
-	
+
 	if len(members) == 0 {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "No members to sync for channel",
 			mlog.String("channel_id", channelID),
@@ -313,7 +318,7 @@ func (scs *Service) processMembershipBatch(channelID string, memberIDs []string,
 	// Create membership batch message
 	changeBatch := &model.MembershipChangeBatchMsg{
 		ChannelId:  channelID,
-		RemoteId:   scs.GetMyClusterId(),
+		RemoteId:   scs.getMyClusterId(),
 		ChangeTime: syncTime,
 		Changes:    make([]*model.MembershipChangeMsg, 0, len(memberIDs)),
 	}
@@ -324,7 +329,7 @@ func (scs *Service) processMembershipBatch(channelID string, memberIDs []string,
 			ChannelId:  channelID,
 			UserId:     userID,
 			IsAdd:      true, // Always adding members in initial sync
-			RemoteId:   scs.GetMyClusterId(),
+			RemoteId:   scs.getMyClusterId(),
 			ChangeTime: syncTime,
 		})
 	}
@@ -334,7 +339,7 @@ func (scs *Service) processMembershipBatch(channelID string, memberIDs []string,
 	syncMsg.MembershipBatchInfo = changeBatch
 
 	// Get the remote cluster
-	rc, err := scs.server.GetRemoteClusterService().GetRemoteCluster(remoteID)
+	rc, err := scs.server.GetStore().RemoteCluster().Get(remoteID, false)
 	if err != nil {
 		return fmt.Errorf("failed to get remote cluster for batch membership sync: %w", err)
 	}
@@ -443,7 +448,7 @@ func (scs *Service) processMembershipChange(syncMsg *model.SyncMsg) {
 // syncMembershipToRemote synchronizes a channel membership change with a remote cluster.
 func (scs *Service) syncMembershipToRemote(channelID, userID string, isAdd bool, remote *model.SharedChannelRemote, changeTime int64) {
 	// Get the remote cluster
-	rc, err := scs.server.GetRemoteClusterService().GetRemoteCluster(remote.RemoteId)
+	rc, err := scs.server.GetStore().RemoteCluster().Get(remote.RemoteId, false)
 	if err != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to get remote cluster for membership sync",
 			mlog.String("remote_id", remote.RemoteId),
@@ -497,7 +502,7 @@ func (scs *Service) syncMembershipToRemote(channelID, userID string, isAdd bool,
 		ChannelId:  channelID,
 		UserId:     userID,
 		IsAdd:      isAdd,
-		RemoteId:   scs.GetMyClusterId(),
+		RemoteId:   scs.getMyClusterId(),
 		ChangeTime: changeTime,
 	}
 

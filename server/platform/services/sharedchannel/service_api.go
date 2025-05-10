@@ -69,9 +69,6 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 
 	scs.notifyClientsForSharedChannelConverted(channel)
 
-	// We don't sync members here because this just marks the channel as shared.
-	// Member sync happens when a remote is invited to the channel via InviteRemoteToChannel.
-
 	return scNew, nil
 }
 
@@ -293,4 +290,3 @@ func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
 	}
 	return nil
 }
-

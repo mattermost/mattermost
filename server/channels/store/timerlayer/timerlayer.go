@@ -1655,10 +1655,10 @@ func (s *TimerLayerChannelStore) GetMemberLastViewedAt(ctx context.Context, chan
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetMembers(channelID string, offset int, limit int) (model.ChannelMembers, error) {
+func (s *TimerLayerChannelStore) GetMembers(opts model.ChannelMembersGetOptions) (model.ChannelMembers, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetMembers(channelID, offset, limit)
+	result, err := s.ChannelStore.GetMembers(opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1667,22 +1667,6 @@ func (s *TimerLayerChannelStore) GetMembers(channelID string, offset int, limit 
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMembers", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) GetMembersAfterTimestamp(channelID string, timestamp int64, limit int) (model.ChannelMembers, error) {
-	start := time.Now()
-
-	result, err := s.ChannelStore.GetMembersAfterTimestamp(channelID, timestamp, limit)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMembersAfterTimestamp", success, elapsed)
 	}
 	return result, err
 }

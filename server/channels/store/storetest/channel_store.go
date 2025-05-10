@@ -264,7 +264,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, rctx request.CTX, ss store.
 	_, nErr = ss.Channel().SaveDirectChannel(rctx, &o1, &m1, &m2)
 	require.NoError(t, nErr, "couldn't save direct channel", nErr)
 
-	members, nErr := ss.Channel().GetMembers(o1.Id, 0, 100)
+	members, nErr := ss.Channel().GetMembers(model.ChannelMembersGetOptions{ChannelID: o1.Id, Offset: 0, Limit: 100})
 	require.NoError(t, nErr)
 	require.Len(t, members, 2, "should have saved 2 members")
 
@@ -304,7 +304,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, rctx request.CTX, ss store.
 	_, nErr = ss.Channel().SaveDirectChannel(rctx, &o1, &m1, &m1)
 	require.NoError(t, nErr, "couldn't save direct channel", nErr)
 
-	members, nErr = ss.Channel().GetMembers(o1.Id, 0, 100)
+	members, nErr = ss.Channel().GetMembers(model.ChannelMembersGetOptions{ChannelID: o1.Id, Offset: 0, Limit: 100})
 	require.NoError(t, nErr)
 	require.Len(t, members, 1, "should have saved just 1 member")
 
@@ -340,9 +340,22 @@ func testChannelStoreCreateDirectChannel(t *testing.T, rctx request.CTX, ss stor
 		ss.Channel().PermanentDelete(rctx, c1.Id)
 	}()
 
-	members, nErr := ss.Channel().GetMembers(c1.Id, 0, 100)
+	members, nErr := ss.Channel().GetMembers(model.ChannelMembersGetOptions{ChannelID: c1.Id, Offset: 0, Limit: 100})
 	require.NoError(t, nErr)
 	require.Len(t, members, 2, "should have saved 2 members")
+
+	// Test cursor-based pagination by getting members created after a timestamp
+	// First get the timestamp from the first member
+	updateTime := members[0].LastUpdateAt
+
+	// Then query for members updated after that timestamp
+	membersAfter, nErr := ss.Channel().GetMembers(model.ChannelMembersGetOptions{
+		ChannelID:    c1.Id,
+		UpdatedAfter: updateTime,
+		Limit:        100,
+	})
+	require.NoError(t, nErr)
+	require.Len(t, membersAfter, 1, "should have found only 1 member created after the timestamp")
 }
 
 func testChannelStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -7756,7 +7769,7 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, rctx request.CTX,
 	require.NoError(t, err)
 
 	// Get all the channel members. Check there are 3.
-	d1, err := ss.Channel().GetMembers(c1.Id, 0, 1000)
+	d1, err := ss.Channel().GetMembers(model.ChannelMembersGetOptions{ChannelID: c1.Id, Offset: 0, Limit: 1000})
 	assert.NoError(t, err)
 	assert.Len(t, d1, 3)
 
@@ -7776,7 +7789,7 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, rctx request.CTX,
 	assert.NoError(t, ss.Channel().RemoveAllDeactivatedMembers(rctx, c1.Id))
 
 	// Get all the channel members. Check there is now only 1: m3.
-	d2, err := ss.Channel().GetMembers(c1.Id, 0, 1000)
+	d2, err := ss.Channel().GetMembers(model.ChannelMembersGetOptions{ChannelID: c1.Id, Offset: 0, Limit: 1000})
 	assert.NoError(t, err)
 	assert.Len(t, d2, 1)
 	assert.Equal(t, u3.Id, d2[0].UserId)

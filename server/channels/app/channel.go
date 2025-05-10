@@ -2125,7 +2125,12 @@ func (s *Server) getChannelMemberLastViewedAt(c request.CTX, channelID string, u
 }
 
 func (a *App) GetChannelMembersPage(c request.CTX, channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
-	channelMembers, err := a.Srv().Store().Channel().GetMembers(channelID, page*perPage, perPage)
+	opts := model.ChannelMembersGetOptions{
+		ChannelID: channelID,
+		Offset:    page * perPage,
+		Limit:     perPage,
+	}
+	channelMembers, err := a.Srv().Store().Channel().GetMembers(opts)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelMembersPage", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3542,7 +3547,12 @@ func (a *App) forEachChannelMember(c request.CTX, channelID string, f func(model
 	page := 0
 
 	for {
-		channelMembers, err := a.Srv().Store().Channel().GetMembers(channelID, page*perPage, perPage)
+		opts := model.ChannelMembersGetOptions{
+			ChannelID: channelID,
+			Offset:    page * perPage,
+			Limit:     perPage,
+		}
+		channelMembers, err := a.Srv().Store().Channel().GetMembers(opts)
 		if err != nil {
 			return err
 		}
