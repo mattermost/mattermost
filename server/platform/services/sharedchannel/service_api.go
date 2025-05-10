@@ -297,7 +297,7 @@ func (scs *Service) updateMembershipSyncCursor(channelID string, remoteID string
 	if !success {
 		return nil
 	}
-	
+
 	// Get the remote record
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
 	if err != nil {
