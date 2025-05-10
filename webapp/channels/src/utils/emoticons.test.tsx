@@ -92,6 +92,11 @@ describe('Emoticons', () => {
             expect(Emoticons.handleEmoticons('":P"', new Map())).
                 toEqual('"$MM_EMOTICON0$"');
         });
+
+        test('shouldn\'t render text-based emoticons as emoji when renderEmoticonsAsEmoji is false', () => {
+            expect(Emoticons.handleEmoticons('":P"', new Map(), false)).
+                toEqual('":P"');
+        });
     });
 
     describe('matchEmoticons', () => {
