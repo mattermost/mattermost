@@ -432,3 +432,57 @@ func (s *MmctlE2ETestSuite) TestBotCreateCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestBotUpdateCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.Run("Update bot without permission", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "newbot", "")
+		cmd.Flags().Lookup("username").Changed = true
+
+		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: "testbot", OwnerId: s.th.BasicUser.Id})
+		s.Require().Nil(appErr)
+		defer func() {
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
+			s.Require().Nil(err)
+		}()
+
+		err := botUpdateCmdF(s.th.Client, cmd, []string{"testbot"})
+		s.Require().Error(err)
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("Update attributes of the bot", func(c client.Client) {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "newbot", "")
+		cmd.Flags().String("display-name", "new-display-name", "")
+		cmd.Flags().String("description", "new description", "")
+		cmd.Flags().Lookup("username").Changed = true
+		cmd.Flags().Lookup("display-name").Changed = true
+		cmd.Flags().Lookup("description").Changed = true
+
+		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: "testbot", OwnerId: s.th.BasicUser.Id, DisplayName: "dispay-name", Description: "description"})
+		s.Require().Nil(appErr)
+		defer func() {
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
+			s.Require().Nil(err)
+		}()
+
+		err := botUpdateCmdF(c, cmd, []string{"testbot"})
+		s.Require().Nil(err)
+		s.Require().Equal(1, len(printer.GetLines()))
+
+		updatedBot, ok := printer.GetLines()[0].(*model.Bot)
+		s.Require().True(ok)
+		s.Require().Equal("newbot", updatedBot.Username)
+		s.Require().Equal("new-display-name", updatedBot.DisplayName)
+		s.Require().Equal("new description", updatedBot.Description)
+
+		s.Require().Empty(printer.GetErrorLines())
+	})
+}
