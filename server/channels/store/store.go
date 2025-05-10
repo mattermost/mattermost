@@ -1198,9 +1198,8 @@ type PostReminderMetadata struct {
 // SidebarCategorySearchOpts contains the options for a graphQL query
 // to get the sidebar categories.
 type SidebarCategorySearchOpts struct {
-	TeamID      string
-	ExcludeTeam bool
-	Type        model.SidebarCategoryType
+	TeamID string
+	Type   model.SidebarCategoryType
 }
 
 type ThreadMembershipImportData struct {
