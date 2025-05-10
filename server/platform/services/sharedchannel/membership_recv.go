@@ -150,23 +150,15 @@ func (scs *Service) onReceiveMembershipChange(syncMsg *model.SyncMsg, rc *model.
 		}
 	}
 
-	// Update the LastMembersSyncAt timestamp for the shared channel remote
-	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(memberInfo.ChannelId, rc.RemoteId)
-	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to get shared channel remote for updating LastMembersSyncAt",
+	// Only update the cursor if all operations succeeded
+	if err := scs.updateMembershipSyncCursor(memberInfo.ChannelId, rc.RemoteId, memberInfo.ChangeTime, true); err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync cursor",
 			mlog.String("channel_id", memberInfo.ChannelId),
 			mlog.String("remote_id", rc.RemoteId),
+			mlog.String("remote_name", rc.DisplayName),
 			mlog.Err(err),
 		)
-	} else {
-		if err := scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(scr.Id, memberInfo.ChangeTime); err != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update LastMembersSyncAt for remote",
-				mlog.String("channel_id", memberInfo.ChannelId),
-				mlog.String("remote_id", rc.RemoteId),
-				mlog.String("remote_name", rc.DisplayName),
-				mlog.Err(err),
-			)
-		}
+		// Non-critical error, don't return it
 	}
 
 	return nil
@@ -270,23 +262,26 @@ func (scs *Service) onReceiveMembershipBatch(syncMsg *model.SyncMsg, rc *model.R
 		successCount++
 	}
 
-	// Update the LastMembersSyncAt timestamp for the shared channel remote
-	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(batchInfo.ChannelId, rc.RemoteId)
-	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to get shared channel remote for updating LastMembersSyncAt after batch",
-			mlog.String("channel_id", batchInfo.ChannelId),
-			mlog.String("remote_id", rc.RemoteId),
-			mlog.Err(err),
-		)
-	} else {
-		if err := scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(scr.Id, batchInfo.ChangeTime); err != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update LastMembersSyncAt for remote after batch",
+	// Only update the cursor if processing succeeded
+	if failCount == 0 || successCount > 0 {
+		// We consider this successful if at least some operations succeeded
+		if err := scs.updateMembershipSyncCursor(batchInfo.ChannelId, rc.RemoteId, batchInfo.ChangeTime, true); err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync cursor after batch",
 				mlog.String("channel_id", batchInfo.ChannelId),
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.String("remote_name", rc.DisplayName),
 				mlog.Err(err),
 			)
+			// Non-critical error, don't return it
 		}
+	} else {
+		// Don't update cursor if everything failed, so we can retry
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Skipping cursor update due to failures",
+			mlog.String("channel_id", batchInfo.ChannelId),
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.Int("success", successCount),
+			mlog.Int("failed", failCount),
+		)
 	}
 
 	scs.server.Log().Log(mlog.LvlInfo, "Processed membership batch",
