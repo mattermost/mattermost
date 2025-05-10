@@ -12,6 +12,7 @@ import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
 import MattermostLogoSvg from 'images/logo.svg';
 import {LandingPreferenceTypes} from 'utils/constants';
+import {isEmbedded} from 'utils/embedded';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
@@ -77,20 +78,6 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     checkLandingPreferenceBrowser = () => {
         const landingPreference = BrowserStore.getLandingPreference(this.props.siteUrl);
         return landingPreference && landingPreference === LandingPreferenceTypes.BROWSER;
-    };
-
-    isEmbedded = () => {
-        // this cookie is set by any plugin that facilitates iframe embedding (e.g. mattermost-plugin-msteams-sync).
-        const cookieName = 'MMEMBED';
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.startsWith(cookieName + '=')) {
-                const value = cookie.substring(cookieName.length + 1);
-                return decodeURIComponent(value) === '1';
-            }
-        }
-        return false;
     };
 
     checkLandingPreferenceApp = () => {
@@ -443,7 +430,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     render() {
         const isMobile = UserAgent.isMobile();
 
-        if (this.checkLandingPreferenceBrowser() || this.isEmbedded()) {
+        if (this.checkLandingPreferenceBrowser() || isEmbedded()) {
             this.openInBrowser();
             return null;
         }
