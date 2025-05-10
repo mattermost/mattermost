@@ -807,6 +807,12 @@ func (s SqlSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilte
 
 // UpdateUserLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelUser.
 func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
+	// Use the current time as the sync time
+	return s.UpdateUserLastSyncAtWithTime(userID, channelID, remoteID, model.GetMillis())
+}
+
+// UpdateUserLastSyncAtWithTime updates the LastSyncAt timestamp for the specified SharedChannelUser using the provided sync time.
+func (s SqlSharedChannelStore) UpdateUserLastSyncAtWithTime(userID string, channelID string, remoteID string, syncTime int64) error {
 	// fetching the user first creates a minor race condition. This is mitigated by ensuring that the
 	// LastUpdateAt is only ever increased. Doing it this way avoids the update with join that has differing
 	// syntax between MySQL and Postgres which Squirrel cannot handle.  It also allows us to return

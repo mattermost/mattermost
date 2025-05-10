@@ -24,12 +24,15 @@ const (
 	TopicSync                    = "sharedchannel_sync"
 	TopicChannelInvite           = "sharedchannel_invite"
 	TopicUploadCreate            = "sharedchannel_upload"
+	TopicChannelMembership       = "sharedchannel_membership"
+	TopicChannelMembershipBatch  = "sharedchannel_membership_batch" // For batch processing
 	MaxRetries                   = 3
 	MaxUsersPerSync              = 25
 	NotifyRemoteOfflineThreshold = time.Second * 10
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
+	// Default value for MaxMembersPerBatch is now defined in config.go as ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.
@@ -88,9 +91,12 @@ type Service struct {
 	changeSignal chan struct{}
 
 	// everything below guarded by `mux`
-	mux                       sync.RWMutex
-	active                    bool
-	leaderListenerId          string
+	mux              sync.RWMutex
+	active           bool
+	leaderListenerId string
+
+	// ID of this cluster
+	myClusterId               string
 	connectionStateListenerId string
 	done                      chan struct{}
 	tasks                     map[string]syncTask
@@ -129,6 +135,9 @@ func (scs *Service) Start() error {
 	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
 	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
 	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
+	// Register the membership change handlers
+	rcs.AddTopicListener(TopicChannelMembership, scs.onReceiveSyncMessage)
+	rcs.AddTopicListener(TopicChannelMembershipBatch, scs.onReceiveSyncMessage)
 	scs.connectionStateListenerId = rcs.AddConnectionStateListener(scs.onConnectionStateChange)
 	scs.mux.Unlock()
 
@@ -214,6 +223,35 @@ func (scs *Service) pause() {
 	scs.done = nil
 
 	scs.server.Log().Debug("Shared Channel Service inactive")
+}
+
+// getMyClusterId returns the ID of this cluster
+func (scs *Service) getMyClusterId() string {
+	scs.mux.RLock()
+	defer scs.mux.RUnlock()
+
+	// If myClusterId is not set, generate a new one
+	if scs.myClusterId == "" {
+		scs.mux.RUnlock()
+		scs.mux.Lock()
+		defer scs.mux.Unlock()
+
+		// Double-check after acquiring write lock
+		if scs.myClusterId == "" {
+			scs.myClusterId = model.NewId()
+		}
+		return scs.myClusterId
+	}
+
+	return scs.myClusterId
+}
+
+// GetMemberSyncBatchSize returns the configured batch size for member synchronization
+func (scs *Service) GetMemberSyncBatchSize() int {
+	if scs.server.Config().ConnectedWorkspacesSettings.MemberSyncBatchSize != nil {
+		return *scs.server.Config().ConnectedWorkspacesSettings.MemberSyncBatchSize
+	}
+	return model.ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize
 }
 
 // Makes the remote channel to be read-only(announcement mode, only admins can create posts and reactions).
