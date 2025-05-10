@@ -5718,14 +5718,13 @@ func (c *Client4) GetClusterStatus(ctx context.Context) ([]*ClusterInfo, *Respon
 // SyncLdap will force a sync with the configured LDAP server.
 // If includeRemovedMembers is true, then group members who left or were removed from a
 // synced team/channel will be re-joined; otherwise, they will be excluded.
-func (c *Client4) SyncLdap(ctx context.Context, includeRemovedMembers bool) (*Response, error) {
-	reqBody, err := json.Marshal(map[string]any{
-		"include_removed_members": includeRemovedMembers,
-	})
+func (c *Client4) SyncLdap(ctx context.Context, opts *LdapSyncOptions) (*Response, error) {
+	js, err := json.Marshal(opts)
 	if err != nil {
 		return nil, NewAppError("SyncLdap", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(ctx, c.ldapRoute()+"/sync", reqBody)
+
+	r, err := c.DoAPIPost(ctx, c.ldapRoute()+"/sync", string(js))
 	if err != nil {
 		return BuildResponse(r), err
 	}

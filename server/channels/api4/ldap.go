@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"io"
 	"mime/multipart"
 	"net/http"
 
@@ -49,24 +50,43 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type LdapSyncOptions struct {
-		IncludeRemovedMembers bool `json:"include_removed_members"`
-	}
-	var opts LdapSyncOptions
-	err := json.NewDecoder(r.Body).Decode(&opts)
-	if err != nil {
-		c.Logger.LogM(mlog.MlvlLDAPInfo, "Error decoding LDAP sync options", mlog.Err(err))
-	}
-
-	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateLdapSyncJob) {
 		c.SetPermissionError(model.PermissionCreateLdapSyncJob)
 		return
 	}
 
-	c.App.SyncLdap(c.AppContext, opts.IncludeRemovedMembers)
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.SetInvalidParamWithErr("LdapSyncOptions", err)
+		return
+	}
+
+	var oldOpts struct {
+		IncludeRemovedMembers *bool `json:"include_removed_members"`
+	}
+	err = json.Unmarshal(data, &oldOpts)
+	if err != nil {
+		c.SetInvalidParamWithErr("LdapSyncOptions", err)
+		return
+	}
+
+	var opts model.LdapSyncOptions
+	err = json.Unmarshal(data, &opts)
+	if err != nil {
+		c.SetInvalidParamWithErr("LdapSyncOptions", err)
+		return
+	}
+	// For compatibility with old API, check if include_removed_members is set
+	// and set ReAddRemovedMembers accordingly.
+	// This is a temporary solution until we remove the old API.
+	if oldOpts.IncludeRemovedMembers != nil {
+		opts.ReAddRemovedMembers = oldOpts.IncludeRemovedMembers
+	}
+
+	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	c.App.SyncLdap(c.AppContext, &opts)
 
 	auditRec.Success()
 	ReturnStatusOK(w)
