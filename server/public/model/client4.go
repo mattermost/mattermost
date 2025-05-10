@@ -4,6 +4,7 @@
 package model
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -3696,6 +3697,37 @@ func (c *Client4) GetChannelMembersWithTeamData(ctx context.Context, userID stri
 	defer closeBody(r)
 
 	var ch ChannelMembersWithTeamData
+
+	// Check if we need to handle NDJSON format (when page is -1)
+	if page == -1 {
+		// Process NDJSON format (each JSON object on new line)
+		contentType := r.Header.Get("Content-Type")
+		if contentType == "application/x-ndjson" {
+			scanner := bufio.NewScanner(r.Body)
+			ch = ChannelMembersWithTeamData{}
+
+			for scanner.Scan() {
+				line := scanner.Text()
+				if line == "" {
+					continue
+				}
+
+				var member ChannelMemberWithTeamData
+				if err2 := json.Unmarshal([]byte(line), &member); err2 != nil {
+					return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err2)
+				}
+				ch = append(ch, member)
+			}
+
+			if err2 := scanner.Err(); err2 != nil {
+				return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err2)
+			}
+
+			return ch, BuildResponse(r), nil
+		}
+	}
+
+	// Standard JSON format
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)

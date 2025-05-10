@@ -6664,6 +6664,24 @@ func TestGetChannelMembersWithTeamData(t *testing.T) {
 	for _, ch := range channels {
 		assert.Equal(t, th.BasicTeam.DisplayName, ch.TeamDisplayName)
 	}
+
+	channels, resp, err = th.Client.GetChannelMembersWithTeamData(context.Background(), th.BasicUser.Id, 0, 5000)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.Len(t, channels, 6)
+	for _, ch := range channels {
+		assert.Equal(t, th.BasicTeam.DisplayName, ch.TeamDisplayName)
+	}
+
+	// perPage doesn't matter if page=-1
+	channels, resp, err = th.Client.GetChannelMembersWithTeamData(context.Background(), th.BasicUser.Id, -1, 2)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.Equal(t, "application/x-ndjson", resp.Header.Get("Content-Type"))
+	assert.Len(t, channels, 6)
+	for _, ch := range channels {
+		assert.Equal(t, th.BasicTeam.DisplayName, ch.TeamDisplayName)
+	}
 }
 
 func TestMigrateAuthToLDAP(t *testing.T) {

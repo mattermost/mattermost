@@ -108,6 +108,12 @@ type ChannelMemberForExport struct {
 	Username    string
 }
 
+type ChannelMemberCursor struct {
+	Page          int // If page is -1, then FromChannelID is used as a cursor.
+	PerPage       int
+	FromChannelID string
+}
+
 func (o *ChannelMember) IsValid() *AppError {
 	if !IsValidId(o.ChannelId) {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
