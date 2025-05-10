@@ -10225,7 +10225,7 @@
     "id": "app.scheduled_post.failed_message_detail",
     "translation": {
       "one": "- {{.Count}} in kanaal {{.ChannelName}}. Reden: {{.ErrorReason}}",
-      "other": "- {{.Count}} in kanaal {{.ChannelName}}. Reden: {{.ErrorReason}}"
+      "other": "- {{.Count}} in kanalen {{.ChannelName}}. Reden: {{.ErrorReason}}"
     }
   },
   {
