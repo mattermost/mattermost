@@ -139,11 +139,11 @@ func (c *ClusterMock) StartInterNodeCommunication() {}
 func (c *ClusterMock) StopInterNodeCommunication()  {}
 func (c *ClusterMock) RegisterClusterMessageHandler(event model.ClusterEvent, crm einterfaces.ClusterMessageHandler) {
 }
-func (c *ClusterMock) GetClusterId() string                  { return "cluster_mock" }
-func (c *ClusterMock) IsLeader() bool                        { return false }
-func (c *ClusterMock) GetMyClusterInfo() *model.ClusterInfo  { return nil }
-func (c *ClusterMock) GetClusterInfos() []*model.ClusterInfo { return nil }
-func (c *ClusterMock) NotifyMsg(buf []byte)                  {}
+func (c *ClusterMock) GetClusterId() string                           { return "cluster_mock" }
+func (c *ClusterMock) IsLeader() bool                                 { return false }
+func (c *ClusterMock) GetMyClusterInfo() *model.ClusterInfo           { return nil }
+func (c *ClusterMock) GetClusterInfos() ([]*model.ClusterInfo, error) { return nil, nil }
+func (c *ClusterMock) NotifyMsg(buf []byte)                           {}
 func (c *ClusterMock) GetClusterStats(rctx request.CTX) ([]*model.ClusterStats, *model.AppError) {
 	return nil, nil
 }

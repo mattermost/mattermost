@@ -87,7 +87,7 @@ func (_m *ClusterInterface) GetClusterId() string {
 }
 
 // GetClusterInfos provides a mock function with given fields:
-func (_m *ClusterInterface) GetClusterInfos() []*model.ClusterInfo {
+func (_m *ClusterInterface) GetClusterInfos() ([]*model.ClusterInfo, error) {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
@@ -95,6 +95,10 @@ func (_m *ClusterInterface) GetClusterInfos() []*model.ClusterInfo {
 	}
 
 	var r0 []*model.ClusterInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]*model.ClusterInfo, error)); ok {
+		return rf()
+	}
 	if rf, ok := ret.Get(0).(func() []*model.ClusterInfo); ok {
 		r0 = rf()
 	} else {
@@ -103,7 +107,13 @@ func (_m *ClusterInterface) GetClusterInfos() []*model.ClusterInfo {
 		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetClusterStats provides a mock function with given fields: rctx

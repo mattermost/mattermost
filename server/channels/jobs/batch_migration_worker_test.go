@@ -20,8 +20,8 @@ type MockApp struct {
 	clusterInfo []*model.ClusterInfo
 }
 
-func (ma MockApp) GetClusterStatus(rctx request.CTX) []*model.ClusterInfo {
-	return ma.clusterInfo
+func (ma MockApp) GetClusterStatus(rctx request.CTX) ([]*model.ClusterInfo, error) {
+	return ma.clusterInfo, nil
 }
 
 func (ma *MockApp) SetInSync() {
