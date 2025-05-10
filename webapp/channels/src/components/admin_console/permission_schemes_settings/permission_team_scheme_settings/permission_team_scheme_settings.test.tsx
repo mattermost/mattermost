@@ -336,18 +336,32 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
                     permissions: ['invite_user'],
                 },
                 bbb: {
+                    name: 'team_admin',
                     permissions: ['add_user_to_team'],
                 },
                 ccc: {
                     permissions: ['add_reaction'],
                 },
                 ddd: {
+                    name: 'channel_admin',
                     permissions: ['delete_post'],
                 },
                 eee: {
                     permissions: ['edit_post'],
                 },
                 fff: {
+                    permissions: ['delete_post'],
+                },
+                ggg: {
+                    permissions: ['delete_post'],
+                },
+                hhh: {
+                    permissions: ['delete_post'],
+                },
+                iii: {
+                    permissions: ['delete_post'],
+                },
+                jjj: {
                     permissions: ['delete_post'],
                 },
             },
@@ -361,6 +375,23 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             expect(getAnyInstance(wrapper).getStateRoles()).toMatchSnapshot();
             done();
         });
+
+        const instance = getAnyInstance(wrapper);
+
+        // A moderated permission should set team/channel admins
+        instance.togglePermission('channel_admin', [Permissions.CREATE_POST]);
+        expect(getAnyState(wrapper).roles.channel_admin.permissions.indexOf(Permissions.CREATE_POST)).toBeGreaterThan(-1);
+
+        // toggle again and disable
+        instance.togglePermission('channel_admin', [Permissions.CREATE_POST]);
+        expect(getAnyState(wrapper).roles.channel_admin.permissions.indexOf(Permissions.CREATE_POST)).toBe(-1);
+
+        instance.togglePermission('team_admin', [Permissions.CREATE_POST]);
+        expect(getAnyState(wrapper).roles.team_admin.permissions.indexOf(Permissions.CREATE_POST)).toBeGreaterThan(-1);
+
+        // toggle again and disable
+        instance.togglePermission('team_admin', [Permissions.CREATE_POST]);
+        expect(getAnyState(wrapper).roles.team_admin.permissions.indexOf(Permissions.CREATE_POST)).toBe(-1);
     });
 
     test('should match snapshot on edit without guest permissions', (done) => {
