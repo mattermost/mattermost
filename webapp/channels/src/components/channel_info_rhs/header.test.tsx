@@ -34,7 +34,7 @@ describe('channel_info_rhs/header', () => {
             />,
         );
 
-        fireEvent.click(screen.getByLabelText('Close Sidebar Icon'));
+        fireEvent.click(screen.getByLabelText('Close Sidebar Icon', {selector: 'button.sidebar--right__close'}));
 
         expect(onClose).toHaveBeenCalled();
     });
