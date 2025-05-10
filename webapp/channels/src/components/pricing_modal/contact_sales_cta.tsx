@@ -15,7 +15,7 @@ import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import {TELEMETRY_CATEGORIES} from 'utils/constants';
 
 const StyledA = styled.a`
-color: var(--denim-button-bg);
+color: var(--button-bg);
 font-family: 'Open Sans';
 font-size: 12px;
 font-style: normal;
