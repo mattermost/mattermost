@@ -30,6 +30,7 @@ const (
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
+	UnshareMessage               = "This channel is no longer shared."
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.
@@ -276,4 +277,30 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
 	scs.app.Publish(messageWs)
+}
+
+// postUnshareNotification posts a system message to notify users that the channel is no longer shared.
+func (scs *Service) postUnshareNotification(channelID string, creatorID string, channel *model.Channel, remoteName string) {
+	post := &model.Post{
+		UserId:    creatorID,
+		ChannelId: channelID,
+		Message:   UnshareMessage,
+		Type:      model.PostTypeSystemGeneric,
+	}
+
+	logger := scs.server.Log()
+	_, appErr := scs.app.CreatePost(request.EmptyContext(logger), post, channel, model.CreatePostFlags{})
+
+	if appErr != nil {
+		fields := []mlog.Field{
+			mlog.String("channel_id", channelID),
+			mlog.Err(appErr),
+		}
+
+		if remoteName != "" {
+			fields = append(fields, mlog.String("remote", remoteName))
+		}
+
+		logger.Log(mlog.LvlSharedChannelServiceError, "Error creating unshare notification post", fields...)
+	}
 }

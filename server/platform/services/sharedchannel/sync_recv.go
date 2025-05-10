@@ -21,6 +21,7 @@ var (
 	ErrRemoteIDMismatch  = errors.New("remoteID mismatch")
 	ErrChannelIDMismatch = errors.New("channelID mismatch")
 	ErrUserDMPermission  = errors.New("users cannot DM each other")
+	ErrChannelNotShared  = errors.New("channel is no longer shared")
 )
 
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
@@ -68,18 +69,30 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		mlog.Int("status_count", len(syncMsg.Statuses)),
 	)
 
+	// Check if the channel is shared with this remote
+	exists, err := scs.server.GetStore().SharedChannel().HasRemote(syncMsg.ChannelId, rc.RemoteId)
+	if err != nil {
+		return fmt.Errorf("cannot check channel share state for sync message: %w", err)
+	}
+
+	// Get the channel details once, which we'll need regardless of shared status
 	if targetChannel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
 		// if the channel doesn't exist then none of these sync items are going to work.
 		return fmt.Errorf("channel not found processing sync message: %w", err)
 	}
 
-	// make sure target channel is shared with the remote
-	exists, err := scs.server.GetStore().SharedChannel().HasRemote(targetChannel.Id, rc.RemoteId)
-	if err != nil {
-		return fmt.Errorf("cannot check channel share state for sync message: %w", err)
-	}
 	if !exists {
-		return fmt.Errorf("cannot process sync message; channel not shared with remote: %w", ErrRemoteIDMismatch)
+		// Update the UI to ensure the link icon is removed
+		scs.notifyClientsForSharedChannelUpdate(targetChannel)
+
+		// Return both errors to maintain backward compatibility and enable new behavior:
+		// 1. ErrRemoteIDMismatch for backward compatibility (same as before)
+		// 2. ErrChannelNotShared to trigger the unshare on the remote side
+		//
+		// The remote will detect ErrChannelNotShared in the error string and trigger unsharing
+		return fmt.Errorf("cannot process sync message; channel not shared with remote: %w: %s",
+			ErrRemoteIDMismatch,
+			fmt.Sprintf("%s: %s", ErrChannelNotShared.Error(), syncMsg.ChannelId))
 	}
 
 	// add/update users before posts
