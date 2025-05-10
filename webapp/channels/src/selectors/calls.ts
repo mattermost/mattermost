@@ -32,7 +32,7 @@ export function getSessionsInCalls(state: GlobalState): Record<string, Record<st
 export function getCallsConfig(state: GlobalState): CallsConfig {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    return state[CALLS_PLUGIN]?.callsConfig;
+    return state[CALLS_PLUGIN]?.callsConfig || {};
 }
 
 export function getCallsChannelState(state: GlobalState, channelId: string): {enabled?: boolean} {
