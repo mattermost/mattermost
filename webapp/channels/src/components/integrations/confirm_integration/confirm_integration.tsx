@@ -92,7 +92,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_command.token'
                     defaultMessage='<b>Token</b>: {token}'
                     values={{
-                        token: commandToken,
+                        token: <code>{commandToken}</code>,
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
@@ -135,7 +135,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_incoming_webhook.url'
                     defaultMessage='<b>URL</b>: {url}'
                     values={{
-                        url: '`' + incomingHookToken + '`',
+                        url: <code>{incomingHookToken}</code>,
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
@@ -178,7 +178,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_outgoing_webhook.token'
                     defaultMessage='<b>Token</b>: {token}'
                     values={{
-                        token: outgoingHookToken,
+                        token: <code>{outgoingHookToken}</code>,
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
@@ -224,7 +224,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_oauth_app.clientId'
                     defaultMessage='<b>Client ID</b>: {id}'
                     values={{
-                        id: oauthAppToken,
+                        id: <code>{oauthAppToken}</code>,
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
@@ -237,7 +237,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_oauth_app.clientSecret'
                     defaultMessage='<b>Client Secret</b>: {secret}'
                     values={{
-                        secret: oauthAppSecret,
+                        secret: <code>{oauthAppSecret}</code>,
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
@@ -307,7 +307,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_outgoing_oauth_connection.clientId'
                     defaultMessage='<b>Client ID</b>: {id}'
                     values={{
-                        id: clientId,
+                        id: <code>{clientId}</code>,
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
@@ -356,9 +356,9 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <p className='word-break--all'>
                     <FormattedMessage
                         id='add_outgoing_oauth_connection.token_url'
-                        defaultMessage='<b>Token URL</b>: `{url}`'
+                        defaultMessage='<b>Token URL</b>: {url}'
                         values={{
-                            url: outgoingOAuthConnection.oauth_token_url,
+                            url: <code>{outgoingOAuthConnection.oauth_token_url}</code>,
                             b: (chunks: string) => <b>{chunks}</b>,
                         }}
                     />
@@ -366,9 +366,9 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <p className='word-break--all'>
                     <FormattedMessage
                         id='add_outgoing_oauth_connection.audience_urls'
-                        defaultMessage='<b>Audience URL(s)</b>: `{url}`'
+                        defaultMessage='<b>Audience URL(s)</b>: {url}'
                         values={{
-                            url: outgoingOAuthConnection.audiences.join(', '),
+                            url: <code>{outgoingOAuthConnection.audiences.join(', ')}</code>,
                             b: (chunks: string) => <b>{chunks}</b>,
                         }}
                     />
@@ -410,7 +410,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_outgoing_webhook.token'
                     defaultMessage='<b>Token</b>: {token}'
                     values={{
-                        token: botToken,
+                        token: <code>{botToken}</code>,
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
