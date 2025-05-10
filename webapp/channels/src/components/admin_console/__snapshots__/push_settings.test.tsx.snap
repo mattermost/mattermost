@@ -103,7 +103,7 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
         disabled={true}
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Download <linkIOS>Mattermost iOS app</linkIOS> from iTunes. Download <linkAndroid>Mattermost Android app</linkAndroid> from Google Play. Learn more about the <linkHPNS>Mattermost Hosted Push Notification Service</linkHPNS>."
+            defaultMessage="Download <linkIOS>Mattermost iOS app</linkIOS> from Apple App Store. Download <linkAndroid>Mattermost Android app</linkAndroid> from Google Play. Learn more about the <linkHPNS>Mattermost Hosted Push Notification Service</linkHPNS>."
             id="admin.email.mhpnsHelp"
             values={
               Object {
