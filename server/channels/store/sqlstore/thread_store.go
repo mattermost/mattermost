@@ -282,6 +282,12 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		Where(sq.Expr("Posts.RootId = ThreadMemberships.PostId")).
 		Where(sq.Expr("Posts.CreateAt > ThreadMemberships.LastViewed"))
 
+	if opts.ExcludeArchivedChannels {
+		unreadRepliesQuery = unreadRepliesQuery.
+			Join("Channels ON Posts.ChannelId = Channels.Id").
+			Where(sq.Eq{"Channels.DeleteAt": 0})
+	}
+
 	if !opts.Deleted {
 		unreadRepliesQuery = unreadRepliesQuery.Where(sq.Eq{"Posts.DeleteAt": 0})
 	}
@@ -299,6 +305,12 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	query = query.
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
 		Where(sq.Eq{"ThreadMemberships.Following": true})
+
+	if opts.ExcludeArchivedChannels {
+		query = query.
+			Join("Channels ON Posts.ChannelId = Channels.Id").
+			Where(sq.Eq{"Channels.DeleteAt": 0})
+	}
 
 	if opts.IncludeIsUrgent {
 		urgencyCase := sq.
@@ -399,7 +411,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 // GetTeamsUnreadForUser returns the total unread threads and unread mentions
 // for a user from all teams.
-func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error) {
+func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeArchivedChannels bool) (map[string]*model.TeamUnread, error) {
 	fetchConditions := sq.And{
 		sq.Eq{"ThreadMemberships.UserId": userID},
 		sq.Eq{"ThreadMemberships.Following": true},
@@ -434,6 +446,12 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 			Where("Threads.LastReplyAt > ThreadMemberships.LastViewed").
 			GroupBy("Threads.ThreadTeamId")
 
+		if excludeArchivedChannels {
+			repliesQuery = repliesQuery.
+				Join("Channels ON Threads.ChannelId = Channels.Id").
+				Where(sq.Eq{"Channels.DeleteAt": 0})
+		}
+
 		return errors.Wrap(s.GetReplica().SelectBuilder(&unreadThreads, repliesQuery), "failed to get total unread threads")
 	})
 
@@ -444,6 +462,12 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
 			Where(fetchConditions).
 			GroupBy("Threads.ThreadTeamId")
+
+		if excludeArchivedChannels {
+			mentionsQuery = mentionsQuery.
+				Join("Channels ON Threads.ChannelId = Channels.Id").
+				Where(sq.Eq{"Channels.DeleteAt": 0})
+		}
 
 		return errors.Wrap(s.GetReplica().SelectBuilder(&unreadMentions, mentionsQuery), "failed to get total unread mentions")
 	})
@@ -458,6 +482,12 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 				Where(sq.Eq{"PostsPriority.Priority": model.PostPriorityUrgent}).
 				Where(fetchConditions).
 				GroupBy("Threads.ThreadTeamId")
+
+			if excludeArchivedChannels {
+				urgentMentionsQuery = urgentMentionsQuery.
+					Join("Channels ON Threads.ChannelId = Channels.Id").
+					Where(sq.Eq{"Channels.DeleteAt": 0})
+			}
 
 			return errors.Wrap(s.GetReplica().SelectBuilder(&unreadUrgentMentions, urgentMentionsQuery), "failed to get total unread urgent mentions")
 		})
