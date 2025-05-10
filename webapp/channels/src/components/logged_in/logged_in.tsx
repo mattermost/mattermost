@@ -11,12 +11,12 @@ import * as WebSocketActions from 'actions/websocket_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
 import LoadingScreen from 'components/loading_screen';
+import TimezoneManager from 'components/timezone_manager';
 
 import WebSocketClient from 'client/web_websocket_client';
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {isKeyPressed} from 'utils/keyboard';
-import {getBrowserTimezone} from 'utils/timezone';
 import {isAndroid, isIos} from 'utils/user_agent';
 import {doesCookieContainsMMUserId} from 'utils/utils';
 
@@ -66,13 +66,8 @@ export default class LoggedIn extends React.PureComponent<Props> {
         // Initialize websocket
         WebSocketActions.initialize();
 
-        this.updateTimeZone();
-
         // Make sure the websockets close and reset version
         window.addEventListener('beforeunload', this.handleBeforeUnload);
-
-        // listen for the app visibility state
-        window.addEventListener('visibilitychange', this.handleVisibilityChange, false);
 
         // Listen for focused tab/window state
         window.addEventListener('focus', this.onFocusListener);
@@ -117,7 +112,6 @@ export default class LoggedIn extends React.PureComponent<Props> {
         WebSocketActions.close();
 
         window.removeEventListener('keydown', this.handleBackSpace);
-
         window.removeEventListener('focus', this.onFocusListener);
         window.removeEventListener('blur', this.onBlurListener);
 
@@ -141,26 +135,21 @@ export default class LoggedIn extends React.PureComponent<Props> {
             }
         }
 
-        return this.props.children;
+        return (
+            <>
+                <TimezoneManager autoUpdateTimezone={this.props.actions.autoUpdateTimezone}/>
+                {this.props.children}
+            </>
+        );
     }
 
-    private handleVisibilityChange = (): void => {
-        if (!document.hidden) {
-            this.updateTimeZone();
-        }
+    private onFocusListener = (): void => {
+        GlobalActions.emitBrowserFocus(true);
     };
 
-    private updateTimeZone(): void {
-        this.props.actions.autoUpdateTimezone(getBrowserTimezone());
-    }
-
-    private onFocusListener(): void {
-        GlobalActions.emitBrowserFocus(true);
-    }
-
-    private onBlurListener(): void {
+    private onBlurListener = (): void => {
         GlobalActions.emitBrowserFocus(false);
-    }
+    };
 
     private updateActiveStatus = (userIsActive: boolean, idleTime: number, manual: boolean) => {
         if (!this.props.currentUser) {

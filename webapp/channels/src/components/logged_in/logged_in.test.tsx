@@ -12,7 +12,11 @@ import BrowserStore from 'stores/browser_store';
 import LoggedIn from 'components/logged_in/logged_in';
 import type {Props} from 'components/logged_in/logged_in';
 
-import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {
+    fireEvent,
+    renderWithContext,
+    screen,
+} from 'tests/react_testing_utils';
 
 jest.mock('actions/websocket_actions.jsx', () => ({
     initialize: jest.fn(),
@@ -86,9 +90,14 @@ describe('components/logged_in/LoggedIn', () => {
         const wrapper = shallow(<LoggedIn {...props}>{children}</LoggedIn>);
 
         expect(wrapper).toMatchInlineSnapshot(`
-            <span>
-              Test
-            </span>
+            <Fragment>
+              <TimezoneManager
+                autoUpdateTimezone={[MockFunction]}
+              />
+              <span>
+                Test
+              </span>
+            </Fragment>
         `);
     });
 
@@ -105,9 +114,14 @@ describe('components/logged_in/LoggedIn', () => {
         const wrapper = shallow(<LoggedIn {...props}>{children}</LoggedIn>);
 
         expect(wrapper).toMatchInlineSnapshot(`
-            <span>
-              Test
-            </span>
+            <Fragment>
+              <TimezoneManager
+                autoUpdateTimezone={[MockFunction]}
+              />
+              <span>
+                Test
+              </span>
+            </Fragment>
         `);
     });
 
@@ -141,9 +155,14 @@ describe('components/logged_in/LoggedIn', () => {
         const wrapper = shallow(<LoggedIn {...props}>{children}</LoggedIn>);
 
         expect(wrapper).toMatchInlineSnapshot(`
-            <span>
-              Test
-            </span>
+            <Fragment>
+              <TimezoneManager
+                autoUpdateTimezone={[MockFunction]}
+              />
+              <span>
+                Test
+              </span>
+            </Fragment>
         `);
     });
 
@@ -157,9 +176,14 @@ describe('components/logged_in/LoggedIn', () => {
         const wrapper = shallow(<LoggedIn {...props}>{children}</LoggedIn>);
 
         expect(wrapper).toMatchInlineSnapshot(`
-            <span>
-              Test
-            </span>
+            <Fragment>
+              <TimezoneManager
+                autoUpdateTimezone={[MockFunction]}
+              />
+              <span>
+                Test
+              </span>
+            </Fragment>
         `);
     });
 
@@ -202,6 +226,8 @@ describe('components/logged_in/LoggedIn', () => {
         expect(screen.getByText('Test')).toBeInTheDocument();
 
         fireEvent(window, new Event('beforeunload'));
-        expect(fetch).not.toHaveBeenCalledWith('/api/v4/channels/members/me/view');
+        expect(fetch).not.toHaveBeenCalledWith(
+            '/api/v4/channels/members/me/view',
+        );
     });
 });
