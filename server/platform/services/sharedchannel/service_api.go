@@ -68,7 +68,6 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 	channel.Shared = model.NewPointer(true)
 
 	scs.notifyClientsForSharedChannelConverted(channel)
-
 	return scNew, nil
 }
 

@@ -48,8 +48,8 @@ var (
 	LvlSharedChannelServiceDebug            = Level{ID: 200, Name: "SharedChannelServiceDebug"}
 	LvlSharedChannelServiceError            = Level{ID: 201, Name: "SharedChannelServiceError"}
 	LvlSharedChannelServiceWarn             = Level{ID: 202, Name: "SharedChannelServiceWarn"}
-	LvlSharedChannelServiceMessagesInbound  = Level{ID: 204, Name: "SharedChannelServiceMsgInbound"}
-	LvlSharedChannelServiceMessagesOutbound = Level{ID: 205, Name: "SharedChannelServiceMsgOutbound"}
+	LvlSharedChannelServiceMessagesInbound  = Level{ID: 203, Name: "SharedChannelServiceMsgInbound"}
+	LvlSharedChannelServiceMessagesOutbound = Level{ID: 204, Name: "SharedChannelServiceMsgOutbound"}
 )
 
 // Combinations for LogM (log multi).
