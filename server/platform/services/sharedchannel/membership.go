@@ -17,6 +17,11 @@ import (
 // HandleMembershipChange is called when users are added or removed from a shared channel.
 // It creates a task to notify all remote clusters about the membership change.
 func (scs *Service) HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string) {
+	// Check if feature flag is enabled
+	if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
+		return
+	}
+
 	if rcs := scs.server.GetRemoteClusterService(); rcs == nil {
 		return
 	}
@@ -40,6 +45,11 @@ func (scs *Service) HandleMembershipChange(channelID, userID string, isAdd bool,
 // HandleMembershipBatchChange is called to process a batch of membership changes for a shared channel.
 // It creates a task to notify all remote clusters about the batch membership changes.
 func (scs *Service) HandleMembershipBatchChange(channelID string, userIDs []string, isAdd bool, remoteID string) {
+	// Check if feature flag is enabled
+	if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
+		return
+	}
+
 	if rcs := scs.server.GetRemoteClusterService(); rcs == nil {
 		return
 	}
@@ -89,6 +99,11 @@ func (scs *Service) HandleMembershipBatchChange(channelID string, userIDs []stri
 // SyncAllChannelMembers synchronizes all channel members to a specific remote.
 // This is typically called when a channel is first shared with a remote cluster.
 func (scs *Service) SyncAllChannelMembers(channelID string, remoteID string) error {
+	// Check if feature flag is enabled
+	if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
+		return nil
+	}
+
 	// Verify the channel exists and is shared
 	if _, err := scs.server.GetStore().SharedChannel().Get(channelID); err != nil {
 		return fmt.Errorf("failed to get shared channel %s: %w", channelID, err)

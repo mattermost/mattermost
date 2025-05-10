@@ -376,12 +376,20 @@ func (scs *Service) removeOldestTask() (syncTask, bool, time.Duration) {
 func (scs *Service) processTask(task syncTask) error {
 	// Check if this is a membership change task
 	if task.existingMsg != nil && task.existingMsg.MembershipInfo != nil {
+		// Check if feature flag is enabled
+		if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
+			return nil
+		}
 		scs.processMembershipChange(task.existingMsg)
 		return nil
 	}
 
 	// Check if this is a batch membership change task
 	if task.existingMsg != nil && task.existingMsg.MembershipBatchInfo != nil {
+		// Check if feature flag is enabled
+		if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
+			return nil
+		}
 		batchInfo := task.existingMsg.MembershipBatchInfo
 		userIDs := make([]string, 0, len(batchInfo.Changes))
 		for _, change := range batchInfo.Changes {

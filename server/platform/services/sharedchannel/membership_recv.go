@@ -14,6 +14,11 @@ import (
 
 // onReceiveMembershipChange processes a channel membership change (add/remove) from a remote cluster
 func (scs *Service) onReceiveMembershipChange(syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	// Check if feature flag is enabled
+	if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
+		return nil
+	}
+
 	if syncMsg.MembershipInfo == nil {
 		return fmt.Errorf("onReceiveMembershipChange missing MembershipInfo")
 	}
@@ -166,6 +171,11 @@ func (scs *Service) onReceiveMembershipChange(syncMsg *model.SyncMsg, rc *model.
 
 // onReceiveMembershipBatch processes a batch of channel membership changes from a remote cluster
 func (scs *Service) onReceiveMembershipBatch(syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	// Check if feature flag is enabled
+	if !scs.server.Config().FeatureFlags.EnableSharedChannelMemberSync {
+		return nil
+	}
+
 	if syncMsg.MembershipBatchInfo == nil {
 		return fmt.Errorf("onReceiveMembershipBatch missing MembershipBatchInfo")
 	}
