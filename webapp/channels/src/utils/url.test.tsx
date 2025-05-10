@@ -7,6 +7,11 @@ import {
     getSiteURLFromWindowObject,
     isPermalinkURL,
     validateChannelUrl,
+    isUrlSafe,
+    isInternalURL,
+    shouldOpenInNewTab,
+    isValidUrl,
+    validHttpUrl,
 } from 'utils/url';
 
 describe('Utils.URL', () => {
@@ -131,6 +136,73 @@ describe('Utils.URL', () => {
             ['https://example.com/teamname-1/pl/affe2344234', false],
         ])('is permalink for %s should return %s', (url, expected) => {
             expect(isPermalinkURL(url)).toBe(expected);
+        });
+    });
+
+    describe('isUrlSafe', () => {
+        test.each([
+            ['https://example.com', true],
+            ['http://example.com', true],
+            ['javascript:alert(1)', false],
+            ['data:text/html,<script>alert(1)</script>', false],
+            ['mattermost://channel/team-name/channel-name', true],
+            ['mattermost://user/user-id', true],
+        ])('isUrlSafe for %s should return %s', (url, expected) => {
+            expect(isUrlSafe(url)).toBe(expected);
+        });
+    });
+
+    describe('isInternalURL', () => {
+        const siteURL = getSiteURL();
+        test.each([
+            [`${siteURL}/teamname-1/pl/affe2344234`, true],
+            ['/teamname-1/pl/affe2344234', true],
+            ['https://example.com', false],
+            ['mattermost://channel/team-name/channel-name', true],
+            ['mattermost://user/user-id', true],
+        ])('isInternalURL for %s should return %s', (url, expected) => {
+            expect(isInternalURL(url)).toBe(expected);
+        });
+    });
+
+    describe('shouldOpenInNewTab', () => {
+        const siteURL = getSiteURL();
+        test.each([
+            [`${siteURL}/teamname-1/pl/affe2344234`, false],
+            ['/teamname-1/pl/affe2344234', false],
+            ['https://example.com', true],
+            ['mattermost://channel/team-name/channel-name', false],
+            ['mattermost://user/user-id', false],
+        ])('shouldOpenInNewTab for %s should return %s', (url, expected) => {
+            expect(shouldOpenInNewTab(url)).toBe(expected);
+        });
+    });
+
+    describe('isValidUrl', () => {
+        test.each([
+            ['https://example.com', true],
+            ['http://example.com', true],
+            ['ftp://example.com', false],
+            ['javascript:alert(1)', false],
+            ['mattermost://channel/team-name/channel-name', true],
+            ['mattermost://user/user-id', true],
+        ])('isValidUrl for %s should return %s', (url, expected) => {
+            expect(isValidUrl(url)).toBe(expected);
+        });
+    });
+
+    describe('validHttpUrl', () => {
+        test.each([
+            ['https://example.com', true],
+            ['http://example.com', true],
+            ['ftp://example.com', false],
+            ['javascript:alert(1)', false],
+            ['mattermost://channel/team-name/channel-name', true],
+            ['mattermost://user/user-id', true],
+            ['mattermost://invalid url format', false],
+        ])('validHttpUrl for %s should return %s', (url, expected) => {
+            const result = validHttpUrl(url);
+            expect(result !== null).toBe(expected);
         });
     });
 });

@@ -78,6 +78,11 @@ export function getRelativeChannelURL(teamName: string, channelName: string): st
 }
 
 export function isUrlSafe(url: string): boolean {
+    // Special handling for mattermost:// URLs - we consider them safe
+    if (url.startsWith('mattermost://')) {
+        return true;
+    }
+
     let unescaped: string;
 
     try {
@@ -241,10 +246,19 @@ export function mightTriggerExternalRequest(url: string, siteURL?: string): bool
 }
 
 export function isInternalURL(url: string, siteURL?: string): boolean {
+    // Handle mattermost:// URLs - these are considered internal
+    if (url.startsWith('mattermost://')) {
+        return true;
+    }
     return url.startsWith(siteURL || '') || url.startsWith('/') || url.startsWith('#');
 }
 
 export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourcePaths?: string[]): boolean {
+    // Handle mattermost:// URLs - these should not open in a new tab
+    if (url.startsWith('mattermost://')) {
+        return false;
+    }
+
     if (!isInternalURL(url, siteURL)) {
         return true;
     }
@@ -281,7 +295,7 @@ export function isPermalinkURL(url: string): boolean {
 }
 
 export function isValidUrl(url = '') {
-    const regex = /^https?:\/\//i;
+    const regex = /^(https?:\/\/|mattermost:\/\/)/i;
     return regex.test(url);
 }
 
@@ -348,6 +362,12 @@ export function parseLink(href: string, defaultSecure = location.protocol === 'h
         }
     }
 
+    // Special handling for mattermost:// URLs - we don't want to apply the URL safety check
+    // since these are internal app links
+    if (outHref.startsWith('mattermost://')) {
+        return outHref;
+    }
+
     if (!isUrlSafe(unescapeHtmlEntities(href))) {
         return undefined;
     }
@@ -360,6 +380,18 @@ export const validHttpUrl = (input: string) => {
 
     if (!val || !isValidUrl(val)) {
         return null;
+    }
+
+    // Handle mattermost:// URLs separately
+    if (val.startsWith('mattermost://')) {
+        try {
+            // Create a URL object with a dummy http scheme to validate the URL structure
+            const dummyUrl = new URL(val.replace('mattermost://', 'http://'));
+            // Return the original mattermost:// URL
+            return new URL(val);
+        } catch {
+            return null;
+        }
     }
 
     let url;

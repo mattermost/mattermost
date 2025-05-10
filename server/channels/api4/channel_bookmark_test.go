@@ -58,6 +58,24 @@ func TestCreateChannelBookmark(t *testing.T) {
 		require.NotNil(t, cb)
 		require.Equal(t, cb.DisplayName, channelBookmark.DisplayName)
 	})
+	
+	t.Run("a user should be able to create an in-app link bookmark in a public channel", func(t *testing.T) {
+		channelBookmark := &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "In-app link bookmark test",
+			LinkUrl:     "mattermost://channel/team-name/channel-name",
+			Type:        model.ChannelBookmarkInAppLink,
+			Emoji:       ":link:",
+		}
+
+		cb, resp, err := th.Client.CreateChannelBookmark(context.Background(), channelBookmark)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, cb)
+		require.Equal(t, cb.DisplayName, channelBookmark.DisplayName)
+		require.Equal(t, cb.Type, model.ChannelBookmarkInAppLink)
+		require.Equal(t, cb.LinkUrl, channelBookmark.LinkUrl)
+	})
 
 	t.Run("a user should be able to create a channel bookmark in a private channel", func(t *testing.T) {
 		channelBookmark := &model.ChannelBookmark{
