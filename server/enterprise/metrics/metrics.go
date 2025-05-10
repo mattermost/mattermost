@@ -45,6 +45,7 @@ const (
 	MetricsSubsystemClientsMobileApp   = "mobileapp"
 	MetricsSubsystemClientsWeb         = "webapp"
 	MetricsSubsystemClientsDesktopApp  = "desktopapp"
+	MetricsSubsystemAccessControl      = "access_control"
 	MetricsCloudInstallationLabel      = "installationId"
 	MetricsCloudDatabaseClusterLabel   = "databaseClusterName"
 	MetricsCloudInstallationGroupLabel = "installationGroupId"
@@ -234,6 +235,11 @@ type MetricsInterfaceImpl struct {
 
 	DesktopClientCPUUsage    *prometheus.HistogramVec
 	DesktopClientMemoryUsage *prometheus.HistogramVec
+
+	AccessControlEngineInitDuration        prometheus.Histogram
+	AccessControlExpressionCompileDuration prometheus.Histogram
+	AccessControlEvaluateDuration          prometheus.Histogram
+	AccessControlCacheInvalidation         prometheus.Counter
 }
 
 func init() {
@@ -1535,6 +1541,46 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.DesktopClientMemoryUsage)
 
+	m.AccessControlEngineInitDuration = prometheus.NewHistogram(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAccessControl,
+			Name:        "engine_init_duration_seconds",
+			Help:        "Duration of the time taken to initialize the access control engine (seconds)",
+			ConstLabels: additionalLabels,
+		})
+	m.Registry.MustRegister(m.AccessControlEngineInitDuration)
+
+	m.AccessControlEvaluateDuration = prometheus.NewHistogram(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAccessControl,
+			Name:        "evaluate_duration_seconds",
+			Help:        "Duration of the time taken to evaluate the access control engine (seconds)",
+			ConstLabels: additionalLabels,
+		})
+	m.Registry.MustRegister(m.AccessControlEvaluateDuration)
+
+	m.AccessControlExpressionCompileDuration = prometheus.NewHistogram(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAccessControl,
+			Name:        "expression_compile_duration_seconds",
+			Help:        "Duration of the time taken to compile the access control engine expression (seconds)",
+			ConstLabels: additionalLabels,
+		})
+	m.Registry.MustRegister(m.AccessControlExpressionCompileDuration)
+
+	m.AccessControlCacheInvalidation = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAccessControl,
+			Name:        "cache_invalidation_total",
+			Help:        "Total number of cache invalidations",
+			ConstLabels: additionalLabels,
+		})
+	m.Registry.MustRegister(m.AccessControlCacheInvalidation)
+
 	return m
 }
 
@@ -2129,6 +2175,22 @@ func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsEffectiveLaten
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientSessionMetadata(version, platform string, value float64, notificationDisabled string) {
 	mi.MobileClientSessionMetadataGauge.With(prometheus.Labels{"version": version, "platform": platform, "notifications_disabled": notificationDisabled}).Set(value)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveAccessControlEngineInitDuration(value float64) {
+	mi.AccessControlEngineInitDuration.Observe(value)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveAccessControlExpressionCompileDuration(value float64) {
+	mi.AccessControlExpressionCompileDuration.Observe(value)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveAccessControlEvaluateDuration(value float64) {
+	mi.AccessControlEvaluateDuration.Observe(value)
+}
+
+func (mi *MetricsInterfaceImpl) IncrementAccessControlCacheInvalidation() {
+	mi.AccessControlCacheInvalidation.Inc()
 }
 
 func (mi *MetricsInterfaceImpl) ClearMobileClientSessionMetadata() {
