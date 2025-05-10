@@ -9,7 +9,9 @@
 
 // Stage: @prod
 // Group: @channels @cloud_only @cloud_trial
-describe('Feedback modal', () => {
+// This test is skipped because it relies on the pricing modal which has been removed
+// and replaced with direct links to the pricing page
+describe.skip('Feedback modal', () => {
     beforeEach(() => {
         cy.apiLogout();
         cy.apiAdminLogin();
