@@ -73,6 +73,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("Save", func(t *testing.T) { testChannelStoreSave(t, rctx, ss) })
 	t.Run("SaveDirectChannel", func(t *testing.T) { testChannelStoreSaveDirectChannel(t, rctx, ss, s) })
 	t.Run("CreateDirectChannel", func(t *testing.T) { testChannelStoreCreateDirectChannel(t, rctx, ss) })
+	t.Run("GetMembersWithCursorPagination", func(t *testing.T) { testChannelStoreGetMembersWithCursorPagination(t, rctx, ss) })
 	t.Run("Update", func(t *testing.T) { testChannelStoreUpdate(t, rctx, ss) })
 	t.Run("GetChannelUnread", func(t *testing.T) { testGetChannelUnread(t, rctx, ss) })
 	t.Run("Get", func(t *testing.T) { testChannelStoreGet(t, rctx, ss, s) })
@@ -343,12 +344,46 @@ func testChannelStoreCreateDirectChannel(t *testing.T, rctx request.CTX, ss stor
 	members, nErr := ss.Channel().GetMembers(model.ChannelMembersGetOptions{ChannelID: c1.Id, Offset: 0, Limit: 100})
 	require.NoError(t, nErr)
 	require.Len(t, members, 2, "should have saved 2 members")
+}
 
-	// Test cursor-based pagination by getting members created after a timestamp
-	// First get the timestamp from the first member
+// testChannelStoreGetMembersWithCursorPagination tests the cursor-based pagination functionality
+// of the GetMembers method, using the UpdatedAfter parameter to return only members that were
+// updated after a specific timestamp.
+func testChannelStoreGetMembersWithCursorPagination(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Create two users
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	_, err := ss.User().Save(rctx, u1)
+	require.NoError(t, err)
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	require.NoError(t, nErr)
+
+	u2 := &model.User{}
+	u2.Email = MakeEmail()
+	u2.Nickname = model.NewId()
+	_, err = ss.User().Save(rctx, u2)
+	require.NoError(t, err)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
+	require.NoError(t, nErr)
+
+	// Create direct channel between the users
+	c1, nErr := ss.Channel().CreateDirectChannel(rctx, u1, u2)
+	require.NoError(t, nErr, "couldn't create direct channel", nErr)
+	defer func() {
+		ss.Channel().PermanentDeleteMembersByChannel(rctx, c1.Id)
+		ss.Channel().PermanentDelete(rctx, c1.Id)
+	}()
+
+	// First get all members
+	members, nErr := ss.Channel().GetMembers(model.ChannelMembersGetOptions{ChannelID: c1.Id, Offset: 0, Limit: 100})
+	require.NoError(t, nErr)
+	require.Len(t, members, 2, "should have saved 2 members")
+
+	// Get the timestamp from the first member
 	updateTime := members[0].LastUpdateAt
 
-	// Then query for members updated after that timestamp
+	// Test cursor-based pagination by querying for members updated after that timestamp
 	membersAfter, nErr := ss.Channel().GetMembers(model.ChannelMembersGetOptions{
 		ChannelID:    c1.Id,
 		UpdatedAfter: updateTime,
