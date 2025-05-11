@@ -378,9 +378,8 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if patch.BannerInfo != nil {
-		if channelBannerAppErr := canEditChannelBanner(c.App.License(), originalOldChannel); channelBannerAppErr != nil {
-			channelBannerAppErr.Where = "patchChannel"
-			c.Err = channelBannerAppErr
+		canEditChannelBanner(c, originalOldChannel)
+		if c.Err != nil {
 			return
 		}
 	}
@@ -1846,6 +1845,13 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Security check: if the user is a guest, they must have access to the channel
+	// to view its members
+	if c.AppContext.Session().IsGuest() && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		c.Err = model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 		return
@@ -2452,14 +2458,23 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	}
 }
 
-func canEditChannelBanner(license *model.License, originalChannel *model.Channel) *model.AppError {
-	if !model.MinimumPremiumLicense(license) {
-		return model.NewAppError("", "license_error.feature_unavailable", nil, "feature is not available for the current license", http.StatusForbidden)
+func canEditChannelBanner(c *Context, originalChannel *model.Channel) {
+	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+		c.Err = model.NewAppError("patchChannel", "license_error.feature_unavailable.specific", map[string]any{"Feature": "Channel Banner"}, "feature is not available for the current license", http.StatusForbidden)
 	}
 
-	if originalChannel.Type != model.ChannelTypeOpen && originalChannel.Type != model.ChannelTypePrivate {
-		return model.NewAppError("", "api.channel.update_channel.banner_info.channel_type.not_allowed", nil, "", http.StatusBadRequest)
+	switch originalChannel.Type {
+	case model.ChannelTypePrivate:
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePrivateChannelBanner) {
+			c.SetPermissionError(model.PermissionManagePrivateChannelBanner)
+			return
+		}
+	case model.ChannelTypeOpen:
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePublicChannelBanner) {
+			c.SetPermissionError(model.PermissionManagePublicChannelBanner)
+			return
+		}
+	default:
+		c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.banner_info.channel_type.not_allowed", nil, "", http.StatusBadRequest)
 	}
-
-	return nil
 }

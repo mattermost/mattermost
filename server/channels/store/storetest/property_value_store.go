@@ -26,6 +26,7 @@ func TestPropertyValueStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("DeletePropertyValue", func(t *testing.T) { testDeletePropertyValue(t, rctx, ss) })
 	t.Run("SearchPropertyValues", func(t *testing.T) { testSearchPropertyValues(t, rctx, ss) })
 	t.Run("DeleteForField", func(t *testing.T) { testDeleteForField(t, rctx, ss) })
+	t.Run("DeleteForTarget", func(t *testing.T) { testDeleteForTarget(t, rctx, ss) })
 }
 
 func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
@@ -980,4 +981,134 @@ func testDeleteForField(t *testing.T, _ request.CTX, ss store.Store) {
 	nonDeletedValue, err := ss.PropertyValue().Get(groupID, value3.ID)
 	require.NoError(t, err)
 	require.Zero(t, nonDeletedValue.DeleteAt)
+}
+
+func testDeleteForTarget(t *testing.T, _ request.CTX, ss store.Store) {
+	groupID1 := model.NewId()
+	groupID2 := model.NewId()
+	groupID3 := model.NewId()
+	targetID1 := model.NewId()
+	targetID2 := model.NewId()
+	targetType := "test_type"
+
+	// Create test values for first group and first target
+	value1 := &model.PropertyValue{
+		TargetID:   targetID1,
+		TargetType: targetType,
+		GroupID:    groupID1,
+		FieldID:    model.NewId(),
+		Value:      json.RawMessage(`"value 1"`),
+	}
+
+	value2 := &model.PropertyValue{
+		TargetID:   targetID1,
+		TargetType: targetType,
+		GroupID:    groupID1,
+		FieldID:    model.NewId(),
+		Value:      json.RawMessage(`"value 2"`),
+	}
+
+	// Create test value for second group but same target
+	value3 := &model.PropertyValue{
+		TargetID:   targetID1,
+		TargetType: targetType,
+		GroupID:    groupID2,
+		FieldID:    model.NewId(),
+		Value:      json.RawMessage(`"value 3"`),
+	}
+
+	// Create test value for first group but different target
+	value4 := &model.PropertyValue{
+		TargetID:   targetID2,
+		TargetType: targetType,
+		GroupID:    groupID1,
+		FieldID:    model.NewId(),
+		Value:      json.RawMessage(`"value 4"`),
+	}
+
+	// Create test value with different target type
+	value5 := &model.PropertyValue{
+		TargetID:   targetID1,
+		TargetType: "other_type",
+		GroupID:    groupID1,
+		FieldID:    model.NewId(),
+		Value:      json.RawMessage(`"value 5"`),
+	}
+
+	// Create test value for third group and first target
+	value6 := &model.PropertyValue{
+		TargetID:   targetID1,
+		TargetType: targetType,
+		GroupID:    groupID3,
+		FieldID:    model.NewId(),
+		Value:      json.RawMessage(`"value 6"`),
+	}
+
+	for _, value := range []*model.PropertyValue{value1, value2, value3, value4, value5, value6} {
+		_, err := ss.PropertyValue().Create(value)
+		require.NoError(t, err)
+	}
+
+	t.Run("should return error if targetType or targetID is empty", func(t *testing.T) {
+		err := ss.PropertyValue().DeleteForTarget(groupID1, "", targetID1)
+		require.Error(t, err)
+		var eii *store.ErrInvalidInput
+		require.ErrorAs(t, err, &eii)
+
+		err = ss.PropertyValue().DeleteForTarget(groupID1, targetType, "")
+		require.Error(t, err)
+		require.ErrorAs(t, err, &eii)
+
+		// Verify values were not deleted
+		values, err := ss.PropertyValue().GetMany("", []string{value1.ID, value2.ID})
+		require.NoError(t, err)
+		require.NotZero(t, values)
+		require.Len(t, values, 2)
+	})
+
+	t.Run("should delete only property values for a target within the specified group", func(t *testing.T) {
+		// Delete values for the first target in first group
+		err := ss.PropertyValue().DeleteForTarget(groupID1, targetType, targetID1)
+		require.NoError(t, err)
+
+		// Verify values from first group and first target were hard-deleted
+		deletedValues, err := ss.PropertyValue().GetMany("", []string{value1.ID, value2.ID})
+		require.Error(t, err)
+		require.Zero(t, deletedValues)
+
+		// Verify value from second group was not deleted
+		nonDeletedGroupValue, err := ss.PropertyValue().Get("", value3.ID)
+		require.NoError(t, err)
+		require.NotNil(t, nonDeletedGroupValue)
+
+		// Verify value from first group but different target was not deleted
+		nonDeletedTargetValue, err := ss.PropertyValue().Get("", value4.ID)
+		require.NoError(t, err)
+		require.NotNil(t, nonDeletedTargetValue)
+
+		// Verify value with different target type was not deleted
+		nonDeletedTypeValue, err := ss.PropertyValue().Get("", value5.ID)
+		require.NoError(t, err)
+		require.NotNil(t, nonDeletedTypeValue)
+	})
+
+	t.Run("should delete all values for a target regardless of group", func(t *testing.T) {
+		err := ss.PropertyValue().DeleteForTarget("", targetType, targetID1)
+		require.NoError(t, err)
+
+		// Verify values from other groups with targetID1 were deleted
+		deletedValues, err := ss.PropertyValue().GetMany("", []string{value3.ID, value6.ID})
+		require.Error(t, err)
+		require.Zero(t, deletedValues)
+
+		// Verify value with different target ID was not deleted
+		nonDeletedValue, err := ss.PropertyValue().Get("", value4.ID)
+		require.NoError(t, err)
+		require.NotNil(t, nonDeletedValue)
+
+		// Verify value with different target type was not deleted
+		nonDeletedTypeValue, err := ss.PropertyValue().Get("", value5.ID)
+		require.NoError(t, err)
+		require.NotNil(t, nonDeletedTypeValue)
+	})
 }
