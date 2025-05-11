@@ -182,7 +182,7 @@ func TestCreateChannel(t *testing.T) {
 
 		require.True(t, *createdChannel.BannerInfo.Enabled)
 		require.Equal(t, "banner text", *createdChannel.BannerInfo.Text)
-		require.Equal(t, "color", *createdChannel.BannerInfo.BackgroundColor)
+		require.Equal(t, "#dddddd", *createdChannel.BannerInfo.BackgroundColor)
 	})
 
 	t.Run("Cannot create channel with banner enabled but not configured", func(t *testing.T) {
@@ -887,7 +887,7 @@ func TestPatchChannel(t *testing.T) {
 		require.NotNil(t, patchedChannel.BannerInfo)
 		require.True(t, *patchedChannel.BannerInfo.Enabled)
 		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
-		require.Equal(t, "color", *patchedChannel.BannerInfo.BackgroundColor)
+		require.Equal(t, "#dddddd", *patchedChannel.BannerInfo.BackgroundColor)
 	})
 
 	t.Run("Cannot enable channel banner without configuring it", func(t *testing.T) {
@@ -933,7 +933,7 @@ func TestPatchChannel(t *testing.T) {
 		require.NotNil(t, patchedChannel.BannerInfo)
 		require.Nil(t, patchedChannel.BannerInfo.Enabled)
 		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
-		require.Equal(t, "color", *patchedChannel.BannerInfo.BackgroundColor)
+		require.Equal(t, "#dddddd", *patchedChannel.BannerInfo.BackgroundColor)
 
 		patch = &model.ChannelPatch{
 			BannerInfo: &model.ChannelBannerInfo{
@@ -947,7 +947,7 @@ func TestPatchChannel(t *testing.T) {
 		require.NotNil(t, patchedChannel.BannerInfo)
 		require.True(t, *patchedChannel.BannerInfo.Enabled)
 		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
-		require.Equal(t, "color", *patchedChannel.BannerInfo.BackgroundColor)
+		require.Equal(t, "#dddddd", *patchedChannel.BannerInfo.BackgroundColor)
 	})
 
 	t.Run("Cannot configure channel banner on a DM channel", func(t *testing.T) {
