@@ -2,13 +2,15 @@
 // See LICENSE.txt for license information.
 
 import debounce from 'lodash/debounce';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {canDirectlyMessageUser} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type MultiSelect from 'components/multiselect/multiselect';

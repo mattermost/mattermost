@@ -24,6 +24,7 @@ import {
     makeSearchProfilesStartingWithTerm,
     searchProfilesInCurrentTeam,
     getTotalUsersStats as getTotalUsersStatsSelector,
+    canDirectlyMessageUser,
 } from 'mattermost-redux/selectors/entities/users';
 
 import {openDirectChannelToUserId, openGroupChannelToUserIds} from 'actions/channel_actions';
@@ -71,6 +72,11 @@ export const makeMapStateToProps = () => {
             users = selectProfiles(state, filters);
         } else {
             users = getProfilesInCurrentTeam(state, filters);
+        }
+        
+        // Filter out users that can't be messaged directly because they're from indirectly connected remote clusters
+        if (enableSharedChannelsDMs) {
+            users = users.filter((user) => canDirectlyMessageUser(state, user.id));
         }
 
         const team = getCurrentTeam(state);

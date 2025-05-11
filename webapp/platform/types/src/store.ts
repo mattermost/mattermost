@@ -18,6 +18,7 @@ import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
 import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
+import type {RemoteCluster} from './remote_clusters';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
     FilesRequestsStatuses, GeneralRequestsStatuses,
@@ -77,6 +78,7 @@ export type GlobalState = {
         hostedCustomer: HostedCustomerState;
         usage: CloudUsage;
         scheduledPosts: ScheduledPostsState;
+        remoteClusters: Record<string, RemoteCluster>;
     };
     errors: any[];
     requests: {

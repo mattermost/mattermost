@@ -13,6 +13,19 @@ import type {
     RelationOneToOne,
 } from '@mattermost/types/utilities';
 
+// RemoteCluster represents the state of a remote cluster connection
+export type RemoteCluster = {
+    id: string;
+    name?: string;
+    display_name?: string;
+    site_url?: string;
+    create_at?: number;
+    delete_at?: number;
+    last_ping_at?: number;
+    online: boolean;
+    confirmed: boolean;
+};
+
 import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
@@ -859,4 +872,36 @@ export const getLastActiveTimestampUnits: (state: GlobalState, userId: string) =
         }
         return timestampUnits;
     },
+);
+
+export const getRemoteClusters = (state: GlobalState) => state.entities.remoteClusters || {};
+
+export const canDirectlyMessageUser = createSelector(
+    getUser,
+    (state: GlobalState) => state.entities.general.config,
+    getRemoteClusters,
+    (user, config, remoteClusters) => {
+        if (!user) {
+            return false;
+        }
+        
+        // Feature flag check
+        if (config.FeatureFlags?.EnableSharedChannelsDMs !== 'true') {
+            return true; // Always allow if feature is disabled
+        }
+        
+        // Local users (without remote_id) can always be messaged
+        if (!user.remote_id) {
+            return true;
+        }
+        
+        // Check if the user's remote cluster is directly connected
+        const remoteCluster = remoteClusters[user.remote_id];
+        if (!remoteCluster) {
+            return false;
+        }
+        
+        // A remote is directly connected if it's online and confirmed
+        return remoteCluster.online && remoteCluster.confirmed;
+    }
 );

@@ -2336,6 +2336,34 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 		return true, nil
 	}
 
+	// Check if Shared Channels DMs are enabled
+	if a.Config().FeatureFlags.EnableSharedChannelsDMs {
+		// Get the user that is being viewed
+		otherUser, err := a.GetUser(otherUserId)
+		if err == nil && otherUser.RemoteId != nil && *otherUser.RemoteId != "" {
+			// The other user is from a remote server
+			scs := a.Srv().GetSharedChannelSyncService()
+			if scs == nil {
+				return false, model.NewAppError(
+					"UserCanSeeOtherUser",
+					"api.user.shared_channels_service_unavailable.app_error",
+					nil,
+					"Shared channel service not available",
+					http.StatusBadRequest)
+			}
+
+			// Check if the user's remote cluster has a direct connection to the current server
+			if !scs.IsRemoteClusterDirectlyConnected(*otherUser.RemoteId) {
+				return false, model.NewAppError(
+					"UserCanSeeOtherUser",
+					"api.user.remote_connection_not_allowed.app_error",
+					nil,
+					fmt.Sprintf("No direct connection to remote cluster with ID %s", *otherUser.RemoteId),
+					http.StatusForbidden)
+			}
+		}
+	}
+
 	restrictions, err := a.GetViewUsersRestrictions(c, userID)
 	if err != nil {
 		return false, err

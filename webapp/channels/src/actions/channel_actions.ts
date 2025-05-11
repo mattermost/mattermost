@@ -31,7 +31,19 @@ export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFunc
         const channel = getChannelByName(state, channelName);
 
         if (!channel) {
-            return dispatch(ChannelActions.createDirectChannel(currentUserId, userId));
+            const result = await dispatch(ChannelActions.createDirectChannel(currentUserId, userId));
+            
+            // Handle the specific error for remote connections not allowed
+            if (result.error && result.error.server_error_id === 'api.user.remote_connection_not_allowed.app_error') {
+                return {
+                    error: {
+                        message: 'Cannot message this user because their server is not directly connected to yours.',
+                        server_error_id: 'api.user.remote_connection_not_allowed.app_error',
+                    },
+                };
+            }
+            
+            return result;
         }
 
         trackEvent('api', 'api_channels_join_direct');

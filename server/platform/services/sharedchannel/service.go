@@ -277,3 +277,18 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 	messageWs.Add("channel_id", channel.Id)
 	scs.app.Publish(messageWs)
 }
+
+// IsRemoteClusterDirectlyConnected checks if a remote cluster has a direct connection to the current server
+func (scs *Service) IsRemoteClusterDirectlyConnected(remoteId string) bool {
+	if remoteId == "" {
+		return true // Local server is always "directly connected"
+	}
+
+	// Check if the remote cluster exists, is online, and confirmed
+	rc, err := scs.server.GetStore().RemoteCluster().Get(remoteId, false)
+	if err != nil {
+		return false
+	}
+
+	return rc.IsOnline() && rc.IsConfirmed()
+}
