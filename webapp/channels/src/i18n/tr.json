@@ -2587,6 +2587,7 @@
   "admin.support.problemAllowDownloadDescription": "Açıldığında, kullanıcılar sorunları gidermek için uygulama günlüklerini indirebilir. Bir 'Sorun bildirin' bağlantısı görüntüleniyorsa, günlükler bu akışın bir parçası olarak indirilebilir. 'Sorun bildirin' bağlantısı gizleniyorsa, günlüklere ayrı bir seçenek olarak erişilebilir.",
   "admin.support.problemAllowDownloadTitle": "Mobil uygulama günlükleri indirilebilsin:",
   "admin.support.problemType.customLink": "Özel bağlantı",
+  "admin.support.problemType.defaultLink": "Varsayılan bağlantı",
   "admin.support.termsDesc": "Kullanıcıların çevrim içi hizmeti kullanmaları için kabul etmeleri gereken koşullar bağlantısı. Varsayılan olarak Mattermost tarafından son kullanıcılara sunulan yazılım hükümlerini açıklayan \"Mattermost kabul edilebilir kullanım ilkesi\" kullanılır. Kendi hüküm ve koşullarınızı eklemek için varsayılan bağlantıyı değiştirirseniz, son kullanıcıların Mattermost yazılımı için Mattermost kabul edilebilir kullanım ilkesi öğrenebilmesi için kendi hükümler metninizin içine varsayılan kullanım koşulları bağlantısını eklemelisiniz.",
   "admin.support.termsOfServiceReAcceptanceHelp": "Hüküm ve koşullar metnine verilen onayın geçersiz olacağı ve yeniden onaylanmasının gerekeceği gün sayısı.",
   "admin.support.termsOfServiceReAcceptanceTitle": "Yeniden onaylama süresi:",
