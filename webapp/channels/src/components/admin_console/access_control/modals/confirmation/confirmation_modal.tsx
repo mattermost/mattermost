@@ -8,12 +8,13 @@ import './confirmation_modal.scss';
 import GenericModal from '@mattermost/components/src/generic_modal/generic_modal';
 
 type Props = {
+    active: boolean;
     onExited: () => void;
     onConfirm: (apply: boolean) => void;
     channelsAffected: number;
 }
 
-export default function PolicyConfirmationModal({onExited, onConfirm, channelsAffected}: Props) {
+export default function PolicyConfirmationModal({active, onExited, onConfirm, channelsAffected}: Props) {
     const {formatMessage} = useIntl();
     const [enforceImmediately, setEnforceImmediately] = useState(true);
 
@@ -61,10 +62,17 @@ export default function PolicyConfirmationModal({onExited, onConfirm, channelsAf
         >
 
             <div className='body'>
-                {formatMessage({
-                    id: 'admin.access_control.policy.save_policy_confirmation_body',
-                    defaultMessage: 'Applying this policy will allow users with the appropriate attribute values to be invited to the selected channels. Existing channel members will be removed from these channels if they are not assigned the values defined in this access policy.',
-                })}
+                {active ? (
+                    formatMessage({
+                        id: 'admin.access_control.policy.save_policy_confirmation_body',
+                        defaultMessage: 'Applying this policy will allow users with the appropriate attribute values to be added to the selected channels. Existing channel members will be removed from these channels if they are not assigned the values defined in this access policy.',
+                    })
+                ) : (
+                    formatMessage({
+                        id: 'admin.access_control.policy.save_policy_confirmation_body.inactive',
+                        defaultMessage: 'Only users who match the attribute values configured below can be added to the selected channels. Existing channel members will be removed from these channels if they are not assigned the values defined in this access policy.',
+                    })
+                )}
             </div>
 
             <div className='enforce-toggle'>

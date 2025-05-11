@@ -325,7 +325,7 @@ function PolicyDetails({
                             label={
                                 <FormattedMessage
                                     id='admin.access_control.policy.edit_policy.autoSyncMembership'
-                                    defaultMessage='Auto-sync membership based on access rules:'
+                                    defaultMessage='Auto-add members based on access rules:'
                                 />}
                             value={autoSyncMembership}
                             onChange={(_, value) => {
@@ -333,7 +333,12 @@ function PolicyDetails({
                                 setSaveNeeded(true);
                             }}
                             setByEnv={false}
-                            helpText='All users matching the property values configured below will be added as members, and membership will be automatically maintained as user property values change.'
+                            helpText={
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.autoSyncMembership.description'
+                                    defaultMessage='Users who match the attribute values configured below will be automatically added as new members. Regardless of this setting, users who later no longer match the configured attribute values will be removed from the channel after the next sync.'
+                                />
+                            }
                         />
                     </div>
 
@@ -494,6 +499,7 @@ function PolicyDetails({
 
             {showConfirmationModal && (
                 <PolicyConfirmationModal
+                    active={autoSyncMembership}
                     onExited={() => setShowConfirmationModal(false)}
                     onConfirm={handleSubmit}
                     channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
