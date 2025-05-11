@@ -1,12 +1,10 @@
-.JobDetailsModal {
-    padding: 12px;
-
-    // Header
-    .modal-header-custom {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 24px 24px 0;
+#job-details-modal {
+    .modal-header{
+        padding: 16px 64px 4px 32px;
+    }
+    
+    .filtered-user-list {
+        height: 440px;
     }
 
     .modal-header-with-status {
@@ -15,17 +13,6 @@
         font-size: 26px;
         font-weight: 600;
         gap: 10px;
-        padding-inline: 14px;
-    }
-
-    .close-icon-container .icon-close {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        cursor: pointer;
-        font-size: 24px;
-        
-        &:hover {
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-        }
     }
 
     // Status indicator
@@ -41,53 +28,64 @@
         &.status-pending { background-color: var(--offline-indicator); }
     }
 
-    .DataGrid {
-        padding: 24px;
-        background-color: rgba(var(--sys-white-rgb), 0.04);
-        cursor: pointer;
+    .filter-row--full {
+        position: relative;
+        padding: 0 32px;
 
-        .DataGrid_rows {
-            .DataGrid_row {
-                min-height: 40px;
-                border-left: none;
-                background-color: rgba(var(--sys-white-rgb), 0.04);
+        .input-clear {
+            top: 16px;
+            right: 14px;
+        }
 
-                &:hover {
-                    border-left: none;
-                    background-color: rgba(0, 0, 0, 0.05);
-                }
+        #searchIcon {
+            position: absolute;
+            z-index: 2;
+            top: 16px;
+            left: 42px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            pointer-events: none;
+        }
 
-                .DataGrid_cell {
-                    .channel-name-cell {
-                        display: flex;
-                        align-items: baseline;
-                        .team-name {
-                            margin-left: 6px;
-                            color: var(--center-channel-color-64);
-                            font-size: 0.85em;
-                        }
-                    }
+        #searchChannelsTextbox {
+            height: 48px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            box-shadow: none;
+            font-size: 16px;
+            padding-inline: 40px;
 
-                    .changes-cell {
-                        text-align: center;
-                        
-                        .changes-summary {
-                            .added {
-                                color: var(--online-indicator);
-                                font-weight: 600;
-                            }
-                            .removed {
-                                color: var(--error-text);
-                                font-weight: 600;
-                            }
-                        }
-                    }
-                }
+            &::placeholder {
+                color: var(--center-channel-color);
+            }
+
+            &:focus {
+                border: 2px solid var(--button-bg);
             }
         }
+    }
 
-        &_footer {
-            border-bottom: 0;
+    .sync-job-channel-count-label {
+        display: flex;
+        margin: 10px 16px;
+        color: var(--center-channel-color-64);
+        font-size: 12px;
+    }
+
+    .changes-cell {
+        text-align: center;
+                        
+        .changes-summary {
+            .added {
+                color: var(--online-indicator);
+                font-weight: 600;
+            }
+            .removed {
+                color: var(--error-text);
+                font-weight: 600;
+            }
         }
+    }
+
+    .more-modal__list .more-modal__details{
+        padding-left: 0;
     }
 }

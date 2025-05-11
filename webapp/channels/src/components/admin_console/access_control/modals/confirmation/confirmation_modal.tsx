@@ -23,37 +23,22 @@ export default function PolicyConfirmationModal({onExited, onConfirm, channelsAf
             show={true}
             onExited={onExited}
             onHide={onExited}
+            compassDesign={true}
             modalHeaderText={
-                <div className='modal-header-custom'>
-                    <div className='modal-header-top'>
-                        <div className='modal-header-text'>
-                            <FormattedMessage
-                                id='admin.access_control.policy.save_policy_confirmation_title'
-                                defaultMessage='Save access control policy '
-                            />
-                        </div>
-                        <div className='close-icon-container'>
-                            <i
-                                className='icon icon-close'
-                                onClick={onExited}
-                                aria-label='Close'
-                                role='button'
-                                tabIndex={0}
-                            />
-                        </div>
-                    </div>
-                    <div className='modal-header-subheader'>
-                        <FormattedMessage
-                            id='admin.access_control.policy.save_policy_confirmation_subheader'
-                            defaultMessage='{count} channels will be affected.'
-                            values={{count: channelsAffected}}
-                        />
-                    </div>
-                </div>
+                <FormattedMessage
+                    id='admin.access_control.policy.save_policy_confirmation_title'
+                    defaultMessage='Save access control policy '
+                />
             }
-            showHeader={false}
+            modalSubheaderText={
+                <FormattedMessage
+                    id='admin.access_control.policy.save_policy_confirmation_subheader'
+                    defaultMessage='{count} channels will be affected.'
+                    values={{count: channelsAffected}}
+                />
+            }
             footerContent={
-                <div className='modal-footer'>
+                <div>
                     <button
                         type='button'
                         className='btn-cancel'
@@ -74,6 +59,7 @@ export default function PolicyConfirmationModal({onExited, onConfirm, channelsAf
                 </div>
             }
         >
+
             <div className='body'>
                 {formatMessage({
                     id: 'admin.access_control.policy.save_policy_confirmation_body',

@@ -31,6 +31,12 @@ const CELHelpModal: React.FC<Props> = ({onExited, onHide}: Props) => {
                     defaultMessage='Common Expression Language (CEL)'
                 />
             )}
+            modalSubheaderText={(
+                <FormattedMessage
+                    id='admin.access_control.cel_help_modal.subheader'
+                    defaultMessage='With CEL you can define conditions to filter user attributes and control resource access.'
+                />
+            )}
             compassDesign={true}
             bodyPadding={false}
             modalLocation='top'
@@ -40,7 +46,9 @@ const CELHelpModal: React.FC<Props> = ({onExited, onHide}: Props) => {
                     <Markdown
                         message={formatMessage({
                             id: 'admin.access_control.cel_help_modal.content',
-                            defaultMessage: 'CEL is a powerful expression language used to define conditions for access control. Use these expressions to filter user attributes and control resource access.\n### Basic Syntax\nCEL expressions evaluate to boolean values (`true`/`false`) to determine if access should be granted.\n### Common Examples\n- To match a specific program:\n&ensp;`user.attributes.Program == "Dragon Spacecraft"`\n- To match any of multiple teams:\n&ensp;`user.attributes.Team in ["Sales", "Engineering"]`\n- To match an email domain:\n&ensp;`user.attributes.Email.endsWith("example.com")`\n- To combine conditions (for this example with `OR` operator, altertanitvely use `&&` for `AND` operation):\n&ensp;`user.attributes.Program == "Dragon Spacecraft" || user.attributes.Team == "Operations"`\n### Supported Operators and functions\n- `==`, `!=`, `&&`, `||`, `in`, `has`, `startsWith()`, `endsWith()`'})}
+                            defaultMessage: '### Basic Syntax\nCEL expressions evaluate to boolean values (`true`/`false`) to determine if access should be granted.\n### Common Examples\n- To match a specific program:\n&ensp;`user.attributes.Program == "Dragon Spacecraft"`\n- To match any of multiple teams:\n&ensp;`user.attributes.Team in ["Sales", "Engineering"]`\n- To match an email domain:\n&ensp;`user.attributes.Email.endsWith("example.com")`\n- To combine conditions (for this example with `OR` operator, altertanitvely use `&&` for `AND` operation):\n&ensp;`user.attrs.Program == "Alpha" || user.attrs.Team == "Operations"`\n### Supported Operators and functions\n- `==`, `!=`, `&&`, `||`, `in`, `contains()`, `startsWith()`, `endsWith()`',
+                        },
+                        )}
                     />
                 </div>
                 <div className='cel-help-additional-info-modal__content'>
