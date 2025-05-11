@@ -243,6 +243,12 @@ function ChannelSettingsInfoTab({
             return false;
         }
 
+        // After every successful save, update local state to match the saved values
+        // with this, we make sure that the unsavedChanges check will return false after saving
+        setDisplayName(updated.display_name);
+        setChannelURL(updated.name);
+        setChannelPurpose(updated.purpose);
+        setChannelHeader(updated.header);
         return true;
     }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, setFormError, handleServerError]);
 
