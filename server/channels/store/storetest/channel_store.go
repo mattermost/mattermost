@@ -380,7 +380,21 @@ func testChannelStoreGetMembersWithCursorPagination(t *testing.T, rctx request.C
 	require.NoError(t, nErr)
 	require.Len(t, members, 2, "should have saved 2 members")
 
-	// Get the timestamp from the first member
+	// Ensure members have different LastUpdateAt values by updating one of them after a short delay
+	time.Sleep(1 * time.Millisecond)
+	member := members[0]
+	_, err = ss.Channel().UpdateMember(rctx, &member)
+	require.NoError(t, err)
+
+	// Get members again after the update
+	members, nErr = ss.Channel().GetMembers(model.ChannelMembersGetOptions{ChannelID: c1.Id, Offset: 0, Limit: 100})
+	require.NoError(t, nErr)
+	require.Len(t, members, 2, "should have 2 members")
+
+	// Find member with smaller LastUpdateAt
+	sort.Slice(members, func(i, j int) bool {
+		return members[i].LastUpdateAt < members[j].LastUpdateAt
+	})
 	updateTime := members[0].LastUpdateAt
 
 	// Test cursor-based pagination by querying for members updated after that timestamp
