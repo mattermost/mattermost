@@ -41,11 +41,16 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           value=""
         />
         <Memo(BooleanSetting)
-          helpText="All users matching the property values configured below will be added as members, and membership will be automatically maintained as user property values change."
+          helpText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Users who match the attribute values configured below will be automatically added as new members. Regardless of this setting, users who later no longer match the configured attribute values will be removed from the channel after the next sync."
+              id="admin.access_control.policy.edit_policy.autoSyncMembership.description"
+            />
+          }
           id="admin.access_control.policy.edit_policy.autoSyncMembership"
           label={
             <Memo(MemoizedFormattedMessage)
-              defaultMessage="Auto-sync membership based on access rules:"
+              defaultMessage="Auto-add members based on access rules:"
               id="admin.access_control.policy.edit_policy.autoSyncMembership"
             />
           }
@@ -218,11 +223,16 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           value=""
         />
         <Memo(BooleanSetting)
-          helpText="All users matching the property values configured below will be added as members, and membership will be automatically maintained as user property values change."
+          helpText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Users who match the attribute values configured below will be automatically added as new members. Regardless of this setting, users who later no longer match the configured attribute values will be removed from the channel after the next sync."
+              id="admin.access_control.policy.edit_policy.autoSyncMembership.description"
+            />
+          }
           id="admin.access_control.policy.edit_policy.autoSyncMembership"
           label={
             <Memo(MemoizedFormattedMessage)
-              defaultMessage="Auto-sync membership based on access rules:"
+              defaultMessage="Auto-add members based on access rules:"
               id="admin.access_control.policy.edit_policy.autoSyncMembership"
             />
           }
