@@ -5788,7 +5788,7 @@
   },
   {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
-    "translation": "Kullanıcı için yan çubuk başlangıç kategorileri oluşturulamadı."
+    "translation": "Kullanıcı için kenar çubuğu başlangıç kategorileri oluşturulamadı."
   },
   {
     "id": "api.invalid_channel",
@@ -5988,11 +5988,11 @@
   },
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
-    "translation": "Yan çubuk güncellenmiş ayarlara göre güncellenemedi"
+    "translation": "Kenar çubuğu güncellenmiş ayarlara göre güncellenemedi"
   },
   {
     "id": "api.preference.delete_preferences.update_sidebar.app_error",
-    "translation": "Yan çubuk silinmiş ayarlara göre güncellenemedi"
+    "translation": "Kenar çubuğu silinmiş ayarlara göre güncellenemedi"
   },
   {
     "id": "app.user_access_token.update_token_enable.app_error",
@@ -7448,7 +7448,7 @@
   },
   {
     "id": "api.command_custom_status.success",
-    "translation": "Durumunuz “{{.EmojiName}} {{.StatusMessage}}” olarak ayarlandı. Durumunuzu, kanal içinde üste açılan durum penceresinden değiştirebilirsiniz."
+    "translation": "Durumunuz “{{.EmojiName}} {{.StatusMessage}}” olarak ayarlandı. Durumunuzu, kanal kenar çubuğunda üste açılan durum penceresinden değiştirebilirsiniz."
   },
   {
     "id": "api.command_custom_status.name",
@@ -9059,7 +9059,7 @@
   },
   {
     "id": "app.channel.gm_conversion_set_categories.delete_all.error",
-    "translation": "Dönüştürülmüş grup iletisi için var olan yan çubuk kategorileri silinemedi."
+    "translation": "Dönüştürülmüş grup iletisi için var olan kenar çubuğu kategorileri silinemedi."
   },
   {
     "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
