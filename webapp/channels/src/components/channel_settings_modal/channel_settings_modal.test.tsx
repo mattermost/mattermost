@@ -277,12 +277,12 @@ describe('ChannelSettingsModal', () => {
         expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
     });
 
-    it('should show configuration tab when premium license', async () => {
+    it('should show configuration tab when enterprise advanced license', async () => {
         const baseState: DeepPartial<GlobalState> = {
             entities: {
                 general: {
                     license: {
-                        SkuShortName: 'premium',
+                        SkuShortName: 'advanced',
                     },
                 },
             },
