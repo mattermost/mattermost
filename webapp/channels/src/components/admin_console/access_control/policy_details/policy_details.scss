@@ -12,4 +12,17 @@
     .vertically-centered-label {
         padding-top: 7px;
     }
+    
+    .EditPolicy__error {
+        display: flex;
+        align-items: center;
+        color: var(--error-text);
+        font-size: 14px;
+        margin-left: 12px;
+        
+        i {
+            margin-right: 4px;
+            font-size: 16px;
+        }
+    }
 }
