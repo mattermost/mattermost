@@ -328,8 +328,8 @@ export class DynamicVirtualizedList extends PureComponent {
         } else {
             style = {
                 left: 0,
-                top: getItemOffset(this.props, index, this.listMetaData),
-                height: getItemSize(this.props, index, this.listMetaData),
+                top: getItemOffset(this.props, index, this._listMetaData),
+                height: getItemSize(this.props, index, this._listMetaData),
                 width: '100%',
             };
             itemStyleCache[itemData[index]] = style;
