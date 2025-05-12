@@ -1,7 +1,6 @@
 .values-editor {
     position: relative;
     width: 100%;
-    padding-inline-start: 6px;
     
     .select__multi-value {
         padding: 3px;
@@ -47,7 +46,7 @@
     &__simple-input {
         width: 100%;
         height: 40px;
-        padding: 0 10px;
+        padding: 0 16px;
         border: none;
         background: transparent;
         color: var(--center-channel-color);
