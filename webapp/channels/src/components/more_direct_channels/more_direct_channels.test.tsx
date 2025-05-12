@@ -73,6 +73,7 @@ describe('components/MoreDirectChannels', () => {
                     process.nextTick(() => resolve());
                 });
             }),
+            fetchRemoteClusters: jest.fn().mockResolvedValue({data: true}),
         },
     };
 
