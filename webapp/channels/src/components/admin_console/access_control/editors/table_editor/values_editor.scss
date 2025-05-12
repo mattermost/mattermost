@@ -3,25 +3,34 @@
     width: 100%;
     
     .select__multi-value {
-        padding: 3px;
-        padding-left: 6px;
-        border: 1px dashed rgba(var(--center-channel-color-rgb), 0.36);
+        height: 24px;
+        padding: 0;
+        margin: 2px;
+        border: none;
         border-radius: 4px;
-        background-color: transparent;
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        display: flex;
+        align-items: center;
     }
     
     .select__multi-value__label {
         color: var(--center-channel-color);
-        font-size: 14px;
+        font-size: 12px;
+        padding: 0 8px;
+        line-height: 16px;
     }
     
     .select__multi-value__remove {
-        border-radius: 2px;
+        border-radius: 0 4px 4px 0;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         cursor: pointer;
+        padding: 0 4px;
+        height: 100%;
+        display: flex;
+        align-items: center;
         
         &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            background-color: rgba(var(--center-channel-color-rgb), 0.16);
             color: var(--center-channel-color);
         }
     }
