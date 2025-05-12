@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useCallback, useEffect, useMemo} from 'react';
-import type {MouseEvent} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef} from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -94,6 +94,7 @@ function ThreadItem({
     const postAuthor = ensureString(post.props?.override_username) || displayName;
     const getMentionKeysForPost = useMemo(() => makeGetMentionKeysForPost(), []);
     const mentionsKeys = useSelector((state: GlobalState) => getMentionKeysForPost(state, post, channel));
+    const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (channel?.teammate_id) {
@@ -107,6 +108,12 @@ function ThreadItem({
         }
     }, [channel, thread?.post.channel_id]);
 
+    useEffect(() => {
+        if (isSelected) {
+            ref.current?.focus();
+        }
+    }, [isSelected, threadId]);
+
     const participantIds = useMemo(() => {
         const ids = (thread?.participants || []).flatMap(({id}) => {
             if (id === post.user_id) {
@@ -119,7 +126,13 @@ function ThreadItem({
 
     let unreadTimestamp = post.edit_at || post.create_at;
 
-    const selectHandler = useCallback((e: MouseEvent<HTMLDivElement>) => {
+    const selectHandler = useCallback((e: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>) => {
+        // If the event is a keyboard event, check if the key is 'Enter' or ' '.
+        if ('key' in e) {
+            if (e.key !== 'Enter' && e.key !== ' ') {
+                return;
+            }
+        }
         if (e.altKey) {
             const hasUnreads = thread ? Boolean(thread.unread_replies) : false;
             const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
@@ -153,6 +166,12 @@ function ThreadItem({
     }, [threadId]);
 
     const handleFormattedTextClick = useCallback((e) => {
+        // If the event is a keyboard event, check if the key is 'Enter' or ' '.
+        if ('key' in e) {
+            if (e.key !== 'Enter' && e.key !== ' ') {
+                return;
+            }
+        }
         Utils.handleFormattedTextClick(e, currentRelativeTeamUrl);
     }, [currentRelativeTeamUrl]);
 
@@ -176,122 +195,152 @@ function ThreadItem({
     }
 
     return (
-        <article
-            style={style}
-            className={classNames('ThreadItem', {
-                'has-unreads': newReplies,
-                'is-selected': isSelected,
-            })}
-            tabIndex={0}
-            id={isFirstThreadInList ? 'tutorial-threads-mobile-list' : ''}
-            onClick={selectHandler}
-        >
-            <header>
-                {Boolean(newMentions || newReplies) && (
-                    <div className='indicator'>
-                        {newMentions ? (
-                            <div className={classNames('dot-mentions', {over: newMentions > 99})}>
-                                {Math.min(newMentions, 99)}
-                                {newMentions > 99 && '+'}
-                            </div>
-                        ) : (
-                            <div className='dot-unreads'/>
+        <>
+            <div
+                style={style}
+                className={classNames('ThreadItem', {
+                    'has-unreads': newReplies,
+                    'is-selected': isSelected,
+                })}
+                tabIndex={isSelected ? -1 : 0}
+                role='link'
+                aria-label={formatMessage(
+                    {id: 'threading.threadItem.ariaLabel', defaultMessage: 'Thread by {author}'},
+                    {author: postAuthor},
+                )}
+                aria-describedby={`ThreadItem__timestamp_${threadId}`}
+                id={isFirstThreadInList ? 'tutorial-threads-mobile-list' : ''}
+                onClick={selectHandler}
+                onKeyDown={selectHandler}
+                ref={ref}
+            >
+                <header>
+                    {Boolean(newMentions || newReplies) && (
+                        <div className='indicator'>
+                            {newMentions ? (
+                                <div className={classNames('dot-mentions', {over: newMentions > 99})}>
+                                    {Math.min(newMentions, 99)}
+                                    {newMentions > 99 && '+'}
+                                </div>
+                            ) : (
+                                <div className='dot-unreads'/>
+                            )}
+                        </div>
+                    )}
+                    <div className='ThreadItem__author'>{postAuthor}</div>
+                    <div className='ThreadItem__tags'>
+                        {channel && postAuthor !== channel?.display_name && (
+                            <Tag
+                                onClick={goToInChannelHandler}
+                                text={channel?.display_name}
+                            />
+                        )}
+                        {isPostPriorityEnabled && (
+                            thread.is_urgent && (
+                                <PriorityBadge
+                                    className={postAuthor === channel?.display_name ? 'ml-2' : ''}
+                                    priority={PostPriority.URGENT}
+                                />
+                            )
                         )}
                     </div>
-                )}
-                <div className='ThreadItem__author'>{postAuthor}</div>
-                <div className='ThreadItem__tags'>
-                    {channel && postAuthor !== channel?.display_name && (
-                        <Tag
-                            onClick={goToInChannelHandler}
-                            text={channel?.display_name}
+                    <Timestamp
+                        {...THREADING_TIME}
+                        className='alt-hidden'
+                        value={lastReplyAt}
+                    />
+                </header>
+                <div className='menu-anchor alt-visible'>
+                    <ThreadMenu
+                        threadId={threadId}
+                        isFollowing={isFollowing ?? false}
+                        hasUnreads={Boolean(newReplies)}
+                        unreadTimestamp={unreadTimestamp}
+                    >
+                        <WithTooltip
+                            title={(
+                                <FormattedMessage
+                                    id='threading.threadItem.menu'
+                                    defaultMessage='Actions'
+                                />
+                            )}
+                        >
+                            <Button
+                                marginTop={true}
+                                className='Button___icon'
+                                aria-label={formatMessage({
+                                    id: 'threading.threadItem.menu',
+                                    defaultMessage: 'Actions',
+                                })}
+                            >
+                                <DotsVerticalIcon size={18}/>
+                            </Button>
+                        </WithTooltip>
+                    </ThreadMenu>
+                </div>
+
+                {/* The strange interaction here where we need a click/keydown handler messes with the ESLint rules, so we just disable it */}
+                {/*eslint-disable-next-line jsx-a11y/no-static-element-interactions*/}
+                <div
+                    className='preview'
+                    dir='auto'
+                    onClick={handleFormattedTextClick}
+                    onKeyDown={handleFormattedTextClick}
+                >
+                    {post.message ? (
+                        <Markdown
+                            message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
+                            options={markdownPreviewOptions}
+                            imagesMetadata={post?.metadata && post?.metadata?.images}
+                            mentionKeys={mentionsKeys}
+                            imageProps={imageProps}
                         />
-                    )}
-                    {isPostPriorityEnabled && (
-                        thread.is_urgent && (
-                            <PriorityBadge
-                                className={postAuthor === channel?.display_name ? 'ml-2' : ''}
-                                priority={PostPriority.URGENT}
-                            />
-                        )
+                    ) : (
+                        <Attachment post={post}/>
                     )}
                 </div>
-                <Timestamp
-                    {...THREADING_TIME}
-                    className='alt-hidden'
-                    value={lastReplyAt}
-                />
-            </header>
-            <div className='menu-anchor alt-visible'>
-                <ThreadMenu
-                    threadId={threadId}
-                    isFollowing={isFollowing ?? false}
-                    hasUnreads={Boolean(newReplies)}
-                    unreadTimestamp={unreadTimestamp}
+                <div className='activity'>
+                    {participantIds?.length ? (
+                        <Avatars
+                            userIds={participantIds}
+                            size='xs'
+                        />
+                    ) : null}
+                    {Boolean(totalReplies) && (
+                        <>
+                            {newReplies ? (
+                                <FormattedMessage
+                                    id='threading.numNewReplies'
+                                    defaultMessage='{newReplies, plural, =1 {# new reply} other {# new replies}}'
+                                    values={{newReplies}}
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='threading.numReplies'
+                                    defaultMessage='{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}'
+                                    values={{totalReplies}}
+                                />
+                            )}
+                        </>
+                    )}
+                </div>
+                {showListTutorialTip && isFirstThreadInList && isMobileView && (<CRTListTutorialTip/>)}
+                <span
+                    className='sr-only'
+                    id={`ThreadItem__timestamp_${threadId}`}
                 >
-                    <WithTooltip
-                        title={(
-                            <FormattedMessage
-                                id='threading.threadItem.menu'
-                                defaultMessage='Actions'
-                            />
-                        )}
-                    >
-                        <Button
-                            marginTop={true}
-                            className='Button___icon'
-                        >
-                            <DotsVerticalIcon size={18}/>
-                        </Button>
-                    </WithTooltip>
-                </ThreadMenu>
-            </div>
-            <div
-                aria-readonly='true'
-                className='preview'
-                dir='auto'
-                tabIndex={0}
-                onClick={handleFormattedTextClick}
-            >
-                {post.message ? (
-                    <Markdown
-                        message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
-                        options={markdownPreviewOptions}
-                        imagesMetadata={post?.metadata && post?.metadata?.images}
-                        mentionKeys={mentionsKeys}
-                        imageProps={imageProps}
+                    <FormattedMessage
+                        id='threading.threadItem.timestamp'
+                        defaultMessage='Last reply '
                     />
-                ) : (
-                    <Attachment post={post}/>
-                )}
-            </div>
-            <div className='activity'>
-                {participantIds?.length ? (
-                    <Avatars
-                        userIds={participantIds}
-                        size='xs'
+                    <Timestamp
+                        {...THREADING_TIME}
+                        className='alt-hidden'
+                        value={lastReplyAt}
                     />
-                ) : null}
-                {Boolean(totalReplies) && (
-                    <>
-                        {newReplies ? (
-                            <FormattedMessage
-                                id='threading.numNewReplies'
-                                defaultMessage='{newReplies, plural, =1 {# new reply} other {# new replies}}'
-                                values={{newReplies}}
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='threading.numReplies'
-                                defaultMessage='{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}'
-                                values={{totalReplies}}
-                            />
-                        )}
-                    </>
-                )}
+                </span>
             </div>
-            {showListTutorialTip && isFirstThreadInList && isMobileView && (<CRTListTutorialTip/>)}
-        </article>
+        </>
     );
 }
 

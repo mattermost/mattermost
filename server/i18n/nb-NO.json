@@ -137,7 +137,7 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Ingen fil under \"sertifikat\" i forespørslen."
+    "translation": "August"
   },
   {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
@@ -314,5 +314,65 @@
   {
     "id": "api.templates.invite_body_guest.subTitle",
     "translation": "Du ble invitert som gjest for å samarbeide med teamet"
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v ble med i kanalen."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "Det er ikke mulig å forlate standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "Du har ikke de riktige tillatelsene."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Kan ikke forlate en direkte meldingskanal."
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Kunne ikke oppdatere kanalen."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Kunne ikke legge til sertifikat."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "For mange filer under 'sertifikat' i forespørselen."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Kunne ikke fjerne sertifikatet."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Ugyldig innholdstype."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Manglende innholdstype."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Ugyldig tekst i sertifikatet."
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "Du er det eneste medlemmet som er igjen, prøv å fjerne den private kanalen i stedet for å forlate den."
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v forlot kanalen."
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v ble med i kanalen som gjest."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Lisensen din støtter ikke moderering av kanaler"
   }
 ]

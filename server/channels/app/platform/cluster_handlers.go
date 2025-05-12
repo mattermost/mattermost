@@ -68,7 +68,9 @@ func (ps *PlatformService) ClearSessionCacheForUserSkipClusterSend(userID string
 
 func (ps *PlatformService) ClearSessionCacheForAllUsersSkipClusterSend() {
 	ps.logger.Info("Purging sessions cache")
-	ps.ClearAllUsersSessionCacheLocal()
+	if err := ps.ClearAllUsersSessionCacheLocal(); err != nil {
+		ps.logger.Error("Failed to purge session cache", mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) clusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) {
@@ -102,7 +104,9 @@ func (ps *PlatformService) invalidateWebConnSessionCacheForUserSkipClusterSend(u
 
 func (ps *PlatformService) InvalidateAllCachesSkipSend() *model.AppError {
 	ps.logger.Info("Purging all caches")
-	ps.ClearAllUsersSessionCacheLocal()
+	if err := ps.ClearAllUsersSessionCacheLocal(); err != nil {
+		ps.logger.Error("Failed to purge session cache", mlog.Err(err))
+	}
 	if err := ps.statusCache.Purge(); err != nil {
 		ps.logger.Warn("Failed to clear the status cache", mlog.Err(err))
 	}

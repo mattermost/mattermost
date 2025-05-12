@@ -27,9 +27,9 @@ type ServerTestHelper struct {
 }
 
 //nolint:golint,unused
-func SetupServerTest(t testing.TB) *ServerTestHelper {
+func SetupServerTest(tb testing.TB) *ServerTestHelper {
 	if testing.Short() {
-		t.SkipNow()
+		tb.SkipNow()
 	}
 	// Build a channel that will be used by the server to receive system signals...
 	interruptChan := make(chan os.Signal, 1)
