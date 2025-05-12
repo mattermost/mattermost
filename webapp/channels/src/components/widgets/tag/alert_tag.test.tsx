@@ -5,12 +5,12 @@ import {screen, render} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import GenericTag from './generic_tag';
+import AlertTag from './alert_tag';
 
-describe('components/widgets/tag/GenericTag', () => {
+describe('components/widgets/tag/AlertTag', () => {
     test('should match snapshot', () => {
         const {container} = render(
-            <GenericTag
+            <AlertTag
                 text='Tag Text'
             />,
         );
@@ -20,7 +20,7 @@ describe('components/widgets/tag/GenericTag', () => {
 
     test('should render the text correctly', () => {
         render(
-            <GenericTag
+            <AlertTag
                 text='Tag Text'
             />,
         );
@@ -30,7 +30,7 @@ describe('components/widgets/tag/GenericTag', () => {
 
     test('should apply custom className', () => {
         const {container} = render(
-            <GenericTag
+            <AlertTag
                 text='Tag Text'
                 className='custom-class'
             />,
@@ -41,42 +41,42 @@ describe('components/widgets/tag/GenericTag', () => {
 
     test('should apply variant class', () => {
         const {container} = render(
-            <GenericTag
+            <AlertTag
                 text='Tag Text'
                 variant='primary'
             />,
         );
 
-        expect(container.querySelector('.GenericTag--primary')).not.toBeNull();
+        expect(container.querySelector('.AlertTag--primary')).not.toBeNull();
     });
 
     test('should apply size class', () => {
         const {container} = render(
-            <GenericTag
+            <AlertTag
                 text='Tag Text'
                 size='small'
             />,
         );
 
-        expect(container.querySelector('.GenericTag--small')).not.toBeNull();
+        expect(container.querySelector('.AlertTag--small')).not.toBeNull();
     });
 
     test('should apply clickable class when onClick is provided', () => {
         const onClick = jest.fn();
         const {container} = render(
-            <GenericTag
+            <AlertTag
                 text='Tag Text'
                 onClick={onClick}
             />,
         );
 
-        expect(container.querySelector('.GenericTag--clickable')).not.toBeNull();
+        expect(container.querySelector('.AlertTag--clickable')).not.toBeNull();
     });
 
     test('should call onClick when clicked', async () => {
         const onClick = jest.fn();
         render(
-            <GenericTag
+            <AlertTag
                 text='Tag Text'
                 onClick={onClick}
             />,
@@ -88,7 +88,7 @@ describe('components/widgets/tag/GenericTag', () => {
 
     test('should apply testId', () => {
         render(
-            <GenericTag
+            <AlertTag
                 text='Tag Text'
                 testId='test-id'
             />,
@@ -99,7 +99,7 @@ describe('components/widgets/tag/GenericTag', () => {
 
     test('should use span element when onClick is not provided', () => {
         render(
-            <GenericTag
+            <AlertTag
                 text='Tag Text'
             />,
         );
@@ -111,7 +111,7 @@ describe('components/widgets/tag/GenericTag', () => {
     test('should use button element when onClick is provided', () => {
         const onClick = jest.fn();
         render(
-            <GenericTag
+            <AlertTag
                 text='Tag Text'
                 onClick={onClick}
             />,
@@ -124,7 +124,7 @@ describe('components/widgets/tag/GenericTag', () => {
     test('should add type="button" attribute when onClick is provided', () => {
         const onClick = jest.fn();
         render(
-            <GenericTag
+            <AlertTag
                 text='Tag Text'
                 onClick={onClick}
             />,
@@ -139,7 +139,7 @@ describe('components/widgets/tag/GenericTag', () => {
         // hovering which is more complex.
         // This test just ensures the WithTooltip component is used.
         const {container} = render(
-            <GenericTag
+            <AlertTag
                 text='Tag Text'
                 tooltipTitle='Tooltip Text'
             />,

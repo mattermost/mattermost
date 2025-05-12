@@ -7,9 +7,9 @@ import type {ReactNode} from 'react';
 
 import WithTooltip from 'components/with_tooltip';
 
-import './generic_tag.scss';
+import './alert_tag.scss';
 
-export type GenericTagProps = {
+export type AlertTagProps = {
 
     text: string;
 
@@ -27,10 +27,10 @@ export type GenericTagProps = {
 };
 
 /**
- * A generic tag component that can be used to display labeled information
+ * A tag component used for displaying alert information
  * Optionally includes tooltip functionality when tooltipTitle is provided
  */
-const GenericTag: React.FC<GenericTagProps> = ({
+const AlertTag: React.FC<AlertTagProps> = ({
     text,
     className,
     onClick,
@@ -45,11 +45,11 @@ const GenericTag: React.FC<GenericTagProps> = ({
     const tagElement = (
         <TagElement
             className={classNames(
-                'GenericTag',
-                `GenericTag--${variant}`,
-                `GenericTag--${size}`,
+                'AlertTag',
+                `AlertTag--${variant}`,
+                `AlertTag--${size}`,
                 {
-                    'GenericTag--clickable': Boolean(onClick),
+                    'AlertTag--clickable': Boolean(onClick),
                 },
                 className,
             )}
@@ -78,4 +78,4 @@ const GenericTag: React.FC<GenericTagProps> = ({
     return tagElement;
 };
 
-export default GenericTag;
+export default AlertTag;
