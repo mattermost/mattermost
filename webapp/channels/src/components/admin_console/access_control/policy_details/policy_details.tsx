@@ -313,20 +313,24 @@ function PolicyDetails({
                                 />
                             }
                             value={policyName}
+                            placeholder="Add a unique policy name"
                             onChange={(_, value) => {
                                 setPolicyName(value);
                                 setSaveNeeded(true);
                             }}
-                            labelClassName='col-sm-4'
+                            labelClassName='col-sm-4 vertically-centered-label'
                             inputClassName='col-sm-8'
                         />
                         <BooleanSetting
                             id='admin.access_control.policy.edit_policy.autoSyncMembership'
                             label={
-                                <FormattedMessage
-                                    id='admin.access_control.policy.edit_policy.autoSyncMembership'
-                                    defaultMessage='Auto-add members based on access rules:'
-                                />}
+                                <div className="vertically-centered-label">
+                                    <FormattedMessage
+                                        id='admin.access_control.policy.edit_policy.autoSyncMembership'
+                                        defaultMessage='Auto-add members based on access rules:'
+                                    />
+                                </div>
+                            }
                             value={autoSyncMembership}
                             onChange={(_, value) => {
                                 setAutoSyncMembership(value);

@@ -87,7 +87,10 @@ function TestResultsModal({
             aria-labelledby='testResultsModalLabel'
             id='testResultsModal'
         >
-            <Modal.Header closeButton={true}>
+            <Modal.Header 
+                closeButton={true}
+                style={{display: 'flex', alignItems: 'center'}}
+            >
                 <Modal.Title
                     componentClass='h1'
                     id='testResultsModalLabel'
