@@ -343,15 +343,15 @@ button {
         }
 
         &.btn-inverted {
-            color: var(--sidebar-text);
+            color: rgb(var(--button-color-rgb));
 
             &:hover {
-                background: rgba(var(--sidebar-text-rgb), 0.12);
+                background: rgba(var(--button-color-rgb), 0.12);
             }
 
             &:active,
             &[aria-expanded="true"][aria-haspopup="true"] {
-                background-color: rgba(var(--sidebar-text-rgb), 0.16);
+                background-color: rgb(var(--button-color-rgb), 0.16);
             }
         }
     }
