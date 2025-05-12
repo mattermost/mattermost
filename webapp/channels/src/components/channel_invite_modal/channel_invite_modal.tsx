@@ -152,7 +152,7 @@ const ChannelInviteModalComponent = (props: Props) => {
     }, [props.membersInTeam, isGuest]);
 
     // Get excluded users
-    const getExcludedUsers = useCallback(() => {
+    const excludedUsers = useMemo(() => {
         if (props.excludeUsers) {
             return new Set([
                 ...props.profilesNotInCurrentTeam.map((user) => user.id),
@@ -171,7 +171,7 @@ const ChannelInviteModalComponent = (props: Props) => {
 
     // Get options for the multiselect
     const getOptions = useCallback(() => {
-        const excludedAndNotInTeamUserIds = getExcludedUsers();
+        const excludedAndNotInTeamUserIds = excludedUsers;
 
         const filteredDmUsers = filterProfilesStartingWithTerm(props.profilesFromRecentDMs, term);
         const dmUsers = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredDmUsers, excludedAndNotInTeamUserIds).slice(0, USERS_FROM_DMS) as UserProfileValue[];
@@ -200,7 +200,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.profilesInCurrentChannel,
         props.includeUsers,
         props.groups,
-        getExcludedUsers,
+        excludedUsers,
         filterOutDeletedAndExcludedAndNotInTeamUsers,
     ]);
 
