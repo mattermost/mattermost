@@ -16,6 +16,7 @@ import type {
 
 import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {isConfirmed, isConnected} from 'components/admin_console/secure_connections/utils';
 import {
     getCurrentChannelId,
     getCurrentUser as getCurrentUserInternal,
@@ -891,14 +892,7 @@ export const canDirectlyMessageUser: (state: GlobalState, userId: string) => boo
             return false;
         }
 
-        // We're adding properties to the RemoteCluster that are not in the type definition
-        // but are needed for our functionality
-        const extendedCluster = remoteCluster as RemoteCluster & {
-            online: boolean;
-            confirmed: boolean;
-        };
-
         // A remote is directly connected if it's online and confirmed
-        return extendedCluster.online && extendedCluster.confirmed;
+        return isConnected(remoteCluster) && isConfirmed(remoteCluster);
     },
 );
