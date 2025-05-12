@@ -4641,7 +4641,6 @@
   "widget.input.required": "Este campo é obrigatório",
   "widget.passwordInput.createPassword": "Escolha uma senha",
   "widget.passwordInput.password": "Senha",
-  "widget.passwordInput.passwordToggle": "Mostrar ou ocultar senha",
   "widgets.channels_input.empty": "Nenhum canal encontrado",
   "widgets.channels_input.loading": "Carregando",
   "widgets.users_emails_input.loading": "Carregando",
