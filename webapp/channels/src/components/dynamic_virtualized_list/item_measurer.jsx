@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 /* eslint-disable react/prop-types */
+/* eslint-disable no-underscore-dangle */
 
 import React, {PureComponent} from 'react';
 import {findDOMNode} from 'react-dom';
@@ -59,7 +60,6 @@ const shrinkChildStyle = {
 };
 
 //values below need to be changed when scrollbar width changes
-//TODO: change these to be dynamic
 const shrinkScrollDelta = (2 * scrollBarWidth) + 1; // 17 = 2* scrollbar width(8px) + 1px as buffer
 
 // 27 = 2* scrollbar width(8px) + 1px as buffer + 10px(this value is based of off lib(Link below). Probably not needed but doesnt hurt to leave)
@@ -67,26 +67,27 @@ const shrinkScrollDelta = (2 * scrollBarWidth) + 1; // 17 = 2* scrollbar width(8
 const expandScrollDelta = shrinkScrollDelta + 10;
 
 export default class ItemMeasurer extends PureComponent {
-    node = null;
-    resizeSensorExpand = React.createRef();
-    resizeSensorShrink = React.createRef();
-    positionScrollbarsRef = null;
-    measureItemAnimFrame = null;
+    _node = null;
+    _resizeSensorExpand = React.createRef();
+    _resizeSensorShrink = React.createRef();
+    _positionScrollbarsRef = null;
+    _measureItemAnimFrame = null;
 
     componentDidMount() {
-        this.node = findDOMNode(this);
+        // eslint-disable-next-line react/no-find-dom-node
+        this._node = findDOMNode(this);
 
         // Force sync measure for the initial mount.
         // This is necessary to support the DynamicSizeList layout logic.
-        if (isSafari() && this.props.height) {
-            this.measureItemAnimFrame = window.requestAnimationFrame(() => {
-                this.measureItem(false);
+        if (isSafari() && this.props.size) {
+            this._measureItemAnimFrame = requestAnimationFrame(() => {
+                this._measureItem(false);
             });
         } else {
-            this.measureItem(false);
+            this._measureItem(false);
         }
 
-        if (this.props.height) {
+        if (this.props.size) {
             // Don't wait for positioning scrollbars when we have size
             // This is needed triggering an event for remounting a post
             this.positionScrollBars();
@@ -94,69 +95,64 @@ export default class ItemMeasurer extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if ((prevProps.height === 0 && this.props.height !== 0) || prevProps.height !== this.props.height) {
+        if ((prevProps.size === 0 && this.props.size !== 0) || prevProps.size !== this.props.size) {
             this.positionScrollBars();
         }
     }
 
-    componentWillUnmount() {
-        if (this.positionScrollbarsRef) {
-            window.cancelAnimationFrame(this.positionScrollbarsRef);
-        }
+    _measureItem = (forceScrollCorrection) => {
+        const {handleNewMeasurements, size: oldSize, itemId} = this.props;
 
-        if (this.measureItemAnimFrame) {
-            window.cancelAnimationFrame(this.measureItemAnimFrame);
-        }
-
-        const {onUnmount, itemId, index} = this.props;
-
-        if (onUnmount) {
-            onUnmount(itemId, index);
-        }
-    }
-
-    measureItem = (forceScrollCorrection) => {
-        const {onHeightChange, height: oldHeight, itemId} = this.props;
-
-        const node = this.node;
+        const node = this._node;
 
         if (node && node.ownerDocument && node.ownerDocument.defaultView && node instanceof node.ownerDocument.defaultView.HTMLElement) {
-            const newHeight = Math.ceil(node.offsetHeight);
+            const newSize = Math.ceil(node.offsetHeight);
 
-            if (oldHeight !== newHeight) {
-                onHeightChange(itemId, newHeight, forceScrollCorrection);
+            if (oldSize !== newSize) {
+                handleNewMeasurements(itemId, newSize, forceScrollCorrection);
             }
         }
     };
 
-    positionScrollBars = (height = this.props.height) => {
-        // we are position these hidden div scroll bars to the end so they can emit
-        // scroll event when height in the div changes
-        // Heavily inspired from https://github.com/marcj/css-element-queries/blob/master/src/ResizeSensor.js
-        // and https://github.com/wnr/element-resize-detector/blob/master/src/detection-strategy/scroll.js
-        // For more info http://www.backalleycoder.com/2013/03/18/cross-browser-event-based-element-resize-detection/#comment-244
-        if (this.positionScrollbarsRef) {
-            window.cancelAnimationFrame(this.positionScrollbarsRef);
+    positionScrollBars = (height = this.props.size) => {
+        //we are position these hidden div scroll bars to the end so they can emit
+        //scroll event when height in the div changes
+        //Heavily inspired from https://github.com/marcj/css-element-queries/blob/master/src/ResizeSensor.js
+        //and https://github.com/wnr/element-resize-detector/blob/master/src/detection-strategy/scroll.js
+        //For more info http://www.backalleycoder.com/2013/03/18/cross-browser-event-based-element-resize-detection/#comment-244
+        if (this._positionScrollbarsRef) {
+            window.cancelAnimationFrame(this._positionScrollbarsRef);
         }
-        this.positionScrollbarsRef = window.requestAnimationFrame(() => {
-            this.resizeSensorExpand.current.scrollTop = height + expandScrollDelta;
-            this.resizeSensorShrink.current.scrollTop = (2 * height) + shrinkScrollDelta;
+
+        this._positionScrollbarsRef = window.requestAnimationFrame(() => {
+            this._resizeSensorExpand.current.scrollTop = height + expandScrollDelta;
+            this._resizeSensorShrink.current.scrollTop = (2 * height) + shrinkScrollDelta;
         });
     };
 
     scrollingDiv = (event) => {
         if (event.target.offsetHeight !== this.props.size) {
-            this.measureItem(event.target.offsetWidth !== this.props.width);
+            this._measureItem(event.target.offsetWidth !== this.props.width);
         }
     };
 
-    render() {
-        return (
+    renderItems = () => {
+        const item = this.props.item;
+
+        const expandChildStyle = {
+            position: 'absolute',
+            left: '0',
+            top: '0',
+            height: `${this.props.size + expandScrollDelta}px`,
+            width: '100%',
+        };
+
+        const renderItem = (
             <div
                 role='listitem'
                 style={{position: 'relative'}}
             >
-                {this.props.item}
+                {item}
                 <div style={scrollableContainerStyles}>
                     <div
                         dir='ltr'
@@ -165,22 +161,14 @@ export default class ItemMeasurer extends PureComponent {
                         <div style={expandShrinkContainerStyles}>
                             <div
                                 style={expandShrinkStyles}
-                                ref={this.resizeSensorExpand}
+                                ref={this._resizeSensorExpand}
                                 onScroll={this.scrollingDiv}
                             >
-                                <div
-                                    style={{
-                                        position: 'absolute',
-                                        left: '0',
-                                        top: '0',
-                                        height: `${this.props.size + expandScrollDelta}px`,
-                                        width: '100%',
-                                    }}
-                                />
+                                <div style={expandChildStyle}/>
                             </div>
                             <div
                                 style={expandShrinkStyles}
-                                ref={this.resizeSensorShrink}
+                                ref={this._resizeSensorShrink}
                                 onScroll={this.scrollingDiv}
                             >
                                 <div style={shrinkChildStyle}/>
@@ -190,5 +178,25 @@ export default class ItemMeasurer extends PureComponent {
                 </div>
             </div>
         );
+        return renderItem;
+    };
+
+    componentWillUnmount() {
+        if (this._positionScrollbarsRef) {
+            window.cancelAnimationFrame(this._positionScrollbarsRef);
+        }
+
+        if (this._measureItemAnimFrame) {
+            window.cancelAnimationFrame(this._measureItemAnimFrame);
+        }
+
+        const {onUnmount, itemId, index} = this.props;
+        if (onUnmount) {
+            onUnmount(itemId, index);
+        }
+    }
+
+    render() {
+        return this.renderItems();
     }
 }

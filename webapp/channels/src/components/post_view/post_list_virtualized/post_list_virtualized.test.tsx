@@ -7,9 +7,10 @@ import type {ComponentProps} from 'react';
 
 import {DATE_LINE} from 'mattermost-redux/utils/post_list';
 
+import type {DynamicVirtualizedList} from 'components/dynamic_virtualized_list';
 import PostListRow from 'components/post_view/post_list_row';
 
-import {PostListRowListIds} from 'utils/constants';
+import {PostListRowListIds, PostRequestTypes} from 'utils/constants';
 
 import PostList from './post_list_virtualized';
 
@@ -121,6 +122,46 @@ describe('PostList', () => {
             });
 
             expect(wrapper.instance().checkBottom).toHaveBeenCalledWith(scrollOffset, scrollHeight, clientHeight);
+        });
+
+        test('should call canLoadMorePosts with AFTER_ID if loader is visible', () => {
+            const wrapper = shallow<PostList>(<PostList {...baseProps}/>);
+            const instance = wrapper.instance();
+
+            const scrollOffset = 1234;
+            const scrollHeight = 1000;
+            const clientHeight = 500;
+
+            instance.listRef = {current: {_getRangeToRender: () => [0, 70, 12, 1]} as unknown as DynamicVirtualizedList};
+            instance.onScroll({
+                scrollDirection: 'forward',
+                scrollOffset,
+                scrollUpdateWasRequested: true,
+                scrollHeight,
+                clientHeight,
+            });
+
+            expect(baseProps.actions.canLoadMorePosts).toHaveBeenCalledWith(PostRequestTypes.AFTER_ID);
+        });
+
+        test('should not call canLoadMorePosts with AFTER_ID if loader is below the fold by couple of messages', () => {
+            const wrapper = shallow<PostList>(<PostList {...baseProps}/>);
+            const instance = wrapper.instance();
+
+            const scrollOffset = 1234;
+            const scrollHeight = 1000;
+            const clientHeight = 500;
+
+            instance.listRef = {current: {_getRangeToRender: () => [0, 70, 12, 2]} as unknown as DynamicVirtualizedList};
+            instance.onScroll({
+                scrollDirection: 'forward',
+                scrollOffset,
+                scrollUpdateWasRequested: true,
+                scrollHeight,
+                clientHeight,
+            });
+
+            expect(baseProps.actions.canLoadMorePosts).not.toHaveBeenCalled();
         });
 
         test('should show search channel hint if user scrolled too far away from the bottom of the list', () => {

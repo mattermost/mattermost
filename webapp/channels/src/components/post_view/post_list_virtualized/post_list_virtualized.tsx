@@ -12,7 +12,8 @@ import {getNewMessagesIndex, isDateLine, isStartOfNewMessages} from 'mattermost-
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
 import type {CanLoadMorePosts} from 'actions/views/channel';
 
-import DynamicVirtualizedList from 'components/dynamic_virtualized_list';
+import {DynamicVirtualizedList} from 'components/dynamic_virtualized_list';
+import type {OnItemsRenderedArgs, DynamicVirtualizedList as DynamicVirtualizedListProps} from 'components/dynamic_virtualized_list';
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
 import PostListRow from 'components/post_view/post_list_row';
 import ScrollToBottomArrows from 'components/post_view/scroll_to_bottom_arrows';
@@ -34,6 +35,16 @@ const BUFFER_TO_BE_CONSIDERED_BOTTOM = 10;
 const MAXIMUM_POSTS_FOR_SLICING = {
     channel: 50,
     permalink: 100,
+};
+
+const postListStyle = {
+    padding: '14px 0px 7px',
+};
+
+const virtListStyles = {
+    position: 'absolute',
+    bottom: '0',
+    maxHeight: '100%',
 };
 
 const OFFSET_TO_SHOW_TOAST = -50;
@@ -135,7 +146,7 @@ type State = {
 }
 
 export default class PostList extends React.PureComponent<Props, State> {
-    listRef: React.RefObject<DynamicVirtualizedList>;
+    listRef: React.RefObject<DynamicVirtualizedListProps>;
     postListRef: React.RefObject<HTMLDivElement>;
     scrollStopAction: DelayedAction | null = null;
     initRangeToRender: number[];
@@ -419,7 +430,7 @@ export default class PostList extends React.PureComponent<Props, State> {
 
         if (scrollUpdateWasRequested) { //if scroll change is programatically requested i.e by calling scrollTo
             //This is a private method on virtlist
-            const postsRenderedRange = this.listRef.current?.getRangeToRender();
+            const postsRenderedRange = this.listRef.current?._getRangeToRender(); //eslint-disable-line no-underscore-dangle
 
             // postsRenderedRange[3] is the visibleStopIndex which is post at the bottom of the screen
             if (postsRenderedRange && postsRenderedRange[3] <= 1 && !this.props.atLatestPost) {
@@ -550,7 +561,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         });
     };
 
-    onItemsRendered = ({visibleStartIndex, visibleStopIndex}: {visibleStartIndex: number; visibleStopIndex: number}) => {
+    onItemsRendered = ({visibleStartIndex, visibleStopIndex}: Pick<OnItemsRenderedArgs, 'visibleStartIndex' | 'visibleStopIndex'>) => {
         this.updateFloatingTimestamp(visibleStartIndex);
 
         if (
@@ -706,11 +717,11 @@ export default class PostList extends React.PureComponent<Props, State> {
                                         </div>
 
                                         <DynamicVirtualizedList
-                                            id='postListScrollContainer'
                                             ref={this.listRef}
+                                            id='postListScrollContainer'
+                                            className='post-list__dynamic'
                                             height={height}
                                             width={width}
-                                            className='post-list__dynamic'
                                             itemData={this.state.postListIds}
                                             overscanCountForward={OVERSCAN_COUNT_FORWARD}
                                             overscanCountBackward={OVERSCAN_COUNT_BACKWARD}
@@ -718,7 +729,8 @@ export default class PostList extends React.PureComponent<Props, State> {
                                             initScrollToIndex={this.initScrollToIndex}
                                             canLoadMorePosts={this.props.actions.canLoadMorePosts}
                                             innerRef={this.postListRef}
-                                            style={dynamicListStyle}
+                                            style={{...virtListStyles, ...dynamicListStyle}}
+                                            innerListStyle={postListStyle}
                                             initRangeToRender={this.initRangeToRender}
                                             loaderId={PostListRowListIds.OLDER_MESSAGES_LOADER}
                                             correctScrollToBottom={this.props.atLatestPost}
