@@ -33,16 +33,15 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 
 func TestMoveCommand(t *testing.T) {
 	th := setup(t)
-	defer th.tearDown()
 
-	sourceTeam := th.createTeam()
-	targetTeam := th.createTeam()
-	defer func() {
+	sourceTeam := th.createTeam(t)
+	targetTeam := th.createTeam(t)
+	t.Cleanup(func() {
 		appErr := th.App.PermanentDeleteTeam(th.Context, sourceTeam)
 		require.Nil(t, appErr)
 		appErr = th.App.PermanentDeleteTeam(th.Context, targetTeam)
 		require.Nil(t, appErr)
-	}()
+	})
 
 	command := &model.Command{}
 	command.CreatorId = model.NewId()
@@ -68,8 +67,7 @@ func TestMoveCommand(t *testing.T) {
 }
 
 func TestCreateCommandPost(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	post := &model.Post{
 		ChannelId: th.BasicChannel.Id,
@@ -88,8 +86,7 @@ func TestCreateCommandPost(t *testing.T) {
 }
 
 func TestExecuteCommand(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	t.Run("valid tests with different whitespace characters", func(t *testing.T) {
 		TestCases := map[string]string{
@@ -136,8 +133,7 @@ func TestExecuteCommand(t *testing.T) {
 }
 
 func TestHandleCommandResponsePost(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	command := &model.Command{}
 	args := &model.CommandArgs{
@@ -177,9 +173,9 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	builtIn = true
 
 	// Channel id is specified by response, it should override the command args value.
-	channel := th.CreateChannel(th.BasicTeam)
+	channel := th.CreateChannel(t, th.BasicTeam)
 	resp.ChannelId = channel.Id
-	th.addUserToChannel(th.BasicUser, channel)
+	th.addUserToChannel(t, th.BasicUser, channel)
 
 	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
@@ -262,7 +258,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	}
 	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
-	channel = th.createPrivateChannel(th.BasicTeam)
+	channel = th.createPrivateChannel(t, th.BasicTeam)
 	resp.ChannelId = channel.Id
 	args.UserId = th.BasicUser2.Id
 	_, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
@@ -291,8 +287,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 }
 
 func TestHandleCommandResponse(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	command := &model.Command{}
 
@@ -350,7 +345,6 @@ func TestHandleCommandResponse(t *testing.T) {
 
 func TestDoCommandRequest(t *testing.T) {
 	th := setup(t)
-	defer th.tearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("127.0.0.1")
@@ -362,7 +356,7 @@ func TestDoCommandRequest(t *testing.T) {
 			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
 			require.NoError(t, err)
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
@@ -378,7 +372,7 @@ func TestDoCommandRequest(t *testing.T) {
 			_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
 			require.NoError(t, err)
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
@@ -392,7 +386,7 @@ func TestDoCommandRequest(t *testing.T) {
 			_, err := io.Copy(w, InfiniteReader{})
 			require.Error(t, err) // InfiniteReader never returns EOF, so this will error
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		// Since we limit the length of the response, no error will be returned and resp.Text will be a finite string
 
@@ -408,7 +402,7 @@ func TestDoCommandRequest(t *testing.T) {
 			_, err := io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
 			require.Error(t, err) // InfiniteReader never returns EOF, so this will error
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
@@ -422,7 +416,7 @@ func TestDoCommandRequest(t *testing.T) {
 			_, err := io.Copy(w, InfiniteReader{})
 			require.Error(t, err) // InfiniteReader never returns EOF, so this will error
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
@@ -436,7 +430,7 @@ func TestDoCommandRequest(t *testing.T) {
 			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
 			require.NoError(t, err)
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
@@ -455,7 +449,7 @@ func TestDoCommandRequest(t *testing.T) {
 			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
 			require.NoError(t, err)
 		}))
-		defer server.Close()
+		t.Cleanup(server.Close)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(2))
@@ -482,7 +476,7 @@ func TestDoCommandRequest(t *testing.T) {
 			_, err := io.Copy(w, strings.NewReader(r.Header.Get("Authorization")))
 			require.NoError(t, err)
 		}))
-		defer serverCommand.Close()
+		t.Cleanup(serverCommand.Close)
 
 		connection := &model.OutgoingOAuthConnection{
 			Id:            model.NewId(),
@@ -515,12 +509,11 @@ func TestDoCommandRequest(t *testing.T) {
 }
 
 func TestMentionsToTeamMembers(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
-	otherTeam := th.createTeam()
-	otherUser := th.createUser()
-	th.linkUserToTeam(otherUser, otherTeam)
+	otherTeam := th.createTeam(t)
+	otherUser := th.createUser(t)
+	th.linkUserToTeam(t, otherUser, otherTeam)
 
 	fixture := []struct {
 		message     string
@@ -601,11 +594,10 @@ func TestMentionsToTeamMembers(t *testing.T) {
 }
 
 func TestMentionsToPublicChannels(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
-	otherPublicChannel := th.CreateChannel(th.BasicTeam)
-	privateChannel := th.createPrivateChannel(th.BasicTeam)
+	otherPublicChannel := th.CreateChannel(t, th.BasicTeam)
+	privateChannel := th.createPrivateChannel(t, th.BasicTeam)
 
 	fixture := []struct {
 		message     string
