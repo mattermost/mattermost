@@ -86,6 +86,54 @@ describe('components/widgets/tag/GenericTag', () => {
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 
+    test('should apply testId', () => {
+        render(
+            <GenericTag
+                text='Tag Text'
+                testId='test-id'
+            />,
+        );
+
+        expect(screen.getByTestId('test-id')).toBeInTheDocument();
+    });
+
+    test('should use span element when onClick is not provided', () => {
+        render(
+            <GenericTag
+                text='Tag Text'
+            />,
+        );
+
+        const element = screen.getByText('Tag Text');
+        expect(element.tagName).toBe('SPAN');
+    });
+
+    test('should use button element when onClick is provided', () => {
+        const onClick = jest.fn();
+        render(
+            <GenericTag
+                text='Tag Text'
+                onClick={onClick}
+            />,
+        );
+
+        const element = screen.getByText('Tag Text');
+        expect(element.tagName).toBe('BUTTON');
+    });
+
+    test('should add type="button" attribute when onClick is provided', () => {
+        const onClick = jest.fn();
+        render(
+            <GenericTag
+                text='Tag Text'
+                onClick={onClick}
+            />,
+        );
+
+        const element = screen.getByText('Tag Text');
+        expect(element.getAttribute('type')).toBe('button');
+    });
+
     test('should render with tooltip when tooltipTitle is provided', () => {
         // Note: We can't fully test the tooltip functionality here as it requires
         // hovering which is more complex.

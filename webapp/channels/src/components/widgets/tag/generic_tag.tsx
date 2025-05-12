@@ -39,8 +39,11 @@ const GenericTag: React.FC<GenericTagProps> = ({
     testId,
     tooltipTitle,
 }) => {
+    // Determine which element to use based on whether onClick is provided
+    const TagElement = onClick ? 'button' : 'span';
+
     const tagElement = (
-        <span
+        <TagElement
             className={classNames(
                 'GenericTag',
                 `GenericTag--${variant}`,
@@ -52,9 +55,12 @@ const GenericTag: React.FC<GenericTagProps> = ({
             )}
             onClick={onClick}
             data-testid={testId}
+
+            // Add type="button" to prevent form submission if used within a form
+            {...(onClick && {type: 'button'})}
         >
             {text}
-        </span>
+        </TagElement>
     );
 
     // If tooltipTitle is provided, wrap the tag with WithTooltip

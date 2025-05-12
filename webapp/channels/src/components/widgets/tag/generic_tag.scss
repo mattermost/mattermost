@@ -13,6 +13,14 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 
+    // Reset button styles when using button element
+    &:is(button) {
+        border: none;
+        background: none;
+        padding: 0;
+        font: inherit;
+        outline: inherit;
+    }
     
     &--clickable {
         cursor: pointer;
