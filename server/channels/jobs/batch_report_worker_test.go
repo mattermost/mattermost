@@ -94,8 +94,7 @@ func TestBatchReportWorker(t *testing.T) {
 			t.Parallel()
 		}
 
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		var worker model.Worker
 		var job *model.Job
@@ -128,8 +127,7 @@ func TestBatchReportWorker(t *testing.T) {
 		if mainHelper.Options.RunParallel {
 			t.Parallel()
 		}
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		var worker model.Worker
 		var job *model.Job

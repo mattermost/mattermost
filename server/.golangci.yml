@@ -90,27 +90,10 @@ issues:
         channels/api4/websocket_test.go|\
         channels/app/bot_test.go|\
         channels/app/brand.go|\
-        channels/app/config_test.go|\
-        channels/app/file.go|\
         channels/app/file_test.go|\
         channels/app/helper_test.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/helper_test.go|\
-        channels/app/platform/license.go|\
-        channels/app/platform/session.go|\
-        channels/app/platform/status.go|\
-        channels/app/platform/web_hub_test.go|\
-        channels/app/post_test.go|\
-        channels/app/slashcommands/auto_environment.go|\
-        channels/app/slashcommands/command_test.go|\
-        channels/app/slashcommands/helper_test.go|\
-        channels/app/team.go|\
-        channels/app/team_test.go|\
-        channels/app/upload.go|\
-        channels/jobs/batch_worker_test.go|\
-        channels/jobs/helper_test.go|\
-        channels/jobs/hosted_purchase_screening/worker.go|\
-        channels/jobs/jobs.go|\
         channels/store/localcachelayer/channel_layer.go|\
         channels/store/localcachelayer/channel_layer_test.go|\
         channels/store/localcachelayer/emoji_layer.go|\
@@ -156,7 +139,6 @@ issues:
         channels/store/storetest/team_store.go|\
         channels/store/storetest/thread_store.go|\
         channels/store/storetest/user_store.go|\
-        channels/web/oauth_test.go|\
         channels/web/web_test.go|\
         cmd/mattermost/commands/cmdtestlib.go|\
         cmd/mattermost/commands/db.go|\
