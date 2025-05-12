@@ -334,6 +334,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         const betaBadge = this.props.schema.isBeta && (
             <BetaTag
                 variant='default'
+                size='sm'
                 className='admin-header-beta-badge'
             />
         );
