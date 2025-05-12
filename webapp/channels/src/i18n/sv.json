@@ -3397,7 +3397,7 @@
   "channel_modal.handleTooShort": "Namnet måste bestå av 1 eller flera gemena alfanumeriska tecken",
   "channel_modal.modalTitle": "Skapa ny kanal",
   "channel_modal.name.label": "Kanalnamn",
-  "channel_modal.name.longer": "Kanalens namn måste ha minst 1 tecken.",
+  "channel_modal.name.longer": "Kanalens namn måste ha minst 2 tecken.",
   "channel_modal.name.placeholder": "Ange ett namn för din nya kanal",
   "channel_modal.name.shorter": "Kanalnamn får ha högst 64 tecken.",
   "channel_modal.purpose.info": "Detta visas när du söker efter kanaler.",
