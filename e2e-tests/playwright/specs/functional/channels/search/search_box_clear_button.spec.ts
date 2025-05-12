@@ -37,8 +37,8 @@ test('search box clear button should not leave type badge after closing the sear
     // * Verify the search box is closed
     await expect(channelsPage.searchPopover.container).not.toBeVisible();
     
-    // * Verify there is no "MESSAGES" badge/chip in the search bar
-    // The badge text is rendered based on the searchType in the component
-    const messagesBadge = channelsPage.page.getByText('MESSAGES', {exact: true});
-    await expect(messagesBadge).not.toBeVisible();
+    // * Verify there is no search type badge/chip in the search bar
+    // The search type badge is rendered when searchType is either 'messages' or 'files'
+    const searchTypeBadge = channelsPage.page.getByTestId('searchTypeBadge');
+    await expect(searchTypeBadge).not.toBeVisible();
 });
