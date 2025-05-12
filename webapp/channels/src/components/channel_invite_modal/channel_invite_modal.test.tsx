@@ -30,7 +30,12 @@ jest.mock('components/common/hooks/useAccessControlAttributes', () => {
     };
 
     const mockHook = jest.fn(() => ({
-        attributeTags: ['tag1', 'tag2'],
+        structuredAttributes: [
+            {
+                name: 'attribute1',
+                values: ['tag1', 'tag2'],
+            },
+        ],
         loading: false,
         error: null,
         fetchAttributes: jest.fn(),
@@ -526,7 +531,7 @@ describe('components/channel_invite_modal', () => {
         const useAccessControlAttributesModule = require('components/common/hooks/useAccessControlAttributes');
         const useAccessControlAttributesMock = useAccessControlAttributesModule.default;
         useAccessControlAttributesMock.mockReturnValueOnce({
-            attributeTags: [],
+            structuredAttributes: [],
             loading: true,
             error: null,
             fetchAttributes: jest.fn(),
@@ -558,7 +563,7 @@ describe('components/channel_invite_modal', () => {
         const useAccessControlAttributesModule = require('components/common/hooks/useAccessControlAttributes');
         const useAccessControlAttributesMock = useAccessControlAttributesModule.default;
         useAccessControlAttributesMock.mockReturnValueOnce({
-            attributeTags: [],
+            structuredAttributes: [],
             loading: false,
             error: 'Failed to load attributes',
             fetchAttributes: jest.fn(),
