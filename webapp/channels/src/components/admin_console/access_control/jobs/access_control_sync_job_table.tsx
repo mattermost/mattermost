@@ -25,6 +25,7 @@ type Props = {
 export default function AccessControlSyncJobTable(props: Props): JSX.Element {
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [showModal, setShowModal] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         // Load jobs when component mounts
@@ -42,11 +43,27 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
 
     const handleCreateJob = async (e?: React.SyntheticEvent) => {
         e?.preventDefault();
+        
+        if (isSubmitting) {
+            return;
+        }
+        
+        setIsSubmitting(true);
+        
         const job = {
             type: JobTypes.ACCESS_CONTROL_SYNC,
         };
 
-        await props.actions.createJob(job);
+        try {
+            await props.actions.createJob(job);
+            // Immediately fetch updated job list
+            props.actions.getJobsByType(JobTypes.ACCESS_CONTROL_SYNC);
+        } finally {
+            // Reset submitting state after a short delay to prevent rapid re-clicks
+            setTimeout(() => {
+                setIsSubmitting(false);
+            }, 1000);
+        }
     };
 
     const handleRowClick = (job: Job) => {
@@ -69,9 +86,10 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                 <button
                     className='btn btn-primary'
                     onClick={handleCreateJob}
+                    disabled={isSubmitting}
                 >
                     <i className='icon icon-plus'/>
-                    <span>{'Run Sync Job'}</span>
+                    <span>{isSubmitting ? 'Running Job...' : 'Run Sync Job'}</span>
                 </button>
             </div>
             <JobsTable
