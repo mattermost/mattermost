@@ -241,7 +241,7 @@ const getNotificationBody = (state: GlobalState, post: Post, msgProps: NewPostMe
         } else if (image) {
             body += Utils.localizeMessage({id: 'channel_loader.postedImage', defaultMessage: ' posted an image'});
         } else {
-            body += Utils.localizeMessage({id: 'channel_loader.something', defaultMessage: ' did something new'});
+            body += Utils.localizeMessage({id: 'channel_loader.something', defaultMessage: ' posted a message'});
         }
     } else {
         body += `: ${strippedMarkdownNotifyText}`;

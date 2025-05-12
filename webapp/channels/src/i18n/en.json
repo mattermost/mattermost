@@ -3375,7 +3375,7 @@
   "channel_loader.postedImage": " posted an image",
   "channel_loader.socketError": "Please check connection, Mattermost unreachable. If issue persists, ask administrator to [check WebSocket port](!https://docs.mattermost.com/install/troubleshooting.html#please-check-connection-mattermost-unreachable-if-issue-persists-ask-administrator-to-check-websocket-port).",
   "channel_loader.someone": "Someone",
-  "channel_loader.something": " did something new",
+  "channel_loader.something": " posted a message",
   "channel_loader.unknown_error": "We received an unexpected status code from the server.",
   "channel_loader.uploadedFile": " uploaded a file",
   "channel_loader.uploadedImage": " uploaded an image",
