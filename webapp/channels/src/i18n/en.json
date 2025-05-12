@@ -3760,6 +3760,8 @@
   "drafts.confirm.send.button": "Yes, send now",
   "drafts.confirm.send.text": "Are you sure you want to send this message to <strong>{displayName}</strong>?",
   "drafts.confirm.send.title": "Send message now",
+  "drafts.draft_row.aria_label.draft": "draft in {channelName}",
+  "drafts.draft_row.aria_label.scheduled_post": "scheduled post in {channelName}",
   "drafts.draft_title.channel": "In: {icon} <span>{channelName}</span>",
   "drafts.draft_title.channel_thread": "Thread in: {icon} <span>{channelName}</span>",
   "drafts.draft_title.direct_channel": "To: {icon} <span>{channelName}</span>",
