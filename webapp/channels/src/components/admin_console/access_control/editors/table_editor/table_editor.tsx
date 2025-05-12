@@ -223,47 +223,53 @@ function TableEditor({
                 </div>
 
                 <div className='table-editor__rows'>
-                    {rows.map((row, index) => (
-                        <div
-                            key={index}
-                            className='table-editor__row'
-                        >
-                            <div className='table-editor__cell'>
-                                <AttributeSelectorMenu
-                                    currentAttribute={row.attribute}
-                                    availableAttributes={getAvailableAttributes().concat(
-                                        row.attribute ? [{attribute: row.attribute, values: []}] : [],
-                                    )}
-                                    disabled={disabled}
-                                    onChange={(attribute) => updateRowAttribute(index, attribute)}
-                                />
-                            </div>
-                            <div className='table-editor__cell'>
-                                <OperatorSelectorMenu
-                                    currentOperator={row.operator}
-                                    disabled={disabled}
-                                    onChange={(operator) => updateRowOperator(index, operator)}
-                                />
-                            </div>
-                            <div className='table-editor__cell'>
-                                <ValuesEditor
-                                    row={row}
-                                    disabled={disabled}
-                                    updateValues={(values) => updateRowValues(index, values)}
-                                />
-                            </div>
-                            <div className='table-editor__cell-actions'>
-                                <button
-                                    className='table-editor__row-remove'
-                                    onClick={() => removeRow(index)}
-                                    disabled={disabled}
-                                    aria-label={formatMessage({id: 'admin.access_control.table_editor.remove_row', defaultMessage: 'Remove row'})}
-                                >
-                                    <i className='icon icon-trash-can-outline'/>
-                                </button>
-                            </div>
+                    {rows.length === 0 ? (
+                        <div className='table-editor__blank-state'>
+                            <span>Select a user attribute and values to create a rule</span>
                         </div>
-                    ))}
+                    ) : (
+                        rows.map((row, index) => (
+                            <div
+                                key={index}
+                                className='table-editor__row'
+                            >
+                                <div className='table-editor__cell'>
+                                    <AttributeSelectorMenu
+                                        currentAttribute={row.attribute}
+                                        availableAttributes={getAvailableAttributes().concat(
+                                            row.attribute ? [{attribute: row.attribute, values: []}] : [],
+                                        )}
+                                        disabled={disabled}
+                                        onChange={(attribute) => updateRowAttribute(index, attribute)}
+                                    />
+                                </div>
+                                <div className='table-editor__cell'>
+                                    <OperatorSelectorMenu
+                                        currentOperator={row.operator}
+                                        disabled={disabled}
+                                        onChange={(operator) => updateRowOperator(index, operator)}
+                                    />
+                                </div>
+                                <div className='table-editor__cell'>
+                                    <ValuesEditor
+                                        row={row}
+                                        disabled={disabled}
+                                        updateValues={(values) => updateRowValues(index, values)}
+                                    />
+                                </div>
+                                <div className='table-editor__cell-actions'>
+                                    <button
+                                        className='table-editor__row-remove'
+                                        onClick={() => removeRow(index)}
+                                        disabled={disabled}
+                                        aria-label={formatMessage({id: 'admin.access_control.table_editor.remove_row', defaultMessage: 'Remove row'})}
+                                    >
+                                        <i className='icon icon-trash-can-outline'/>
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
 
