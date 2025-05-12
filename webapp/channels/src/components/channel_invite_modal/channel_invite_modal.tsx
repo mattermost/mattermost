@@ -151,36 +151,6 @@ const ChannelInviteModalComponent = (props: Props) => {
         }
     }, [props.membersInTeam, isGuest]);
 
-    // These functions are kept for potential future use but are not currently used in the component
-    // They were part of the original class implementation and might be needed for future features
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const removeInvitedUsers = useCallback((profiles: UserProfile[]) => {
-        setUsersNotInTeam((prevState) => {
-            const updatedUsers = prevState.filter((profile) => {
-                const user = profile as UserProfileValue;
-                const index = profiles.indexOf(user);
-                if (index === -1) {
-                    return true;
-                }
-                addValue(user);
-                return false;
-            });
-            return updatedUsers;
-        });
-        setGuestsNotInTeam([]);
-    }, [addValue]);
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const removeUsersFromValuesNotInTeam = useCallback((profiles: UserProfile[]) => {
-        setUsersNotInTeam((prevState) => {
-            return prevState.filter((profile) => {
-                const index = profiles.indexOf(profile);
-                return index === -1;
-            });
-        });
-        setGuestsNotInTeam([]);
-    }, []);
-
     // Get excluded users
     const getExcludedUsers = useCallback(() => {
         if (props.excludeUsers) {
