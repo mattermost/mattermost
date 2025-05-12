@@ -50,6 +50,12 @@ jest.mock('components/common/hooks/useAccessControlAttributes', () => {
 
     const mockHook = jest.fn(() => ({
         attributeTags: ['tag1', 'tag2'],
+        structuredAttributes: [
+            {
+                name: 'attribute1',
+                values: ['tag1', 'tag2'],
+            },
+        ],
         loading: false,
         error: null,
         fetchAttributes: jest.fn(),

@@ -16,9 +16,12 @@ export enum EntityType {
 }
 
 // Module-level cache for access control attributes
-// The cache stores data with a timestamp to implement a TTL (time-to-live)
+// The cache stores processed data with a timestamp to implement a TTL (time-to-live)
 const attributesCache: Record<string, {
-    data: Record<string, string[]>;
+    processedData: {
+        attributeTags: string[];
+        structuredAttributes: AccessControlAttribute[];
+    };
     timestamp: number;
 }> = {};
 
@@ -101,7 +104,9 @@ export const useAccessControlAttributes = (
             // Use cache if it exists and is not too old and forceRefresh is false
             // But still set loading to false to trigger a state update for tests
             if (!forceRefresh && cachedEntry && (now - cachedEntry.timestamp < CACHE_TTL)) {
-                processAttributeData(cachedEntry.data);
+                // Use the cached processed data directly instead of reprocessing
+                setAttributeTags(cachedEntry.processedData.attributeTags);
+                setStructuredAttributes(cachedEntry.processedData.structuredAttributes);
                 setLoading(false);
                 return;
             }
@@ -123,15 +128,40 @@ export const useAccessControlAttributes = (
             }
             const data = result.data;
 
-            // Store in cache
+            // Process the data and store it in cache
             if (data) {
+                const processedTags: string[] = [];
+                const processedAttributes: AccessControlAttribute[] = [];
+
+                // Process the data once
+                Object.entries(data).forEach(([name, values]) => {
+                    if (Array.isArray(values)) {
+                        processedAttributes.push({name, values: [...values]});
+                        values.forEach((value) => {
+                            if (value !== undefined && value !== null) {
+                                processedTags.push(value);
+                            }
+                        });
+                    }
+                });
+
+                // Store only the processed data
                 attributesCache[cacheKey] = {
-                    data,
+                    processedData: {
+                        attributeTags: processedTags,
+                        structuredAttributes: processedAttributes,
+                    },
                     timestamp: now,
                 };
-            }
 
-            processAttributeData(data);
+                // Set state
+                setAttributeTags(processedTags);
+                setStructuredAttributes(processedAttributes);
+            } else {
+                // Handle the case where data is undefined or null
+                setAttributeTags([]);
+                setStructuredAttributes([]);
+            }
         } catch (err) {
             setError(err as Error);
             setAttributeTags([]);

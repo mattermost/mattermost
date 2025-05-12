@@ -499,12 +499,12 @@ describe('components/channel_invite_modal', () => {
 
         // Check that the attribute tags are shown
         const tagGroup = wrapper.find('TagGroup');
-        const genericTags = tagGroup.find('GenericTag');
-        expect(genericTags).toHaveLength(2);
+        const alertTags = tagGroup.find('AlertTag');
+        expect(alertTags).toHaveLength(2);
 
         // Verify the tag text
-        expect(genericTags.at(0).prop('text')).toBe('tag1');
-        expect(genericTags.at(1).prop('text')).toBe('tag2');
+        expect(alertTags.at(0).prop('text')).toBe('tag1');
+        expect(alertTags.at(1).prop('text')).toBe('tag2');
     });
 
     test('should not show AlertBanner when policy_enforced is false', () => {
@@ -555,7 +555,7 @@ describe('components/channel_invite_modal', () => {
         expect(wrapper.find('AlertBanner').exists()).toBe(true);
 
         // Check that no tags are shown
-        expect(wrapper.find('GenericTag').exists()).toBe(false);
+        expect(wrapper.find('AlertTag').exists()).toBe(false);
     });
 
     test('should handle error state for access attributes', () => {
@@ -587,6 +587,6 @@ describe('components/channel_invite_modal', () => {
         expect(wrapper.find('AlertBanner').exists()).toBe(true);
 
         // Check that no tags are shown
-        expect(wrapper.find('GenericTag').exists()).toBe(false);
+        expect(wrapper.find('AlertTag').exists()).toBe(false);
     });
 });
