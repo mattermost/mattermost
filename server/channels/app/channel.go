@@ -332,9 +332,9 @@ func (a *App) GetOrCreateDirectChannel(c request.CTX, userID, otherUserID string
 
 	if *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam &&
 		!a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem) {
-		users, userErr := a.GetUsersByIds([]string{userID, otherUserID}, &store.UserGetByIdsOpts{})
-		if userErr != nil {
-			return nil, userErr
+		users, err := a.GetUsersByIds([]string{userID, otherUserID}, &store.UserGetByIdsOpts{})
+		if err != nil {
+			return nil, err
 		}
 		var isBot bool
 		for _, user := range users {
