@@ -184,8 +184,6 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 	th.BasicUser2, appErr = th.App.GetUser(th.BasicUser2.Id)
 	require.Nil(tb, appErr)
 
-	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	th.Store.User().InsertUsers(users)
 	th.BasicTeam = th.CreateTeam(tb)
 
 	return th
@@ -247,17 +245,6 @@ func (th *TestHelper) ShutdownApp() {
 		// panic instead of fatal to terminate all tests in this package, otherwise the
 		// still running App could spuriously fail subsequent tests.
 		panic("failed to shutdown App within 30 seconds")
-	}
-}
-
-func (th *TestHelper) TearDown() {
-	if th.IncludeCacheLayer {
-		// Clean all the caches
-		th.App.Srv().InvalidateAllCaches()
-	}
-	th.ShutdownApp()
-	if th.tempWorkspace != "" {
-		os.RemoveAll(th.tempWorkspace)
 	}
 }
 
