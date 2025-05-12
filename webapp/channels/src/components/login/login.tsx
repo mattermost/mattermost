@@ -48,6 +48,7 @@ import PasswordInput from 'components/widgets/inputs/password_input/password_inp
 
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
+import {isEmbedded} from 'utils/embed';
 import {t} from 'utils/i18n';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp} from 'utils/user_agent';
@@ -58,7 +59,6 @@ import type {GlobalState} from 'types/store';
 import LoginMfa from './login_mfa';
 
 import './login.scss';
-import {isEmbedded} from 'utils/embed';
 
 const MOBILE_SCREEN_WIDTH = 1200;
 
@@ -228,15 +228,49 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             }
 
             // If the user is running the app in an embedded view, we need send the parent window a message
-            // to continue the login process.
+            // to continue the login process if the parent frame answers a message to confirm that is going to
+            // take care for the authentication process.
             if (isEmbedded()) {
                 event.preventDefault();
 
+                // Create a promise that will resolve if the parent window responds
+                const messagePromise = new Promise<boolean>((resolve) => {
+                    // Set up a one-time event listener for the response
+                    const messageHandler = (event: MessageEvent) => {
+                        // Right now we are embedding from a plugin so let's just check the origin is the same as this server origin.
+                        if (event.origin !== window.location.origin) {
+                            return;
+                        }
+
+                        if (event.data && event.data.type === 'mattermost_external_auth_login' && event.data.ack === true) {
+                            window.removeEventListener('message', messageHandler);
+                            resolve(true);
+                        }
+                    };
+
+                    window.addEventListener('message', messageHandler);
+
+                    // Wait for at least one second for a response from the parent.
+                    setTimeout(() => {
+                        window.removeEventListener('message', messageHandler);
+                        resolve(false);
+                    }, 1000);
+                });
+
+                // Notify the parent
                 window.parent.postMessage({
                     type: 'mattermost_external_auth_login',
                     provider,
                     href,
                 }, '*');
+
+                // Wait for response or timeout, following with the usual authentication flow
+                messagePromise.then((received) => {
+                    if (!received) {
+                        // If the parent didn't respond, navigate to the href directly
+                        history.push(href);
+                    }
+                });
             }
         };
     };
