@@ -1,6 +1,6 @@
-.user-list-modal-dialog {
-    .modal-body {
-        overflow: hidden;
+#user-list-modal-dialog {
+    .modal-header {
+        padding-bottom: 0px;
     }
 
     .tabs {
@@ -29,10 +29,18 @@
     }
     
     .tab-content {
-        .no-results {
-            padding: 20px;
+        .filtered-user-list {
+            height: 440px;
+            overflow-y: auto;
+        }
+
+        .no-user-message {
             color: rgba(var(--center-channel-color-rgb), 0.64);
             text-align: center;
+
+            .primary-message {
+                padding-bottom: 24px;
+            }
         }
     }
 }

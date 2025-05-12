@@ -9,6 +9,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import SecuritySVG from 'components/common/svg_images_components/security_svg';
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container';
 
 import type {ActionFuncAsync} from 'types/store';
@@ -69,11 +70,21 @@ export const SyncedUserList = ({userIds, noResultsMessageId, noResultsDefaultMes
 
     if (userIds.length === 0) {
         return (
-            <div className='no-results'>
-                <FormattedMessage
-                    id={noResultsMessageId}
-                    defaultMessage={noResultsDefaultMessage}
+            <div
+                className='no-user-message'
+                aria-label='No users found'
+            >
+                <SecuritySVG
+                    width={100}
+                    height={100}
                 />
+                <h3 className='primary-message'>
+                    <FormattedMessage
+                        id={noResultsMessageId}
+                        tagName='strong'
+                        defaultMessage={noResultsDefaultMessage}
+                    />
+                </h3>
             </div>
         );
     }

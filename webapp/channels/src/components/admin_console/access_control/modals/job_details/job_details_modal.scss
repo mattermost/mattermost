@@ -5,6 +5,7 @@
     
     .filtered-user-list {
         height: 440px;
+        cursor: pointer;
     }
 
     .modal-header-with-status {
@@ -87,5 +88,16 @@
 
     .more-modal__list .more-modal__details{
         padding-left: 0;
+    }
+
+    .error-status-content {
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+        padding: 0px 32px 32px;
+
+        &__title {
+            color: var(--error-text);
+        }
     }
 }

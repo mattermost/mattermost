@@ -15,6 +15,8 @@ import * as ChannelActions from 'mattermost-redux/actions/channels';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
+import CodeBlock from 'components/code_block/code_block';
+
 import type {GlobalState} from 'types/store';
 
 import SearchableSyncJobChannelList from './searchable_sync_job_channel_list';
@@ -194,18 +196,33 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
             show={true}
             bodyPadding={false}
         >
-            {job.type.includes('access_control_sync') && syncResults && (
-                <SearchableSyncJobChannelList
-                    channels={filteredChannels}
-                    teams={teamLookup}
-                    channelsPerPage={pageSize}
-                    nextPage={() => {}}
-                    isSearch={Boolean(searchTerm)}
-                    search={setSearchTerm}
-                    onViewDetails={handleViewDetails}
-                    noResultsText={noResultsText}
-                    syncResults={syncResults}
-                />
+            {job.status === 'error' ? (
+                <div className='error-status-content'>
+                    <div className='error-status-content__title'>
+                        <FormattedMessage
+                            id='admin.jobTable.syncResults.error'
+                            defaultMessage='An error occurred while syncing the channels.'
+                        />
+                    </div>
+                    <CodeBlock
+                        code={JSON.stringify(job.data, null, 2)}
+                        language='json'
+                    />
+                </div>
+            ) : (
+                job.type.includes('access_control_sync') && syncResults && (
+                    <SearchableSyncJobChannelList
+                        channels={filteredChannels}
+                        teams={teamLookup}
+                        channelsPerPage={pageSize}
+                        nextPage={() => {}}
+                        isSearch={Boolean(searchTerm)}
+                        search={setSearchTerm}
+                        onViewDetails={handleViewDetails}
+                        noResultsText={noResultsText}
+                        syncResults={syncResults}
+                    />
+                )
             )}
 
             {selectedChannel && selectedChannelResults && (
