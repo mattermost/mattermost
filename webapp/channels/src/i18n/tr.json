@@ -4488,8 +4488,6 @@
   "more_channels.count_zero": "0 sonuç",
   "more_channels.create": "Kanal ekle",
   "more_channels.hide_joined": "Katılınanları gizle",
-  "more_channels.hide_joined_checked": "Katılınan kanallar gizlensin seçeneği, işaretlenmiş",
-  "more_channels.hide_joined_not_checked": "Katılınan kanallar gizlensin seçeneği, işaretlenmemiş",
   "more_channels.joined": "Katılındı",
   "more_channels.membership_indicator": "Üyelik göstergesi: Katılındı",
   "more_channels.next": "Sonraki",

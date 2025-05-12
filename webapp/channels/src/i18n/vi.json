@@ -3550,8 +3550,6 @@
   "more_channels.count_zero": "0 kết quả",
   "more_channels.create": "Tạo kênh",
   "more_channels.hide_joined": "Ẩn đã tham gia",
-  "more_channels.hide_joined_checked": "Ẩn hộp kiểm kênh đã tham gia, đã chọn",
-  "more_channels.hide_joined_not_checked": "Ẩn hộp kiểm kênh đã tham gia, không được chọn",
   "more_channels.joined": "Đã tham gia",
   "more_channels.membership_indicator": "Tư cách thành viên: Đã tham gia",
   "more_channels.next": "Tiếp theo",

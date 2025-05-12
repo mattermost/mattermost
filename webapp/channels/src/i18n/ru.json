@@ -4221,8 +4221,6 @@
   "more_channels.count_zero": "Нет результатов",
   "more_channels.create": "Создать канал",
   "more_channels.hide_joined": "Скрыть присоединенные",
-  "more_channels.hide_joined_checked": "Скрыть присоединенные каналы, флажок установлен",
-  "more_channels.hide_joined_not_checked": "Флажок Скрывать объединенные каналы не установлен",
   "more_channels.joined": "Присоединился",
   "more_channels.membership_indicator": "Индикатор пользователей: Присоединился",
   "more_channels.next": "Далее",

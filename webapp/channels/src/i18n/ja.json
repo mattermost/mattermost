@@ -4431,8 +4431,6 @@
   "more_channels.count_zero": "0件の結果",
   "more_channels.create": "チャンネルを作成する",
   "more_channels.hide_joined": "参加済みを非表示",
-  "more_channels.hide_joined_checked": "参加済みチャンネル非表示チェックボックスがチェック済み",
-  "more_channels.hide_joined_not_checked": "参加済みチャンネル非表示チェックボックスが未チェック",
   "more_channels.joined": "参加済み",
   "more_channels.membership_indicator": "メンバーシップ状況: 参加済",
   "more_channels.next": "次へ",

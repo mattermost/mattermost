@@ -4488,8 +4488,6 @@
   "more_channels.count_zero": "Inga resultat",
   "more_channels.create": "Skapa kanal",
   "more_channels.hide_joined": "Dölj anslutna",
-  "more_channels.hide_joined_checked": "Kryssrutan för att dölja gemensamma kanaler är markerad",
-  "more_channels.hide_joined_not_checked": "Kryssrutan för att dölja gemensamma kanaler är inte markerad",
   "more_channels.joined": "Ansluten",
   "more_channels.membership_indicator": "Indikator för medlemskap: Gått med i",
   "more_channels.next": "Nästa",

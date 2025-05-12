@@ -4305,8 +4305,6 @@
   "more_channels.count_zero": "0 個結果",
   "more_channels.create": "建立頻道",
   "more_channels.hide_joined": "隱藏已加入的頻道",
-  "more_channels.hide_joined_checked": "隱藏加入的頻道多選框，已選擇",
-  "more_channels.hide_joined_not_checked": "隱藏加入的頻道多選框，未選擇",
   "more_channels.joined": "已加入",
   "more_channels.membership_indicator": "會員指標：已加入",
   "more_channels.next": "下一頁",

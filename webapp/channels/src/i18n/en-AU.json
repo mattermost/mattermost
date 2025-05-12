@@ -4432,8 +4432,6 @@
   "more_channels.count_zero": "0 Results",
   "more_channels.create": "Create Channel",
   "more_channels.hide_joined": "Hide Joined",
-  "more_channels.hide_joined_checked": "Hide joined channels tickbox, ticked",
-  "more_channels.hide_joined_not_checked": "Hide joined channels tickbox, not ticked",
   "more_channels.joined": "Joined",
   "more_channels.membership_indicator": "Membership Indicator: Joined",
   "more_channels.next": "Next",

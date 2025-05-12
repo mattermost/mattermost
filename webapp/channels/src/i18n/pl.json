@@ -4488,8 +4488,6 @@
   "more_channels.count_zero": "0 Wyników",
   "more_channels.create": "Stwórz kanał",
   "more_channels.hide_joined": "Ukryj Dołączonych",
-  "more_channels.hide_joined_checked": "Pole wyboru ukryj połączone kanały, zaznaczone",
-  "more_channels.hide_joined_not_checked": "Pole wyboru ukryj połączone kanały, niezaznaczone",
   "more_channels.joined": "Dołączył",
   "more_channels.membership_indicator": "Wskaźnik członkostwa: Dołączył",
   "more_channels.next": "Dalej",

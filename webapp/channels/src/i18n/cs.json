@@ -4409,8 +4409,6 @@
   "more_channels.count_zero": "0 Výsledků",
   "more_channels.create": "Vytvořit nový kanál",
   "more_channels.hide_joined": "Skrýt připojené",
-  "more_channels.hide_joined_checked": "Zaškrtávací políčko Skrýt připojené kanály, zaškrtnuto",
-  "more_channels.hide_joined_not_checked": "Zaškrtávací políčko Skrýt připojené kanály, nezaškrtnuto",
   "more_channels.joined": "Připojené",
   "more_channels.membership_indicator": "Ukazatel členství: Připojeno",
   "more_channels.next": "Další",

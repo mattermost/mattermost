@@ -3598,8 +3598,6 @@
   "more_channels.count_zero": "0 rezultatų",
   "more_channels.create": "Sukurti naują kanalą",
   "more_channels.hide_joined": "Slėpti prisijungusius",
-  "more_channels.hide_joined_checked": "Slėpti prisijungusių kanalų žymimąjį laukelį, pažymėta",
-  "more_channels.hide_joined_not_checked": "Slėpti prisijungtų kanalų žymimąjį laukelį, nepažymėta",
   "more_channels.joined": "Prisijungė",
   "more_channels.membership_indicator": "Narystės rodiklis: prisijungė",
   "more_channels.next": "Kitas",

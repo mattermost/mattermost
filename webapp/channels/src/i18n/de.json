@@ -4488,8 +4488,6 @@
   "more_channels.count_zero": "Kein Ergebnis",
   "more_channels.create": "Kanal erstellen",
   "more_channels.hide_joined": "Verbundene Kanäle ausblenden",
-  "more_channels.hide_joined_checked": "Kontrollkästchen Verbundene Kanäle ausblenden, aktiviert",
-  "more_channels.hide_joined_not_checked": "Verbundene Kanäle ausblenden, nicht aktiviert",
   "more_channels.joined": "Beigetreten",
   "more_channels.membership_indicator": "Mitgliedschaftsindikator: Beigetreten",
   "more_channels.next": "Weiter",

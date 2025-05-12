@@ -4488,8 +4488,6 @@
   "more_channels.count_zero": "0 Resultaten",
   "more_channels.create": "Kanaal aanmaken",
   "more_channels.hide_joined": "Verbonden kanalen verbergen",
-  "more_channels.hide_joined_checked": "Verbonden kanalen verbergen checkbox, aangevinkt",
-  "more_channels.hide_joined_not_checked": "Verberg verbonden kanalen checkbox, niet aangevinkt",
   "more_channels.joined": "Verbonden",
   "more_channels.membership_indicator": "Lidmaatschapsindicator: Verbonden",
   "more_channels.next": "Volgende",

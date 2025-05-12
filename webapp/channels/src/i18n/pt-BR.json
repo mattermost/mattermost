@@ -3504,8 +3504,6 @@
   "more_channels.count_zero": "0 Resultados",
   "more_channels.create": "Criar Canal",
   "more_channels.hide_joined": "Ocultar participantes",
-  "more_channels.hide_joined_checked": "Caixa de seleção ocultar canais associados, marcada",
-  "more_channels.hide_joined_not_checked": "A caixa de seleção ocultar canais associados não está marcada",
   "more_channels.joined": "Participando",
   "more_channels.membership_indicator": "Indicador de Afiliação: Participando",
   "more_channels.next": "Próximo",

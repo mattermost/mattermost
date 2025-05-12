@@ -4432,8 +4432,6 @@
   "more_channels.count_zero": "0 个结果",
   "more_channels.create": "创建频道",
   "more_channels.hide_joined": "隐藏已加入",
-  "more_channels.hide_joined_checked": "隐藏已加入的频道复选框，已选中",
-  "more_channels.hide_joined_not_checked": "隐藏已加入的频道复选框，未选中",
   "more_channels.joined": "已加入",
   "more_channels.membership_indicator": "成员标识：已加入",
   "more_channels.next": "下一页",
