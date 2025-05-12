@@ -5,13 +5,11 @@
 /* eslint-disable no-underscore-dangle */
 
 import memoizeOne from 'memoize-one';
-import React, {createElement, PureComponent} from 'react';
+import {createElement, PureComponent} from 'react';
 
 import ItemRow from './item_row';
 
 // import ItemMeasurer from './item_measurer';
-
-import './dynamic_virtualized_list.scss';
 
 const atBottomMargin = 10;
 
@@ -22,6 +20,7 @@ export class DynamicVirtualizedList extends PureComponent {
         totalMeasuredSize: 0,
         atBottom: true,
     };
+
     _itemStyleCache = {};
     _outerRef;
     _scrollCorrectionInProgress = false;
@@ -32,7 +31,9 @@ export class DynamicVirtualizedList extends PureComponent {
     _correctedInstances = 0;
 
     static defaultProps = {
+        innerTagName: 'div',
         itemData: undefined,
+        outerTagName: 'div',
         overscanCountForward: 30,
         overscanCountBackward: 10,
     };
@@ -52,185 +53,6 @@ export class DynamicVirtualizedList extends PureComponent {
     constructor(props) {
         super(props);
     }
-
-    componentDidMount() {
-        const {initialScrollOffset} = this.props;
-
-        if (typeof initialScrollOffset === 'number' && this._outerRef !== null) {
-            const element = this._outerRef;
-            element.scrollTop = initialScrollOffset;
-        }
-
-        this._commitHook();
-    }
-
-    getSnapshotBeforeUpdate(_, prevState) {
-        if (prevState.localOlderPostsToRender[0] !== this.state.localOlderPostsToRender[0] || prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1]) {
-            const element = this._outerRef;
-            const previousScrollTop = element.scrollTop;
-            const previousScrollHeight = element.scrollHeight;
-
-            return {
-                previousScrollTop,
-                previousScrollHeight,
-            };
-        }
-
-        return null;
-    }
-
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        if (this.state.scrolledToInitIndex) {
-            const {
-                scrollDirection,
-                scrollOffset,
-                scrollUpdateWasRequested,
-                scrollHeight,
-            } = this.state;
-
-            const {
-                scrollDirection: prevScrollDirection,
-                scrollOffset: prevScrollOffset,
-                scrollUpdateWasRequested: prevScrollUpdateWasRequested,
-                scrollHeight: previousScrollHeight,
-            } = prevState;
-
-            if (scrollDirection !== prevScrollDirection || scrollOffset !== prevScrollOffset || scrollUpdateWasRequested !== prevScrollUpdateWasRequested || scrollHeight !== previousScrollHeight) {
-                this._callPropsCallbacks();
-            }
-
-            if (!prevState.scrolledToInitIndex) {
-                this._keepScrollPosition = false;
-                this._keepScrollToBottom = false;
-            }
-        }
-
-        this._commitHook();
-
-        if (prevProps.itemData !== this.props.itemData) {
-            this._dataChange();
-        }
-
-        if (prevProps.height !== this.props.height) {
-            this._heightChange(prevProps.height, prevState.scrollOffset);
-        }
-
-        if (prevState.scrolledToInitIndex !== this.state.scrolledToInitIndex) {
-            this._dataChange(); // though this is not data change we are checking for first load change
-        }
-
-        if (prevProps.width !== this.props.width) {
-            this.innerRefWidth = this.props.innerRef.current.clientWidth;
-            this._widthChange(prevProps.height, prevState.scrollOffset);
-        }
-
-        if (prevState.localOlderPostsToRender[0] !== this.state.localOlderPostsToRender[0] || prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1]) {
-            const postlistScrollHeight = this._outerRef.scrollHeight;
-
-            const scrollValue = snapshot.previousScrollTop + (postlistScrollHeight - snapshot.previousScrollHeight);
-
-            this.scrollTo(
-                scrollValue,
-                scrollValue - snapshot.previousScrollTop,
-                true,
-            );
-        }
-    }
-
-    // This method is called after mount and update.
-    // List implementations can override this method to be notified.
-    _commitHook = () => {
-        if (!this.state.scrolledToInitIndex && Object.keys(this._listMetaData.itemOffsetMap).length) {
-            const {index, position, offset} = this.props.initScrollToIndex();
-            this.scrollToItem(index, position, offset);
-            this.setState({
-                scrolledToInitIndex: true,
-            });
-
-            if (index === 0) {
-                this._keepScrollToBottom = true;
-            } else {
-                this._keepScrollPosition = true;
-            }
-        }
-    };
-
-    _callPropsCallbacks() {
-        const {itemData, height} = this.props;
-        const {
-            scrollDirection,
-            scrollOffset,
-            scrollUpdateWasRequested,
-            scrollHeight,
-        } = this.state;
-        const itemCount = itemData.length;
-
-        if (typeof this.props.onItemsRendered === 'function') {
-            if (itemCount > 0) {
-                const [overscanStartIndex, overscanStopIndex, visibleStartIndex, visibleStopIndex] = this._getRangeToRender();
-
-                this._callOnItemsRendered(
-                    overscanStartIndex,
-                    overscanStopIndex,
-                    visibleStartIndex,
-                    visibleStopIndex,
-                );
-
-                if (scrollDirection === 'backward' && scrollOffset < 1000 && overscanStopIndex !== itemCount - 1) {
-                    const sizeOfNextElement = getItemSize(this.props, overscanStopIndex + 1, this._listMetaData).size;
-
-                    if (!sizeOfNextElement && this.state.scrolledToInitIndex) {
-                        this.setState((prevState) => {
-                            if (prevState.localOlderPostsToRender[0] !== overscanStopIndex + 1) {
-                                return {
-                                    localOlderPostsToRender: [
-                                        overscanStopIndex + 1,
-                                        overscanStopIndex + 50,
-                                    ],
-                                };
-                            }
-
-                            return null;
-                        });
-                    }
-                }
-            }
-        }
-
-        if (typeof this.props.onScroll === 'function') {
-            this._callOnScroll(
-                scrollDirection,
-                scrollOffset,
-                scrollUpdateWasRequested,
-                scrollHeight,
-                height,
-            );
-        }
-    }
-
-    // This method is called when data changes
-    // List implementations can override this method to be notified.
-    _dataChange = () => {
-        if (this._listMetaData.totalMeasuredSize < this.props.height) {
-            this.props.canLoadMorePosts();
-        }
-    };
-
-    _heightChange = (prevHeight, prevOffset) => {
-        const wasAtBottom = prevOffset + prevHeight >= this._listMetaData.totalMeasuredSize - atBottomMargin;
-
-        if (wasAtBottom) {
-            this.scrollToItem(0, 'end');
-        }
-    };
-
-    _widthChange = (prevHeight, prevOffset) => {
-        const wasAtBottom = prevOffset + prevHeight >= this._listMetaData.totalMeasuredSize - atBottomMargin;
-
-        if (wasAtBottom) {
-            this.scrollToItem(0, 'end');
-        }
-    };
 
     scrollBy = (scrollOffset, scrollBy) => () => {
         const element = this._outerRef;
@@ -255,10 +77,16 @@ export class DynamicVirtualizedList extends PureComponent {
             () => {
                 if (useAnimationFrame) {
                     this._scrollByCorrection = window.requestAnimationFrame(
-                        this.scrollBy(this.state.scrollOffset, this.state.scrollByValue),
+                        this.scrollBy(
+                            this.state.scrollOffset,
+                            this.state.scrollByValue,
+                        ),
                     );
                 } else {
-                    this.scrollBy(this.state.scrollOffset, this.state.scrollByValue)();
+                    this.scrollBy(
+                        this.state.scrollOffset,
+                        this.state.scrollByValue,
+                    )();
                 }
             },
         );
@@ -284,7 +112,6 @@ export class DynamicVirtualizedList extends PureComponent {
             scrollOffset,
             this._listMetaData,
         );
-
         if (!offsetOfItem) {
             const itemSize = getItemSize(this.props, index, this._listMetaData);
             if (!itemSize && this.props.scrollToFailed) {
@@ -295,6 +122,101 @@ export class DynamicVirtualizedList extends PureComponent {
         }
 
         this.scrollTo(offsetOfItem + offset);
+    }
+
+    componentDidMount() {
+        const {initialScrollOffset} = this.props;
+
+        if (typeof initialScrollOffset === 'number' && this._outerRef !== null) {
+            const element = this._outerRef;
+            element.scrollTop = initialScrollOffset;
+        }
+
+        this._commitHook();
+    }
+
+    getSnapshotBeforeUpdate(_, prevState) {
+        if (prevState.localOlderPostsToRender[0] !== this.state.localOlderPostsToRender[0] ||
+            prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1]
+        ) {
+            const element = this._outerRef;
+            const previousScrollTop = element.scrollTop;
+            const previousScrollHeight = element.scrollHeight;
+            return {
+                previousScrollTop,
+                previousScrollHeight,
+            };
+        }
+        return null;
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.state.scrolledToInitIndex) {
+            const {
+                scrollDirection,
+                scrollOffset,
+                scrollUpdateWasRequested,
+                scrollHeight,
+            } = this.state;
+
+            const {
+                scrollDirection: prevScrollDirection,
+                scrollOffset: prevScrollOffset,
+                scrollUpdateWasRequested: prevScrollUpdateWasRequested,
+                scrollHeight: previousScrollHeight,
+            } = prevState;
+
+            if (
+                scrollDirection !== prevScrollDirection ||
+                scrollOffset !== prevScrollOffset ||
+                scrollUpdateWasRequested !== prevScrollUpdateWasRequested ||
+                scrollHeight !== previousScrollHeight
+            ) {
+                this._callPropsCallbacks();
+            }
+            if (!prevState.scrolledToInitIndex) {
+                this._keepScrollPosition = false;
+                this._keepScrollToBottom = false;
+            }
+        }
+
+        this._commitHook();
+        if (prevProps.itemData !== this.props.itemData) {
+            this._dataChange();
+        }
+
+        if (prevProps.height !== this.props.height) {
+            this._heightChange(prevProps.height, prevState.scrollOffset);
+        }
+
+        if (prevState.scrolledToInitIndex !== this.state.scrolledToInitIndex) {
+            this._dataChange(); // though this is not data change we are checking for first load change
+        }
+
+        if (prevProps.width !== this.props.width) {
+            this.innerRefWidth = this.props.innerRef.current.clientWidth;
+            this._widthChange(prevProps.height, prevState.scrollOffset);
+        }
+
+        if (prevState.localOlderPostsToRender[0] !== this.state.localOlderPostsToRender[0] ||
+            prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1]
+        ) {
+            const postlistScrollHeight = this._outerRef.scrollHeight;
+
+            const scrollValue = snapshot.previousScrollTop + (postlistScrollHeight - snapshot.previousScrollHeight);
+
+            this.scrollTo(
+                scrollValue,
+                scrollValue - snapshot.previousScrollTop,
+                true,
+            );
+        }
+    }
+
+    componentWillUnmount() {
+        if (this._scrollByCorrection) {
+            window.cancelAnimationFrame(this._scrollByCorrection);
+        }
     }
 
     _callOnItemsRendered = memoizeOne((overscanStartIndex, overscanStopIndex, visibleStartIndex, visibleStopIndex) =>
@@ -316,6 +238,122 @@ export class DynamicVirtualizedList extends PureComponent {
         }),
     );
 
+    _callPropsCallbacks() {
+        const {itemData, height} = this.props;
+        const {
+            scrollDirection,
+            scrollOffset,
+            scrollUpdateWasRequested,
+            scrollHeight,
+        } = this.state;
+        const itemCount = itemData.length;
+
+        if (typeof this.props.onItemsRendered === 'function') {
+            if (itemCount > 0) {
+                const [
+                    overscanStartIndex,
+                    overscanStopIndex,
+                    visibleStartIndex,
+                    visibleStopIndex,
+                ] = this._getRangeToRender();
+
+                this._callOnItemsRendered(
+                    overscanStartIndex,
+                    overscanStopIndex,
+                    visibleStartIndex,
+                    visibleStopIndex,
+                );
+
+                if (
+                    scrollDirection === 'backward' &&
+                    scrollOffset < 1000 &&
+                    overscanStopIndex !== itemCount - 1
+                ) {
+                    const sizeOfNextElement = getItemSize(
+                        this.props,
+                        overscanStopIndex + 1,
+                        this._listMetaData,
+                    ).size;
+                    if (!sizeOfNextElement && this.state.scrolledToInitIndex) {
+                        this.setState((prevState) => {
+                            if (
+                                prevState.localOlderPostsToRender[0] !==
+                                overscanStopIndex + 1
+                            ) {
+                                return {
+                                    localOlderPostsToRender: [
+                                        overscanStopIndex + 1,
+                                        overscanStopIndex + 50,
+                                    ],
+                                };
+                            }
+                            return null;
+                        });
+                    }
+                }
+            }
+        }
+
+        if (typeof this.props.onScroll === 'function') {
+            this._callOnScroll(
+                scrollDirection,
+                scrollOffset,
+                scrollUpdateWasRequested,
+                scrollHeight,
+                height,
+            );
+        }
+    }
+
+    // This method is called after mount and update.
+    // List implementations can override this method to be notified.
+    _commitHook = () => {
+        if (
+            !this.state.scrolledToInitIndex &&
+            Object.keys(this._listMetaData.itemOffsetMap).length
+        ) {
+            const {index, position, offset} = this.props.initScrollToIndex();
+            this.scrollToItem(index, position, offset);
+            this.setState({
+                scrolledToInitIndex: true,
+            });
+
+            if (index === 0) {
+                this._keepScrollToBottom = true;
+            } else {
+                this._keepScrollPosition = true;
+            }
+        }
+    };
+
+    // This method is called when data changes
+    // List implementations can override this method to be notified.
+    _dataChange = () => {
+        if (this._listMetaData.totalMeasuredSize < this.props.height) {
+            this.props.canLoadMorePosts();
+        }
+    };
+
+    _heightChange = (prevHeight, prevOffset) => {
+        const wasAtBottom =
+            prevOffset + prevHeight >=
+            this._listMetaData.totalMeasuredSize - atBottomMargin;
+
+        if (wasAtBottom) {
+            this.scrollToItem(0, 'end');
+        }
+    };
+
+    _widthChange = (prevHeight, prevOffset) => {
+        const wasAtBottom =
+            prevOffset + prevHeight >=
+            this._listMetaData.totalMeasuredSize - atBottomMargin;
+
+        if (wasAtBottom) {
+            this.scrollToItem(0, 'end');
+        }
+    };
+
     // Lazily create and cache item styles while scrolling,
     // So that pure component sCU will prevent re-renders.
     // We maintain this cache, and pass a style prop rather than index,
@@ -326,8 +364,7 @@ export class DynamicVirtualizedList extends PureComponent {
         const itemStyleCache = this._itemStyleCache;
 
         let style;
-        // eslint-disable-next-line no-prototype-builtins
-        if (itemStyleCache.hasOwnProperty(itemData[index])) {
+        if (Object.prototype.hasOwnProperty.call(itemStyleCache, itemData[index])) {
             style = itemStyleCache[itemData[index]];
         } else {
             style = {
@@ -343,11 +380,8 @@ export class DynamicVirtualizedList extends PureComponent {
     };
 
     _getRangeToRender(scrollTop) {
-        const {
-            itemData,
-            overscanCountForward,
-            overscanCountBackward,
-        } = this.props;
+        const {itemData, overscanCountForward, overscanCountBackward} =
+            this.props;
         const {scrollDirection, scrollOffset} = this.state;
         const itemCount = itemData.length;
 
@@ -376,11 +410,18 @@ export class DynamicVirtualizedList extends PureComponent {
         const minValue = Math.max(0, stopIndex - overscanBackward);
         let maxValue = Math.max(0, Math.min(itemCount - 1, startIndex + overscanForward));
 
-        while (!getItemSize(this.props, maxValue, this._listMetaData) && maxValue > 0 && this._listMetaData.totalMeasuredSize > this.props.height) {
+        while (
+            !getItemSize(this.props, maxValue, this._listMetaData) &&
+            maxValue > 0 &&
+            this._listMetaData.totalMeasuredSize > this.props.height
+        ) {
             maxValue--;
         }
 
-        if (!this.state.scrolledToInitIndex && this.props.initRangeToRender.length) {
+        if (
+            !this.state.scrolledToInitIndex &&
+            this.props.initRangeToRender.length
+        ) {
             return this.props.initRangeToRender;
         }
 
@@ -442,9 +483,14 @@ export class DynamicVirtualizedList extends PureComponent {
         }
 
         const element = this._outerRef;
-        const wasAtBottom = this.props.height + element.scrollTop >= this._listMetaData.totalMeasuredSize - atBottomMargin;
+        const wasAtBottom =
+            this.props.height + element.scrollTop >=
+            this._listMetaData.totalMeasuredSize - atBottomMargin;
 
-        if ((wasAtBottom || this._keepScrollToBottom) && this.props.correctScrollToBottom) {
+        if (
+            (wasAtBottom || this._keepScrollToBottom) &&
+            this.props.correctScrollToBottom
+        ) {
             this._generateOffsetMeasurements();
             this.scrollToItem(0, 'end');
             this.forceUpdate();
@@ -453,9 +499,7 @@ export class DynamicVirtualizedList extends PureComponent {
 
         if (forceScrollCorrection || this._keepScrollPosition) {
             const delta = newSize - oldSize;
-            const [, , visibleStartIndex] = this._getRangeToRender(
-                this.state.scrollOffset,
-            );
+            const [, , visibleStartIndex] = this._getRangeToRender(this.state.scrollOffset);
             this._generateOffsetMeasurements();
             if (index < visibleStartIndex + 1) {
                 return;
@@ -480,7 +524,9 @@ export class DynamicVirtualizedList extends PureComponent {
                 },
                 () => {
                     this._correctedInstances++;
-                    if (this._mountingCorrections === this._correctedInstances) {
+                    if (
+                        this._mountingCorrections === this._correctedInstances
+                    ) {
                         this._correctScroll();
                     }
                 },
@@ -496,14 +542,15 @@ export class DynamicVirtualizedList extends PureComponent {
         if (props.itemData[index] === itemId) {
             return;
         }
-
         const doesItemExist = props.itemData.includes(itemId);
         if (!doesItemExist) {
             delete this._listMetaData.itemSizeMap[itemId];
             delete this._listMetaData.itemOffsetMap[itemId];
             const element = this._outerRef;
 
-            const atBottom = element.offsetHeight + element.scrollTop >= this._listMetaData.totalMeasuredSize - atBottomMargin;
+            const atBottom =
+                element.offsetHeight + element.scrollTop >=
+                this._listMetaData.totalMeasuredSize - atBottomMargin;
 
             this._generateOffsetMeasurements();
 
@@ -513,59 +560,6 @@ export class DynamicVirtualizedList extends PureComponent {
 
             this.forceUpdate();
         }
-    };
-
-    _renderItems = () => {
-        const {children, itemData, loaderId, visibleId} = this.props;
-        const width = this.innerRefWidth;
-        const [startIndex, stopIndex] = this._getRangeToRender();
-        const itemCount = itemData.length;
-        const items = [];
-        if (itemCount > 0) {
-            for (let index = itemCount - 1; index >= 0; index--) {
-                const {size} = getItemMetadata(this.props, index, this._listMetaData);
-
-                const [localOlderPostsToRenderStartIndex, localOlderPostsToRenderStopIndex] = this.state.localOlderPostsToRender;
-
-                const isItemInLocalPosts = index >= localOlderPostsToRenderStartIndex && index < localOlderPostsToRenderStopIndex + 1 && localOlderPostsToRenderStartIndex === stopIndex + 1;
-
-                const isLoader = itemData[index] === loaderId;
-                const isVisible = itemData[index] === visibleId;
-                const itemId = itemData[index];
-
-                // It's important to read style after fetching item metadata.
-                // getItemMetadata() will clear stale styles.
-                const style = this._getItemStyle(index);
-                if ((index >= startIndex && index < stopIndex + 1) || isItemInLocalPosts || isLoader || isVisible) {
-                    const item = createElement(children, {
-                        data: itemData,
-                        itemId,
-                    });
-
-                    // Always wrap children in a ItemRow to detect changes in size.
-                    items.push(
-                        createElement(ItemRow, {
-                            key: itemId,
-                            item,
-                            index,
-                            itemId,
-                            height: size,
-                            width,
-                            onHeightChange: this._handleNewMeasurements,
-                            onUnmount: this._onItemRowUnmount,
-                        }),
-                    );
-                } else {
-                    items.push(
-                        createElement('div', {
-                            key: itemId,
-                            style,
-                        }),
-                    );
-                }
-            }
-        }
-        return items;
     };
 
     _onScrollVertical = (event) => {
@@ -596,7 +590,8 @@ export class DynamicVirtualizedList extends PureComponent {
             }
 
             return {
-                scrollDirection: prevState.scrollOffset < scrollTop ? 'forward' : 'backward',
+                scrollDirection:
+                    prevState.scrollOffset < scrollTop ? 'forward' : 'backward',
                 scrollOffset: scrollTop,
                 scrollUpdateWasRequested: false,
                 scrollHeight,
@@ -613,46 +608,118 @@ export class DynamicVirtualizedList extends PureComponent {
 
         if (typeof outerRef === 'function') {
             outerRef(ref);
-        // eslint-disable-next-line no-prototype-builtins
-        } else if (outerRef != null && typeof outerRef === 'object' && outerRef.hasOwnProperty('current')) {
+        } else if (outerRef != null && typeof outerRef === 'object' && Object.prototype.hasOwnProperty.call(outerRef, 'current')) {
             outerRef.current = ref;
         }
     };
 
-    componentWillUnmount() {
-        if (this._scrollByCorrection) {
-            window.cancelAnimationFrame(this._scrollByCorrection);
+    _renderItems = () => {
+        const width = this.innerRefWidth;
+        const [startIndex, stopIndex] = this._getRangeToRender();
+        const itemCount = this.props.itemData.length;
+        const items = [];
+        if (itemCount > 0) {
+            for (let index = itemCount - 1; index >= 0; index--) {
+                const {size} = getItemMetadata(
+                    this.props,
+                    index,
+                    this._listMetaData,
+                );
+
+                const [
+                    localOlderPostsToRenderStartIndex,
+                    localOlderPostsToRenderStopIndex,
+                ] = this.state.localOlderPostsToRender;
+
+                const isItemInLocalPosts =
+                    index >= localOlderPostsToRenderStartIndex &&
+                    index < localOlderPostsToRenderStopIndex + 1 &&
+                    localOlderPostsToRenderStartIndex === stopIndex + 1;
+
+                const isLoader = this.props.itemData[index] === this.props.loaderId;
+                const isVisible = this.props.itemData[index] === this.props.visibleId;
+                const itemId = this.props.itemData[index];
+
+                // It's important to read style after fetching item metadata.
+                // getItemMetadata() will clear stale styles.
+                const style = this._getItemStyle(index);
+                if (
+                    (index >= startIndex && index < stopIndex + 1) ||
+                    isItemInLocalPosts ||
+                    isLoader ||
+                    isVisible
+                ) {
+                    const item = createElement(this.props.children, {
+                        data: this.props.itemData,
+                        itemId,
+                    });
+
+                    // Always wrap children in a ItemRow to detect changes in size.
+                    items.push(
+                        createElement(ItemRow, {
+                            key: itemId,
+                            index,
+                            item,
+                            itemId,
+                            height: size,
+                            width,
+                            onHeightChange: this._handleNewMeasurements,
+                            onUnmount: this._onItemRowUnmount,
+                        }),
+                    );
+                } else {
+                    items.push(
+                        createElement('div', {
+                            key: itemId,
+                            style,
+                        }),
+                    );
+                }
+            }
         }
-    }
+        return items;
+    };
 
     render() {
+        const {
+            className,
+            id,
+            innerRef,
+            innerTagName,
+            outerTagName,
+            style,
+            innerListStyle,
+        } = this.props;
+
         const onScroll = this._onScrollVertical;
 
         const items = this._renderItems();
 
-        return (
-            <div
-                id={this.props.id}
-                className={this.props.className}
-                onScroll={onScroll}
-                ref={this.outerRefSetter}
-                style={{
+        return createElement(
+            outerTagName,
+            {
+                className,
+                id,
+                onScroll,
+                ref: this._outerRefSetter,
+                style: {
                     WebkitOverflowScrolling: 'touch',
                     overflowY: 'auto',
                     overflowAnchor: 'none',
                     willChange: 'transform',
                     width: '100%',
-                    ...this.props.style,
-                }}
-            >
-                <div
-                    ref={this.props.innerRef}
-                    role='list'
-                    style={this.props.innerListStyle}
-                >
-                    {items}
-                </div>
-            </div>
+                    ...style,
+                },
+            },
+            createElement(
+                innerTagName,
+                {
+                    ref: innerRef,
+                    role: 'list',
+                    style: innerListStyle,
+                },
+                items,
+            ),
         );
     }
 }
@@ -753,6 +820,7 @@ const getStopIndexForStartIndex = (
     const maxOffset = scrollOffset + props.height;
     const itemMetadata = getItemMetadata(props, stopIndex, listMetaData);
     let offset = itemMetadata.offset + (itemMetadata.size || 0);
+
     while (stopIndex > 0 && offset <= maxOffset) {
         const itemMetadata = getItemMetadata(props, stopIndex, listMetaData);
         offset = itemMetadata.offset + itemMetadata.size;
