@@ -7,7 +7,11 @@
 import memoizeOne from 'memoize-one';
 import React, {createElement, PureComponent} from 'react';
 
-import ItemMeasurer from './item_measurer';
+import ItemRow from './item_row';
+
+// import ItemMeasurer from './item_measurer';
+
+import './dynamic_virtualized_list.scss';
 
 const atBottomMargin = 10;
 
@@ -512,7 +516,7 @@ export class DynamicVirtualizedList extends PureComponent {
     };
 
     _renderItems = () => {
-        const {children, direction, itemData, loaderId, visibleId} = this.props;
+        const {children, itemData, loaderId, visibleId} = this.props;
         const width = this.innerRefWidth;
         const [startIndex, stopIndex] = this._getRangeToRender();
         const itemCount = itemData.length;
@@ -538,19 +542,17 @@ export class DynamicVirtualizedList extends PureComponent {
                         itemId,
                     });
 
-                    // Always wrap children in a ItemMeasurer to detect changes in size.
+                    // Always wrap children in a ItemRow to detect changes in size.
                     items.push(
-                        createElement(ItemMeasurer, {
-                            direction,
-                            handleNewMeasurements: this._handleNewMeasurements,
-                            index,
-                            item,
+                        createElement(ItemRow, {
                             key: itemId,
-                            size,
+                            item,
+                            index,
                             itemId,
+                            height: size,
                             width,
+                            onHeightChange: this._handleNewMeasurements,
                             onUnmount: this._onItemRowUnmount,
-                            itemCount,
                         }),
                     );
                 } else {
