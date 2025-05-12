@@ -112,8 +112,8 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
     const toggleTextPreview = useCallback(() => setShowBannerTextPreview((show) => !show), []);
 
     const hasUnsavedChanges = useCallback(() => {
-        return updatedChannelBanner.text !== initialBannerInfo?.text ||
-            updatedChannelBanner.background_color !== initialBannerInfo?.background_color ||
+        return (updatedChannelBanner.text?.trim() || '') !== (initialBannerInfo?.text?.trim() || '') ||
+            (updatedChannelBanner.background_color?.trim() || '') !== (initialBannerInfo?.background_color?.trim() || '') ||
             updatedChannelBanner.enabled !== initialBannerInfo?.enabled;
     }, [initialBannerInfo, updatedChannelBanner]);
 
@@ -154,8 +154,8 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
         };
 
         updated.banner_info = {
-            text: updatedChannelBanner.text,
-            background_color: updatedChannelBanner.background_color,
+            text: updatedChannelBanner.text?.trim() || '',
+            background_color: updatedChannelBanner.background_color?.trim() || '',
             enabled: updatedChannelBanner.enabled,
         };
 
@@ -175,9 +175,16 @@ function ChannelSettingsConfigurationTab({channel, setAreThereUnsavedChanges, sh
             return;
         }
 
+        // Update local state with trimmed values after successful save
+        setUpdatedChannelBanner({
+            ...updatedChannelBanner,
+            text: updatedChannelBanner.text?.trim() || '',
+            background_color: updatedChannelBanner.background_color?.trim() || '',
+        });
+
         resetFormErrors();
         setSaveChangesPanelState('saved');
-    }, [handleSave, resetFormErrors]);
+    }, [handleSave, resetFormErrors, updatedChannelBanner]);
 
     const handleCancel = useCallback(() => {
         setRequireConfirm(false);

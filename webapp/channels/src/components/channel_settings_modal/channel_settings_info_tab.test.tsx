@@ -213,13 +213,61 @@ describe('ChannelSettingsInfoTab', () => {
         });
     });
 
+    it('should trim whitespace from channel fields when saving', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        // Add whitespace to the channel fields
+        await act(async () => {
+            // Change the channel name with whitespace
+            const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
+            await userEvent.clear(nameInput);
+            await userEvent.type(nameInput, '  Channel Name With Whitespace  ');
+
+            // Change the channel purpose with whitespace
+            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            await userEvent.clear(purposeInput);
+            await userEvent.type(purposeInput, '  Purpose with whitespace  ');
+
+            // Change the channel header with whitespace
+            const headerInput = screen.getByTestId('channel_settings_header_textbox');
+            await userEvent.clear(headerInput);
+            await userEvent.type(headerInput, '  Header with whitespace  ');
+        });
+
+        // Add a small delay to ensure all state updates are processed
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // Click the Save button
+        await act(async () => {
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        });
+
+        // Verify patchChannel was called with the trimmed values
+        expect(patchChannel).toHaveBeenCalledWith('channel1', {
+            ...mockChannel,
+            display_name: 'Channel Name With Whitespace', // Whitespace should be trimmed
+            name: 'channel-name-with-whitespace', // URL is generated from display name and should be trimmed
+            purpose: 'Purpose with whitespace', // Whitespace should be trimmed
+            header: 'Header with whitespace', // Whitespace should be trimmed
+        });
+
+        // Verify that the local state is updated with trimmed values
+        // Wait for the component to update after the save
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // The inputs should now have the trimmed values
+        expect(screen.getByRole('textbox', {name: 'Channel name'})).toHaveValue('Channel Name With Whitespace');
+        expect(screen.getByTestId('channel_settings_purpose_textbox')).toHaveValue('Purpose with whitespace');
+        expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue('Header with whitespace');
+    });
+
     it('should hide SaveChangesPanel after successful save', async () => {
         // Mock the patchChannel function to return a successful response
         const {patchChannel} = require('mattermost-redux/actions/channels');
         patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
-
-        // Mock the setTimeout function to execute immediately
-        jest.useFakeTimers();
 
         renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
@@ -241,19 +289,11 @@ describe('ChannelSettingsInfoTab', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
         });
 
-        // Fast-forward timers to trigger the timeout that hides the panel
-        act(() => {
-            jest.runAllTimers();
-        });
-
         // Add a small delay to ensure all state updates are processed
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         // SaveChangesPanel should now be hidden after the successful save
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
-
-        // Cleanup
-        jest.useRealTimers();
     });
 
     it('should reset form when Reset button is clicked', async () => {

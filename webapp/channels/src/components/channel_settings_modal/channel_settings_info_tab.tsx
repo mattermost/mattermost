@@ -106,10 +106,10 @@ function ChannelSettingsInfoTab({
     useEffect(() => {
         // Calculate unsaved changes directly
         const unsavedChanges = channel ? (
-            displayName !== channel.display_name ||
-            channelUrl !== channel.name ||
-            channelPurpose !== channel.purpose ||
-            channelHeader !== channel.header ||
+            displayName.trim() !== channel.display_name ||
+            channelUrl.trim() !== channel.name ||
+            channelPurpose.trim() !== channel.purpose ||
+            channelHeader.trim() !== channel.header ||
             channelType !== channel.type
         ) : false;
 
@@ -314,10 +314,10 @@ function ChannelSettingsInfoTab({
     // Memoize the calculation for whether to show the save changes panel
     const shouldShowPanel = useMemo(() => {
         const unsavedChanges = channel ? (
-            displayName !== channel.display_name ||
-            channelUrl !== channel.name ||
-            channelPurpose !== channel.purpose ||
-            channelHeader !== channel.header ||
+            displayName.trim() !== channel.display_name ||
+            channelUrl.trim() !== channel.name ||
+            channelPurpose.trim() !== channel.purpose ||
+            channelHeader.trim() !== channel.header ||
             channelType !== channel.type
         ) : false;
 
@@ -451,7 +451,7 @@ function ChannelSettingsInfoTab({
             />
 
             {/* SaveChangesPanel for unsaved changes */}
-            {shouldShowPanel && (
+            {(canManageChannelProperties && shouldShowPanel) && (
                 <SaveChangesPanel
                     handleSubmit={handleSaveChanges}
                     handleCancel={handleCancel}
