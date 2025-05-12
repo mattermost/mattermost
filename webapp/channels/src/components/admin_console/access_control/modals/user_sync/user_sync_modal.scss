@@ -1,12 +1,13 @@
-.user-list-modal-dialog {
-    .modal-body {
-        overflow: hidden;
+#user-list-modal-dialog {
+    .modal-header {
+        padding-bottom: 0px;
     }
 
     .tabs {
         display: flex;
-        padding: 0 16px;
-        border-bottom: rgba(var(--center-channel-color-rgb), 0.8);
+        padding: 0 32px;
+        border-bottom: 1px solid var(--center-channel-color-16);
+        margin-bottom: 12px;
     }
     
     .tab-button {
@@ -29,10 +30,27 @@
     }
     
     .tab-content {
-        .no-results {
-            padding: 20px;
+        .filtered-user-list {
+            height: 440px;
+            overflow-y: auto;
+        }
+
+        .no-user-message {
+            height: 440px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             text-align: center;
+
+            .empty-state-svg {
+                margin-bottom: 20px;
+            }
+
+            .primary-message {
+                padding-bottom: 24px;
+            }
         }
     }
 }
