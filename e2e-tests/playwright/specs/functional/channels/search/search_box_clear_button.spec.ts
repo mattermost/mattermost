@@ -3,7 +3,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test('search box clear button should not leave type badge after closing the search box', async ({pw}) => {
+test('MM-64155 search box clear button should not leave type badge after closing the search box', async ({pw}) => {
     // # Set up test with a user
     const {user} = await pw.initSetup();
 
