@@ -40,18 +40,8 @@ const ItemRow = (props: Props) => {
 
     // This effect is used to measure the height of the row as soon as the component mounts
     useEffect(() => {
-        const rafId = requestAnimationFrame(() => {
-            if (!rowRef.current) {
-                return;
-            }
-
-            const newHeight = Math.ceil(rowRef.current.offsetHeight);
-            props.onHeightChange(itemIdRef.current, newHeight, false);
-        });
-
-        return () => {
-            cancelAnimationFrame(rafId);
-        };
+        const newHeight = Math.ceil(rowRef?.current?.offsetHeight ?? 0);
+        props.onHeightChange(itemIdRef.current, newHeight, false);
     }, []);
 
     useEffect(() => {
