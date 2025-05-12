@@ -40,7 +40,7 @@ func TestCreateChannelBookmark(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	guest, guestClient := th.CreateGuestAndClient()
+	guest, guestClient := th.CreateGuestAndClient(t)
 
 	t.Run("a user should be able to create a channel bookmark in a public channel", func(t *testing.T) {
 		channelBookmark := &model.ChannelBookmark{
@@ -296,7 +296,7 @@ func TestEditChannelBookmark(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	guest, guestClient := th.CreateGuestAndClient()
+	guest, guestClient := th.CreateGuestAndClient(t)
 
 	t.Run("a user editing a channel bookmark in public and private channels", func(t *testing.T) {
 		testCases := []struct {
@@ -731,7 +731,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	guest, guestClient := th.CreateGuestAndClient()
+	guest, guestClient := th.CreateGuestAndClient(t)
 
 	t.Run("a user updating a bookmark's order in public and private channels", func(t *testing.T) {
 		testCases := []struct {
@@ -1120,7 +1120,7 @@ func TestDeleteChannelBookmark(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	guest, guestClient := th.CreateGuestAndClient()
+	guest, guestClient := th.CreateGuestAndClient(t)
 
 	t.Run("a user deleting bookmarks in public and private channels", func(t *testing.T) {
 		testCases := []struct {
@@ -1493,7 +1493,7 @@ func TestListChannelBookmarksForChannel(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	guest, guestClient := th.CreateGuestAndClient()
+	guest, guestClient := th.CreateGuestAndClient(t)
 
 	publicBookmark1 := createBookmark("one", th.BasicChannel.Id)
 	publicBookmark2 := createBookmark("two", th.BasicChannel.Id)

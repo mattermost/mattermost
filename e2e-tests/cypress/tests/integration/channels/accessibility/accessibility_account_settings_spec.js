@@ -88,12 +88,14 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
     });
 
     it('MM-T1465_1 Verify Label & Tab behavior in section links', () => {
-        // * Verify aria-label and tab support in section of Account settings modal
+        // * Verify tab selection and keyboard navigation in Account settings modal
         cy.uiOpenProfileModal('Profile Settings');
         cy.findByRole('tab', {name: 'profile settings'}).should('be.visible').focus().should('be.focused');
         ['profile settings', 'security'].forEach((text) => {
-            // * Verify aria-label on each tab and it supports navigating to the next tab with arrow keys
-            cy.focused().should('have.attr', 'aria-label', text).type('{downarrow}');
+            // * Verify each tab is correctly selected and supports navigating to the next tab with arrow keys
+            cy.findByRole('tab', {name: text}).
+                should('have.attr', 'aria-selected', 'true').
+                type('{downarrow}');
         });
         cy.uiClose();
 
@@ -101,8 +103,10 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         cy.uiOpenSettingsModal();
         cy.findByRole('tab', {name: 'notifications'}).should('be.visible').focus().should('be.focused');
         ['notifications', 'display', 'sidebar', 'advanced'].forEach((text) => {
-            // * Verify aria-label on each tab and it supports navigating to the next tab with arrow keys
-            cy.focused().should('have.attr', 'aria-label', text).type('{downarrow}');
+            // * Verify each tab is correctly selected and supports navigating to the next tab with arrow keys
+            cy.findByRole('tab', {name: text}).
+                should('have.attr', 'aria-selected', 'true').
+                type('{downarrow}');
         });
     });
 

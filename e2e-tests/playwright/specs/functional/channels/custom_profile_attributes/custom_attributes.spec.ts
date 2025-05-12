@@ -16,7 +16,6 @@ import {
     deleteCustomProfileAttributes,
     verifyAttributeInPopover,
     verifyAttributeNotInPopover,
-    openProfilePopover,
     updateCustomProfileAttributeVisibility,
     TEST_PHONE,
     TEST_URL,
@@ -129,7 +128,8 @@ test('MM-T5773 Display custom profile attributes in profile popover @custom_prof
     await channelsPage.postMessage(TEST_MESSAGE);
 
     // 3. Open the profile popover for the user's post
-    await openProfilePopover(channelsPage);
+    const lastPost = await channelsPage.getLastPost();
+    await channelsPage.openProfilePopover(lastPost);
 
     // * Verify each custom attribute is displayed correctly
     for (const attribute of customAttributes) {
@@ -158,7 +158,8 @@ test('MM-T5774 Do not display custom profile attributes if none exist @custom_pr
     await channelsPage.postMessage(TEST_MESSAGE);
 
     // 3. Open the profile popover for the user's post
-    await openProfilePopover(channelsPage);
+    const lastPost = await channelsPage.getLastPost();
+    await channelsPage.openProfilePopover(lastPost);
 
     // * Verify custom attributes are not displayed
     for (const attribute of customAttributes) {
@@ -185,7 +186,8 @@ test('MM-T5775 Update custom profile attributes when changed @custom_profile_att
     await channelsPage.postMessage(TEST_MESSAGE);
 
     // 3. Open the profile popover for the user's post
-    await openProfilePopover(channelsPage);
+    const lastPost = await channelsPage.getLastPost();
+    await channelsPage.openProfilePopover(lastPost);
 
     // * Verify each custom attribute is displayed correctly
     for (const attribute of customAttributes) {
@@ -213,7 +215,7 @@ test('MM-T5775 Update custom profile attributes when changed @custom_profile_att
     await setupCustomProfileAttributeValues(userClient, updatedAttributes, attributeFieldsMap);
 
     // 6. Open the profile popover again
-    await openProfilePopover(channelsPage);
+    await channelsPage.openProfilePopover(lastPost);
 
     // * Verify updated attributes are displayed correctly
     for (const attribute of updatedAttributes) {
@@ -250,7 +252,8 @@ test('MM-T5776 Hide custom profile attributes when visibility is set to hidden @
     await channelsPage.postMessage(TEST_MESSAGE);
 
     // 4. Open the profile popover for the user's post
-    await openProfilePopover(channelsPage);
+    const lastPost = await channelsPage.getLastPost();
+    await channelsPage.openProfilePopover(lastPost);
 
     // * Verify the Department attribute is not displayed
     await verifyAttributeNotInPopover(channelsPage, 'Department');
@@ -283,7 +286,8 @@ test('MM-T5777 Always display custom profile attributes with visibility set to a
     await channelsPage.postMessage(TEST_MESSAGE);
 
     // 4. Open the profile popover for the user's post
-    await openProfilePopover(channelsPage);
+    const lastPost = await channelsPage.getLastPost();
+    await channelsPage.openProfilePopover(lastPost);
 
     // * Verify custom attributes are displayed correctly
     for (const attribute of customAttributes) {
@@ -319,7 +323,8 @@ test('MM-T5778 Display phone and URL type custom profile attributes correctly @c
     await channelsPage.postMessage(TEST_MESSAGE);
 
     // 3. Open the profile popover for the other user
-    await openProfilePopover(channelsPage);
+    const lastPost = await channelsPage.getLastPost();
+    await channelsPage.openProfilePopover(lastPost);
 
     // * Verify the Phone attribute is displayed correctly
     await verifyAttributeInPopover(channelsPage, 'Phone', TEST_PHONE);
@@ -349,7 +354,8 @@ test('MM-T5779 Verify phone and URL attributes are clickable in profile popover 
     await channelsPage.postMessage(TEST_MESSAGE);
 
     // 3. Open the profile popover for the other user
-    await openProfilePopover(channelsPage);
+    const lastPost = await channelsPage.getLastPost();
+    await channelsPage.openProfilePopover(lastPost);
 
     // * Verify the Phone attribute has a clickable link with tel: protocol
     const popover = channelsPage.userProfilePopover.container;
