@@ -118,6 +118,18 @@
         font-family: monospace;
         font-size: 12px;
         transition: background-color 0.15s ease;
+        
+        &:not([data-validation-state="validated"]):not([data-validation-state="error"]):not([data-validation-state="validating"]) {
+            cursor: pointer;
+            
+            &:hover {
+                background: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08)), var(--button-bg);
+            }
+            
+            &:active {
+                background: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)), var(--button-bg);
+            }
+        }
     }
 
     &__error-message {

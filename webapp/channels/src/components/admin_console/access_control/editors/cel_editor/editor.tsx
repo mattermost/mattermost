@@ -226,6 +226,28 @@ function CELEditor({
                 <div
                     className='cel-editor__status-bar'
                     style={{backgroundColor: editorState.statusBarColor}}
+                    onClick={() => {
+                        if (!editorState.isValidating && editorState.validationErrors.length === 0 && 
+                            !(editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)')) {
+                            validateSyntax();
+                        }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            if (!editorState.isValidating && editorState.validationErrors.length === 0 && 
+                                !(editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)')) {
+                                validateSyntax();
+                            }
+                        }
+                    }}
+                    data-validation-state={
+                        editorState.isValidating ? 'validating' :
+                        editorState.validationErrors.length > 0 ? 'error' : 
+                        (editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)') ? 'validated' : 
+                        'unvalidated'
+                    }
                 >
                     <div className='cel-editor__status-message'>
                         {(() => {
