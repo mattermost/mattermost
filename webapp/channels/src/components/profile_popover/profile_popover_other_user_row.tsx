@@ -8,7 +8,7 @@ import {useSelector} from 'react-redux';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {canDirectlyMessageUser} from 'mattermost-redux/selectors/entities/users';
+import {userCanSeeOtherUser} from 'mattermost-redux/selectors/entities/users';
 
 import ProfilePopoverAddToChannel from 'components/profile_popover/profile_popover_add_to_channel';
 import ProfilePopoverCallButtonWrapper from 'components/profile_popover/profile_popover_call_button_wrapper';
@@ -38,7 +38,7 @@ const ProfilePopoverOtherUserRow = ({
 
     // Check if this user can be messaged directly
     const canMessage = useSelector((state: GlobalState) =>
-        canDirectlyMessageUser(state, user.id),
+        userCanSeeOtherUser(state, user.id),
     );
 
     if (user.id === currentUserId || haveOverrideProp) {

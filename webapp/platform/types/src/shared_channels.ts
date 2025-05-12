@@ -16,4 +16,3 @@ export type SharedChannelRemote = {
     last_post_create_at: number;
     last_post_create_id: string;
 }
-

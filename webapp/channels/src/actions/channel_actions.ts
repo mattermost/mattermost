@@ -37,7 +37,7 @@ export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFunc
             if (result.error && result.error.server_error_id === 'api.user.remote_connection_not_allowed.app_error') {
                 return {
                     error: {
-                        message: 'Cannot message this user because their server is not directly connected to yours.',
+                        message: result.error.message || 'Cannot message this user because their server is not directly connected to yours.',
                         server_error_id: 'api.user.remote_connection_not_allowed.app_error',
                     },
                 };

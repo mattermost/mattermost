@@ -4,7 +4,6 @@
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 import type {Reaction} from '@mattermost/types/reactions';
-import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 import type {GlobalState} from '@mattermost/types/store';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -16,7 +15,6 @@ import type {
 
 import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {isConfirmed, isConnected} from 'components/admin_console/secure_connections/utils';
 import {
     getCurrentChannelId,
     getCurrentUser as getCurrentUserInternal,
@@ -40,6 +38,8 @@ import {
     isGuest,
     applyRolesFilters,
 } from 'mattermost-redux/utils/user_utils';
+
+import {isConfirmed, isConnected} from 'components/admin_console/secure_connections/utils';
 
 // Re-define these types to ensure that these are typed correctly when mattermost-redux is published
 export const getCurrentUser: (state: GlobalState) => UserProfile = getCurrentUserInternal;
@@ -865,12 +865,13 @@ export const getLastActiveTimestampUnits: (state: GlobalState, userId: string) =
 
 export const getRemoteClusters = (state: GlobalState) => state.entities.remoteClusters || {};
 
-export const canDirectlyMessageUser: (state: GlobalState, userId: string) => boolean = createSelector(
-    'canDirectlyMessageUser',
-    getUser,
+export const userCanSeeOtherUser: (state: GlobalState, userId: string) => boolean = createSelector(
+    'userCanSeeOtherUser',
+    (state: GlobalState, userId: string) => userId,
+    (state: GlobalState, userId: string) => getUser(state, userId),
     (state: GlobalState) => state.entities.general.config,
-    (state: GlobalState) => state.entities.remoteClusters || {},
-    (user, config, remoteClusters) => {
+    getRemoteClusters,
+    (userId, user, config, remoteClusters) => {
         if (!user) {
             return false;
         }
