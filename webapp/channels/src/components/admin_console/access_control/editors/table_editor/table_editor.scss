@@ -45,7 +45,7 @@
     &__row {
         display: flex;
         align-items: center;
-        padding: 8px 16px;
+        padding: 0;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
         &:last-child {
