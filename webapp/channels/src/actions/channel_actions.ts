@@ -32,7 +32,7 @@ export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFunc
 
         if (!channel) {
             const result = await dispatch(ChannelActions.createDirectChannel(currentUserId, userId));
-            
+
             // Handle the specific error for remote connections not allowed
             if (result.error && result.error.server_error_id === 'api.user.remote_connection_not_allowed.app_error') {
                 return {
@@ -42,7 +42,6 @@ export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFunc
                     },
                 };
             }
-            
             return result;
         }
 

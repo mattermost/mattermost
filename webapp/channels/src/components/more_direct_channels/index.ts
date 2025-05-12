@@ -73,7 +73,7 @@ export const makeMapStateToProps = () => {
         } else {
             users = getProfilesInCurrentTeam(state, filters);
         }
-        
+
         // Filter out users that can't be messaged directly because they're from indirectly connected remote clusters
         if (enableSharedChannelsDMs) {
             users = users.filter((user) => canDirectlyMessageUser(state, user.id));

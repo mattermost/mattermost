@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {canDirectlyMessageUser} from 'mattermost-redux/selectors/entities/users';
@@ -34,12 +35,12 @@ const ProfilePopoverOtherUserRow = ({
     fullname,
 }: Props) => {
     const intl = useIntl();
-    
+
     // Check if this user can be messaged directly
-    const canMessage = useSelector((state) => 
-        canDirectlyMessageUser(state, user.id)
+    const canMessage = useSelector((state: GlobalState) =>
+        canDirectlyMessageUser(state, user.id),
     );
-    
+
     if (user.id === currentUserId || haveOverrideProp) {
         return null;
     }
@@ -52,7 +53,7 @@ const ProfilePopoverOtherUserRow = ({
                     className='btn btn-primary btn-sm'
                     onClick={handleShowDirectChannel}
                     aria-label={intl.formatMessage({
-                        id: 'user_profile.send.dm.aria_label', 
+                        id: 'user_profile.send.dm.aria_label',
                         defaultMessage: 'Send message to {user}',
                     }, {user: user.username})}
                 >
@@ -72,7 +73,7 @@ const ProfilePopoverOtherUserRow = ({
                     disabled={true}
                     title={intl.formatMessage({
                         id: 'user_profile.send.dm.no_connection',
-                        defaultMessage: 'Cannot message users from indirectly connected servers'
+                        defaultMessage: 'Cannot message users from indirectly connected servers',
                     })}
                     aria-label={intl.formatMessage({
                         id: 'user_profile.send.dm.no_connection.aria_label',
