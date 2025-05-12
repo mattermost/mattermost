@@ -15,9 +15,9 @@
 
     // Reset button styles when using button element
     &:is(button) {
+        padding: 0;
         border: none;
         background: none;
-        padding: 0;
         font: inherit;
         outline: inherit;
     }
