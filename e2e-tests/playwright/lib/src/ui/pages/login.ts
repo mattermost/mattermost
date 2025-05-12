@@ -37,7 +37,7 @@ export default class LoginPage {
         this.loginPlaceholder = page.locator(`[placeholder="Email or Username"]`);
         this.loginWithAdLdapPlaceholder = page.locator(`[placeholder="Email, Username or AD/LDAP Username"]`);
         this.passwordInput = page.locator('#input_password-input');
-        this.passwordToggleButton = page.getByRole('button', {name: 'Show or hide password'});
+        this.passwordToggleButton = page.locator('#password_toggle');
         this.signInButton = page.locator('button:has-text("Log in")');
         this.createAccountLink = page.locator("text=Don't have an account?");
         this.forgotPasswordLink = page.locator('text=Forgot your password?');
