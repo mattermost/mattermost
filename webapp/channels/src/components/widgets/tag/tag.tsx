@@ -9,7 +9,7 @@ import styled, {css} from 'styled-components';
 import glyphMap from '@mattermost/compass-icons/components';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
-export type TagVariant = 'info' | 'success' | 'warning' | 'danger' | 'dangerDim';
+export type TagVariant = 'info' | 'success' | 'warning' | 'danger' | 'dangerDim' | 'dim';
 
 export type TagSize = 'xs' | 'sm' | 'md' | 'lg'
 
@@ -106,6 +106,11 @@ const TagWrapper = styled.div<TagWrapperProps>`
     &.Tag--dangerDim {
         background: rgba(var(--semantic-color-danger), 0.08);
         color: rgb(var(--semantic-color-danger));
+    }
+
+    &.Tag--dim {
+        background: rgba(var(--semantic-color-general), 0.08);
+        color: rgb(var(--semantic-color-general));
     }
 
     ${({onClick}) => typeof onClick === 'function' && (
