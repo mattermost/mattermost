@@ -104,11 +104,20 @@ const ChannelInviteModalComponent = (props: Props) => {
     const selectedItemRef = useRef<HTMLDivElement>(null);
 
     // Use the useAccessControlAttributes hook
-    const {attributeTags} = useAccessControlAttributes(
+    const {structuredAttributes} = useAccessControlAttributes(
         EntityType.Channel,
         props.channel.id,
         props.channel.policy_enforced,
     );
+
+    // Helper function to format attribute names for tooltips
+    const formatAttributeName = (name: string): string => {
+        // Convert snake_case or camelCase to Title Case with spaces
+        return name.
+            replace(/_/g, ' ').
+            replace(/([A-Z])/g, ' $1').
+            replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
+    };
 
     // Helper function to add a user or group to the selected list
     const addValue = useCallback((value: UserProfileValue | GroupValue) => {
@@ -609,14 +618,17 @@ const ChannelInviteModalComponent = (props: Props) => {
                                 />
                             )}
                         >
-                            {attributeTags.length > 0 && (
+                            {structuredAttributes.length > 0 && (
                                 <TagGroup>
-                                    {attributeTags.map((tag) => (
-                                        <GenericTag
-                                            key={tag}
-                                            text={tag}
-                                        />
-                                    ))}
+                                    {structuredAttributes.flatMap((attribute) =>
+                                        attribute.values.map((value) => (
+                                            <GenericTag
+                                                key={`${attribute.name}-${value}`}
+                                                tooltipTitle={formatAttributeName(attribute.name)}
+                                                text={value}
+                                            />
+                                        )),
+                                    )}
                                 </TagGroup>
                             )}
                         </AlertBanner>

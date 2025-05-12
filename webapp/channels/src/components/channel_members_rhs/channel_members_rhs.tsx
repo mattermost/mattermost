@@ -77,11 +77,20 @@ export default function ChannelMembersRHS({
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
     const {formatMessage} = useIntl();
 
-    const {attributeTags, loading} = useAccessControlAttributes(
+    const {structuredAttributes, loading} = useAccessControlAttributes(
         EntityType.Channel,
         channel.id,
         channel.policy_enforced,
     );
+
+    // Helper function to format attribute names for tooltips
+    const formatAttributeName = (name: string): string => {
+        // Convert snake_case or camelCase to Title Case with spaces
+        return name.
+            replace(/_/g, ' ').
+            replace(/([A-Z])/g, ' $1').
+            replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
+    };
 
     const searching = searchTerms !== '';
 
@@ -235,14 +244,17 @@ export default function ChannelMembersRHS({
                             defaultMessage: 'Channel access is restricted by user attributes',
                         })}
                     >
-                        {attributeTags.length > 0 && (
+                        {structuredAttributes.length > 0 && (
                             <TagGroup>
-                                {attributeTags.map((tag) => (
-                                    <GenericTag
-                                        key={tag}
-                                        text={tag}
-                                    />
-                                ))}
+                                {structuredAttributes.flatMap((attribute) =>
+                                    attribute.values.map((value) => (
+                                        <GenericTag
+                                            key={`${attribute.name}-${value}`}
+                                            tooltipTitle={formatAttributeName(attribute.name)}
+                                            text={value}
+                                        />
+                                    )),
+                                )}
                             </TagGroup>
                         )}
                         {loading && <span className='loading-indicator'>{'Loading...'}</span>}

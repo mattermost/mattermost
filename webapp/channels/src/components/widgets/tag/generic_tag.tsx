@@ -3,44 +3,32 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import type {ReactNode} from 'react';
+
+import WithTooltip from 'components/with_tooltip';
 
 import './generic_tag.scss';
 
 export type GenericTagProps = {
 
-    /**
-     * The text content of the tag
-     */
     text: string;
 
-    /**
-     * Optional CSS class name for custom styling
-     */
     className?: string;
 
-    /**
-     * Optional click handler
-     */
     onClick?: (e: React.MouseEvent) => void;
 
-    /**
-     * Optional variant for different visual styles
-     */
     variant?: 'default' | 'primary' | 'secondary' | 'info';
 
-    /**
-     * Optional size
-     */
     size?: 'small' | 'medium' | 'large';
 
-    /**
-     * Optional test ID for automated testing
-     */
     testId?: string;
+
+    tooltipTitle?: string | ReactNode;
 };
 
 /**
  * A generic tag component that can be used to display labeled information
+ * Optionally includes tooltip functionality when tooltipTitle is provided
  */
 const GenericTag: React.FC<GenericTagProps> = ({
     text,
@@ -49,8 +37,9 @@ const GenericTag: React.FC<GenericTagProps> = ({
     variant = 'default',
     size = 'medium',
     testId,
+    tooltipTitle,
 }) => {
-    return (
+    const tagElement = (
         <span
             className={classNames(
                 'GenericTag',
@@ -67,6 +56,20 @@ const GenericTag: React.FC<GenericTagProps> = ({
             {text}
         </span>
     );
+
+    // If tooltipTitle is provided, wrap the tag with WithTooltip
+    if (tooltipTitle) {
+        return (
+            <WithTooltip
+                title={tooltipTitle}
+            >
+                {tagElement}
+            </WithTooltip>
+        );
+    }
+
+    // Otherwise, just return the tag
+    return tagElement;
 };
 
 export default GenericTag;
