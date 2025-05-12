@@ -79,9 +79,16 @@
 
     &__footer {
         display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        margin-bottom: 16px;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-top: 8px;
+
+        .help-text-container {
+            flex: 1;
+            font-size: 12px;
+            color: var(--center-channel-color-72);
+            padding-right: 16px;
+        }
     }
 
     &__actions {

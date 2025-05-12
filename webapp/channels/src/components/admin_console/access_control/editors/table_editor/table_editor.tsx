@@ -3,6 +3,7 @@
 
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import Markdown from 'components/markdown';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {Client4} from 'mattermost-redux/client';
@@ -14,7 +15,7 @@ import ValuesEditor from './values_editor';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
-import {AddAttributeButton, TestButton, HelpText} from '../shared';
+import {AddAttributeButton, TestButton} from '../shared';
 
 import './table_editor.scss';
 
@@ -271,23 +272,21 @@ function TableEditor({
                         ))
                     )}
                 </div>
+                <div className='table-editor__add-button-container'>
+                    <AddAttributeButton
+                        onClick={addRow}
+                        disabled={disabled || getAvailableAttributes().length === 0}
+                    />
+                </div>
             </div>
 
             <div className='table-editor__actions-row'>
-                <AddAttributeButton
-                    onClick={addRow}
-                    disabled={disabled || getAvailableAttributes().length === 0}
+                <HelpText
+                    message={'Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (`&&`).'}
                 />
-
                 <TestButton
                     onClick={() => setShowTestResults(true)}
                     disabled={disabled || !value}
-                />
-            </div>
-            <div className='table-editor__help-text'>
-                <HelpText
-                    message={'Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (`&&`).'}
-                    onLearnMoreClick={() => setShowHelpModal(true)}
                 />
             </div>
 
@@ -306,6 +305,34 @@ function TableEditor({
                 <CELHelpModal
                     onExited={() => setShowHelpModal(false)}
                 />
+            )}
+        </div>
+    );
+}
+
+interface HelpTextProps {
+    message: string;
+    onLearnMoreClick?: () => void;
+}
+
+export function HelpText({message, onLearnMoreClick}: HelpTextProps): JSX.Element {
+    return (
+        <div className='editor__help-text'>
+            <Markdown
+                message={message}
+                options={{mentionHighlight: false}}
+            />
+            {onLearnMoreClick && (
+                <a
+                    href='#'
+                    className='editor__learn-more'
+                    onClick={onLearnMoreClick}
+                >
+                    <FormattedMessage
+                        id='admin.access_control.table_editor.learnMore'
+                        defaultMessage='Learn more about creating access expressions with examples.'
+                    />
+                </a>
             )}
         </div>
     );

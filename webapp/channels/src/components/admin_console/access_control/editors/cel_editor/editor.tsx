@@ -14,7 +14,7 @@ import {MonacoLanguageProvider} from './language_provider';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
-import {TestButton, HelpText} from '../shared';
+import {TestButton} from '../shared';
 
 import './editor.scss';
 
@@ -294,15 +294,24 @@ function CELEditor({
                 </div>
             </div>
             <div className='cel-editor__footer'>
+                <div className='help-text-container'>
+                    <div>{'Write rules like user.<attribute> == "<values>". Use \'&&\' / \'||\' (and/or) for multiple conditions.'}</div>
+                    <div>
+                        {'Group conditions with \'()\'. '}
+                        <a 
+                            href='#'
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setShowHelpModal(true);
+                            }}
+                        >
+                            Learn more about creating access expressions with examples.
+                        </a>
+                    </div>
+                </div>
                 <TestButton
                     onClick={() => setEditorState((prev) => ({...prev, showTestResults: true}))}
                     disabled={!editorState.isValid || editorState.isValidating}
-                />
-            </div>
-            <div>
-                <HelpText
-                    message={'Write rules like `user.<attribute> == <value>`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.'}
-                    onLearnMoreClick={() => setShowHelpModal(true)}
                 />
             </div>
             {editorState.showTestResults && (
