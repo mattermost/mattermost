@@ -93,7 +93,6 @@ export default class UserList extends React.PureComponent <Props> {
                     key='no-users-found'
                     className='more-modal__placeholder-row'
                     data-testid='noUsersFound'
-                    style={{textAlign: 'center', padding: '32px 0'}}
                 >
                     <p>
                         <FormattedMessage

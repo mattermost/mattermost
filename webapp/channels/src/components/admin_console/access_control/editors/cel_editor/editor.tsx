@@ -14,7 +14,7 @@ import {MonacoLanguageProvider} from './language_provider';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
-import {TestButton} from '../shared';
+import {TestButton, HelpText} from '../shared';
 
 import './editor.scss';
 
@@ -227,26 +227,37 @@ function CELEditor({
                     className='cel-editor__status-bar'
                     style={{backgroundColor: editorState.statusBarColor}}
                     onClick={() => {
-                        if (!editorState.isValidating && editorState.validationErrors.length === 0 && 
+                        if (!editorState.isValidating && editorState.validationErrors.length === 0 &&
                             !(editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)')) {
                             validateSyntax();
                         }
                     }}
-                    role="button"
+                    role='button'
                     tabIndex={0}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
-                            if (!editorState.isValidating && editorState.validationErrors.length === 0 && 
+                            if (!editorState.isValidating && editorState.validationErrors.length === 0 &&
                                 !(editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)')) {
                                 validateSyntax();
                             }
                         }
                     }}
                     data-validation-state={
-                        editorState.isValidating ? 'validating' :
-                        editorState.validationErrors.length > 0 ? 'error' : 
-                        (editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)') ? 'validated' : 
-                        'unvalidated'
+                        (() => {
+                            if (editorState.isValidating) {
+                                return 'validating';
+                            }
+
+                            if (editorState.validationErrors.length > 0) {
+                                return 'error';
+                            }
+
+                            if (editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)') {
+                                return 'validated';
+                            }
+
+                            return 'unvalidated';
+                        })()
                     }
                 >
                     <div className='cel-editor__status-message'>
@@ -317,18 +328,11 @@ function CELEditor({
             </div>
             <div className='cel-editor__footer'>
                 <div className='help-text-container'>
-                    <div>{'Write rules like user.<attribute> == "<values>". Use \'&&\' / \'||\' (and/or) for multiple conditions.'}</div>
                     <div>
-                        {'Group conditions with \'()\'. '}
-                        <a 
-                            href='#'
-                            onClick={(e) => {
-                                e.preventDefault();
-                                setShowHelpModal(true);
-                            }}
-                        >
-                            Learn more about creating access expressions with examples.
-                        </a>
+                        <HelpText
+                            message={'Write rules like `user.<attribute> == <value>`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.'}
+                            onLearnMoreClick={() => setShowHelpModal(true)}
+                        />
                     </div>
                 </div>
                 <TestButton

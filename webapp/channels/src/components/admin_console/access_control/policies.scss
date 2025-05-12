@@ -15,9 +15,9 @@
         }
 
         &_header {
+            padding-left: 12px;
             font-size: 1em;
             font-weight: 600;
-            padding-left: 12px;
             
             .DataGrid_cell {
                 display: flex;
@@ -38,10 +38,10 @@
             .DataGrid_row {
                 display: flex;
                 min-height: 40px;
+                padding-left: 12px !important;
                 border-left: none;
                 background-color: rgba(var(--sys-white-rgb), 0.04);
                 cursor: pointer;
-                padding-left: 12px !important;
 
                 &:hover {
                     border-left: none;

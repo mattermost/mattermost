@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import './shared.scss';
+import Markdown from 'components/markdown';
 
 interface TestButtonProps {
     onClick: () => void;
@@ -14,6 +15,11 @@ interface TestButtonProps {
 interface AddAttributeButtonProps {
     onClick: () => void;
     disabled: boolean;
+}
+
+interface HelpTextProps {
+    message: string;
+    onLearnMoreClick?: () => void;
 }
 
 export function TestButton({onClick, disabled}: TestButtonProps): JSX.Element {
@@ -45,5 +51,28 @@ export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps)
                 defaultMessage='Add attribute'
             />
         </button>
+    );
+}
+
+export function HelpText({message, onLearnMoreClick}: HelpTextProps): JSX.Element {
+    return (
+        <div className='editor__help-text'>
+            <Markdown
+                message={message}
+                options={{mentionHighlight: false}}
+            />
+            {onLearnMoreClick && (
+                <a
+                    href='#'
+                    className='editor__learn-more'
+                    onClick={onLearnMoreClick}
+                >
+                    <FormattedMessage
+                        id='admin.access_control.table_editor.learnMore'
+                        defaultMessage='Learn more about creating access expressions with examples.'
+                    />
+                </a>
+            )}
+        </div>
     );
 }

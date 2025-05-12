@@ -122,8 +122,8 @@
 
     &__actions-row {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
         margin-top: 8px;
 
         .editor__help-text {
@@ -137,9 +137,9 @@
 
     &__blank-state {
         display: flex;
-        justify-content: center;
         align-items: center;
-        padding: 24px;
+        justify-content: center;
+        padding: 10px;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         
         span {
@@ -148,9 +148,9 @@
     }
 
     &__add-button-container {
-        padding: 8px;
         display: flex;
         align-items: center;
+        padding: 8px;
     }
 }
 

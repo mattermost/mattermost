@@ -16,9 +16,9 @@
     .EditPolicy__error {
         display: flex;
         align-items: center;
+        margin-left: 12px;
         color: var(--error-text);
         font-size: 14px;
-        margin-left: 12px;
         
         i {
             margin-right: 4px;

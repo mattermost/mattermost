@@ -36,8 +36,9 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               id="admin.access_control.policy.edit_policy.policyName"
             />
           }
-          labelClassName="col-sm-4"
+          labelClassName="col-sm-4 vertically-centered-label"
           onChange={[Function]}
+          placeholder="Add a unique policy name"
           value=""
         />
         <Memo(BooleanSetting)
@@ -49,10 +50,14 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           }
           id="admin.access_control.policy.edit_policy.autoSyncMembership"
           label={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Auto-add members based on access rules:"
-              id="admin.access_control.policy.edit_policy.autoSyncMembership"
-            />
+            <div
+              className="vertically-centered-label"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Auto-add members based on access rules:"
+                id="admin.access_control.policy.edit_policy.autoSyncMembership"
+              />
+            </div>
           }
           onChange={[Function]}
           setByEnv={false}
@@ -218,8 +223,9 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               id="admin.access_control.policy.edit_policy.policyName"
             />
           }
-          labelClassName="col-sm-4"
+          labelClassName="col-sm-4 vertically-centered-label"
           onChange={[Function]}
+          placeholder="Add a unique policy name"
           value=""
         />
         <Memo(BooleanSetting)
@@ -231,10 +237,14 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           }
           id="admin.access_control.policy.edit_policy.autoSyncMembership"
           label={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Auto-add members based on access rules:"
-              id="admin.access_control.policy.edit_policy.autoSyncMembership"
-            />
+            <div
+              className="vertically-centered-label"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Auto-add members based on access rules:"
+                id="admin.access_control.policy.edit_policy.autoSyncMembership"
+              />
+            </div>
           }
           onChange={[Function]}
           setByEnv={false}

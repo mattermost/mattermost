@@ -43,19 +43,20 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
 
     const handleCreateJob = async (e?: React.SyntheticEvent) => {
         e?.preventDefault();
-        
+
         if (isSubmitting) {
             return;
         }
-        
+
         setIsSubmitting(true);
-        
+
         const job = {
             type: JobTypes.ACCESS_CONTROL_SYNC,
         };
 
         try {
             await props.actions.createJob(job);
+
             // Immediately fetch updated job list
             props.actions.getJobsByType(JobTypes.ACCESS_CONTROL_SYNC);
         } finally {

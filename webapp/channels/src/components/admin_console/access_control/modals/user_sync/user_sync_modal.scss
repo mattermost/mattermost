@@ -36,11 +36,11 @@
         }
 
         .no-user-message {
-            height: 440px;
             display: flex;
+            height: 440px;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             text-align: center;
 

@@ -3,7 +3,6 @@
 
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import Markdown from 'components/markdown';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {Client4} from 'mattermost-redux/client';
@@ -15,7 +14,7 @@ import ValuesEditor from './values_editor';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
-import {AddAttributeButton, TestButton} from '../shared';
+import {AddAttributeButton, TestButton, HelpText} from '../shared';
 
 import './table_editor.scss';
 
@@ -226,7 +225,12 @@ function TableEditor({
                 <div className='table-editor__rows'>
                     {rows.length === 0 ? (
                         <div className='table-editor__blank-state'>
-                            <span>Select a user attribute and values to create a rule</span>
+                            <span>
+                                {formatMessage({
+                                    id: 'admin.access_control.table_editor.blank_state',
+                                    defaultMessage: 'Select a user attribute and values to create a rule',
+                                })}
+                            </span>
                         </div>
                     ) : (
                         rows.map((row, index) => (
@@ -305,34 +309,6 @@ function TableEditor({
                 <CELHelpModal
                     onExited={() => setShowHelpModal(false)}
                 />
-            )}
-        </div>
-    );
-}
-
-interface HelpTextProps {
-    message: string;
-    onLearnMoreClick?: () => void;
-}
-
-export function HelpText({message, onLearnMoreClick}: HelpTextProps): JSX.Element {
-    return (
-        <div className='editor__help-text'>
-            <Markdown
-                message={message}
-                options={{mentionHighlight: false}}
-            />
-            {onLearnMoreClick && (
-                <a
-                    href='#'
-                    className='editor__learn-more'
-                    onClick={onLearnMoreClick}
-                >
-                    <FormattedMessage
-                        id='admin.access_control.table_editor.learnMore'
-                        defaultMessage='Learn more about creating access expressions with examples.'
-                    />
-                </a>
             )}
         </div>
     );

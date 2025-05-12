@@ -3,7 +3,7 @@
 
 import cloneDeep from 'lodash/cloneDeep';
 import React, {useState, useEffect} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
@@ -81,7 +81,7 @@ function PolicyDetails({
     const [autocompleteResult, setAutocompleteResult] = useState<PropertyField[]>([]);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
-
+    const {formatMessage} = useIntl();
     useEffect(() => {
         loadPage();
     }, [policyId]);
@@ -313,7 +313,10 @@ function PolicyDetails({
                                 />
                             }
                             value={policyName}
-                            placeholder="Add a unique policy name"
+                            placeholder={formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.policyName.placeholder',
+                                defaultMessage: 'Add a unique policy name',
+                            })}
                             onChange={(_, value) => {
                                 setPolicyName(value);
                                 setSaveNeeded(true);
@@ -324,7 +327,7 @@ function PolicyDetails({
                         <BooleanSetting
                             id='admin.access_control.policy.edit_policy.autoSyncMembership'
                             label={
-                                <div className="vertically-centered-label">
+                                <div className='vertically-centered-label'>
                                     <FormattedMessage
                                         id='admin.access_control.policy.edit_policy.autoSyncMembership'
                                         defaultMessage='Auto-add members based on access rules:'

@@ -79,15 +79,15 @@
 
     &__footer {
         display: flex;
-        justify-content: space-between;
         align-items: flex-start;
+        justify-content: space-between;
         margin-top: 8px;
 
         .help-text-container {
             flex: 1;
-            font-size: 12px;
-            color: var(--center-channel-color-72);
             padding-right: 16px;
+            color: var(--center-channel-color-72);
+            font-size: 12px;
         }
     }
 
