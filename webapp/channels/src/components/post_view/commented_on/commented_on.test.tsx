@@ -282,6 +282,91 @@ describe('components/post_view/CommentedOn', () => {
 
         expect(onCommentClick).toHaveBeenCalledTimes(1);
     });
+
+    test("should render the root post's overwritten username", () => {
+        const webhookPost = TestHelper.getPostMock({
+            id: 'webhook_post_id',
+            user_id: user1.id,
+            message: 'text message',
+            props: {
+                from_webhook: 'true',
+                override_username: 'overridden_username',
+            },
+        });
+
+        const post1 = TestHelper.getPostMock({
+            id: 'post1',
+            user_id: user1.id,
+            message: 'text message',
+            root_id: webhookPost.id,
+        });
+
+        renderWithContext(
+            <CommentedOn
+                rootId={webhookPost.id}
+                enablePostUsernameOverride={true}
+            />,
+            {
+                entities: {
+                    posts: {
+                        posts: {
+                            post1,
+                            webhook_post_id: webhookPost,
+                        },
+                    },
+                    users: {
+                        profiles: {
+                            user1,
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(screen.getByText(textInChildren("Commented on overridden_username's message: text message"))).toBeInTheDocument();
+    });
+
+    test("should not render the root post's overwritten username if post is not from webhook", () => {
+        const webhookPost = TestHelper.getPostMock({
+            id: 'webhook_post_id',
+            user_id: user1.id,
+            message: 'text message',
+            props: {
+                override_username: 'overridden_username',
+            },
+        });
+
+        const post1 = TestHelper.getPostMock({
+            id: 'post1',
+            user_id: user1.id,
+            message: 'text message',
+            root_id: webhookPost.id,
+        });
+
+        renderWithContext(
+            <CommentedOn
+                rootId={webhookPost.id}
+                enablePostUsernameOverride={true}
+            />,
+            {
+                entities: {
+                    posts: {
+                        posts: {
+                            post1,
+                            webhook_post_id: webhookPost,
+                        },
+                    },
+                    users: {
+                        profiles: {
+                            user1,
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(screen.getByText(textInChildren("Commented on some-user's message: text message"))).toBeInTheDocument();
+    });
 });
 
 function textInChildren(matchedText: string) {
