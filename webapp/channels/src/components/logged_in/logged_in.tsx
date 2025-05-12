@@ -11,12 +11,12 @@ import * as WebSocketActions from 'actions/websocket_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
 import LoadingScreen from 'components/loading_screen';
-import TimezoneManager from 'components/timezone_manager';
 
 import WebSocketClient from 'client/web_websocket_client';
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {isKeyPressed} from 'utils/keyboard';
+import {getBrowserTimezone} from 'utils/timezone';
 import {isAndroid, isIos} from 'utils/user_agent';
 import {doesCookieContainsMMUserId} from 'utils/utils';
 
@@ -65,6 +65,8 @@ export default class LoggedIn extends React.PureComponent<Props> {
     public componentDidMount(): void {
         // Initialize websocket
         WebSocketActions.initialize();
+
+        this.updateTimeZone();
 
         // Make sure the websockets close and reset version
         window.addEventListener('beforeunload', this.handleBeforeUnload);
@@ -135,15 +137,15 @@ export default class LoggedIn extends React.PureComponent<Props> {
             }
         }
 
-        return (
-            <>
-                <TimezoneManager autoUpdateTimezone={this.props.actions.autoUpdateTimezone}/>
-                {this.props.children}
-            </>
-        );
+        return this.props.children;
+    }
+
+    private updateTimeZone(): void {
+        this.props.actions.autoUpdateTimezone(getBrowserTimezone());
     }
 
     private onFocusListener = (): void => {
+        this.updateTimeZone();
         GlobalActions.emitBrowserFocus(true);
     };
 
