@@ -17,7 +17,10 @@ interface Props {
     onUnmount: (itemId: string, index: number) => void;
 }
 
-const ItemMeasurer = (props: Props) => {
+/**
+ * This component is used to measure the height of a row and update the height of the row when it changes.
+ */
+const ItemRow = (props: Props) => {
     const rowRef = useRef<HTMLDivElement>(null);
 
     const itemIdRef = useRef(props.itemId);
@@ -102,4 +105,4 @@ const ItemMeasurer = (props: Props) => {
     );
 };
 
-export default memo(ItemMeasurer);
+export default memo(ItemRow);

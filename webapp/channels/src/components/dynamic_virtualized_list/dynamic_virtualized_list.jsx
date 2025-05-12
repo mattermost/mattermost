@@ -7,9 +7,7 @@ import classNames from 'classnames';
 import memoizeOne from 'memoize-one';
 import React, {createElement, PureComponent} from 'react';
 
-// import ItemMeasurer from './item_measurer';
-
-import ItemMeasurer from './item_measurer_new';
+import ItemRow from './item_row';
 
 import './dynamic_virtualized_list.scss';
 
@@ -658,9 +656,8 @@ export default class DynamicVirtualizedList extends PureComponent {
                         itemId,
                     });
 
-                    // Always wrap children in a ItemMeasurer to detect changes in size.
                     items.push(
-                        createElement(ItemMeasurer, {
+                        createElement(ItemRow, {
                             key: itemId,
                             item,
                             itemId,
