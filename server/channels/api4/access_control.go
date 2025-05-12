@@ -15,6 +15,9 @@ import (
 )
 
 func (api *API) InitAccessControlPolicy() {
+	if !api.srv.Config().FeatureFlags.AttributeBasedAccessControl {
+		return
+	}
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessControlPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
 

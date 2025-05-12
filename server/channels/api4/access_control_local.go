@@ -6,6 +6,9 @@ package api4
 import "net/http"
 
 func (api *API) InitAccessControlPolicyLocal() {
+	if !api.srv.Config().FeatureFlags.AttributeBasedAccessControl {
+		return
+	}
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APILocal(createAccessControlPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APILocal(searchAccessControlPolicies)).Methods(http.MethodPost)
 
