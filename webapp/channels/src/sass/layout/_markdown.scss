@@ -390,18 +390,6 @@ blockquote {
     &:first-child {
         margin-top: 0;
     }
-
-    // &::before {
-    //     content: "\201C";
-    //     font-family: "Open Sans", sans-serif;
-    //     font-size: 2.1em;
-    //     font-weight: 500;
-    //     position: absolute;
-    //     left: 0px;
-    //     top: -4px;
-    //     height: 1em;
-    //     color: rgba(var(--center-channel-color-rgb), 0.40);
-    // }
     
     +p {
         margin-top: 8px;
