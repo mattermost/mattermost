@@ -36,6 +36,7 @@
         .job-table__table {
             max-height: 400px;
             border: none;
+            padding: 0px;
         }
 
         .table > thead > tr > th,
@@ -51,7 +52,7 @@
         .table > thead > tr > th {
             border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
             font-size: 1em;
-            font-weight: normal;
+            font-weight: 600;
         }
 
         .cancel-button-field {
