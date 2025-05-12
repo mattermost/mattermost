@@ -11,12 +11,13 @@
         }
 
         &_searchBar {
-            margin-left: 0;
+            margin-left: 0 !important;
         }
 
         &_header {
+            padding-left: 12px;
             font-size: 1em;
-            font-weight: normal;
+            font-weight: 600;
             
             .DataGrid_cell {
                 display: flex;
@@ -37,6 +38,7 @@
             .DataGrid_row {
                 display: flex;
                 min-height: 40px;
+                padding-left: 12px !important;
                 border-left: none;
                 background-color: rgba(var(--sys-white-rgb), 0.04);
                 cursor: pointer;
@@ -60,7 +62,8 @@
                 .policy-actions {
                     display: flex;
                     width: 100%;
-                    justify-content: center;
+                    justify-content: flex-end;
+                    padding-right: 8px;
                 }
 
                 .policy-menu-button {

@@ -4,9 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import Markdown from 'components/markdown';
-
 import './shared.scss';
+import Markdown from 'components/markdown';
 
 interface TestButtonProps {
     onClick: () => void;
@@ -20,13 +19,13 @@ interface AddAttributeButtonProps {
 
 interface HelpTextProps {
     message: string;
-    onLearnMoreClick: () => void;
+    onLearnMoreClick?: () => void;
 }
 
 export function TestButton({onClick, disabled}: TestButtonProps): JSX.Element {
     return (
         <button
-            className='editor__test-btn'
+            className='btn btn-sm btn-tertiary'
             onClick={onClick}
             disabled={disabled}
         >
@@ -42,7 +41,7 @@ export function TestButton({onClick, disabled}: TestButtonProps): JSX.Element {
 export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps): JSX.Element {
     return (
         <button
-            className='editor__add-row-button'
+            className='btn btn-sm btn-tertiary'
             onClick={onClick}
             disabled={disabled}
         >
@@ -62,16 +61,18 @@ export function HelpText({message, onLearnMoreClick}: HelpTextProps): JSX.Elemen
                 message={message}
                 options={{mentionHighlight: false}}
             />
-            <a
-                href='#'
-                className='editor__learn-more'
-                onClick={onLearnMoreClick}
-            >
-                <FormattedMessage
-                    id='admin.access_control.cel.learnMore'
-                    defaultMessage='Learn more about creating access expressions with examples.'
-                />
-            </a>
+            {onLearnMoreClick && (
+                <a
+                    href='#'
+                    className='editor__learn-more'
+                    onClick={onLearnMoreClick}
+                >
+                    <FormattedMessage
+                        id='admin.access_control.table_editor.learnMore'
+                        defaultMessage='Learn more about creating access expressions with examples.'
+                    />
+                </a>
+            )}
         </div>
     );
 }

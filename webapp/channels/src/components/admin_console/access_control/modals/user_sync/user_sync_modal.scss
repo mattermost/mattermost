@@ -5,8 +5,9 @@
 
     .tabs {
         display: flex;
-        padding: 0 16px;
-        border-bottom: rgba(var(--center-channel-color-rgb), 0.8);
+        padding: 0 32px;
+        border-bottom: 1px solid var(--center-channel-color-16);
+        margin-bottom: 12px;
     }
     
     .tab-button {
@@ -35,9 +36,18 @@
         }
 
         .no-user-message {
+            display: flex;
+            height: 440px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             text-align: center;
 
+            .empty-state-svg {
+                margin-bottom: 20px;
+            }
+          
             .primary-message {
                 padding-bottom: 24px;
             }

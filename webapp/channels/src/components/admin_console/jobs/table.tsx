@@ -138,17 +138,7 @@ class JobTable extends React.PureComponent<Props, State> {
                     onClick={this.props.onRowClick ? () => this.props.onRowClick!(job) : undefined}
                     className={this.props.onRowClick ? 'clickable' : ''}
                 >
-                    <td className='cancel-button-field whitespace--nowrap text-center'>
-                        <JobCancelButton
-                            job={job}
-                            onClick={this.handleCancelJob}
-                            disabled={this.props.disabled}
-                        />
-                    </td>
                     <td className='whitespace--nowrap'><JobStatus job={job}/></td>
-                    {showFilesColumn &&
-                        <td className='whitespace--nowrap'><JobDownloadLink job={job}/></td>
-                    }
                     <td className='whitespace--nowrap'>
                         <JobFinishAt
                             status={job.status}
@@ -156,9 +146,19 @@ class JobTable extends React.PureComponent<Props, State> {
                         />
                     </td>
                     <td className='whitespace--nowrap'><JobRunLength job={job}/></td>
+                    {showFilesColumn &&
+                        <td className='whitespace--nowrap'><JobDownloadLink job={job}/></td>
+                    }
                     {!hideDetailsColumn && (
                         <td>{this.getExtraInfoText(job)}</td>
                     )}
+                    <td className='cancel-button-field whitespace--nowrap text-center'>
+                        <JobCancelButton
+                            job={job}
+                            onClick={this.handleCancelJob}
+                            disabled={this.props.disabled}
+                        />
+                    </td>
                 </tr>
             );
         });
@@ -237,21 +237,12 @@ class JobTable extends React.PureComponent<Props, State> {
                         >
                             <thead>
                                 <tr>
-                                    <th className='cancel-button-field'/>
                                     <th>
                                         <FormattedMessage
                                             id='admin.jobTable.headerStatus'
                                             defaultMessage='Status'
                                         />
                                     </th>
-                                    {showFilesColumn &&
-                                    <th>
-                                        <FormattedMessage
-                                            id='admin.jobTable.headerFiles'
-                                            defaultMessage='Files'
-                                        />
-                                    </th>
-                                    }
                                     <th>
                                         <FormattedMessage
                                             id='admin.jobTable.headerFinishAt'
@@ -264,6 +255,14 @@ class JobTable extends React.PureComponent<Props, State> {
                                             defaultMessage='Run Time'
                                         />
                                     </th>
+                                    {showFilesColumn &&
+                                    <th>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerFiles'
+                                            defaultMessage='Files'
+                                        />
+                                    </th>
+                                    }
                                     {!hideDetailsColumn && (
                                         <th colSpan={3}>
                                             <FormattedMessage
@@ -272,6 +271,7 @@ class JobTable extends React.PureComponent<Props, State> {
                                             />
                                         </th>
                                     )}
+                                    <th className='cancel-button-field'/>
                                 </tr>
                             </thead>
                             <tbody>

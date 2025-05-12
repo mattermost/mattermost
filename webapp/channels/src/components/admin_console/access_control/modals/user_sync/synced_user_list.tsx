@@ -9,7 +9,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import SecuritySVG from 'components/common/svg_images_components/security_svg';
+import {UserGroupsSVG} from 'components/common/svg_images_components/user_groups_svg';
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container';
 
 import type {ActionFuncAsync} from 'types/store';
@@ -74,10 +74,8 @@ export const SyncedUserList = ({userIds, noResultsMessageId, noResultsDefaultMes
                 className='no-user-message'
                 aria-label='No users found'
             >
-                <SecuritySVG
-                    width={100}
-                    height={100}
-                />
+
+                <UserGroupsSVG className='empty-state-svg'/>
                 <h3 className='primary-message'>
                     <FormattedMessage
                         id={noResultsMessageId}

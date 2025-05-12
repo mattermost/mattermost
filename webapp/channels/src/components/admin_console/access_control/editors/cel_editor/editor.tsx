@@ -226,6 +226,39 @@ function CELEditor({
                 <div
                     className='cel-editor__status-bar'
                     style={{backgroundColor: editorState.statusBarColor}}
+                    onClick={() => {
+                        if (!editorState.isValidating && editorState.validationErrors.length === 0 &&
+                            !(editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)')) {
+                            validateSyntax();
+                        }
+                    }}
+                    role='button'
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            if (!editorState.isValidating && editorState.validationErrors.length === 0 &&
+                                !(editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)')) {
+                                validateSyntax();
+                            }
+                        }
+                    }}
+                    data-validation-state={
+                        (() => {
+                            if (editorState.isValidating) {
+                                return 'validating';
+                            }
+
+                            if (editorState.validationErrors.length > 0) {
+                                return 'error';
+                            }
+
+                            if (editorState.isValid && editorState.statusBarColor === 'var(--online-indicator)') {
+                                return 'validated';
+                            }
+
+                            return 'unvalidated';
+                        })()
+                    }
                 >
                     <div className='cel-editor__status-message'>
                         {(() => {
@@ -294,15 +327,17 @@ function CELEditor({
                 </div>
             </div>
             <div className='cel-editor__footer'>
+                <div className='help-text-container'>
+                    <div>
+                        <HelpText
+                            message={'Write rules like `user.<attribute> == <value>`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.'}
+                            onLearnMoreClick={() => setShowHelpModal(true)}
+                        />
+                    </div>
+                </div>
                 <TestButton
                     onClick={() => setEditorState((prev) => ({...prev, showTestResults: true}))}
                     disabled={!editorState.isValid || editorState.isValidating}
-                />
-            </div>
-            <div>
-                <HelpText
-                    message={'Write rules like `user.<attribute> == <value>`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.'}
-                    onLearnMoreClick={() => setShowHelpModal(true)}
                 />
             </div>
             {editorState.showTestResults && (

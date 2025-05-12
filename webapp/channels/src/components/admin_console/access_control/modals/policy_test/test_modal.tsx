@@ -16,6 +16,8 @@ import SearchableUserList from 'components/searchable_user_list/searchable_user_
 import type {ModalData} from 'types/actions';
 import type {ActionFuncAsync} from 'types/store';
 
+import './test_modal.scss';
+
 const USERS_TO_FETCH = 50;
 const USERS_PER_PAGE = 10;
 
@@ -87,7 +89,10 @@ function TestResultsModal({
             aria-labelledby='testResultsModalLabel'
             id='testResultsModal'
         >
-            <Modal.Header closeButton={true}>
+            <Modal.Header
+                closeButton={true}
+                style={{display: 'flex', alignItems: 'center'}}
+            >
                 <Modal.Title
                     componentClass='h1'
                     id='testResultsModalLabel'

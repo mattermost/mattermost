@@ -6,7 +6,6 @@
         overflow: hidden;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
-        margin-bottom: 24px;
     }
 
     &__header {
@@ -45,12 +44,8 @@
     &__row {
         display: flex;
         align-items: center;
-        padding: 8px 16px;
+        padding: 0;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-
-        &:last-child {
-            border-bottom: none;
-        }
     }
 
     &__cell {
@@ -129,6 +124,51 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 24px;
+        margin-top: 8px;
+
+        .editor__help-text {
+            margin-right: 32px;
+
+            p {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    &__blank-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        
+        span {
+            color: var(--center-channel-color-64);
+        }
+    }
+
+    &__add-button-container {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+    }
+}
+
+.editor__help-text {
+    color: var(--center-channel-color-72);
+    font-size: 12px;
+    
+    p {
+        margin-bottom: 0;
+    }
+    
+    a {
+        display: inline-block;
+        margin-top: 8px;
+        color: var(--link-color);
+        
+        &:hover {
+            text-decoration: underline;
+        }
     }
 } 
