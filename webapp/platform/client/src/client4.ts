@@ -4189,8 +4189,13 @@ export default class Client4 {
 
         let data;
         try {
-            if (headers.get('Content-Type') === 'application/json') {
+            const contentType = headers.get('Content-Type');
+            if (contentType === 'application/json') {
                 data = await response.json();
+            } else if (contentType === 'application/x-ndjson') {
+                const text = await response.text();
+                const objects = text.trim().split('\n');
+                data = objects.map((obj) => JSON.parse(obj));
             } else {
                 data = await response.text();
             }

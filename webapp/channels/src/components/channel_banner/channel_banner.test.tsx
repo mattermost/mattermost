@@ -86,7 +86,7 @@ describe('components/channel_banner', () => {
             general: {
                 license: {
                     IsLicensed: 'true',
-                    SkuShortName: LicenseSkus.Premium,
+                    SkuShortName: LicenseSkus.EnterpriseAdvanced,
                 },
             },
             channels: {

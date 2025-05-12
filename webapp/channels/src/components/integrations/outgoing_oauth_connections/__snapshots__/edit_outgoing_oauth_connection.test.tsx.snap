@@ -550,26 +550,18 @@ https://myothersite.com/api/v2"
                   >
                     <GenericModal
                       ariaLabelledby="confirmModalLabel"
-                      autoCloseOnCancelButton={true}
-                      autoCloseOnConfirmButton={true}
-                      bodyPadding={true}
                       className="ConfirmModal a11y__modal integrations-backstage-modal"
                       compassDesign={true}
-                      enforceFocus={true}
                       id="confirmModal"
-                      keyboardEscape={true}
                       modalHeaderText={
                         <Memo(MemoizedFormattedMessage)
                           defaultMessage="Edit Outgoing OAuth Connection"
                           id="update_outgoing_oauth_connection.confirm"
                         />
                       }
-                      modalLocation="center"
                       onExited={[Function]}
                       onHide={[Function]}
                       show={false}
-                      showCloseButton={true}
-                      showHeader={true}
                     >
                       <Modal
                         animation={true}
@@ -673,21 +665,13 @@ https://myothersite.com/api/v2"
             >
               <GenericModal
                 ariaLabelledby="confirmModalLabel"
-                autoCloseOnCancelButton={true}
-                autoCloseOnConfirmButton={true}
-                bodyPadding={true}
                 className="ConfirmModal a11y__modal "
                 compassDesign={true}
-                enforceFocus={true}
                 id="confirmModal"
-                keyboardEscape={true}
                 modalHeaderText="Save Outgoing OAuth Connection"
-                modalLocation="center"
                 onExited={[Function]}
                 onHide={[Function]}
                 show={false}
-                showCloseButton={true}
-                showHeader={true}
               >
                 <Modal
                   animation={true}
@@ -1310,26 +1294,18 @@ https://myothersite.com/api/v2"
                   >
                     <GenericModal
                       ariaLabelledby="confirmModalLabel"
-                      autoCloseOnCancelButton={true}
-                      autoCloseOnConfirmButton={true}
-                      bodyPadding={true}
                       className="ConfirmModal a11y__modal integrations-backstage-modal"
                       compassDesign={true}
-                      enforceFocus={true}
                       id="confirmModal"
-                      keyboardEscape={true}
                       modalHeaderText={
                         <Memo(MemoizedFormattedMessage)
                           defaultMessage="Edit Outgoing OAuth Connection"
                           id="update_outgoing_oauth_connection.confirm"
                         />
                       }
-                      modalLocation="center"
                       onExited={[Function]}
                       onHide={[Function]}
                       show={false}
-                      showCloseButton={true}
-                      showHeader={true}
                     >
                       <Modal
                         animation={true}
@@ -1433,21 +1409,13 @@ https://myothersite.com/api/v2"
             >
               <GenericModal
                 ariaLabelledby="confirmModalLabel"
-                autoCloseOnCancelButton={true}
-                autoCloseOnConfirmButton={true}
-                bodyPadding={true}
                 className="ConfirmModal a11y__modal "
                 compassDesign={true}
-                enforceFocus={true}
                 id="confirmModal"
-                keyboardEscape={true}
                 modalHeaderText="Save Outgoing OAuth Connection"
-                modalLocation="center"
                 onExited={[Function]}
                 onHide={[Function]}
                 show={false}
-                showCloseButton={true}
-                showHeader={true}
               >
                 <Modal
                   animation={true}
@@ -2069,26 +2037,18 @@ https://myothersite.com/api/v2"
                   >
                     <GenericModal
                       ariaLabelledby="confirmModalLabel"
-                      autoCloseOnCancelButton={true}
-                      autoCloseOnConfirmButton={true}
-                      bodyPadding={true}
                       className="ConfirmModal a11y__modal integrations-backstage-modal"
                       compassDesign={true}
-                      enforceFocus={true}
                       id="confirmModal"
-                      keyboardEscape={true}
                       modalHeaderText={
                         <Memo(MemoizedFormattedMessage)
                           defaultMessage="Edit Outgoing OAuth Connection"
                           id="update_outgoing_oauth_connection.confirm"
                         />
                       }
-                      modalLocation="center"
                       onExited={[Function]}
                       onHide={[Function]}
                       show={false}
-                      showCloseButton={true}
-                      showHeader={true}
                     >
                       <Modal
                         animation={true}
@@ -2192,21 +2152,13 @@ https://myothersite.com/api/v2"
             >
               <GenericModal
                 ariaLabelledby="confirmModalLabel"
-                autoCloseOnCancelButton={true}
-                autoCloseOnConfirmButton={true}
-                bodyPadding={true}
                 className="ConfirmModal a11y__modal "
                 compassDesign={true}
-                enforceFocus={true}
                 id="confirmModal"
-                keyboardEscape={true}
                 modalHeaderText="Save Outgoing OAuth Connection"
-                modalLocation="center"
                 onExited={[Function]}
                 onHide={[Function]}
                 show={false}
-                showCloseButton={true}
-                showHeader={true}
               >
                 <Modal
                   animation={true}

@@ -59,11 +59,11 @@ func fileBytes(t *testing.T, path string) []byte {
 	return bb
 }
 
-func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []byte, contentType string,
+func testDoUploadFileRequest(tb testing.TB, c *model.Client4, url string, blob []byte, contentType string,
 	contentLength int64,
 ) (*model.FileUploadResponse, *model.Response, error) {
 	req, err := http.NewRequest("POST", c.APIURL+"/files"+url, bytes.NewReader(blob))
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	if contentLength != 0 {
 		req.ContentLength = contentLength
@@ -74,8 +74,8 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 	}
 
 	resp, err := c.HTTPClient.Do(req)
-	require.NoError(t, err)
-	require.NotNil(t, resp)
+	require.NoError(tb, err)
+	require.NotNil(tb, resp)
 	defer closeBody(resp)
 
 	if resp.StatusCode >= 300 {
@@ -90,7 +90,7 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 }
 
 func testUploadFilesPost(
-	t testing.TB,
+	tb testing.TB,
 	c *model.Client4,
 	channelId string,
 	names []string,
@@ -102,9 +102,9 @@ func testUploadFilesPost(
 	// Do not check len(clientIds), leave it entirely to the user to
 	// provide. The server will error out if it does not match the number
 	// of files, but it's not critical here.
-	require.NotEmpty(t, names)
-	require.NotEmpty(t, blobs)
-	require.Equal(t, len(names), len(blobs))
+	require.NotEmpty(tb, names)
+	require.NotEmpty(tb, blobs)
+	require.Equal(tb, len(names), len(blobs))
 
 	fileUploadResponse := &model.FileUploadResponse{}
 	for i, blob := range blobs {
@@ -126,7 +126,7 @@ func testUploadFilesPost(
 			postURL += "&bookmark=true"
 		}
 
-		fur, resp, err := testDoUploadFileRequest(t, c, postURL, blob, ct, cl)
+		fur, resp, err := testDoUploadFileRequest(tb, c, postURL, blob, ct, cl)
 		if err != nil {
 			return nil, resp, err
 		}
@@ -145,7 +145,7 @@ func testUploadFilesPost(
 }
 
 func testUploadFilesMultipart(
-	t testing.TB,
+	tb testing.TB,
 	c *model.Client4,
 	channelId string,
 	names []string,
@@ -160,21 +160,21 @@ func testUploadFilesMultipart(
 	// Do not check len(clientIds), leave it entirely to the user to
 	// provide. The server will error out if it does not match the number
 	// of files, but it's not critical here.
-	require.NotEmpty(t, names)
-	require.NotEmpty(t, blobs)
-	require.Equal(t, len(names), len(blobs))
+	require.NotEmpty(tb, names)
+	require.NotEmpty(tb, blobs)
+	require.Equal(tb, len(names), len(blobs))
 
 	mwBody := &bytes.Buffer{}
 	mw := multipart.NewWriter(mwBody)
 
 	err := mw.WriteField("channel_id", channelId)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	for i, blob := range blobs {
 		ct := http.DetectContentType(blob)
 		if len(clientIds) > i {
 			err = mw.WriteField("client_ids", clientIds[i])
-			require.NoError(t, err)
+			require.NoError(tb, err)
 		}
 
 		h := textproto.MIMEHeader{}
@@ -185,18 +185,18 @@ func testUploadFilesMultipart(
 		// If we error here, writing to mw, the deferred handler
 		var part io.Writer
 		part, err = mw.CreatePart(h)
-		require.NoError(t, err)
+		require.NoError(tb, err)
 
 		_, err = io.Copy(part, bytes.NewReader(blob))
-		require.NoError(t, err)
+		require.NoError(tb, err)
 	}
 
-	require.NoError(t, mw.Close())
+	require.NoError(tb, mw.Close())
 	url := ""
 	if isBookmark {
 		url += "?bookmark=true"
 	}
-	fur, resp, err := testDoUploadFileRequest(t, c, url, mwBody.Bytes(), mw.FormDataContentType(), -1)
+	fur, resp, err := testDoUploadFileRequest(tb, c, url, mwBody.Bytes(), mw.FormDataContentType(), -1)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -240,7 +240,7 @@ func TestUploadFiles(t *testing.T) {
 		expectedImageHasPreview     []bool
 		expectedImageMiniPreview    []bool
 		setupConfig                 func(a *app.App) func(a *app.App)
-		checkResponse               func(t testing.TB, resp *model.Response)
+		checkResponse               func(tb testing.TB, resp *model.Response)
 		uploadAsBookmark            bool
 	}{
 		// Upload a bunch of files, mixed images and non-images
