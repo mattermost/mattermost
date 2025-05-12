@@ -628,8 +628,11 @@ func TestGetAnalyticsOld(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
 	assert.Equal(t, float64(1), rows2[5].Value)
-
 	WebSocketClient.Close()
+
+	// Give it a second for internal webhub counters to be updated after the client disconnects.
+	// Test can be flaky otherwise.
+	time.Sleep(time.Second)
 
 	rows2, _, err = th.SystemAdminClient.GetAnalyticsOld(context.Background(), "standard", "")
 	require.NoError(t, err)
