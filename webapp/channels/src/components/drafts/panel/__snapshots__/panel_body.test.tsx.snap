@@ -657,7 +657,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                                 uppercase={true}
                               >
                                 <div
-                                  className="TagWrapper-keYggn cGBoWx Tag Tag--info Tag--xs"
+                                  className="TagWrapper-keYggn gnIgwl Tag Tag--info Tag--xs"
                                   data-testid="post-priority-label"
                                 >
                                   <AlertCircleOutlineIcon
