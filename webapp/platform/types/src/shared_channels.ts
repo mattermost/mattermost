@@ -27,6 +27,5 @@ export type RemoteClusterInfo = {
 };
 
 export type SharedChannelsState = {
-    remoteNames: Record<string, string[]>;
     remotes: Record<string, RemoteClusterInfo[]>;
 }

@@ -79,7 +79,6 @@ export type GlobalState = {
         usage: CloudUsage;
         scheduledPosts: ScheduledPostsState;
         sharedChannels?: {
-            remoteNames: Record<string, string[]>;
             remotes?: Record<string, RemoteClusterInfo[]>;
         };
     };
