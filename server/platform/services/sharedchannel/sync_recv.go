@@ -69,7 +69,6 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		mlog.Int("status_count", len(syncMsg.Statuses)),
 	)
 
-	// Get the channel details first
 	if targetChannel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
 		// if the channel doesn't exist then none of these sync items are going to work.
 		return fmt.Errorf("channel not found processing sync message: %w", err)
@@ -80,7 +79,6 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 	if err != nil {
 		return fmt.Errorf("cannot check channel share state for sync message: %w", err)
 	}
-
 	if !exists {
 		// Update the UI to ensure the link icon is removed
 		scs.notifyClientsForSharedChannelUpdate(targetChannel)

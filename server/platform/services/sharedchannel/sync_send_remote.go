@@ -100,7 +100,6 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		}
 	}()
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(task.channelID, rc.RemoteId)
-
 	if isNotFoundError(err) && rc.IsOptionFlagSet(model.BitflagOptionAutoInvited) {
 		// if SharedChannelRemote not found and remote has autoinvite flag, create a scr for it, thus inviting the remote.
 		scr = &model.SharedChannelRemote{
