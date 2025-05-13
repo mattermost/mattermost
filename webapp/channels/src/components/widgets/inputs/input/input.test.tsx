@@ -251,5 +251,20 @@ describe('components/widgets/inputs/Input', () => {
             // Check that minLength error message is not present
             expect(screen.queryByText(/Must be at least 2 characters/i)).not.toBeInTheDocument();
         });
+
+        test('should show both minLength indicator and limit indicator when applicable', () => {
+            renderWithContext(
+                <Input
+                    value={'abc'}
+                    minLength={5}
+                    limit={10}
+                    showMinLengthIndicator={true}
+                />,
+            );
+
+            // Check for the +X indicator for minLength
+            const indicator = screen.getByText('+2');
+            expect(indicator).toBeInTheDocument();
+        });
     });
 });
