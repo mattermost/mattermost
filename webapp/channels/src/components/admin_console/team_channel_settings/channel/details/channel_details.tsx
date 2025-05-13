@@ -52,6 +52,7 @@ export interface ChannelDetailsProps {
     guestAccountsEnabled: boolean;
     channelModerationEnabled: boolean;
     channelGroupsEnabled: boolean;
+    abacSupported: boolean;
     isDisabled?: boolean;
     actions: ChannelDetailsActions;
 }
@@ -85,6 +86,7 @@ interface ChannelDetailsState {
     showArchiveConfirmModal: boolean;
     policyToggled: boolean;
     accessControlPolicies: AccessControlPolicy[];
+    abacSupported: boolean;
 }
 
 export type ChannelDetailsActions = {
@@ -139,6 +141,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             showArchiveConfirmModal: false,
             policyToggled: false,
             accessControlPolicies: [],
+            abacSupported: props.abacSupported,
         };
     }
 
@@ -893,11 +896,12 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                     onToggle={this.setToggles}
                     isDisabled={this.props.isDisabled}
                     groupsSupported={this.props.channelGroupsEnabled}
+                    abacSupported={this.props.abacSupported}
                     policyEnforced={policyToggled}
                     policyEnforcedToggleAvailable={accessControlPolicies.length === 0}
                 />
 
-                {(policyToggled) && (
+                {this.props.abacSupported && policyToggled && (
                     <ChannelAccessControl
                         accessControlPolicies={this.state.accessControlPolicies}
                         actions={{
