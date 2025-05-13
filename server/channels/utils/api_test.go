@@ -49,3 +49,22 @@ func TestRenderWebError(t *testing.T) {
 	h := sha256.Sum256([]byte("/error?foo=bar"))
 	assert.True(t, ecdsa.Verify(&key.PublicKey, h[:], rs.R, rs.S))
 }
+
+func TestRenderMobileMessage(t *testing.T) {
+	w := httptest.NewRecorder()
+	msg := "This is a test message."
+	RenderMobileMessage(w, msg)
+	resp := w.Result()
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	body := w.Body.String()
+	assert.Contains(t, body, msg)
+}
+
+func TestRenderMobileMessage_Empty(t *testing.T) {
+	w := httptest.NewRecorder()
+	RenderMobileMessage(w, "")
+	resp := w.Result()
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	body := w.Body.String()
+	assert.Contains(t, body, "")
+}
