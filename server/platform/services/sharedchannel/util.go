@@ -25,7 +25,7 @@ func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.U
 	}
 
 	for mention, id := range mentionMap {
-		// Only process mentions with colons (:) that match this user's ID
+		// Only process mentions with colons that match this user's ID
 		if id == user.Id && strings.Contains(mention, ":") {
 			post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+realUsername)
 		}

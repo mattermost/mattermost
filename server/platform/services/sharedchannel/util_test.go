@@ -247,31 +247,4 @@ func TestHandleUserMentions(t *testing.T) {
 		require.Equal(t, expected, postCopy.Message,
 			"Should remove remote cluster suffix when message is viewed on user's home server")
 	})
-
-	t.Run("should not notify remote users unless explicitly mentioned", func(t *testing.T) {
-		// This test verifies that when mentioning a local user without a colon,
-		// remote users with the same username are not notified
-
-		// Create a local mention map from app.MentionsToTeamMembers
-		// In a real scenario, this would include all users matching the mention,
-		// including remote users with the same username
-		mentionMap := model.UserMentionMap{
-			"admin": "local-admin-id",
-		}
-
-		// Verify our fix works by checking the mention format
-		// If it's a simple mention without a colon, we would skip remote users
-		hasColon := false
-		for mention := range mentionMap {
-			if strings.Contains(mention, ":") {
-				hasColon = true
-				break
-			}
-		}
-
-		// The fix should skip processing this mention for remote users
-		// since it doesn't have a colon (not explicitly mentioned)
-		require.False(t, hasColon,
-			"Local mention without colon should not trigger notification for remote user")
-	})
 }
