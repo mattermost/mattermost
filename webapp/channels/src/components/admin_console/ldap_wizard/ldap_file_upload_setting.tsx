@@ -13,7 +13,7 @@ import type {AdminDefinitionSettingFileUpload} from '../types';
 
 type Props = {
     setting: AdminDefinitionSettingFileUpload;
-    value: string;
+    value?: string;
     error?: string;
     onChange(id: string, value: any): void;
     fileUploadSetstate: (key: string, filename: string | null, error_message: string | null) => void;
