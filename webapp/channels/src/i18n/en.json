@@ -5613,6 +5613,7 @@
   "user_groups_modal.editGroupTitle": "Edit Group Details",
   "user_groups_modal.filterAriaLabel": "Groups Filter Menu",
   "user_groups_modal.goBackLabel": "Back",
+  "user_groups_modal.groupCreatedSuccess": "Group created successfully",
   "user_groups_modal.joinGroup": "Join Group",
   "user_groups_modal.leaveGroup": "Leave Group",
   "user_groups_modal.memberCount": "{member_count} {member_count, plural, one {member} other {members}}",

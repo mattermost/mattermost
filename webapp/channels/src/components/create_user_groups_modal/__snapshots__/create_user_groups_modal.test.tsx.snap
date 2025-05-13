@@ -24,13 +24,18 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
       "remove": [Function],
     }
   }
-  onExited={[MockFunction]}
+  onExited={[Function]}
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
   role="none"
   show={true}
 >
+  <div
+    aria-live="polite"
+    className="sr-only"
+    role="alert"
+  />
   <ModalHeader
     bsClass="modal-header"
     closeButton={true}
@@ -171,13 +176,18 @@ exports[`component/create_user_groups_modal should match snapshot without back b
       "remove": [Function],
     }
   }
-  onExited={[MockFunction]}
+  onExited={[Function]}
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
   role="none"
   show={true}
 >
+  <div
+    aria-live="polite"
+    className="sr-only"
+    role="alert"
+  />
   <ModalHeader
     bsClass="modal-header"
     closeButton={true}
