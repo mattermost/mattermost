@@ -1,6 +1,7 @@
 package pluginapi
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -13,7 +14,7 @@ func TestPropertyFieldAPI(t *testing.T) {
 	t.Run("CreatePropertyField", func(t *testing.T) {
 		// Setup
 		api := &plugintest.API{}
-		
+
 		// Mock the API call
 		field := &model.PropertyField{
 			ID:      "field1",
@@ -22,13 +23,13 @@ func TestPropertyFieldAPI(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 		}
 		api.On("CreatePropertyField", field).Return(field, nil)
-		
+
 		// Create the client
 		client := NewClient(api, nil)
-		
+
 		// Call the method
 		result, err := client.Property.CreatePropertyField(field)
-		
+
 		// Verify the results
 		assert.NoError(t, err)
 		assert.Equal(t, field, result)
@@ -38,7 +39,7 @@ func TestPropertyFieldAPI(t *testing.T) {
 	t.Run("GetPropertyField", func(t *testing.T) {
 		// Setup
 		api := &plugintest.API{}
-		
+
 		// Mock the API call
 		field := &model.PropertyField{
 			ID:      "field1",
@@ -47,13 +48,13 @@ func TestPropertyFieldAPI(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 		}
 		api.On("GetPropertyField", "group1", "field1").Return(field, nil)
-		
+
 		// Create the client
 		client := NewClient(api, nil)
-		
+
 		// Call the method
 		result, err := client.Property.GetPropertyField("group1", "field1")
-		
+
 		// Verify the results
 		assert.NoError(t, err)
 		assert.Equal(t, field, result)
@@ -63,7 +64,7 @@ func TestPropertyFieldAPI(t *testing.T) {
 	t.Run("GetPropertyFields", func(t *testing.T) {
 		// Setup
 		api := &plugintest.API{}
-		
+
 		// Mock the API call
 		fields := []*model.PropertyField{
 			{
@@ -80,13 +81,13 @@ func TestPropertyFieldAPI(t *testing.T) {
 			},
 		}
 		api.On("GetPropertyFields", "group1", []string{"field1", "field2"}).Return(fields, nil)
-		
+
 		// Create the client
 		client := NewClient(api, nil)
-		
+
 		// Call the method
 		result, err := client.Property.GetPropertyFields("group1", []string{"field1", "field2"})
-		
+
 		// Verify the results
 		assert.NoError(t, err)
 		assert.Equal(t, fields, result)
@@ -96,7 +97,7 @@ func TestPropertyFieldAPI(t *testing.T) {
 	t.Run("UpdatePropertyField", func(t *testing.T) {
 		// Setup
 		api := &plugintest.API{}
-		
+
 		// Mock the API call
 		field := &model.PropertyField{
 			ID:      "field1",
@@ -105,13 +106,13 @@ func TestPropertyFieldAPI(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 		}
 		api.On("UpdatePropertyField", "group1", field).Return(field, nil)
-		
+
 		// Create the client
 		client := NewClient(api, nil)
-		
+
 		// Call the method
 		result, err := client.Property.UpdatePropertyField("group1", field)
-		
+
 		// Verify the results
 		assert.NoError(t, err)
 		assert.Equal(t, field, result)
@@ -121,16 +122,16 @@ func TestPropertyFieldAPI(t *testing.T) {
 	t.Run("DeletePropertyField", func(t *testing.T) {
 		// Setup
 		api := &plugintest.API{}
-		
+
 		// Mock the API call
 		api.On("DeletePropertyField", "group1", "field1").Return(nil)
-		
+
 		// Create the client
 		client := NewClient(api, nil)
-		
+
 		// Call the method
 		err := client.Property.DeletePropertyField("group1", "field1")
-		
+
 		// Verify the results
 		assert.NoError(t, err)
 		api.AssertExpectations(t)
@@ -139,7 +140,7 @@ func TestPropertyFieldAPI(t *testing.T) {
 	t.Run("SearchPropertyFields", func(t *testing.T) {
 		// Setup
 		api := &plugintest.API{}
-		
+
 		// Mock the API call
 		opts := model.PropertyFieldSearchOpts{
 			PerPage: 10,
@@ -159,13 +160,13 @@ func TestPropertyFieldAPI(t *testing.T) {
 			},
 		}
 		api.On("SearchPropertyFields", "group1", "target1", opts).Return(fields, nil)
-		
+
 		// Create the client
 		client := NewClient(api, nil)
-		
+
 		// Call the method
 		result, err := client.Property.SearchPropertyFields("group1", "target1", opts)
-		
+
 		// Verify the results
 		require.NoError(t, err)
 		assert.Equal(t, fields, result)
@@ -177,23 +178,24 @@ func TestPropertyValueAPI(t *testing.T) {
 	t.Run("CreatePropertyValue", func(t *testing.T) {
 		// Setup
 		api := &plugintest.API{}
-		
+
 		// Mock the API call
 		value := &model.PropertyValue{
-			ID:       "value1",
-			GroupID:  "group1",
-			FieldID:  "field1",
-			TargetID: "target1",
-			Value:    "Test Value",
+			ID:         "value1",
+			GroupID:    "group1",
+			FieldID:    "field1",
+			TargetID:   "target1",
+			TargetType: "post",
+			Value:      json.RawMessage(`"Test Value"`),
 		}
 		api.On("CreatePropertyValue", value).Return(value, nil)
-		
+
 		// Create the client
 		client := NewClient(api, nil)
-		
+
 		// Call the method
 		result, err := client.Property.CreatePropertyValue(value)
-		
+
 		// Verify the results
 		assert.NoError(t, err)
 		assert.Equal(t, value, result)
@@ -203,23 +205,24 @@ func TestPropertyValueAPI(t *testing.T) {
 	t.Run("GetPropertyValue", func(t *testing.T) {
 		// Setup
 		api := &plugintest.API{}
-		
+
 		// Mock the API call
 		value := &model.PropertyValue{
-			ID:       "value1",
-			GroupID:  "group1",
-			FieldID:  "field1",
-			TargetID: "target1",
-			Value:    "Test Value",
+			ID:         "value1",
+			GroupID:    "group1",
+			FieldID:    "field1",
+			TargetID:   "target1",
+			TargetType: "post",
+			Value:      json.RawMessage(`"Test Value"`),
 		}
 		api.On("GetPropertyValue", "group1", "value1").Return(value, nil)
-		
+
 		// Create the client
 		client := NewClient(api, nil)
-		
+
 		// Call the method
 		result, err := client.Property.GetPropertyValue("group1", "value1")
-		
+
 		// Verify the results
 		assert.NoError(t, err)
 		assert.Equal(t, value, result)
@@ -229,32 +232,34 @@ func TestPropertyValueAPI(t *testing.T) {
 	t.Run("GetPropertyValues", func(t *testing.T) {
 		// Setup
 		api := &plugintest.API{}
-		
+
 		// Mock the API call
 		values := []*model.PropertyValue{
 			{
-				ID:       "value1",
-				GroupID:  "group1",
-				FieldID:  "field1",
-				TargetID: "target1",
-				Value:    "Test Value 1",
+				ID:         "value1",
+				GroupID:    "group1",
+				FieldID:    "field1",
+				TargetID:   "target1",
+				TargetType: "post",
+				Value:      json.RawMessage(`"Test Value 1"`),
 			},
 			{
-				ID:       "value2",
-				GroupID:  "group1",
-				FieldID:  "field2",
-				TargetID: "target1",
-				Value:    "Test Value 2",
+				ID:         "value2",
+				GroupID:    "group1",
+				FieldID:    "field2",
+				TargetID:   "target1",
+				TargetType: "post",
+				Value:      json.RawMessage(`"Test Value 2"`),
 			},
 		}
 		api.On("GetPropertyValues", "group1", []string{"value1", "value2"}).Return(values, nil)
-		
+
 		// Create the client
 		client := NewClient(api, nil)
-		
+
 		// Call the method
 		result, err := client.Property.GetPropertyValues("group1", []string{"value1", "value2"})
-		
+
 		// Verify the results
 		assert.NoError(t, err)
 		assert.Equal(t, values, result)
@@ -264,23 +269,24 @@ func TestPropertyValueAPI(t *testing.T) {
 	t.Run("UpdatePropertyValue", func(t *testing.T) {
 		// Setup
 		api := &plugintest.API{}
-		
+
 		// Mock the API call
 		value := &model.PropertyValue{
-			ID:       "value1",
-			GroupID:  "group1",
-			FieldID:  "field1",
-			TargetID: "target1",
-			Value:    "Updated Value",
+			ID:         "value1",
+			GroupID:    "group1",
+			FieldID:    "field1",
+			TargetID:   "target1",
+			TargetType: "post",
+			Value:      json.RawMessage(`"Updated Value"`),
 		}
 		api.On("UpdatePropertyValue", "group1", value).Return(value, nil)
-		
+
 		// Create the client
 		client := NewClient(api, nil)
-		
+
 		// Call the method
 		result, err := client.Property.UpdatePropertyValue("group1", value)
-		
+
 		// Verify the results
 		assert.NoError(t, err)
 		assert.Equal(t, value, result)
@@ -290,23 +296,24 @@ func TestPropertyValueAPI(t *testing.T) {
 	t.Run("UpsertPropertyValue", func(t *testing.T) {
 		// Setup
 		api := &plugintest.API{}
-		
+
 		// Mock the API call
 		value := &model.PropertyValue{
-			ID:       "value1",
-			GroupID:  "group1",
-			FieldID:  "field1",
-			TargetID: "target1",
-			Value:    "Upsert Value",
+			ID:         "value1",
+			GroupID:    "group1",
+			FieldID:    "field1",
+			TargetID:   "target1",
+			TargetType: "post",
+			Value:      json.RawMessage(`"Upsert Value"`),
 		}
 		api.On("UpsertPropertyValue", value).Return(value, nil)
-		
+
 		// Create the client
 		client := NewClient(api, nil)
-		
+
 		// Call the method
 		result, err := client.Property.UpsertPropertyValue(value)
-		
+
 		// Verify the results
 		assert.NoError(t, err)
 		assert.Equal(t, value, result)
@@ -316,16 +323,16 @@ func TestPropertyValueAPI(t *testing.T) {
 	t.Run("DeletePropertyValue", func(t *testing.T) {
 		// Setup
 		api := &plugintest.API{}
-		
+
 		// Mock the API call
 		api.On("DeletePropertyValue", "group1", "value1").Return(nil)
-		
+
 		// Create the client
 		client := NewClient(api, nil)
-		
+
 		// Call the method
 		err := client.Property.DeletePropertyValue("group1", "value1")
-		
+
 		// Verify the results
 		assert.NoError(t, err)
 		api.AssertExpectations(t)
@@ -334,35 +341,37 @@ func TestPropertyValueAPI(t *testing.T) {
 	t.Run("SearchPropertyValues", func(t *testing.T) {
 		// Setup
 		api := &plugintest.API{}
-		
+
 		// Mock the API call
 		opts := model.PropertyValueSearchOpts{
 			PerPage: 10,
 		}
 		values := []*model.PropertyValue{
 			{
-				ID:       "value1",
-				GroupID:  "group1",
-				FieldID:  "field1",
-				TargetID: "target1",
-				Value:    "Test Value 1",
+				ID:         "value1",
+				GroupID:    "group1",
+				FieldID:    "field1",
+				TargetID:   "target1",
+				TargetType: "post",
+				Value:      json.RawMessage(`"Test Value 1"`),
 			},
 			{
-				ID:       "value2",
-				GroupID:  "group1",
-				FieldID:  "field2",
-				TargetID: "target1",
-				Value:    "Test Value 2",
+				ID:         "value2",
+				GroupID:    "group1",
+				FieldID:    "field2",
+				TargetID:   "target1",
+				TargetType: "post",
+				Value:      json.RawMessage(`"Test Value 2"`),
 			},
 		}
 		api.On("SearchPropertyValues", "group1", "target1", opts).Return(values, nil)
-		
+
 		// Create the client
 		client := NewClient(api, nil)
-		
+
 		// Call the method
 		result, err := client.Property.SearchPropertyValues("group1", "target1", opts)
-		
+
 		// Verify the results
 		require.NoError(t, err)
 		assert.Equal(t, values, result)
