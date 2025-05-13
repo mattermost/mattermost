@@ -7,7 +7,7 @@ import type {RefObject} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages} from 'react-intl';
 import {components} from 'react-select';
-import type {FormatOptionLabelMeta, InputActionMeta, InputProps, Options, StylesConfig, SelectInstance, MultiValue, SingleValue, OptionsOrGroups, GroupBase, MultiValueRemoveProps} from 'react-select';
+import type {FormatOptionLabelMeta, InputActionMeta, InputProps, Options, StylesConfig, SelectInstance, MultiValue, SingleValue, OptionsOrGroups, GroupBase} from 'react-select';
 import AsyncCreatable from 'react-select/async-creatable';
 
 import type {UserProfile} from '@mattermost/types/users';
@@ -17,7 +17,7 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
+import {MultiValueRemove} from 'components/multiselect/multiselect';
 import MailIcon from 'components/widgets/icons/mail_icon';
 import MailPlusIcon from 'components/widgets/icons/mail_plus_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
@@ -259,30 +259,9 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         );
     };
 
-    MultiValueRemove = (props: MultiValueRemoveProps<EmailInvite | UserProfile, true>) => {
-        const {children, innerProps} = props;
-
-        return (
-            <div
-                {...innerProps}
-                role='button'
-                tabIndex={0}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        innerProps.onClick?.(e as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>);
-                    }
-                }}
-            >
-                {children || <CloseCircleSolidIcon/>}
-            </div>
-        );
-    };
-
     components = {
         NoOptionsMessage: this.props.suppressNoOptionsMessage ? () => null : this.NoOptionsMessage,
-        MultiValueRemove: this.MultiValueRemove,
+        MultiValueRemove,
         IndicatorsContainer: () => null,
         Input: this.Input,
     };

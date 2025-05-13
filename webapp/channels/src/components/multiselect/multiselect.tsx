@@ -7,7 +7,7 @@ import type {ComponentProps, ReactNode} from 'react';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-import type {GetOptionValue, InputActionMeta, SelectInstance} from 'react-select';
+import type {GetOptionValue, InputActionMeta, MultiValueRemoveProps, SelectInstance} from 'react-select';
 
 import SaveButton from 'components/save_button';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
@@ -74,6 +74,23 @@ export type State = {
     input: string;
     page: number;
 }
+
+export const MultiValueRemove = <T, >({children, innerProps}: MultiValueRemoveProps<T>) => (
+    <div
+        {...innerProps}
+        role='button'
+        tabIndex={0}
+        onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                innerProps.onClick?.(e as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>);
+            }
+        }}
+    >
+        {children || <CloseCircleSolidIcon/>}
+    </div>
+);
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -264,12 +281,6 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
 
         this.props.handleDelete(values);
     };
-
-    MultiValueRemove = ({children, innerProps}: any) => (
-        <div {...innerProps}>
-            {children || <CloseCircleSolidIcon/>}
-        </div>
-    );
 
     formatOptionLabel = (user: any) => {
         const profileImg = imageURLForUser(user.id, user.last_picture_update);
@@ -474,7 +485,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                                     Menu: nullComponent,
                                     IndicatorsContainer: nullComponent,
                                     MultiValueLabel: this.props.valueWithImage ? components.MultiValueLabel : paddedComponent(this.props.valueRenderer),
-                                    MultiValueRemove: this.props.valueWithImage ? this.MultiValueRemove : components.MultiValueRemove,
+                                    MultiValueRemove: this.props.valueWithImage ? MultiValueRemove : components.MultiValueRemove,
                                 }}
                                 isClearable={false}
                                 openMenuOnFocus={false}
