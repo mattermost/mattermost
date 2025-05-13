@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -397,7 +398,22 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 		// get mentions and users for each mention
 		mentionMap := scs.app.MentionsToTeamMembers(request.EmptyContext(scs.server.Log()), post.Message, sc.TeamId)
-		for _, userID := range mentionMap {
+
+		// Filter mention map to prevent triggering notifications for remote users
+		// with the same username unless they were explicitly mentioned with @username:remote format
+		for mention, userID := range mentionMap {
+			user, err := scs.server.GetStore().User().Get(context.Background(), userID)
+			if err != nil {
+				continue
+			}
+
+			// For remote users, only include if the mention contains a colon (explicitly selected from autocomplete)
+			// This prevents notifications for remote users when a local user with the same name is mentioned
+			if user.RemoteId != nil && !strings.Contains(mention, ":") {
+				// Skip this mention - don't add to userIDs
+				continue
+			}
+
 			userIDs[userID] = p2mm{
 				post:       post,
 				mentionMap: mentionMap,
@@ -428,8 +444,9 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 			sd.profileImages[user.Id] = user
 		}
 
-		// if this was a mention then put the real username in place of the username+remotename, but only
-		// when sending to the remote that the user belongs to.
+		// For remote users from the target remote, fix the mention format
+		// when sending back to their origin server (transforms @username:remote to @username)
+		// Only call fixMention for remote users (with RemoteId) that belong to the target remote cluster
 		if v.post != nil && user.RemoteId != nil && *user.RemoteId == sd.rc.RemoteId {
 			fixMention(v.post, v.mentionMap, user)
 		}
