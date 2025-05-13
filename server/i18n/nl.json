@@ -4624,15 +4624,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 119+"
+    "translation": "Versie 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 132+"
+    "translation": "Versie 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 132+"
+    "translation": "Versie 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10225,7 +10225,7 @@
     "id": "app.scheduled_post.failed_message_detail",
     "translation": {
       "one": "- {{.Count}} in kanaal {{.ChannelName}}. Reden: {{.ErrorReason}}",
-      "other": "- {{.Count}} in kanaal {{.ChannelName}}. Reden: {{.ErrorReason}}"
+      "other": "- {{.Count}} in kanalen {{.ChannelName}}. Reden: {{.ErrorReason}}"
     }
   },
   {
@@ -10617,7 +10617,7 @@
   },
   {
     "id": "app.submit_interactive_dialog.read_body_error",
-    "translation": "Er is een fout opgetreden bij het lezen van de respons van een interactief dialoogvenster."
+    "translation": "Er is een fout opgetreden bij het lezen van het antwoord van een interactief dialoogvenster."
   },
   {
     "id": "ent.ldap.do_login.invalid_id",
@@ -10638,5 +10638,29 @@
   {
     "id": "ent.saml.login.ldap_user_missing",
     "translation": "Er is geen gebruiker geregistreerd op de AD/LDAP-server die overeenkomt met de SAML-gebruiker."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} functie is niet beschikbaar binnen de huidige licentie"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Ongeldige link om een probleem te melden. Moet een geldige URL zijn en beginnen met http:// of https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "De link Een probleem melden is vereist."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Ongeldig e-mailadres voor Een probleem melden. Moet een geldig e-mailadres zijn."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Een probleem melden mail is vereist."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Kan de waarde voor een gesynchroniseerd aangepast profielattribuutveld niet bijwerken"
   }
 ]

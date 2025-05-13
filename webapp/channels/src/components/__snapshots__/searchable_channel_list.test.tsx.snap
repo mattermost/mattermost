@@ -121,11 +121,15 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
         />
       </Menu>
       <div
+        aria-checked={false}
+        aria-label="Hide joined channels"
         id="hideJoinedPreferenceCheckbox"
         onClick={[Function]}
+        onKeyDown={[Function]}
+        role="checkbox"
+        tabIndex={0}
       >
-        <button
-          aria-label="Hide joined channels checkbox, not checked"
+        <div
           className="get-app__checkbox"
         />
         <MemoizedFormattedMessage
