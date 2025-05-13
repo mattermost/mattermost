@@ -14,6 +14,7 @@ import (
 
 // fixMention transforms mentions for remote users
 // Preserves @username:remotename format when username exists on both servers
+// This prevents username conflicts between local and remote users
 func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.User) {
 	if post == nil || len(mentionMap) == 0 || user.RemoteId == nil {
 		return
@@ -32,23 +33,6 @@ func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.U
 			if username != realUsername {
 				post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+realUsername)
 			}
-		}
-	}
-}
-
-// removeMention removes any mentions in a post for the specified user.
-// This is used to prevent local users from being mentioned on remote clusters
-// where there might be users with the same username.
-func removeMention(post *model.Post, mentionMap model.UserMentionMap, user *model.User) {
-	if post == nil || len(mentionMap) == 0 {
-		return
-	}
-
-	// Look for mentions of this user and remove them
-	for mention, id := range mentionMap {
-		if id == user.Id {
-			// Remove the mention by replacing it with the non-mention text
-			post.Message = strings.ReplaceAll(post.Message, "@"+mention, mention)
 		}
 	}
 }

@@ -190,89 +190,6 @@ func Test_fixMention(t *testing.T) {
 	}
 }
 
-func Test_removeMention(t *testing.T) {
-	tests := []struct {
-		name       string
-		post       *model.Post
-		mentionMap model.UserMentionMap
-		user       *model.User
-		expected   string
-	}{
-		{
-			name:       "nil post",
-			post:       nil,
-			mentionMap: model.UserMentionMap{"user": "userid"},
-			user:       &model.User{Id: "userid"},
-			expected:   "",
-		},
-		{
-			name:       "empty mentionMap",
-			post:       &model.Post{Message: "hello @user"},
-			mentionMap: model.UserMentionMap{},
-			user:       &model.User{Id: "userid"},
-			expected:   "hello @user",
-		},
-		{
-			name:       "simple mention",
-			post:       &model.Post{Message: "hello @user"},
-			mentionMap: model.UserMentionMap{"user": "userid"},
-			user:       &model.User{Id: "userid"},
-			expected:   "hello user",
-		},
-		{
-			name:       "mention at start",
-			post:       &model.Post{Message: "@user hello"},
-			mentionMap: model.UserMentionMap{"user": "userid"},
-			user:       &model.User{Id: "userid"},
-			expected:   "user hello",
-		},
-		{
-			name:       "mention at end",
-			post:       &model.Post{Message: "hello @user"},
-			mentionMap: model.UserMentionMap{"user": "userid"},
-			user:       &model.User{Id: "userid"},
-			expected:   "hello user",
-		},
-		{
-			name:       "multiple mentions of same user",
-			post:       &model.Post{Message: "hello @user and @user again"},
-			mentionMap: model.UserMentionMap{"user": "userid"},
-			user:       &model.User{Id: "userid"},
-			expected:   "hello user and user again",
-		},
-		{
-			name:       "multiple different mentions",
-			post:       &model.Post{Message: "hello @user and @other"},
-			mentionMap: model.UserMentionMap{"user": "userid", "other": "otherid"},
-			user:       &model.User{Id: "userid"},
-			expected:   "hello user and @other",
-		},
-		{
-			name:       "mention with colon",
-			post:       &model.Post{Message: "hello @user:remote"},
-			mentionMap: model.UserMentionMap{"user:remote": "userid"},
-			user:       &model.User{Id: "userid"},
-			expected:   "hello user:remote",
-		},
-		{
-			name:       "mention different user id",
-			post:       &model.Post{Message: "hello @user"},
-			mentionMap: model.UserMentionMap{"user": "different"},
-			user:       &model.User{Id: "userid"},
-			expected:   "hello @user",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			removeMention(tt.post, tt.mentionMap, tt.user)
-			if tt.post != nil {
-				require.Equal(t, tt.expected, tt.post.Message)
-			}
-		})
-	}
-}
-
 // R returns a string with the specified string repeated `count` times.
 func R(count int, s string) string {
 	return strings.Repeat(s, count)
@@ -299,8 +216,7 @@ func TestHandleUserMentions(t *testing.T) {
 			Message: "Hey @admin, please review this.",
 		}
 
-		// We don't call removeMention() anymore
-		// This ensures the mention format "@admin" is preserved when synced between clusters
+		// Mentions are preserved when synced between clusters
 		// so that the local admin on Cluster A would receive a notification
 
 		// We're verifying the post will keep its mention format after being synced
