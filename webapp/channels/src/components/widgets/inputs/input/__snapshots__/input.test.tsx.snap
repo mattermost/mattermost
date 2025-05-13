@@ -5,11 +5,10 @@ exports[`components/widgets/inputs/Input should match snapshot 1`] = `
   <div
     class="Input_container"
   >
-    <div
+    <fieldset
       class="Input_fieldset"
-      data-testid="input-fieldset"
     >
-      <label
+      <legend
         class="Input_legend"
       />
       <div
@@ -22,7 +21,7 @@ exports[`components/widgets/inputs/Input should match snapshot 1`] = `
           value=""
         />
       </div>
-    </div>
+    </fieldset>
   </div>
 </div>
 `;
