@@ -101,26 +101,27 @@ func Test_fixMention(t *testing.T) {
 			expected:   "hello @user:remote",
 		},
 		// Username clash test cases (same username on both local and remote)
+		// With the new behavior, when syncing to a user's home cluster, we always remove the remote suffix
 		{
 			name:       "username clash - simple mention",
 			post:       &model.Post{Message: "hello @user:remote"},
 			mentionMap: model.UserMentionMap{"user:remote": "userid"},
 			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "user"}},
-			expected:   "hello @user:remote",
+			expected:   "hello @user",
 		},
 		{
 			name:       "username clash - mention at start",
 			post:       &model.Post{Message: "@user:remote hello"},
 			mentionMap: model.UserMentionMap{"user:remote": "userid"},
 			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "user"}},
-			expected:   "@user:remote hello",
+			expected:   "@user hello",
 		},
 		{
 			name:       "username clash - multiple mentions",
 			post:       &model.Post{Message: "hello @user:remote and @user:remote again"},
 			mentionMap: model.UserMentionMap{"user:remote": "userid"},
 			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "user"}},
-			expected:   "hello @user:remote and @user:remote again",
+			expected:   "hello @user and @user again",
 		},
 		{
 			name:       "simple mention different username",
@@ -134,7 +135,7 @@ func Test_fixMention(t *testing.T) {
 			post:       &model.Post{Message: "hello @user:remote"},
 			mentionMap: model.UserMentionMap{"user:remote": "userid"},
 			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "user"}},
-			expected:   "hello @user:remote",
+			expected:   "hello @user",
 		},
 		{
 			name:       "mention at start",
@@ -234,15 +235,16 @@ func TestHandleUserMentions(t *testing.T) {
 		}
 
 		// When this post is synced to Cluster B, fixMention will transform
-		// @admin:remote_cluster_B to @admin:remote_cluster_B
+		// @admin:remote_cluster_B to @admin (removing the remote suffix)
 		postCopy := &model.Post{Message: postWithRemoteMention.Message}
 		fixMention(postCopy, mentionMapWithRemote, adminUserB)
 
-		// With the current implementation, fixMention replaces @username:remote with @realusername:remote
-		expected := "Let's ask @admin:remote_cluster_B about this"
+		// fixMention should replace @username:remote with @realusername (without the remote suffix)
+		// when syncing to the user's home cluster
+		expected := "Let's ask @admin about this"
 
-		// The part we're testing is that mentions maintain their format when sent to the remote cluster
+		// The part we're testing is that mentions are simplified when sent to the user's home cluster
 		require.Equal(t, expected, postCopy.Message,
-			"Should properly format remote mentions while preserving the remote context")
+			"Should remove remote cluster suffix when message is viewed on user's home server")
 	})
 }

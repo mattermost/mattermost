@@ -12,9 +12,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-// fixMention transforms mentions for remote users
-// Preserves @username:remotename format when username exists on both servers
-// This prevents username conflicts between local and remote users
+// fixMention transforms mentions for remote users when syncing posts between clusters
+// When a post with @username:remotename is synced to the user's home cluster,
+// it transforms to @username (without the remote suffix)
+// This ensures remote users see a clean mention format on their home server
 func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.User) {
 	if post == nil || len(mentionMap) == 0 || user.RemoteId == nil {
 		return
@@ -26,13 +27,11 @@ func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.U
 	}
 
 	for mention, id := range mentionMap {
+		// Only process mentions with colons that match the user ID
 		if id == user.Id && strings.Contains(mention, ":") {
-			username := strings.Split(mention, ":")[0]
-
-			// Only replace if usernames don't match to prevent conflicts
-			if username != realUsername {
-				post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+realUsername)
-			}
+			// When syncing to a user's home cluster, always transform @username:remote to @username
+			// This ensures remote users see a clean mention format on their home server
+			post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+realUsername)
 		}
 	}
 }
