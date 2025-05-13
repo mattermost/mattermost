@@ -101,13 +101,11 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 		return false, err
 	}
 
-	if channel != nil {
-		// to avoid fetching the channel again, we manually set the shared
-		// flag before notifying the clients
-		channel.Shared = model.NewPointer(false)
+	// to avoid fetching the channel again, we manually set the shared
+	// flag before notifying the clients
+	channel.Shared = model.NewPointer(false)
+	scs.notifyClientsForSharedChannelConverted(channel)
 
-		scs.notifyClientsForSharedChannelConverted(channel)
-	}
 	return deleted, nil
 }
 
