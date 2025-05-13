@@ -14,8 +14,7 @@ import (
 )
 
 func TestMuteCommandNoChannel(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	if testing.Short() {
 		t.SkipNow()
@@ -41,8 +40,7 @@ func TestMuteCommandNoChannel(t *testing.T) {
 }
 
 func TestMuteCommandNoArgs(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	channel1 := th.BasicChannel
 	channel1M, _ := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
@@ -71,8 +69,7 @@ func TestMuteCommandNoArgs(t *testing.T) {
 }
 
 func TestMuteCommandSpecificChannel(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	if testing.Short() {
 		t.SkipNow()
@@ -116,8 +113,7 @@ func TestMuteCommandSpecificChannel(t *testing.T) {
 }
 
 func TestMuteCommandNotMember(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	if testing.Short() {
 		t.SkipNow()
@@ -144,8 +140,7 @@ func TestMuteCommandNotMember(t *testing.T) {
 }
 
 func TestMuteCommandNotChannel(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	if testing.Short() {
 		t.SkipNow()
@@ -165,8 +160,7 @@ func TestMuteCommandNotChannel(t *testing.T) {
 }
 
 func TestMuteCommandDMChannel(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	if testing.Short() {
 		t.SkipNow()
