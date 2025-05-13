@@ -430,16 +430,14 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		}
 
 		// Handle user mentions in shared channels
-		if v.post != nil && user.RemoteId != nil {
-			if *user.RemoteId == sd.rc.RemoteId {
-				// Check if mention has colon (was selected from autocomplete)
-				hasSelectedMention := hasColonInMention(v.mentionMap, user.Id)
+		if v.post != nil && user.RemoteId != nil && *user.RemoteId == sd.rc.RemoteId {
+			// Check if mention has colon (was selected from autocomplete)
+			hasSelectedMention := hasColonInMention(v.mentionMap, user.Id)
 
-				if hasSelectedMention {
-					// For remote users from the target remote, fix the mention format
-					// when sending back to their origin server (only if explicitly mentioned)
-					fixMention(v.post, v.mentionMap, user)
-				}
+			if hasSelectedMention {
+				// For remote users from the target remote, fix the mention format
+				// when sending back to their origin server (only if explicitly mentioned)
+				fixMention(v.post, v.mentionMap, user)
 			}
 		}
 	}
