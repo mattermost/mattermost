@@ -4481,7 +4481,7 @@ export default class Client4 {
     };
 
     getAccessControlFields = (after: string, limit: number) => {
-        return this.doFetch<PropertyField[]>(
+        return this.doFetch<UserPropertyField[]>(
             `${this.getBaseRoute()}/access_control_policies/cel/autocomplete/fields?after=${after}&limit=${limit}`,
             {method: 'get'},
         );

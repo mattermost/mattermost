@@ -9,7 +9,7 @@ import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {JobTypeBase} from '@mattermost/types/jobs';
-import type {PropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -78,7 +78,7 @@ function PolicyDetails({
     });
     const [saveNeeded, setSaveNeeded] = useState(false);
     const [channelsCount, setChannelsCount] = useState(0);
-    const [autocompleteResult, setAutocompleteResult] = useState<PropertyField[]>([]);
+    const [autocompleteResult, setAutocompleteResult] = useState<UserPropertyField[]>([]);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
     const {formatMessage} = useIntl();
@@ -401,10 +401,7 @@ function PolicyDetails({
                                         setSaveNeeded(true);
                                     }}
                                     onValidate={() => {}}
-                                    userAttributes={autocompleteResult.map((attr) => ({
-                                        attribute: attr.name,
-                                        values: [],
-                                    }))}
+                                    userAttributes={autocompleteResult}
                                 />
                             )}
                         </Card.Body>

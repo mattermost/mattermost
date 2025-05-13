@@ -7,19 +7,15 @@ import {useIntl} from 'react-intl';
 
 import {CheckIcon, MenuVariantIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import type {UserPropertyField} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
 
 import './selector_menus.scss';
 
-interface AttributeOption {
-    attribute: string;
-    values: string[];
-}
-
 interface AttributeSelectorProps {
     currentAttribute: string;
-    availableAttributes: AttributeOption[];
+    availableAttributes: UserPropertyField[];
     disabled: boolean;
     onChange: (attribute: string) => void;
 }
@@ -34,7 +30,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
 
     const options = useMemo(() => {
         return availableAttributes.filter((attr) => {
-            return attr.attribute.toLowerCase().includes(filter.toLowerCase());
+            return attr.name.toLowerCase().includes(filter.toLowerCase());
         });
     }, [availableAttributes, filter]);
 
@@ -80,18 +76,18 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                 />,
             ]}
             {options.map((option) => {
-                const {attribute} = option;
+                const {name} = option;
                 return (
                     <Menu.Item
-                        id={`attribute-${attribute}`}
-                        key={attribute}
+                        id={`attribute-${name}`}
+                        key={name}
                         role='menuitemradio'
                         forceCloseOnSelect={true}
-                        aria-checked={attribute === currentAttribute}
-                        onClick={() => handleAttributeChange(attribute)}
-                        labels={<span>{attribute}</span>}
+                        aria-checked={name === currentAttribute}
+                        onClick={() => handleAttributeChange(name)}
+                        labels={<span>{name}</span>}
                         leadingElement={<AttributeIcon size={18}/>}
-                        trailingElements={attribute === currentAttribute && (
+                        trailingElements={name === currentAttribute && (
                             <CheckIcon/>
                         )}
                     />

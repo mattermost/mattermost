@@ -27,13 +27,17 @@
         opacity: 0.6;
     }
 
-    svg {
-        margin-right: 8px;
+    > span > span:first-child:not([style*="flex-wrap: wrap"]) {
+        overflow: hidden;
+        padding-right: 8px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
 
 .select-attribute-mui-menu,
-.select-operator-mui-menu {
+.select-operator-mui-menu,
+.select-value-mui-menu {
     margin-top: 0;
 
     .MenuItem {
@@ -43,4 +47,14 @@
             margin-right: 8px;
         }
     }
-} 
+
+    .attribute-selector-search {
+        display: block;
+        padding: 4px 8px;
+
+        input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    }
+}

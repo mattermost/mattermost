@@ -1,41 +1,50 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useMemo} from 'react';
+import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
-import CreatableSelect from 'react-select/creatable';
+
+// CreatableSelect is no longer needed if ValueSelectorMenu handles all cases
+// import CreatableSelect from 'react-select/creatable';
+
+import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import Constants from 'utils/constants';
 
-import './values_editor.scss';
 import type {TableRow} from './table_row';
+import ValueSelectorMenu from './value_selector_menu';
+
+import './values_editor.scss';
 
 export type ValuesEditorProps = {
     row: TableRow;
     disabled: boolean;
     updateValues: (values: string[]) => void;
+    options?: PropertyFieldOption[];
+    allowCreateValue?: boolean; // Prop to control if ValueSelectorMenu can create when it has options
 }
 
-function ValuesEditor({row, disabled, updateValues}: ValuesEditorProps) {
+function ValuesEditor({
+    row,
+    disabled,
+    updateValues,
+    options = [],
+
+    // allowCreateValue is now more about whether creation is permitted *when options exist*
+    // or if ValueSelectorMenu is used for single-select with options.
+    // For no-options multi-select, ValueSelectorMenu is always creatable.
+    // For no-options single-select, it's always a simple input.
+    allowCreateValue = false,
+}: ValuesEditorProps) {
     const {formatMessage} = useIntl();
-    const isMulti = row.operator === 'in';
+    const isMultiOperator = row.operator === 'in';
     const [inputValue, setInputValue] = useState('');
     const [isEditing, setIsEditing] = useState(false);
+    const hasOptions = options.length > 0;
 
-    // Format options for react-select
-    const value = useMemo(() => {
-        return row.values.map((val) => ({
-            label: val,
-            value: val,
-        }));
-    }, [row.values]);
-
-    // Handle input submission for single value
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyDownSimpleInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-
-            // Only update if there's actual text - don't set empty values
             if (inputValue.trim()) {
                 updateValues([inputValue.trim()]);
             }
@@ -44,76 +53,65 @@ function ValuesEditor({row, disabled, updateValues}: ValuesEditorProps) {
         }
     };
 
-    // For single value mode, use a simple input field
-    if (!isMulti) {
-        const displayValue = row.values.length > 0 ? row.values[0] : '';
-
+    if (hasOptions) {
+        // Always use ValueSelectorMenu if options are present
         return (
             <div className='values-editor'>
-                <input
-                    type='text'
-                    className='values-editor__simple-input'
-                    value={isEditing ? inputValue : displayValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    onFocus={() => {
-                        setIsEditing(true);
-                        if (displayValue) {
-                            setInputValue(displayValue);
-                        }
-                    }}
-                    onBlur={() => {
-                        // Only update if there's actual text - don't set empty values
-                        if (inputValue.trim()) {
-                            updateValues([inputValue.trim()]);
-                        }
-                        setInputValue('');
-                        setIsEditing(false);
-                    }}
-                    placeholder={formatMessage({id: 'admin.access_control.table_editor.value.placeholder', defaultMessage: 'Add value...'})}
+                <ValueSelectorMenu
+                    currentValues={row.values}
+                    options={options}
                     disabled={disabled}
-                    maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                    onChange={updateValues}
+                    isMulti={isMultiOperator}
+                    allowCreate={allowCreateValue} // Allow creation alongside options if specified
                 />
             </div>
         );
     }
 
-    // For multi-value mode, continue using CreatableSelect
-    const customComponents = {
-        DropdownIndicator: () => null,
-        IndicatorsContainer: () => null,
-    };
+    // No options present
+    if (isMultiOperator) {
+        // Multi-select, no options: Use ValueSelectorMenu, always creatable
+        return (
+            <div className='values-editor'>
+                <ValueSelectorMenu
+                    currentValues={row.values}
+                    options={[]} // No options
+                    disabled={disabled}
+                    onChange={updateValues}
+                    isMulti={true}
+                    allowCreate={true} // Always allow create for multi-select with no options
+                />
+            </div>
+        );
+    }
 
-    const handleChange = (newValue: any) => {
-        if (!newValue) {
-            updateValues([]);
-        } else if (Array.isArray(newValue)) {
-            updateValues(newValue.map((option) => option.value));
-        }
-    };
-
+    // Single-select, no options: Always use simple text input
+    const displayValue = row.values.length > 0 ? row.values[0] : '';
     return (
         <div className='values-editor'>
-            <CreatableSelect
-                isMulti={true}
-                isClearable={true}
-                isDisabled={disabled}
-                components={customComponents}
-                value={value}
-                onChange={handleChange}
-                onCreateOption={(inputValue) => {
-                    const val = inputValue.trim();
-                    if (!val) {
-                        return;
-                    }
-
-                    if (!row.values.includes(val)) {
-                        updateValues([...row.values, val]);
+            <input
+                type='text'
+                className='values-editor__simple-input'
+                value={isEditing ? inputValue : displayValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDownSimpleInput}
+                onFocus={() => {
+                    setIsEditing(true);
+                    if (displayValue) {
+                        setInputValue(displayValue);
                     }
                 }}
-                placeholder={formatMessage({id: 'admin.access_control.table_editor.values.placeholder', defaultMessage: 'Add values...'})}
-                classNamePrefix='select'
-                menuPortalTarget={document.body}
+                onBlur={() => {
+                    if (inputValue.trim()) {
+                        updateValues([inputValue.trim()]);
+                    }
+                    setInputValue('');
+                    setIsEditing(false);
+                }}
+                placeholder={formatMessage({id: 'admin.access_control.table_editor.value.placeholder', defaultMessage: 'Add value...'})}
+                disabled={disabled}
+                maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
             />
         </div>
     );

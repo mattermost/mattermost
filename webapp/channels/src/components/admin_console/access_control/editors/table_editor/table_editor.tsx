@@ -4,6 +4,8 @@
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import type {UserPropertyField} from '@mattermost/types/properties';
+
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {Client4} from 'mattermost-redux/client';
 
@@ -23,10 +25,7 @@ interface TableEditorProps {
     onChange: (value: string) => void;
     onValidate?: (isValid: boolean) => void;
     disabled?: boolean;
-    userAttributes: Array<{
-        attribute: string;
-        values: string[];
-    }>;
+    userAttributes: UserPropertyField[];
 }
 
 // Parse CEL expression into table rows
@@ -150,7 +149,7 @@ function TableEditor({
         }
 
         const newRows = [...rows, {
-            attribute: availableAttrs[0].attribute,
+            attribute: availableAttrs[0].name,
             operator: 'is',
             values: [],
         }];
@@ -194,7 +193,7 @@ function TableEditor({
     // Get available attributes (excluding ones already used)
     const getAvailableAttributes = () => {
         const usedAttributes = new Set(rows.map((row) => row.attribute));
-        return userAttributes.filter((attr) => !usedAttributes.has(attr.attribute));
+        return userAttributes.filter((attr) => !usedAttributes.has(attr.name));
     };
 
     return (
@@ -242,7 +241,7 @@ function TableEditor({
                                     <AttributeSelectorMenu
                                         currentAttribute={row.attribute}
                                         availableAttributes={getAvailableAttributes().concat(
-                                            row.attribute ? [{attribute: row.attribute, values: []}] : [],
+                                            row.attribute ? ([{name: row.attribute}] as unknown as UserPropertyField[]) : [],
                                         )}
                                         disabled={disabled}
                                         onChange={(attribute) => updateRowAttribute(index, attribute)}
@@ -260,6 +259,7 @@ function TableEditor({
                                         row={row}
                                         disabled={disabled}
                                         updateValues={(values) => updateRowValues(index, values)}
+                                        options={row.attribute ? userAttributes.find((attr) => attr.name === row.attribute)?.attrs?.options || [] : []}
                                     />
                                 </div>
                                 <div className='table-editor__cell-actions'>
