@@ -9,6 +9,8 @@ import {createElement, PureComponent} from 'react';
 
 import ItemRow from './item_row';
 
+// import ItemMeasurer from './item_measurer';
+
 const atBottomMargin = 10;
 
 export class DynamicVirtualizedList extends PureComponent {
