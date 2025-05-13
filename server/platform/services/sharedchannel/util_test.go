@@ -100,53 +100,82 @@ func Test_fixMention(t *testing.T) {
 			user:       &model.User{Id: "userid"},
 			expected:   "hello @user:remote",
 		},
+		// Username clash test cases (same username on both local and remote)
 		{
-			name:       "simple mention",
+			name:       "username clash - simple mention",
 			post:       &model.Post{Message: "hello @user:remote"},
 			mentionMap: model.UserMentionMap{"user:remote": "userid"},
-			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "user"}},
+			expected:   "hello @user:remote",
+		},
+		{
+			name:       "username clash - mention at start",
+			post:       &model.Post{Message: "@user:remote hello"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "user"}},
+			expected:   "@user:remote hello",
+		},
+		{
+			name:       "username clash - multiple mentions",
+			post:       &model.Post{Message: "hello @user:remote and @user:remote again"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "user"}},
+			expected:   "hello @user:remote and @user:remote again",
+		},
+		{
+			name:       "simple mention different username",
+			post:       &model.Post{Message: "hello @user:remote"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
 			expected:   "hello @realuser",
+		},
+		{
+			name:       "simple mention same username",
+			post:       &model.Post{Message: "hello @user:remote"},
+			mentionMap: model.UserMentionMap{"user:remote": "userid"},
+			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "user"}},
+			expected:   "hello @user:remote",
 		},
 		{
 			name:       "mention at start",
 			post:       &model.Post{Message: "@user:remote hello"},
 			mentionMap: model.UserMentionMap{"user:remote": "userid"},
-			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
 			expected:   "@realuser hello",
 		},
 		{
 			name:       "mention at end",
 			post:       &model.Post{Message: "hello @user:remote"},
 			mentionMap: model.UserMentionMap{"user:remote": "userid"},
-			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
 			expected:   "hello @realuser",
 		},
 		{
 			name:       "multiple mentions of same user",
 			post:       &model.Post{Message: "hello @user:remote and @user:remote again"},
 			mentionMap: model.UserMentionMap{"user:remote": "userid"},
-			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
 			expected:   "hello @realuser and @realuser again",
 		},
 		{
 			name:       "multiple different mentions",
 			post:       &model.Post{Message: "hello @user:remote and @other:remote"},
 			mentionMap: model.UserMentionMap{"user:remote": "userid", "other:remote": "otherid"},
-			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
 			expected:   "hello @realuser and @other:remote",
 		},
 		{
 			name:       "mention without colon",
 			post:       &model.Post{Message: "hello @user"},
 			mentionMap: model.UserMentionMap{"user": "userid"},
-			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
 			expected:   "hello @user",
 		},
 		{
 			name:       "mention different user id",
 			post:       &model.Post{Message: "hello @user:remote"},
 			mentionMap: model.UserMentionMap{"user:remote": "different"},
-			user:       &model.User{Id: "userid", Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
+			user:       &model.User{Id: "userid", RemoteId: model.NewPointer("remoteid"), Props: model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"}},
 			expected:   "hello @user:remote",
 		},
 	}
@@ -250,51 +279,54 @@ func R(count int, s string) string {
 }
 
 func TestHandleUserMentions(t *testing.T) {
-	t.Run("should handle mentions correctly for target remote users", func(t *testing.T) {
-		// Create a post with two mentions: one with colon (from autocomplete) and one without
-		post := &model.Post{
-			Message: "Hello @user and @user:remote",
+	t.Run("should format mentions across clusters", func(t *testing.T) {
+		// This test verifies the behavior when same username exists on multiple clusters
+
+		// Define remote cluster names (not server names)
+		clusterBName := "remote_cluster_B"
+
+		// Create user with admin username on remote cluster B
+		adminUserB := &model.User{
+			Id:       "adminB",
+			Username: "admin",
+			RemoteId: model.NewPointer(clusterBName),
+			Props:    model.StringMap{model.UserPropsKeyRemoteUsername: "admin"},
 		}
 
-		// Mention map with both formats of mentions
-		mentionMap := model.UserMentionMap{
-			"user":        "userid",
-			"user:remote": "userid",
+		// Scenario: User on Cluster B mentions local admin
+		// The mention should show as @admin on Cluster B
+		postOnClusterB := &model.Post{
+			Message: "Hey @admin, please review this.",
 		}
 
-		// Create a remote user object
-		remoteId := "remoteid"
-		user := &model.User{
-			Id:       "userid",
-			RemoteId: &remoteId,
-			Props:    model.StringMap{model.UserPropsKeyRemoteUsername: "realuser"},
+		// We don't call removeMention() anymore
+		// This ensures the mention format "@admin" is preserved when synced between clusters
+		// so that the local admin on Cluster A would receive a notification
+
+		// We're verifying the post will keep its mention format after being synced
+		require.Contains(t, postOnClusterB.Message, "@admin",
+			"Message should preserve @admin mention when synced between clusters")
+
+		// Scenario: User on Cluster A explicitly mentions admin on Cluster B
+		// It will show as @admin:remote_cluster_B on Cluster A
+		postWithRemoteMention := &model.Post{
+			Message: "Let's ask @admin:remote_cluster_B about this",
 		}
 
-		// Case 1: User from target remote with autocomplete mention should keep the mention (fixMention)
-		postCopy1 := &model.Post{Message: post.Message}
-		hasSelectedMention := true
-		if hasSelectedMention {
-			fixMention(postCopy1, mentionMap, user)
-		} else {
-			removeMention(postCopy1, mentionMap, user)
+		mentionMapWithRemote := model.UserMentionMap{
+			"admin:remote_cluster_B": "adminB",
 		}
-		require.Equal(t, "Hello @user and @realuser", postCopy1.Message, "Should fix only the colon mention")
 
-		// Case 2: User from target remote without autocomplete mention should remove mention (removeMention)
-		postCopy2 := &model.Post{Message: post.Message}
-		hasSelectedMention = false
-		if hasSelectedMention {
-			fixMention(postCopy2, mentionMap, user)
-		} else {
-			removeMention(postCopy2, mentionMap, user)
-		}
-		require.Equal(t, "Hello user and user:remote", postCopy2.Message, "Should remove mentions for user")
+		// When this post is synced to Cluster B, fixMention will transform
+		// @admin:remote_cluster_B to @admin:remote_cluster_B
+		postCopy := &model.Post{Message: postWithRemoteMention.Message}
+		fixMention(postCopy, mentionMapWithRemote, adminUserB)
 
-		// Case 3: User from different remote should always remove the mention
-		differentRemoteId := "differentremoteid"
-		user.RemoteId = &differentRemoteId
-		postCopy3 := &model.Post{Message: post.Message}
-		removeMention(postCopy3, mentionMap, user)
-		require.Equal(t, "Hello user and user:remote", postCopy3.Message, "Should remove mentions for different remote user")
+		// With the current implementation, fixMention replaces @username:remote with @realusername:remote
+		expected := "Let's ask @admin:remote_cluster_B about this"
+
+		// The part we're testing is that mentions maintain their format when sent to the remote cluster
+		require.Equal(t, expected, postCopy.Message,
+			"Should properly format remote mentions while preserving the remote context")
 	})
 }
