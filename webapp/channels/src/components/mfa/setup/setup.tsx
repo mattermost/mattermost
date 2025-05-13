@@ -101,10 +101,11 @@ export default class Setup extends React.PureComponent<Props, State> {
                 error: (
                     <FormattedMessage
                         id='mfa.setup.codeError'
-                        defaultMessage='Please enter the code from Google Authenticator.'
+                        defaultMessage='Please enter the code from your authenticator app.'
                     />
                 ),
             });
+            this.input?.current?.focus();
             return;
         }
 
@@ -126,6 +127,7 @@ export default class Setup extends React.PureComponent<Props, State> {
                         error: error.message,
                     });
                 }
+                this.input?.current?.focus();
                 return;
             }
 
@@ -137,7 +139,15 @@ export default class Setup extends React.PureComponent<Props, State> {
         let formClass = 'form-group';
         let errorContent;
         if (this.state.error) {
-            errorContent = <div className='form-group has-error'><label className='control-label'>{this.state.error}</label></div>;
+            errorContent = (
+                <div
+                    id='mfa-setup-error'
+                    className='form-group has-error'
+                    role='alert'
+                >
+                    <label className='control-label'>{this.state.error}</label>
+                </div>
+            );
             formClass += ' has-error';
         }
 
@@ -212,6 +222,7 @@ export default class Setup extends React.PureComponent<Props, State> {
                             className='form-control'
                             placeholder={defineMessage({id: 'mfa.setup.code', defaultMessage: 'MFA Code'})}
                             autoFocus={true}
+                            aria-describedby={this.state.error ? 'mfa-setup-error' : undefined}
                         />
                     </p>
                     {errorContent}
