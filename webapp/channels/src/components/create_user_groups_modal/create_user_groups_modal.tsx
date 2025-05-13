@@ -299,26 +299,28 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                                 customMessage={{type: ItemStatus.ERROR, value: this.state.mentionInputErrorText}}
                             />
                         </div>
-                        <h2>
-                            <FormattedMessage
-                                id='user_groups_modal.addPeople'
-                                defaultMessage='Add People'
-                            />
-                        </h2>
-                        <div className='group-add-user'>
-                            <AddUserToGroupMultiSelect
-                                multilSelectKey={'addUsersToGroupKey'}
-                                onSubmitCallback={this.createGroup}
-                                focusOnLoad={false}
-                                savingEnabled={this.isSaveEnabled()}
-                                addUserCallback={this.addUserCallback}
-                                deleteUserCallback={this.deleteUserCallback}
-                                backButtonText={defineMessage({id: 'multiselect.cancelButton', defaultMessage: 'Cancel'})}
-                                backButtonClick={this.doHide}
-                                backButtonClass={'multiselect-back'}
-                                saving={this.state.saving}
-                            />
-                        </div>
+                        <fieldset className='group-add-people-fieldset'>
+                            <legend>
+                                <FormattedMessage
+                                    id='user_groups_modal.addPeople'
+                                    defaultMessage='Add People'
+                                />
+                            </legend>
+                            <div className='group-add-user'>
+                                <AddUserToGroupMultiSelect
+                                    multilSelectKey={'addUsersToGroupKey'}
+                                    onSubmitCallback={this.createGroup}
+                                    focusOnLoad={false}
+                                    savingEnabled={this.isSaveEnabled()}
+                                    addUserCallback={this.addUserCallback}
+                                    deleteUserCallback={this.deleteUserCallback}
+                                    backButtonText={defineMessage({id: 'multiselect.cancelButton', defaultMessage: 'Cancel'})}
+                                    backButtonClick={this.doHide}
+                                    backButtonClass={'multiselect-back'}
+                                    saving={this.state.saving}
+                                />
+                            </div>
+                        </fieldset>
                         {
                             this.state.showUnknownError &&
                             <div className='Input___error group-error'>
