@@ -99,7 +99,7 @@ type AdminDefinitionSettingDropdown = AdminDefinitionSettingBase & {
     isHelpHidden?: Check;
 }
 
-type AdminDefinitionSettingFileUpload = AdminDefinitionSettingBase & {
+export type AdminDefinitionSettingFileUpload = AdminDefinitionSettingBase & {
     type: 'fileupload';
     remove_help_text: string | MessageDescriptor;
     remove_button_text: string | MessageDescriptor;
@@ -124,7 +124,7 @@ type AdminDefinitionSettingLanguage = AdminDefinitionSettingBase & {
     no_result?: string | MessageDescriptor;
 }
 
-type AdminDefinitionSettingButton = AdminDefinitionSettingBase & {
+export type AdminDefinitionSettingButton = AdminDefinitionSettingBase & {
     type: 'button';
     action: (success: (data?: any) => void, error: (error: {message: string; detailed_error?: string}) => void, siteUrl: string) => void;
     loading?: string | MessageDescriptor;
