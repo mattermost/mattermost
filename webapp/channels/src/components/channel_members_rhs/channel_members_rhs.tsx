@@ -239,7 +239,7 @@ export default function ChannelMembersRHS({
                     <AlertBanner
                         mode='info'
                         variant='app'
-                        message={formatMessage({
+                        title={formatMessage({
                             id: 'channel_members_rhs.policy_enforced_restrictions',
                             defaultMessage: 'Channel access is restricted by user attributes',
                         })}
