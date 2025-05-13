@@ -8661,6 +8661,10 @@
     "translation": "Channel banner color cannot be empty when channel banner is enabled"
   },
   {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "Channel banner color must be a valid hex color (e.g., #FF0000 or #F00)"
+  },
+  {
     "id": "model.channel.is_valid.banner_info.channel_type.app_error",
     "translation": "Channel banner can only be configured on Public and Private channels"
   },
