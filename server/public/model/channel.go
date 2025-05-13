@@ -17,6 +17,11 @@ import (
 	"unicode/utf8"
 )
 
+var (
+	// Validates both 3-digit (#RGB) and 6-digit (#RRGGBB) hex colors
+	channelHexColorRegex = regexp.MustCompile(`^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$`)
+)
+
 type ChannelType string
 
 const (
@@ -317,6 +322,10 @@ func (o *Channel) IsValid() *AppError {
 
 		if o.BannerInfo.BackgroundColor == nil || len(*o.BannerInfo.BackgroundColor) == 0 {
 			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.background_color.empty.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if !channelHexColorRegex.MatchString(*o.BannerInfo.BackgroundColor) {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.background_color.invalid.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 

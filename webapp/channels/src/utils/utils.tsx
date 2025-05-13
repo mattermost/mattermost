@@ -1537,6 +1537,7 @@ export function makeIsEligibleForClick(selector = '') {
             if (
                 CLICKABLE_ELEMENTS.includes(node.tagName.toLowerCase()) ||
                 node.getAttribute('role') === 'button' ||
+                node.getAttribute('role') === 'link' ||
                 (selector && node.matches(selector))
             ) {
                 return false;
