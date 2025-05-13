@@ -125,6 +125,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         toPublic={true}
       />
       <ChannelModes
+        abacSupported={true}
         groupsSupported={true}
         isDefault={false}
         isDisabled={false}
@@ -309,6 +310,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         toPublic={true}
       />
       <ChannelModes
+        abacSupported={true}
         groupsSupported={true}
         isDefault={false}
         isDisabled={false}
@@ -512,6 +514,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         toPublic={true}
       />
       <ChannelModes
+        abacSupported={true}
         groupsSupported={false}
         isDefault={false}
         isDisabled={false}
@@ -648,6 +651,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         toPublic={true}
       />
       <ChannelModes
+        abacSupported={true}
         groupsSupported={false}
         isDefault={false}
         isDisabled={false}
@@ -803,6 +807,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         toPublic={true}
       />
       <ChannelModes
+        abacSupported={false}
         groupsSupported={false}
         isDefault={false}
         isDisabled={false}
@@ -939,6 +944,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         toPublic={true}
       />
       <ChannelModes
+        abacSupported={false}
         groupsSupported={false}
         isDefault={false}
         isDisabled={false}

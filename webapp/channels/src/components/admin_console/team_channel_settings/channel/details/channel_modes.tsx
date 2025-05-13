@@ -16,6 +16,7 @@ interface Props {
     onToggle: (isSynced: boolean, isPublic: boolean, policyEnforced: boolean) => void;
     isDisabled?: boolean;
     groupsSupported?: boolean;
+    abacSupported?: boolean;
     policyEnforced: boolean;
     policyEnforcedToggleAvailable: boolean;
 }
@@ -152,7 +153,7 @@ const PolicyEnforceToggle: React.SFC<Props> = (props: Props): JSX.Element | null
 };
 
 export const ChannelModes: React.SFC<Props> = (props: Props): JSX.Element => {
-    const {isPublic, isSynced, isDefault, onToggle, isDisabled, groupsSupported, policyEnforced, policyEnforcedToggleAvailable} = props;
+    const {isPublic, isSynced, isDefault, onToggle, isDisabled, groupsSupported, policyEnforced, policyEnforcedToggleAvailable, abacSupported} = props;
     return (
         <AdminPanel
             id='channel_manage'
@@ -180,15 +181,17 @@ export const ChannelModes: React.SFC<Props> = (props: Props): JSX.Element => {
                         policyEnforced={policyEnforced}
                         policyEnforcedToggleAvailable={policyEnforcedToggleAvailable}
                     />
-                    <PolicyEnforceToggle
-                        isPublic={isPublic}
-                        isSynced={isSynced}
-                        isDefault={isDefault}
-                        onToggle={onToggle}
-                        isDisabled={isDisabled}
-                        policyEnforced={policyEnforced}
-                        policyEnforcedToggleAvailable={policyEnforcedToggleAvailable}
-                    />
+                    {abacSupported &&
+                        <PolicyEnforceToggle
+                            isPublic={isPublic}
+                            isSynced={isSynced}
+                            isDefault={isDefault}
+                            onToggle={onToggle}
+                            isDisabled={isDisabled}
+                            policyEnforced={policyEnforced}
+                            policyEnforcedToggleAvailable={policyEnforcedToggleAvailable}
+                        />
+                    }
                 </div>
             </div>
         </AdminPanel>
