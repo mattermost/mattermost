@@ -20,8 +20,12 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import LogList from './log_list';
 import PlainLogList from './plain_log_list';
 
+type LogObjectWithAdditionalInfo = LogObject & {
+    [key: string]: string;
+};
+
 type Props = {
-    logs: LogObject[];
+    logs: LogObjectWithAdditionalInfo[];
     plainLogs: string[];
     isPlainLogs: boolean;
     actions: {
@@ -121,12 +125,24 @@ export default class Logs extends React.PureComponent<Props, State> {
 
     performSearch = debounce(() => {
         const {search} = this.state;
-        const filteredLogs = this.props.logs.filter((log) => {
-            // to be improved
-            return `${log.caller}${log.msg}${log.worker}${log.worker}`.toLowerCase().includes(search.toLowerCase());
-        });
+
+        // Excluding level and timestamp from search
+        const excludedKeys = new Set(['level', 'timestamp']);
+
+        const filteredLogs = this.props.logs.filter((log) =>
+            Object.entries(log).some(([key, value]) => {
+                if (excludedKeys.has(key)) {
+                    return false;
+                }
+                return String(value).toLowerCase().includes(search.toLowerCase());
+            }),
+        );
         this.setState({filteredLogs});
     }, 200);
+
+    componentWillUnmount(): void {
+        this.performSearch.cancel();
+    }
 
     onFiltersChange = ({
         dateFrom,
