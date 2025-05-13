@@ -407,10 +407,8 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 				continue
 			}
 
-			// For remote users, only include if the mention contains a colon (explicitly selected from autocomplete)
-			// This prevents notifications for remote users when a local user with the same name is mentioned
+			// Skip remote users unless explicitly mentioned with @username:remote format (contains colon)
 			if user.RemoteId != nil && !strings.Contains(mention, ":") {
-				// Skip this mention - don't add to userIDs
 				continue
 			}
 
@@ -444,9 +442,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 			sd.profileImages[user.Id] = user
 		}
 
-		// For remote users from the target remote, fix the mention format
-		// when sending back to their origin server (transforms @username:remote to @username)
-		// Only call fixMention for remote users (with RemoteId) that belong to the target remote cluster
+		// Transform @username:remote to @username when sending to a user's home cluster
 		if v.post != nil && user.RemoteId != nil && *user.RemoteId == sd.rc.RemoteId {
 			fixMention(v.post, v.mentionMap, user)
 		}

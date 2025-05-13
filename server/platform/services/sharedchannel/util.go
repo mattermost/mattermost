@@ -12,9 +12,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-// fixMention transforms mentions in the format @username:remotename to @username
-// This is used when syncing posts to a user's home cluster to provide a clean mention format
-// The caller is responsible for ensuring this is only called for appropriate users
+// fixMention transforms @username:remotename mentions to @username format
+// Used when syncing posts to a user's home cluster
 func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.User) {
 	if post == nil || len(mentionMap) == 0 {
 		return
@@ -26,10 +25,8 @@ func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.U
 	}
 
 	for mention, id := range mentionMap {
-		// Only process mentions with colons that match the user ID
+		// Only process mentions with colons (:) that match this user's ID
 		if id == user.Id && strings.Contains(mention, ":") {
-			// Transform @username:remote to @username
-			// This ensures users see a clean mention format on their home server
 			post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+realUsername)
 		}
 	}
