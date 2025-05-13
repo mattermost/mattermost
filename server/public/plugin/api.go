@@ -1399,6 +1399,42 @@ type API interface {
 	// @tag Group
 	// Minimum server version: 10.7
 	GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError)
+
+	// CreatePropertyField creates a new property field.
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.8
+	CreatePropertyField(field *model.PropertyField) (*model.PropertyField, *model.AppError)
+
+	// GetPropertyField gets a property field by groupID and fieldID.
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.8
+	GetPropertyField(groupID, fieldID string) (*model.PropertyField, *model.AppError)
+
+	// GetPropertyFields gets multiple property fields by groupID and a list of IDs.
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.8
+	GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, *model.AppError)
+
+	// UpdatePropertyField updates an existing property field.
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.8
+	UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, *model.AppError)
+
+	// DeletePropertyField deletes a property field (soft delete).
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.8
+	DeletePropertyField(groupID, fieldID string) *model.AppError
+
+	// SearchPropertyFields searches for property fields with filtering options.
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.8
+	SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

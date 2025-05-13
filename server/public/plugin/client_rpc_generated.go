@@ -7113,3 +7113,182 @@ func (s *apiRPCServer) GetGroups(args *Z_GetGroupsArgs, returns *Z_GetGroupsRetu
 	}
 	return nil
 }
+
+type Z_CreatePropertyFieldArgs struct {
+	A *model.PropertyField
+}
+
+type Z_CreatePropertyFieldReturns struct {
+	A *model.PropertyField
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, *model.AppError) {
+	_args := &Z_CreatePropertyFieldArgs{field}
+	_returns := &Z_CreatePropertyFieldReturns{}
+	if err := g.client.Call("Plugin.CreatePropertyField", _args, _returns); err != nil {
+		log.Printf("RPC call to CreatePropertyField API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CreatePropertyField(args *Z_CreatePropertyFieldArgs, returns *Z_CreatePropertyFieldReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreatePropertyField(field *model.PropertyField) (*model.PropertyField, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CreatePropertyField(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API CreatePropertyField called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetPropertyFieldArgs struct {
+	A string
+	B string
+}
+
+type Z_GetPropertyFieldReturns struct {
+	A *model.PropertyField
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPropertyField(groupID, fieldID string) (*model.PropertyField, *model.AppError) {
+	_args := &Z_GetPropertyFieldArgs{groupID, fieldID}
+	_returns := &Z_GetPropertyFieldReturns{}
+	if err := g.client.Call("Plugin.GetPropertyField", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPropertyField API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPropertyField(args *Z_GetPropertyFieldArgs, returns *Z_GetPropertyFieldReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPropertyField(groupID, fieldID string) (*model.PropertyField, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPropertyField(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetPropertyField called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetPropertyFieldsArgs struct {
+	A string
+	B []string
+}
+
+type Z_GetPropertyFieldsReturns struct {
+	A []*model.PropertyField
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, *model.AppError) {
+	_args := &Z_GetPropertyFieldsArgs{groupID, ids}
+	_returns := &Z_GetPropertyFieldsReturns{}
+	if err := g.client.Call("Plugin.GetPropertyFields", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPropertyFields API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPropertyFields(args *Z_GetPropertyFieldsArgs, returns *Z_GetPropertyFieldsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPropertyFields(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetPropertyFields called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpdatePropertyFieldArgs struct {
+	A string
+	B *model.PropertyField
+}
+
+type Z_UpdatePropertyFieldReturns struct {
+	A *model.PropertyField
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, *model.AppError) {
+	_args := &Z_UpdatePropertyFieldArgs{groupID, field}
+	_returns := &Z_UpdatePropertyFieldReturns{}
+	if err := g.client.Call("Plugin.UpdatePropertyField", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdatePropertyField API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdatePropertyField(args *Z_UpdatePropertyFieldArgs, returns *Z_UpdatePropertyFieldReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdatePropertyField(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdatePropertyField called but not implemented."))
+	}
+	return nil
+}
+
+type Z_DeletePropertyFieldArgs struct {
+	A string
+	B string
+}
+
+type Z_DeletePropertyFieldReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) DeletePropertyField(groupID, fieldID string) *model.AppError {
+	_args := &Z_DeletePropertyFieldArgs{groupID, fieldID}
+	_returns := &Z_DeletePropertyFieldReturns{}
+	if err := g.client.Call("Plugin.DeletePropertyField", _args, _returns); err != nil {
+		log.Printf("RPC call to DeletePropertyField API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) DeletePropertyField(args *Z_DeletePropertyFieldArgs, returns *Z_DeletePropertyFieldReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeletePropertyField(groupID, fieldID string) *model.AppError
+	}); ok {
+		returns.A = hook.DeletePropertyField(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API DeletePropertyField called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SearchPropertyFieldsArgs struct {
+	A string
+	B string
+	C model.PropertyFieldSearchOpts
+}
+
+type Z_SearchPropertyFieldsReturns struct {
+	A []*model.PropertyField
+	B *model.AppError
+}
+
+func (g *apiRPCClient) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, *model.AppError) {
+	_args := &Z_SearchPropertyFieldsArgs{groupID, targetID, opts}
+	_returns := &Z_SearchPropertyFieldsReturns{}
+	if err := g.client.Call("Plugin.SearchPropertyFields", _args, _returns); err != nil {
+		log.Printf("RPC call to SearchPropertyFields API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SearchPropertyFields(args *Z_SearchPropertyFieldsArgs, returns *Z_SearchPropertyFieldsReturns) error {
+	if hook, ok := s.impl.(interface {
+		SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.SearchPropertyFields(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API SearchPropertyFields called but not implemented."))
+	}
+	return nil
+}

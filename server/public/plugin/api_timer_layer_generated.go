@@ -1483,3 +1483,45 @@ func (api *apiTimerLayer) GetGroups(page, perPage int, opts model.GroupSearchOpt
 	api.recordTime(startTime, "GetGroups", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (api *apiTimerLayer) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreatePropertyField(field)
+	api.recordTime(startTime, "CreatePropertyField", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPropertyField(groupID, fieldID string) (*model.PropertyField, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPropertyField(groupID, fieldID)
+	api.recordTime(startTime, "GetPropertyField", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPropertyFields(groupID, ids)
+	api.recordTime(startTime, "GetPropertyFields", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePropertyField(groupID, field)
+	api.recordTime(startTime, "UpdatePropertyField", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeletePropertyField(groupID, fieldID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyField(groupID, fieldID)
+	api.recordTime(startTime, "DeletePropertyField", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.SearchPropertyFields(groupID, targetID, opts)
+	api.recordTime(startTime, "SearchPropertyFields", _returnsB == nil)
+	return _returnsA, _returnsB
+}

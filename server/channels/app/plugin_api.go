@@ -1460,3 +1460,51 @@ func (api *PluginAPI) GetGroups(page, perPage int, opts model.GroupSearchOpts, v
 	}
 	return api.app.GetGroups(page, perPage, opts, viewRestrictions)
 }
+
+func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, *model.AppError) {
+	result, err := api.app.PropertyService().CreatePropertyField(field)
+	if err != nil {
+		return nil, model.NewAppError("CreatePropertyField", "app.property.create_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
+}
+
+func (api *PluginAPI) GetPropertyField(groupID, fieldID string) (*model.PropertyField, *model.AppError) {
+	result, err := api.app.PropertyService().GetPropertyField(groupID, fieldID)
+	if err != nil {
+		return nil, model.NewAppError("GetPropertyField", "app.property.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
+}
+
+func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, *model.AppError) {
+	result, err := api.app.PropertyService().GetPropertyFields(groupID, ids)
+	if err != nil {
+		return nil, model.NewAppError("GetPropertyFields", "app.property.get_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
+}
+
+func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, *model.AppError) {
+	result, err := api.app.PropertyService().UpdatePropertyField(groupID, field)
+	if err != nil {
+		return nil, model.NewAppError("UpdatePropertyField", "app.property.update_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
+}
+
+func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) *model.AppError {
+	err := api.app.PropertyService().DeletePropertyField(groupID, fieldID)
+	if err != nil {
+		return model.NewAppError("DeletePropertyField", "app.property.delete_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return nil
+}
+
+func (api *PluginAPI) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, *model.AppError) {
+	result, err := api.app.PropertyService().SearchPropertyFields(groupID, targetID, opts)
+	if err != nil {
+		return nil, model.NewAppError("SearchPropertyFields", "app.property.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
+}

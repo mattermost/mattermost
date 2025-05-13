@@ -6611,6 +6611,30 @@
     "translation": "Prepackged plugin version could not be parsed."
   },
   {
+    "id": "app.property.create_property_field.app_error",
+    "translation": "Failed to create property field"
+  },
+  {
+    "id": "app.property.delete_property_field.app_error",
+    "translation": "Failed to delete property field"
+  },
+  {
+    "id": "app.property.get_property_field.app_error",
+    "translation": "Failed to get property field"
+  },
+  {
+    "id": "app.property.get_property_fields.app_error",
+    "translation": "Failed to get property fields"
+  },
+  {
+    "id": "app.property.search_property_fields.app_error",
+    "translation": "Failed to search property fields"
+  },
+  {
+    "id": "app.property.update_property_field.app_error",
+    "translation": "Failed to update property field"
+  },
+  {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
     "translation": "Unable to get reactions for post."
   },
