@@ -680,7 +680,6 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 	}
 }
 
-// sendSyncMsgToRemote synchronously sends the sync message to the remote cluster (or plugin).
 // handleChannelNotSharedError processes the case when a remote indicates a channel
 // is no longer shared. It removes the remote from the shared channel locally and,
 // if it was the last remote, completely unshares the channel.
@@ -742,6 +741,7 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 	}
 }
 
+// sendSyncMsgToRemote synchronously sends the sync message to the remote cluster (or plugin).
 func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
