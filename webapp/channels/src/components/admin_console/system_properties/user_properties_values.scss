@@ -1,0 +1,32 @@
+.user-property-field-values {
+    display: flex;
+    align-items: center;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    gap: 4px;
+}
+
+.user-property-field-values__chip-link {
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+
+    &:hover,
+    &:focus {
+        border-color: transparent;
+        box-shadow: none;
+        text-decoration: none;
+    }
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+    }
+
+    &:focus,
+    &[aria-expanded="true"] {
+        background: rgba(var(--button-bg-rgb), 0.08);
+    }
+}

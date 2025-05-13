@@ -6344,9 +6344,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	user := th.BasicUser
-	_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, model.SystemGuestRoleId, false)
-	require.Nil(t, appErr)
+	user := th.CreateGuestUser(t)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		_, _, err := c.GetUser(context.Background(), user.Id, "")
@@ -6663,6 +6661,24 @@ func TestGetChannelMembersWithTeamData(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 	assert.Len(t, channels, 5)
+	for _, ch := range channels {
+		assert.Equal(t, th.BasicTeam.DisplayName, ch.TeamDisplayName)
+	}
+
+	channels, resp, err = th.Client.GetChannelMembersWithTeamData(context.Background(), th.BasicUser.Id, 0, 5000)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.Len(t, channels, 6)
+	for _, ch := range channels {
+		assert.Equal(t, th.BasicTeam.DisplayName, ch.TeamDisplayName)
+	}
+
+	// perPage doesn't matter if page=-1
+	channels, resp, err = th.Client.GetChannelMembersWithTeamData(context.Background(), th.BasicUser.Id, -1, 2)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	assert.Equal(t, "application/x-ndjson", resp.Header.Get("Content-Type"))
+	assert.Len(t, channels, 6)
 	for _, ch := range channels {
 		assert.Equal(t, th.BasicTeam.DisplayName, ch.TeamDisplayName)
 	}

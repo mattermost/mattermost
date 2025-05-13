@@ -17,6 +17,11 @@ import (
 	"unicode/utf8"
 )
 
+var (
+	// Validates both 3-digit (#RGB) and 6-digit (#RRGGBB) hex colors
+	channelHexColorRegex = regexp.MustCompile(`^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$`)
+)
+
 type ChannelType string
 
 const (
@@ -46,7 +51,7 @@ type ChannelBannerInfo struct {
 	BackgroundColor *string `json:"background_color"`
 }
 
-func (c *ChannelBannerInfo) Scan(value interface{}) error {
+func (c *ChannelBannerInfo) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -96,8 +101,8 @@ type Channel struct {
 	BannerInfo        *ChannelBannerInfo `json:"banner_info"`
 }
 
-func (o *Channel) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *Channel) Auditable() map[string]any {
+	return map[string]any{
 		"create_at":            o.CreateAt,
 		"creator_id":           o.CreatorId,
 		"delete_at":            o.DeleteAt,
@@ -139,11 +144,12 @@ type ChannelPatch struct {
 	Header           *string            `json:"header"`
 	Purpose          *string            `json:"purpose"`
 	GroupConstrained *bool              `json:"group_constrained"`
+	Type             ChannelType        `json:"type"`
 	BannerInfo       *ChannelBannerInfo `json:"banner_info"`
 }
 
-func (c *ChannelPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *ChannelPatch) Auditable() map[string]any {
+	return map[string]any{
 		"header":            c.Header,
 		"group_constrained": c.GroupConstrained,
 		"purpose":           c.Purpose,
@@ -181,8 +187,8 @@ type ChannelModerationPatch struct {
 	Roles *ChannelModeratedRolesPatch `json:"roles"`
 }
 
-func (c *ChannelModerationPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *ChannelModerationPatch) Auditable() map[string]any {
+	return map[string]any{
 		"name":  c.Name,
 		"roles": c.Roles,
 	}
@@ -310,6 +316,10 @@ func (o *Channel) IsValid() *AppError {
 
 		if o.BannerInfo.BackgroundColor == nil || len(*o.BannerInfo.BackgroundColor) == 0 {
 			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.background_color.empty.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if !channelHexColorRegex.MatchString(*o.BannerInfo.BackgroundColor) {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.background_color.invalid.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 

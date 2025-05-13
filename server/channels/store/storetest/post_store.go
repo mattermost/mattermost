@@ -290,7 +290,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 	p4.Message = NewTestID()
 
 	t.Run("Save correctly a new set of posts", func(t *testing.T) {
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p1, &p2, &p3})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 		for _, post := range newPosts {
@@ -358,7 +358,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		o4.UserId = model.NewId()
 		o4.Message = NewTestID()
 
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&o1, &o2, &o3, &o4})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&o1, &o2, &o3, &o4})
 		require.NoError(t, err, "couldn't save item")
 		require.Equal(t, -1, errIdx)
 		assert.Len(t, newPosts, 4)
@@ -369,7 +369,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("Try to save mixed, already saved and not saved posts", func(t *testing.T) {
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p4, &p3})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p4, &p3})
 		require.Error(t, err)
 		require.Equal(t, 1, errIdx)
 		require.Nil(t, newPosts)
@@ -405,7 +405,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		replyPost.Message = NewTestID()
 		replyPost.RootId = rootPost.Id
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&rootPost, &replyPost})
 		require.NoError(t, err)
 
 		rrootPost, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
@@ -427,7 +427,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		// Ensure update does not occur in the same timestamp as creation
 		time.Sleep(time.Millisecond)
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
 
 		rrootPost2, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
@@ -460,7 +460,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		post3.UserId = model.NewId()
 		post3.Message = NewTestID()
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&post1, &post2, &post3})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&post1, &post2, &post3})
 		require.NoError(t, err)
 
 		rchannel, err := ss.Channel().Get(channel.Id, false)
@@ -838,7 +838,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		require.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Order, 2)
 		require.Len(t, r1.Posts, 2)
 		assert.True(t, *r1.HasNext)
 
@@ -876,7 +876,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		require.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Order, 2)
 		require.Len(t, r1.Posts, 2)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
 		assert.False(t, *r1.HasNext)
@@ -895,6 +895,126 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, r1.Posts, 2)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, m1.CreateAt)
 		assert.True(t, *r1.HasNext)
+	})
+
+	t.Run("Pagination with UpdateAt", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName1",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		now := model.GetMillis()
+		o1 := &model.Post{CreateAt: now, ChannelId: channel.Id, UserId: model.NewId(), Message: NewTestID()}
+		o1, err = ss.Post().Save(rctx, o1)
+		require.NoError(t, err)
+
+		// Create replies with explicit UpdateAt timestamps
+		o2 := &model.Post{CreateAt: now + 1, UpdateAt: now + 1, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestID(), RootId: o1.Id}
+		_, err = ss.Post().Save(rctx, o2)
+		require.NoError(t, err)
+
+		m1 := &model.Post{CreateAt: now + 2, UpdateAt: now + 2, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestID(), RootId: o1.Id}
+		m1, err = ss.Post().Save(rctx, m1)
+		require.NoError(t, err)
+
+		o3 := &model.Post{CreateAt: now + 3, UpdateAt: now + 3, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestID(), RootId: o1.Id}
+		_, err = ss.Post().Save(rctx, o3)
+		require.NoError(t, err)
+
+		o4 := &model.Post{CreateAt: now + 4, UpdateAt: now + 4, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestID(), RootId: o1.Id}
+		o4, err = ss.Post().Save(rctx, o4)
+		require.NoError(t, err)
+
+		// Test pagination with UpdateAt in "down" direction
+		opts := model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: true,
+			PerPage:          2,
+			Direction:        "down",
+		}
+		r1, err := ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		require.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Posts, 3)
+		assert.Equal(t, r1.Posts[r1.Order[0]].UpdateAt, o4.CreateAt) // The root post always get updated with the createAt of the latest post in the thread.
+		assert.True(t, *r1.HasNext)
+
+		lastPostID := r1.Order[len(r1.Order)-1]
+		lastPostUpdateAt := r1.Posts[lastPostID].UpdateAt
+
+		// Continue pagination using UpdateAt
+		opts = model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: true,
+			PerPage:          2,
+			Direction:        "down",
+			FromPost:         lastPostID,
+			FromUpdateAt:     lastPostUpdateAt,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		require.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Posts, 3)
+		assert.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].UpdateAt, lastPostUpdateAt)
+		assert.Equal(t, r1.Posts[r1.Order[0]].UpdateAt, o4.CreateAt) // The root post always get updated with the createAt of the latest post in the thread.
+		assert.False(t, *r1.HasNext)
+
+		// Non-CRT mode with UpdateAt pagination
+		opts = model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: false,
+			PerPage:          2,
+			Direction:        "down",
+			SkipFetchThreads: false,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		// Ordering by updateAt will move the root post down, so we will get more posts in the thread.
+		require.Len(t, r1.Order, 3)
+		require.Len(t, r1.Posts, 3)
+		require.True(t, *r1.HasNext)
+
+		lastPostID = r1.Order[len(r1.Order)-1]
+		lastPostUpdateAt = r1.Posts[lastPostID].UpdateAt
+
+		opts = model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: false,
+			PerPage:          3,
+			Direction:        "down",
+			FromPost:         lastPostID,
+			FromUpdateAt:     lastPostUpdateAt,
+			SkipFetchThreads: false,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		require.Len(t, r1.Order, 3)
+		require.Len(t, r1.Posts, 3)
+		require.Equal(t, r1.Posts[r1.Order[0]].ReplyCount, int64(4))
+		require.Equal(t, r1.Posts[r1.Order[1]].ReplyCount, int64(4))
+		require.Equal(t, r1.Posts[r1.Order[2]].ReplyCount, int64(4))
+		require.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].UpdateAt, lastPostUpdateAt)
+		assert.False(t, *r1.HasNext)
+
+		// Only with UpdateAt - direction down
+		opts = model.GetPostsOptions{
+			UpdatesOnly:      true,
+			CollapsedThreads: false,
+			PerPage:          1,
+			Direction:        "down",
+			FromUpdateAt:     m1.UpdateAt,
+			SkipFetchThreads: false,
+		}
+		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		require.NoError(t, err)
+		require.Len(t, r1.Order, 2)
+		require.Len(t, r1.Posts, 2)
+		require.GreaterOrEqual(t, r1.Posts[r1.Order[1]].UpdateAt, m1.UpdateAt)
+		require.True(t, *r1.HasNext)
 	})
 }
 
@@ -3772,7 +3892,7 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 		o3a := ro3.Clone()
 		o3a.Message = ro3.Message + "WWWWWWW"
 
-		_, errIdx, err := ss.Post().OverwriteMultiple([]*model.Post{o1a, o2a, o3a})
+		_, errIdx, err := ss.Post().OverwriteMultiple(rctx, []*model.Post{o1a, o2a, o3a})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
@@ -3802,7 +3922,7 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 		o5a.Filenames = []string{}
 		o5a.FileIds = []string{}
 
-		_, errIdx, err := ss.Post().OverwriteMultiple([]*model.Post{o4a, o5a})
+		_, errIdx, err := ss.Post().OverwriteMultiple(rctx, []*model.Post{o4a, o5a})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
@@ -5062,12 +5182,12 @@ func testGetPostReminders(t *testing.T, rctx request.CTX, ss store.Store, s SqlS
 		require.NoError(t, ss.Post().SetPostReminder(reminder))
 	}
 
-	reminders, err := ss.Post().GetPostReminders(102)
+	reminders, err := ss.Post().GetPostReminders(101)
 	require.NoError(t, err)
 	require.Len(t, reminders, 2)
 
 	// assert one reminder is left
-	reminders, err = ss.Post().GetPostReminders(103)
+	reminders, err = ss.Post().GetPostReminders(102)
 	require.NoError(t, err)
 	require.Len(t, reminders, 1)
 

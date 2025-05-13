@@ -54,11 +54,11 @@ func (s SqlChannelStore) CreateInitialSidebarCategories(c request.CTX, userId st
 
 func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrapper, userId string, excludedTeamIDs []string, opts *store.SidebarCategorySearchOpts) error {
 	query := s.getQueryBuilder().
-		Select("Type, TeamId").
+		Select("SidebarCategories.Type, SidebarCategories.TeamId").
 		From("SidebarCategories").
 		Where(sq.Eq{
-			"UserId": userId,
-			"Type": []model.SidebarCategoryType{
+			"SidebarCategories.UserId": userId,
+			"SidebarCategories.Type": []model.SidebarCategoryType{
 				model.SidebarCategoryFavorites,
 				model.SidebarCategoryChannels,
 				model.SidebarCategoryDirectMessages,
@@ -66,9 +66,9 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrap
 		})
 
 	if !opts.ExcludeTeam {
-		query = query.Where(sq.Eq{"TeamId": opts.TeamID})
+		query = query.Where(sq.Eq{"SidebarCategories.TeamId": opts.TeamID})
 	} else {
-		query = query.Where(sq.NotEq{"TeamId": opts.TeamID})
+		query = query.Where(sq.NotEq{"SidebarCategories.TeamId": opts.TeamID})
 	}
 
 	selectQuery, selectParams, err := query.ToSql()
@@ -442,6 +442,8 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 		return category, nil
 	}
 
+	isMySQL := s.DriverName() == model.DatabaseDriverMysql
+
 	var channelTypeFilter sq.Sqlizer
 	if category.Type == model.SidebarCategoryDirectMessages {
 		// any DM/GM channels that aren't in any category should be returned as part of the Direct Messages category
@@ -457,20 +459,40 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 	}
 
 	// A subquery that is true if the channel does not have a SidebarChannel entry for the current user on the current team
-	doesNotHaveSidebarChannel := sq.Select("1").
-		Prefix("NOT EXISTS (").
-		From("SidebarChannels").
-		Join("SidebarCategories on SidebarChannels.CategoryId=SidebarCategories.Id").
-		Where(sq.And{
-			sq.Expr("SidebarChannels.ChannelId = ChannelMembers.ChannelId"),
-			sq.Eq{"SidebarCategories.UserId": category.UserId},
-			sq.Eq{"SidebarCategories.TeamId": category.TeamId},
-		}).
-		Suffix(")")
+	var doesNotHaveSidebarChannel sq.SelectBuilder
+	if isMySQL {
+		doesNotHaveSidebarChannel = sq.Select("/*+ QB_NAME(subq1) */ 1").
+			Prefix("NOT EXISTS (").
+			From("SidebarChannels").
+			// we have to use an index hint for MySQL.
+			Join("SidebarCategories USE INDEX(idx_sidebarcategories_userid_teamid) on SidebarChannels.CategoryId=SidebarCategories.Id").
+			Suffix(")")
+	} else {
+		doesNotHaveSidebarChannel = sq.Select("1").
+			Prefix("NOT EXISTS (").
+			From("SidebarChannels").
+			Join("SidebarCategories on SidebarChannels.CategoryId=SidebarCategories.Id").
+			Suffix(")")
+	}
+
+	doesNotHaveSidebarChannel = doesNotHaveSidebarChannel.Where(sq.And{
+		sq.Expr("SidebarChannels.ChannelId = ChannelMembers.ChannelId"),
+		sq.Eq{"SidebarCategories.UserId": category.UserId},
+		sq.Eq{"SidebarCategories.TeamId": category.TeamId},
+	})
 
 	channels := []string{}
+	var col string
+	if isMySQL {
+		// This is a materialization hint for MySQL to materialize
+		// the doesNotHaveSidebarChannel sub-query
+		// Without this hint, MySQL is unable to come up with this plan by itself.
+		col = "/*+ SEMIJOIN(@subq1 MATERIALIZATION) */ Id"
+	} else {
+		col = "Id"
+	}
 	sql, args, err := s.getQueryBuilder().
-		Select("Id").
+		Select(col).
 		From("ChannelMembers").
 		LeftJoin("Channels ON Channels.Id=ChannelMembers.ChannelId").
 		Where(sq.And{
@@ -485,7 +507,7 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 	}
 
 	if err := db.Select(&channels, sql, args...); err != nil {
-		return nil, store.NewErrNotFound("ChannelMembers", "<too many fields>").Wrap(err)
+		return nil, errors.Wrap(err, "failed to get channel members")
 	}
 
 	category.Channels = append(channels, category.Channels...)
@@ -493,19 +515,20 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 }
 
 func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, error) {
-	sql, args, err := s.getQueryBuilder().
-		Select("SidebarCategories.*", "SidebarChannels.ChannelId").
-		From("SidebarCategories").
+	query := s.sidebarCategorySelectQuery.
+		Columns("SidebarChannels.ChannelId").
 		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=SidebarCategories.Id").
 		Where(sq.Eq{"SidebarCategories.Id": categoryId}).
-		OrderBy("SidebarChannels.SortOrder ASC").ToSql()
+		OrderBy("SidebarChannels.SortOrder ASC")
+
+	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "sidebar_category_tosql")
 	}
 
 	categories := []*sidebarCategoryForJoin{}
 	if err = s.GetReplica().Select(&categories, sql, args...); err != nil {
-		return nil, store.NewErrNotFound("SidebarCategories", categoryId).Wrap(err)
+		return nil, errors.Wrap(err, fmt.Sprintf("failed to get category with id=%s", categoryId))
 	}
 
 	if len(categories) == 0 {
@@ -531,10 +554,9 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 	}
 
 	categories := []*sidebarCategoryForJoin{}
-	query := s.getQueryBuilder().
-		Select("SidebarCategories.*", "SidebarChannels.ChannelId").
-		From("SidebarCategories").
-		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=Id").
+	query := s.sidebarCategorySelectQuery.
+		Columns("SidebarChannels.ChannelId").
+		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=SidebarCategories.Id").
 		InnerJoin("Teams ON Teams.Id=SidebarCategories.TeamId").
 		InnerJoin("TeamMembers ON TeamMembers.TeamId=SidebarCategories.TeamId").
 		Where(sq.And{
@@ -563,7 +585,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 	}
 
 	if err := db.Select(&categories, sql, args...); err != nil {
-		return nil, store.NewErrNotFound("SidebarCategories", fmt.Sprintf("userId=%s,teamId=%s", userId, opts.TeamID)).Wrap(err)
+		return nil, errors.Wrap(err, fmt.Sprintf("failed to get categories for userId=%s, teamId=%s", userId, opts.TeamID))
 	}
 
 	for _, category := range categories {
@@ -624,7 +646,7 @@ func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]strin
 	}
 
 	if err := s.GetReplica().Select(&ids, sql, args...); err != nil {
-		return nil, store.NewErrNotFound("SidebarCategories", fmt.Sprintf("userId=%s,teamId=%s", userId, teamId)).Wrap(err)
+		return nil, errors.Wrap(err, fmt.Sprintf("failed to get category order for userId=%s, teamId=%s", userId, teamId))
 	}
 
 	return ids, nil
@@ -942,7 +964,7 @@ func (s SqlChannelStore) addChannelToFavoritesCategoryT(transaction *sqlxTxWrapp
 	}
 
 	var channel model.Channel
-	if err := transaction.Get(&channel, `SELECT * FROM Channels WHERE Id=?`, preference.Name); err != nil {
+	if err := transaction.Get(&channel, `SELECT Id, TeamId FROM Channels WHERE Id=?`, preference.Name); err != nil {
 		return errors.Wrapf(err, "Failed to get favorited channel with id=%s", preference.Name)
 	} else if channel.Id == "" {
 		return store.NewErrNotFound("Channel", preference.Name)

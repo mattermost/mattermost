@@ -77,6 +77,7 @@ import type {
     GetGroupsParams,
     GetGroupsForUserParams,
     GroupStats,
+    GroupMember,
 } from '@mattermost/types/groups';
 import type {PostActionResponse} from '@mattermost/types/integration_actions';
 import type {
@@ -2105,8 +2106,8 @@ export default class Client4 {
         );
     };
 
-    updateCustomProfileAttributeValues = (attributeValues: Record<string, string>) => {
-        return this.doFetch<Record<string, string>>(
+    updateCustomProfileAttributeValues = (attributeValues: Record<string, string | string[]>) => {
+        return this.doFetch<Record<string, string | string[]>>(
             `${this.getCustomProfileAttributeValuesRoute()}`,
             {method: 'PATCH', body: JSON.stringify(attributeValues)},
         );
@@ -2595,6 +2596,15 @@ export default class Client4 {
     getClientLicenseOld = () => {
         return this.doFetch<ClientLicense>(
             `${this.getBaseRoute()}/license/client?format=old`,
+            {method: 'get'},
+        );
+    };
+
+    getLicenseLoadMetric = () => {
+        return this.doFetch<{
+            load: number;
+        }>(
+            `${this.getBaseRoute()}/license/load_metric`,
             {method: 'get'},
         );
     };
@@ -3384,6 +3394,26 @@ export default class Client4 {
         );
     };
 
+    uploadAuditLogCertificate = (fileData: File) => {
+        const formData = new FormData();
+        formData.append('certificate', fileData);
+
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/audit_logs/certificate`,
+            {
+                method: 'post',
+                body: formData,
+            },
+        );
+    };
+
+    removeAuditLogCertificate = () => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/audit_logs/certificate`,
+            {method: 'delete'},
+        );
+    };
+
     deletePublicSamlCertificate = () => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/saml/certificate/public`,
@@ -3745,14 +3775,14 @@ export default class Client4 {
     };
 
     addUsersToGroup = (groupId: string, userIds: string[]) => {
-        return this.doFetch<UserProfile[]>(
+        return this.doFetch<GroupMember[]>(
             `${this.getGroupRoute(groupId)}/members`,
             {method: 'post', body: JSON.stringify({user_ids: userIds})},
         );
     };
 
     removeUsersFromGroup = (groupId: string, userIds: string[]) => {
-        return this.doFetch<UserProfile[]>(
+        return this.doFetch<GroupMember[]>(
             `${this.getGroupRoute(groupId)}/members`,
             {method: 'delete', body: JSON.stringify({user_ids: userIds})},
         );
@@ -4159,8 +4189,13 @@ export default class Client4 {
 
         let data;
         try {
-            if (headers.get('Content-Type') === 'application/json') {
+            const contentType = headers.get('Content-Type');
+            if (contentType === 'application/json') {
                 data = await response.json();
+            } else if (contentType === 'application/x-ndjson') {
+                const text = await response.text();
+                const objects = text.trim().split('\n');
+                data = objects.map((obj) => JSON.parse(obj));
             } else {
                 data = await response.text();
             }
