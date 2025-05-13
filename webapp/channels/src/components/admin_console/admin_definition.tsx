@@ -6284,7 +6284,7 @@ const AdminDefinition: AdminDefinitionType = {
 
 export const ldapWizardAdminDefinition: AdminDefinitionSubSectionSchema = {
     id: 'LdapSettings',
-    name: defineMessage({id: 'admin.authentication.ldap.wizard', defaultMessage: 'AD/LDAP Wizard!'}),
+    name: defineMessage({id: 'admin.authentication.ldap.wizard', defaultMessage: 'AD/LDAP Wizard'}),
     sections: [{
         key: 'admin.authentication.ldap.connection',
         title: 'Connection!',
