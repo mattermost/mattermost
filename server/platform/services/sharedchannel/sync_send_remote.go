@@ -99,7 +99,6 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 			metricsRecorded = true
 		}
 	}()
-
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(task.channelID, rc.RemoteId)
 
 	if isNotFoundError(err) && rc.IsOptionFlagSet(model.BitflagOptionAutoInvited) {
