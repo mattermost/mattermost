@@ -107,7 +107,6 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 		channel.Shared = model.NewPointer(false)
 
 		scs.notifyClientsForSharedChannelConverted(channel)
-		scs.postUnshareNotification(channelID, channel.CreatorId, channel, "")
 	}
 	return deleted, nil
 }

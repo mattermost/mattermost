@@ -304,3 +304,8 @@ func (scs *Service) postUnshareNotification(channelID string, creatorID string, 
 		logger.Log(mlog.LvlSharedChannelServiceError, "Error creating unshare notification post", fields...)
 	}
 }
+
+// HandleChannelNotSharedErrorForTesting is a wrapper to expose handleChannelNotSharedError for testing purposes
+func (scs *Service) HandleChannelNotSharedErrorForTesting(msg *model.SyncMsg, rc *model.RemoteCluster) {
+	scs.handleChannelNotSharedError(msg, rc)
+}

@@ -101,6 +101,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	}()
 
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(task.channelID, rc.RemoteId)
+
 	if isNotFoundError(err) && rc.IsOptionFlagSet(model.BitflagOptionAutoInvited) {
 		// if SharedChannelRemote not found and remote has autoinvite flag, create a scr for it, thus inviting the remote.
 		scr = &model.SharedChannelRemote{
@@ -685,6 +686,7 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 // if it was the last remote, completely unshares the channel.
 func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.RemoteCluster) {
 	logger := scs.server.Log()
+
 	logger.Log(mlog.LvlSharedChannelServiceDebug, "Remote indicated channel is no longer shared; unsharing locally",
 		mlog.String("remote", rc.Name),
 		mlog.String("channel_id", msg.ChannelId),
@@ -712,9 +714,6 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 		return
 	}
 
-	// Post a system message to notify users that the channel is no longer shared
-	scs.postUnshareNotification(msg.ChannelId, scr.CreatorId, channel, rc.Name)
-
 	// Remove this remote from the shared channel
 	if _, deleteErr := scs.server.GetStore().SharedChannel().DeleteRemote(scr.Id); deleteErr != nil {
 		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to remove remote from shared channel",
@@ -725,15 +724,19 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 		return
 	}
 
-	// Directly unshare the channel regardless of whether there are other remotes
-	unshared, unshareErr := scs.UnshareChannel(msg.ChannelId)
+	// Post a system message to notify users that the channel is no longer shared with this remote
+	scs.postUnshareNotification(msg.ChannelId, scr.CreatorId, channel, rc.Name)
+
+	// Only unshare the channel if no active remotes remain
+	// unshareChannelIfNoActiveRemotes will check if there are any remaining remotes
+	unshared, unshareErr := scs.unshareChannelIfNoActiveRemotes(msg.ChannelId)
 	if unshareErr != nil {
-		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to unshare channel after remote indicated it's no longer shared",
+		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to check if channel should be unshared after remote indicated it's no longer shared",
 			mlog.String("channel_id", msg.ChannelId),
 			mlog.Err(unshareErr),
 		)
-	} else if !unshared {
-		logger.Log(mlog.LvlSharedChannelServiceWarn, "Failed to unshare channel - channel may not exist or is already unshared",
+	} else if unshared {
+		logger.Log(mlog.LvlSharedChannelServiceDebug, "Unshared channel after removing last remote",
 			mlog.String("channel_id", msg.ChannelId),
 		)
 	}

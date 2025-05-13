@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
 func setupSharedChannels(tb testing.TB) *TestHelper {
@@ -135,12 +136,13 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 
 		// Share the channel with the remote
 		scr := &model.SharedChannelRemote{
-			Id:               model.NewId(),
-			ChannelId:        channel.Id,
-			CreatorId:        th.BasicUser.Id,
-			IsInviteAccepted: true,
-			RemoteId:         rc.RemoteId,
-			LastPostUpdateAt: model.GetMillis(),
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
 		}
 		_, err = th.Server.Store().SharedChannel().SaveRemote(scr)
 		require.NoError(t, err)
@@ -154,17 +156,16 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		require.Nil(t, appErr)
 		postCountBefore := len(postsBeforeRemove.Posts)
 
-		// This simulates the handleChannelNotSharedError function being called when
-		// a response from the remote contains ErrChannelNotShared
+		// Create a sync message
+		syncMsg := model.NewSyncMsg(channel.Id)
 
-		// First, remove the remote
-		_, err = th.Server.Store().SharedChannel().DeleteRemote(scr.Id)
-		require.NoError(t, err)
+		// Get the shared channel sync service and convert to the concrete type
+		scs := th.Server.GetSharedChannelSyncService()
+		service, ok := scs.(*sharedchannel.Service)
+		require.True(t, ok, "Expected sharedchannel.Service type")
 
-		// Then unshare the channel (which would happen in handleChannelNotSharedError)
-		success, err := th.App.UnshareChannel(channel.Id)
-		require.NoError(t, err)
-		require.True(t, success, "Channel should be unshared successfully")
+		// Assume that we receive a ErrChannelNotShared error
+		service.HandleChannelNotSharedErrorForTesting(syncMsg, rc)
 
 		// Verify the channel is no longer shared locally
 		err = th.App.checkChannelIsShared(channel.Id)
@@ -177,6 +178,8 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 			PerPage:   10,
 		})
 		require.Nil(t, appErr)
+
+		// Expected: only one notification post when a remote is removed
 		assert.Equal(t, postCountBefore+1, len(postsAfterRemove.Posts), "There should be one new post")
 
 		// Find and verify the system message content
@@ -241,23 +244,25 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 
 		// Share the channel with both remotes
 		scr1 := &model.SharedChannelRemote{
-			Id:               model.NewId(),
-			ChannelId:        channel.Id,
-			CreatorId:        th.BasicUser.Id,
-			IsInviteAccepted: true,
-			RemoteId:         rc1.RemoteId,
-			LastPostUpdateAt: model.GetMillis(),
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc1.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
 		}
 		_, err = th.Server.Store().SharedChannel().SaveRemote(scr1)
 		require.NoError(t, err)
 
 		scr2 := &model.SharedChannelRemote{
-			Id:               model.NewId(),
-			ChannelId:        channel.Id,
-			CreatorId:        th.BasicUser.Id,
-			IsInviteAccepted: true,
-			RemoteId:         rc2.RemoteId,
-			LastPostUpdateAt: model.GetMillis(),
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc2.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
 		}
 		_, err = th.Server.Store().SharedChannel().SaveRemote(scr2)
 		require.NoError(t, err)
@@ -280,39 +285,42 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		require.Nil(t, appErr)
 		postCountBefore := len(postsBeforeRemove.Posts)
 
-		// This simulates what happens when Remote 1 informs Server that it
-		// has unshared the channel (by returning ErrChannelNotShared)
+		// Create a sync message
+		syncMsg := model.NewSyncMsg(channel.Id)
 
-		// First, get the SharedChannelRemote to simulate what handleChannelNotSharedError would do
-		scrRemote, err := th.Server.Store().SharedChannel().GetRemoteByIds(channel.Id, rc1.RemoteId)
-		require.NoError(t, err)
-		require.NotNil(t, scrRemote)
+		// Get the shared channel sync service and convert to the concrete type
+		scs := th.Server.GetSharedChannelSyncService()
+		service, ok := scs.(*sharedchannel.Service)
+		require.True(t, ok, "Expected sharedchannel.Service type")
 
-		// Get channel details for notification
-		chanObj, err := th.Server.Store().Channel().Get(channel.Id, true)
-		require.NoError(t, err)
-		require.NotNil(t, chanObj)
+		// Assume that we receive a ErrChannelNotShared error
+		service.HandleChannelNotSharedErrorForTesting(syncMsg, rc1)
 
-		// Remove just the one remote that unshared
-		_, err = th.Server.Store().SharedChannel().DeleteRemote(scr1.Id)
+		// Let's check how many remotes are still associated with the channel
+		remotes, err := th.Server.Store().SharedChannel().GetRemotes(0, 10, model.SharedChannelRemoteFilterOpts{
+			ChannelId: channel.Id,
+		})
 		require.NoError(t, err)
-		// Simply create a system message directly since we are only testing the behavior
-		post := &model.Post{UserId: scrRemote.CreatorId, ChannelId: channel.Id, Message: "This channel is no longer shared.", Type: model.PostTypeSystemGeneric}
-		_, appErr = th.App.CreatePost(th.Context, post, chanObj, model.CreatePostFlags{})
-		require.Nil(t, appErr)
-		// We only need to verify that the channel is still shared, not how many remotes it has
+		t.Logf("Number of remotes after unshare: %d", len(remotes))
+
+		// The expected behavior is that only the specific remote should be removed,
+		// with the channel remaining shared with other remotes.
 		err = th.App.checkChannelIsShared(channel.Id)
-		assert.NoError(t, err, "Channel should still be shared")
+
+		// The channel should still be shared with remote2, so this should fail
+		// Currently this passes, showing the unexpected behavior
+		assert.NoError(t, err, "Channel should still be shared with other remotes")
 
 		// Verify remote 1 is no longer in shared channel
 		hasRemote1After, err := th.Server.Store().SharedChannel().HasRemote(channel.Id, rc1.RemoteId)
 		require.NoError(t, err)
 		require.False(t, hasRemote1After, "Channel should no longer be shared with remote 1")
 
-		// But it should still be shared with remote 2
+		// Check if remote 2 is still associated with the channel
+		// Expected behavior: remote 2 should still be associated
 		hasRemote2After, err := th.Server.Store().SharedChannel().HasRemote(channel.Id, rc2.RemoteId)
 		require.NoError(t, err)
-		require.True(t, hasRemote2After, "Channel should still be shared with remote 2")
+		assert.True(t, hasRemote2After, "Channel should still be shared with remote 2")
 
 		// Verify a system message was posted about remote 1 unsharing
 		postsAfterRemove, appErr := th.App.GetPostsPage(model.GetPostsOptions{
@@ -321,6 +329,8 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 			PerPage:   10,
 		})
 		require.Nil(t, appErr)
+
+		// Expected: only one notification post when a remote is removed
 		assert.Equal(t, postCountBefore+1, len(postsAfterRemove.Posts), "There should be one new post")
 
 		// Find and verify the system message content
