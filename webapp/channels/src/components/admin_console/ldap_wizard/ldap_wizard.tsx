@@ -84,6 +84,7 @@ const LDAPWizard = (props: Props) => {
         return (
             <LDAPTextSetting
                 {...props}
+                key={schema.id + '_text_' + setting.key}
                 state={state}
                 onChange={handleChange}
                 schema={schema}
@@ -98,6 +99,7 @@ const LDAPWizard = (props: Props) => {
         return (
             <LDAPBooleanSetting
                 {...props}
+                key={schema.id + '_bool_' + setting.key}
                 value={state[setting.key!] || false}
                 onChange={handleChange}
                 schema={schema}
@@ -112,6 +114,7 @@ const LDAPWizard = (props: Props) => {
         return (
             <LDAPDropdownSetting
                 {...props}
+                key={schema.id + '_dropdown_' + setting.key}
                 state={state}
                 onChange={handleChange}
                 schema={schema}
@@ -126,6 +129,7 @@ const LDAPWizard = (props: Props) => {
         return (
             <LDAPButtonSetting
                 {...props}
+                key={schema.id + '_button_' + setting.key}
                 onChange={handleChange}
                 saveNeeded={false}
                 schema={schema}
@@ -139,6 +143,7 @@ const LDAPWizard = (props: Props) => {
         return (
             <LDAPJobsTableSetting
                 {...props}
+                key={schema.id + '_jobstable_' + setting.key}
                 schema={schema}
                 disabled={isDisabled(setting)}
                 setting={setting}
@@ -158,6 +163,7 @@ const LDAPWizard = (props: Props) => {
         return (
             <LDAPFileUploadSetting
                 {...props}
+                key={schema.id + '_fileupload_' + setting.key}
                 value={state[setting.key!]}
                 onChange={handleChange}
                 fileUploadSetstate={fileUploadSetstate}
@@ -173,6 +179,7 @@ const LDAPWizard = (props: Props) => {
         return (
             <LDAPCustomSetting
                 {...props}
+                key={schema.id + '_custom_' + setting.key}
                 schema={schema}
                 setting={setting}
                 value={state[setting.key!]}

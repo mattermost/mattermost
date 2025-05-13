@@ -13,7 +13,7 @@ import Setting from '../setting';
 type Props = {
     config: Partial<AdminConfig>;
     license: ClientLicense;
-    value: any;
+    value?: any;
     registerSaveAction: (saveAction: () => Promise<{error?: {message?: string}}>) => void;
     unRegisterSaveAction: (saveAction: () => Promise<{error?: {message?: string}}>) => void;
     setSaveNeeded: () => void;
