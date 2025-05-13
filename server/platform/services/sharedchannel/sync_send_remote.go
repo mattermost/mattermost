@@ -400,7 +400,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		mentionMap := scs.app.MentionsToTeamMembers(request.EmptyContext(scs.server.Log()), post.Message, sc.TeamId)
 
 		// Filter mention map to prevent triggering notifications for remote users
-		// with the same username unless they were explicitly mentioned with @username:remote format
+		// unless they were explicitly mentioned with @username:remote format
 		for mention, userID := range mentionMap {
 			user, err := scs.server.GetStore().User().Get(context.Background(), userID)
 			if err != nil {
