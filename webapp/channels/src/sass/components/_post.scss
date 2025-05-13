@@ -1012,7 +1012,7 @@
     &.post--comment {
         .post__body {
             padding-left: 12px;
-            border-left: 3px solid rgba(var(--center-channel-color-rgb), 0.40);
+            border-left: 4px solid rgba(var(--button-bg-rgb), 0.24);
         }
 
         &.mention-comment {
