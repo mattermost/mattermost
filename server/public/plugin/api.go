@@ -1435,6 +1435,48 @@ type API interface {
 	// @tag PropertyField
 	// Minimum server version: 10.8
 	SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, *model.AppError)
+
+	// CreatePropertyValue creates a new property value.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.8
+	CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, *model.AppError)
+
+	// GetPropertyValue gets a property value by groupID and valueID.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.8
+	GetPropertyValue(groupID, valueID string) (*model.PropertyValue, *model.AppError)
+
+	// GetPropertyValues gets multiple property values by groupID and a list of IDs.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.8
+	GetPropertyValues(groupID string, ids []string) ([]*model.PropertyValue, *model.AppError)
+
+	// UpdatePropertyValue updates an existing property value.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.8
+	UpdatePropertyValue(groupID string, value *model.PropertyValue) (*model.PropertyValue, *model.AppError)
+
+	// UpsertPropertyValue creates a new property value or updates if it already exists.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.8
+	UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, *model.AppError)
+
+	// DeletePropertyValue deletes a property value (soft delete).
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.8
+	DeletePropertyValue(groupID, valueID string) *model.AppError
+
+	// SearchPropertyValues searches for property values with filtering options.
+	//
+	// @tag PropertyValue
+	// Minimum server version: 10.8
+	SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

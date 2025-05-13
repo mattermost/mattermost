@@ -1525,3 +1525,52 @@ func (api *apiTimerLayer) SearchPropertyFields(groupID, targetID string, opts mo
 	api.recordTime(startTime, "SearchPropertyFields", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (api *apiTimerLayer) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreatePropertyValue(value)
+	api.recordTime(startTime, "CreatePropertyValue", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPropertyValue(groupID, valueID string) (*model.PropertyValue, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPropertyValue(groupID, valueID)
+	api.recordTime(startTime, "GetPropertyValue", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPropertyValues(groupID string, ids []string) ([]*model.PropertyValue, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPropertyValues(groupID, ids)
+	api.recordTime(startTime, "GetPropertyValues", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdatePropertyValue(groupID string, value *model.PropertyValue) (*model.PropertyValue, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePropertyValue(groupID, value)
+	api.recordTime(startTime, "UpdatePropertyValue", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpsertPropertyValue(value)
+	api.recordTime(startTime, "UpsertPropertyValue", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeletePropertyValue(groupID, valueID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyValue(groupID, valueID)
+	api.recordTime(startTime, "DeletePropertyValue", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.SearchPropertyValues(groupID, targetID, opts)
+	api.recordTime(startTime, "SearchPropertyValues", _returnsB == nil)
+	return _returnsA, _returnsB
+}

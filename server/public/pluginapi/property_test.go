@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPropertyAPI(t *testing.T) {
+func TestPropertyFieldAPI(t *testing.T) {
 	t.Run("CreatePropertyField", func(t *testing.T) {
 		// Setup
 		api := &plugintest.API{}
@@ -169,6 +169,203 @@ func TestPropertyAPI(t *testing.T) {
 		// Verify the results
 		require.NoError(t, err)
 		assert.Equal(t, fields, result)
+		api.AssertExpectations(t)
+	})
+}
+
+func TestPropertyValueAPI(t *testing.T) {
+	t.Run("CreatePropertyValue", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+		
+		// Mock the API call
+		value := &model.PropertyValue{
+			ID:       "value1",
+			GroupID:  "group1",
+			FieldID:  "field1",
+			TargetID: "target1",
+			Value:    "Test Value",
+		}
+		api.On("CreatePropertyValue", value).Return(value, nil)
+		
+		// Create the client
+		client := NewClient(api, nil)
+		
+		// Call the method
+		result, err := client.Property.CreatePropertyValue(value)
+		
+		// Verify the results
+		assert.NoError(t, err)
+		assert.Equal(t, value, result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("GetPropertyValue", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+		
+		// Mock the API call
+		value := &model.PropertyValue{
+			ID:       "value1",
+			GroupID:  "group1",
+			FieldID:  "field1",
+			TargetID: "target1",
+			Value:    "Test Value",
+		}
+		api.On("GetPropertyValue", "group1", "value1").Return(value, nil)
+		
+		// Create the client
+		client := NewClient(api, nil)
+		
+		// Call the method
+		result, err := client.Property.GetPropertyValue("group1", "value1")
+		
+		// Verify the results
+		assert.NoError(t, err)
+		assert.Equal(t, value, result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("GetPropertyValues", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+		
+		// Mock the API call
+		values := []*model.PropertyValue{
+			{
+				ID:       "value1",
+				GroupID:  "group1",
+				FieldID:  "field1",
+				TargetID: "target1",
+				Value:    "Test Value 1",
+			},
+			{
+				ID:       "value2",
+				GroupID:  "group1",
+				FieldID:  "field2",
+				TargetID: "target1",
+				Value:    "Test Value 2",
+			},
+		}
+		api.On("GetPropertyValues", "group1", []string{"value1", "value2"}).Return(values, nil)
+		
+		// Create the client
+		client := NewClient(api, nil)
+		
+		// Call the method
+		result, err := client.Property.GetPropertyValues("group1", []string{"value1", "value2"})
+		
+		// Verify the results
+		assert.NoError(t, err)
+		assert.Equal(t, values, result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("UpdatePropertyValue", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+		
+		// Mock the API call
+		value := &model.PropertyValue{
+			ID:       "value1",
+			GroupID:  "group1",
+			FieldID:  "field1",
+			TargetID: "target1",
+			Value:    "Updated Value",
+		}
+		api.On("UpdatePropertyValue", "group1", value).Return(value, nil)
+		
+		// Create the client
+		client := NewClient(api, nil)
+		
+		// Call the method
+		result, err := client.Property.UpdatePropertyValue("group1", value)
+		
+		// Verify the results
+		assert.NoError(t, err)
+		assert.Equal(t, value, result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("UpsertPropertyValue", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+		
+		// Mock the API call
+		value := &model.PropertyValue{
+			ID:       "value1",
+			GroupID:  "group1",
+			FieldID:  "field1",
+			TargetID: "target1",
+			Value:    "Upsert Value",
+		}
+		api.On("UpsertPropertyValue", value).Return(value, nil)
+		
+		// Create the client
+		client := NewClient(api, nil)
+		
+		// Call the method
+		result, err := client.Property.UpsertPropertyValue(value)
+		
+		// Verify the results
+		assert.NoError(t, err)
+		assert.Equal(t, value, result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("DeletePropertyValue", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+		
+		// Mock the API call
+		api.On("DeletePropertyValue", "group1", "value1").Return(nil)
+		
+		// Create the client
+		client := NewClient(api, nil)
+		
+		// Call the method
+		err := client.Property.DeletePropertyValue("group1", "value1")
+		
+		// Verify the results
+		assert.NoError(t, err)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("SearchPropertyValues", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+		
+		// Mock the API call
+		opts := model.PropertyValueSearchOpts{
+			PerPage: 10,
+		}
+		values := []*model.PropertyValue{
+			{
+				ID:       "value1",
+				GroupID:  "group1",
+				FieldID:  "field1",
+				TargetID: "target1",
+				Value:    "Test Value 1",
+			},
+			{
+				ID:       "value2",
+				GroupID:  "group1",
+				FieldID:  "field2",
+				TargetID: "target1",
+				Value:    "Test Value 2",
+			},
+		}
+		api.On("SearchPropertyValues", "group1", "target1", opts).Return(values, nil)
+		
+		// Create the client
+		client := NewClient(api, nil)
+		
+		// Call the method
+		result, err := client.Property.SearchPropertyValues("group1", "target1", opts)
+		
+		// Verify the results
+		require.NoError(t, err)
+		assert.Equal(t, values, result)
 		api.AssertExpectations(t)
 	})
 }
