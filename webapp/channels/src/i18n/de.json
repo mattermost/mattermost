@@ -574,7 +574,7 @@
   "admin.cluster.status_table.url": "Gossip-Adresse",
   "admin.cluster.status_table.version": "Version",
   "admin.cluster.unknown": "unbekannt",
-  "admin.cluster.version_mismatch_warning": "WARNUNG: Unterschiedliche Mattermost-Versionen wurden in deinem HA-Cluster entdeckt. Wenn du nicht gerade eine Aktualisierung durchführst, stelle bitte sicher, dass alle deine Cluster die gleiche Mattermost-Version ausführen um Unterbrechungen deiner Umgebung zu vermeiden.",
+  "admin.cluster.version_mismatch_warning": "WARNUNG: In deinem HA-Cluster wurden mehrere Mattermost-Versionen entdeckt, oder die laufenden Versionen können nicht richtig identifiziert werden. Wenn du kein Upgrade durchführst, solltest du sicherstellen, dass alle Knoten auf der gleichen Version sind und über Gossip kommunizieren können, um Plattformprobleme zu vermeiden.",
   "admin.compliance.complianceMonitoring": "Compliance-Überwachung",
   "admin.compliance.directoryDescription": "Verzeichnis in welchem die Compliance-Reports gespeichert werden. Standardwert: ./data/.",
   "admin.compliance.directoryExample": "Z.B.: \"./data/\"",
