@@ -24,7 +24,12 @@
         ],
         "declaration-property-value-disallowed-list": [
             {
-                "/color$/|^background|^border/": ["var(--denim-button-bg)", "var(--denim-button-bg-rgb)"]
+                "color": ["var(--denim-button-bg)", "var(--denim-button-bg-rgb)"],
+                "background-color": ["var(--denim-button-bg)", "var(--denim-button-bg-rgb)"],
+                "border-color": ["var(--denim-button-bg)", "var(--denim-button-bg-rgb)"],
+                "background": ["var(--denim-button-bg)", "var(--denim-button-bg-rgb)"],
+                "border": ["var(--denim-button-bg)", "var(--denim-button-bg-rgb)"],
+                "fill": ["var(--denim-button-bg)", "var(--denim-button-bg-rgb)"]
             },
             {
                 "message": "The --denim-button-bg and --denim-button-bg-rgb variables are deprecated. Please use --button-bg or --button-bg-rgb instead."
