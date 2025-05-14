@@ -17,6 +17,9 @@ import (
 )
 
 func TestCustomStatus(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -44,6 +47,9 @@ func TestCustomStatus(t *testing.T) {
 }
 
 func TestCustomStatusErrors(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	fakeUserID := "foobar"
 	mockErr := store.NewErrNotFound("User", fakeUserID)
 	mockUser := &model.User{Id: fakeUserID}
@@ -111,6 +117,9 @@ func TestCustomStatusErrors(t *testing.T) {
 }
 
 func TestSetCustomStatus(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

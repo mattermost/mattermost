@@ -10,6 +10,9 @@ import (
 )
 
 func TestConnCreateTimeout(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -21,6 +24,9 @@ func TestConnCreateTimeout(t *testing.T) {
 }
 
 func TestShutdownPluginConns(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 

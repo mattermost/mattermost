@@ -21,6 +21,9 @@ import (
 )
 
 func TestCreateUploadSession(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -85,6 +88,9 @@ func TestCreateUploadSession(t *testing.T) {
 }
 
 func TestUploadData(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -244,6 +250,9 @@ func TestUploadData(t *testing.T) {
 }
 
 func TestUploadDataConcurrent(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

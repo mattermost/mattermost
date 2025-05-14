@@ -12,12 +12,18 @@ import (
 )
 
 func TestPostAcknowledgementsApp(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("SaveAcknowledgementForPost", func(t *testing.T) { testSaveAcknowledgementForPost(t) })
 	t.Run("DeleteAcknowledgementForPost", func(t *testing.T) { testDeleteAcknowledgementForPost(t) })
 	t.Run("GetAcknowledgementsForPostList", func(t *testing.T) { testGetAcknowledgementsForPostList(t) })
 }
 
 func testSaveAcknowledgementForPost(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -60,6 +66,9 @@ func testSaveAcknowledgementForPost(t *testing.T) {
 }
 
 func testDeleteAcknowledgementForPost(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	post, err1 := th.App.CreatePostAsUser(th.Context, &model.Post{
@@ -126,6 +135,9 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 }
 
 func testGetAcknowledgementsForPostList(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	p1, err := th.App.CreatePostAsUser(th.Context, &model.Post{

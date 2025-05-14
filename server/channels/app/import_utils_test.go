@@ -11,6 +11,9 @@ import (
 )
 
 func TestGeneratePassword(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("Should be the minimum length or 4, whichever is less", func(t *testing.T) {
 		password1, err := generatePassword(5)
 		require.NoError(t, err)

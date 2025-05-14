@@ -27,6 +27,9 @@ import (
 )
 
 func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	tt := []struct {
 		name                 string
 		userNotifySetting    string
@@ -431,6 +434,9 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 }
 
 func TestDoesStatusAllowPushNotification(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -646,6 +652,9 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 }
 
 func TestGetPushNotificationMessage(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -1028,6 +1037,9 @@ func TestGetPushNotificationMessage(t *testing.T) {
 }
 
 func TestBuildPushNotificationMessageMentions(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1084,6 +1096,9 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 }
 
 func TestSendPushNotifications(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	_, err := th.App.CreateSession(th.Context, &model.Session{
@@ -1104,6 +1119,9 @@ func TestSendPushNotifications(t *testing.T) {
 }
 
 func TestShouldSendPushNotifications(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	t.Run("should return true if forced", func(t *testing.T) {
@@ -1238,6 +1256,9 @@ func (h *testPushNotificationHandler) notificationAcks() []*model.PushNotificati
 }
 
 func TestClearPushNotificationSync(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -1314,6 +1335,9 @@ func TestClearPushNotificationSync(t *testing.T) {
 }
 
 func TestUpdateMobileAppBadgeSync(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -1373,6 +1397,9 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 }
 
 func TestSendTestPushNotification(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1400,6 +1427,9 @@ func TestSendTestPushNotification(t *testing.T) {
 }
 
 func TestSendAckToPushProxy(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -1444,6 +1474,9 @@ func TestSendAckToPushProxy(t *testing.T) {
 // TestAllPushNotifications is a master test which sends all various types
 // of notifications and verifies they have been properly sent.
 func TestAllPushNotifications(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	if testing.Short() {
 		t.Skip("skipping all push notifications test in short mode")
 	}
@@ -1554,6 +1587,9 @@ func TestAllPushNotifications(t *testing.T) {
 }
 
 func TestPushNotificationRace(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1610,6 +1646,9 @@ func TestPushNotificationRace(t *testing.T) {
 }
 
 func TestPushNotificationAttachment(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 

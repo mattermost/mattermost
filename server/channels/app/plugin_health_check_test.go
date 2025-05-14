@@ -13,6 +13,9 @@ import (
 )
 
 func TestHealthCheckJob(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 

@@ -19,6 +19,9 @@ const (
 )
 
 func TestCache(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -71,6 +74,9 @@ func TestCache(t *testing.T) {
 }
 
 func TestSetSessionExpireInHours(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -117,6 +123,9 @@ func TestSetSessionExpireInHours(t *testing.T) {
 }
 
 func TestOAuthRevokeAccessToken(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -149,6 +158,9 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 }
 
 func TestUpdateSessionsIsGuest(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 

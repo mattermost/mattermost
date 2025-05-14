@@ -21,8 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
-type nilReadSeeker struct {
-}
+type nilReadSeeker struct{}
 
 func (r *nilReadSeeker) Read(p []byte) (int, error) {
 	return 0, io.EOF
@@ -69,6 +68,9 @@ func (b byBundleInfoID) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
 func (b byBundleInfoID) Less(i, j int) bool { return b[i].Manifest.Id < b[j].Manifest.Id }
 
 func TestInstallPluginLocally(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("invalid tar", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -268,6 +270,9 @@ func TestInstallPluginLocally(t *testing.T) {
 }
 
 func TestInstallPluginAlreadyActive(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 

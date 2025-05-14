@@ -13,6 +13,9 @@ import (
 )
 
 func TestGetGroup(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -35,6 +38,9 @@ func TestGetGroup(t *testing.T) {
 }
 
 func TestGetGroupByRemoteID(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -49,6 +55,9 @@ func TestGetGroupByRemoteID(t *testing.T) {
 }
 
 func TestGetGroupsByType(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	th.CreateGroup()
@@ -65,6 +74,9 @@ func TestGetGroupsByType(t *testing.T) {
 }
 
 func TestCreateGroup(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -100,6 +112,9 @@ func TestCreateGroup(t *testing.T) {
 }
 
 func TestUpdateGroup(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -117,6 +132,9 @@ func TestUpdateGroup(t *testing.T) {
 }
 
 func TestDeleteGroup(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -131,6 +149,9 @@ func TestDeleteGroup(t *testing.T) {
 }
 
 func TestUndeleteGroup(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -149,6 +170,9 @@ func TestUndeleteGroup(t *testing.T) {
 }
 
 func TestCreateOrRestoreGroupMember(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -163,6 +187,9 @@ func TestCreateOrRestoreGroupMember(t *testing.T) {
 }
 
 func TestDeleteGroupMember(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -180,6 +207,9 @@ func TestDeleteGroupMember(t *testing.T) {
 }
 
 func TestUpsertGroupSyncable(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -206,6 +236,9 @@ func TestUpsertGroupSyncable(t *testing.T) {
 }
 
 func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -234,6 +267,9 @@ func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
 }
 
 func TestGetGroupSyncable(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -249,6 +285,9 @@ func TestGetGroupSyncable(t *testing.T) {
 }
 
 func TestGetGroupSyncables(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -267,6 +306,9 @@ func TestGetGroupSyncables(t *testing.T) {
 }
 
 func TestDeleteGroupSyncable(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -286,6 +328,9 @@ func TestDeleteGroupSyncable(t *testing.T) {
 }
 
 func TestGetGroupsByChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -320,6 +365,9 @@ func TestGetGroupsByChannel(t *testing.T) {
 }
 
 func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -359,6 +407,9 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 }
 
 func TestGetGroupsByTeam(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -386,6 +437,9 @@ func TestGetGroupsByTeam(t *testing.T) {
 }
 
 func TestGetGroups(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -396,6 +450,9 @@ func TestGetGroups(t *testing.T) {
 }
 
 func TestUserIsInAdminRoleGroup(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group1 := th.CreateGroup()

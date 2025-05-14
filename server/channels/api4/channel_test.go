@@ -27,6 +27,9 @@ import (
 )
 
 func TestCreateChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -203,6 +206,9 @@ func TestCreateChannel(t *testing.T) {
 }
 
 func TestUpdateChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -378,6 +384,9 @@ func TestUpdateChannel(t *testing.T) {
 }
 
 func TestPatchChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1148,6 +1157,9 @@ func TestCanEditChannelBanner(t *testing.T) {
 }
 
 func TestChannelUnicodeNames(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1207,6 +1219,9 @@ func TestChannelUnicodeNames(t *testing.T) {
 }
 
 func TestCreateDirectChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1269,6 +1284,9 @@ func TestCreateDirectChannel(t *testing.T) {
 }
 
 func TestCreateDirectChannelAsGuest(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1317,6 +1335,9 @@ func TestCreateDirectChannelAsGuest(t *testing.T) {
 }
 
 func TestDeleteDirectChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1333,6 +1354,9 @@ func TestDeleteDirectChannel(t *testing.T) {
 }
 
 func TestCreateGroupChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1395,6 +1419,9 @@ func TestCreateGroupChannel(t *testing.T) {
 }
 
 func TestCreateGroupChannelAsGuest(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1462,6 +1489,9 @@ func TestCreateGroupChannelAsGuest(t *testing.T) {
 }
 
 func TestDeleteGroupChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.BasicUser
@@ -1481,6 +1511,9 @@ func TestDeleteGroupChannel(t *testing.T) {
 }
 
 func TestGetChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1531,6 +1564,9 @@ func TestGetChannel(t *testing.T) {
 }
 
 func TestGetDeletedChannelsForTeam(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1606,6 +1642,9 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 }
 
 func TestGetPrivateChannelsForTeam(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	team := th.BasicTeam
@@ -1644,6 +1683,9 @@ func TestGetPrivateChannelsForTeam(t *testing.T) {
 }
 
 func TestGetPublicChannelsForTeam(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1720,6 +1762,9 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 }
 
 func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1777,6 +1822,9 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 }
 
 func TestGetChannelsForTeamForUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1857,6 +1905,9 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 }
 
 func TestGetChannelsForUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1909,6 +1960,9 @@ func TestGetChannelsForUser(t *testing.T) {
 }
 
 func TestGetAllChannels(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	th.LoginSystemManager()
 	defer th.TearDown()
@@ -2070,6 +2124,9 @@ func TestGetAllChannels(t *testing.T) {
 }
 
 func TestGetAllChannelsWithCount(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2102,6 +2159,9 @@ func TestGetAllChannelsWithCount(t *testing.T) {
 }
 
 func TestSearchChannels(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2235,6 +2295,9 @@ func TestSearchChannels(t *testing.T) {
 }
 
 func TestSearchArchivedChannels(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2325,6 +2388,9 @@ func TestSearchArchivedChannels(t *testing.T) {
 }
 
 func TestSearchAllChannels(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := setupForSharedChannels(t).InitBasic()
 	th.LoginSystemManager()
 	defer th.TearDown()
@@ -2615,6 +2681,9 @@ func TestSearchAllChannels(t *testing.T) {
 }
 
 func TestSearchAllChannelsPaged(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2634,6 +2703,9 @@ func TestSearchAllChannelsPaged(t *testing.T) {
 }
 
 func TestSearchGroupChannels(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2702,6 +2774,9 @@ func TestSearchGroupChannels(t *testing.T) {
 }
 
 func TestDeleteChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	c := th.Client
@@ -2790,6 +2865,9 @@ func TestDeleteChannel(t *testing.T) {
 }
 
 func TestDeleteChannel2(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -2869,6 +2947,9 @@ func TestDeleteChannel2(t *testing.T) {
 }
 
 func TestPermanentDeleteChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2907,6 +2988,9 @@ func TestPermanentDeleteChannel(t *testing.T) {
 }
 
 func TestUpdateChannelPrivacy(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3001,6 +3085,9 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 }
 
 func TestRestoreChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3059,6 +3146,9 @@ func TestRestoreChannel(t *testing.T) {
 }
 
 func TestGetChannelByName(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3124,6 +3214,9 @@ func TestGetChannelByName(t *testing.T) {
 }
 
 func TestGetChannelByNameForTeamName(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3185,6 +3278,9 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 }
 
 func TestGetChannelMembers(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -3233,6 +3329,9 @@ func TestGetChannelMembers(t *testing.T) {
 }
 
 func TestGetChannelMembersByIds(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3275,6 +3374,9 @@ func TestGetChannelMembersByIds(t *testing.T) {
 }
 
 func TestGetChannelMember(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	c := th.Client
@@ -3324,6 +3426,9 @@ func TestGetChannelMember(t *testing.T) {
 }
 
 func TestGetChannelMembersForUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3372,6 +3477,9 @@ func TestGetChannelMembersForUser(t *testing.T) {
 }
 
 func TestViewChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3450,6 +3558,9 @@ func TestViewChannel(t *testing.T) {
 }
 
 func TestReadMultipleChannels(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3529,6 +3640,9 @@ func TestReadMultipleChannels(t *testing.T) {
 }
 
 func TestGetChannelUnread(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3577,6 +3691,9 @@ func TestGetChannelUnread(t *testing.T) {
 }
 
 func TestGetChannelStats(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3635,6 +3752,9 @@ func TestGetChannelStats(t *testing.T) {
 }
 
 func TestGetPinnedPosts(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3671,6 +3791,9 @@ func TestGetPinnedPosts(t *testing.T) {
 }
 
 func TestUpdateChannelRoles(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3750,6 +3873,9 @@ func TestUpdateChannelRoles(t *testing.T) {
 }
 
 func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3904,6 +4030,9 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 }
 
 func TestUpdateChannelNotifyProps(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -3949,6 +4078,9 @@ func TestUpdateChannelNotifyProps(t *testing.T) {
 }
 
 func TestAddChannelMember(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4167,6 +4299,9 @@ func TestAddChannelMember(t *testing.T) {
 }
 
 func TestAddChannelMembers(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4197,6 +4332,9 @@ func TestAddChannelMembers(t *testing.T) {
 }
 
 func TestAddChannelMemberFromThread(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Skip("MM-41285")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -4318,6 +4456,9 @@ func TestAddChannelMemberGuestAccessControl(t *testing.T) {
 }
 
 func TestAddChannelMemberAddMyself(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -4393,6 +4534,9 @@ func TestAddChannelMemberAddMyself(t *testing.T) {
 }
 
 func TestRemoveChannelMember(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
@@ -4613,6 +4757,9 @@ func TestRemoveChannelMember(t *testing.T) {
 }
 
 func TestAutocompleteChannels(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -4681,6 +4828,9 @@ func TestAutocompleteChannels(t *testing.T) {
 }
 
 func TestAutocompleteChannelsForSearch(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -4794,6 +4944,9 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 }
 
 func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -4923,6 +5076,9 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 }
 
 func TestUpdateChannelScheme(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -5006,6 +5162,9 @@ func TestUpdateChannelScheme(t *testing.T) {
 }
 
 func TestGetChannelMembersTimezones(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -5049,6 +5208,9 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 }
 
 func TestChannelMembersMinusGroupMembers(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -5143,6 +5305,9 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 }
 
 func TestGetChannelModerations(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -5357,6 +5522,9 @@ func TestGetChannelModerations(t *testing.T) {
 }
 
 func TestPatchChannelModerations(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -5541,6 +5709,9 @@ func TestPatchChannelModerations(t *testing.T) {
 }
 
 func TestGetChannelMemberCountsByGroup(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -5633,6 +5804,9 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 }
 
 func TestGetChannelsMemberCount(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	// Setup
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -5717,6 +5891,9 @@ func TestGetChannelsMemberCount(t *testing.T) {
 }
 
 func TestMoveChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -5848,6 +6025,9 @@ func TestMoveChannel(t *testing.T) {
 }
 
 func TestRootMentionsCount(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -5889,6 +6069,9 @@ func TestRootMentionsCount(t *testing.T) {
 }
 
 func TestViewChannelWithoutCollapsedThreads(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

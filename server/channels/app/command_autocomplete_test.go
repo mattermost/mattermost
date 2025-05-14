@@ -15,6 +15,9 @@ import (
 )
 
 func TestParseStaticListArgument(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	items := []model.AutocompleteListItem{
 		{
 			Hint:     "[hint]",
@@ -25,12 +28,12 @@ func TestParseStaticListArgument(t *testing.T) {
 	fixedArgs := &model.AutocompleteStaticListArg{PossibleArguments: items}
 
 	argument := &model.AutocompleteArg{
-		Name:     "", //positional
+		Name:     "", // positional
 		HelpText: "some_help",
 		Type:     model.AutocompleteArgTypeStaticList,
 		Data:     fixedArgs,
 	}
-	found, _, _, suggestions := parseStaticListArgument(argument, "", "") //TODO understand this!
+	found, _, _, suggestions := parseStaticListArgument(argument, "", "") // TODO understand this!
 	assert.True(t, found)
 	assert.Equal(t, []model.AutocompleteSuggestion{{Complete: "on", Suggestion: "on", Hint: "[hint]", Description: "help"}}, suggestions)
 
@@ -91,8 +94,11 @@ func TestParseStaticListArgument(t *testing.T) {
 }
 
 func TestParseInputTextArgument(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	argument := &model.AutocompleteArg{
-		Name:     "", //positional
+		Name:     "", // positional
 		HelpText: "some_help",
 		Type:     model.AutocompleteArgTypeText,
 		Data:     &model.AutocompleteTextArg{Hint: "hint", Pattern: "pat"},
@@ -136,8 +142,11 @@ func TestParseInputTextArgument(t *testing.T) {
 }
 
 func TestParseNamedArguments(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	argument := &model.AutocompleteArg{
-		Name:     "name", //named
+		Name:     "name", // named
 		HelpText: "some_help",
 		Type:     model.AutocompleteArgTypeText,
 		Data:     &model.AutocompleteTextArg{Hint: "hint", Pattern: "pat"},
@@ -201,6 +210,9 @@ func TestParseNamedArguments(t *testing.T) {
 }
 
 func TestSuggestions(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -327,6 +339,9 @@ func TestSuggestions(t *testing.T) {
 }
 
 func TestCommandWithOptionalArgs(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -614,6 +629,9 @@ func createJiraAutocompleteData() *model.AutocompleteData {
 }
 
 func TestDynamicListArgsForBuiltin(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -637,8 +655,7 @@ func TestDynamicListArgsForBuiltin(t *testing.T) {
 	})
 }
 
-type testCommandProvider struct {
-}
+type testCommandProvider struct{}
 
 func (p *testCommandProvider) GetTrigger() string {
 	return "bogus"

@@ -22,7 +22,11 @@ func configureMetrics(th *TestHelper) {
 	})
 	th.App.Srv().SetLicense(model.NewTestLicense("metrics"))
 }
+
 func TestMobileMetrics(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := SetupEnterprise(t, StartMetrics)
 	defer th.TearDown()
 

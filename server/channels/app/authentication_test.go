@@ -21,6 +21,9 @@ import (
 )
 
 func TestParseAuthTokenFromRequest(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	cases := []struct {
 		header           string
 		cookie           string
@@ -63,6 +66,9 @@ func TestParseAuthTokenFromRequest(t *testing.T) {
 }
 
 func TestCheckPasswordAndAllCriteria(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

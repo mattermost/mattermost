@@ -17,6 +17,10 @@ import (
 // TestBatchWorkerRace tests race conditions during the start/stop
 // cases of the batch worker. Use the -race flag while testing this.
 func TestBatchWorkerRace(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
+
 	th := Setup(t)
 
 	worker := jobs.MakeBatchWorker(th.Server.Jobs, th.Server.Store(), 1*time.Second, func(rctx *request.Context, job *model.Job) bool {
@@ -28,6 +32,10 @@ func TestBatchWorkerRace(t *testing.T) {
 }
 
 func TestBatchWorker(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
+
 	createBatchWorker := func(t *testing.T, th *TestHelper, doBatch func(rctx *request.Context, job *model.Job) bool) (*jobs.BatchWorker, *model.Job) {
 		t.Helper()
 
@@ -58,6 +66,10 @@ func TestBatchWorker(t *testing.T) {
 	}
 
 	t.Run("stop after first batch", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
+
 		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
@@ -84,6 +96,10 @@ func TestBatchWorker(t *testing.T) {
 	})
 
 	t.Run("stop after second batch", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
+
 		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
@@ -110,6 +126,10 @@ func TestBatchWorker(t *testing.T) {
 	})
 
 	t.Run("done after first batch", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
+
 		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
@@ -133,6 +153,10 @@ func TestBatchWorker(t *testing.T) {
 	})
 
 	t.Run("done after three batches", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
+
 		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker

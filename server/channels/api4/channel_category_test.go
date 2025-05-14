@@ -18,6 +18,9 @@ import (
 )
 
 func TestCreateCategoryForTeamForUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -164,6 +167,9 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 }
 
 func TestUpdateCategoryForTeamForUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -451,6 +457,9 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 }
 
 func TestUpdateCategoriesForTeamForUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -548,6 +557,9 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 }
 
 func TestGetCategoriesForTeamForUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -600,6 +612,9 @@ func TestGetCategoriesForTeamForUser(t *testing.T) {
 }
 
 func TestGetCategoryOrderForTeamForUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -658,6 +673,9 @@ func TestGetCategoryOrderForTeamForUser(t *testing.T) {
 }
 
 func TestUpdateCategoryOrderForTeamForUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -776,6 +794,9 @@ func TestUpdateCategoryOrderForTeamForUser(t *testing.T) {
 }
 
 func TestGetCategoryForTeamForUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -874,6 +895,9 @@ func TestGetCategoryForTeamForUser(t *testing.T) {
 }
 
 func TestValidateSidebarCategory(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -996,6 +1020,9 @@ func TestValidateSidebarCategory(t *testing.T) {
 }
 
 func TestValidateSidebarCategoryChannels(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1081,6 +1108,9 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 }
 
 func TestDeleteCategoryForTeamForUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	t.Run("should move channels to default categories when custom category is deleted", func(t *testing.T) {

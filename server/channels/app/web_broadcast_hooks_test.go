@@ -13,6 +13,9 @@ import (
 )
 
 func TestAddMentionsHook_Process(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	hook := &addMentionsBroadcastHook{}
 
 	userID := model.NewId()
@@ -51,6 +54,9 @@ func TestAddMentionsHook_Process(t *testing.T) {
 }
 
 func TestAddFollowersHook_Process(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	hook := &addFollowersBroadcastHook{}
 
 	userID := model.NewId()
@@ -88,6 +94,9 @@ func TestAddFollowersHook_Process(t *testing.T) {
 }
 
 func TestPostedAckHook_Process(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	hook := &postedAckBroadcastHook{}
 	userID := model.NewId()
 	webConn := &platform.WebConn{
@@ -190,6 +199,9 @@ func TestPostedAckHook_Process(t *testing.T) {
 }
 
 func TestAddMentionsAndAddFollowersHooks(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	addMentionsHook := &addMentionsBroadcastHook{}
 	addFollowersHook := &addFollowersBroadcastHook{}
 
@@ -223,6 +235,9 @@ func TestAddMentionsAndAddFollowersHooks(t *testing.T) {
 }
 
 func TestPermalinkBroadcastHook(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
