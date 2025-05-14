@@ -901,8 +901,8 @@ func TestLeaveChannel(t *testing.T) {
 	t.Run("can leave private channel as last member", func(t *testing.T) {
 		channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypePrivate)
 
-		count, appErr := th.App.GetChannelMemberCount(th.Context, th.BasicChannel.Id)
-		require.Nil(t, appErr, "It should remove channel membership")
+		count, appErr := th.App.GetChannelMemberCount(th.Context, channel.Id)
+		require.Nil(t, appErr, "It should get the channel member count")
 		require.Equal(t, int64(1), count)
 
 		appErr = th.App.LeaveChannel(th.Context, channel.Id, th.BasicUser.Id)
