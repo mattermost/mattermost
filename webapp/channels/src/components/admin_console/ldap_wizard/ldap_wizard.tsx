@@ -32,6 +32,7 @@ import {ldapWizardAdminDefinition} from '../admin_definition';
 import {getConfigFromState, isSetByEnv, SchemaAdminSettings} from '../schema_admin_settings';
 import SchemaText from '../schema_text';
 import type {AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefinitionSettingFileUpload, AdminDefinitionSubSectionSchema, ConsoleAccess} from '../types';
+import './ldap_wizard.scss';
 
 export type GeneralSettingProps = {
     setting: AdminDefinitionSetting;
@@ -549,22 +550,46 @@ const LDAPWizard = (props: Props) => {
         );
     };
 
+    const sections = schema && 'sections' in schema && schema.sections ? schema.sections : [];
+
     return (
         <div
-            className={'wrapper--fixed'}
+            className={'wrapper--fixed ldap-wizard-wrapper'}
             data-testid={`sysconsole_section_${schema?.id}`}
         >
             {renderTitle()}
-            <div className='admin-console__wrapper'>
-                <div className='admin-console__content'>
-                    <form
-                        className='form-horizontal'
-                        role='form'
-                        onSubmit={handleSubmit}
-                    >
-                        {renderSettings()}
-                    </form>
-                    {hybridSchemaAndComponent()}
+            <div className='ldap-wizard-content-wrapper'>
+                <div className='ldap-wizard-sidebar'>
+                    <div className='ldap-wizard-sidebar-header'>
+                        <i className='icon icon-text-box-outline'/>
+                        <FormattedMessage
+                            id='admin.ldap_wizard.sections_header'
+                            defaultMessage='Sections'
+                        />
+                    </div>
+                    {sections.map((section, index) => (
+                        <div
+                            key={section.key + '-sidebar-item'}
+                            className={`ldap-wizard-sidebar-item ${index === 0 ? 'ldap-wizard-sidebar-item--active' : ''}`}
+                        >
+                            <FormattedMessage
+                                id={section.title}
+                                defaultMessage={section.title}
+                            />
+                        </div>
+                    ))}
+                </div>
+                <div className='admin-console__wrapper'>
+                    <div className='admin-console__content'>
+                        <form
+                            className='form-horizontal'
+                            role='form'
+                            onSubmit={handleSubmit}
+                        >
+                            {renderSettings()}
+                        </form>
+                        {hybridSchemaAndComponent()}
+                    </div>
                 </div>
             </div>
             <div className='admin-console-save'>
