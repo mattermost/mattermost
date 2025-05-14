@@ -40,7 +40,7 @@ type Command struct {
 	// AutocompleteIconData is a base64 encoded svg
 	AutocompleteIconData string `db:"-" json:"autocomplete_icon_data,omitempty"`
 	// AutocompleteRequestURL is an optional URL that will be called to get autocomplete suggestions
-	AutocompleteRequestURL string `db:"autocompleterequesturl" json:"autocomplete_request_url,omitempty"`
+	AutocompleteRequestURL string `json:"autocomplete_request_url,omitempty"`
 }
 
 func (o *Command) Auditable() map[string]any {
