@@ -4558,6 +4558,7 @@
   "multiselect.numRemaining": "Up to {max, number} can be added at a time. You have {num, number} remaining.",
   "multiselect.placeholder": "Search for people",
   "multiselect.placeholder.peopleOrGroups": "Search for people or groups",
+  "multiselect.remove": "Remove {label}",
   "multiselect.saveDetailsButton": "Save Details",
   "multiselect.savingDetailsButton": "Saving...",
   "multiselect.selectChannels": "Use ↑↓ to browse, ↵ to select.",

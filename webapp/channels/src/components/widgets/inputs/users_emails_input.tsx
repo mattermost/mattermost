@@ -4,10 +4,10 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {RefObject} from 'react';
-import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage, defineMessages} from 'react-intl';
+import type {MessageDescriptor, IntlShape} from 'react-intl';
+import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {components} from 'react-select';
-import type {FormatOptionLabelMeta, InputActionMeta, InputProps, Options, StylesConfig, SelectInstance, MultiValue, SingleValue, OptionsOrGroups, GroupBase} from 'react-select';
+import type {FormatOptionLabelMeta, InputActionMeta, InputProps, Options, StylesConfig, SelectInstance, MultiValue, SingleValue, OptionsOrGroups, GroupBase, MultiValueRemoveProps} from 'react-select';
 import AsyncCreatable from 'react-select/async-creatable';
 
 import type {UserProfile} from '@mattermost/types/users';
@@ -17,7 +17,7 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import {MultiValueRemove} from 'components/multiselect/multiselect';
+import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import MailIcon from 'components/widgets/icons/mail_icon';
 import MailPlusIcon from 'components/widgets/icons/mail_plus_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
@@ -50,6 +50,7 @@ type Props = {
     autoFocus?: boolean;
     suppressNoOptionsMessage?: boolean;
     onPaste?: (e: ClipboardEvent) => void;
+    intl: IntlShape;
 }
 
 export type EmailInvite = {
@@ -79,7 +80,7 @@ const messages = defineMessages({
     },
 });
 
-export default class UsersEmailsInput extends React.PureComponent<Props, State> {
+export class UsersEmailsInput extends React.PureComponent<Props, State> {
     static defaultProps = {
         noMatchMessage: messages.noMatchDefault,
         validAddress: messages.validAddressDefault,
@@ -259,9 +260,48 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         );
     };
 
+    private renderAriaLabel = (option: UserProfile | EmailInvite): string => {
+        if (!option) {
+            return '';
+        }
+
+        if (this.isUserProfile(option)) {
+            return (option as UserProfile).username;
+        }
+
+        return (option as EmailInvite).value;
+    };
+
+    MultiValueRemove = (props: MultiValueRemoveProps<EmailInvite | UserProfile, true>) => {
+        const {children, innerProps} = props;
+
+        return (
+            <div
+                {...innerProps}
+                role='button'
+                tabIndex={0}
+                aria-label={this.props.intl.formatMessage({
+                    id: 'multiselect.remove',
+                    defaultMessage: 'Remove {label}',
+                }, {
+                    label: this.renderAriaLabel(props.data),
+                })}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        innerProps.onClick?.(e as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>);
+                    }
+                }}
+            >
+                {children || <CloseCircleSolidIcon/>}
+            </div>
+        );
+    };
+
     components = {
         NoOptionsMessage: this.props.suppressNoOptionsMessage ? () => null : this.NoOptionsMessage,
-        MultiValueRemove,
+        MultiValueRemove: this.MultiValueRemove,
         IndicatorsContainer: () => null,
         Input: this.Input,
     };
@@ -543,3 +583,5 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         );
     }
 }
+
+export default injectIntl(UsersEmailsInput);

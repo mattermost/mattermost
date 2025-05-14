@@ -75,23 +75,6 @@ export type State = {
     page: number;
 }
 
-export const MultiValueRemove = <T, >({children, innerProps}: MultiValueRemoveProps<T>) => (
-    <div
-        {...innerProps}
-        role='button'
-        tabIndex={0}
-        onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                e.stopPropagation();
-                innerProps.onClick?.(e as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>);
-            }
-        }}
-    >
-        {children || <CloseCircleSolidIcon/>}
-    </div>
-);
-
 const KeyCodes = Constants.KeyCodes;
 
 export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, State> {
@@ -303,6 +286,29 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
         return this.props.valueWithImage ? <components.MultiValueLabel {...props}/> : this.props.valueRenderer;
     };
 
+    private MultiValueRemove = ({children, innerProps, data}: MultiValueRemoveProps<T>) => (
+        <div
+            {...innerProps}
+            role='button'
+            tabIndex={0}
+            aria-label={this.props.intl.formatMessage({
+                id: 'multiselect.remove',
+                defaultMessage: 'Remove {label}',
+            }, {
+                label: this.props.ariaLabelRenderer(data),
+            })}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    innerProps.onClick?.(e as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>);
+                }
+            }}
+        >
+            {children || <CloseCircleSolidIcon/>}
+        </div>
+    );
+
     public render() {
         const options = Object.assign([...this.props.options]);
         const {totalCount, users, values} = this.props;
@@ -485,7 +491,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                                     Menu: nullComponent,
                                     IndicatorsContainer: nullComponent,
                                     MultiValueLabel: this.props.valueWithImage ? components.MultiValueLabel : paddedComponent(this.props.valueRenderer),
-                                    MultiValueRemove: this.props.valueWithImage ? MultiValueRemove : components.MultiValueRemove,
+                                    MultiValueRemove: this.props.valueWithImage ? this.MultiValueRemove : components.MultiValueRemove,
                                 }}
                                 isClearable={false}
                                 openMenuOnFocus={false}
