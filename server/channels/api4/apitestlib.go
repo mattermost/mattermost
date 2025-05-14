@@ -86,9 +86,7 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searcheng
 	require.NoError(tb, err)
 
 	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
-	if err != nil {
-		panic("failed to initialize memory store: " + err.Error())
-	}
+	require.NoError(tb, err, "failed to initialize memory store")
 
 	memoryConfig := &model.Config{
 		SqlSettings: *mainHelper.GetSQLSettings(),
@@ -123,9 +121,7 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searcheng
 	memoryStore.Set(memoryConfig)
 
 	configStore, err := config.NewStoreFromBacking(memoryStore, nil, false)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err, "failed to create config store")
 
 	options = append(options, app.ConfigStore(configStore))
 	if includeCache {
@@ -139,20 +135,16 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searcheng
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
-		panic("failed to configure test logger: " + errCfg.Error())
-	}
-	if errW := mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...); errW != nil {
-		panic("failed to add writer target to test logger: " + errW.Error())
-	}
+	errCfg := testLogger.ConfigureTargets(logCfg, nil)
+	require.NoError(tb, errCfg, "failed to configure test logger")
+	errW := mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...)
+	require.NoError(tb, errW, "failed to add writer target to test logger")
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
 	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err, "failed to create server")
 
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s.Channels())),
@@ -196,9 +188,8 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searcheng
 
 		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	})
-	if err := th.Server.Start(); err != nil {
-		panic(err)
-	}
+	err = th.Server.Start()
+	require.NoError(tb, err, "failed to start server")
 
 	Init(th.App.Srv())
 	web.New(th.App.Srv())
@@ -252,7 +243,7 @@ func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(tb, dbStore, searchEngine, true, true, nil, options)
-	th.InitLogin()
+	th.InitLogin(tb)
 	return th
 }
 
@@ -271,7 +262,7 @@ func Setup(tb testing.TB) *TestHelper {
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(tb, dbStore, searchEngine, false, true, nil, nil)
-	th.InitLogin()
+	th.InitLogin(tb)
 	return th
 }
 
@@ -291,7 +282,7 @@ func SetupAndApplyConfigBeforeLogin(tb testing.TB, updateConfig func(cfg *model.
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(tb, dbStore, searchEngine, false, true, nil, nil)
 	th.App.UpdateConfig(updateConfig)
-	th.InitLogin()
+	th.InitLogin(tb)
 	return th
 }
 
@@ -310,7 +301,7 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(tb, dbStore, searchEngine, false, true, updateConfig, nil)
-	th.InitLogin()
+	th.InitLogin(tb)
 	return th
 }
 
@@ -371,7 +362,7 @@ func SetupWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(tb, dbStore, searchEngine, false, true, nil, options)
-	th.InitLogin()
+	th.InitLogin(tb)
 	return th
 }
 
@@ -390,7 +381,7 @@ func SetupEnterpriseWithServerOptions(tb testing.TB, options []app.Option) *Test
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(tb, dbStore, searchEngine, true, true, nil, options)
-	th.InitLogin()
+	th.InitLogin(tb)
 	return th
 }
 
@@ -407,6 +398,7 @@ func (th *TestHelper) ShutdownApp() {
 		// panic instead of fatal to terminate all tests in this package, otherwise the
 		// still running App could spuriously fail subsequent tests.
 		panic("failed to shutdown App within 30 seconds")
+
 	}
 }
 
@@ -422,7 +414,6 @@ func (th *TestHelper) TearDown() {
 	if th.workspace != "" {
 		err := os.RemoveAll(th.workspace)
 		if err != nil {
-			// TODO: Use testify to fail the test instead of panic
 			panic(err)
 		}
 	}
@@ -446,8 +437,8 @@ var (
 	}
 )
 
-func (th *TestHelper) InitLogin() *TestHelper {
-	th.waitForConnectivity()
+func (th *TestHelper) InitLogin(tb testing.TB) *TestHelper {
+	th.waitForConnectivity(tb)
 
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
@@ -539,7 +530,7 @@ func (th *TestHelper) DeleteBots() *TestHelper {
 	return th
 }
 
-func (th *TestHelper) waitForConnectivity() {
+func (th *TestHelper) waitForConnectivity(tb testing.TB) {
 	for i := 0; i < 1000; i++ {
 		conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%v", th.App.Srv().ListenAddr.Port))
 		if err == nil {
@@ -548,7 +539,7 @@ func (th *TestHelper) waitForConnectivity() {
 		}
 		time.Sleep(time.Millisecond * 20)
 	}
-	panic("unable to connect")
+	require.Fail(tb, "unable to connect to server")
 }
 
 func (th *TestHelper) CreateClient() *model.Client4 {
@@ -610,11 +601,11 @@ func (th *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*m
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), client.AuthToken)
 }
 
-func (th *TestHelper) CreateBotWithSystemAdminClient() *model.Bot {
-	return th.CreateBotWithClient((th.SystemAdminClient))
+func (th *TestHelper) CreateBotWithSystemAdminClient(tb testing.TB) *model.Bot {
+	return th.CreateBotWithClient(th.SystemAdminClient, tb)
 }
 
-func (th *TestHelper) CreateBotWithClient(client *model.Client4) *model.Bot {
+func (th *TestHelper) CreateBotWithClient(client *model.Client4, tb testing.TB) *model.Bot {
 	bot := &model.Bot{
 		Username:    GenerateTestUsername(),
 		DisplayName: "a bot",
@@ -622,9 +613,7 @@ func (th *TestHelper) CreateBotWithClient(client *model.Client4) *model.Bot {
 	}
 
 	rbot, _, err := client.CreateBot(context.Background(), bot)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err, "failed to create bot")
 	return rbot
 }
 
@@ -644,10 +633,10 @@ func (th *TestHelper) CreateGuestUser(tb testing.TB) *model.User {
 }
 
 func (th *TestHelper) CreateTeam() *model.Team {
-	return th.CreateTeamWithClient(th.Client)
+	return th.CreateTeamWithClient(th.Client, nil)
 }
 
-func (th *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
+func (th *TestHelper) CreateTeamWithClient(client *model.Client4, tb testing.TB) *model.Team {
 	id := model.NewId()
 	team := &model.Team{
 		DisplayName: "dn_" + id,
@@ -657,13 +646,15 @@ func (th *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
 	}
 
 	rteam, _, err := client.CreateTeam(context.Background(), team)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err, "failed to create team")
 	return rteam
 }
 
-func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
+func (th *TestHelper) CreateUserWithClient(client *model.Client4, tb ...testing.TB) *model.User {
+	var testHelper testing.TB
+	if len(tb) > 0 {
+		testHelper = tb[0]
+	}
 	id := model.NewId()
 
 	user := &model.User{
@@ -677,7 +668,11 @@ func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 
 	ruser, _, err := client.CreateUser(context.Background(), user)
 	if err != nil {
-		panic(err)
+		if testHelper != nil {
+			require.NoError(testHelper, err, "failed to create user")
+		} else {
+			panic(err)
+		}
 	}
 
 	ruser.Password = "Pa$$word11"
@@ -688,7 +683,11 @@ func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	return ruser
 }
 
-func (th *TestHelper) CreateUserWithAuth(authService string) *model.User {
+func (th *TestHelper) CreateUserWithAuth(authService string, tb ...testing.TB) *model.User {
+	var testHelper testing.TB
+	if len(tb) > 0 {
+		testHelper = tb[0]
+	}
 	id := model.NewId()
 	user := &model.User{
 		Email:         "success+" + id + "@simulator.amazonses.com",
@@ -699,7 +698,11 @@ func (th *TestHelper) CreateUserWithAuth(authService string) *model.User {
 	}
 	user, err := th.App.CreateUser(th.Context, user)
 	if err != nil {
-		panic(err)
+		if testHelper != nil {
+			require.NoError(testHelper, err, "failed to create user with auth service")
+		} else {
+			panic(err)
+		}
 	}
 	return user
 }
@@ -796,7 +799,11 @@ func (th *TestHelper) CreateChannelWithClient(client *model.Client4, channelType
 	return th.CreateChannelWithClientAndTeam(client, channelType, th.BasicTeam.Id)
 }
 
-func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, channelType model.ChannelType, teamID string) *model.Channel {
+func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, channelType model.ChannelType, teamID string, tb ...testing.TB) *model.Channel {
+	var testHelper testing.TB
+	if len(tb) > 0 {
+		testHelper = tb[0]
+	}
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -808,7 +815,11 @@ func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, chan
 
 	rchannel, _, err := client.CreateChannel(context.Background(), channel)
 	if err != nil {
-		panic(err)
+		if testHelper != nil {
+			require.NoError(testHelper, err, "failed to create channel")
+		} else {
+			panic(err)
+		}
 	}
 	return rchannel
 }
@@ -956,39 +967,29 @@ func (th *TestHelper) LoginSystemManager() {
 	th.LoginSystemManagerWithClient(th.SystemManagerClient)
 }
 
-func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
+func (th *TestHelper) LoginBasicWithClient(client *model.Client4, tb testing.TB) {
 	_, _, err := client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err, "failed to login as basic user")
 }
 
-func (th *TestHelper) LoginBasic2WithClient(client *model.Client4) {
+func (th *TestHelper) LoginBasic2WithClient(client *model.Client4, tb testing.TB) {
 	_, _, err := client.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err, "failed to login as basic user 2")
 }
 
-func (th *TestHelper) LoginTeamAdminWithClient(client *model.Client4) {
+func (th *TestHelper) LoginTeamAdminWithClient(client *model.Client4, tb testing.TB) {
 	_, _, err := client.Login(context.Background(), th.TeamAdminUser.Email, th.TeamAdminUser.Password)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err, "failed to login as team admin")
 }
 
-func (th *TestHelper) LoginSystemManagerWithClient(client *model.Client4) {
+func (th *TestHelper) LoginSystemManagerWithClient(client *model.Client4, tb testing.TB) {
 	_, _, err := client.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err, "failed to login as system manager")
 }
 
-func (th *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
+func (th *TestHelper) LoginSystemAdminWithClient(client *model.Client4, tb testing.TB) {
 	_, _, err := client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err, "failed to login as system admin")
 }
 
 func (th *TestHelper) UpdateActiveUser(user *model.User, active bool) {
