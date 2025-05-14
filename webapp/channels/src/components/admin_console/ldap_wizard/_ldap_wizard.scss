@@ -1,0 +1,37 @@
+.ldap-wizard-layout {
+    display: flex;
+    height: 100%; // Or a specific height if needed
+    flex-direction: row;
+
+    .ldap-wizard-sidebar {
+        position: sticky;
+        top: 0; // Adjust based on header height if any
+        width: 200px; // Adjust as needed
+        height: calc(100vh - 100px); // Example: 100vh minus header and padding
+        padding: 20px;
+        border-right: 1px solid var(--center-channel-color-16);
+        overflow-y: auto;
+
+        ul {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+
+            li {
+                padding: 8px 0;
+                cursor: pointer; // Will be used later for scrolling
+
+                &:hover {
+                    color: var(--button-bg);
+                }
+            }
+        }
+    }
+
+    .ldap-wizard-content {
+        height: 100%; // Ensure it takes up available height for scrolling
+        flex-grow: 1;
+        padding: 0 20px; // Keep original padding for content if needed
+        overflow-y: auto; // This will allow the content to scroll
+    }
+} 
