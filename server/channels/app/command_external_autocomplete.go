@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -50,7 +49,6 @@ func (a *App) getCommandExternalSuggestions(c request.CTX, commandArgs *model.Co
 	params.Add("user_id", commandArgs.UserId)
 	params.Add("user_input", commandArgs.Command)
 
-	// Make the request
 	req, err := http.NewRequest("GET", command.AutocompleteRequestURL, nil)
 	if err != nil {
 		return nil, model.NewAppError("getCommandExternalSuggestions", "app.command.external_autocomplete.request_create.app_error", nil, "error="+err.Error(), http.StatusInternalServerError)
@@ -68,11 +66,11 @@ func (a *App) getCommandExternalSuggestions(c request.CTX, commandArgs *model.Co
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
-	// Create a client with timeout
-	client := &http.Client{Timeout: 5 * time.Second}
+	// Use Mattermost's built-in HTTP service
+	httpClient := a.Srv().HTTPService().MakeClient(false)
 
 	// Execute the request
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		c.Logger().Warn("Error fetching external suggestions",
 			mlog.String("url", command.AutocompleteRequestURL),
