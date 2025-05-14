@@ -485,4 +485,59 @@ func (s *MmctlE2ETestSuite) TestBotUpdateCmdF() {
 
 		s.Require().Empty(printer.GetErrorLines())
 	})
+
+	s.RunForSystemAdminAndLocal("Update bot with no flags set", func(c client.Client) {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: "testbot", OwnerId: s.th.BasicUser.Id})
+		s.Require().Nil(appErr)
+		defer func() {
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
+			s.Require().Nil(err)
+		}()
+
+		err := botUpdateCmdF(c, cmd, []string{"testbot"})
+		s.Require().Error(err)
+		s.Require().Equal("at least one of --username, --display-name or --description must be set", err.Error())
+		s.Require().Empty(printer.GetLines())
+	})
+
+	s.RunForSystemAdminAndLocal("Update non-existent bot", func(c client.Client) {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "newbot", "")
+		cmd.Flags().Lookup("username").Changed = true
+
+		err := botUpdateCmdF(c, cmd, []string{"nonexistent-bot"})
+		s.Require().Error(err)
+		s.Require().Equal("unable to find user 'nonexistent-bot'", err.Error())
+		s.Require().Empty(printer.GetLines())
+	})
+
+	s.RunForSystemAdminAndLocal("Update bot with empty values", func(c client.Client) {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "", "")
+		cmd.Flags().String("display-name", "", "")
+		cmd.Flags().String("description", "", "")
+		cmd.Flags().Lookup("username").Changed = true
+		cmd.Flags().Lookup("display-name").Changed = true
+		cmd.Flags().Lookup("description").Changed = true
+
+		bot, appErr := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: "testbot", OwnerId: s.th.BasicUser.Id})
+		s.Require().Nil(appErr)
+		defer func() {
+			err := s.th.App.PermanentDeleteBot(s.th.Context, bot.UserId)
+			s.Require().Nil(err)
+		}()
+
+		err := botUpdateCmdF(c, cmd, []string{"testbot"})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "could not update bot")
+		s.Require().Empty(printer.GetLines())
+	})
 }
