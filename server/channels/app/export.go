@@ -1301,7 +1301,7 @@ func (a *App) DeleteExport(name string) *model.AppError {
 	if ok, err := a.ExportFileExists(filePath); err != nil {
 		return err
 	} else if !ok {
-		return model.NewAppError("DeleteExport", "app.export.delete_export.not_found.error", nil, "", http.StatusNotFound)
+		return nil
 	}
 
 	return a.RemoveExportFile(filePath)

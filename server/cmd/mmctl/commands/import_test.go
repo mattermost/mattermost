@@ -538,30 +538,23 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 }
 
 func (s *MmctlUnitTestSuite) TestDeleteImportCmdF() {
-	s.Run("delete command fails", func() {
-		printer.Clean()
-		s.client.
-			EXPECT().
-			DeleteImport(context.TODO(), "import.zip").
-			Return(&model.Response{}, errors.New("File not found")).
-			Times(1)
-
-		err := importDeleteCmdF(s.client, &cobra.Command{}, []string{"import.zip"})
-		s.Require().NotNil(err)
-		s.Empty(printer.GetLines())
-	})
-
 	s.Run("delete command succeeds", func() {
 		printer.Clean()
 		s.client.
 			EXPECT().
 			DeleteImport(context.TODO(), "import.zip").
 			Return(&model.Response{}, nil).
-			Times(1)
+			Times(2)
 
 		err := importDeleteCmdF(s.client, &cobra.Command{}, []string{"import.zip"})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal("Import file \"import.zip\" has been deleted", printer.GetLines()[0])
+
+		//idempotency check
+		err = importDeleteCmdF(s.client, &cobra.Command{}, []string{"import.zip"})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 2)
+		s.Equal("Import file \"import.zip\" has been deleted", printer.GetLines()[1])
 	})
 }

@@ -472,14 +472,14 @@ func (s *MmctlE2ETestSuite) TestImportDeleteCmdF() {
 		imports, appErr = s.th.App.ListImports()
 		s.Require().Nil(appErr)
 		s.Require().Empty(imports)
-	})
 
-	s.RunForSystemAdminAndLocal("delete import not found", func(c client.Client) {
-		printer.Clean()
+		//idempotency check
 
-		err := importDeleteCmdF(c, &cobra.Command{}, []string{"import_not_found.zip"})
-		s.Require().EqualError(err, "failed to delete import: app.import.delete_import.not_found.error")
-		s.Require().Empty(printer.GetLines())
+		err = importDeleteCmdF(c, cmd, []string{newImportName})
+		s.Require().Nil(err)
 		s.Require().Empty(printer.GetErrorLines())
+		s.Require().Len(printer.GetLines(), 2)
+		s.Equal(fmt.Sprintf(`Import file "%s" has been deleted`, newImportName), printer.GetLines()[0])
 	})
+
 }

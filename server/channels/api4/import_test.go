@@ -177,12 +177,11 @@ func TestDeleteImport(t *testing.T) {
 		require.Contains(t, imports, id2+"_import_test.zip")
 		require.NotContains(t, imports, id+"_import_test.zip")
 
-		_, _ = th.SystemAdminClient.DeleteImport(context.Background(), id2+"_import_test.zip")
-	}, "successful deletion")
+		_, err = th.SystemAdminClient.DeleteImport(context.Background(), id2+"_import_test.zip")
+		require.NoError(t, err)
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		response, delErr := c.DeleteImport(context.Background(), "somerandom_import_test.zip")
-		require.Error(t, delErr)
-		require.Equal(t, 404, response.StatusCode)
-	}, "deletion of non existent file")
+		//idempotency check
+		_, err = th.SystemAdminClient.DeleteImport(context.Background(), id2+"_import_test.zip")
+		require.NoError(t, err)
+	}, "successful deletion")
 }
