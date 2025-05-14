@@ -220,7 +220,7 @@ export default class WebSocketClient {
             this.conn = null;
             this.responseSequence = 1;
 
-            if (event && event.code) {
+            if (!this.lastCloseReason && event && event.code) {
                 this.lastCloseReason = `${event.code}`;
                 if (event.reason) {
                     this.lastCloseReason += `:${event.reason}`;
