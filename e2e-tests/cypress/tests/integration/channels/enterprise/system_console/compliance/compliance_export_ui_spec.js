@@ -166,6 +166,6 @@ describe('Compliance Export', () => {
         cy.get('.job-table__table').find('tbody > tr').eq(0).as('firstRow');
 
         // * Canceled text should be shown in the first row of the table
-        cy.get('@firstRow').find('td:eq(1)').should('have.text', 'Canceled');
+        cy.get('@firstRow').find('td:eq(0)').should('have.text', 'Canceled');
     });
 });

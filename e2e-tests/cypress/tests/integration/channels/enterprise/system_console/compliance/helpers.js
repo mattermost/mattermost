@@ -161,7 +161,7 @@ export function runDataRetentionAndVerifyPostDeleted(testTeam, testChannel, post
     // # Waiting for Data Retention process to finish
     cy.get('.job-table__table').find('tbody > tr').eq(0).as('firstRow');
     cy.get('@firstRow').within(() => {
-        cy.get('td:eq(1)', {timeout: TIMEOUTS.FOUR_MIN}).should('have.text', 'Success');
+        cy.get('td:eq(0)', {timeout: TIMEOUTS.FOUR_MIN}).should('have.text', 'Success');
     });
 
     // * Verifying if post has been deleted
