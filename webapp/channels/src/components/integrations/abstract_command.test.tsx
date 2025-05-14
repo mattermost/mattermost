@@ -109,6 +109,7 @@ describe('components/integrations/AbstractCommand', () => {
             autocomplete: true,
             autocompleteDescription: 'auto_complete_desc',
             autocompleteHint: 'auto_complete_hint',
+            autocompleteRequestUrl: '',
             clientError: null,
             description: 'description',
             displayName: 'display_name',
