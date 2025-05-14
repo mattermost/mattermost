@@ -122,7 +122,7 @@ function ChannelSettingsInfoTab({
             setSaveChangesPanelState(undefined);
             setUrlError('');
         }
-        setChannelURL(newURL);
+        setChannelURL(newURL.trim());
     }, [internalUrlError]);
 
     const togglePurposePreview = useCallback(() => {
@@ -155,7 +155,7 @@ function ChannelSettingsInfoTab({
         setChannelHeader(newValue);
 
         // Check for character limit
-        if (newValue.length > HEADER_MAX_LENGTH) {
+        if (newValue.trim().length > HEADER_MAX_LENGTH) {
             setFormError(formatMessage({
                 id: 'edit_channel_header_modal.error',
                 defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
@@ -176,7 +176,7 @@ function ChannelSettingsInfoTab({
         setChannelPurpose(newValue);
 
         // Check for character limit
-        if (newValue.length > Constants.MAX_CHANNELPURPOSE_LENGTH) {
+        if (newValue.trim().length > Constants.MAX_CHANNELPURPOSE_LENGTH) {
             setFormError(formatMessage({
                 id: 'channel_settings.error_purpose_length',
                 defaultMessage: 'The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.',
