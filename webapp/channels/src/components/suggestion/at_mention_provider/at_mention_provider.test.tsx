@@ -709,6 +709,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         expect(resultCallback).toHaveBeenNthCalledWith(1, {
             matchedPretext,
             terms: [
+                '@other',
                 '@here',
             ],
             items: [
