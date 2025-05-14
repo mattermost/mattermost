@@ -67,7 +67,7 @@ const CELHelpModal: React.FC<Props> = ({onExited, onHide}: Props) => {
                                 link: (msg: React.ReactNode) => (
                                     <ExternalLink
                                         href='https://cel.dev/'
-                                        location='#'
+                                        location='cel_help_modal'
                                     >
                                         {msg}
                                     </ExternalLink>
