@@ -64,7 +64,7 @@ const LDAPTextSetting = (props: TextSettingProps) => {
             type={inputType}
             label={label}
             helpText={helpText}
-            placeholder={props.placeholder}
+            placeholder={props.setting.placeholder}
             value={value}
             disabled={props.disabled}
             setByEnv={props.setByEnv}
