@@ -4548,6 +4548,7 @@
   "multiselect.creating": "Creating...",
   "multiselect.go": "Go",
   "multiselect.list.notFound": "No results found matching <b>{searchQuery}</b>",
+  "multiselect.list.resultsAvailable": "{count, plural, one {# result found} other {# results found}} for your search.",
   "multiselect.loading": "Loading...",
   "multiselect.maxGroupMembers": "No more than 256 members can be added to a group at once.",
   "multiselect.maxPeople": "Use ↑↓ to browse, ↵ to select. You can't add more than 7 people. Please <a>create a channel</a> to include more people. ",
