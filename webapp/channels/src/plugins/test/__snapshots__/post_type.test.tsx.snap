@@ -3,16 +3,6 @@
 exports[`plugins/PostMessageView should match snapshot with extended post type 1`] = `
 <PostMessageView
   currentRelativeTeamUrl="team_url"
-  currentUser={
-    Object {
-      "username": "username",
-    }
-  }
-  emojis={
-    Object {
-      "name": "smile",
-    }
-  }
   enableFormatting={true}
   isRHS={false}
   options={Object {}}
@@ -20,6 +10,9 @@ exports[`plugins/PostMessageView should match snapshot with extended post type 1
     Object {
       "testtype": Object {
         "component": [Function],
+        "id": "some id",
+        "pluginId": "some plugin id",
+        "type": "",
       },
     }
   }
@@ -28,11 +21,6 @@ exports[`plugins/PostMessageView should match snapshot with extended post type 1
       "id": "post_id",
       "message": "this is some text",
       "type": "testtype",
-    }
-  }
-  team={
-    Object {
-      "name": "team_name",
     }
   }
   theme={
@@ -125,7 +113,6 @@ exports[`plugins/PostMessageView should match snapshot with no extended post typ
     dir="auto"
     id="postMessageText_post_id"
     onClick={[Function]}
-    tabIndex={0}
   >
     <Connect(PostMarkdown)
       imageProps={
@@ -145,7 +132,7 @@ exports[`plugins/PostMessageView should match snapshot with no extended post typ
       }
     />
   </div>
-  <Connect(Pluggable)
+  <Pluggable
     onHeightChange={[Function]}
     pluggableName="PostMessageAttachment"
     postId="post_id"

@@ -3,17 +3,14 @@
 
 import {defineConfig, devices} from '@playwright/test';
 
-import {duration} from '@e2e-support/util';
-import testConfig from '@e2e-test.config';
-
-const defaultOutputFolder = './results';
+import {duration, testConfig} from '@mattermost/playwright-lib';
 
 export default defineConfig({
-    globalSetup: require.resolve('./global_setup'),
+    globalSetup: './global_setup.ts',
     forbidOnly: testConfig.isCI,
-    outputDir: './results/tests',
+    outputDir: './results/output',
     retries: testConfig.isCI ? 2 : 0,
-    testDir: 'tests',
+    testDir: 'specs',
     timeout: duration.one_min,
     workers: testConfig.workers,
     expect: {
@@ -39,36 +36,30 @@ export default defineConfig({
             slowMo: testConfig.slowMo,
         },
         screenshot: 'only-on-failure',
-        timezoneId: 'America/Los_Angeles',
+        timezoneId: Intl.DateTimeFormat().resolvedOptions().timeZone,
         trace: 'off',
         video: 'retain-on-failure',
         actionTimeout: duration.half_min,
-        storageState: {
-            cookies: [],
-            origins: [
-                {
-                    origin: testConfig.baseURL,
-                    localStorage: [{name: '__landingPageSeen__', value: 'true'}],
-                },
-            ],
-        },
     },
     projects: [
+        {name: 'setup', testMatch: /test_setup\.ts/},
         {
             name: 'ipad',
             use: {
                 browserName: 'chromium',
                 ...devices['iPad Pro 11'],
-                permissions: ['notifications'],
+                permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
             },
+            dependencies: ['setup'],
         },
         {
             name: 'chrome',
             use: {
                 browserName: 'chromium',
-                permissions: ['notifications'],
+                permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
                 viewport: {width: 1280, height: 1024},
             },
+            dependencies: ['setup'],
         },
         {
             name: 'firefox',
@@ -77,12 +68,13 @@ export default defineConfig({
                 permissions: ['notifications'],
                 viewport: {width: 1280, height: 1024},
             },
+            dependencies: ['setup'],
         },
     ],
     reporter: [
-        ['html', {open: 'never', outputFolder: defaultOutputFolder}],
-        ['json', {outputFile: `${defaultOutputFolder}/results.json`}],
-        ['junit', {outputFile: `${defaultOutputFolder}/results.xml`}],
+        ['html', {open: 'never', outputFolder: './results/reporter'}],
+        ['json', {outputFile: './results/reporter/results.json'}],
+        ['junit', {outputFile: './results/reporter/results.xml'}],
         ['list'],
     ],
 });

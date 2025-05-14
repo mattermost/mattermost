@@ -7,10 +7,10 @@ import type {UserReportOptions, UserReport, UserReportFilter} from '@mattermost/
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
 
+import type {ActionFuncAsync} from 'types/store';
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
 export function setNeedsLoggedInLimitReachedCheck(data: boolean) {

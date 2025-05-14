@@ -102,10 +102,19 @@ describe('channels > run', {testIsolation: true}, () => {
         cy.startPlaybookRunWithSlashCommand('Playbook', playbookRunName);
         cy.verifyPlaybookRunActive(testTeam.id, playbookRunName);
 
-        // # Open the channel header
-        cy.get('#channelHeaderTitle').click();
+        // # Open channel header dropdown
+        cy.get('#channelHeaderDropdownButton').click();
+
+        // # Click on Channel Settings
+        cy.findByText('Channel Settings').should('be.visible').click();
+
+        // * Verify Channel Settings modal opens
+        cy.get('.ChannelSettingsModal').should('be.visible');
 
         // * Verify the ability to edit the channel header exists
-        cy.get('#channelEditHeader').should('exist');
+        cy.get('#channel_settings_header_textbox').should('be.visible').and('not.be.disabled');
+
+        // # Close the modal
+        cy.get('.GenericModal .modal-header button[aria-label="Close"]').click();
     });
 });

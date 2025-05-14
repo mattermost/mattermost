@@ -2,9 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
+import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -16,6 +17,7 @@ import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/su
 import SuggestionList from 'components/suggestion/suggestion_list';
 import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
 
+import {focusElement} from 'utils/a11y_utils';
 import {getHistory} from 'utils/browser_history';
 import Constants, {RHSStates} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
@@ -30,13 +32,9 @@ type ProviderSuggestions = {
     terms: string[];
     items: any[];
     component: React.ReactNode;
-}
+};
 
-export type Props = {
-
-    /**
-     * The function called to immediately hide the modal
-     */
+export type Props = WrappedComponentProps & {
     onExited: () => void;
 
     isMobileView: boolean;
@@ -48,25 +46,25 @@ export type Props = {
         switchToChannel: (channel: Channel) => Promise<ActionResult>;
         closeRightHandSide: () => void;
     };
-}
+    focusOriginElement: string;
+};
 
 type State = {
     text: string;
-    mode: string|null;
+    mode: string | null;
     hasSuggestions: boolean;
     shouldShowLoadingSpinner: boolean;
     pretext: string;
-}
+};
 
-export default class QuickSwitchModal extends React.PureComponent<Props, State> {
+export class QuickSwitchModal extends React.PureComponent<Props, State> {
     private channelProviders: SwitchChannelProvider[];
-    private switchBox: SuggestionBoxComponent|null;
+    private switchBox: SuggestionBoxComponent | null;
 
     constructor(props: Props) {
         super(props);
 
         this.channelProviders = [new SwitchChannelProvider()];
-
         this.switchBox = null;
 
         this.state = {
@@ -82,7 +80,6 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
         if (this.switchBox === null) {
             return;
         }
-
         const textbox = this.switchBox.getTextbox();
         if (document.activeElement !== textbox) {
             textbox.focus();
@@ -116,12 +113,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
 
     private hideOnCancel = () => {
         this.props.onExited?.();
-        setTimeout(() => {
-            const modalButton = document.querySelector('.SidebarChannelNavigator_jumpToButton') as HTMLElement;
-            if (modalButton) {
-                modalButton.focus();
-            }
-        });
+        focusElement(this.props.focusOriginElement, true);
     };
 
     private onChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -168,15 +160,15 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
         const providers: SwitchChannelProvider[] = this.channelProviders;
 
         const header = (
-            <h1 id='quickSwitchHeader'>
+            <h2 id='quickSwitchHeader'>
                 <FormattedMessage
                     id='quick_switch_modal.switchChannels'
                     defaultMessage='Find Channels'
                 />
-            </h1>
+            </h2>
         );
 
-        let help;
+        let help: React.ReactNode;
         if (this.props.isMobileView) {
             help = (
                 <FormattedMessage
@@ -196,71 +188,75 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
             );
         }
 
-        return (
-            <Modal
-                dialogClassName='a11y__modal channel-switcher'
-                show={true}
-                onHide={this.hideOnCancel}
-                enforceFocus={false}
-                restoreFocus={false}
-                role='dialog'
-                aria-labelledby='quickSwitchHeader'
-                aria-describedby='quickSwitchHeaderWithHint'
-                animation={false}
+        const modalHeaderText = (
+            <div className='channel-switcher__header'>
+                {header}
+            </div>
+        );
+
+        const modalSubheaderText = (
+            <div
+                className='channel-switcher__hint'
+                id='quickSwitchHint'
             >
-                <Modal.Header
-                    className='modal-header'
-                    id='quickSwitchModalLabel'
-                    closeButton={true}
-                >
-                    <div
-                        className='channel-switcher__header'
-                        id='quickSwitchHeaderWithHint'
-                    >
-                        {header}
-                        <div
-                            className='channel-switcher__hint'
-                            id='quickSwitchHint'
-                        >
-                            {help}
-                        </div>
-                    </div>
-                </Modal.Header>
-                <Modal.Body>
-                    <div className='channel-switcher__suggestion-box'>
-                        <i className='icon icon-magnify icon-16'/>
-                        <SuggestionBox
-                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                            // @ts-ignore
-                            ref={this.setSwitchBoxRef}
-                            id='quickSwitchInput'
-                            aria-label={Utils.localizeMessage({id: 'quick_switch_modal.input', defaultMessage: 'quick switch input'})}
-                            className='form-control focused'
-                            onChange={this.onChange}
-                            value={this.state.text}
-                            onItemSelected={this.handleSubmit}
-                            listComponent={SuggestionList}
-                            listPosition='bottom'
-                            maxLength='64'
-                            providers={providers}
-                            completeOnTab={false}
-                            spellCheck='false'
-                            delayInputUpdate={true}
-                            openWhenEmpty={true}
-                            onSuggestionsReceived={this.handleSuggestionsReceived}
-                            forceSuggestionsWhenBlur={true}
-                            renderDividers={[Constants.MENTION_UNREAD, Constants.MENTION_RECENT_CHANNELS]}
-                            shouldSearchCompleteText={true}
-                        />
-                        {!this.state.shouldShowLoadingSpinner && !this.state.hasSuggestions && this.state.text &&
+                {help}
+            </div>
+        );
+
+        return (
+            <GenericModal
+                className='a11y__modal channel-switcher'
+                id='quickSwitchModal'
+                show={true}
+                bodyPadding={false}
+                enforceFocus={false}
+                onExited={this.hideOnCancel}
+                onHide={this.hideOnCancel}
+                ariaLabel={this.props.intl.formatMessage({id: 'quick_switch_modal.switchChannels', defaultMessage: 'Find Channels'})}
+                modalHeaderText={modalHeaderText}
+                modalSubheaderText={modalSubheaderText}
+                compassDesign={true}
+            >
+                <div className='channel-switcher__suggestion-box'>
+                    <i className='icon icon-magnify icon-16'/>
+                    <SuggestionBox
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        ref={this.setSwitchBoxRef}
+                        id='quickSwitchInput'
+                        aria-label={this.props.intl.formatMessage({id: 'quick_switch_modal.input', defaultMessage: 'quick switch input'})}
+                        className='form-control focused'
+                        onChange={this.onChange}
+                        value={this.state.text}
+                        onItemSelected={this.handleSubmit}
+                        listComponent={SuggestionList}
+                        listPosition='bottom'
+                        maxLength='64'
+                        providers={providers}
+                        completeOnTab={false}
+                        spellCheck='false'
+                        delayInputUpdate={true}
+                        openWhenEmpty={true}
+                        onSuggestionsReceived={this.handleSuggestionsReceived}
+                        forceSuggestionsWhenBlur={true}
+                        renderDividers={[Constants.MENTION_UNREAD, Constants.MENTION_RECENT_CHANNELS]}
+                        shouldSearchCompleteText={true}
+                    />
+                    {
+                        !this.state.shouldShowLoadingSpinner &&
+                        !this.state.hasSuggestions &&
+                        this.state.text &&
+                        (
                             <NoResultsIndicator
                                 variant={NoResultsVariant.Search}
                                 titleValues={{channelName: `${this.state.pretext}`}}
                             />
-                        }
-                    </div>
-                </Modal.Body>
-            </Modal>
+                        )
+                    }
+                </div>
+            </GenericModal>
         );
     };
 }
+
+export default injectIntl(QuickSwitchModal);

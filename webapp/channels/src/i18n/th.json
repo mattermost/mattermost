@@ -28,7 +28,6 @@
   "accessibility.button.bold": "ตัวหนา",
   "accessibility.button.bulleted_list": "รายการหัวข้อย่อย",
   "accessibility.button.code": "code",
-  "accessibility.button.dialog": "กล่องโต้ตอบ {dialogName}",
   "accessibility.button.formatting": "การจัดรูปแบบ",
   "accessibility.button.heading": "ส่วนหัว",
   "accessibility.button.hidden_controls_button": "แสดงการจัดรูปแบบเพิ่มเติม",

@@ -24,7 +24,12 @@ const GroupsFeatureDiscovery: React.FC = () => {
                 defaultMessage: 'Use AD/LDAP groups to organize and apply actions to multiple users at once. Manage team and channel memberships, permissions, and more.',
             })}
             learnMoreURL='https://docs.mattermost.com/deployment/ldap-group-sync.html'
-            featureDiscoveryImage={<GroupsSVG/>}
+            featureDiscoveryImage={
+                <GroupsSVG
+                    width={276}
+                    height={170}
+                />
+            }
         />
     );
 };

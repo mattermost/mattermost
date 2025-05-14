@@ -1,0 +1,59 @@
+{
+  "name": "mattermost-redux",
+  "version": "10.6.0",
+  "description": "Common code (API client, Redux stores, logic, utility functions) for building a Mattermost client",
+  "keywords": [
+    "mattermost"
+  ],
+  "homepage": "https://github.com/mattermost/mattermost/tree/master/webapp/platform/mattermost-redux#readme",
+  "license": "MIT",
+  "type": "commonjs",
+  "files": [
+    "lib"
+  ],
+  "exports": {
+    "./*": [
+      "./lib/*/index.js",
+      "./lib/*.js"
+    ]
+  },
+  "typesVersions": {
+    ">=3.1": {
+      "*": [
+        "./lib/*.d.ts",
+        "./lib/*/index.d.ts"
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattermost/mattermost.git",
+    "directory": "webapp/platform/mattermost-redux"
+  },
+  "dependencies": {
+    "@mattermost/client": "10.6.0",
+    "@mattermost/types": "10.6.0",
+    "@redux-devtools/extension": "^3.2.3",
+    "lodash": "^4.17.21",
+    "moment-timezone": "^0.5.38",
+    "redux": "^4.2.0",
+    "redux-batched-actions": "^0.5.0",
+    "redux-thunk": "^2.4.2",
+    "serialize-error": "^11.0.3",
+    "shallow-equals": "^1.0.0",
+    "timezones.json": "^1.7.1"
+  },
+  "peerDependencies": {
+    "typescript": "^4.3.0 || ^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "build": "tsc --build --verbose",
+    "postbuild": "cp ../../channels/src/packages/mattermost-redux/src/selectors/create_selector/index.d.ts lib/selectors/create_selector/index.d.ts",
+    "clean": "rm -rf lib node_modules *.tsbuildinfo"
+  }
+}

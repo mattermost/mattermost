@@ -127,9 +127,36 @@ function toLowerCase(config, name) {
     return name.toLowerCase();
 }
 
+const dbRefreshPostStats = async ({dbConfig}) => {
+    if (!knexClient) {
+        knexClient = getKnexClient(dbConfig);
+    }
+
+    // Only run for PostgreSQL
+    if (dbConfig.client !== 'postgres') {
+        return {
+            skipped: true,
+            message: 'Refresh post stats is only supported for PostgreSQL',
+        };
+    }
+
+    try {
+        await knexClient.raw('REFRESH MATERIALIZED VIEW posts_by_team_day;');
+        await knexClient.raw('REFRESH MATERIALIZED VIEW bot_posts_by_team_day;');
+
+        return {
+            success: true,
+        };
+    } catch (error) {
+        const errorMessage = 'Failed to refresh post statistics materialized views.';
+        return {error, errorMessage};
+    }
+};
+
 module.exports = {
     dbGetActiveUserSessions,
     dbGetUser,
     dbGetUserSession,
     dbUpdateUserSession,
+    dbRefreshPostStats,
 };

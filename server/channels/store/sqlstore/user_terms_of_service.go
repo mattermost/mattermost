@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -14,20 +15,29 @@ import (
 
 type SqlUserTermsOfServiceStore struct {
 	*SqlStore
+
+	userTermsOfServiceSelectQuery sq.SelectBuilder
 }
 
 func newSqlUserTermsOfServiceStore(sqlStore *SqlStore) store.UserTermsOfServiceStore {
-	return SqlUserTermsOfServiceStore{sqlStore}
+	s := SqlUserTermsOfServiceStore{
+		SqlStore: sqlStore,
+	}
+
+	s.userTermsOfServiceSelectQuery = s.getQueryBuilder().
+		Select("UserId", "TermsOfServiceId", "CreateAt").
+		From("UserTermsOfService")
+
+	return s
 }
 
 func (s SqlUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {
 	var userTermsOfService model.UserTermsOfService
-	query := `
-		SELECT * 
-		FROM UserTermsOfService 
-		WHERE UserId = ?
-	`
-	if err := s.GetReplicaX().Get(&userTermsOfService, query, userId); err != nil {
+
+	query := s.userTermsOfServiceSelectQuery.
+		Where(sq.Eq{"UserId": userId})
+
+	if err := s.GetReplica().GetBuilder(&userTermsOfService, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("UserTermsOfService", "userId="+userId)
 		}
@@ -49,7 +59,7 @@ func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfSe
 		SET UserId = :UserId, TermsOfServiceId = :TermsOfServiceId, CreateAt = :CreateAt
 		WHERE UserId = :UserId
 	`
-	result, err := s.GetMasterX().NamedExec(query, userTermsOfService)
+	result, err := s.GetMaster().NamedExec(query, userTermsOfService)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update UserTermsOfService with userId=%s and termsOfServiceId=%s", userTermsOfService.UserId, userTermsOfService.TermsOfServiceId)
 	}
@@ -65,7 +75,7 @@ func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfSe
 			VALUES
 				(:UserId, :TermsOfServiceId, :CreateAt)
 		`
-		if _, err := s.GetMasterX().NamedExec(query, userTermsOfService); err != nil {
+		if _, err := s.GetMaster().NamedExec(query, userTermsOfService); err != nil {
 			return nil, errors.Wrapf(err, "failed to save UserTermsOfService with userId=%s and termsOfServiceId=%s", userTermsOfService.UserId, userTermsOfService.TermsOfServiceId)
 		}
 	}
@@ -79,7 +89,7 @@ func (s SqlUserTermsOfServiceStore) Delete(userId, termsOfServiceId string) erro
 		FROM UserTermsOfService 
 		WHERE UserId = ? AND TermsOfServiceId = ?
 	`
-	if _, err := s.GetMasterX().Exec(query, userId, termsOfServiceId); err != nil {
+	if _, err := s.GetMaster().Exec(query, userId, termsOfServiceId); err != nil {
 		return errors.Wrapf(err, "failed to delete UserTermsOfService with userId=%s and termsOfServiceId=%s", userId, termsOfServiceId)
 	}
 

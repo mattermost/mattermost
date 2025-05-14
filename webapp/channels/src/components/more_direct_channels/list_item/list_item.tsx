@@ -3,6 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useCallback} from 'react';
+import {useIntl} from 'react-intl';
 
 import Timestamp from 'components/timestamp';
 
@@ -43,6 +44,7 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
         add,
         select,
     } = props;
+    const intl = useIntl();
 
     const {last_post_at: lastPostAt} = option;
 
@@ -75,9 +77,15 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
             }
 
             <div className='more-modal__actions'>
-                <div className='more-modal__actions--round'>
+                <button
+                    className='more-modal__actions--round'
+                    aria-label={intl.formatMessage({
+                        id: 'more_direct_channels.new_convo_add.label',
+                        defaultMessage: 'Add option {label}',
+                    }, {label: option.label})}
+                >
                     <i className='icon icon-plus'/>
-                </div>
+                </button>
             </div>
         </div>
     );

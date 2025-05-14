@@ -5,6 +5,7 @@ package web
 
 import (
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -111,7 +112,12 @@ type Params struct {
 
 	// Cloud
 	InvoiceId string
+
+	// Custom Profile Attributes
+	FieldId string
 }
+
+var getChannelMembersForUserRegex = regexp.MustCompile("/api/v4/users/[A-Za-z0-9]{26}/channel_members")
 
 func ParamsFromRequest(r *http.Request) *Params {
 	params := &Params{}
@@ -178,9 +184,12 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.ExcludeHome, _ = strconv.ParseBool(query.Get("exclude_home"))
 	params.ExcludeRemote, _ = strconv.ParseBool(query.Get("exclude_remote"))
 	params.ChannelBookmarkId = props["bookmark_id"]
+	params.FieldId = props["field_id"]
 	params.Scope = query.Get("scope")
 
-	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
+	if val, err := strconv.Atoi(query.Get("page")); err != nil || (val < 0 && params.UserId == "" && !getChannelMembersForUserRegex.MatchString(r.URL.Path)) {
+		// We don't want to apply this logic for the getChannelMembersForUser API handler
+		// because that API allows page=-1 to switch to streaming mode.
 		params.Page = PageDefault
 	} else {
 		params.Page = val

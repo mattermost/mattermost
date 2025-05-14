@@ -34,7 +34,7 @@ import {useScrollOnRender} from 'components/common/hooks/use_scroll_on_render';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 import PlaceholderScheduledPostsTitle
     from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
-import EditPost from 'components/edit_post';
+import EditScheduledPost from 'components/edit_scheduled_post';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
@@ -50,8 +50,6 @@ import PanelBody from './panel/panel_body';
 import Header from './panel/panel_header';
 import {getErrorStringFromCode} from './utils';
 
-import './draft_row.scss';
-
 type Props = {
     user: UserProfile;
     status: UserStatus['status'];
@@ -59,6 +57,9 @@ type Props = {
     item: PostDraft | ScheduledPost;
     isRemote?: boolean;
     scrollIntoView?: boolean;
+    containerClassName?: string;
+    dataTestId?: string;
+    dataPostId?: string;
 }
 
 const mockLastBlurAt = {current: 0};
@@ -70,6 +71,7 @@ function DraftRow({
     displayName,
     isRemote,
     scrollIntoView,
+    containerClassName,
 }: Props) {
     const [isEditing, setIsEditing] = useState(false);
 
@@ -360,50 +362,57 @@ function DraftRow({
         );
     }
 
+    const kind = isScheduledPost ? 'scheduledPost' : 'draft';
+
     return (
         <Panel
+            dataTestId={`${kind}View`}
+            dataPostId={(item as ScheduledPost).id}
             onClick={goToMessage}
             hasError={Boolean(postError)}
             innerRef={scrollIntoView ? alertRef : undefined}
             isHighlighted={scrollIntoView}
+            className={containerClassName}
+            ariaLabel={isScheduledPost ? intl.formatMessage({
+                id: 'drafts.draft_row.aria_label.scheduled_post',
+                defaultMessage: 'scheduled post in {channelName}',
+            }, {
+                channelName: channel?.display_name,
+            }) : intl.formatMessage({
+                id: 'drafts.draft_row.aria_label.draft',
+                defaultMessage: 'draft in {channelName}',
+            }, {
+                channelName: channel?.display_name,
+            })}
         >
-            {({hover}) => (
-                <>
-                    <Header
-                        kind={isScheduledPost ? 'scheduledPost' : 'draft'}
-                        hover={hover}
-                        actions={actions}
-                        title={title}
-                        timestamp={timestamp}
-                        remote={isRemote || false}
-                        error={postError || serverError?.message}
-                    />
-
-                    {
-                        isEditing &&
-                        <EditPost
-                            scheduledPost={item as ScheduledPost}
-                            onCancel={handleCancelEdit}
-                            afterSave={handleCancelEdit}
-                            onDeleteScheduledPost={handleSchedulePostOnDelete}
-                        />
-                    }
-
-                    {
-                        !isEditing &&
-                        <PanelBody
-                            channelId={channel?.id}
-                            displayName={displayName}
-                            fileInfos={fileInfos}
-                            message={item.message}
-                            status={status}
-                            priority={rootId ? undefined : item.metadata?.priority}
-                            uploadsInProgress={uploadsInProgress}
-                            userId={user.id}
-                            username={user.username}
-                        />
-                    }
-                </>
+            <Header
+                kind={kind}
+                actions={actions}
+                title={title}
+                timestamp={timestamp}
+                remote={isRemote || false}
+                error={postError || serverError?.message}
+            />
+            {isEditing && (
+                <EditScheduledPost
+                    scheduledPost={item as ScheduledPost}
+                    onCancel={handleCancelEdit}
+                    afterSave={handleCancelEdit}
+                    onDeleteScheduledPost={handleSchedulePostOnDelete}
+                />
+            )}
+            {!isEditing && (
+                <PanelBody
+                    channelId={channel?.id}
+                    displayName={displayName}
+                    fileInfos={fileInfos}
+                    message={item.message}
+                    status={status}
+                    priority={rootId ? undefined : item.metadata?.priority}
+                    uploadsInProgress={uploadsInProgress}
+                    userId={user.id}
+                    username={user.username}
+                />
             )}
         </Panel>
     );

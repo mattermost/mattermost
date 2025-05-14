@@ -87,7 +87,7 @@ func (_m *ClusterInterface) GetClusterId() string {
 }
 
 // GetClusterInfos provides a mock function with given fields:
-func (_m *ClusterInterface) GetClusterInfos() []*model.ClusterInfo {
+func (_m *ClusterInterface) GetClusterInfos() ([]*model.ClusterInfo, error) {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
@@ -95,6 +95,10 @@ func (_m *ClusterInterface) GetClusterInfos() []*model.ClusterInfo {
 	}
 
 	var r0 []*model.ClusterInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]*model.ClusterInfo, error)); ok {
+		return rf()
+	}
 	if rf, ok := ret.Get(0).(func() []*model.ClusterInfo); ok {
 		r0 = rf()
 	} else {
@@ -103,7 +107,13 @@ func (_m *ClusterInterface) GetClusterInfos() []*model.ClusterInfo {
 		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetClusterStats provides a mock function with given fields: rctx
@@ -217,6 +227,36 @@ func (_m *ClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model.Ap
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
 		}
+	}
+
+	return r0, r1
+}
+
+// GetWSQueues provides a mock function with given fields: userID, connectionID, seqNum
+func (_m *ClusterInterface) GetWSQueues(userID string, connectionID string, seqNum int64) (map[string]*model.WSQueues, error) {
+	ret := _m.Called(userID, connectionID, seqNum)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWSQueues")
+	}
+
+	var r0 map[string]*model.WSQueues
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, int64) (map[string]*model.WSQueues, error)); ok {
+		return rf(userID, connectionID, seqNum)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, int64) map[string]*model.WSQueues); ok {
+		r0 = rf(userID, connectionID, seqNum)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]*model.WSQueues)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
+		r1 = rf(userID, connectionID, seqNum)
+	} else {
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

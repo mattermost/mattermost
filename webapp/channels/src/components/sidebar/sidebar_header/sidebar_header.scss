@@ -1,0 +1,36 @@
+.sidebarHeaderContainer {
+    display: flex;
+    height: 55px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+
+    button#sidebarTeamMenuButton {
+        overflow: hidden;
+        padding: 2px 6px;
+        font-family: Metropolis, sans-serif;
+        font-size: 16px;
+        gap: 1px;
+
+        & > span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        & > .icon {
+            display: flex;
+            justify-content: center;
+        }
+    }
+}
+
+#sidebarTeamMenu {
+    .learnAboutTeamsMenuItem {
+        .leading-element,.label-elements>span {
+            color: var(--link-color);
+        }
+    }
+}

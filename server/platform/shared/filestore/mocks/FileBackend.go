@@ -387,6 +387,36 @@ func (_m *FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 	return r0, r1
 }
 
+// ZipReader provides a mock function with given fields: path, deflate
+func (_m *FileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, error) {
+	ret := _m.Called(path, deflate)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ZipReader")
+	}
+
+	var r0 io.ReadCloser
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, bool) (io.ReadCloser, error)); ok {
+		return rf(path, deflate)
+	}
+	if rf, ok := ret.Get(0).(func(string, bool) io.ReadCloser); ok {
+		r0 = rf(path, deflate)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(io.ReadCloser)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(path, deflate)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewFileBackend creates a new instance of FileBackend. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewFileBackend(t interface {

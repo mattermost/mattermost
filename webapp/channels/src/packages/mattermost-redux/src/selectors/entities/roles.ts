@@ -7,18 +7,23 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
+import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import type {PermissionsOptions} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {
-    getMySystemPermissions,
-    getMySystemRoles,
+    getMySystemPermissions as getMySystemPermissionsInternal,
+    getMySystemRoles as getMySystemRolesInternal,
     getPermissionsForRoles,
-    getRoles,
-    haveISystemPermission,
+    getRoles as getRolesInternal,
+    haveISystemPermission as haveISystemPermissionInternal,
 } from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getTeamMemberships, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {isSyncableSource} from 'mattermost-redux/utils/group_utils';
 
-export {getMySystemPermissions, getMySystemRoles, getRoles, haveISystemPermission};
+// Re-define these types to ensure that these are typed correctly when mattermost-redux is published
+export const getMySystemPermissions: (state: GlobalState) => Set<string> = getMySystemPermissionsInternal;
+export const getMySystemRoles: (state: GlobalState) => Set<string> = getMySystemRolesInternal;
+export const getRoles: (state: GlobalState) => Record<string, Role> = getRolesInternal;
+export const haveISystemPermission: (state: GlobalState, options: PermissionsOptions) => boolean = haveISystemPermissionInternal;
 
 export const getGroupMemberships: (state: GlobalState) => Record<string, GroupMembership> = createSelector(
     'getGroupMemberships',
@@ -40,7 +45,7 @@ export const getMyGroupRoles: (state: GlobalState) => Record<string, Set<string>
         const roles: Record<string, Set<string>> = {};
         if (groupMemberships) {
             for (const key in groupMemberships) {
-                if (groupMemberships.hasOwnProperty(key) && groupMemberships[key].roles) {
+                if (Object.hasOwn(groupMemberships, key) && groupMemberships[key].roles) {
                     roles[key] = new Set<string>(groupMemberships[key].roles.split(' '));
                 }
             }
@@ -82,9 +87,9 @@ export const getGroupListPermissions: (state: GlobalState) => Record<string, Gro
         const groupPermissionsMap: Record<string, GroupPermissions> = {};
         groups.forEach((g) => {
             groupPermissionsMap[g.id] = {
-                can_delete: permissions.has(Permissions.DELETE_CUSTOM_GROUP) && g.source.toLowerCase() !== 'ldap' && g.delete_at === 0,
-                can_manage_members: permissions.has(Permissions.MANAGE_CUSTOM_GROUP_MEMBERS) && g.source.toLowerCase() !== 'ldap' && g.delete_at === 0,
-                can_restore: permissions.has(Permissions.RESTORE_CUSTOM_GROUP) && g.source.toLowerCase() !== 'ldap' && g.delete_at !== 0,
+                can_delete: permissions.has(Permissions.DELETE_CUSTOM_GROUP) && !isSyncableSource(g.source) && g.delete_at === 0,
+                can_manage_members: permissions.has(Permissions.MANAGE_CUSTOM_GROUP_MEMBERS) && !isSyncableSource(g.source) && g.delete_at === 0,
+                can_restore: permissions.has(Permissions.RESTORE_CUSTOM_GROUP) && !isSyncableSource(g.source) && g.delete_at !== 0,
             };
         });
         return groupPermissionsMap;
@@ -98,7 +103,7 @@ export const getMyTeamRoles: (state: GlobalState) => Record<string, Set<string>>
         const roles: Record<string, Set<string>> = {};
         if (teamsMemberships) {
             for (const key in teamsMemberships) {
-                if (teamsMemberships.hasOwnProperty(key) && teamsMemberships[key].roles) {
+                if (Object.hasOwn(teamsMemberships, key) && teamsMemberships[key].roles) {
                     roles[key] = new Set<string>(teamsMemberships[key].roles.split(' '));
                 }
             }
@@ -187,13 +192,13 @@ export const haveIGroupPermission: (state: GlobalState, groupID: string, permiss
     (state: GlobalState, groupID: string, permission: string) => permission,
     (systemPermissions, permissionGroups, group, permission) => {
         if (permission === Permissions.RESTORE_CUSTOM_GROUP) {
-            if ((group.source !== 'ldap' && group.delete_at !== 0) && (systemPermissions.has(permission) || (permissionGroups[group.id] && permissionGroups[group.id].has(permission)))) {
+            if ((!isSyncableSource(group.source) && group.delete_at !== 0) && (systemPermissions.has(permission) || (permissionGroups[group.id] && permissionGroups[group.id].has(permission)))) {
                 return true;
             }
             return false;
         }
 
-        if (group.source === 'ldap' || group.delete_at !== 0) {
+        if (isSyncableSource(group.source) || group.delete_at !== 0) {
             return false;
         }
 

@@ -23,7 +23,7 @@ import EnableSectionContent from './enable_section';
 import {isIPAddressInRanges} from './ip_filtering_utils';
 import SaveConfirmationModal from './save_confirmation_modal';
 
-import SaveChangesPanel from '../team_channel_settings/save_changes_panel';
+import SaveChangesPanel from '../save_changes_panel';
 
 import './ip_filtering.scss';
 

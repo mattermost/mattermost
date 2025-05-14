@@ -60,7 +60,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     return {
         appBindings,
         appsEnabled: apps,
-        components: state.plugins.components,
+        pluginMenuItemComponents: state.plugins.components.PostDropdownMenuItem,
         isSysAdmin,
         pluginMenuItems: state.plugins.components.PostDropdownMenu,
         teamId: getCurrentTeamId(state),
