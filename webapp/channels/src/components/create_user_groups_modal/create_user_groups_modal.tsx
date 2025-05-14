@@ -285,6 +285,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                                 data-testid='nameInput'
                                 maxLength={64}
                                 autoFocus={true}
+                                required={true}
                                 customMessage={{type: ItemStatus.ERROR, value: this.state.nameInputErrorText}}
                             />
                         </div>
@@ -296,6 +297,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                                 value={this.state.mention}
                                 maxLength={64}
                                 data-testid='mentionInput'
+                                required={true}
                                 customMessage={{type: ItemStatus.ERROR, value: this.state.mentionInputErrorText}}
                             />
                         </div>

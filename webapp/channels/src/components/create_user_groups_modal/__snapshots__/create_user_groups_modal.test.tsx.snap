@@ -93,6 +93,7 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
               "id": "user_groups_modal.name",
             }
           }
+          required={true}
           type="text"
           value=""
         />
@@ -116,6 +117,7 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
               "id": "user_groups_modal.mention",
             }
           }
+          required={true}
           type="text"
           value=""
         />
@@ -235,6 +237,7 @@ exports[`component/create_user_groups_modal should match snapshot without back b
               "id": "user_groups_modal.name",
             }
           }
+          required={true}
           type="text"
           value=""
         />
@@ -258,6 +261,7 @@ exports[`component/create_user_groups_modal should match snapshot without back b
               "id": "user_groups_modal.mention",
             }
           }
+          required={true}
           type="text"
           value=""
         />
