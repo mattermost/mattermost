@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
-import {defineMessage, injectIntl} from 'react-intl';
+import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -245,6 +245,12 @@ export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State>
                 backButtonText={this.props.backButtonText}
                 maxValues={maxValues}
                 numRemainingText={numRemainingText}
+                noteText={(
+                    <FormattedMessage
+                        id='add_user_to_group_multiselect.required'
+                        defaultMessage='This field is required.'
+                    />
+                )}
             />
         );
     };
