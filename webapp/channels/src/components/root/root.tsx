@@ -14,7 +14,7 @@ import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
 
-import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
+import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
@@ -26,7 +26,6 @@ import LoggedIn from 'components/logged_in';
 import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
-import SidebarMobileRightMenu from 'components/sidebar_mobile_right_menu';
 
 import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
@@ -361,7 +360,6 @@ export default class Root extends React.PureComponent<Props, State> {
         this.initiateMeRequests();
 
         measurePageLoadTelemetry();
-        trackSelectorMetrics();
 
         // Force logout of all tabs if one tab is logged out
         window.addEventListener('storage', this.handleLogoutLoginSignal);
@@ -584,7 +582,6 @@ export default class Root extends React.PureComponent<Props, State> {
                         </div>
                         <Pluggable pluggableName='Global'/>
                         <AppBar/>
-                        <SidebarMobileRightMenu/>
                     </CompassThemeProvider>
                 </Switch>
             </RootProvider>
