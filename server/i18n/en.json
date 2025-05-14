@@ -4287,10 +4287,6 @@
     "translation": "Failed to send verification email successfully"
   },
   {
-    "id": "api.user.shared_channels_service_unavailable.app_error",
-    "translation": "Shared channels service is currently unavailable."
-  },
-  {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
     "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
   },
