@@ -1403,13 +1403,13 @@ type API interface {
 	// CreateDefaultSyncableMemberships creates default syncable memberships based off the provided parameters.
 	//
 	// @tag Group
-	// Minimum server version: 10.7.1
+	// Minimum server version: 10.9
 	CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) error
 
 	// DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed groups of all group-constrained teams and channels.
 	//
 	// @tag Group
-	// Minimum server version: 10.7.1
+	// Minimum server version: 10.9
 	DeleteGroupConstrainedMemberships() error
 }
 
