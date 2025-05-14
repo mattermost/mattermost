@@ -262,4 +262,166 @@ describe('components/MoreDirectChannels', () => {
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
+
+    test('should fetch remote clusters when there are remote users', () => {
+        const remoteUser1 = {
+            ...mockedUser,
+            id: 'remote_user_1',
+            remote_id: 'remote1',
+        };
+
+        const users: UserProfile[] = [
+            {
+                ...mockedUser,
+                id: 'user_id_1',
+            },
+            remoteUser1,
+        ];
+
+        // We need to manually trigger updateFromProps since shallow rendering doesn't call componentDidMount
+        const props = {...baseProps, users};
+        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+
+        // Manually call updateFromProps to trigger fetchRemoteClusters on mount
+        wrapper.instance().updateFromProps({
+            users: [],
+            currentUserId: props.currentUserId,
+            searchTerm: props.searchTerm,
+            totalCount: props.totalCount,
+            isExistingChannel: props.isExistingChannel,
+            restrictDirectMessage: props.restrictDirectMessage,
+            actions: props.actions,
+            focusOriginElement: props.focusOriginElement,
+        });
+
+        // Initial update should trigger fetch
+        expect(props.actions.fetchRemoteClusters).toHaveBeenCalledTimes(1);
+
+        // Simulate component update with new users containing remote users
+        const moreUsers = [...users, {
+            ...mockedUser,
+            id: 'remote_user_2',
+            remote_id: 'remote2',
+        }];
+
+        wrapper.setProps({users: moreUsers});
+
+        // Manually trigger updateFromProps to simulate componentDidUpdate
+        wrapper.instance().updateFromProps({
+            users,
+            currentUserId: props.currentUserId,
+            searchTerm: props.searchTerm,
+            totalCount: props.totalCount,
+            isExistingChannel: props.isExistingChannel,
+            restrictDirectMessage: props.restrictDirectMessage,
+            actions: props.actions,
+            focusOriginElement: props.focusOriginElement,
+        });
+
+        // Should have called fetchRemoteClusters again
+        expect(props.actions.fetchRemoteClusters).toHaveBeenCalled();
+    });
+
+    test('should not fetch remote clusters when there are no remote users', () => {
+        const users: UserProfile[] = [
+            {
+                ...mockedUser,
+                id: 'user_id_1',
+            },
+            {
+                ...mockedUser,
+                id: 'user_id_2',
+            },
+        ];
+
+        const props = {...baseProps, users};
+        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+
+        // Reset the mock counter from previous test
+        jest.clearAllMocks();
+
+        // Manually call updateFromProps to simulate componentDidMount
+        wrapper.instance().updateFromProps({
+            users: [],
+            currentUserId: props.currentUserId,
+            searchTerm: props.searchTerm,
+            totalCount: props.totalCount,
+            isExistingChannel: props.isExistingChannel,
+            restrictDirectMessage: props.restrictDirectMessage,
+            actions: props.actions,
+            focusOriginElement: props.focusOriginElement,
+        });
+
+        // Initial component mount should not trigger fetch since no remote users
+        expect(props.actions.fetchRemoteClusters).not.toHaveBeenCalled();
+
+        // Simulate component update with new users, still without remote users
+        const moreUsers = [...users, {
+            ...mockedUser,
+            id: 'user_id_3',
+        }];
+
+        wrapper.setProps({users: moreUsers});
+
+        // Manually trigger updateFromProps to simulate componentDidUpdate
+        wrapper.instance().updateFromProps({
+            users,
+            currentUserId: props.currentUserId,
+            searchTerm: props.searchTerm,
+            totalCount: props.totalCount,
+            isExistingChannel: props.isExistingChannel,
+            restrictDirectMessage: props.restrictDirectMessage,
+            actions: props.actions,
+            focusOriginElement: props.focusOriginElement,
+        });
+
+        // Still should not have called fetchRemoteClusters
+        expect(props.actions.fetchRemoteClusters).not.toHaveBeenCalled();
+    });
+
+    test('should handle remote connection not allowed error when trying to open DM', (done) => {
+        jest.useFakeTimers({legacyFakeTimers: true});
+        const user: UserProfile = {
+            ...mockedUser,
+            id: 'remote_user_1',
+            remote_id: 'remote1',
+        };
+
+        // Mock the error that would be returned
+        const mockOpenDirectChannelError = jest.fn().mockResolvedValue({
+            error: {
+                server_error_id: 'api.user.remote_connection_not_allowed.app_error',
+                message: 'Cannot message this user because their server is not directly connected to yours.',
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            currentChannelMembers: [user],
+            actions: {
+                ...baseProps.actions,
+                openDirectChannelToUserId: mockOpenDirectChannelError,
+            },
+        };
+
+        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+        const handleHide = jest.fn();
+
+        wrapper.instance().handleHide = handleHide;
+        wrapper.instance().handleSubmit();
+
+        expect(wrapper.state('saving')).toEqual(true);
+        expect(props.actions.openDirectChannelToUserId).toHaveBeenCalledTimes(1);
+        expect(props.actions.openDirectChannelToUserId).toHaveBeenCalledWith('remote_user_1');
+
+        process.nextTick(() => {
+            // Should have reset saving state even though there was an error
+            expect(wrapper.state('saving')).toEqual(false);
+
+            // Should not have tried to navigate since the channel creation failed
+            expect(wrapper.instance().exitToChannel).toBeFalsy();
+
+            done();
+        });
+    });
 });

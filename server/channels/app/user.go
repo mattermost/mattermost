@@ -2336,30 +2336,40 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 		return true, nil
 	}
 
-	// Check if Shared Channels DMs are enabled
-	if a.Config().FeatureFlags.EnableSharedChannelsDMs {
-		// Get the user that is being viewed
-		otherUser, err := a.GetUser(otherUserId)
-		if err == nil && otherUser.RemoteId != nil && *otherUser.RemoteId != "" {
-			// The other user is from a remote server
-			scs := a.Srv().GetSharedChannelSyncService()
-			if scs == nil {
-				return false, model.NewAppError(
-					"UserCanSeeOtherUser",
-					"api.user.shared_channels_service_unavailable.app_error",
-					nil,
-					"Shared channel service not available",
-					http.StatusBadRequest)
-			}
+	scs := a.Srv().GetSharedChannelSyncService()
+	if scs != nil {
+		otherUser, otherErr := a.GetUser(otherUserId)
+		user, userErr := a.GetUser(userID)
 
-			// Check if the user's remote cluster has a direct connection to the current server
-			if !scs.IsRemoteClusterDirectlyConnected(*otherUser.RemoteId) {
-				return false, model.NewAppError(
-					"UserCanSeeOtherUser",
-					"api.user.remote_connection_not_allowed.app_error",
-					nil,
-					fmt.Sprintf("No direct connection to remote cluster with ID %s", *otherUser.RemoteId),
-					http.StatusForbidden)
+		// Return early if either user retrieval failed
+		if userErr != nil || otherErr != nil {
+			return false, nil
+		}
+
+		// Check if the other user is from a remote cluster
+		if otherUser.RemoteId != nil && *otherUser.RemoteId != "" {
+			// Check if both users are from remote clusters but different ones
+			if user.RemoteId != nil && *user.RemoteId != "" && *user.RemoteId != *otherUser.RemoteId {
+				// Check if there's a direct connection between the remote clusters
+				if !scs.IsRemoteClusterDirectlyConnected(*otherUser.RemoteId) {
+					return false, model.NewAppError(
+						"UserCanSeeOtherUser",
+						"api.user.remote_connection_not_allowed.app_error",
+						nil,
+						fmt.Sprintf("No direct connection between remote clusters %s and %s", *user.RemoteId, *otherUser.RemoteId),
+						http.StatusForbidden)
+				}
+			} else {
+				// Local user trying to see a remote user
+				// Check if there's a direct connection to the remote cluster
+				if !scs.IsRemoteClusterDirectlyConnected(*otherUser.RemoteId) {
+					return false, model.NewAppError(
+						"UserCanSeeOtherUser",
+						"api.user.remote_connection_not_allowed.app_error",
+						nil,
+						fmt.Sprintf("No direct connection to remote cluster with ID %s", *otherUser.RemoteId),
+						http.StatusForbidden)
+				}
 			}
 		}
 	}

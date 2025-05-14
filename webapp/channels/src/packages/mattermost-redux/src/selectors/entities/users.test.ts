@@ -899,6 +899,143 @@ describe('Selectors.Users', () => {
         });
     });
 
+    describe('userCanSeeOtherUser', () => {
+        // Set up minimal test data for remote users
+        const remoteUser = TestHelper.fakeUserWithId();
+        remoteUser.remote_id = 'remote1';
+
+        const testProfilesWithRemote = {
+            ...profiles,
+            [remoteUser.id]: remoteUser,
+        };
+
+        // Common state for tests
+        const baseState = {
+            entities: {
+                users: {
+                    profiles: testProfilesWithRemote,
+                },
+                general: {
+                    config: {
+                        FeatureFlags: {
+                            EnableSharedChannelsDMs: 'true',
+                        },
+                    },
+                },
+                remoteClusters: {}, // Empty by default
+            },
+        } as unknown as GlobalState;
+
+        it('should return true for local users regardless of feature flag', () => {
+            // Test with feature enabled
+            expect(Selectors.userCanSeeOtherUser(baseState, user1.id)).toBe(true);
+
+            // Test with feature disabled
+            const stateWithFeatureDisabled = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    general: {
+                        config: {
+                            FeatureFlags: {
+                                EnableSharedChannelsDMs: 'false',
+                            },
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.userCanSeeOtherUser(stateWithFeatureDisabled, user1.id)).toBe(true);
+        });
+
+        it('should handle remote users based on connection status when feature is enabled', () => {
+            // Test all the connection states with a single remote user
+
+            // 1. Remote user from directly connected cluster - should be visible
+            const stateWithConnectedRemote = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    remoteClusters: {
+                        remote1: {
+                            remote_id: 'remote1',
+                            site_url: 'https://remote1.example.com',
+                            create_at: 1234567890,
+                            last_ping_at: Date.now(),
+                            confirmed: true,
+                            online: true,
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.userCanSeeOtherUser(stateWithConnectedRemote, remoteUser.id)).toBe(true);
+
+            // 2. Remote user from unconfirmed cluster - should not be visible
+            const stateWithUnconfirmedRemote = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    remoteClusters: {
+                        remote1: {
+                            remote_id: 'remote1',
+                            site_url: 'https://remote1.example.com',
+                            create_at: 1234567890,
+                            last_ping_at: Date.now(),
+                            confirmed: false,
+                            online: true,
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.userCanSeeOtherUser(stateWithUnconfirmedRemote, remoteUser.id)).toBe(false);
+
+            // 3. Remote user from offline cluster - should not be visible
+            const stateWithOfflineRemote = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    remoteClusters: {
+                        remote1: {
+                            remote_id: 'remote1',
+                            site_url: 'https://remote1.example.com',
+                            create_at: 1234567890,
+                            last_ping_at: 0,
+                            confirmed: true,
+                            online: false,
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.userCanSeeOtherUser(stateWithOfflineRemote, remoteUser.id)).toBe(false);
+
+            // 4. Remote user with no corresponding cluster - should not be visible
+            expect(Selectors.userCanSeeOtherUser(baseState, remoteUser.id)).toBe(false);
+        });
+
+        it('should always return true for remote users when feature is disabled', () => {
+            // Set up state with feature disabled
+            const stateWithFeatureDisabled = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    general: {
+                        config: {
+                            FeatureFlags: {
+                                EnableSharedChannelsDMs: 'false',
+                            },
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            // Should return true even though there's no remote cluster info
+            expect(Selectors.userCanSeeOtherUser(stateWithFeatureDisabled, remoteUser.id)).toBe(true);
+        });
+    });
+
     describe('filterProfiles', () => {
         it('no filter, return all users', () => {
             expect(Object.keys(Selectors.filterProfiles(profiles)).length).toEqual(7);

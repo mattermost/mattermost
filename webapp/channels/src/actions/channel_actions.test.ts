@@ -175,6 +175,33 @@ describe('Actions.Channel', () => {
         expect(testStore.getActions()).toEqual(expectedActions);
     });
 
+    test('openDirectChannelToUserId handles remote connection error', async () => {
+        const testStore = await mockStore(initialState);
+
+        // Override the mocked createDirectChannel to return an error for this test
+        const mockCreateDirectChannel = jest.fn().mockResolvedValue({
+            error: {
+                server_error_id: 'api.user.remote_connection_not_allowed.app_error',
+                message: 'Cannot message this user because their server is not directly connected to yours.',
+            },
+        });
+
+        require('mattermost-redux/actions/channels').createDirectChannel = mockCreateDirectChannel;
+
+        const fakeData = {
+            userId: 'remote_user_id',
+        };
+
+        const result = await testStore.dispatch(openDirectChannelToUserId(fakeData.userId));
+
+        // Should pass the error through
+        expect(result.error).toBeDefined();
+        expect(result.error.server_error_id).toBe('api.user.remote_connection_not_allowed.app_error');
+
+        // Should have tried to create the channel
+        expect(mockCreateDirectChannel).toHaveBeenCalledWith('current_user_id', 'remote_user_id');
+    });
+
     test('openDirectChannelToUserId Existing', async () => {
         Date.now = () => new Date(0).getMilliseconds();
         const testStore = await mockStore(initialState);
