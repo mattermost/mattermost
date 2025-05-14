@@ -8,14 +8,25 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
 >
   <Header
     heading={
-      <React.Fragment>
+      <div
+        aria-label="Filter visible threads"
+        aria-orientation="horizontal"
+        className="tab-buttons-list"
+        role="tablist"
+      >
         <div
           className="tab-button-wrapper"
         >
           <Memo(Button)
+            aria-controls="threads-list"
+            aria-selected={true}
             className="Button___large Margined"
+            id="threads-list-filter-none"
             isActive={true}
             onClick={[Function]}
+            onKeyDown={[Function]}
+            role="tab"
+            tabIndex={0}
           >
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Followed threads"
@@ -28,10 +39,16 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
           id="threads-list-unread-button"
         >
           <Memo(Button)
+            aria-controls="threads-list"
+            aria-selected={false}
             className="Button___large Margined"
             hasDot={true}
+            id="threads-list-filter-unread"
             isActive={false}
             onClick={[Function]}
+            onKeyDown={[Function]}
+            role="tab"
+            tabIndex={-1}
           >
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Unreads"
@@ -39,7 +56,7 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
             />
           </Memo(Button)>
         </div>
-      </React.Fragment>
+      </div>
     }
     id="tutorial-threads-mobile-header"
     right={
@@ -47,9 +64,10 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
         className="right-anchor"
       >
         <WithTooltip
-          title="Mark all as read"
+          title="Mark all threads as read"
         >
           <Memo(Button)
+            aria-label="Mark all threads as read"
             className="Button___large Button___icon"
             id="threads-list__mark-all-as-read"
             marginTop={true}
@@ -70,6 +88,8 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
   <div
     className="threads"
     data-testid="threads_list"
+    id="threads-list"
+    role="tabpanel"
   >
     <Memo(VirtualizedThreadList)
       addNoMoreResultsItem={false}

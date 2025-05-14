@@ -70,7 +70,6 @@ type TestHelper struct {
 	LogBuffer  *mlog.Buffer
 	TestLogger *mlog.Logger
 
-	tb        testing.TB
 	workspace string
 }
 
@@ -163,7 +162,6 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searcheng
 		IncludeCacheLayer: includeCache,
 		TestLogger:        testLogger,
 		LogBuffer:         buffer,
-		tb:                tb,
 		workspace:         tempWorkspace,
 	}
 
@@ -423,7 +421,10 @@ func (th *TestHelper) TearDown() {
 	// Cleanup the workspace
 	if th.workspace != "" {
 		err := os.RemoveAll(th.workspace)
-		require.NoError(th.tb, err)
+		if err != nil {
+			// TODO: Use testify to fail the test instead of panic
+			panic(err)
+		}
 	}
 }
 
