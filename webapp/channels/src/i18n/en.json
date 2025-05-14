@@ -244,6 +244,7 @@
   "add_user_to_channel_modal.help": "Type to find a channel. Use ↑↓ to browse, ↵ to select, ESC to dismiss.",
   "add_user_to_channel_modal.membershipExistsError": "{name} is already a member of that channel",
   "add_user_to_channel_modal.title": "Add {name} to a Channel",
+  "add_user_to_group_multiselect.required": "This field is required.",
   "add_users_to_role.title": "Add users to {roleName}",
   "add_users_to_team.title": "Add New Members to {teamName} Team",
   "adldap_upsell_banner.banner_message": "AD/LDAP group sync creates groups faster",

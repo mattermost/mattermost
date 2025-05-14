@@ -51,6 +51,12 @@ exports[`component/add_user_to_group_multiselect should match snapshot with diff
   }
   key="addUsersToGroupKey"
   loading={true}
+  noteText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="This field is required."
+      id="add_user_to_group_multiselect.required"
+    />
+  }
   numRemainingText={null}
   optionRenderer={[Function]}
   options={
@@ -150,6 +156,12 @@ exports[`component/add_user_to_group_multiselect should match snapshot with prof
   }
   key="addUsersToGroupKey"
   loading={true}
+  noteText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="This field is required."
+      id="add_user_to_group_multiselect.required"
+    />
+  }
   numRemainingText={null}
   optionRenderer={[Function]}
   options={
@@ -249,6 +261,12 @@ exports[`component/add_user_to_group_multiselect should match snapshot without a
   }
   key="addUsersToGroupKey"
   loading={true}
+  noteText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="This field is required."
+      id="add_user_to_group_multiselect.required"
+    />
+  }
   numRemainingText={null}
   optionRenderer={[Function]}
   options={Array []}
