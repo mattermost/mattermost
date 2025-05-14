@@ -2378,13 +2378,6 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 		close(uc)
 	}()
 
-	mcc := make(chan store.StoreResult[int64], 1)
-	go func() {
-		count, err := a.Srv().Store().Channel().GetMemberCount(channelID, false)
-		mcc <- store.StoreResult[int64]{Data: count, NErr: err}
-		close(mcc)
-	}()
-
 	cresult := <-sc
 	if cresult.NErr != nil {
 		errCtx := map[string]any{"channel_id": channelID}
@@ -2406,22 +2399,12 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 			return model.NewAppError("LeaveChannel", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(uresult.NErr)
 		}
 	}
-	ccresult := <-mcc
-	if ccresult.NErr != nil {
-		return model.NewAppError("LeaveChannel", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(ccresult.NErr)
-	}
 
 	channel := cresult.Data
 	user := uresult.Data
-	membersCount := ccresult.Data
 
 	if channel.IsGroupOrDirect() {
 		err := model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
-		return err
-	}
-
-	if channel.Type == model.ChannelTypePrivate && membersCount == 1 {
-		err := model.NewAppError("LeaveChannel", "api.channel.leave.last_member.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 		return err
 	}
 
