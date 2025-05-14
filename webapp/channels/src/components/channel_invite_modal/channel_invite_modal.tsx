@@ -460,10 +460,9 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
             this.props.actions.closeModal(ModalIdentifiers.CHANNEL_INVITE);
         };
 
-        const InviteModalLink = (props: {inviteAsGuest?: boolean; children: React.ReactNode}) => {
+        const InviteModalLink = (props: {inviteAsGuest?: boolean; children: React.ReactNode; id?: string}) => {
             return (
                 <ToggleModalButton
-                    id='inviteGuest'
                     className={`${props.inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
                     modalId={ModalIdentifiers.INVITATION}
                     dialogType={InvitationModal}
@@ -471,8 +470,10 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                         channelToInvite: this.props.channel,
                         initialValue: this.state.term,
                         inviteAsGuest: props.inviteAsGuest,
+                        focusOriginElement: 'customNoOptionsMessageLink',
                     }}
                     onClick={closeMembersInviteModal}
+                    id={props.id}
                 >
                     {props.children}
                 </ToggleModalButton>
@@ -480,13 +481,15 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
         };
 
         const customNoOptionsMessage = (
-            <div className='custom-no-options-message'>
+            <div
+                className='custom-no-options-message'
+            >
                 <FormattedMessage
                     id='channel_invite.no_options_message'
                     defaultMessage='No matches found - <InvitationModalLink>Invite them to the team</InvitationModalLink>'
                     values={{
                         InvitationModalLink: (chunks: string) => (
-                            <InviteModalLink>
+                            <InviteModalLink id='customNoOptionsMessageLink'>
                                 {chunks}
                             </InviteModalLink>
                         ),

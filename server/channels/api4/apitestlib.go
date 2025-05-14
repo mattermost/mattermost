@@ -113,6 +113,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		*memoryConfig.CacheSettings.RedisAddress = redisHost + ":6379"
 		*memoryConfig.CacheSettings.DisableClientCache = true
 		*memoryConfig.CacheSettings.RedisDB = 0
+		*memoryConfig.CacheSettings.RedisCachePrefix = model.NewId()
 		options = append(options, app.ForceEnableRedis())
 	}
 	if updateConfig != nil {
@@ -619,6 +620,17 @@ func (th *TestHelper) CreateUser() *model.User {
 	return th.CreateUserWithClient(th.Client)
 }
 
+func (th *TestHelper) CreateGuestUser(tb testing.TB) *model.User {
+	tb.Helper()
+
+	guestUser := th.CreateUserWithClient(th.Client)
+
+	_, appErr := th.App.UpdateUserRoles(th.Context, guestUser.Id, model.SystemGuestRoleId, false)
+	require.Nil(tb, appErr)
+
+	return guestUser
+}
+
 func (th *TestHelper) CreateTeam() *model.Team {
 	return th.CreateTeamWithClient(th.Client)
 }
@@ -683,7 +695,8 @@ func (th *TestHelper) CreateUserWithAuth(authService string) *model.User {
 // CreateGuestAndClient creates a guest user, adds them to the basic
 // team, basic channel and basic private channel, and generates an API
 // client ready to use
-func (th *TestHelper) CreateGuestAndClient() (*model.User, *model.Client4) {
+func (th *TestHelper) CreateGuestAndClient(tb testing.TB) (*model.User, *model.Client4) {
+	tb.Helper()
 	id := model.NewId()
 
 	// create a guest user and add it to the basic team and public/private channels
@@ -694,23 +707,17 @@ func (th *TestHelper) CreateGuestAndClient() (*model.User, *model.Client4) {
 		Password:      "Password1",
 		EmailVerified: true,
 	})
-	if cgErr != nil {
-		panic(cgErr)
-	}
+	require.Nil(tb, cgErr)
 
-	_, _, tErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, th.SystemAdminUser.Id)
-	if tErr != nil {
-		panic(tErr)
-	}
+	_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, th.SystemAdminUser.Id)
+	require.Nil(tb, appErr)
 	th.AddUserToChannel(guest, th.BasicChannel)
 	th.AddUserToChannel(guest, th.BasicPrivateChannel)
 
 	// create a client and login the guest
 	guestClient := th.CreateClient()
-	_, _, lErr := guestClient.Login(context.Background(), guest.Username, "Password1")
-	if lErr != nil {
-		panic(lErr)
-	}
+	_, _, err := guestClient.Login(context.Background(), guest.Email, "Password1")
+	require.NoError(tb, err)
 
 	return guest, guestClient
 }

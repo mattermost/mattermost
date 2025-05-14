@@ -39,7 +39,7 @@ const (
 	JobTypeS3PathMigration               = "s3_path_migration"
 	JobTypeCleanupDesktopTokens          = "cleanup_desktop_tokens"
 	JobTypeDeleteEmptyDraftsMigration    = "delete_empty_drafts_migration"
-	JobTypeRefreshPostStats              = "refresh_post_stats"
+	JobTypeRefreshMaterializedViews      = "refresh_materialized_views"
 	JobTypeDeleteOrphanDraftsMigration   = "delete_orphan_drafts_migration"
 	JobTypeExportUsersToCSV              = "export_users_to_csv"
 	JobTypeDeleteDmsPreferencesMigration = "delete_dms_preferences_migration"
@@ -75,7 +75,7 @@ var AllJobTypes = [...]string{
 	JobTypeLastAccessiblePost,
 	JobTypeLastAccessibleFile,
 	JobTypeCleanupDesktopTokens,
-	JobTypeRefreshPostStats,
+	JobTypeRefreshMaterializedViews,
 	JobTypeMobileSessionMetadata,
 }
 
@@ -91,8 +91,8 @@ type Job struct {
 	Data           StringMap `json:"data"`
 }
 
-func (j *Job) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (j *Job) Auditable() map[string]any {
+	return map[string]any{
 		"id":               j.Id,
 		"type":             j.Type,
 		"priority":         j.Priority,
@@ -129,7 +129,7 @@ func (j *Job) MarshalYAML() (any, error) {
 	}, nil
 }
 
-func (j *Job) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (j *Job) UnmarshalYAML(unmarshal func(any) error) error {
 	out := struct {
 		Id             string    `yaml:"id"`
 		Type           string    `yaml:"type"`

@@ -88,12 +88,14 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
     });
 
     it('MM-T1465_1 Verify Label & Tab behavior in section links', () => {
-        // * Verify aria-label and tab support in section of Account settings modal
+        // * Verify tab selection and keyboard navigation in Account settings modal
         cy.uiOpenProfileModal('Profile Settings');
         cy.findByRole('tab', {name: 'profile settings'}).should('be.visible').focus().should('be.focused');
         ['profile settings', 'security'].forEach((text) => {
-            // * Verify aria-label on each tab and it supports navigating to the next tab with arrow keys
-            cy.focused().should('have.attr', 'aria-label', text).type('{downarrow}');
+            // * Verify each tab is correctly selected and supports navigating to the next tab with arrow keys
+            cy.findByRole('tab', {name: text}).
+                should('have.attr', 'aria-selected', 'true').
+                type('{downarrow}');
         });
         cy.uiClose();
 
@@ -101,8 +103,10 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         cy.uiOpenSettingsModal();
         cy.findByRole('tab', {name: 'notifications'}).should('be.visible').focus().should('be.focused');
         ['notifications', 'display', 'sidebar', 'advanced'].forEach((text) => {
-            // * Verify aria-label on each tab and it supports navigating to the next tab with arrow keys
-            cy.focused().should('have.attr', 'aria-label', text).type('{downarrow}');
+            // * Verify each tab is correctly selected and supports navigating to the next tab with arrow keys
+            cy.findByRole('tab', {name: text}).
+                should('have.attr', 'aria-selected', 'true').
+                type('{downarrow}');
         });
     });
 
@@ -169,36 +173,43 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
         cy.get('#displayButton').click();
         cy.get('#languagesEdit').click();
-        cy.get('#displayLanguage').within(() => {
-            cy.get('input').should('have.attr', 'aria-autocomplete', 'list').and('have.attr', 'aria-labelledby', 'changeInterfaceLanguageLabel').as('inputEl');
-        });
+        cy.findByRole('combobox', {name: 'Dropdown selector to change the interface language'}).should('have.attr', 'aria-autocomplete', 'list').and('have.attr', 'aria-labelledby', 'changeInterfaceLanguageLabel').as('inputEl');
         cy.get('#changeInterfaceLanguageLabel').should('be.visible').and('have.text', 'Change interface language');
 
-        // # When enter key is pressed on dropdown, it should expand and collapse
-        cy.get('@inputEl').typeWithForce('{enter}');
-        cy.get('#displayLanguage>div').should('have.class', 'react-select__control--menu-is-open');
-        cy.get('@inputEl').typeWithForce('{enter}');
-        cy.get('#displayLanguage>div').should('not.have.class', 'react-select__control--menu-is-open');
+        // # When space key is pressed on dropdown, it should expand and should collapse when esc key is pressed
+        cy.get('@inputEl').typeWithForce(' ');
+        cy.findByRole('listbox').should('have.class', 'react-select__menu-list').as('listBox');
+        cy.get('@inputEl').typeWithForce('{esc}');
+        cy.get('@listBox').should('not.exist');
 
         // # Press down arrow twice and check aria label
-        cy.get('@inputEl').typeWithForce('{enter}');
+        cy.get('@inputEl').typeWithForce(' ');
         cy.get('@inputEl').typeWithForce('{downarrow}{downarrow}');
-        cy.get('#displayLanguage>span').as('ariaEl').within(($el) => {
-            cy.wrap($el).should('have.attr', 'aria-live', 'assertive');
-            cy.get('#aria-context').should('contain', 'option English (Australia) focused').and('contain', 'Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.');
+        cy.get('#displayLanguage').within(($el) => {
+            cy.wrap($el).findByRole('log').should('have.attr', 'aria-live', 'assertive').as('ariaEl');
+        });
+        cy.get('@ariaEl').within(($el) => {
+            cy.wrap($el).get('#aria-focused').should('contain', 'option English (Australia) focused');
+            cy.wrap($el).get('#aria-guidance').should('contain', 'Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.');
         });
 
-        // # Check if language setting gets changed after user presses enter
-        cy.get('@inputEl').typeWithForce('{enter}');
+        // # Check if language setting gets changed after user presses space
+        cy.get('@inputEl').typeWithForce(' ');
         cy.get('#displayLanguage').should('contain', 'English (Australia)');
-        cy.get('@ariaEl').get('#aria-selection-event').should('contain', 'option English (Australia), selected');
+        cy.get('@ariaEl').within(($el) => {
+            cy.wrap($el).get('#aria-selection').should('contain', 'option English (Australia) selected');
+        });
 
-        // # Press down arrow, then up arrow and press enter
+        // # Press down arrow, then up arrow and press space
         cy.get('@inputEl').typeWithForce('{downarrow}{downarrow}{downarrow}{uparrow}');
-        cy.get('@ariaEl').get('#aria-context').should('contain', 'option English (US) focused');
-        cy.get('@inputEl').typeWithForce('{enter}');
+        cy.get('@ariaEl').within(($el) => {
+            cy.wrap($el).get('#aria-focused').should('contain', 'option English (US) focused');
+        });
+        cy.get('@inputEl').typeWithForce(' ');
         cy.get('#displayLanguage').should('contain', 'English (US)');
-        cy.get('@ariaEl').get('#aria-selection-event').should('contain', 'option English (US), selected');
+        cy.get('@ariaEl').within(($el) => {
+            cy.wrap($el).get('#aria-selection').should('contain', 'option English (US) selected');
+        });
     });
 
     it('MM-T1488 Profile Picture should read labels', () => {

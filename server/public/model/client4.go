@@ -4,6 +4,7 @@
 package model
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -774,7 +775,7 @@ func (c *Client4) DoAPIRequestReader(ctx context.Context, method, url string, da
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	if c.HTTPHeader != nil && len(c.HTTPHeader) > 0 {
+	if len(c.HTTPHeader) > 0 {
 		for k, v := range c.HTTPHeader {
 			rq.Header.Set(k, v)
 		}
@@ -1681,6 +1682,16 @@ func (c *Client4) UpdateUserActive(ctx context.Context, userId string, active bo
 	}
 	defer closeBody(r)
 
+	return BuildResponse(r), nil
+}
+
+// ResetFailedAttempts resets the number of failed attempts for a user.
+func (c *Client4) ResetFailedAttempts(ctx context.Context, userId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.userRoute(userId)+"/reset_failed_attempts", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
 	return BuildResponse(r), nil
 }
 
@@ -3686,6 +3697,37 @@ func (c *Client4) GetChannelMembersWithTeamData(ctx context.Context, userID stri
 	defer closeBody(r)
 
 	var ch ChannelMembersWithTeamData
+
+	// Check if we need to handle NDJSON format (when page is -1)
+	if page == -1 {
+		// Process NDJSON format (each JSON object on new line)
+		contentType := r.Header.Get("Content-Type")
+		if contentType == "application/x-ndjson" {
+			scanner := bufio.NewScanner(r.Body)
+			ch = ChannelMembersWithTeamData{}
+
+			for scanner.Scan() {
+				line := scanner.Text()
+				if line == "" {
+					continue
+				}
+
+				var member ChannelMemberWithTeamData
+				if err2 := json.Unmarshal([]byte(line), &member); err2 != nil {
+					return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err2)
+				}
+				ch = append(ch, member)
+			}
+
+			if err2 := scanner.Err(); err2 != nil {
+				return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err2)
+			}
+
+			return ch, BuildResponse(r), nil
+		}
+	}
+
+	// Standard JSON format
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -4158,6 +4200,9 @@ func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag
 	if opts.SkipFetchThreads {
 		values.Set("skipFetchThreads", "true")
 	}
+	if opts.UpdatesOnly {
+		values.Set("updatesOnly", "true")
+	}
 	if opts.PerPage != 0 {
 		values.Set("perPage", strconv.Itoa(opts.PerPage))
 	}
@@ -4166,6 +4211,9 @@ func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag
 	}
 	if opts.FromCreateAt != 0 {
 		values.Set("fromCreateAt", strconv.FormatInt(opts.FromCreateAt, 10))
+	}
+	if opts.FromUpdateAt != 0 {
+		values.Set("fromUpdateAt", strconv.FormatInt(opts.FromUpdateAt, 10))
 	}
 	if opts.Direction != "" {
 		values.Set("direction", opts.Direction)
@@ -5081,6 +5129,23 @@ func (c *Client4) RemoveLicenseFile(ctx context.Context) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
+// GetLicenseLoadMetric retrieves the license load metric from the server.
+// The load is calculated as (monthly active users / licensed users) * 1000.
+func (c *Client4) GetLicenseLoadMetric(ctx context.Context) (map[string]int, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.licenseRoute()+"/load_metric", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var loadData map[string]int
+	if err := json.NewDecoder(r.Body).Decode(&loadData); err != nil {
+		return nil, BuildResponse(r), NewAppError("GetLicenseLoadMetric", "api.unmarshal_error", nil, "", r.StatusCode).Wrap(err)
+	}
+
+	return loadData, BuildResponse(r), nil
+}
+
 // GetAnalyticsOld will retrieve analytics using the old format. New format is not
 // available but the "/analytics" endpoint is reserved for it. The "name" argument is optional
 // and defaults to "standard". The "teamId" argument is optional and will limit results
@@ -5852,7 +5917,7 @@ func (c *Client4) GetGroupsAssociatedToChannelsByTeam(ctx context.Context, teamI
 // GetGroups retrieves Mattermost Groups
 func (c *Client4) GetGroups(ctx context.Context, opts GroupSearchOpts) ([]*Group, *Response, error) {
 	path := fmt.Sprintf(
-		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v&group_source=%v&include_channel_member_count=%v&include_timezones=%v&include_archived=%v&filter_archived=%v",
+		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v&group_source=%v&include_channel_member_count=%v&include_timezones=%v&include_archived=%v&filter_archived=%v&only_syncable_sources=%v",
 		c.groupsRoute(),
 		opts.IncludeMemberCount,
 		opts.NotAssociatedToTeam,
@@ -5865,6 +5930,7 @@ func (c *Client4) GetGroups(ctx context.Context, opts GroupSearchOpts) ([]*Group
 		opts.IncludeTimezones,
 		opts.IncludeArchived,
 		opts.FilterArchived,
+		opts.OnlySyncableSources,
 	)
 	if opts.Since > 0 {
 		path = fmt.Sprintf("%s&since=%v", path, opts.Since)
@@ -7929,8 +7995,8 @@ func (c *Client4) RestoreGroup(ctx context.Context, groupID string, etag string)
 	}
 	defer closeBody(r)
 	var p Group
-	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
-		return nil, nil, NewAppError("DeleteGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		return nil, nil, NewAppError("DeleteGroup", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &p, BuildResponse(r), nil
 }
@@ -9230,8 +9296,8 @@ func (c *Client4) AcknowledgePost(ctx context.Context, postId, userId string) (*
 	}
 	defer closeBody(r)
 	var ack *PostAcknowledgement
-	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
-		return nil, nil, NewAppError("AcknowledgePost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	if err := json.NewDecoder(r.Body).Decode(&ack); err != nil {
+		return nil, nil, NewAppError("AcknowledgePost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ack, BuildResponse(r), nil
 }
@@ -9465,21 +9531,21 @@ func (c *Client4) DeleteCPAField(ctx context.Context, fieldID string) (*Response
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) ListCPAValues(ctx context.Context, userID string) (map[string]string, *Response, error) {
+func (c *Client4) ListCPAValues(ctx context.Context, userID string) (map[string]json.RawMessage, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.userCustomProfileAttributesRoute(userID), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
-	fields := make(map[string]string)
+	fields := make(map[string]json.RawMessage)
 	if err := json.NewDecoder(r.Body).Decode(&fields); err != nil {
 		return nil, nil, NewAppError("ListCPAValues", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return fields, BuildResponse(r), nil
 }
 
-func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]string) (map[string]string, *Response, error) {
+func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]json.RawMessage) (map[string]json.RawMessage, *Response, error) {
 	buf, err := json.Marshal(values)
 	if err != nil {
 		return nil, nil, NewAppError("PatchCPAValues", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -9491,7 +9557,7 @@ func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]string) 
 	}
 	defer closeBody(r)
 
-	var patchedValues map[string]string
+	var patchedValues map[string]json.RawMessage
 	if err := json.NewDecoder(r.Body).Decode(&patchedValues); err != nil {
 		return nil, nil, NewAppError("PatchCPAValues", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

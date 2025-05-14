@@ -86,7 +86,7 @@ export function isYesterday(date: Date): boolean {
     return isSameDay(date, yesterday);
 }
 
-export function toUTCUnix(date: Date): number {
+export function toUTCUnixInSeconds(date: Date): number {
     return Math.round(new Date(date.toISOString()).getTime() / 1000);
 }
 

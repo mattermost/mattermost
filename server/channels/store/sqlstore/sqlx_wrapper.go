@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	sq "github.com/mattermost/squirrel"
 )
 
 type StoreTestWrapper struct {
@@ -36,6 +37,10 @@ func (w *StoreTestWrapper) GetMaster() storetest.SqlXExecutor {
 
 func (w *StoreTestWrapper) DriverName() string {
 	return w.orig.DriverName()
+}
+
+func (w *StoreTestWrapper) GetQueryPlaceholder() sq.PlaceholderFormat {
+	return w.orig.getQueryPlaceholder()
 }
 
 type Builder interface {
@@ -249,12 +254,16 @@ func (w *sqlxDBWrapper) SelectCtx(ctx context.Context, dest any, query string, a
 }
 
 func (w *sqlxDBWrapper) SelectBuilder(dest any, builder Builder) error {
+	return w.SelectBuilderCtx(context.Background(), dest, builder)
+}
+
+func (w *sqlxDBWrapper) SelectBuilderCtx(ctx context.Context, dest any, builder Builder) error {
 	query, args, err := builder.ToSql()
 	if err != nil {
 		return err
 	}
 
-	return w.Select(dest, query, args...)
+	return w.SelectCtx(ctx, dest, query, args...)
 }
 
 type sqlxTxWrapper struct {

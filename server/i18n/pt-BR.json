@@ -49,7 +49,7 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Nenhum arquivo sob o 'certificate' na requisição."
+    "translation": "Nenhum arquivo sob o 'certificado' na requisição."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
@@ -9304,10 +9304,6 @@
     "translation": "Não foi possível obter confirmação de recebimento da publicação."
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "O esquema do índice de canais do Elasticsearch está desatualizado. É recomendável que você gere novamente o índice de canais.\nClique no botão `Reconstruir índices de Canais` na [seção Elasticsearch no System Console]({{.ElasticsearchSection}}) para corrigir o problema.\nConsulte o registro de alterações do Mattermost para obter mais informações."
-  },
-  {
     "id": "app.compile_report_chunks.unsupported_format",
     "translation": "Formato de relatório não suportado."
   },
@@ -10026,5 +10022,37 @@
   {
     "id": "app.file_info.undelete_for_post_ids.app_error",
     "translation": "Falha ao restaurar os anexos do arquivo de publicação."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Falha ao criar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Falha ao deletar o marcador deste canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Falha ao atualizar o marcador deste canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Falha ao atualizar a ordem de exibição do marcador deste canal."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Falha ao adicionar certificado"
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Há muitos arquivos dentro de 'certificado' na solicitação"
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Falha ao remover o certificado."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Não é possível executar comandos em um canal deletado."
   }
 ]

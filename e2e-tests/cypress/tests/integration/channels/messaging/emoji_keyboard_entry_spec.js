@@ -99,13 +99,13 @@ describe('MM-T154 Use keyboard navigation in emoji picker', () => {
             cy.uiGetPostTextBox().type('{enter}');
 
             // * Compare selected emoji with last post
-            cy.getLastPost().find('.emoticon').should('have.attr', 'alt', selectedEmoji);
+            cy.getLastPost().find('.emoticon').should('have.attr', 'aria-label', selectedEmoji);
         });
     });
 });
 
 const testSelectedIndex = (done) => {
-    cy.get('div.emoji-picker__item.selected').then((selectedEmoji) => {
+    cy.get('button.emoji-picker__item.selected').then((selectedEmoji) => {
         done(selectedEmoji.index());
     });
 };

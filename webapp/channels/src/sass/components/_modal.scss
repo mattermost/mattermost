@@ -328,6 +328,7 @@
             background: transparent;
             color: functions.v(center-channel-color);
             font-size: 22px;
+            font-weight: 600;
             line-height: 28px;
             word-break: break-word;
         }
@@ -940,6 +941,7 @@
         height: 32px;
         padding: 0;
         border: none;
+        background-color: initial;
         opacity: 0.75;
         text-align: center;
     }

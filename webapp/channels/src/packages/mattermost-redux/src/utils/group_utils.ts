@@ -2,10 +2,15 @@
 // See LICENSE.txt for license information.
 
 import type {Group} from '@mattermost/types/groups';
+import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 
 import {getSuggestionsSplitBy, getSuggestionsSplitByMultiple} from './user_utils';
 
 import {General} from '../constants';
+
+export function isSyncableSource(source: string): boolean {
+    return source.toLowerCase() === GroupSource.Ldap || source.toLowerCase().startsWith(PluginGroupSourcePrefix.Plugin);
+}
 
 export function filterGroupsMatchingTerm(groups: Group[], term: string): Group[] {
     const lowercasedTerm = term.toLowerCase();

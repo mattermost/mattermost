@@ -29,6 +29,7 @@ const PostEmoji = ({children, name, imageUrl}: Props) => {
                 className='emoticon'
                 data-testid={`postEmoji.${emojiText}`}
                 style={{backgroundImage: backgroundImageUrl}}
+                aria-label={emojiText}
             >
                 {children}
             </span>

@@ -162,7 +162,7 @@ describe('Verify Accessibility Support in Post', () => {
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).within(() => {
                 // * Verify focus is on profile image
-                cy.get('.status-wrapper button').first().should('be.focused');
+                cy.get('button.status-wrapper').first().should('be.focused');
                 cy.focused().tab();
 
                 // * Verify focus is on the username

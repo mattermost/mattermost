@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -15,7 +16,9 @@ import (
 )
 
 func (ps *PlatformService) AddStatusCacheSkipClusterSend(status *model.Status) {
-	ps.statusCache.SetWithDefaultExpiry(status.UserId, status)
+	if err := ps.statusCache.SetWithDefaultExpiry(status.UserId, status); err != nil {
+		ps.logger.Warn("Failed to set cache entry for status", mlog.String("user_id", status.UserId), mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) AddStatusCache(status *model.Status) {
@@ -286,7 +289,9 @@ func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
 	}
 
 	session.LastActivityAt = now
-	ps.AddSessionToCache(&session)
+	if err := ps.AddSessionToCache(&session); err != nil {
+		mlog.Warn("Failed to add session to cache", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
@@ -417,12 +422,25 @@ func (ps *PlatformService) SetStatusDoNotDisturbTimed(userID string, endtime int
 	status.Status = model.StatusDnd
 	status.Manual = true
 
-	status.DNDEndTime = endtime
+	status.DNDEndTime = truncateDNDEndTime(endtime)
 
 	ps.SaveAndBroadcastStatus(status)
 	if ps.sharedChannelService != nil {
 		ps.sharedChannelService.NotifyUserStatusChanged(status)
 	}
+}
+
+// truncateDNDEndTime takes a user-provided timestamp (in seconds) for when their DND expiry should end and truncates
+// it to line up with the DND expiry job so that the user's DND time doesn't expire late by an interval. The job to
+// expire statuses runs every minute currently, so this trims the seconds and milliseconds off the given timestamp.
+//
+// This will result in statuses expiring slightly earlier than specified in the UI, but the status will expire at
+// the correct time on the wall clock. For example, if the time is currently 13:04:29 and the user sets the expiry to
+// 5 minutes, truncating will make the status will expire at 13:09:00 instead of at 13:10:00.
+//
+// Note that the timestamps used by this are in seconds, not milliseconds. This matches UserStatus.DNDEndTime.
+func truncateDNDEndTime(endtime int64) int64 {
+	return time.Unix(endtime, 0).Truncate(model.DNDExpiryInterval).Unix()
 }
 
 func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {

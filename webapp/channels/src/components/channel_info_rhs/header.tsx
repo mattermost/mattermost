@@ -41,7 +41,9 @@ const Header = ({channel, isArchived, isMobile, onClose}: Props) => {
                         />
                     </button>
                 )}
-                <HeaderTitle>
+                <HeaderTitle
+                    id='rhsPanelTitle'
+                >
                     <FormattedMessage
                         id='channel_info_rhs.header.title'
                         defaultMessage='Info'
