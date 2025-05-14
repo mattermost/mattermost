@@ -2434,16 +2434,6 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 	require.NotNil(t, user2)
 	require.NotNil(t, user2.RemoteId)
 	require.Equal(t, nonConnectedRC.RemoteId, *user2.RemoteId)
-	t.Run("Local users can create DMs with each other", func(t *testing.T) {
-		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
-		assert.NotNil(t, channel)
-		assert.Nil(t, appErr)
-
-		// Verify channel was created in database
-		fetchedChannel, err := ss.Channel().Get(channel.Id, false)
-		assert.NoError(t, err)
-		assert.NotNil(t, fetchedChannel)
-	})
 
 	t.Run("Can create DM with user from connected remote", func(t *testing.T) {
 		// Get the shared channel service
@@ -2483,7 +2473,7 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("Cannot create DM with user from offline remote", func(t *testing.T) {
+	t.Run("Cannot see user from offline remote", func(t *testing.T) {
 		// Get the shared channel service
 		scs := th.App.Srv().GetSharedChannelSyncService()
 		service, ok := scs.(*sharedchannel.Service)
@@ -2502,11 +2492,15 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 		connected := service.IsRemoteClusterDirectlyConnectedForTesting(nonConnectedRC.RemoteId)
 		require.False(t, connected, "Remote cluster should not be directly connected")
 
-		// Try to create the direct channel
-		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user2.Id)
-		assert.Nil(t, channel)
-		assert.NotNil(t, appErr)
-		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErr.Id)
+		// Check if the user can see the other user - this is what the API would check before
+		// trying to create a direct channel
+		canSee, viewErr := th.App.UserCanSeeOtherUser(th.Context, th.BasicUser.Id, user2.Id)
+		assert.False(t, canSee)
+		assert.NotNil(t, viewErr)
+		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", viewErr.Id)
+
+		// The API layer handles visibility checks now, so we don't test direct channel
+		// creation at the app layer in this case
 	})
 }
 
@@ -2690,34 +2684,21 @@ func TestUserCanSeeOtherUserWithRemotesDB(t *testing.T) {
 		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErr.Id)
 	})
 
-	// Test creating direct channels
-	t.Run("Can create direct channel with user from directly connected remote", func(t *testing.T) {
-		// Ensure remote1 is confirmed and online
-		rc1.LastPingAt = model.GetMillis()
-		_, err := ss.RemoteCluster().Update(rc1)
-		require.NoError(t, err)
-
-		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user1.Id)
-		assert.NotNil(t, channel)
-		assert.Nil(t, appErr)
-
-		// Verify the channel was actually created in the database
-		fetchedChannel, err := ss.Channel().Get(channel.Id, false)
-		assert.NoError(t, err)
-		assert.NotNil(t, fetchedChannel)
-		assert.Equal(t, model.ChannelTypeDirect, fetchedChannel.Type)
-	})
-
-	t.Run("Cannot create direct channel with user from indirectly connected remote", func(t *testing.T) {
+	t.Run("Cannot see user from indirectly connected remote", func(t *testing.T) {
 		// Remote2 is already not confirmed in our setup
 		fetchedRemote2, err := ss.RemoteCluster().Get(rc2.RemoteId, false)
 		require.NoError(t, err)
 		require.False(t, fetchedRemote2.IsConfirmed())
 
-		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user2.Id)
-		assert.Nil(t, channel)
-		assert.NotNil(t, appErr)
-		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErr.Id)
+		// Verify that visibility check fails - this is what the API layer would use
+		// before attempting to create a direct channel
+		canSee, viewErr := th.App.UserCanSeeOtherUser(th.Context, th.BasicUser.Id, user2.Id)
+		assert.False(t, canSee)
+		assert.NotNil(t, viewErr)
+		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", viewErr.Id)
+
+		// Note: After our change, the app layer's GetOrCreateDirectChannel no longer checks visibility
+		// The API layer is responsible for that check before calling GetOrCreateDirectChannel
 	})
 }
 
@@ -2798,42 +2779,6 @@ func TestIndirectRemoteUserCommunication(t *testing.T) {
 	require.NotNil(t, userC)
 	require.NotNil(t, userC.RemoteId)
 
-	t.Run("Local user can create DMs with users from each remote", func(t *testing.T) {
-		// Local user can create DM with user from server B
-		channelB, appErrB := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, userB.Id)
-		assert.NotNil(t, channelB)
-		assert.Nil(t, appErrB)
-
-		// Verify the channel was created properly
-		if channelB != nil {
-			fetchedChannel, err := ss.Channel().Get(channelB.Id, false)
-			assert.NoError(t, err)
-			assert.NotNil(t, fetchedChannel)
-			assert.Equal(t, model.ChannelTypeDirect, fetchedChannel.Type)
-
-			// Clean up the channel we created
-			err = ss.Channel().Delete(channelB.Id, model.GetMillis())
-			require.NoError(t, err)
-		}
-
-		// Local user can create DM with user from server C
-		channelC, appErrC := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, userC.Id)
-		assert.NotNil(t, channelC)
-		assert.Nil(t, appErrC)
-
-		// Verify the channel was created properly
-		if channelC != nil {
-			fetchedChannel, err := ss.Channel().Get(channelC.Id, false)
-			assert.NoError(t, err)
-			assert.NotNil(t, fetchedChannel)
-			assert.Equal(t, model.ChannelTypeDirect, fetchedChannel.Type)
-
-			// Clean up the channel we created
-			err = ss.Channel().Delete(channelC.Id, model.GetMillis())
-			require.NoError(t, err)
-		}
-	})
-
 	t.Run("User from Server B cannot see or message user from Server C", func(t *testing.T) {
 		// Get the shared channel sync service
 		scs := th.Server.GetSharedChannelSyncService()
@@ -2857,11 +2802,18 @@ func TestIndirectRemoteUserCommunication(t *testing.T) {
 		assert.NotNil(t, appErr)
 		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErr.Id)
 
-		// User B should not be able to create a DM with User C
-		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, userB.Id, userC.Id)
-		assert.Nil(t, channel)
-		assert.NotNil(t, appErr)
-		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErr.Id)
+		// Users should still be able to create a DM at the app layer because
+		// we removed the visibility check, but in practice the API layer
+		// would prevent this from happening
+		channel, directErr := th.App.GetOrCreateDirectChannel(th.Context, userB.Id, userC.Id)
+		assert.NotNil(t, channel)
+		assert.Nil(t, directErr)
+
+		// Clean up the created channel
+		if channel != nil {
+			err = ss.Channel().Delete(channel.Id, model.GetMillis())
+			require.NoError(t, err)
+		}
 
 		// Restore remoteC to original state for other tests
 		remoteC.LastPingAt = originalLastPingAt
@@ -2892,11 +2844,8 @@ func TestIndirectRemoteUserCommunication(t *testing.T) {
 		assert.NotNil(t, appErr)
 		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErr.Id)
 
-		// User C should not be able to create a DM with User B
-		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, userC.Id, userB.Id)
-		assert.Nil(t, channel)
-		assert.NotNil(t, appErr)
-		assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErr.Id)
+		// In API layer, the visibility check would prevent creation of a DM
+		// but we're not testing the direct channel creation at the app layer anymore
 
 		// Restore remoteB to original state for other tests
 		remoteB.LastPingAt = originalLastPingAt

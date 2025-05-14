@@ -27,6 +27,7 @@ import {
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getDirectShowPreferences, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
+import {isConfirmed, isConnected} from 'mattermost-redux/utils/remote_cluster_utils';
 import {
     displayUsername,
     filterProfilesStartingWithTerm,
@@ -38,8 +39,6 @@ import {
     isGuest,
     applyRolesFilters,
 } from 'mattermost-redux/utils/user_utils';
-
-import {isConfirmed, isConnected} from 'components/admin_console/secure_connections/utils';
 
 // Re-define these types to ensure that these are typed correctly when mattermost-redux is published
 export const getCurrentUser: (state: GlobalState) => UserProfile = getCurrentUserInternal;

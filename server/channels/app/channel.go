@@ -306,21 +306,6 @@ func (a *App) CreateChannel(c request.CTX, channel *model.Channel, addMember boo
 }
 
 func (a *App) GetOrCreateDirectChannel(c request.CTX, userID, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
-	// First check if the users can see each other
-	canSee, pErr := a.UserCanSeeOtherUser(c, userID, otherUserID)
-	if pErr != nil {
-		return nil, pErr
-	}
-
-	if !canSee {
-		return nil, model.NewAppError(
-			"GetOrCreateDirectChannel",
-			"api.channel.create_direct_channel.user_not_visible.app_error",
-			nil,
-			"userId="+userID+", otherUserId="+otherUserID,
-			http.StatusForbidden)
-	}
-
 	channel, nErr := a.getDirectChannel(c, userID, otherUserID)
 	if nErr != nil {
 		return nil, nErr
