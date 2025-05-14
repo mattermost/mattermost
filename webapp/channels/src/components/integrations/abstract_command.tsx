@@ -79,6 +79,7 @@ type State = {
     autocomplete: boolean;
     autocompleteHint: string;
     autocompleteDescription: string;
+    autocompleteRequestUrl: string;
 }
 
 export default class AbstractCommand extends React.PureComponent<Props, State> {
@@ -100,6 +101,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
             autocomplete: command?.auto_complete ?? false,
             autocompleteHint: command?.auto_complete_hint ?? '',
             autocompleteDescription: command?.auto_complete_desc ?? '',
+            autocompleteRequestUrl: command?.autocomplete_request_url ?? '',
             saving: false,
             clientError: null,
         };
@@ -171,6 +173,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
         if (command.auto_complete) {
             command.auto_complete_desc = this.state.autocompleteDescription ?? '';
             command.auto_complete_hint = this.state.autocompleteHint ?? '';
+            command.autocomplete_request_url = this.state.autocompleteRequestUrl ?? '';
         }
 
         if (!command.trigger) {
@@ -313,9 +316,16 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
         });
     };
 
+    updateAutocompleteRequestUrl = (e: ChangeEvent<HTMLInputElement>) => {
+        this.setState({
+            autocompleteRequestUrl: e.target.value,
+        });
+    };
+
     render() {
         let autocompleteHint = null;
         let autocompleteDescription = null;
+        let autocompleteRequestUrl = null;
 
         if (this.state.autocomplete) {
             autocompleteHint = (
@@ -380,6 +390,40 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                             <FormattedMessage
                                 id='add_command.autocompleteDescription.help'
                                 defaultMessage='(Optional) Describe your slash command for the autocomplete list.'
+                            />
+                        </div>
+                    </div>
+                </div>
+            );
+
+            autocompleteRequestUrl = (
+                <div className='form-group'>
+                    <label
+                        className='control-label col-sm-4'
+                        htmlFor='autocompleteRequestUrl'
+                    >
+                        <FormattedMessage
+                            id='add_command.autocompleteRequestUrl'
+                            defaultMessage='Autocomplete Request URL'
+                        />
+                    </label>
+                    <div className='col-md-5 col-sm-8'>
+                        <LocalizedPlaceholderInput
+                            id='autocompleteRequestUrl'
+                            type='text'
+                            maxLength={1024}
+                            className='form-control'
+                            value={this.state.autocompleteRequestUrl}
+                            onChange={this.updateAutocompleteRequestUrl}
+                            placeholder={defineMessage({
+                                id: 'add_command.autocompleteRequestUrl.placeholder',
+                                defaultMessage: 'Example: https://example.com/autocomplete',
+                            })}
+                        />
+                        <div className='form__help'>
+                            <FormattedMessage
+                                id='add_command.autocompleteRequestUrl.help'
+                                defaultMessage='(Optional) Specify a URL that will be called to get autocomplete suggestions for this slash command.'
                             />
                         </div>
                     </div>
@@ -672,6 +716,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                         </div>
                         {autocompleteHint}
                         {autocompleteDescription}
+                        {autocompleteRequestUrl}
                         <div className='backstage-form__footer'>
                             <FormError
                                 type='backstage'

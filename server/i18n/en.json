@@ -4987,6 +4987,22 @@
     "translation": "Unable to update the command."
   },
   {
+    "id": "app.command.external_autocomplete.request_create.app_error",
+    "translation": "Could not create request to external autocomplete service."
+  },
+  {
+    "id": "app.command.external_autocomplete.request_failed.app_error",
+    "translation": "Failed to fetch suggestions from external autocomplete service."
+  },
+  {
+    "id": "app.command.external_autocomplete.response_error.app_error",
+    "translation": "External autocomplete service returned error status code: {{.StatusCode}}."
+  },
+  {
+    "id": "app.command.external_autocomplete.parse_error.app_error",
+    "translation": "Failed to parse response from external autocomplete service."
+  },
+  {
     "id": "app.command_webhook.create_command_webhook.existing",
     "translation": "You cannot update an existing CommandWebhook."
   },
@@ -8879,6 +8895,14 @@
   {
     "id": "model.command.is_valid.url_http.app_error",
     "translation": "Invalid URL. Must be a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.command.is_valid.autocomplete_url.app_error",
+    "translation": "The autocomplete request URL must be a valid URL and not exceed 1024 characters."
+  },
+  {
+    "id": "model.command.is_valid.autocomplete_url_http.app_error",
+    "translation": "The autocomplete request URL must be a valid HTTP or HTTPS URL."
   },
   {
     "id": "model.command.is_valid.user_id.app_error",

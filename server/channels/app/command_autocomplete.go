@@ -27,6 +27,37 @@ func (a *App) GetSuggestions(c request.CTX, commandArgs *model.CommandArgs, comm
 		return strings.Compare(strings.ToLower(commands[i].Trigger), strings.ToLower(commands[j].Trigger)) < 0
 	})
 
+	userInput := commandArgs.Command
+	
+	// Check if we need to fetch suggestions from an external service
+	parts := strings.Fields(userInput)
+	if len(parts) > 0 {
+		cmdName := strings.TrimPrefix(parts[0], "/")
+		for _, command := range commands {
+			if command.Trigger == cmdName && command.AutocompleteRequestURL != "" {
+				// Try to get suggestions from external service
+				suggestions, err := a.getCommandExternalSuggestions(c, commandArgs, command)
+				if err == nil && len(suggestions) > 0 {
+					// Add icon data to the suggestions
+					for i := range suggestions {
+						suggestions[i].IconData = command.AutocompleteIconData
+					}
+					return suggestions
+				}
+				
+				// If external suggestions failed, fall back to regular autocomplete
+				if err != nil {
+					c.Logger().Warn("Failed to get external suggestions, falling back to built-in autocomplete", 
+						mlog.String("trigger", command.Trigger), 
+						mlog.String("url", command.AutocompleteRequestURL), 
+						mlog.String("error", err.Error()))
+				}
+				// Continue with normal flow as fallback
+			}
+		}
+	}
+
+	// Regular autocomplete flow
 	autocompleteData := []*model.AutocompleteData{}
 	for _, command := range commands {
 		if command.AutocompleteData == nil {
@@ -35,7 +66,6 @@ func (a *App) GetSuggestions(c request.CTX, commandArgs *model.CommandArgs, comm
 		autocompleteData = append(autocompleteData, command.AutocompleteData)
 	}
 
-	userInput := commandArgs.Command
 	suggestions := a.getSuggestions(c, commandArgs, autocompleteData, "", userInput, roleID)
 	for i, suggestion := range suggestions {
 		for _, command := range commands {
