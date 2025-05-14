@@ -9,25 +9,6 @@ package elasticsearch
 
 import "github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
-// This is provide all the types that are part of the union.
-type _sortCombinations struct {
-	v types.SortCombinations
-}
-
-func NewSortCombinations() *_sortCombinations {
-	return &_sortCombinations{v: nil}
-}
-
-func (u *_sortCombinations) Field(field string) *_sortCombinations {
-	u.v = &field
-	return u
-}
-
-func (u *_sortCombinations) SortOptions(sortoptions types.SortOptionsVariant) *_sortCombinations {
-	u.v = &sortoptions
-	return u
-}
-
 type _sortOptions struct {
 	v *types.SortOptions
 }
@@ -83,8 +64,4 @@ func (s *_sortOptions) SortOptionsCaster() *types.SortOptions {
 func (s *_sortOptions) SortCombinationsCaster() *types.SortCombinations {
 	t := types.SortCombinations(s.v)
 	return &t
-}
-
-func (u *_sortCombinations) SortCombinationsCaster() *types.SortCombinations {
-	return &u.v
 }
