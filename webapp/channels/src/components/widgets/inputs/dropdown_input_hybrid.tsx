@@ -73,7 +73,7 @@ const Control = <T extends OptionType>(props: ControlProps<T>) => (
     </div>
 );
 
-const Option = <T extends OptionType>(props: OptionProps<T, false>) => (
+const Option = <T extends OptionType>(props: OptionProps<T>) => (
     <div
         className={classNames('DropdownInput__option', {
             selected: props.isSelected,
