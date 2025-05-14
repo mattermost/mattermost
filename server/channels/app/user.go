@@ -2338,7 +2338,6 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 
 	scs := a.Srv().GetSharedChannelSyncService()
 	if scs != nil {
-		// First check if otherUser is from a remote cluster
 		otherUser, otherErr := a.GetUser(otherUserId)
 		if otherErr != nil {
 			return false, nil
@@ -2356,7 +2355,7 @@ func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId stri
 					http.StatusForbidden)
 			}
 
-			// For remote user to remote user connections, we need to check both users
+			// Only fetch the first user if remote connectivity check passes
 			user, userErr := a.GetUser(userID)
 			if userErr != nil {
 				return false, nil
