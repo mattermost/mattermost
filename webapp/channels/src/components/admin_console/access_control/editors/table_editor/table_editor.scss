@@ -22,10 +22,6 @@
         font-weight: 600;
         padding-inline: 10px;
 
-        &:nth-child(1) {
-            flex: 1;
-        }
-
         &:nth-child(2) {
             flex: 0.8;
         }
@@ -50,10 +46,6 @@
 
     &__cell {
         flex: 1;
-
-        &:nth-child(1) {
-            flex: 1;
-        }
 
         &:nth-child(2) {
             flex: 0.8;
@@ -88,7 +80,7 @@
             background-color: rgba(var(--button-bg-rgb), 0.08);
             cursor: pointer;
         }
-        
+
         &:focus {
             background-color: rgba(var(--button-bg-rgb), 0.08);
             outline: none;
@@ -128,10 +120,6 @@
 
         .editor__help-text {
             margin-right: 32px;
-
-            p {
-                margin-bottom: 0;
-            }
         }
     }
 

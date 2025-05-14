@@ -7,12 +7,6 @@
     box-shadow: none;
     font-weight: normal;
     
-    &:hover,
-    &:focus {
-        border-color: transparent;
-        box-shadow: none;
-    }
-
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.04)
     }
@@ -29,7 +23,7 @@
 
     > span > span:first-child:not([style*="flex-wrap: wrap"]) {
         overflow: hidden;
-        padding-right: 8px;
+        padding-inline-start: 10px;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
@@ -57,4 +51,19 @@
             box-sizing: border-box;
         }
     }
+}
+
+.value-selector-menu-button__multi-values-container {
+    display: flex;
+    overflow: hidden;
+    flex-grow: 1;
+    flex-wrap: wrap;
+    gap: 2px; // Note: 'gap' might need prefixes for older browser or be part of a polyfill strategy if needed
+}
+
+.value-selector-menu-button__inner-wrapper {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
 }

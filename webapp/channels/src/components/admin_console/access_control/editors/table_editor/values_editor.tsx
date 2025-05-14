@@ -11,10 +11,15 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import Constants from 'utils/constants';
 
-import type {TableRow} from './table_row';
 import ValueSelectorMenu from './value_selector_menu';
 
 import './values_editor.scss';
+
+export interface TableRow {
+    attribute: string;
+    operator: string;
+    values: string[];
+}
 
 export type ValuesEditorProps = {
     row: TableRow;
@@ -42,14 +47,19 @@ function ValuesEditor({
     const [isEditing, setIsEditing] = useState(false);
     const hasOptions = options.length > 0;
 
+    const commitInputValue = () => {
+        const trimmedValue = inputValue.trim();
+        if (trimmedValue) {
+            updateValues([trimmedValue]);
+        }
+        setInputValue('');
+        setIsEditing(false);
+    };
+
     const handleKeyDownSimpleInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            if (inputValue.trim()) {
-                updateValues([inputValue.trim()]);
-            }
-            setInputValue('');
-            setIsEditing(false);
+            commitInputValue();
         }
     };
 
@@ -102,13 +112,7 @@ function ValuesEditor({
                         setInputValue(displayValue);
                     }
                 }}
-                onBlur={() => {
-                    if (inputValue.trim()) {
-                        updateValues([inputValue.trim()]);
-                    }
-                    setInputValue('');
-                    setIsEditing(false);
-                }}
+                onBlur={commitInputValue}
                 placeholder={formatMessage({id: 'admin.access_control.table_editor.value.placeholder', defaultMessage: 'Add value...'})}
                 disabled={disabled}
                 maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}

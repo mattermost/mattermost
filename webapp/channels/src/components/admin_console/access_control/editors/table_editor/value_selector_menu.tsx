@@ -35,9 +35,9 @@ const ValueSelectorMenu = ({
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
 
-    const onFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onFilterChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setFilter(e.target.value);
-    };
+    }, []);
 
     const filteredOptions = useMemo(() => {
         return options.filter((option) => {
@@ -61,7 +61,7 @@ const ValueSelectorMenu = ({
         defaultMessage: 'Type to create value',
     });
 
-    const handleSelectItem = (name: string) => {
+    const handleSelectItem = React.useCallback((name: string) => {
         let newValues;
         if (isMulti) {
             newValues = currentValues.includes(name) ?
@@ -72,34 +72,35 @@ const ValueSelectorMenu = ({
             setFilter('');
         }
         onChange(newValues);
-    };
+    }, [isMulti, currentValues, onChange]);
 
-    const handleCreateValue = (valueToCreate: string) => {
-        if (!valueToCreate.trim() || currentValues.includes(valueToCreate.trim())) {
+    const handleCreateValue = React.useCallback((valueToCreate: string) => {
+        const trimmedValue = valueToCreate.trim();
+        if (!trimmedValue || currentValues.includes(trimmedValue)) {
             return;
         }
         let newValues;
         if (isMulti) {
-            newValues = [...currentValues, valueToCreate.trim()];
+            newValues = [...currentValues, trimmedValue];
         } else {
-            newValues = [valueToCreate.trim()];
+            newValues = [trimmedValue];
         }
         onChange(newValues);
         setFilter('');
-    };
+    }, [currentValues, isMulti, onChange]);
 
-    const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleInputKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && allowCreate && filter.trim()) {
             e.preventDefault();
             handleCreateValue(filter);
         }
-    };
+    }, [allowCreate, filter, handleCreateValue]);
 
-    const handleRemoveValue = (event: React.MouseEvent<HTMLDivElement>, valueToRemove: string) => {
+    const handleRemoveValue = React.useCallback((event: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>, valueToRemove: string) => {
         event.stopPropagation();
         const newValues = currentValues.filter((v) => v !== valueToRemove);
         onChange(newValues);
-    };
+    }, [currentValues, onChange]);
 
     const getButtonContents = () => {
         if (isMulti) {
@@ -111,7 +112,7 @@ const ValueSelectorMenu = ({
                 return <span>{placeholder || visualPlaceholder}</span>;
             }
             return (
-                <div style={{display: 'flex', flexWrap: 'wrap', gap: '2px', flexGrow: 1, overflow: 'hidden'}}>
+                <div className='value-selector-menu-button__multi-values-container'>
                     {currentValues.map((value) => (
                         <div
                             key={value}
@@ -124,9 +125,9 @@ const ValueSelectorMenu = ({
                                     onClick={(e) => handleRemoveValue(e, value)}
                                     role='button'
                                     tabIndex={0}
-                                    onKeyDown={(e) => {
+                                    onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
-                                            handleRemoveValue(e as any, value);
+                                            handleRemoveValue(e, value);
                                         }
                                     }}
                                 >
@@ -160,7 +161,7 @@ const ValueSelectorMenu = ({
                     disabled,
                 }),
                 children: (
-                    <span style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%'}}>
+                    <span className='value-selector-menu-button__inner-wrapper'>
                         {getButtonContents()}
                         <ChevronDownIcon
                             size={18}
@@ -181,7 +182,8 @@ const ValueSelectorMenu = ({
                 key='filter_values'
                 id='filter_values'
                 type='text'
-                placeholder={formatMessage({id: 'admin.access_control.table_editor.selector.filter_or_create', defaultMessage: 'Search or create value...'})}
+                placeholder={
+                    formatMessage({id: 'admin.access_control.table_editor.selector.filter_or_create', defaultMessage: 'Search or create value...'})}
                 className='attribute-selector-search'
                 value={filter}
                 onChange={onFilterChange}

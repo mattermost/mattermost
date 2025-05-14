@@ -306,6 +306,7 @@
   "admin.access_control.table_editor.add_attribute": "Add attribute",
   "admin.access_control.table_editor.attribute": "Attribute",
   "admin.access_control.table_editor.blank_state": "Select a user attribute and values to create a rule",
+  "admin.access_control.table_editor.help_text": "Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (`&&`).",
   "admin.access_control.table_editor.learnMore": "Learn more about creating access expressions with examples.",
   "admin.access_control.table_editor.operator": "Operator",
   "admin.access_control.table_editor.operator.contains": "contains",

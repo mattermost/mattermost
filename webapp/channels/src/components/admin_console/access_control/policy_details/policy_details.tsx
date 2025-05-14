@@ -402,6 +402,10 @@ function PolicyDetails({
                                     }}
                                     onValidate={() => {}}
                                     userAttributes={autocompleteResult}
+                                    onParseError={(error) => {
+                                        setServerError(error);
+                                        setEditorMode('cel');
+                                    }}
                                 />
                             )}
                         </Card.Body>

@@ -79,22 +79,23 @@ interface OperatorSelectorProps {
 }
 
 const OperatorSelectorMenu = ({currentOperator, disabled, onChange}: OperatorSelectorProps) => {
-    const handleOperatorChange = (descriptor: OperatorDescriptor) => {
+    const {formatMessage} = useIntl();
+    const [filter, setFilter] = useState('');
+
+    const handleOperatorChange = React.useCallback((descriptor: OperatorDescriptor) => {
         onChange(descriptor.operatorValue);
         setFilter('');
-    };
+    }, [onChange]);
 
     const currentOperatorDescriptor = useMemo(() => {
         return getOperatorDescriptor(currentOperator);
     }, [currentOperator]);
 
     const CurrentOperatorIcon = currentOperatorDescriptor.icon;
-    const {formatMessage} = useIntl();
-    const [filter, setFilter] = useState('');
 
-    const onFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onFilterChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setFilter(e.target.value);
-    };
+    }, []);
 
     const filteredOperators = useMemo(() => {
         return Object.values(OPERATOR_DESCRIPTORS).filter((desc) => {
