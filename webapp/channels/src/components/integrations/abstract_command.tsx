@@ -168,7 +168,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
             delete_at: 0,
             id: '',
             creator_id: '',
-            autocomplete_request_url: ''
+            autocomplete_request_url: '',
         };
 
         if (command.auto_complete) {
