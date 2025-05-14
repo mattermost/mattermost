@@ -2722,24 +2722,26 @@ func TestIndirectRemoteUserCommunication(t *testing.T) {
 	// Create remote clusters in the database representing the different servers
 	// Server B - directly connected to local server A
 	clusterB := &model.RemoteCluster{
-		RemoteId:   model.NewId(),
-		Name:       "server-B",
-		SiteURL:    "https://server-b.example.com",
-		CreateAt:   model.GetMillis(),
-		LastPingAt: model.GetMillis(), // Online
-		Token:      model.NewId(),
-		CreatorId:  th.BasicUser.Id,
+		RemoteId:    model.NewId(),
+		Name:        "server-B",
+		SiteURL:     "https://server-b.example.com",
+		CreateAt:    model.GetMillis(),
+		LastPingAt:  model.GetMillis(), // Online
+		Token:       model.NewId(),
+		CreatorId:   th.BasicUser.Id,
+		RemoteToken: model.NewId(), // Has a remote token (is confirmed)
 	}
 
 	// Server C - directly connected to local server A
 	clusterC := &model.RemoteCluster{
-		RemoteId:   model.NewId(),
-		Name:       "server-C",
-		SiteURL:    "https://server-c.example.com",
-		CreateAt:   model.GetMillis(),
-		LastPingAt: model.GetMillis(), // Online
-		Token:      model.NewId(),
-		CreatorId:  th.BasicUser.Id,
+		RemoteId:    model.NewId(),
+		Name:        "server-C",
+		SiteURL:     "https://server-c.example.com",
+		CreateAt:    model.GetMillis(),
+		LastPingAt:  model.GetMillis(), // Online
+		Token:       model.NewId(),
+		CreatorId:   th.BasicUser.Id,
+		RemoteToken: model.NewId(), // Has a remote token (is confirmed)
 	}
 
 	// Save remote clusters to the database
@@ -2779,7 +2781,49 @@ func TestIndirectRemoteUserCommunication(t *testing.T) {
 	require.NotNil(t, userC)
 	require.NotNil(t, userC.RemoteId)
 
-	t.Run("User from Server B cannot see or message user from Server C", func(t *testing.T) {
+	t.Run("Users from different remote clusters cannot see each other even when both are online", func(t *testing.T) {
+		// Get the shared channel service
+		scs := th.Server.GetSharedChannelSyncService()
+		service, ok := scs.(*sharedchannel.Service)
+		require.True(t, ok, "Expected sharedchannel.Service type")
+
+		// Ensure both remotes are online and confirmed
+		remoteB.LastPingAt = model.GetMillis()
+		remoteB.RemoteToken = model.NewId() // Has a remote token (is confirmed)
+		_, err := ss.RemoteCluster().Update(remoteB)
+		require.NoError(t, err)
+
+		remoteC.LastPingAt = model.GetMillis()
+		remoteC.RemoteToken = model.NewId() // Has a remote token (is confirmed)
+		_, err = ss.RemoteCluster().Update(remoteC)
+		require.NoError(t, err)
+
+		// Verify both remotes are online and confirmed to server A
+		b := service.IsRemoteClusterDirectlyConnectedForTesting(remoteB.RemoteId)
+		c := service.IsRemoteClusterDirectlyConnectedForTesting(remoteC.RemoteId)
+		require.True(t, b, "Remote B should be directly connected to server A")
+		require.True(t, c, "Remote C should be directly connected to server A")
+
+		// Here's the key part: Even though both remote clusters are online and properly
+		// connected to Server A, users from different remote clusters should not be able to
+		// see each other because there's no direct connection between B and C
+
+		// User B on Server B cannot see User C on Server C
+		canSeeBC, appErrBC := th.App.UserCanSeeOtherUser(th.Context, userB.Id, userC.Id)
+		assert.False(t, canSeeBC, "User B should not be able to see User C even though both clusters are online")
+		if assert.NotNil(t, appErrBC, "Should get an error when user from Server B tries to see user from Server C") {
+			assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErrBC.Id)
+		}
+
+		// User C on Server C cannot see User B on Server B
+		canSeeCB, appErrCB := th.App.UserCanSeeOtherUser(th.Context, userC.Id, userB.Id)
+		assert.False(t, canSeeCB, "User C should not be able to see User B even though both clusters are online")
+		if assert.NotNil(t, appErrCB, "Should get an error when user from Server C tries to see user from Server B") {
+			assert.Equal(t, "api.user.remote_connection_not_allowed.app_error", appErrCB.Id)
+		}
+	})
+
+	t.Run("User from Server B cannot see or message user from Server C when offline", func(t *testing.T) {
 		// Get the shared channel sync service
 		scs := th.Server.GetSharedChannelSyncService()
 		service, ok := scs.(*sharedchannel.Service)
@@ -2821,7 +2865,7 @@ func TestIndirectRemoteUserCommunication(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("User from Server C cannot see or message user from Server B", func(t *testing.T) {
+	t.Run("User from Server C cannot see or message user from Server B when offline", func(t *testing.T) {
 		// Get the shared channel sync service
 		scs := th.Server.GetSharedChannelSyncService()
 		service, ok := scs.(*sharedchannel.Service)
