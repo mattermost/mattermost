@@ -41,7 +41,7 @@ export function verifyActianceXMLFile(targetFolder, type, match) {
 
 export function verifyExportedMessagesCount(expectedNumber) {
     // * Verifying number of exported messages
-    cy.get('@firstRow').find('td:eq(5)').should('have.text', `${expectedNumber} messages exported.`);
+    cy.get('@firstRow').find('td:eq(4)').should('have.text', `${expectedNumber} messages exported.`);
 }
 
 export function editLastPost(message) {
