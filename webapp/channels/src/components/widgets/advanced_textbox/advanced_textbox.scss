@@ -76,6 +76,10 @@
         .custom-textarea {
             border: none;
             box-shadow: none;
+
+            &.textbox-preview-area {
+                overflow-y: auto;
+            }
             
             &:focus {
                 box-shadow: none;
