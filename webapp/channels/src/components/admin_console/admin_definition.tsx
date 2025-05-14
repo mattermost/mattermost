@@ -710,7 +710,8 @@ const AdminDefinition: AdminDefinitionType = {
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
                     id: 'AttributeBasedAccessControl',
-                    name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access (Beta)'}),
+                    isBeta: true,
+                    name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access'}),
                     sections: [
                         {
                             key: 'admin.accesscontrol.settings',

@@ -324,7 +324,7 @@
   "admin.access_control.testResults": "Access Rule Test Results",
   "admin.accesscontrol.enableDesc": "Allow access restrictions based on user attributes using custom access policies",
   "admin.accesscontrol.enableTitle": "Allow attribute based access controls on this servers",
-  "admin.accesscontrol.title": "Attribute-Based Access (Beta)",
+  "admin.accesscontrol.title": "Attribute-Based Access",
   "admin.advance.cluster": "High Availability",
   "admin.advance.metrics": "Performance Monitoring",
   "admin.announcement_banner_feature_discovery.copy": "Create announcement banners to notify all members of important information.",

@@ -32,6 +32,7 @@ import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
+import BetaTag from 'components/widgets/tag/beta_tag';
 import WithTooltip from 'components/with_tooltip';
 
 import * as I18n from 'i18n/i18n.jsx';
@@ -330,10 +331,19 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             name = this.props.schema.name;
         }
 
+        const betaBadge = this.props.schema.isBeta && (
+            <BetaTag
+                variant='default'
+                size='sm'
+                className='admin-header-beta-badge'
+            />
+        );
+
         if (typeof name === 'string') {
             return (
                 <AdminHeader>
                     {name}
+                    {betaBadge}
                 </AdminHeader>
             );
         }
@@ -343,6 +353,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     {...name}
                 />
+                {betaBadge}
             </AdminHeader>
         );
     };
