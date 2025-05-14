@@ -28,7 +28,7 @@ func (a *App) GetSuggestions(c request.CTX, commandArgs *model.CommandArgs, comm
 	})
 
 	userInput := commandArgs.Command
-	
+
 	// Check if we need to fetch suggestions from an external service
 	parts := strings.Fields(userInput)
 	if len(parts) > 0 {
@@ -44,12 +44,12 @@ func (a *App) GetSuggestions(c request.CTX, commandArgs *model.CommandArgs, comm
 					}
 					return suggestions
 				}
-				
+
 				// If external suggestions failed, fall back to regular autocomplete
 				if err != nil {
-					c.Logger().Warn("Failed to get external suggestions, falling back to built-in autocomplete", 
-						mlog.String("trigger", command.Trigger), 
-						mlog.String("url", command.AutocompleteRequestURL), 
+					c.Logger().Warn("Failed to get external suggestions, falling back to built-in autocomplete",
+						mlog.String("trigger", command.Trigger),
+						mlog.String("url", command.AutocompleteRequestURL),
 						mlog.String("error", err.Error()))
 				}
 				// Continue with normal flow as fallback

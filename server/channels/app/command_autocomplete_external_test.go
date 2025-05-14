@@ -56,7 +56,10 @@ func TestGetExternalSuggestions(t *testing.T) {
 
 		// Return suggestions as JSON response
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(suggestions)
+		if err := json.NewEncoder(w).Encode(suggestions); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}))
 	defer ts.Close()
 
@@ -86,7 +89,7 @@ func TestGetExternalSuggestions(t *testing.T) {
 	// Test fetching external suggestions
 	ctx := &request.Context{}
 	results, err := th.App.getCommandExternalSuggestions(ctx, commandArgs, command)
-	require.NoError(t, err)
+	require.Nil(t, err)
 	require.Len(t, results, 2)
 	assert.Equal(t, "/test option1", results[0].Complete)
 	assert.Equal(t, "option1", results[0].Suggestion)
@@ -102,7 +105,7 @@ func TestGetExternalSuggestions(t *testing.T) {
 	// Test invalid URL
 	command.AutocompleteRequestURL = "http://invalid-url"
 	results3, err := th.App.getCommandExternalSuggestions(ctx, commandArgs, command)
-	assert.Error(t, err)
+	assert.NotNil(t, err)
 	assert.Nil(t, results3)
 }
 
@@ -111,18 +114,18 @@ func TestCommandValidation(t *testing.T) {
 	// Base command for all tests
 	baseCmd := func() *model.Command {
 		return &model.Command{
-			Id:                    model.NewId(),
-			Token:                 model.NewId(),
-			CreateAt:              model.GetMillis(),
-			UpdateAt:              model.GetMillis(),
-			CreatorId:             model.NewId(),
-			TeamId:                model.NewId(),
-			Trigger:               "test",
-			Method:                model.CommandMethodPost,
-			URL:                   "http://example.com",
+			Id:        model.NewId(),
+			Token:     model.NewId(),
+			CreateAt:  model.GetMillis(),
+			UpdateAt:  model.GetMillis(),
+			CreatorId: model.NewId(),
+			TeamId:    model.NewId(),
+			Trigger:   "test",
+			Method:    model.CommandMethodPost,
+			URL:       "http://example.com",
 		}
 	}
-	
+
 	// Valid HTTPS URL should pass validation
 	t.Run("ValidURL", func(t *testing.T) {
 		cmd := baseCmd()

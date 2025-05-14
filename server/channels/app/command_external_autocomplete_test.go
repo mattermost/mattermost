@@ -57,7 +57,7 @@ func TestProcessAutocompleteData(t *testing.T) {
 				Command: "/mission start ",
 			},
 			autocompleteData: baseAutocompleteData(),
-			endsWithSpace: true,
+			endsWithSpace:    true,
 			expectedResult: []model.AutocompleteSuggestion{
 				{
 					Complete:    "/mission start --name ",
@@ -85,7 +85,7 @@ func TestProcessAutocompleteData(t *testing.T) {
 				Command: "/mission start",
 			},
 			autocompleteData: baseAutocompleteData(),
-			endsWithSpace: false,
+			endsWithSpace:    false,
 			expectedResult: []model.AutocompleteSuggestion{
 				{
 					Complete:    "/mission start",
@@ -101,7 +101,7 @@ func TestProcessAutocompleteData(t *testing.T) {
 				Command: "/mission start --name test --des",
 			},
 			autocompleteData: baseAutocompleteData(),
-			partialMatch: true,
+			partialMatch:     true,
 			expectedResult: []model.AutocompleteSuggestion{
 				{
 					Complete:    "/mission start --name test --description ",
@@ -194,7 +194,8 @@ func TestProcessAutocompleteData(t *testing.T) {
 
 // processAutocompleteDataTest is a test-specific implementation that mimics the App's processAutocompleteData
 // but works with our mock instead of the real App. This eliminates duplication while maintaining testability.
-func processAutocompleteDataTest(a interface{}, c request.CTX, commandArgs *model.CommandArgs, command *model.Command, autocompleteData *model.AutocompleteData) ([]model.AutocompleteSuggestion, *model.AppError) {
+func processAutocompleteDataTest(a interface{}, c request.CTX, commandArgs *model.CommandArgs, command *model.Command, 
+	autocompleteData *model.AutocompleteData) ([]model.AutocompleteSuggestion, *model.AppError) {
 	// Create a copy with sanitized trigger to prevent double slashes
 	dataCopy := *autocompleteData
 	dataCopy.Trigger = strings.TrimPrefix(command.Trigger, "/")
