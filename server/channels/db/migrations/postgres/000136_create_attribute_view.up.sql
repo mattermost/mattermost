@@ -14,7 +14,7 @@ BEGIN
                 WHEN pf.Type = ''select'' THEN (
                     SELECT to_jsonb(options.name)
                     FROM jsonb_to_recordset(pf.Attrs->''options'') AS options(id text, name text)
-                    WHERE options.id = pv.Value::text
+                    WHERE options.id = pv.Value #>> ''{}''
                     LIMIT 1
                 )
                 WHEN pf.Type = ''multiselect'' THEN (

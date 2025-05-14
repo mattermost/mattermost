@@ -37,7 +37,7 @@ import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
-import {isMinimumEnterpriseLicense, isMinimumProfessionalLicense} from 'utils/license_utils';
+import {isMinimumEnterpriseAdvancedLicense, isMinimumEnterpriseLicense, isMinimumProfessionalLicense} from 'utils/license_utils';
 
 import ChannelDetails from './channel_details';
 
@@ -61,6 +61,8 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     // Channel Groups is only available for Enterprise and above
     const channelGroupsEnabled = isLicensed && isMinimumEnterpriseLicense(license);
 
+    const abacSupported = isLicensed && isMinimumEnterpriseAdvancedLicense(license) && config.FeatureFlagAttributeBasedAccessControl === 'true';
+
     const guestAccountsEnabled = config.EnableGuestAccounts === 'true';
     const channelID = ownProps.match.params.channel_id;
     const channel = getChannel(state, channelID);
@@ -82,6 +84,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         guestAccountsEnabled,
         channelModerationEnabled,
         channelGroupsEnabled,
+        abacSupported,
     };
 }
 
