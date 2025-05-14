@@ -4960,7 +4960,7 @@
   },
   {
     "id": "app.command.external_autocomplete.read_body.app_error",
-    "translation": ""
+    "translation": "Failed to read response body from external autocomplete service."
   },
   {
     "id": "app.command.external_autocomplete.request_create.app_error",
