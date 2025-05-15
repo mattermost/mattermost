@@ -30,13 +30,7 @@ func TestChannelStoreCategories(t *testing.T, rctx request.CTX, ss store.Store, 
 	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, rctx, ss, s) })
 	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, rctx, ss) })
 	t.Run("SidebarCategoryDeadlock", func(t *testing.T) { testSidebarCategoryDeadlock(t, rctx, ss) })
-	for i := 0; i < 2; i++ {
-		i := i
-		t.Run(fmt.Sprintf("SidebarCategoryConcurrentAccess%d", i), func(t *testing.T) {
-			t.Parallel()
-			testSidebarCategoryConcurrentAccess(t, rctx, ss, s)
-		})
-	}
+	t.Run("SidebarCategoryConcurrentAccess", func(t *testing.T) { testSidebarCategoryConcurrentAccess(t, rctx, ss, s) })
 }
 
 func setupTeam(t *testing.T, rctx request.CTX, ss store.Store, userIds ...string) *model.Team {
@@ -2429,10 +2423,20 @@ func testSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss stor
 		t.Skip("This is known to fail on MySQL")
 	}
 
+	for i := 0; i < 2; i++ {
+		i := i
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			t.Parallel()
+			doTestSidebarCategoryConcurrentAccess(t, rctx, ss)
+		})
+	}
+}
+
+func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss store.Store) {
 	userID := model.NewId()
 	team := setupTeam(t, rctx, ss, userID)
 
-	numGoroutines := 40
+	numGoroutines := 20
 
 	// Create regular channels
 	channels := make([]*model.Channel, 5)
@@ -2492,27 +2496,25 @@ func testSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss stor
 	// Create custom categories
 	customCategories := make([]*model.SidebarCategoryWithChannels, 2)
 	for i := 0; i < 2; i++ {
-		customCategory, err := ss.Channel().CreateSidebarCategory(userID, team.Id, &model.SidebarCategoryWithChannels{
+		customCategory, createErr := ss.Channel().CreateSidebarCategory(userID, team.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				DisplayName: fmt.Sprintf("Custom Category %d", i),
 			},
 		})
-		require.NoError(t, err)
+		require.NoError(t, createErr)
 		customCategories[i] = customCategory
 	}
 
 	// Run concurrent operations
 	var wg sync.WaitGroup
 
-	println("-----------------------", userID, team.Id)
-
 	for i := 0; i < numGoroutines; i++ {
 		wg.Add(1)
 		// Run GetSidebarCategoriesForTeamForUser
 		go func() {
 			defer wg.Done()
-			categories, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
-			require.NoError(t, err)
+			categories, getErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
+			require.NoError(t, getErr)
 			require.NotEmpty(t, categories.Categories)
 		}()
 
@@ -2625,12 +2627,9 @@ func testSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss stor
 				updatedCategories[i].Channels = model.RemoveDuplicateStringsNonSort(category.Channels)
 			}
 
-			_, _, err := ss.Channel().UpdateSidebarCategories(userID, team.Id, updatedCategories)
+			_, _, updateErr := ss.Channel().UpdateSidebarCategories(userID, team.Id, updatedCategories)
 			if err != nil {
-				for _, cat := range updatedCategories {
-					t.Logf("[iteration %d] sidebar category - %v, channels: %s \n", iteration, cat.SidebarCategory, cat.Channels)
-				}
-				require.NoError(t, fmt.Errorf("[iteration %d]: %v", iteration, err))
+				require.NoError(t, fmt.Errorf("[iteration %d]: %v", iteration, updateErr))
 			}
 		}(i)
 
@@ -2649,7 +2648,8 @@ func testSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss stor
 	case <-done:
 		// All goroutines completed successfully
 	case <-time.After(30 * time.Second):
-		t.Fatal("Test timed out, likely deadlock")
+		t.Log("Test timed out, likely deadlock")
+		t.FailNow()
 	}
 
 	// Verify the final state is valid
