@@ -7,11 +7,11 @@
     overflow-y: auto;
     will-change: transform;
 
-    .inner_list[role='list'] {
+    .innerList[role='list'] {
         padding: 14px 0px 7px;
     }
 
-    .item_measurer[role='listitem'] {
+    .listItem[role='listitem'] {
         position: relative;
     }
 }

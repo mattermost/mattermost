@@ -7,9 +7,7 @@
 import memoizeOne from 'memoize-one';
 import {createElement, PureComponent} from 'react';
 
-import ItemRow from './item_row';
-
-// import ItemMeasurer from './item_measurer';
+import ListItem, {cleanupSharedObserver} from './item_row_shared';
 
 const atBottomMargin = 10;
 
@@ -214,6 +212,8 @@ export class DynamicVirtualizedList extends PureComponent {
     }
 
     componentWillUnmount() {
+        cleanupSharedObserver();
+
         if (this._scrollByCorrection) {
             window.cancelAnimationFrame(this._scrollByCorrection);
         }
@@ -656,7 +656,7 @@ export class DynamicVirtualizedList extends PureComponent {
 
                     // Always wrap children in a ItemRow to detect changes in size.
                     items.push(
-                        createElement(ItemRow, {
+                        createElement(ListItem, {
                             key: itemId,
                             index,
                             item,
@@ -716,6 +716,7 @@ export class DynamicVirtualizedList extends PureComponent {
                 {
                     ref: innerRef,
                     role: 'list',
+                    className: 'innerList',
                     style: innerListStyle,
                 },
                 items,

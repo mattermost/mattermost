@@ -5,7 +5,15 @@ import debounce from 'lodash/debounce';
 import type {ReactNode} from 'react';
 import React, {memo, useEffect, useRef} from 'react';
 
+import {ListItemSizeObserver} from './item_row_size_observer';
+
 const RESIZE_DEBOUNCE_TIME = 120; // in ms
+
+const listItemSizeObserver = new ListItemSizeObserver();
+
+export function cleanupSharedObserver(): void {
+    listItemSizeObserver.disconnect();
+}
 
 interface Props {
     item: ReactNode;
@@ -19,8 +27,9 @@ interface Props {
 
 /**
  * This component is used to measure the height of a row and update the height of the row when it changes.
+ * Uses a shared ResizeObserver instance for better performance with many items.
  */
-const ItemRow = (props: Props) => {
+const ListItem = (props: Props) => {
     const rowRef = useRef<HTMLDivElement>(null);
 
     const itemIdRef = useRef(props.itemId);
@@ -45,41 +54,32 @@ const ItemRow = (props: Props) => {
     }, []);
 
     useEffect(() => {
-        const debouncedOnHeightChange = debounce((height: number) => {
+        const debouncedOnHeightChange = debounce((changedHeight: number) => {
             // If width of container has changed then scroll bar position will be out of sync
             // so we need to force a scroll correction
             const forceScrollCorrection = rowRef.current?.offsetWidth !== widthRef.current;
 
-            heightRef.current = height;
+            heightRef.current = changedHeight;
 
-            props.onHeightChange(itemIdRef.current, height, forceScrollCorrection);
+            props.onHeightChange(itemIdRef.current, changedHeight, forceScrollCorrection);
         }, RESIZE_DEBOUNCE_TIME);
 
-        function resizeObserverCallback(resizeEntries: ResizeObserverEntry[]) {
+        function itemRowSizeObserverCallback(changedHeight: number) {
             if (!rowRef.current) {
                 return;
             }
 
-            // Since we're observing a single row, we can safely assume that the first entry is the one we want
-            if (resizeEntries.length === 1 && resizeEntries[0].target === rowRef.current) {
-                const newHeight = Math.ceil(resizeEntries[0].borderBoxSize[0].blockSize);
-
-                // If the height has changed significantly, update the height
-                if (newHeight !== heightRef.current) {
-                    debouncedOnHeightChange(newHeight);
-                }
+            if (changedHeight !== heightRef.current) {
+                debouncedOnHeightChange(changedHeight);
             }
         }
 
-        const resizeObserver = new ResizeObserver(resizeObserverCallback);
-
         if (rowRef.current) {
-            resizeObserver.observe(rowRef.current);
+            listItemSizeObserver.observe(itemIdRef.current, rowRef.current, itemRowSizeObserverCallback);
         }
 
         return () => {
-            resizeObserver.disconnect();
-
+            listItemSizeObserver.unobserve(itemIdRef.current);
             props.onUnmount(itemIdRef.current, indexRef.current);
         };
     }, []);
@@ -95,4 +95,4 @@ const ItemRow = (props: Props) => {
     );
 };
 
-export default memo(ItemRow);
+export default memo(ListItem);
