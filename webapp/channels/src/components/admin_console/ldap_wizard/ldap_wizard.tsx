@@ -81,7 +81,7 @@ const LDAPWizard = (props: Props) => {
     React.useEffect(() => {
         if (props.config && schema) {
             const initialStateFromConfig = SchemaAdminSettings.getStateFromConfig(props.config, schema, props.roles);
-            setState(prevState => ({
+            setState((prevState) => ({
                 ...prevState,
                 ...initialStateFromConfig,
                 prevSchemaId: schema.id,
