@@ -6256,7 +6256,7 @@ export const ldapWizardAdminDefinition: AdminDefinitionSubSectionSchema = {
     name: defineMessage({id: 'admin.authentication.ldap.wizard', defaultMessage: 'AD/LDAP Wizard'}),
     sections: [{
         key: 'admin.authentication.ldap.connection',
-        title: 'Connection',
+        title: 'Connection Settings',
         subtitle: 'Connection and security level to your AD/LDAP server.',
         settings: [
             {
@@ -6435,7 +6435,7 @@ export const ldapWizardAdminDefinition: AdminDefinitionSubSectionSchema = {
     },
     {
         key: 'admin.authentication.ldap.dn_and_filters',
-        title: 'Base DN & Filters',
+        title: 'Filters',
         settings: [
             {
                 type: 'text',
