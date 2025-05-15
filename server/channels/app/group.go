@@ -323,11 +323,14 @@ func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMemb
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
+		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
 			return nil, model.NewAppError("UpsertGroupMember", "app.group.uniqueness_error", nil, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("UpsertGroupMember", "app.group.user_not_found", map[string]any{"Username": nfErr.ID}, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpsertGroupMember", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -811,11 +814,14 @@ func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
+		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
 			return nil, model.NewAppError("UpsertGroupMembers", "app.group.uniqueness_error", nil, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("UpsertGroupMembers", "app.group.user_not_found", map[string]any{"Username": nfErr.ID}, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpsertGroupMembers", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -835,11 +841,15 @@ func (a *App) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
+		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
 			return nil, model.NewAppError("DeleteGroupMember", "app.group.uniqueness_error", nil, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("DeleteGroupMember", "app.group.user_not_found", map[string]any{"Username": nfErr.ID}, "", http.StatusBadRequest).Wrap(err)
+
 		default:
 			return nil, model.NewAppError("DeleteGroupMember", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

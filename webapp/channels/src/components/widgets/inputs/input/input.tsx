@@ -36,6 +36,7 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
     inputClassName?: string;
     limit?: number;
     minLength?: number;
+    showMinLengthIndicator?: boolean;
     useLegend?: boolean;
     customMessage?: CustomMessageInputType;
     inputSize?: SIZE;
@@ -63,6 +64,7 @@ const Input = React.forwardRef((
         inputClassName,
         limit,
         minLength,
+        showMinLengthIndicator = false,
         customMessage,
         maxLength,
         inputSize = SIZE.MEDIUM,
@@ -264,7 +266,7 @@ const Input = React.forwardRef((
                             {'-'}{limitExceeded}
                         </span>
                     )}
-                    {isMinLengthError && (
+                    {Boolean(isMinLengthError && showMinLengthIndicator) && (
                         <span className='Input_limit-exceeded'>
                             {'+'}{minLengthNotMet}
                         </span>
