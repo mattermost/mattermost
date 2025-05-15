@@ -19,6 +19,21 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
         <RenewLicenseCard
           isLicenseExpired={false}
           license={
@@ -123,6 +138,21 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
         <RenewLicenseCard
           isLicenseExpired={false}
           license={
@@ -227,6 +257,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E10",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
         <RenewLicenseCard
           isLicenseExpired={false}
           license={
@@ -362,6 +407,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
         <RenewLicenseCard
           isLicenseExpired={false}
           license={
@@ -485,6 +545,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "enterprise",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
         <RenewLicenseCard
           isLicenseExpired={false}
           license={
@@ -608,6 +683,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
         <RenewLicenseCard
           isLicenseExpired={false}
           license={
@@ -731,6 +821,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
         <RenewLicenseCard
           isLicenseExpired={false}
           license={
@@ -854,6 +959,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
         <RenewLicenseCard
           isLicenseExpired={false}
           license={
@@ -977,6 +1097,17 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1617714643650",
+              "StartsAt": "1617714643650",
+            }
+          }
+          totalUsers={10}
+        />
         <TrialLicenseCard
           license={
             Object {
@@ -1078,6 +1209,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "IsLicensed": "false",
+            }
+          }
+          totalUsers={10}
+        />
         <Component
           enterpriseReady={true}
           gettingTrial={false}
@@ -1190,6 +1329,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "IsLicensed": "false",
+            }
+          }
+          totalUsers={10}
+        />
         <Component
           enterpriseReady={true}
           gettingTrial={false}
@@ -1302,6 +1449,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
         <RenewLicenseCard
           isLicenseExpired={false}
           license={
@@ -1406,6 +1568,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "IsLicensed": "false",
+            }
+          }
+          totalUsers={10}
+        />
         <Component
           enterpriseReady={false}
           gettingTrial={false}
@@ -1519,7 +1689,16 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
     >
       <div
         className="admin-console__banner_section"
-      />
+      >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "IsLicensed": "false",
+            }
+          }
+          totalUsers={10}
+        />
+      </div>
       <div
         className="top-wrapper"
       >
@@ -1616,7 +1795,24 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
     >
       <div
         className="admin-console__banner_section"
-      />
+      >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Cloud": "true",
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620993600000",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
+      </div>
       <div
         className="top-wrapper"
       >
@@ -1725,6 +1921,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
       <div
         className="admin-console__banner_section"
       >
+        <UserSeatAlertBanner
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620993600000",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
         <RenewLicenseCard
           isLicenseExpired={false}
           license={
