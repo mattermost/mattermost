@@ -2782,6 +2782,38 @@ func (_m *API) GetPropertyFields(groupID string, ids []string) ([]*model.Propert
 	return r0, r1
 }
 
+// GetPropertyGroup provides a mock function with given fields: name
+func (_m *API) GetPropertyGroup(name string) (*model.PropertyGroup, *model.AppError) {
+	ret := _m.Called(name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPropertyGroup")
+	}
+
+	var r0 *model.PropertyGroup
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (*model.PropertyGroup, *model.AppError)); ok {
+		return rf(name)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.PropertyGroup); ok {
+		r0 = rf(name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PropertyGroup)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(name)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetPropertyValue provides a mock function with given fields: groupID, valueID
 func (_m *API) GetPropertyValue(groupID string, valueID string) (*model.PropertyValue, *model.AppError) {
 	ret := _m.Called(groupID, valueID)
@@ -4470,6 +4502,38 @@ func (_m *API) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (s
 		r1 = rf(opts)
 	} else {
 		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RegisterPropertyGroup provides a mock function with given fields: name
+func (_m *API) RegisterPropertyGroup(name string) (*model.PropertyGroup, *model.AppError) {
+	ret := _m.Called(name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterPropertyGroup")
+	}
+
+	var r0 *model.PropertyGroup
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (*model.PropertyGroup, *model.AppError)); ok {
+		return rf(name)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.PropertyGroup); ok {
+		r0 = rf(name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PropertyGroup)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(name)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
 	}
 
 	return r0, r1

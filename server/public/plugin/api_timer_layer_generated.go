@@ -1574,3 +1574,17 @@ func (api *apiTimerLayer) SearchPropertyValues(groupID, targetID string, opts mo
 	api.recordTime(startTime, "SearchPropertyValues", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (api *apiTimerLayer) RegisterPropertyGroup(name string) (*model.PropertyGroup, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.RegisterPropertyGroup(name)
+	api.recordTime(startTime, "RegisterPropertyGroup", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetPropertyGroup(name string) (*model.PropertyGroup, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPropertyGroup(name)
+	api.recordTime(startTime, "GetPropertyGroup", _returnsB == nil)
+	return _returnsA, _returnsB
+}

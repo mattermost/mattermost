@@ -1564,3 +1564,19 @@ func (api *PluginAPI) SearchPropertyValues(groupID, targetID string, opts model.
 	}
 	return result, nil
 }
+
+func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, *model.AppError) {
+	result, err := api.app.PropertyService().RegisterPropertyGroup(name)
+	if err != nil {
+		return nil, model.NewAppError("RegisterPropertyGroup", "app.property.register_property_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
+}
+
+func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, *model.AppError) {
+	result, err := api.app.PropertyService().GetPropertyGroup(name)
+	if err != nil {
+		return nil, model.NewAppError("GetPropertyGroup", "app.property.get_property_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
+}

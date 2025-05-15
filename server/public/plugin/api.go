@@ -1477,6 +1477,18 @@ type API interface {
 	// @tag PropertyValue
 	// Minimum server version: 10.8
 	SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, *model.AppError)
+
+	// RegisterPropertyGroup registers a new property group.
+	//
+	// @tag PropertyGroup
+	// Minimum server version: 10.8
+	RegisterPropertyGroup(name string) (*model.PropertyGroup, *model.AppError)
+
+	// GetPropertyGroup gets a property group by name.
+	//
+	// @tag PropertyGroup
+	// Minimum server version: 10.8
+	GetPropertyGroup(name string) (*model.PropertyGroup, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

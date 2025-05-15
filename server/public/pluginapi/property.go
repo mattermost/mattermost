@@ -113,3 +113,19 @@ func (p *PropertyService) SearchPropertyValues(groupID, targetID string, opts mo
 	result, appErr := p.api.SearchPropertyValues(groupID, targetID, opts)
 	return result, normalizeAppErr(appErr)
 }
+
+// RegisterPropertyGroup registers a new property group.
+//
+// Minimum server version: 10.8
+func (p *PropertyService) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
+	result, appErr := p.api.RegisterPropertyGroup(name)
+	return result, normalizeAppErr(appErr)
+}
+
+// GetPropertyGroup gets a property group by name.
+//
+// Minimum server version: 10.8
+func (p *PropertyService) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
+	result, appErr := p.api.GetPropertyGroup(name)
+	return result, normalizeAppErr(appErr)
+}

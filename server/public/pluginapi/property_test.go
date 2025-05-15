@@ -378,3 +378,51 @@ func TestPropertyValueAPI(t *testing.T) {
 		api.AssertExpectations(t)
 	})
 }
+
+func TestPropertyGroupAPI(t *testing.T) {
+	t.Run("RegisterPropertyGroup", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+
+		// Mock the API call
+		group := &model.PropertyGroup{
+			ID:   "group1",
+			Name: "Test Group",
+		}
+		api.On("RegisterPropertyGroup", "Test Group").Return(group, nil)
+
+		// Create the client
+		client := NewClient(api, nil)
+
+		// Call the method
+		result, err := client.Property.RegisterPropertyGroup("Test Group")
+
+		// Verify the results
+		assert.NoError(t, err)
+		assert.Equal(t, group, result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("GetPropertyGroup", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+
+		// Mock the API call
+		group := &model.PropertyGroup{
+			ID:   "group1",
+			Name: "Test Group",
+		}
+		api.On("GetPropertyGroup", "Test Group").Return(group, nil)
+
+		// Create the client
+		client := NewClient(api, nil)
+
+		// Call the method
+		result, err := client.Property.GetPropertyGroup("Test Group")
+
+		// Verify the results
+		assert.NoError(t, err)
+		assert.Equal(t, group, result)
+		api.AssertExpectations(t)
+	})
+}

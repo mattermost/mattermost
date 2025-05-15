@@ -7500,3 +7500,61 @@ func (s *apiRPCServer) SearchPropertyValues(args *Z_SearchPropertyValuesArgs, re
 	}
 	return nil
 }
+
+type Z_RegisterPropertyGroupArgs struct {
+	A string
+}
+
+type Z_RegisterPropertyGroupReturns struct {
+	A *model.PropertyGroup
+	B *model.AppError
+}
+
+func (g *apiRPCClient) RegisterPropertyGroup(name string) (*model.PropertyGroup, *model.AppError) {
+	_args := &Z_RegisterPropertyGroupArgs{name}
+	_returns := &Z_RegisterPropertyGroupReturns{}
+	if err := g.client.Call("Plugin.RegisterPropertyGroup", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterPropertyGroup API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) RegisterPropertyGroup(args *Z_RegisterPropertyGroupArgs, returns *Z_RegisterPropertyGroupReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterPropertyGroup(name string) (*model.PropertyGroup, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.RegisterPropertyGroup(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterPropertyGroup called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetPropertyGroupArgs struct {
+	A string
+}
+
+type Z_GetPropertyGroupReturns struct {
+	A *model.PropertyGroup
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPropertyGroup(name string) (*model.PropertyGroup, *model.AppError) {
+	_args := &Z_GetPropertyGroupArgs{name}
+	_returns := &Z_GetPropertyGroupReturns{}
+	if err := g.client.Call("Plugin.GetPropertyGroup", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPropertyGroup API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPropertyGroup(args *Z_GetPropertyGroupArgs, returns *Z_GetPropertyGroupReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPropertyGroup(name string) (*model.PropertyGroup, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPropertyGroup(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetPropertyGroup called but not implemented."))
+	}
+	return nil
+}
