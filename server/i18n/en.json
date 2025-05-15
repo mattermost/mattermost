@@ -420,10 +420,6 @@
     "translation": "Unable to leave a direct message channel."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "You're the only member left, try removing the Private Channel instead of leaving."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v left the channel."
   },
@@ -3923,6 +3919,10 @@
     "translation": "Received invalid response from OAuth service provider."
   },
   {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "An error occurred in the OnSamlLogin hook. Please contact your System Administrator."
+  },
+  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAML response is too long"
   },
@@ -5365,6 +5365,10 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "group member already exists"
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Error updating group. User with username \"{{.Username}}\" could not be found."
   },
   {
     "id": "app.group.username_conflict",
@@ -8655,6 +8659,10 @@
   {
     "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
     "translation": "Channel banner color cannot be empty when channel banner is enabled"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "Channel banner color must be a valid hex color (e.g., #FF0000 or #F00)"
   },
   {
     "id": "model.channel.is_valid.banner_info.channel_type.app_error",
