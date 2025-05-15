@@ -245,7 +245,7 @@ export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State>
                 backButtonText={this.props.backButtonText}
                 maxValues={maxValues}
                 numRemainingText={numRemainingText}
-                noteText={(
+                noteText={!this.state.values.length && (
                     <FormattedMessage
                         id='add_user_to_group_multiselect.required'
                         defaultMessage='This field is required.'
