@@ -420,7 +420,9 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 	return result, nil
 }
 
-func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
+// completePopulatingCategoryT ensures that any orphaned channels are always included in a sidebar category by adding
+// orphaned channels to either the Channels category or DMs category. It has no effect on other types of categories.
+func (s SqlChannelStore) completePopulatingCategoryT(db dbSelecter, category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
 	populatedChannels, err := s.getOrphanedSidebarChannels(
 		db,
 		category.UserId,
@@ -437,6 +439,43 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 	}
 
 	return category, nil
+}
+
+// completePopulatingCategoriesT ensures that any orphaned channels are always included in a sidebar category by adding
+// orphaned channels to either the Channels category or DMs category. It has no effect on other types of categories.
+func (s SqlChannelStore) completePopulatingCategoriesT(db dbSelecter, userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, error) {
+	// Find the channels and DMs categories to know what to get from the database
+	channelsIndex := -1
+	dmsIndex := -1
+	for i, category := range categories {
+		if category.Type == model.SidebarCategoryChannels {
+			channelsIndex = i
+		} else if category.Type == model.SidebarCategoryDirectMessages {
+			dmsIndex = i
+		}
+	}
+
+	populatedChannels, err := s.getOrphanedSidebarChannels(
+		db,
+		userId,
+		teamId,
+		channelsIndex != -1,
+		dmsIndex != -1,
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to get orphaned sidebar channels")
+	}
+
+	// Sort the returned channels into their corresponding category
+	for _, channel := range populatedChannels {
+		if channelsIndex != -1 && (channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate) {
+			categories[channelsIndex].Channels = append(categories[channelsIndex].Channels, channel.Id)
+		} else if dmsIndex != -1 && (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
+			categories[dmsIndex].Channels = append(categories[dmsIndex].Channels, channel.Id)
+		}
+	}
+
+	return categories, nil
 }
 
 type OrphanedSidebarChannel struct {
@@ -554,7 +593,7 @@ func (s SqlChannelStore) getSidebarCategoryT(db dbSelecter, categoryId string) (
 			result.Channels = append(result.Channels, *category.ChannelId)
 		}
 	}
-	return s.completePopulatingCategoryChannelsT(db, result)
+	return s.completePopulatingCategoryT(db, result)
 }
 
 func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
@@ -618,10 +657,9 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 			prevCategory.Channels = append(prevCategory.Channels, *category.ChannelId)
 		}
 	}
-	for _, category := range oc.Categories {
-		if _, err := s.completePopulatingCategoryChannelsT(db, category); err != nil {
-			return nil, err
-		}
+
+	if _, err := s.completePopulatingCategoriesT(db, userId, opts.TeamID, oc.Categories); err != nil {
+		return nil, err
 	}
 
 	return &oc, nil
@@ -912,13 +950,8 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 	}
 
 	// Ensure Channels are populated for Channels/Direct Messages category if they change
-	for i, updatedCategory := range updatedCategories {
-		populated, nErr := s.completePopulatingCategoryChannelsT(transaction, updatedCategory)
-		if nErr != nil {
-			return nil, nil, nErr
-		}
-
-		updatedCategories[i] = populated
+	if _, err := s.completePopulatingCategoriesT(transaction, userId, teamId, updatedCategories); err != nil {
+		return nil, nil, err
 	}
 
 	if err = transaction.Commit(); err != nil {
