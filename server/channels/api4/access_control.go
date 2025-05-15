@@ -38,7 +38,7 @@ func (api *API) InitAccessControlPolicy() {
 func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	var policy model.AccessControlPolicy
 	if jsonErr := json.NewDecoder(r.Body).Decode(&policy); jsonErr != nil {
-		c.SetInvalidParamWithErr("user", jsonErr)
+		c.SetInvalidParamWithErr("policy", jsonErr)
 		return
 	}
 
@@ -246,7 +246,7 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	policyID := c.Params.PolicyId
 
-	auditRec := c.MakeAuditRecord("deleteAccessControlPolicy", audit.Fail)
+	auditRec := c.MakeAuditRecord("updateActiveStatus", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "id", policyID)
 

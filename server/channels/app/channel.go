@@ -1610,7 +1610,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 				if evalErr != nil {
 					return nil, evalErr
 				} else if !decision.Decision {
-					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "", http.StatusForbidden)
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.rejected", nil, "", http.StatusForbidden)
 				}
 			}
 		} else if appErr != nil {

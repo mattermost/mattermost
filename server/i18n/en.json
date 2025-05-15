@@ -248,6 +248,10 @@
     "translation": "Failed to add user to channel because they have been removed from the team."
   },
   {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "User does not have required attributes to join the channel."
+  },
+  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Can not add user to this channel type."
   },
