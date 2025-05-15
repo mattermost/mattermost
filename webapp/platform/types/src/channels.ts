@@ -68,6 +68,7 @@ export type Channel = {
     props?: Record<string, any>;
     policy_id?: string | null;
     banner_info?: ChannelBanner;
+    default_category_name?: string;
 };
 
 export type ServerChannel = Channel & {

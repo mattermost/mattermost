@@ -19,6 +19,7 @@ import {
     getCategoryInTeamByType,
     getCategoryInTeamWithChannel,
 } from 'mattermost-redux/selectors/entities/channel_categories';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {
     ActionFuncAsync,
@@ -188,6 +189,44 @@ export function addChannelToInitialCategory(channel: Channel, setOnServer = fals
                     channel_ids: insertWithoutDuplicates(category.channel_ids, channel.id, 0),
                 })),
             });
+        }
+
+        const shouldSort = getConfig(state).ExperimentalChannelCategorySorting === 'true';
+        if (shouldSort && channel.default_category_name) {
+            // Find or create the category
+            let targetCategory = categories.find((category) =>
+                category.type === CategoryTypes.CUSTOM &&
+                category.display_name.toLowerCase() === channel.default_category_name!.toLowerCase(),
+            );
+
+            if (!targetCategory) {
+                if (!setOnServer) {
+                    return {data: false};
+                }
+
+                // Create new category if it doesn't exist
+                const result = await dispatch(createCategory(channel.team_id, channel.default_category_name));
+                if (result.error) {
+                    // If category creation fails, fall back to default behavior
+                    // eslint-disable-next-line no-console
+                    console.error('Failed to create category:', result.error);
+                } else {
+                    targetCategory = result.data;
+                }
+            }
+
+            if (targetCategory) {
+                await dispatch({
+                    type: ChannelCategoryTypes.RECEIVED_CATEGORIES,
+                    data: [{
+                        ...targetCategory,
+                        channel_ids: insertWithoutDuplicates(targetCategory.channel_ids ?? [], channel.id, 0),
+                    }],
+                });
+                if (setOnServer) {
+                    return dispatch(addChannelToCategory(targetCategory.id, channel.id));
+                }
+            }
         }
 
         // Add the new channel to the Channels category on the channel's team
