@@ -49,6 +49,11 @@ type PlatformService struct {
 	filestore       filestore.FileBackend
 	exportFilestore filestore.FileBackend
 
+	// Channel for batching status updates
+	statusUpdateChan       chan *model.Status
+	statusUpdateExitSignal chan struct{}
+	statusUpdateDoneSignal chan struct{}
+
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
 	sessionCache  cache.Cache
@@ -135,6 +140,9 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		},
 		licenseListeners:          map[string]func(*model.License, *model.License){},
 		additionalClusterHandlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{},
+		statusUpdateChan:          make(chan *model.Status, statusUpdateBuffer),
+		statusUpdateExitSignal:    make(chan struct{}),
+		statusUpdateDoneSignal:    make(chan struct{}),
 	}
 
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
@@ -396,6 +404,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 }
 
 func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error {
+	// Start the status update processor.
+	// Must be done before hub start.
+	go ps.processStatusUpdates()
+
 	ps.hubStart(broadcastHooks)
 
 	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
@@ -495,6 +507,12 @@ func (ps *PlatformService) TotalWebsocketConnections() int {
 
 func (ps *PlatformService) Shutdown() error {
 	ps.HubStop()
+
+	// Shutdown status processor.
+	// Must be done after hub shutdown.
+	close(ps.statusUpdateExitSignal)
+	// wait for it to be stopped.
+	<-ps.statusUpdateDoneSignal
 
 	ps.RemoveLicenseListener(ps.licenseListenerId)
 
