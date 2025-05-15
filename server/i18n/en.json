@@ -360,10 +360,6 @@
     "translation": "Invalid user ID for direct channel creation."
   },
   {
-    "id": "api.channel.create_direct_channel.user_not_visible.app_error",
-    "translation": "Unable to create direct channel with user that is not visible to you."
-  },
-  {
     "id": "api.channel.create_group.bad_size.app_error",
     "translation": "Group message channels must contain at least 3 and no more than 8 users."
   },
