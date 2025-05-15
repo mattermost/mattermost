@@ -995,25 +995,18 @@ func (s SqlSharedChannelStore) UpdateAttachmentLastSyncAt(id string, syncTime in
 
 // UpdateGlobalUserSyncCursor updates the LastGlobalUserSyncAt timestamp for the specified RemoteCluster.
 func (s SqlSharedChannelStore) UpdateGlobalUserSyncCursor(remoteID string, syncAt int64) error {
-	squery, args, err := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Update("RemoteClusters").
 		Set("LastGlobalUserSyncAt", syncAt).
-		Where(sq.Eq{"RemoteId": remoteID}).
-		ToSql()
-	if err != nil {
-		return errors.Wrap(err, "update_global_user_sync_cursor_tosql")
-	}
+		Where(sq.Eq{"RemoteId": remoteID})
 
-	result, err := s.GetMaster().Exec(squery, args...)
+	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
 		return errors.Wrap(err, "failed to update LastGlobalUserSyncAt for RemoteCluster")
 	}
 
 	count, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "failed to determine rows affected")
-	}
-	if count == 0 {
+	if err != nil || count == 0 {
 		return fmt.Errorf("remote cluster not found: %s", remoteID)
 	}
 	return nil
