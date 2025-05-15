@@ -125,8 +125,30 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		err := searchUserCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
-		user := printer.GetLines()[0].(*model.User)
+		user := printer.GetLines()[0].(userOut)
 		s.Equal(s.th.BasicUser.Username, user.Username)
+		s.False(user.Deactivated)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForAllClients("Search for a disabled user", func(c client.Client) {
+		printer.Clean()
+
+		// Create a disabled user
+		disabledUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
+			Email:    s.th.GenerateTestEmail(),
+			Username: model.NewUsername(),
+			Password: model.NewId(),
+			DeleteAt: model.GetMillis(), // Set DeleteAt to disable the user
+		})
+		s.Require().Nil(appErr)
+
+		err := searchUserCmdF(c, &cobra.Command{}, []string{disabledUser.Email})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		user := printer.GetLines()[0].(userOut)
+		s.Equal(disabledUser.Username, user.Username)
+		s.True(user.Deactivated) // Verify user shows as deactivated
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
