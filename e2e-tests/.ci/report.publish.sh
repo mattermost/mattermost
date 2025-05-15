@@ -105,7 +105,16 @@ case "$TEST" in
     if [ -n "$WEBHOOK_URL" ]; then
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i
       # Utilize environment data and report files to generate the webhook body
-      node report.webhookgen.js | curl -X POST -fsSL -H 'Content-Type: application/json' -d @- "$WEBHOOK_URL"
+      # Step 1: Get the data
+      REPORT_DATA=$(node report.webhookgen.js)
+
+      # Step 2: Verify the data
+      echo "Generated report data:"
+      echo "$REPORT_DATA"
+
+      # Step 3: Send the data
+      echo "$REPORT_DATA" | curl -X POST -fsSL -H 'Content-Type: application/json' -d @- "$WEBHOOK_URL"
+      # node report.webhookgen.js | curl -X POST -fsSL -H 'Content-Type: application/json' -d @- "$WEBHOOK_URL"
     fi
     ;;
 esac
