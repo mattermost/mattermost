@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useState, useMemo, useRef, useEffect} from 'react';
 import type {MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
@@ -89,6 +89,87 @@ const LDAPWizard = (props: Props) => {
     }, [props.config, props.roles, schema]);
 
     const [saveActions, setSaveActions] = useState<Array<() => Promise<{error?: {message?: string}}>>>([]);
+
+    const memoizedSections = useMemo(() => {
+        return (schema && 'sections' in schema && schema.sections) ? schema.sections : [];
+    }, [schema]);
+
+    const [activeSectionKey, setActiveSectionKey] = useState<string | null>(null);
+    const [intersectingSectionKeys, setIntersectingSectionKeys] = useState<Set<string>>(new Set());
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+    // Set initial active section
+    useEffect(() => {
+        if (memoizedSections.length > 0 && !activeSectionKey) {
+            setActiveSectionKey(memoizedSections[0].key);
+        }
+    }, [memoizedSections, activeSectionKey]);
+
+    // IntersectionObserver setup
+    useEffect(() => {
+        if (memoizedSections.length === 0) {
+            return undefined;
+        }
+
+        const observerCallback = (entries: IntersectionObserverEntry[]) => {
+            setIntersectingSectionKeys((prevKeys) => {
+                const newKeys = new Set(prevKeys);
+                entries.forEach((entry) => {
+                    const key = (entry.target as HTMLElement).dataset.sectionKey;
+                    if (key) {
+                        if (entry.isIntersecting) {
+                            newKeys.add(key);
+                        } else {
+                            newKeys.delete(key);
+                        }
+                    }
+                });
+                return newKeys;
+            });
+        };
+
+        const observerOptions: IntersectionObserverInit = {
+            root: null, // Use viewport as root
+            rootMargin: '-40% 0px -40% 0px', // Active when in the middle 20% of the viewport
+            threshold: 0.01, // At least 1% of element in this zone
+        };
+
+        const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+        let observedCount = 0;
+        memoizedSections.forEach((section) => {
+            const el = sectionRefs.current[section.key];
+            if (el) {
+                observer.observe(el);
+                observedCount++;
+            }
+        });
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [memoizedSections]);
+
+    // Determine active section based on intersections
+    useEffect(() => {
+        let newActiveKey: string | null = null;
+
+        if (intersectingSectionKeys.size > 0) {
+            for (const section of memoizedSections) {
+                if (intersectingSectionKeys.has(section.key)) {
+                    newActiveKey = section.key; // First section in DOM order that's intersecting
+                    break;
+                }
+            }
+        }
+
+        if (newActiveKey && newActiveKey !== activeSectionKey) {
+            setActiveSectionKey(newActiveKey);
+        } else if (!activeSectionKey && newActiveKey && memoizedSections.length > 0) {
+            setActiveSectionKey(newActiveKey);
+        }
+    }, [intersectingSectionKeys, memoizedSections, activeSectionKey]);
 
     const buildTextSetting = (setting: AdminDefinitionSetting) => {
         return (
@@ -476,9 +557,9 @@ const LDAPWizard = (props: Props) => {
             return null;
         }
 
-        const sections: React.ReactNode[] = [];
+        const renderedSections: React.ReactNode[] = [];
 
-        schema.sections.forEach((section) => {
+        memoizedSections.forEach((section) => {
             const settingsList: React.ReactNode[] = [];
             if (section.settings) {
                 section.settings.forEach((setting) => {
@@ -490,7 +571,7 @@ const LDAPWizard = (props: Props) => {
 
             if (section.component) {
                 const CustomComponent = section.component;
-                sections.push((
+                renderedSections.push((
                     <CustomComponent
                         settingsList={settingsList}
                         key={section.key}
@@ -523,10 +604,16 @@ const LDAPWizard = (props: Props) => {
                 );
             }
 
-            sections.push(
+            renderedSections.push(
                 <div
                     className={'config-section'}
                     key={section.key}
+                    ref={(el) => {
+                        if (sectionRefs.current) {
+                            sectionRefs.current[section.key] = el;
+                        }
+                    }}
+                    data-section-key={section.key}
                 >
                     <SettingsGroup
                         show={true}
@@ -545,12 +632,10 @@ const LDAPWizard = (props: Props) => {
 
         return (
             <div>
-                {sections}
+                {renderedSections}
             </div>
         );
     };
-
-    const sections = schema && 'sections' in schema && schema.sections ? schema.sections : [];
 
     return (
         <div
@@ -567,10 +652,25 @@ const LDAPWizard = (props: Props) => {
                             defaultMessage='Sections'
                         />
                     </div>
-                    {sections.map((section, index) => (
+                    {memoizedSections.map((section) => (
                         <div
                             key={section.key + '-sidebar-item'}
-                            className={`ldap-wizard-sidebar-item ${index === 0 ? 'ldap-wizard-sidebar-item--active' : ''}`}
+                            className={`ldap-wizard-sidebar-item ${section.key === activeSectionKey ? 'ldap-wizard-sidebar-item--active' : ''}`}
+                            onClick={() => {
+                                const sectionElement = sectionRefs.current[section.key];
+                                if (sectionElement) {
+                                    sectionElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+                                }
+                            }}
+                            role='button'
+                            tabIndex={0}
+
+                            // for accessibility: allow activation with Enter/Space
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.currentTarget.click();
+                                }
+                            }}
                         >
                             <FormattedMessage
                                 id={section.title}
@@ -579,8 +679,13 @@ const LDAPWizard = (props: Props) => {
                         </div>
                     ))}
                 </div>
-                <div className='admin-console__wrapper'>
-                    <div className='admin-console__content'>
+                <div
+                    className='admin-console__wrapper'
+                >
+                    <div
+                        className='admin-console__content'
+                        ref={scrollContainerRef}
+                    >
                         <form
                             className='form-horizontal'
                             role='form'
