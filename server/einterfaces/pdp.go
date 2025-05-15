@@ -12,5 +12,5 @@ import (
 // using the OpenID Auth API spec. It determines whether a subject can perform
 // an action on a resource based on the resource policy.
 type PolicyDecisionPointInterface interface {
-	AccessEvaluation(rctx request.CTX, accessRequest model.AccessRequest) (*model.AccessDecision, *model.AppError)
+	AccessEvaluation(rctx request.CTX, accessRequest model.AccessRequest) (model.AccessDecision, *model.AppError)
 }
