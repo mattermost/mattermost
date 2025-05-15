@@ -66,6 +66,12 @@
         textarea {
             margin-top: 6px;
         }
+
+        .form-control[disabled] {
+            background: none;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
     }
 
     .Input_limit-exceeded {
