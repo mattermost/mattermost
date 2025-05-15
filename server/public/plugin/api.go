@@ -1403,91 +1403,91 @@ type API interface {
 	// CreatePropertyField creates a new property field.
 	//
 	// @tag PropertyField
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	CreatePropertyField(field *model.PropertyField) (*model.PropertyField, *model.AppError)
 
 	// GetPropertyField gets a property field by groupID and fieldID.
 	//
 	// @tag PropertyField
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	GetPropertyField(groupID, fieldID string) (*model.PropertyField, *model.AppError)
 
 	// GetPropertyFields gets multiple property fields by groupID and a list of IDs.
 	//
 	// @tag PropertyField
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, *model.AppError)
 
 	// UpdatePropertyField updates an existing property field.
 	//
 	// @tag PropertyField
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, *model.AppError)
 
 	// DeletePropertyField deletes a property field (soft delete).
 	//
 	// @tag PropertyField
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	DeletePropertyField(groupID, fieldID string) *model.AppError
 
 	// SearchPropertyFields searches for property fields with filtering options.
 	//
 	// @tag PropertyField
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, *model.AppError)
 
 	// CreatePropertyValue creates a new property value.
 	//
 	// @tag PropertyValue
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, *model.AppError)
 
 	// GetPropertyValue gets a property value by groupID and valueID.
 	//
 	// @tag PropertyValue
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	GetPropertyValue(groupID, valueID string) (*model.PropertyValue, *model.AppError)
 
 	// GetPropertyValues gets multiple property values by groupID and a list of IDs.
 	//
 	// @tag PropertyValue
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	GetPropertyValues(groupID string, ids []string) ([]*model.PropertyValue, *model.AppError)
 
 	// UpdatePropertyValue updates an existing property value.
 	//
 	// @tag PropertyValue
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	UpdatePropertyValue(groupID string, value *model.PropertyValue) (*model.PropertyValue, *model.AppError)
 
 	// UpsertPropertyValue creates a new property value or updates if it already exists.
 	//
 	// @tag PropertyValue
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, *model.AppError)
 
 	// DeletePropertyValue deletes a property value (soft delete).
 	//
 	// @tag PropertyValue
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	DeletePropertyValue(groupID, valueID string) *model.AppError
 
 	// SearchPropertyValues searches for property values with filtering options.
 	//
 	// @tag PropertyValue
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, *model.AppError)
 
 	// RegisterPropertyGroup registers a new property group.
 	//
 	// @tag PropertyGroup
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	RegisterPropertyGroup(name string) (*model.PropertyGroup, *model.AppError)
 
 	// GetPropertyGroup gets a property group by name.
 	//
 	// @tag PropertyGroup
-	// Minimum server version: 10.8
+	// Minimum server version: 10.10
 	GetPropertyGroup(name string) (*model.PropertyGroup, *model.AppError)
 }
 
