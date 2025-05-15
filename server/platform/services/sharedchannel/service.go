@@ -45,6 +45,7 @@ type ServerIface interface {
 	Log() *mlog.Logger
 	GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace
 	GetMetrics() einterfaces.MetricsInterface
+	GetClusterId() string
 }
 
 type PlatformIface interface {
@@ -95,8 +96,6 @@ type Service struct {
 	active           bool
 	leaderListenerId string
 
-	// ID of this cluster
-	myClusterId               string
 	connectionStateListenerId string
 	done                      chan struct{}
 	tasks                     map[string]syncTask
@@ -227,23 +226,8 @@ func (scs *Service) pause() {
 
 // getMyClusterId returns the ID of this cluster
 func (scs *Service) getMyClusterId() string {
-	scs.mux.RLock()
-	defer scs.mux.RUnlock()
-
-	// If myClusterId is not set, generate a new one
-	if scs.myClusterId == "" {
-		scs.mux.RUnlock()
-		scs.mux.Lock()
-		defer scs.mux.Unlock()
-
-		// Double-check after acquiring write lock
-		if scs.myClusterId == "" {
-			scs.myClusterId = model.NewId()
-		}
-		return scs.myClusterId
-	}
-
-	return scs.myClusterId
+	// Get the cluster ID from the server interface
+	return scs.server.GetClusterId()
 }
 
 // GetMemberSyncBatchSize returns the configured batch size for member synchronization
