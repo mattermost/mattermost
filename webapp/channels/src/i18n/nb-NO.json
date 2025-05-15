@@ -418,6 +418,7 @@
   "admin.bleve.bulkIndexingTitle": "Bulkindeksering:",
   "admin.bleve.createJob.help": "Alle brukere, kanaler og innlegg i databasen vil bli indeksert fra eldste til nyeste. Bleve er tilgjengelig under indeksering, men søkeresultatene kan være ufullstendige inntil indekseringsjobben er fullført.",
   "admin.bleve.createJob.title": "Indekser nå",
+  "admin.bleve.enableAutocompleteDescription": "Når sann, vil Bleve brukes for alle autofullføringsspørringer på brukere og kanaler ved hjelp av den nyeste indeksen. Resultatene av autofullføring kan være ufullstendige inntil en masseindeksering av den eksisterende databasen med brukere og kanaler er ferdig. Når falsk, brukes autofullføring i databasen.",
   "admin.bleve.enableAutocompleteTitle": "Aktiver Bleve for autofullføring av spørringer:",
   "admin.bleve.enableIndexingDescription": "Når sann, indekseres nye innlegg automatisk. Søk vil bruke databasesøk inntil \"Aktiver Bleve for søk\" er aktivert. {documentationLink}",
   "admin.bleve.enableIndexingTitle": "Aktiver Bleve-indeksering:",
