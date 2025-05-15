@@ -7,7 +7,7 @@ import React, {memo, useEffect, useRef} from 'react';
 
 import {ListItemSizeObserver} from './item_row_size_observer';
 
-const RESIZE_DEBOUNCE_TIME = 120; // in ms
+const RESIZE_DEBOUNCE_TIME = 200; // in ms
 
 const listItemSizeObserver = new ListItemSizeObserver();
 
