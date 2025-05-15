@@ -290,24 +290,51 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		require.NoError(t, err)
 	})
 
+	id3 := "zzz" + model.NewId()[3:] // ensure the order of the ID
+	parentPolicy2 := &model.AccessControlPolicy{
+		ID:       id3,
+		Name:     "Name",
+		Type:     model.AccessControlPolicyTypeParent,
+		Active:   true,
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_1,
+		Imports:  []string{},
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{"action"},
+				Expression: "user.properties.program == \"engineering\"",
+			},
+		},
+	}
+	t.Cleanup(func() {
+		err = ss.AccessControlPolicy().Delete(rctx, id)
+		require.NoError(t, err)
+	})
+
+	_, err = ss.AccessControlPolicy().Save(rctx, parentPolicy2)
+	require.NoError(t, err)
+	require.NotNil(t, parentPolicy)
+
 	resourcePolicy, err = ss.AccessControlPolicy().Save(rctx, resourcePolicy)
 	require.NoError(t, err)
 	require.NotNil(t, resourcePolicy)
 	t.Run("GetAll", func(t *testing.T) {
-		policies, err := ss.AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{})
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
-		require.Len(t, policies, 2)
+		require.Len(t, policies, 3)
 	})
 
 	t.Run("GetAll by type", func(t *testing.T) {
-		policies, err := ss.AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{Type: model.AccessControlPolicyTypeParent})
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{Type: model.AccessControlPolicyTypeParent, IncludeChildren: true})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
-		require.Len(t, policies, 1)
+		require.Len(t, policies, 2)
 		require.Equal(t, parentPolicy.ID, policies[0].ID)
+		require.Equal(t, map[string]any{"child_ids": []string{resourcePolicy.ID}}, policies[0].Props)
+		require.Equal(t, map[string]any{"child_ids": []string{}}, policies[1].Props)
 
-		policies, err = ss.AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{Type: model.AccessControlPolicyTypeChannel})
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{Type: model.AccessControlPolicyTypeChannel})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
 		require.Len(t, policies, 1)
@@ -315,13 +342,13 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 	})
 
 	t.Run("GetAll by parent", func(t *testing.T) {
-		policies, err := ss.AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{ParentID: parentPolicy.ID})
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{ParentID: parentPolicy.ID})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
 		require.Len(t, policies, 1)
 		require.Equal(t, resourcePolicy.ID, policies[0].ID)
 
-		policies, err = ss.AccessControlPolicy().GetAll(rctx, store.GetPolicyOptions{ParentID: model.NewId()})
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{ParentID: model.NewId()})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
 		require.Len(t, policies, 0)
