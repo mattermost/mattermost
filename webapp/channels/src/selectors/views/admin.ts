@@ -22,3 +22,11 @@ export function getNeedsLoggedInLimitReachedCheck(state: GlobalState): boolean {
 export function getAdminConsoleUserManagementTableProperties(state: GlobalState) {
     return state.views.admin.adminConsoleUserManagementTableProperties;
 }
+
+export function getAdminConsoleTeamManagementTableProperties(state: GlobalState) {
+    return state.views.admin.adminConsoleTeamManagementTableProperties;
+}
+
+export function getAdminConsoleChannelManagementTableProperties(state: GlobalState) {
+    return state.views.admin.adminConsoleChannelManagementTableProperties;
+}

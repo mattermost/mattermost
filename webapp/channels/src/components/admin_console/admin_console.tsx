@@ -75,6 +75,8 @@ class AdminConsole extends React.PureComponent<Props, State> {
 
         // Reset the admin console users management table properties
         this.props.actions.setAdminConsoleUsersManagementTableProperties();
+        this.props.actions.setAdminConsoleTeamsManagementTableProperties();
+        this.props.actions.setAdminConsoleChannelsManagementTableProperties();
     }
 
     private handleSearchChange = (search: string) => {

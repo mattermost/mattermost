@@ -11,6 +11,9 @@ import {getAllChannelsWithCount as getData, searchAllChannels} from 'mattermost-
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 
+import {setAdminConsoleChannelsManagementTableProperties} from 'actions/views/admin';
+import {getAdminConsoleChannelManagementTableProperties} from 'selectors/views/admin';
+
 import {Constants} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -28,9 +31,11 @@ const getSortedListOfChannels = createSelector(
 );
 
 function mapStateToProps(state: GlobalState) {
+    const tableProperties = getAdminConsoleChannelManagementTableProperties(state);
     return {
         data: getSortedListOfChannels(state) as ChannelWithTeamData[],
         total: state.entities.channels.totalCount,
+        tableProperties,
     };
 }
 
@@ -39,6 +44,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             getData,
             searchAllChannels,
+            setAdminConsoleChannelsManagementTableProperties,
         }, dispatch),
     };
 }
