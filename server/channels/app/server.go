@@ -1874,3 +1874,11 @@ func (s *Server) Log() *mlog.Logger {
 func (s *Server) NotificationsLog() *mlog.Logger {
 	return s.platform.NotificationsLogger()
 }
+
+// GetClusterId returns the cluster ID from the platform
+func (s *Server) GetClusterId() string {
+	if s.platform != nil && s.platform.Cluster() != nil {
+		return s.platform.Cluster().GetClusterId()
+	}
+	return ""
+}
