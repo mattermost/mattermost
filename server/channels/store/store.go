@@ -1023,6 +1023,7 @@ type SharedChannelStore interface {
 	GetUsersByRemote(remoteID string) ([]*model.SharedChannelUser, error)
 	GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error)
 	UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error
+	UpdateGlobalUserSyncCursor(remoteID string, syncAt int64) error
 
 	SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error)
 	UpsertAttachment(remote *model.SharedChannelAttachment) (string, error)

@@ -868,17 +868,15 @@ func (scs *Service) collectUsersForGlobalSync(rc *model.RemoteCluster, batchSize
 
 // updateGlobalSyncCursor updates the LastGlobalUserSyncAt value for the remote cluster
 func (scs *Service) updateGlobalSyncCursor(rc *model.RemoteCluster, newTimestamp int64) {
-	rcCopy := *rc
-	rcCopy.LastGlobalUserSyncAt = newTimestamp
-	updatedRC, err := scs.server.GetStore().RemoteCluster().Update(&rcCopy)
+	err := scs.server.GetStore().SharedChannel().UpdateGlobalUserSyncCursor(rc.RemoteId, newTimestamp)
 	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update sync cursor",
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update global user sync cursor",
 			mlog.String("remote_id", rc.RemoteId),
 			mlog.Err(err),
 		)
-	} else if updatedRC != nil {
-		// Update our working copy with the saved version
-		*rc = *updatedRC
+	} else {
+		// Update our working copy with the new timestamp
+		rc.LastGlobalUserSyncAt = newTimestamp
 	}
 }
 
