@@ -384,6 +384,8 @@ func (scs *Service) processMembershipBatch(channelID string, memberIDs []string,
 
 		// Parse response to get successful user syncs
 		var syncResp model.SyncResponse
+		var hasSuccessfulSync bool
+
 		if resp != nil && len(resp.Payload) > 0 {
 			if unmarshalErr := json.Unmarshal(resp.Payload, &syncResp); unmarshalErr != nil {
 				sendErr = fmt.Errorf("failed to unmarshal sync response: %w", unmarshalErr)
@@ -392,12 +394,11 @@ func (scs *Service) processMembershipBatch(channelID string, memberIDs []string,
 
 			// If we got a valid response with UsersSyncd
 			if len(syncResp.UsersSyncd) > 0 {
+				hasSuccessfulSync = true
 				// Only update users explicitly marked as successful
 				for _, userID := range syncResp.UsersSyncd {
 					if err := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(userID, channelID, remoteID); err != nil {
-						scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync timestamp",
-							mlog.String("remote_id", remoteID),
-							mlog.String("channel_id", channelID),
+						scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user sync timestamp",
 							mlog.String("user_id", userID),
 							mlog.Err(err),
 						)
@@ -405,51 +406,38 @@ func (scs *Service) processMembershipBatch(channelID string, memberIDs []string,
 					}
 				}
 
-				// Update cursor with the latest sync time
-				if err := scs.updateMembershipSyncCursor(channelID, remoteID, syncTime, true); err != nil {
-					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync cursor",
-						mlog.String("remote_id", remoteID),
-						mlog.String("channel_id", channelID),
-						mlog.Err(err),
-					)
-					// Continue despite error as we've already processed the user updates
-				}
-
 				// Log any user-specific errors
 				if len(syncResp.UserErrors) > 0 {
-					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Received user errors in batch sync response",
-						mlog.String("remote_id", remoteID),
-						mlog.String("channel_id", channelID),
-						mlog.Array("user_errors", syncResp.UserErrors),
+					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "User errors in batch sync response",
+						mlog.Int("error_count", len(syncResp.UserErrors)),
 					)
 				}
 			} else {
 				// No users were synced successfully
 				sendErr = fmt.Errorf("no users were successfully synced in batch")
+				return
 			}
 		} else {
 			// Fall back to old behavior if no detailed response
+			hasSuccessfulSync = true
 			// Record successful sync for all users in the batch
 			for _, userID := range memberIDs {
 				if err := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(userID, channelID, remoteID); err != nil {
-					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync timestamp",
-						mlog.String("remote_id", remoteID),
-						mlog.String("channel_id", channelID),
+					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user sync timestamp",
 						mlog.String("user_id", userID),
 						mlog.Err(err),
 					)
 					// Continue with other users despite the error
 				}
 			}
+		}
 
-			// Update cursor with the latest sync time
+		// Update cursor with the latest sync time if any sync was successful
+		if hasSuccessfulSync {
 			if err := scs.updateMembershipSyncCursor(channelID, remoteID, syncTime, true); err != nil {
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync cursor",
-					mlog.String("remote_id", remoteID),
-					mlog.String("channel_id", channelID),
 					mlog.Err(err),
 				)
-				// Continue despite error as we've already processed the user updates
 			}
 		}
 	}
@@ -651,9 +639,7 @@ func (scs *Service) syncMembershipToRemote(channelID, userID string, isAdd bool,
 			// Record successful sync
 			err = scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(userID, channelID, remote.RemoteId)
 			if err != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync timestamp",
-					mlog.String("remote_id", remote.RemoteId),
-					mlog.String("channel_id", channelID),
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user sync timestamp",
 					mlog.String("user_id", userID),
 					mlog.Err(err),
 				)
@@ -662,16 +648,11 @@ func (scs *Service) syncMembershipToRemote(channelID, userID string, isAdd bool,
 			// Update the cursor only on success
 			if err := scs.updateMembershipSyncCursor(channelID, remote.RemoteId, changeTime, true); err != nil {
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync cursor",
-					mlog.String("remote_id", remote.RemoteId),
-					mlog.String("channel_id", channelID),
 					mlog.Err(err),
 				)
-				// Continue despite error as we've already processed the user update
 			}
 		} else {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "User not included in synced users list",
-				mlog.String("remote_id", remote.RemoteId),
-				mlog.String("channel_id", channelID),
 				mlog.String("user_id", userID),
 			)
 		}

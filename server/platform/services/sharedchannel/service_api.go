@@ -309,22 +309,5 @@ func (scs *Service) updateMembershipSyncCursor(channelID string, remoteID string
 	}
 
 	// Update the cursor - the store will handle ensuring it only moves forward
-	err = scs.server.GetStore().SharedChannel().UpdateRemoteMembershipCursor(scr.Id, newTimestamp)
-	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync cursor",
-			mlog.String("remote_id", remoteID),
-			mlog.String("channel_id", channelID),
-			mlog.Err(err),
-		)
-		return err
-	}
-
-	// Only log at debug level to reduce noise
-	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated membership sync cursor",
-		mlog.String("remote_id", remoteID),
-		mlog.String("channel_id", channelID),
-		mlog.Int("cursor", int(newTimestamp)),
-	)
-
-	return nil
+	return scs.server.GetStore().SharedChannel().UpdateRemoteMembershipCursor(scr.Id, newTimestamp)
 }
