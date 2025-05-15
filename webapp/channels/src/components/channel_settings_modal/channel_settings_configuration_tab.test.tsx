@@ -83,6 +83,29 @@ describe('ChannelSettingsConfigurationTab', () => {
         expect(screen.queryByTestId('channel_banner_banner_background_color_picker')).not.toBeInTheDocument();
     });
 
+    it('should render with the correct default values when banner is enabled', async () => {
+        const channelWithNoColor = {...mockChannelWithBanner, banner_info: undefined};
+        renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: channelWithNoColor}}/>);
+
+        // Check that the toggle is enabled
+        const toggle = screen.getByTestId('channelBannerToggle-button');
+        expect(toggle).toBeInTheDocument();
+        expect(toggle).not.toHaveClass('active');
+
+        // Click the toggle to enable the banner
+        await act(async () => {
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+        });
+
+        // Banner text and color inputs should be visible when banner is enabled
+        expect(screen.getByTestId('channel_banner_banner_text_textbox')).toBeInTheDocument();
+        expect(screen.getByTestId('channel_banner_banner_text_textbox')).toHaveValue('');
+
+        // Check that the color picker has the correct value
+        expect(screen.getByTestId('color-inputColorValue')).toBeInTheDocument();
+        expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#DDDDDD');
+    });
+
     it('should render with the correct initial values when banner is enabled', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
 
@@ -97,6 +120,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         // Check that the color picker has the correct value
         expect(screen.getByTestId('color-inputColorValue')).toBeInTheDocument();
+        expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#ff0000');
     });
 
     it('should show banner settings when toggle is clicked', async () => {
@@ -312,5 +336,102 @@ describe('ChannelSettingsConfigurationTab', () => {
         const errorMessage = screen.getByText(/Banner color is required/);
         const errorPanel = errorMessage.closest('.SaveChangesPanel');
         expect(errorPanel).toHaveClass('error');
+    });
+
+    it('should save valid colors in hex format', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+        renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
+
+        // Enable the banner
+        await act(async () => {
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+        });
+
+        // Enter banner text
+        await act(async () => {
+            const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+            await userEvent.clear(textInput);
+            await userEvent.type(textInput, 'New banner text');
+        });
+
+        // Enter a valid hex color
+        await act(async () => {
+            const colorInput = screen.getByTestId('color-inputColorValue');
+            await userEvent.clear(colorInput);
+            await userEvent.type(colorInput, '#ff0000');
+        });
+
+        // Click the Save button
+        await act(async () => {
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        });
+
+        // Verify patchChannel was called with the correct color
+        expect(patchChannel).toHaveBeenCalledWith('channel1', expect.objectContaining({
+            banner_info: expect.objectContaining({
+                background_color: expect.stringMatching(/#[0-9a-f]{6}/i), // Match any hex color
+            }),
+        }));
+    });
+
+    it('only valid colors will make the save changes panel visible', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+        patchChannel.mockClear(); // Clear any previous calls
+
+        const originalColor = '#DDDDDD'; // Original color
+
+        // Create a channel with an valid color
+        const channelWithValidColor = {
+            ...mockChannel,
+            banner_info: {
+                enabled: true,
+                text: 'Test text',
+                background_color: originalColor, // Valid color
+            },
+        };
+
+        // Render with the invalid color channel
+        renderWithContext(
+            <ChannelSettingsConfigurationTab
+                channel={channelWithValidColor}
+                setAreThereUnsavedChanges={jest.fn()}
+            />,
+        );
+
+        // Enter a invalid hex color
+        await act(async () => {
+            const colorInput = screen.getByTestId('color-inputColorValue');
+            await userEvent.clear(colorInput);
+            await userEvent.type(colorInput, 'not-a-color');
+        });
+
+        // Do another action to trigger blur on this input so color is validated
+        await act(async () => {
+            const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+            await userEvent.clear(textInput);
+            await userEvent.type(textInput, 'Test text');
+        });
+
+        // if invalid, the color automatically returns to the original color
+        expect(screen.getByTestId('color-inputColorValue')).toHaveValue(originalColor);
+
+        // Check that the save changes panel is not visible
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+
+        // Modify the color to a valid one
+        await act(async () => {
+            const colorInput = screen.getByTestId('color-inputColorValue');
+            await userEvent.clear(colorInput);
+            await userEvent.type(colorInput, '#123456');
+        });
+
+        // Add a small delay to ensure all state updates are processed
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // Check that the save changes panel is visible
+        expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
     });
 });
