@@ -32,6 +32,10 @@ const UserSeatAlertBanner: React.FC<UserSeatAlertBannerProps> = ({license, total
     }
     const percentUsed = (totalUsers / licensedUsers) * 100;
 
+    if (percentUsed < 90) {
+        return null;
+    }
+
     let mode: 'success' | 'info' | 'danger' = 'info';
     let title: React.ReactNode = null;
     let message: React.ReactNode = null;
