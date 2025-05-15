@@ -9,7 +9,7 @@ import type {ServerError} from '@mattermost/types/errors';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {FileTypes} from 'mattermost-redux/action_types';
-import {getChannelTimezones} from 'mattermost-redux/actions/channels';
+import {getChannelTimezones, getUsersCountByStatus} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, getAllChannelStats} from 'mattermost-redux/selectors/entities/channels';
 import {getFilesIdsForPost} from 'mattermost-redux/selectors/entities/files';
@@ -312,6 +312,12 @@ const useSubmit = (
 
         if (notificationsToChannel && channelMembersCount > Constants.NOTIFY_ALL_MEMBERS && hasSpecialMentions) {
             memberNotifyCount = channelMembersCount - 1;
+            if (specialMentions.here) {
+                const {data: onlineCountData} = await dispatch(getUsersCountByStatus(channelId, 'online'));
+                if (onlineCountData) {
+                    memberNotifyCount = onlineCountData;
+                }
+            }
 
             for (const k in specialMentions) {
                 if (specialMentions[k]) {

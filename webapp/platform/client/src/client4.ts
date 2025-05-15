@@ -874,7 +874,7 @@ export default class Client4 {
         );
     };
 
-    getProfilesInChannel = (channelId: string, page = 0, perPage = PER_PAGE_DEFAULT, sort = '', options: {active?: boolean} = {}) => {
+    getProfilesInChannel = (channelId: string, page = 0, perPage = PER_PAGE_DEFAULT, sort = '', options: {active?: boolean; status?: string} = {}) => {
         const queryStringObj = {in_channel: channelId, page, per_page: perPage, sort};
 
         return this.doFetch<UserProfile[]>(

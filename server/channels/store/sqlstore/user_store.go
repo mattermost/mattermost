@@ -695,6 +695,19 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 	return query
 }
 
+func applyUserStatusFilter(query sq.SelectBuilder, status string) sq.SelectBuilder {
+	if len(strings.TrimSpace(status)) == 0 {
+		return query
+	}
+
+	updatedQuery := query.LeftJoin("Status s ON ( s.UserId = Users.Id )").
+		Where(sq.Eq{
+			"COALESCE(s.status, 'offline')": status,
+		})
+
+	return updatedQuery
+}
+
 func applyChannelGroupConstrainedFilter(query sq.SelectBuilder, channelId string) sq.SelectBuilder {
 	if channelId == "" {
 		return query
@@ -801,6 +814,10 @@ func (us SqlUserStore) GetProfilesInChannel(options *model.UserGetOptions) ([]*m
 	}
 
 	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles, us.DriverName() == model.DatabaseDriverPostgres)
+
+	if options.Status != nil {
+		query = applyUserStatusFilter(query, options.Status)
+	}
 
 	users := []*model.User{}
 	if err := us.GetReplica().SelectBuilder(&users, query); err != nil {

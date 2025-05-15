@@ -40,6 +40,8 @@ type UserGetOptions struct {
 	Page int
 	// Page size
 	PerPage int
+	// Status filters the users having the specified statuses
+	Status string
 }
 
 type UserGetByIdsOptions struct {
