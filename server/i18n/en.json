@@ -432,10 +432,6 @@
     "translation": "Unable to leave a direct message channel."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "You're the only member left, try removing the Private Channel instead of leaving."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v left the channel."
   },
@@ -5389,6 +5385,10 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "group member already exists"
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Error updating group. User with username \"{{.Username}}\" could not be found."
   },
   {
     "id": "app.group.username_conflict",

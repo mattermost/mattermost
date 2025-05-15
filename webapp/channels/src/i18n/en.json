@@ -3520,7 +3520,7 @@
   "channel_modal.handleTooShort": "Channel URL must be 1 or more lowercase alphanumeric characters",
   "channel_modal.modalTitle": "Create a new channel",
   "channel_modal.name.label": "Channel name",
-  "channel_modal.name.longer": "Channel names must have at least 2 character.",
+  "channel_modal.name.longer": "Channel names must have at least 1 character.",
   "channel_modal.name.placeholder": "Enter a name for your new channel",
   "channel_modal.name.shorter": "Channel names must have maximum 64 characters.",
   "channel_modal.purpose.info": "This will be displayed when browsing for channels.",
