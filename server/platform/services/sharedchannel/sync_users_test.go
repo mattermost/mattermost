@@ -1012,13 +1012,7 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 	})
 }
 
-// minInt returns the smaller of x or y.
-func minInt(x, y int) int {
-	if x < y {
-		return x
-	}
-	return y
-}
+// Note: minInt is used from exports_for_test.go
 
 func TestRemoteClusterOfflineDuringSync(t *testing.T) {
 	// Skip in CI with short mode to avoid long-running tests

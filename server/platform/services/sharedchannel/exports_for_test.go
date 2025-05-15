@@ -10,29 +10,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-// Export constants for testing
-var MaxUsersPerSyncForTesting = MaxUsersPerSync
-
 // TestableMaxUsersPerSync allows tests to control batch size without modifying the constant
 var TestableMaxUsersPerSync = MaxUsersPerSync
-
-// SyncData represents a data container for testing sync operations
-type SyncData struct {
-	sd *syncData
-}
-
-// GetUsers returns the users map from sync data for testing
-func (s *SyncData) GetUsers() map[string]*model.User {
-	if s.sd == nil {
-		return nil
-	}
-	return s.sd.users
-}
-
-// makeKey creates a unique key for a remote cluster and channel combination
-func makeKey(channelID, remoteID string) string {
-	return channelID + remoteID
-}
 
 // ExtractUsersFromSyncForTest processes a sync operation and gathers the users
 func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[string]*model.User, error) {
@@ -234,4 +213,12 @@ func ExtractUsersFromSyncForTest(scs *Service, rc *model.RemoteCluster) (map[str
 	)
 
 	return sentUsers, nil
+}
+
+// minInt returns the smaller of x or y.
+func minInt(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
 }
