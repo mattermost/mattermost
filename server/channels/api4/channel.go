@@ -829,11 +829,6 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.Params.ExcludeAccessControlPolicyEnforced && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
 	opts := model.ChannelSearchOpts{
 		NotAssociatedToGroup:               c.Params.NotAssociatedToGroup,
 		ExcludeDefaultChannels:             c.Params.ExcludeDefaultChannels,
