@@ -2187,10 +2187,25 @@ func (a *App) GetChannelMembersForUserWithPagination(c request.CTX, userID strin
 	return members, nil
 }
 
-func (a *App) GetChannelMembersWithTeamDataForUserWithPagination(c request.CTX, userID string, page, perPage int) (model.ChannelMembersWithTeamData, *model.AppError) {
-	m, err := a.Srv().Store().Channel().GetMembersForUserWithPagination(userID, page, perPage)
+func (a *App) GetChannelMembersWithTeamDataForUserWithPagination(c request.CTX, userID string, cursor *model.ChannelMemberCursor) (model.ChannelMembersWithTeamData, *model.AppError) {
+	var m model.ChannelMembersWithTeamData
+	var err error
+	var method string
+	if cursor.Page == -1 {
+		m, err = a.Srv().Store().Channel().GetMembersForUserWithCursorPagination(userID, cursor.PerPage, cursor.FromChannelID)
+		method = "GetMembersForUserWithCursorPagination"
+	} else {
+		m, err = a.Srv().Store().Channel().GetMembersForUserWithPagination(userID, cursor.Page, cursor.PerPage)
+		method = "GetMembersForUserWithPagination"
+	}
 	if err != nil {
-		return nil, model.NewAppError("GetChannelMembersForUserWithPagination", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError(method, MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError(method, "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	return m, nil

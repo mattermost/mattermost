@@ -3089,6 +3089,20 @@ func (s SqlChannelStore) GetMembersForUserWithPagination(userId string, page, pe
 	return dbMembers.ToModel(), nil
 }
 
+func (s SqlChannelStore) GetMembersForUserWithCursorPagination(userId string, perPage int, fromChannelID string) (model.ChannelMembersWithTeamData, error) {
+	dbMembers := channelMemberWithTeamWithSchemeRolesList{}
+	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND ChannelId > ? ORDER BY ChannelId ASC Limit ?", userId, fromChannelID, perPage)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with and userId=%s", userId)
+	}
+
+	if len(dbMembers) == 0 {
+		return nil, store.NewErrNotFound("ChannelMembers", "userId="+userId)
+	}
+
+	return dbMembers.ToModel(), nil
+}
+
 func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, error) {
 	teamMemberIDs := []string{}
 	if err := s.GetReplica().Select(&teamMemberIDs, `SELECT tm.UserId
