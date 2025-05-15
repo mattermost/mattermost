@@ -98,6 +98,7 @@ import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
 import LDAPWizard from './ldap_wizard';
+import type {LDAPAdminDefinitionConfigSchemaSettings} from './ldap_wizard/ldap_wizard';
 import LicenseSettings from './license_settings';
 import {searchableStrings as licenseSettingsSearchableStrings} from './license_settings/license_settings';
 import MessageExportSettings, {searchableStrings as messageExportSearchableStrings} from './message_export_settings';
@@ -124,7 +125,7 @@ import ChannelSettings from './team_channel_settings/channel';
 import ChannelDetails from './team_channel_settings/channel/details';
 import TeamSettings from './team_channel_settings/team';
 import TeamDetails from './team_channel_settings/team/details';
-import type {AdminDefinitionSubSectionSchema, AdminDefinition as AdminDefinitionType, Check, ConsoleAccess} from './types';
+import type {AdminDefinition as AdminDefinitionType, Check, ConsoleAccess} from './types';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
 
@@ -6251,7 +6252,7 @@ const AdminDefinition: AdminDefinitionType = {
     },
 };
 
-export const ldapWizardAdminDefinition: AdminDefinitionSubSectionSchema = {
+export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings = {
     id: 'LdapSettings',
     name: defineMessage({id: 'admin.authentication.ldap.wizard', defaultMessage: 'AD/LDAP Wizard'}),
     sections: [{
@@ -6435,7 +6436,8 @@ export const ldapWizardAdminDefinition: AdminDefinitionSubSectionSchema = {
     },
     {
         key: 'admin.authentication.ldap.dn_and_filters',
-        title: 'Filters',
+        title: 'User Filters',
+        subtitle: 'Tell Mattermost how to identify your users within LDAP',
         settings: [
             {
                 type: 'text',
@@ -6527,7 +6529,8 @@ export const ldapWizardAdminDefinition: AdminDefinitionSubSectionSchema = {
     },
     {
         key: 'admin.authentication.ldap.account_synchronization',
-        title: 'Account Synchronization',
+        title: 'Synchronise user account properties',
+        sectionTitle: 'Account sync',
         settings: [
             {
                 type: 'text',
@@ -6724,6 +6727,7 @@ export const ldapWizardAdminDefinition: AdminDefinitionSubSectionSchema = {
     {
         key: 'admin.authentication.ldap.synchronization_performance',
         title: 'Synchronization Performance',
+        sectionTitle: 'Sync Performance',
         settings: [
             {
                 type: 'number',
@@ -6797,8 +6801,9 @@ export const ldapWizardAdminDefinition: AdminDefinitionSubSectionSchema = {
     },
     {
         key: 'admin.authentication.ldap.synchronization_history',
-        title: 'Synchronization History',
+        title: 'Synchronize users to the system',
         subtitle: 'See the table below for the status of each synchronization',
+        sectionTitle: 'Sync History',
         settings: [
             {
                 type: 'jobstable',

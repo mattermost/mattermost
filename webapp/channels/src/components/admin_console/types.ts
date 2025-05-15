@@ -162,7 +162,7 @@ AdminDefinitionSettingJobsTable | AdminDefinitionSettingLanguage |
 AdminDefinitionSettingUsername | AdminDefinitionSettingPermission |
 AdminDefinitionSettingRadio | AdminDefinitionSettingRole;
 
-type AdminDefinitionConfigSchemaSettings = {
+export type AdminDefinitionConfigSchemaSettings = {
     id: string;
     name: string | MessageDescriptor;
     isBeta?: boolean;
