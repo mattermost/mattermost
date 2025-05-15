@@ -4959,10 +4959,6 @@
     "translation": "Failed to parse response from external autocomplete service."
   },
   {
-    "id": "app.command.external_autocomplete.read_body.app_error",
-    "translation": "Failed to read response body from external autocomplete service."
-  },
-  {
     "id": "app.command.external_autocomplete.request_create.app_error",
     "translation": "Could not create request to external autocomplete service."
   },
@@ -4973,6 +4969,10 @@
   {
     "id": "app.command.external_autocomplete.response_error.app_error",
     "translation": "External autocomplete service returned error status code: {{.StatusCode}}."
+  },
+  {
+    "id": "app.command.external_autocomplete.response_read_error.app_error",
+    "translation": ""
   },
   {
     "id": "app.command.getcommand.internal_error",
