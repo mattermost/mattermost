@@ -70,8 +70,8 @@ export default class ScheduleMessageModal {
 
         await dateLocator.click();
 
-        // if day is less than 9 then add a 0 in front of the day
-        if (day < 9) {
+        // if day is single digit then prefix with a 0
+        if (day < 10) {
             return `${month} 0${day}`;
         }
 

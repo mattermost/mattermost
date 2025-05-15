@@ -1,0 +1,28 @@
+.AccessControlPolicySettings {
+    .form-group {
+        min-height: 40px;
+    }
+
+    .delete-policy {
+        .btn-primary:not(:disabled) {
+            background-color: var(--dnd-indicator);
+        }
+    }
+
+    .vertically-centered-label {
+        padding-top: 7px;
+    }
+    
+    .EditPolicy__error {
+        display: flex;
+        align-items: center;
+        margin-left: 12px;
+        color: var(--error-text);
+        font-size: 14px;
+        
+        i {
+            margin-right: 4px;
+            font-size: 16px;
+        }
+    }
+}

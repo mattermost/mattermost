@@ -407,6 +407,7 @@ function PostComponent(props: Props) {
             <CommentedOn
                 onCommentClick={handleCommentClick}
                 rootId={post.root_id}
+                enablePostUsernameOverride={props.enablePostUsernameOverride}
             />
         );
     }
