@@ -86,9 +86,7 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searcheng
 	require.NoError(tb, err)
 
 	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
-	if err != nil {
-		panic("failed to initialize memory store: " + err.Error())
-	}
+	require.NoError(tb, err, "failed to initialize memory store")
 
 	memoryConfig := &model.Config{
 		SqlSettings: *mainHelper.GetSQLSettings(),
@@ -123,9 +121,7 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searcheng
 	memoryStore.Set(memoryConfig)
 
 	configStore, err := config.NewStoreFromBacking(memoryStore, nil, false)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	options = append(options, app.ConfigStore(configStore))
 	if includeCache {
@@ -137,22 +133,20 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searcheng
 
 	buffer := &mlog.Buffer{}
 
-	testLogger, _ := mlog.NewLogger()
-	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
-		panic("failed to configure test logger: " + errCfg.Error())
-	}
-	if errW := mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...); errW != nil {
-		panic("failed to add writer target to test logger: " + errW.Error())
-	}
+	testLogger, err := mlog.NewLogger()
+	require.NoError(tb, err)
+	logCfg, err := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
+	require.NoError(tb, err)
+	err = testLogger.ConfigureTargets(logCfg, nil)
+	require.NoError(tb, err, "failed to configure test logger")
+	err = mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...)
+	require.NoError(tb, err, "failed to add writer target to test logger")
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
 	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s.Channels())),
@@ -196,11 +190,11 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searcheng
 
 		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	})
-	if err := th.Server.Start(); err != nil {
-		panic(err)
-	}
+	err = th.Server.Start()
+	require.NoError(tb, err)
 
-	Init(th.App.Srv())
+	_, err = Init(th.App.Srv())
+	require.NoError(tb, err)
 	web.New(th.App.Srv())
 	wsapi.Init(th.App.Srv())
 
@@ -252,7 +246,7 @@ func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(tb, dbStore, searchEngine, true, true, nil, options)
-	th.InitLogin()
+	th.InitLogin(tb)
 	return th
 }
 
@@ -271,7 +265,7 @@ func Setup(tb testing.TB) *TestHelper {
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(tb, dbStore, searchEngine, false, true, nil, nil)
-	th.InitLogin()
+	th.InitLogin(tb)
 	return th
 }
 
@@ -291,7 +285,7 @@ func SetupAndApplyConfigBeforeLogin(tb testing.TB, updateConfig func(cfg *model.
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(tb, dbStore, searchEngine, false, true, nil, nil)
 	th.App.UpdateConfig(updateConfig)
-	th.InitLogin()
+	th.InitLogin(tb)
 	return th
 }
 
@@ -310,7 +304,7 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(tb, dbStore, searchEngine, false, true, updateConfig, nil)
-	th.InitLogin()
+	th.InitLogin(tb)
 	return th
 }
 
@@ -371,7 +365,7 @@ func SetupWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(tb, dbStore, searchEngine, false, true, nil, options)
-	th.InitLogin()
+	th.InitLogin(tb)
 	return th
 }
 
@@ -390,7 +384,7 @@ func SetupEnterpriseWithServerOptions(tb testing.TB, options []app.Option) *Test
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(tb, dbStore, searchEngine, true, true, nil, options)
-	th.InitLogin()
+	th.InitLogin(tb)
 	return th
 }
 
@@ -422,7 +416,6 @@ func (th *TestHelper) TearDown() {
 	if th.workspace != "" {
 		err := os.RemoveAll(th.workspace)
 		if err != nil {
-			// TODO: Use testify to fail the test instead of panic
 			panic(err)
 		}
 	}
@@ -446,8 +439,8 @@ var (
 	}
 )
 
-func (th *TestHelper) InitLogin() *TestHelper {
-	th.waitForConnectivity()
+func (th *TestHelper) InitLogin(tb testing.TB) *TestHelper {
+	th.waitForConnectivity(tb)
 
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
@@ -539,7 +532,7 @@ func (th *TestHelper) DeleteBots() *TestHelper {
 	return th
 }
 
-func (th *TestHelper) waitForConnectivity() {
+func (th *TestHelper) waitForConnectivity(tb testing.TB) {
 	for i := 0; i < 1000; i++ {
 		conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%v", th.App.Srv().ListenAddr.Port))
 		if err == nil {
@@ -548,7 +541,7 @@ func (th *TestHelper) waitForConnectivity() {
 		}
 		time.Sleep(time.Millisecond * 20)
 	}
-	panic("unable to connect")
+	tb.Fatal("unable to connect")
 }
 
 func (th *TestHelper) CreateClient() *model.Client4 {
