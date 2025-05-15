@@ -31,8 +31,16 @@ import LDAPTextSetting from './ldap_text_setting';
 import {ldapWizardAdminDefinition} from '../admin_definition';
 import {getConfigFromState, isSetByEnv, SchemaAdminSettings} from '../schema_admin_settings';
 import SchemaText from '../schema_text';
-import type {AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefinitionSettingFileUpload, AdminDefinitionSubSectionSchema, ConsoleAccess} from '../types';
+import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefinitionSettingFileUpload, AdminDefinitionSubSectionSchema, ConsoleAccess} from '../types';
 import './ldap_wizard.scss';
+
+export type LDAPAdminDefinitionConfigSchemaSettings = AdminDefinitionSubSectionSchema & {
+    sections?: LDAPAdminDefinitionConfigSchemaSection[];
+}
+
+export type LDAPAdminDefinitionConfigSchemaSection = AdminDefinitionConfigSchemaSection & {
+    sectionTitle?: string;
+}
 
 export type GeneralSettingProps = {
     setting: AdminDefinitionSetting;
@@ -662,10 +670,7 @@ const LDAPWizard = (props: Props) => {
                                 }
                             }}
                         >
-                            <FormattedMessage
-                                id={section.title}
-                                defaultMessage={section.title}
-                            />
+                            {section.sectionTitle || section.title}
                         </div>
                     ))}
                 </div>
