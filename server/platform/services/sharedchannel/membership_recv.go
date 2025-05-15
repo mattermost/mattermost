@@ -38,7 +38,7 @@ func (scs *Service) checkMembershipConflict(userID, channelID string, changeTime
 			return true, nil
 		}
 	}
-	
+
 	return false, nil
 }
 
@@ -254,8 +254,8 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 	_, appErr := scs.app.AddUserToChannel(rctx, user, channel, false)
 	if appErr != nil {
 		// Skip "already added" errors
-		if appErr.Error() != "api.channel.add_user.to_channel.failed.app_error" && 
-		   !strings.Contains(appErr.Error(), "channel_member_exists") {
+		if appErr.Error() != "api.channel.add_user.to_channel.failed.app_error" &&
+			!strings.Contains(appErr.Error(), "channel_member_exists") {
 			return fmt.Errorf("cannot add user to channel: %w", appErr)
 		}
 		// User is already in the channel, which is fine
