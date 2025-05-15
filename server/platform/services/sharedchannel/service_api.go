@@ -308,28 +308,23 @@ func (scs *Service) updateMembershipSyncCursor(channelID string, remoteID string
 		return fmt.Errorf("shared channel remote not found for channel %s and remote %s", channelID, remoteID)
 	}
 
-	// Only update the cursor if the new timestamp is newer
-	if newTimestamp > scr.LastMembersSyncAt {
-		// Update the cursor atomically
-		err = scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(scr.Id, newTimestamp)
-		if err != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync cursor",
-				mlog.String("remote_id", remoteID),
-				mlog.String("channel_id", channelID),
-				mlog.Int("old_cursor", int(scr.LastMembersSyncAt)),
-				mlog.Int("new_cursor", int(newTimestamp)),
-				mlog.Err(err),
-			)
-			return err
-		}
-
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated membership sync cursor",
+	// Update the cursor - the store will handle ensuring it only moves forward
+	err = scs.server.GetStore().SharedChannel().UpdateRemoteMembershipCursor(scr.Id, newTimestamp)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync cursor",
 			mlog.String("remote_id", remoteID),
 			mlog.String("channel_id", channelID),
-			mlog.Int("old_cursor", int(scr.LastMembersSyncAt)),
-			mlog.Int("new_cursor", int(newTimestamp)),
+			mlog.Err(err),
 		)
+		return err
 	}
+
+	// Only log at debug level to reduce noise
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Updated membership sync cursor",
+		mlog.String("remote_id", remoteID),
+		mlog.String("channel_id", channelID),
+		mlog.Int("cursor", int(newTimestamp)),
+	)
 
 	return nil
 }

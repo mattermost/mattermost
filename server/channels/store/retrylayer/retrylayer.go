@@ -11894,11 +11894,11 @@ func (s *RetryLayerSharedChannelStore) UpdateRemoteCursor(id string, cursor mode
 
 }
 
-func (s *RetryLayerSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTime int64) error {
+func (s *RetryLayerSharedChannelStore) UpdateRemoteMembershipCursor(id string, syncTime int64) error {
 
 	tries := 0
 	for {
-		err := s.SharedChannelStore.UpdateRemoteLastSyncAt(id, syncTime)
+		err := s.SharedChannelStore.UpdateRemoteMembershipCursor(id, syncTime)
 		if err == nil {
 			return nil
 		}

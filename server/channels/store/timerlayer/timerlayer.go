@@ -9365,10 +9365,10 @@ func (s *TimerLayerSharedChannelStore) UpdateRemoteCursor(id string, cursor mode
 	return err
 }
 
-func (s *TimerLayerSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTime int64) error {
+func (s *TimerLayerSharedChannelStore) UpdateRemoteMembershipCursor(id string, syncTime int64) error {
 	start := time.Now()
 
-	err := s.SharedChannelStore.UpdateRemoteLastSyncAt(id, syncTime)
+	err := s.SharedChannelStore.UpdateRemoteMembershipCursor(id, syncTime)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -9376,7 +9376,7 @@ func (s *TimerLayerSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTim
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateRemoteLastSyncAt", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateRemoteMembershipCursor", success, elapsed)
 	}
 	return err
 }

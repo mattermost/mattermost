@@ -12,20 +12,31 @@ import (
 	"github.com/pkg/errors"
 )
 
-// UpdateRemoteLastSyncAt updates the LastMembersSyncAt timestamp for the specified SharedChannelRemote.
-func (s SqlSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTime int64) error {
-	squery, args, err := s.getQueryBuilder().
-		Update("SharedChannelRemotes").
-		Set("LastMembersSyncAt", syncTime).
-		Where(sq.Eq{"Id": id}).
-		ToSql()
+// UpdateRemoteMembershipCursor updates the LastMembersSyncAt timestamp for the specified SharedChannelRemote,
+// but only if the new timestamp is greater than the current value.
+func (s SqlSharedChannelStore) UpdateRemoteMembershipCursor(id string, syncTime int64) error {
+	query := s.getQueryBuilder().
+		Update("SharedChannelRemotes")
+
+	// Different syntax for MySQL vs PostgreSQL for conditional updates
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query = query.
+			Set("LastMembersSyncAt", sq.Expr("GREATEST(LastMembersSyncAt, ?)", syncTime))
+	} else {
+		query = query.
+			Set("LastMembersSyncAt", sq.Expr("GREATEST(\"LastMembersSyncAt\", ?)", syncTime))
+	}
+
+	query = query.Where(sq.Eq{"Id": id})
+
+	squery, args, err := query.ToSql()
 	if err != nil {
-		return errors.Wrap(err, "update_shared_channel_remote_last_members_sync_at_tosql")
+		return errors.Wrap(err, "update_shared_channel_remote_membership_cursor_tosql")
 	}
 
 	result, err := s.GetMaster().Exec(squery, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to update LastMembersSyncAt for SharedChannelRemote")
+		return errors.Wrap(err, "failed to update membership cursor for SharedChannelRemote")
 	}
 
 	count, err := result.RowsAffected()

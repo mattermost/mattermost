@@ -730,12 +730,12 @@ func (_m *SharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPost
 	return r0
 }
 
-// UpdateRemoteLastSyncAt provides a mock function with given fields: id, syncTime
-func (_m *SharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTime int64) error {
+// UpdateRemoteMembershipCursor provides a mock function with given fields: id, syncTime
+func (_m *SharedChannelStore) UpdateRemoteMembershipCursor(id string, syncTime int64) error {
 	ret := _m.Called(id, syncTime)
 
 	if len(ret) == 0 {
-		panic("no return value specified for UpdateRemoteLastSyncAt")
+		panic("no return value specified for UpdateRemoteMembershipCursor")
 	}
 
 	var r0 error
