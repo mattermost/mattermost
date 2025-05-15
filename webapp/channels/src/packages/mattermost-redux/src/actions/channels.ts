@@ -17,8 +17,8 @@ import type {
 } from '@mattermost/types/channels';
 import type {OptsSignalExt} from '@mattermost/types/client4';
 import type {ServerError} from '@mattermost/types/errors';
-import type {UserProfile} from '@mattermost/types/users';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {ChannelTypes, PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
