@@ -78,6 +78,7 @@ const (
 	TrackConfigExport              = "config_export"
 	TrackConfigWrangler            = "config_wrangler"
 	TrackConfigConnectedWorkspaces = "config_connected_workspaces"
+	TrackConfigAccessControl       = "config_access_control"
 	TrackFeatureFlags              = "config_feature_flags"
 	TrackPermissionsGeneral        = "permissions_general"
 	TrackPermissionsSystemScheme   = "permissions_system_scheme"
@@ -971,6 +972,11 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_remote_cluster_service":       *cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"disable_shared_channels_status_sync": *cfg.ConnectedWorkspacesSettings.DisableSharedChannelsStatusSync,
 		"max_posts_per_sync":                  *cfg.ConnectedWorkspacesSettings.MaxPostsPerSync,
+	}
+
+	configs[TrackConfigAccessControl] = map[string]any{
+		"enable_attribute_based_access_control": *cfg.AccessControlSettings.EnableAttributeBasedAccessControl,
+		"enable_channel_scope_access_control":   *cfg.AccessControlSettings.EnableChannelScopeAccessControl,
 	}
 
 	// Convert feature flags to map[string]any for sending
