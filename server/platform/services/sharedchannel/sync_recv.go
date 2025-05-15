@@ -80,17 +80,8 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc
 		return fmt.Errorf("cannot check channel share state for sync message: %w", err)
 	}
 	if !exists {
-		// Update the UI to ensure the link icon is removed
-		scs.notifyClientsForSharedChannelUpdate(targetChannel)
-
-		// Return both errors to maintain backward compatibility and enable new behavior:
-		// 1. ErrRemoteIDMismatch for backward compatibility (same as before)
-		// 2. ErrChannelNotShared to trigger the unshare on the remote side
-		//
-		// The remote will detect ErrChannelNotShared in the error string and trigger unsharing
-		return fmt.Errorf("cannot process sync message; channel not shared with remote: %w: %s",
-			ErrRemoteIDMismatch,
-			fmt.Sprintf("%s: %s", ErrChannelNotShared.Error(), syncMsg.ChannelId))
+		return fmt.Errorf("cannot process sync message; %w: %s",
+			ErrChannelNotShared, syncMsg.ChannelId)
 	}
 
 	// add/update users before posts

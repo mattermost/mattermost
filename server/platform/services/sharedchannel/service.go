@@ -74,6 +74,7 @@ type AppIface interface {
 	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
 	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 	Publish(message *model.WebSocketEvent)
+	UninviteRemoteFromChannel(channelID, remoteID string) error
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
