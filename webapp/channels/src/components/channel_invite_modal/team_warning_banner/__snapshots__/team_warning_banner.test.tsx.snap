@@ -72,6 +72,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
       <div
         className="AlertBanner warning AlertBanner--app"
         data-testid="teamWarningBanner"
+        id="teamWarningBanner"
       >
         <div
           className="AlertBanner__icon"
@@ -248,6 +249,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
       <div
         className="AlertBanner warning AlertBanner--app"
         data-testid="teamWarningBanner"
+        id="teamWarningBanner"
       >
         <div
           className="AlertBanner__icon"
@@ -498,6 +500,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
       <div
         className="AlertBanner warning AlertBanner--app"
         data-testid="teamWarningBanner"
+        id="teamWarningBanner"
       >
         <div
           className="AlertBanner__icon"
@@ -746,6 +749,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
       <div
         className="AlertBanner warning AlertBanner--app"
         data-testid="teamWarningBanner"
+        id="teamWarningBanner"
       >
         <div
           className="AlertBanner__icon"

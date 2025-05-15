@@ -10,7 +10,7 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
 export const selectChannelBannerEnabled = (state: GlobalState): boolean => {
     const license = getLicense(state);
-    return license?.SkuShortName === General.SKUPremium;
+    return license?.SkuShortName === General.SKUEnterpriseAdvanced;
 };
 
 export const selectShowChannelBanner = (state: GlobalState, channelId: string): boolean => {
