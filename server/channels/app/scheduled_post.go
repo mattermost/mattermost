@@ -25,6 +25,16 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return nil, appErr
 	}
 
+	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if restrictDM {
+		err := model.NewAppError("App.scheduledPostPreSaveChecks", "app.save_scheduled_post.restricted_dm.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	if channel.DeleteAt > 0 {
 		return nil, model.NewAppError("App.scheduledPostPreSaveChecks", "app.save_scheduled_post.channel_deleted.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest)
 	}
