@@ -160,7 +160,7 @@ export function nameSuggestionsForUser(user: UserProfile): string[] {
     profileSuggestions.push((user.nickname || '').toLowerCase());
     const positionSuggestions = getSuggestionsSplitBy((user.position || '').toLowerCase(), ' ');
     profileSuggestions.push(...positionSuggestions);
-    const email = (user.email || '').toLowerCase();
+    const email = (user.email || '').toLowerCase().split('@')[0];
     profileSuggestions.push(email);
 
     const split = email.split('@');
