@@ -59,7 +59,7 @@ type State = {
     [x: string]: any;
     saveNeeded: false | 'both' | 'permissions' | 'config';
     saving: boolean;
-    serverError: null;
+    serverError: string | { message: string; id?: string } | null;
     confirmNeededId: string;
     showConfirmId: string;
     clientWarning: string | boolean;
@@ -77,6 +77,17 @@ const LDAPWizard = (props: Props) => {
         showConfirmId: '',
         clientWarning: '',
     });
+
+    React.useEffect(() => {
+        if (props.config && schema) {
+            const initialStateFromConfig = SchemaAdminSettings.getStateFromConfig(props.config, schema, props.roles);
+            setState(prevState => ({
+                ...prevState,
+                ...initialStateFromConfig,
+                prevSchemaId: schema.id,
+            }));
+        }
+    }, []);
 
     const [saveActions, setSaveActions] = useState<Array<() => Promise<{error?: {message?: string}}>>>([]);
 
@@ -311,6 +322,7 @@ const LDAPWizard = (props: Props) => {
                 confirmNeededId: '',
                 showConfirmId: '',
                 clientWarning: '',
+                serverError: null,
             }));
         }
     };
