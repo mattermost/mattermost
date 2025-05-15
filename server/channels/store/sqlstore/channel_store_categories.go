@@ -950,8 +950,8 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 	}
 
 	// Ensure Channels are populated for Channels/Direct Messages category if they change
-	if _, err := s.completePopulatingCategoriesT(transaction, userId, teamId, updatedCategories); err != nil {
-		return nil, nil, err
+	if _, nErr := s.completePopulatingCategoriesT(transaction, userId, teamId, updatedCategories); nErr != nil {
+		return nil, nil, nErr
 	}
 
 	if err = transaction.Commit(); err != nil {
