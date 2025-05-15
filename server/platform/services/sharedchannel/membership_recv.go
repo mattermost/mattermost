@@ -5,12 +5,42 @@ package sharedchannel
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
+
+// checkMembershipConflict checks if there are newer changes that would conflict with this one
+// Returns true if this change should be skipped due to a conflict
+func (scs *Service) checkMembershipConflict(userID, channelID string, changeTime int64) (bool, error) {
+	conflicts, err := scs.server.GetStore().SharedChannel().GetUserChanges(userID, channelID, changeTime)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to check for membership change conflicts",
+			mlog.String("user_id", userID),
+			mlog.String("channel_id", channelID),
+			mlog.Err(err),
+		)
+		return false, err
+	}
+
+	// If there are conflicting operations, the latest one wins
+	for _, conflict := range conflicts {
+		if conflict.LastSyncAt > changeTime {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Ignoring older membership change due to conflict",
+				mlog.String("user_id", userID),
+				mlog.String("channel_id", channelID),
+				mlog.Int("change_time", int(changeTime)),
+				mlog.Int("conflicting_time", int(conflict.LastSyncAt)),
+			)
+			return true, nil
+		}
+	}
+	
+	return false, nil
+}
 
 // onReceiveMembershipChange processes a channel membership change (add/remove) from a remote cluster
 func (scs *Service) onReceiveMembershipChange(syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
@@ -40,119 +70,41 @@ func (scs *Service) onReceiveMembershipChange(syncMsg *model.SyncMsg, rc *model.
 	// Avoid unused variable warning
 	_ = sc
 
-	// Check if conflicting operations occurred while this change was in transit
-	conflicts, err := scs.server.GetStore().SharedChannel().GetUserChanges(memberInfo.UserId, memberInfo.ChannelId, memberInfo.ChangeTime)
-	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to check for membership change conflicts",
-			mlog.String("user_id", memberInfo.UserId),
-			mlog.String("channel_id", memberInfo.ChannelId),
-			mlog.Err(err),
-		)
-		// Continue anyway - this is not a critical error
+	// Check for conflicts
+	shouldSkip, _ := scs.checkMembershipConflict(memberInfo.UserId, memberInfo.ChannelId, memberInfo.ChangeTime)
+	if shouldSkip {
+		return nil
 	}
 
-	// If there are conflicting operations, the latest one wins
-	if len(conflicts) > 0 {
-		// If there's a newer change, ignore this one
-		for _, conflict := range conflicts {
-			if conflict.LastSyncAt > memberInfo.ChangeTime {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Ignoring older membership change due to conflict",
-					mlog.String("user_id", memberInfo.UserId),
-					mlog.String("channel_id", memberInfo.ChannelId),
-					mlog.Bool("is_add", memberInfo.IsAdd),
-					mlog.Int("change_time", int(memberInfo.ChangeTime)),
-					mlog.Int("conflicting_time", int(conflict.LastSyncAt)),
-				)
-
-				return nil
-			}
-		}
+	// Create a MembershipChangeMsg to use with our common processing functions
+	change := &model.MembershipChangeMsg{
+		ChannelId:  memberInfo.ChannelId,
+		UserId:     memberInfo.UserId,
+		IsAdd:      memberInfo.IsAdd,
+		RemoteId:   memberInfo.RemoteId,
+		ChangeTime: memberInfo.ChangeTime,
 	}
 
-	// Process the membership change
+	// Process the add/remove using our common helper functions
+	var processErr error
 	if memberInfo.IsAdd {
-		// Add the user to the channel
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Adding user to channel from remote cluster",
 			mlog.String("user_id", memberInfo.UserId),
 			mlog.String("channel_id", memberInfo.ChannelId),
 			mlog.String("remote_id", rc.RemoteId),
 		)
-
-		// Get the user if they exist
-		user, eErr := scs.server.GetStore().User().Get(request.EmptyContext(scs.server.Log()).Context(), memberInfo.UserId)
-		if eErr != nil {
-			return fmt.Errorf("cannot get user for channel add: %w", eErr)
-		}
-
-		// Check user permissions for private channels
-		if channel.Type == model.ChannelTypePrivate {
-			// Ensure user is a member of the team
-			rctx := request.EmptyContext(scs.server.Log())
-			if teamMember, tErr := scs.server.GetStore().Team().GetMember(rctx, channel.TeamId, memberInfo.UserId); tErr != nil || teamMember == nil {
-				// Add user to team as a guest if necessary
-				teamMember := &model.TeamMember{
-					TeamId:      channel.TeamId,
-					UserId:      memberInfo.UserId,
-					SchemeGuest: true,
-					CreateAt:    model.GetMillis(),
-				}
-				if _, sErr := scs.server.GetStore().Team().SaveMember(rctx, teamMember, -1); sErr != nil {
-					return fmt.Errorf("cannot add user to team for private channel: %w", sErr)
-				}
-			}
-		}
-
-		// Add the user to the channel
-		cm := &model.ChannelMember{
-			ChannelId:   channel.Id,
-			UserId:      memberInfo.UserId,
-			NotifyProps: model.GetDefaultChannelNotifyProps(),
-			SchemeGuest: user.IsGuest(),
-		}
-
-		rctx := request.EmptyContext(scs.server.Log())
-		if _, saveErr := scs.server.GetStore().Channel().SaveMember(rctx, cm); saveErr != nil {
-			if saveErr.Error() != "channel_member_exists" {
-				return fmt.Errorf("cannot add user to channel: %w", saveErr)
-			}
-			// User is already in the channel, which is fine
-		}
-
-		// Update the sync status
-		if syncErr := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(memberInfo.UserId, memberInfo.ChannelId, rc.RemoteId); syncErr != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user LastSyncAt after membership change",
-				mlog.String("user_id", memberInfo.UserId),
-				mlog.String("channel_id", memberInfo.ChannelId),
-				mlog.String("remote_id", rc.RemoteId),
-				mlog.Err(syncErr),
-			)
-		}
+		processErr = scs.processMemberAdd(change, channel, rc)
 	} else {
-		// Remove the user from the channel
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Removing user from channel from remote cluster",
 			mlog.String("user_id", memberInfo.UserId),
 			mlog.String("channel_id", memberInfo.ChannelId),
 			mlog.String("remote_id", rc.RemoteId),
 		)
+		processErr = scs.processMemberRemove(change, rc)
+	}
 
-		// Remove the user from the channel
-		rctx := request.EmptyContext(scs.server.Log())
-		if rErr := scs.server.GetStore().Channel().RemoveMember(rctx, memberInfo.ChannelId, memberInfo.UserId); rErr != nil {
-			// Ignore "not found" errors - the user might already be removed
-			if rErr.Error() != "store.sql_channel.remove_member.missing.app_error" {
-				return fmt.Errorf("cannot remove user from channel: %w", rErr)
-			}
-		}
-
-		// Update the sync status
-		if syncErr := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(memberInfo.UserId, memberInfo.ChannelId, rc.RemoteId); syncErr != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update user LastSyncAt after membership removal",
-				mlog.String("user_id", memberInfo.UserId),
-				mlog.String("channel_id", memberInfo.ChannelId),
-				mlog.String("remote_id", rc.RemoteId),
-				mlog.Err(syncErr),
-			)
-		}
+	if processErr != nil {
+		return processErr
 	}
 
 	// Only update the cursor if all operations succeeded
@@ -207,38 +159,10 @@ func (scs *Service) onReceiveMembershipBatch(syncMsg *model.SyncMsg, rc *model.R
 	var successCount, skipCount, failCount int
 
 	for _, change := range batchInfo.Changes {
-		// Check if conflicting operations occurred while this change was in transit
-		conflicts, conflictErr := scs.server.GetStore().SharedChannel().GetUserChanges(change.UserId, change.ChannelId, change.ChangeTime)
-		if conflictErr != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to check for membership change conflicts in batch",
-				mlog.String("user_id", change.UserId),
-				mlog.String("channel_id", change.ChannelId),
-				mlog.Err(conflictErr),
-			)
-			// Continue anyway - this is not a critical error
-		}
-
-		// If there are conflicting operations, the latest one wins
-		skipThisChange := false
-		if len(conflicts) > 0 {
-			// If there's a newer change, ignore this one
-			for _, conflict := range conflicts {
-				if conflict.LastSyncAt > change.ChangeTime {
-					scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Ignoring older membership change due to conflict in batch",
-						mlog.String("user_id", change.UserId),
-						mlog.String("channel_id", change.ChannelId),
-						mlog.Bool("is_add", change.IsAdd),
-						mlog.Int("change_time", int(change.ChangeTime)),
-						mlog.Int("conflicting_time", int(conflict.LastSyncAt)),
-					)
-					skipCount++
-					skipThisChange = true
-					break
-				}
-			}
-		}
-
+		// Check for conflicts using our helper function
+		skipThisChange, _ := scs.checkMembershipConflict(change.UserId, change.ChannelId, change.ChangeTime)
 		if skipThisChange {
+			skipCount++
 			continue
 		}
 
@@ -316,34 +240,23 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 
 	// Check user permissions for private channels
 	if channel.Type == model.ChannelTypePrivate {
-		// Ensure user is a member of the team
+		// Add user to team if needed for private channel
 		rctx := request.EmptyContext(scs.server.Log())
-		if teamMember, teamErr := scs.server.GetStore().Team().GetMember(rctx, channel.TeamId, change.UserId); teamErr != nil || teamMember == nil {
-			// Add user to team as a guest if necessary
-			teamMember := &model.TeamMember{
-				TeamId:      channel.TeamId,
-				UserId:      change.UserId,
-				SchemeGuest: true,
-				CreateAt:    model.GetMillis(),
-			}
-			if _, saveErr := scs.server.GetStore().Team().SaveMember(rctx, teamMember, -1); saveErr != nil {
-				return fmt.Errorf("cannot add user to team for private channel: %w", saveErr)
-			}
+		appErr := scs.app.AddUserToTeamByTeamId(rctx, channel.TeamId, user)
+		if appErr != nil {
+			return fmt.Errorf("cannot add user to team for private channel: %w", appErr)
 		}
 	}
 
-	// Add the user to the channel
-	cm := &model.ChannelMember{
-		ChannelId:   channel.Id,
-		UserId:      change.UserId,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		SchemeGuest: user.IsGuest(),
-	}
-
+	// Use the app layer to add the user to the channel
+	// This ensures proper processing of all side effects
 	rctx := request.EmptyContext(scs.server.Log())
-	if _, saveErr := scs.server.GetStore().Channel().SaveMember(rctx, cm); saveErr != nil {
-		if saveErr.Error() != "channel_member_exists" {
-			return fmt.Errorf("cannot add user to channel: %w", saveErr)
+	_, appErr := scs.app.AddUserToChannel(rctx, user, channel, false)
+	if appErr != nil {
+		// Skip "already added" errors
+		if appErr.Error() != "api.channel.add_user.to_channel.failed.app_error" && 
+		   !strings.Contains(appErr.Error(), "channel_member_exists") {
+			return fmt.Errorf("cannot add user to channel: %w", appErr)
 		}
 		// User is already in the channel, which is fine
 	}
@@ -364,12 +277,34 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 
 // processMemberRemove handles removing a user from a channel as part of batch processing
 func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, rc *model.RemoteCluster) error {
-	// Remove the user from the channel
-	rctx := request.EmptyContext(scs.server.Log())
-	if removeErr := scs.server.GetStore().Channel().RemoveMember(rctx, change.ChannelId, change.UserId); removeErr != nil {
-		// Ignore "not found" errors - the user might already be removed
-		if removeErr.Error() != "store.sql_channel.remove_member.missing.app_error" {
-			return fmt.Errorf("cannot remove user from channel: %w", removeErr)
+	// Get channel so we can use app layer methods properly
+	channel, err := scs.server.GetStore().Channel().Get(change.ChannelId, true)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Cannot find channel for member removal",
+			mlog.String("channel_id", change.ChannelId),
+			mlog.String("user_id", change.UserId),
+			mlog.Err(err),
+		)
+		// Continue anyway to update sync status - the channel might be deleted
+	}
+
+	// Use the app layer's remove user method if channel still exists
+	if channel != nil {
+		rctx := request.EmptyContext(scs.server.Log())
+		// We use empty string for removerUserId to indicate system-initiated removal
+		// This also ensures we bypass permission checks intended for user-initiated removals
+		appErr := scs.app.RemoveUserFromChannel(rctx, change.UserId, "", channel)
+		if appErr != nil {
+			// Ignore "not found" errors - the user might already be removed
+			if !strings.Contains(appErr.Error(), "store.sql_channel.remove_member.missing.app_error") {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Error removing user from channel",
+					mlog.String("channel_id", change.ChannelId),
+					mlog.String("user_id", change.UserId),
+					mlog.Err(appErr),
+				)
+				// Continue anyway to update sync status - don't return error here
+				// to ensure sync status still gets updated
+			}
 		}
 	}
 
