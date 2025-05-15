@@ -323,26 +323,41 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("localDeleteUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	user, err := c.App.GetUser(userId)
-	if err != nil {
-		c.Err = err
+	user, appErr := c.App.GetUser(userId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	auditRec.AddEventPriorState(user)
 	auditRec.AddEventObjectType("user")
 
+	var job *model.Job
 	if c.Params.Permanent {
-		err = c.App.PermanentDeleteUser(c.AppContext, user)
+		job, appErr = c.App.CreateJob(c.AppContext, &model.Job{
+			Type: model.JobTypeUserDeletion,
+			Data: model.StringMap{
+				"user_id": user.Id,
+			},
+		})
 	} else {
-		_, err = c.App.UpdateActive(c.AppContext, user, false)
+		_, appErr = c.App.UpdateActive(c.AppContext, user, false)
 	}
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
 	auditRec.Success()
+
+	if c.Params.Permanent {
+		w.WriteHeader(http.StatusCreated)
+		if err := json.NewEncoder(w).Encode(job); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
 	ReturnStatusOK(w)
 }
 

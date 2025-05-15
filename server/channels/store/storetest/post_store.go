@@ -1613,7 +1613,7 @@ func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Stor
 	r1.UserId = o2.UserId
 	r1.PostId = o1.Id
 	r1.EmojiName = "smile"
-	r1, err = ss.Reaction().Save(r1)
+	_, err = ss.Reaction().Save(r1)
 	require.NoError(t, err)
 
 	r2 := &model.Reaction{}
@@ -1706,18 +1706,16 @@ func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Stor
 
 	reactions, err := ss.Reaction().GetForPost(o1.Id, false)
 	require.NoError(t, err, "Reactions should exist")
-	require.Equal(t, 2, len(reactions))
-	emojis := []string{r1.EmojiName, r3.EmojiName}
-	for _, reaction := range reactions {
-		require.Contains(t, emojis, reaction.EmojiName)
-	}
+	require.Equal(t, 1, len(reactions))
+	assert.Equal(t, reactions[0].EmojiName, r3.EmojiName)
 
 	_, err = ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Deleted id should have failed")
 
 	reactions, err = ss.Reaction().GetForPost(o2.Id, false)
 	require.NoError(t, err, "No error for not found")
-	require.Equal(t, 0, len(reactions))
+	require.Equal(t, 1, len(reactions))
+	assert.Equal(t, reactions[0].EmojiName, r2.EmojiName)
 
 	thread, err = ss.Thread().Get(o5.Id)
 	require.NoError(t, err)
@@ -1736,10 +1734,8 @@ func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Stor
 
 	reactions, err = ss.Reaction().GetForPost(o1.Id, false)
 	require.NoError(t, err, "Reactions should exist")
-	require.Equal(t, 2, len(reactions))
-	for _, reaction := range reactions {
-		require.Contains(t, emojis, reaction.EmojiName)
-	}
+	require.Equal(t, 1, len(reactions))
+	assert.Equal(t, reactions[0].EmojiName, r3.EmojiName)
 
 	_, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Deleted id should have failed")
@@ -1829,9 +1825,8 @@ func testPostStorePermDeleteLimitExceeded(t *testing.T, rctx request.CTX, ss sto
 		require.NoError(t, err)
 	}
 
-	err = ss.Post().PermanentDeleteByUser(rctx, userID)
-	var errLimitExceeded *store.ErrLimitExceeded
-	require.ErrorAs(t, err, &errLimitExceeded)
+	// It should be possible to delete more than 10K posts per user.
+	require.NoError(t, ss.Post().PermanentDeleteByUser(rctx, userID))
 }
 
 func testPostStoreGetWithChildren(t *testing.T, rctx request.CTX, ss store.Store) {
