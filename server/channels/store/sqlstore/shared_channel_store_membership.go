@@ -74,25 +74,3 @@ func (s SqlSharedChannelStore) GetUserChanges(userID string, channelID string, a
 	}
 	return users, nil
 }
-
-// UserHasRemote checks if a user is associated with a particular remote in any shared channel.
-func (s SqlSharedChannelStore) UserHasRemote(userID string, remoteID string) (bool, error) {
-	builder := s.getQueryBuilder().
-		Select("1").
-		Prefix("SELECT EXISTS (").
-		From("SharedChannelUsers").
-		Where(sq.Eq{"UserId": userID}).
-		Where(sq.Eq{"RemoteId": remoteID}).
-		Suffix(")")
-
-	query, args, err := builder.ToSql()
-	if err != nil {
-		return false, errors.Wrapf(err, "get_shared_channel_user_has_remote_tosql")
-	}
-
-	var exists bool
-	if err := s.GetReplica().Get(&exists, query, args...); err != nil {
-		return false, errors.Wrapf(err, "failed to check if user has remote for user_id=%s, remote_id=%s", userID, remoteID)
-	}
-	return exists, nil
-}
