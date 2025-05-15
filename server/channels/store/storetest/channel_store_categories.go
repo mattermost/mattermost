@@ -2620,6 +2620,11 @@ func testSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss stor
 				}
 			}
 
+			// Remove duplicates to prevent database errors when updating the SidebarChannels table
+			for i, category := range updatedCategories {
+				updatedCategories[i].Channels = model.RemoveDuplicateStringsNonSort(category.Channels)
+			}
+
 			_, _, err := ss.Channel().UpdateSidebarCategories(userID, team.Id, updatedCategories)
 			if err != nil {
 				for _, cat := range updatedCategories {
