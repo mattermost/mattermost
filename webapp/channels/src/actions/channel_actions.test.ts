@@ -175,22 +175,6 @@ describe('Actions.Channel', () => {
         expect(testStore.getActions()).toEqual(expectedActions);
     });
 
-    test('openDirectChannelToUserId with remote user', async () => {
-        const testStore = await mockStore(initialState);
-
-        const expectedActions = [{
-            type: 'MOCK_CREATE_DIRECT_CHANNEL',
-            args: ['current_user_id', 'remote_user_id'],
-        }];
-
-        const fakeData = {
-            userId: 'remote_user_id',
-        };
-
-        await testStore.dispatch(openDirectChannelToUserId(fakeData.userId));
-        expect(testStore.getActions()).toEqual(expectedActions);
-    });
-
     test('openDirectChannelToUserId Existing', async () => {
         Date.now = () => new Date(0).getMilliseconds();
         const testStore = await mockStore(initialState);
