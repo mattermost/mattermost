@@ -8,7 +8,7 @@ import type {ClientLicense} from '@mattermost/types/config';
 
 import ExternalLink from 'components/external_link';
 
-import CONTACT_SALES from 'utils/constants';
+import {LicenseLinks} from 'utils/constants';
 
 import AlertBanner from '../../alert_banner';
 
@@ -86,7 +86,7 @@ const UserSeatAlertBanner: React.FC<UserSeatAlertBannerProps> = ({license, total
 
     const actionButtonLeft = (
         <ExternalLink
-            href={CONTACT_SALES}
+            href={LicenseLinks.CONTACT_SALES}
             location='license_settings_user_seat_alert'
             className='style-button AlertBanner__buttonLeft'
         >
