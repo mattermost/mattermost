@@ -696,7 +696,7 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 }
 
 func applyUserStatusFilter(query sq.SelectBuilder, status string) sq.SelectBuilder {
-	if len(strings.TrimSpace(status)) == 0 {
+	if strings.TrimSpace(status) == "" {
 		return query
 	}
 
