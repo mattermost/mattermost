@@ -815,7 +815,7 @@ func (us SqlUserStore) GetProfilesInChannel(options *model.UserGetOptions) ([]*m
 
 	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles, us.DriverName() == model.DatabaseDriverPostgres)
 
-	if options.Status != nil {
+	if strings.TrimSpace(options.Status) != "" {
 		query = applyUserStatusFilter(query, options.Status)
 	}
 

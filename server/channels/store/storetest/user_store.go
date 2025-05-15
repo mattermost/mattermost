@@ -1041,6 +1041,146 @@ func testUserStoreGetProfilesInChannel(t *testing.T, rctx request.CTX, ss store.
 		require.NoError(t, err)
 		assert.Equal(t, user2Admin.Id, users[0].Id)
 	})
+
+	t.Run("filter by status", func(t *testing.T) {
+		// User 1 - online
+		onlineUser, err := ss.User().Save(rctx, &model.User{
+			Email:    MakeEmail(),
+			Username: "onlineUser" + model.NewId(),
+		})
+		require.NoError(t, err)
+		defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, onlineUser.Id)) }()
+		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: onlineUser.Id}, -1)
+		require.NoError(t, nErr)
+
+		err = ss.Status().SaveOrUpdate(&model.Status{
+			UserId: onlineUser.Id,
+			Status: "online",
+		})
+		require.NoError(t, err)
+
+		// User 2 - offline
+		offlineUser, err := ss.User().Save(rctx, &model.User{
+			Email:    MakeEmail(),
+			Username: "offlineUser" + model.NewId(),
+		})
+		require.NoError(t, err)
+		defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, offlineUser.Id)) }()
+		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: offlineUser.Id}, -1)
+		require.NoError(t, nErr)
+
+		err = ss.Status().SaveOrUpdate(&model.Status{
+			UserId: offlineUser.Id,
+			Status: "offline",
+		})
+		require.NoError(t, err)
+
+		// User 3 - away
+		awayUser, err := ss.User().Save(rctx, &model.User{
+			Email:    MakeEmail(),
+			Username: "awayUser" + model.NewId(),
+		})
+		require.NoError(t, err)
+		defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, awayUser.Id)) }()
+		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: awayUser.Id}, -1)
+		require.NoError(t, nErr)
+
+		err = ss.Status().SaveOrUpdate(&model.Status{
+			UserId: awayUser.Id,
+			Status: "away",
+		})
+		require.NoError(t, err)
+
+		// User 4 - do not disturb
+		dndUser, err := ss.User().Save(rctx, &model.User{
+			Email:    MakeEmail(),
+			Username: "dndUser" + model.NewId(),
+		})
+		require.NoError(t, err)
+		defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, dndUser.Id)) }()
+		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: dndUser.Id}, -1)
+		require.NoError(t, nErr)
+
+		err = ss.Status().SaveOrUpdate(&model.Status{
+			UserId: dndUser.Id,
+			Status: "dnd",
+		})
+		require.NoError(t, err)
+
+		newChannel := &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Profiles in channel",
+			Name:        "profiles-" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}
+		channel, nErr := ss.Channel().Save(rctx, newChannel, -1)
+		require.NoError(t, nErr)
+
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      onlineUser.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, nErr)
+
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      offlineUser.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, nErr)
+
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      dndUser.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, nErr)
+
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      awayUser.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, nErr)
+
+		// now we will search
+		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			Status:      "online",
+			InChannelId: channel.Id,
+			Page:        0,
+			PerPage:     100,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, onlineUser.Id, users[0].Id)
+
+		users, err = ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			Status:      "offline",
+			InChannelId: channel.Id,
+			Page:        0,
+			PerPage:     100,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, offlineUser.Id, users[0].Id)
+
+		users, err = ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			Status:      "dnd",
+			InChannelId: channel.Id,
+			Page:        0,
+			PerPage:     100,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, dndUser.Id, users[0].Id)
+
+		users, err = ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			Status:      "away",
+			InChannelId: channel.Id,
+			Page:        0,
+			PerPage:     100,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, awayUser.Id, users[0].Id)
+	})
 }
 
 func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {

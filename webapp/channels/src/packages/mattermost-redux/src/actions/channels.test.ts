@@ -2000,6 +2000,23 @@ describe('Actions.Channels', () => {
         expect(response).toEqual(data);
     });
 
+    it('getUsersCountByStatus', async () => {
+        const channelId = TestHelper.basicChannel!.id;
+
+        nock(Client4.getBaseRoute()).
+            get('/users').
+            query(true).
+            reply(200, new Array(200).fill({}));
+
+        nock(Client4.getBaseRoute()).
+            get('/users').
+            query(true).
+            reply(200, new Array(20).fill({}));
+
+        const {data} = await store.dispatch(Actions.getUsersCountByStatus(channelId, 'online'));
+        expect(data).toBe(220);
+    });
+
     it('membersMinusGroupMembers', async () => {
         const channelID = 'cid10000000000000000000000';
         const groupIDs = ['gid10000000000000000000000', 'gid20000000000000000000000'];
