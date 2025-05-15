@@ -4972,7 +4972,7 @@
   },
   {
     "id": "app.command.external_autocomplete.response_read_error.app_error",
-    "translation": ""
+    "translation": "Error reading response from external autocomplete service."
   },
   {
     "id": "app.command.getcommand.internal_error",
