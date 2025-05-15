@@ -518,14 +518,6 @@ jobs:
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: playwright-report-url
-      - name: ci/set-target-url
-        id: target
-        run: |
-          if [ "${{ inputs.TEST }}" = "playwright" ] && [ -f report-url.txt ]; then
-            echo "target_url=$(cat report-url.txt)" >> $GITHUB_OUTPUT
-          else
-            echo "target_url=${{ needs.generate-test-cycle.outputs.status_check_url }}" >> $GITHUB_OUTPUT
-          fi
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -535,7 +527,7 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: failure
-          target_url: "${{ steps.target.outputs.target_url }}"
+          target_url: ${{ inputs.TEST == 'playwright' && env.REPORT_S3_URL || needs.generate-test-cycle.outputs.status_check_url }}
 
   update-success-final-status:
     runs-on: ubuntu-latest
@@ -550,14 +542,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: playwright-report-url
-      - name: ci/set-target-url
-        id: target
-        run: |
-          if [ "${{ inputs.TEST }}" = "playwright" ] && [ -f report-url.txt ]; then
-            echo "target_url=$(cat report-url.txt)" >> $GITHUB_OUTPUT
-          else
-            echo "target_url=${{ needs.generate-test-cycle.outputs.status_check_url }}" >> $GITHUB_OUTPUT
-          fi
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -567,4 +551,4 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: success
-          target_url: "${{ steps.target.outputs.target_url }}"
+          target_url: ${{ inputs.TEST == 'playwright' && env.REPORT_S3_URL || needs.generate-test-cycle.outputs.status_check_url }}
