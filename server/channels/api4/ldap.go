@@ -49,22 +49,22 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type LdapSyncOptions struct {
-		IncludeRemovedMembers bool `json:"include_removed_members"`
-	}
-	var opts LdapSyncOptions
-	err := json.NewDecoder(r.Body).Decode(&opts)
-	if err != nil {
-		c.Logger.LogM(mlog.MlvlLDAPInfo, "Error decoding LDAP sync options", mlog.Err(err))
-	}
-
-	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateLdapSyncJob) {
 		c.SetPermissionError(model.PermissionCreateLdapSyncJob)
 		return
 	}
+
+	var opts struct {
+		IncludeRemovedMembers *bool `json:"include_removed_members"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&opts)
+	if err != nil {
+		c.SetInvalidParamWithErr("LdapSyncOptions", err)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	c.App.SyncLdap(c.AppContext, opts.IncludeRemovedMembers)
 

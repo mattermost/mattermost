@@ -97,7 +97,7 @@ type Client interface {
 	PatchConfig(context.Context, *model.Config) (*model.Config, *model.Response, error)
 	ReloadConfig(ctx context.Context) (*model.Response, error)
 	MigrateConfig(ctx context.Context, from, to string) (*model.Response, error)
-	SyncLdap(ctx context.Context, includeRemovedMembers bool) (*model.Response, error)
+	SyncLdap(ctx context.Context, reAddRemovedMembers *bool) (*model.Response, error)
 	MigrateIdLdap(ctx context.Context, toAttribute string) (*model.Response, error)
 	GetUsers(ctx context.Context, page, perPage int, etag string) ([]*model.User, *model.Response, error)
 	UpdateUserActive(ctx context.Context, userID string, activate bool) (*model.Response, error)

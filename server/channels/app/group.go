@@ -563,10 +563,10 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 // based on the groups configurations. The returned list can be optionally scoped to a single given team.
 //
 // Typically since will be the last successful group sync time.
-// If includeRemovedMembers is true, then team members who left or were removed from the team will
+// If reAddRemovedMembers is true, then team members who left or were removed from the team will
 // be included; otherwise, they will be excluded.
-func (a *App) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError) {
-	userTeams, err := a.Srv().Store().Group().TeamMembersToAdd(since, teamID, includeRemovedMembers)
+func (a *App) TeamMembersToAdd(since int64, teamID *string, reAddRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError) {
+	userTeams, err := a.Srv().Store().Group().TeamMembersToAdd(since, teamID, reAddRemovedMembers)
 	if err != nil {
 		return nil, model.NewAppError("TeamMembersToAdd", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -578,10 +578,10 @@ func (a *App) TeamMembersToAdd(since int64, teamID *string, includeRemovedMember
 // based on the groups configurations. The returned list can be optionally scoped to a single given channel.
 //
 // Typically since will be the last successful group sync time.
-// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
+// If reAddRemovedMembers is true, then channel members who left or were removed from the channel will
 // be included; otherwise, they will be excluded.
-func (a *App) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError) {
-	userChannels, err := a.Srv().Store().Group().ChannelMembersToAdd(since, channelID, includeRemovedMembers)
+func (a *App) ChannelMembersToAdd(since int64, channelID *string, reAddRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError) {
+	userChannels, err := a.Srv().Store().Group().ChannelMembersToAdd(since, channelID, reAddRemovedMembers)
 	if err != nil {
 		return nil, model.NewAppError("ChannelMembersToAdd", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

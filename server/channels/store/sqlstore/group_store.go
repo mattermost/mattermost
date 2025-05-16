@@ -963,7 +963,7 @@ func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, s
 	return groupSyncable, nil
 }
 
-func (s *SqlGroupStore) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, error) {
+func (s *SqlGroupStore) TeamMembersToAdd(since int64, teamID *string, reAddRemovedMembers bool) ([]*model.UserTeamIDPair, error) {
 	builder := s.getQueryBuilder().Select("GroupMembers.UserId UserID", "GroupTeams.TeamId TeamID").
 		From("GroupMembers").
 		Join("GroupTeams ON GroupTeams.GroupId = GroupMembers.GroupId").
@@ -977,7 +977,7 @@ func (s *SqlGroupStore) TeamMembersToAdd(since int64, teamID *string, includeRem
 			"Teams.DeleteAt":        0,
 		})
 
-	if !includeRemovedMembers {
+	if !reAddRemovedMembers {
 		builder = builder.
 			JoinClause("LEFT OUTER JOIN TeamMembers ON TeamMembers.TeamId = GroupTeams.TeamId AND TeamMembers.UserId = GroupMembers.UserId").
 			Where(sq.Eq{"TeamMembers.UserId": nil}).
@@ -999,7 +999,7 @@ func (s *SqlGroupStore) TeamMembersToAdd(since int64, teamID *string, includeRem
 	return teamMembers, nil
 }
 
-func (s *SqlGroupStore) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, error) {
+func (s *SqlGroupStore) ChannelMembersToAdd(since int64, channelID *string, reAddRemovedMembers bool) ([]*model.UserChannelIDPair, error) {
 	builder := s.getQueryBuilder().Select("GroupMembers.UserId UserID", "GroupChannels.ChannelId ChannelID").
 		From("GroupMembers").
 		Join("GroupChannels ON GroupChannels.GroupId = GroupMembers.GroupId").
@@ -1013,7 +1013,7 @@ func (s *SqlGroupStore) ChannelMembersToAdd(since int64, channelID *string, incl
 			"Channels.DeleteAt":      0,
 		})
 
-	if !includeRemovedMembers {
+	if !reAddRemovedMembers {
 		builder = builder.
 			JoinClause("LEFT OUTER JOIN ChannelMemberHistory ON ChannelMemberHistory.ChannelId = GroupChannels.ChannelId AND ChannelMemberHistory.UserId = GroupMembers.UserId").
 			Where(sq.Eq{
