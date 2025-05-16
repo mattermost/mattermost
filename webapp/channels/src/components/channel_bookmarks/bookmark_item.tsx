@@ -220,8 +220,8 @@ const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({
 
     const prefixed = href[0] === TARGET_BLANK_URL_PREFIX;
 
-    // Handle mattermost:// URLs
-    if (isInAppLink && href.startsWith('mattermost://')) {
+    // Handle in-app links
+    if (isInAppLink) {
         return (
             <StyledAnchor
                 {...otherProps}

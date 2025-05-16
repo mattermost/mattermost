@@ -115,7 +115,7 @@ func (o *ChannelBookmark) IsValid() *AppError {
                 return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error", nil, "id="+o.Id, http.StatusBadRequest)
         }
         
-        if o.Type == ChannelBookmarkInAppLink && (o.LinkUrl == "" || !strings.HasPrefix(o.LinkUrl, "mattermost://") || utf8.RuneCountInString(o.LinkUrl) > LinkMaxRunes) {
+        if o.Type == ChannelBookmarkInAppLink && (o.LinkUrl == "" || !IsValidAppSchemeURL(o.LinkUrl) || utf8.RuneCountInString(o.LinkUrl) > LinkMaxRunes) {
                 return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.inapp_link_url.missing_or_invalid.app_error", nil, "id="+o.Id, http.StatusBadRequest)
         }
 
