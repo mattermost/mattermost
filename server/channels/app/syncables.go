@@ -123,7 +123,7 @@ func (a *App) createDefaultTeamMemberships(rctx request.CTX, params model.Create
 
 // CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
 // are configured to sync with teams and channels for group members on or after the given timestamp.
-// If params.RseAddRemovedMembers is true, then members who left or were removed from a team/channel will
+// If params.AddRemovedMembers is true, then members who left or were removed from a team/channel will
 // be re-added; otherwise, they will not be re-added.
 func (a *App) CreateDefaultMemberships(rctx request.CTX, params model.CreateDefaultMembershipParams) error {
 	err := a.createDefaultTeamMemberships(rctx, params)

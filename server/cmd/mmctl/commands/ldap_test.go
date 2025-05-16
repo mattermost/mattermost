@@ -22,7 +22,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO(), &model.LdapSyncOptions{}).
+			SyncLdap(context.TODO(), nil).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -39,7 +39,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO(), &model.LdapSyncOptions{}).
+			SyncLdap(context.TODO(), nil).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -56,7 +56,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO(), &model.LdapSyncOptions{}).
+			SyncLdap(context.TODO(), nil).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -65,23 +65,6 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 		s.Require().Equal(err, mockError)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("Sync with re-add-removed-members", func() {
-		printer.Clean()
-
-		cmd := newLDAPSyncCmd()
-		err := cmd.ParseFlags([]string{"--re-add-removed-members"})
-		s.Require().Nil(err)
-
-		s.client.
-			EXPECT().
-			SyncLdap(context.TODO(), &model.LdapSyncOptions{ReAddRemovedMembers: model.NewPointer(true)}).
-			Return(&model.Response{StatusCode: http.StatusOK}, nil).
-			Times(1)
-
-		err = ldapSyncCmdF(s.client, cmd, []string{})
-		s.Require().Nil(err)
 	})
 
 	s.Run("Sync with deprecated includeRemoveMembers", func() {
@@ -93,7 +76,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO(), &model.LdapSyncOptions{ReAddRemovedMembers: model.NewPointer(true)}).
+			SyncLdap(context.TODO(), model.NewPointer(true)).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 

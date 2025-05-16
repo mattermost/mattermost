@@ -30,11 +30,10 @@ func newLDAPSyncCmd() *cobra.Command {
 	}
 
 	cmd.Flags().Bool("include-removed-members", false, "Include members who left or were removed from a group-synced team/channel")
-	err := cmd.Flags().MarkDeprecated("include-removed-members", "This flag is deprecated and will be removed in a future version. Use --re-add-removed-members instead.")
+	err := cmd.Flags().MarkDeprecated("include-removed-members", "This flag is deprecated and will be removed in a future version. Use LdapSettings.ReAddRemovedMembers instead.")
 	if err != nil {
 		panic(err)
 	}
-	cmd.Flags().Bool("re-add-removed-members", false, "Re-add members who left or were removed from a group-synced team/channel")
 
 	return cmd
 }
@@ -101,19 +100,14 @@ func init() {
 func ldapSyncCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
-	var opts model.LdapSyncOptions
-	// --re-add-removed-members takes precedence over the deprecated --include-removed-members.
-	if cmd.Flags().Changed("re-add-removed-members") {
-		includeRemovedMembers, _ := cmd.Flags().GetBool("re-add-removed-members")
-		opts.ReAddRemovedMembers = &includeRemovedMembers
+	var resp *model.Response
+	var err error
+	if cmd.Flags().Changed("include-removed-members") {
+		reAddRemovedMembers, _ := cmd.Flags().GetBool("include-removed-members")
+		resp, err = c.SyncLdap(context.TODO(), &reAddRemovedMembers)
 	} else {
-		if cmd.Flags().Changed("include-removed-members") {
-			includeRemovedMembers, _ := cmd.Flags().GetBool("include-removed-members")
-			opts.ReAddRemovedMembers = &includeRemovedMembers
-		}
+		resp, err = c.SyncLdap(context.TODO(), nil)
 	}
-
-	resp, err := c.SyncLdap(context.TODO(), &opts)
 	if err != nil {
 		return err
 	}

@@ -5,7 +5,6 @@ package api4
 
 import (
 	"encoding/json"
-	"io"
 	"mime/multipart"
 	"net/http"
 
@@ -55,38 +54,19 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		c.SetInvalidParamWithErr("LdapSyncOptions", err)
-		return
-	}
-
-	var oldOpts struct {
+	var opts struct {
 		IncludeRemovedMembers *bool `json:"include_removed_members"`
 	}
-	err = json.Unmarshal(data, &oldOpts)
+	err := json.NewDecoder(r.Body).Decode(&opts)
 	if err != nil {
 		c.SetInvalidParamWithErr("LdapSyncOptions", err)
 		return
-	}
-
-	var opts model.LdapSyncOptions
-	err = json.Unmarshal(data, &opts)
-	if err != nil {
-		c.SetInvalidParamWithErr("LdapSyncOptions", err)
-		return
-	}
-	// For compatibility with old API, check if include_removed_members is set
-	// and set ReAddRemovedMembers accordingly.
-	// This is a temporary solution until we remove the old API.
-	if oldOpts.IncludeRemovedMembers != nil {
-		opts.ReAddRemovedMembers = oldOpts.IncludeRemovedMembers
 	}
 
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	c.App.SyncLdap(c.AppContext, &opts)
+	c.App.SyncLdap(c.AppContext, opts.IncludeRemovedMembers)
 
 	auditRec.Success()
 	ReturnStatusOK(w)

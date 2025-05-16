@@ -5747,16 +5747,24 @@ func (c *Client4) GetClusterStatus(ctx context.Context) ([]*ClusterInfo, *Respon
 
 // LDAP Section
 
-// SyncLdap will force a sync with the configured LDAP server.
-// If opts.ReAddRemovedMembers is true, then group members who left or were removed from a
+// SyncLdap starts a run of the LDAP sync job.
+//
+// If reAddRemovedMembers is true, then group members who left or were removed from a
 // synced team/channel will be re-joined; otherwise, they will be excluded.
-func (c *Client4) SyncLdap(ctx context.Context, opts *LdapSyncOptions) (*Response, error) {
-	js, err := json.Marshal(opts)
+//
+// The ReAddRemovedMembers option is deprecated. Use LdapSettings.ReAddRemovedMembers instead.
+func (c *Client4) SyncLdap(ctx context.Context, reAddRemovedMembers *bool) (*Response, error) {
+	data := map[string]any{}
+	if reAddRemovedMembers != nil {
+		data["include_removed_members"] = *reAddRemovedMembers
+	}
+
+	reqBody, err := json.Marshal(data)
 	if err != nil {
 		return nil, NewAppError("SyncLdap", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	r, err := c.DoAPIPost(ctx, c.ldapRoute()+"/sync", string(js))
+	r, err := c.DoAPIPostBytes(ctx, c.ldapRoute()+"/sync", reqBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
