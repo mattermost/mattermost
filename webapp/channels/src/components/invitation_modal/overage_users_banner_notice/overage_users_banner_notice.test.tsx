@@ -301,7 +301,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
             },
         };
 
@@ -320,7 +320,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
             },
         };
 
@@ -362,7 +362,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
             },
         };
 
@@ -391,7 +391,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
             },
         };
 
@@ -410,7 +410,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
             },
         };
 
@@ -436,7 +436,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
             },
         };
 

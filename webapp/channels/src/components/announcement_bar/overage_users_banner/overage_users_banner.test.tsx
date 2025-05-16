@@ -299,7 +299,7 @@ describe('components/overage_users_banner', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
             },
         };
 
@@ -319,7 +319,7 @@ describe('components/overage_users_banner', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
             },
         };
 

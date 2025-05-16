@@ -62,7 +62,7 @@ const OverageUsersBanner = () => {
 
     const overageByUsers = activeUsers - seatsPurchased;
 
-    const isOverageState = isBetween5PercerntAnd10PercentPurchasedSeats || isOver10PercerntPurchasedSeats;
+    const isOverageState = overageByUsers > 0 && (isBetween5PercerntAnd10PercentPurchasedSeats || isOver10PercerntPurchasedSeats);
     const hasPermission = isAdmin && isOverageState && !isCloud;
     const {
         cta,
