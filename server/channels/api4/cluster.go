@@ -20,7 +20,12 @@ func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	infos := c.App.GetClusterStatus(c.AppContext)
+	infos, err := c.App.GetClusterStatus(c.AppContext)
+	if err != nil {
+		c.Err = model.NewAppError("getClusterStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
 	js, err := json.Marshal(infos)
 	if err != nil {
 		c.Err = model.NewAppError("getClusterStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)

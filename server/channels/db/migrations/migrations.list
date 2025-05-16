@@ -265,6 +265,10 @@ channels/db/migrations/mysql/000133_add_channel_banner_fields.down.sql
 channels/db/migrations/mysql/000133_add_channel_banner_fields.up.sql
 channels/db/migrations/mysql/000134_create_access_control_policies.down.sql
 channels/db/migrations/mysql/000134_create_access_control_policies.up.sql
+channels/db/migrations/mysql/000135_sidebarchannels_categoryid.down.sql
+channels/db/migrations/mysql/000135_sidebarchannels_categoryid.up.sql
+channels/db/migrations/mysql/000136_create_attribute_view.down.sql
+channels/db/migrations/mysql/000136_create_attribute_view.up.sql
 channels/db/migrations/postgres/000001_create_teams.down.sql
 channels/db/migrations/postgres/000001_create_teams.up.sql
 channels/db/migrations/postgres/000002_create_team_members.down.sql
@@ -531,3 +535,7 @@ channels/db/migrations/postgres/000133_add_channel_banner_fields.down.sql
 channels/db/migrations/postgres/000133_add_channel_banner_fields.up.sql
 channels/db/migrations/postgres/000134_create_access_control_policies.down.sql
 channels/db/migrations/postgres/000134_create_access_control_policies.up.sql
+channels/db/migrations/postgres/000135_sidebarchannels_categoryid.down.sql
+channels/db/migrations/postgres/000135_sidebarchannels_categoryid.up.sql
+channels/db/migrations/postgres/000136_create_attribute_view.down.sql
+channels/db/migrations/postgres/000136_create_attribute_view.up.sql
