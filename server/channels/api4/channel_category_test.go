@@ -1063,7 +1063,7 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 		require.Empty(t, filtered)
 	})
 
-	t.Run("should preserve duplicate channel IDs", func(t *testing.T) {
+	t.Run("should prevent duplicate channel IDs", func(t *testing.T) {
 		channels := model.ChannelList{
 			th.BasicChannel,
 		}
@@ -1075,8 +1075,8 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 		}
 
 		filtered := validateSidebarCategoryChannels(c, th.BasicUser.Id, channelIds, channels)
-		require.Len(t, filtered, 2) // Function preserves duplicates as per implementation
-		require.Equal(t, []string{th.BasicChannel.Id, th.BasicChannel.Id}, filtered)
+		require.Len(t, filtered, 1)
+		require.Equal(t, []string{th.BasicChannel.Id}, filtered)
 	})
 }
 
