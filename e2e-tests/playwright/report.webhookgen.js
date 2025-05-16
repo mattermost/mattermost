@@ -4,10 +4,10 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('fs');
 const path = require('path');
+
 const mime = require('mime-types');
 const {S3} = require('@aws-sdk/client-s3');
 const {Upload} = require('@aws-sdk/lib-storage');
-
 const dayjs = require('dayjs');
 const duration = require('dayjs/plugin/duration');
 
@@ -121,7 +121,7 @@ async function saveArtifacts() {
 
     const reportLink = `https://${AWS_S3_BUCKET}.s3.amazonaws.com/e2e-reports/${BUILD_ID}/index.html`;
     if (process.env.CI) {
-        fs.writeFileSync('report-url.txt', reportUrl);
+        fs.writeFileSync('report-url.txt', reportLink);
     }
     return {success: true, reportLink};
 }
@@ -179,10 +179,10 @@ async function generateWebhookBody() {
 
     // Upload artifacts to S3 if environment variables are set
     let summaryField = `${passRate.toFixed(2)}% (${summary.passed}/${totalSpecs}) | ${playwrightDuration} | playwright@${playwrightVersion}`;
-    // const artifactResult = await saveArtifacts();
-    // if (artifactResult && artifactResult.success) {
-    //     summaryField += ` | [Report](${artifactResult.reportLink})`;
-    // }
+    const artifactResult = await saveArtifacts();
+    if (artifactResult && artifactResult.success) {
+        summaryField += ` | [Report](${artifactResult.reportLink})`;
+    }
 
     const serverTypeField = SERVER_TYPE ? '\nTest server: ' + SERVER_TYPE : '';
     const mmEnvField = MM_ENV ? '\nTest server override: ' + MM_ENV : '';
