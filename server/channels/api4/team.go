@@ -151,7 +151,16 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (!team.AllowOpenInvite || team.Type != model.TeamOpen) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+	isPublicTeam := team.AllowOpenInvite && team.Type == model.TeamOpen
+	hasPermissionViewTeam := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam)
+
+	if !isPublicTeam && !hasPermissionViewTeam {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	if isPublicTeam && !hasPermissionViewTeam && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPublicTeams) {
+		// Fail with PermissionViewTeam, not PermissionListPublicTeams.
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
@@ -257,16 +266,25 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if oldTeam, err := c.App.GetTeam(c.Params.TeamId); err == nil {
+	oldTeam, err := c.App.GetTeam(c.Params.TeamId)
+	if err == nil {
 		auditRec.AddEventPriorState(oldTeam)
 		auditRec.AddEventObjectType("team")
 	}
 
 	patchedTeam, err := c.App.PatchTeam(c.Params.TeamId, &team)
-
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	// If the team is now group constrained but wasn't previously, delete members that aren't part of the team's groups
+	if patchedTeam.GroupConstrained != nil && *patchedTeam.GroupConstrained && (oldTeam.GroupConstrained == nil || !*oldTeam.GroupConstrained) {
+		c.App.Srv().Go(func() {
+			if err := c.App.DeleteGroupConstrainedTeamMemberships(c.AppContext, &c.Params.TeamId); err != nil {
+				c.Logger.Warn("Error deleting group-constrained team memberships", mlog.Err(err))
+			}
+		})
 	}
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), patchedTeam)
@@ -370,6 +388,11 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
 		audit.AddEventParameter(auditRec, "team_id", c.Params.TeamId)
 		c.SetPermissionError(model.PermissionManageTeam)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteUser) {
+		c.SetPermissionError(model.PermissionInviteUser)
 		return
 	}
 
@@ -695,7 +718,6 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err *model.AppError
 	var member model.TeamMember
 	if jsonErr := json.NewDecoder(r.Body).Decode(&member); jsonErr != nil {
 		c.Err = model.NewAppError("addTeamMember", "api.team.add_team_member.invalid_body.app_error", nil, "Error in model.TeamMemberFromJSON()", http.StatusBadRequest).Wrap(jsonErr)
@@ -717,7 +739,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if member.UserId == c.AppContext.Session().UserId {
 		var team *model.Team
-		team, err = c.App.GetTeam(member.TeamId)
+		team, err := c.App.GetTeam(member.TeamId)
 		if err != nil {
 			c.Err = err
 			return
@@ -735,6 +757,19 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), member.TeamId, model.PermissionAddUserToTeam) {
 			c.SetPermissionError(model.PermissionAddUserToTeam)
 			return
+		}
+
+		canInviteGuests := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteGuest)
+		if !canInviteGuests {
+			user, err := c.App.GetUser(member.UserId)
+			if err != nil {
+				c.Err = model.NewAppError("addTeamMembers", "api.team.user.missing_account", nil, "", http.StatusNotFound).Wrap(err)
+				return
+			}
+			if user.IsGuest() {
+				c.SetPermissionError(model.PermissionInviteGuest)
+				return
+			}
 		}
 	}
 
@@ -1643,7 +1678,6 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	team, err := c.App.GetTeam(c.Params.TeamId)
-
 	if err != nil {
 		c.Err = err
 		return
@@ -1721,7 +1755,7 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	imageData := imageArray[0]
 
-	if err := c.App.SetTeamIcon(c.Params.TeamId, imageData); err != nil {
+	if err := c.App.SetTeamIcon(c.AppContext, c.Params.TeamId, imageData); err != nil {
 		c.Err = err
 		return
 	}

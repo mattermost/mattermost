@@ -94,7 +94,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", mockUser.Id).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("unable to change activation status of user %v: mock error", mockUser.Id), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Activate several users with unexistent ones and failed ones", func() {
@@ -170,7 +170,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 2)
 		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArgs[1]), printer.GetErrorLines()[0])
-		s.Require().Equal(fmt.Sprintf("unable to change activation status of user: %v", mockUser3.Id), printer.GetErrorLines()[1])
+		s.Require().Equal(fmt.Sprintf("unable to change activation status of user %v: mock error", mockUser3.Id), printer.GetErrorLines()[1])
 	})
 
 	s.Run("shell completion", func() {
@@ -280,7 +280,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", mockUser.Id).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("unable to change activation status of user %v: mock error", mockUser.Id), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Deactivate SSO user", func() {
@@ -381,7 +381,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 		s.Require().Equal("You must also deactivate user "+mockUser2.Id+" in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 2)
 		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %v not found\n\n", emailArgs[1]), printer.GetErrorLines()[0])
-		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", mockUser3.Id).Error(), printer.GetErrorLines()[1])
+		s.Require().Equal(fmt.Sprintf("unable to change activation status of user %v: mock error", mockUser3.Id), printer.GetErrorLines()[1])
 	})
 }
 
@@ -596,17 +596,35 @@ func (s *MmctlUnitTestSuite) TestDeleteAllUsersCmd() {
 func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 	s.Run("Search for an existing user", func() {
 		emailArg := "example@example.com"
-		mockUser := model.User{Username: "ExampleUser", Email: emailArg}
+		mockUser := &model.User{Username: "ExampleUser", Email: emailArg}
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(context.TODO(), emailArg, "").
-			Return(&mockUser, &model.Response{}, nil).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		err := searchUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
 		s.Require().Nil(err)
-		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Equal(userOut{User: mockUser, Deactivated: false}, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Search for a disabled user", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := &model.User{Username: "ExampleUser", Email: emailArg, DeleteAt: 1234}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.TODO(), emailArg, "").
+			Return(mockUser, &model.Response{}, nil).
+			Times(1)
+
+		err := searchUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(userOut{User: mockUser, Deactivated: true}, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 

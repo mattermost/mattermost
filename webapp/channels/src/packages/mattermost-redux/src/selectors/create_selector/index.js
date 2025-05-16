@@ -3,26 +3,6 @@
 
 /* eslint-disable */
 
-// Generates a RFC-4122 version 4 compliant globally unique identifier.
-export function generateId() {
-    // implementation taken from http://stackoverflow.com/a/2117523
-    let id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
-    id = id.replace(/[xy]/g, (c) => {
-        const r = Math.floor(Math.random() * 16);
-        let v;
-
-        if (c === 'x') {
-            v = r;
-        } else {
-            // eslint-disable-next-line no-mixed-operators
-            v = r & 0x3 | 0x8;
-        }
-
-        return v.toString(16);
-    });
-    return id;
-}
-
 function defaultEqualityCheck(a, b) {
     return a === b;
 }
@@ -43,7 +23,7 @@ function areArgumentsShallowlyEqual(equalityCheck, prev, next) {
     return true;
 }
 
-export function defaultMemoize(func, measure, equalityCheck = defaultEqualityCheck) {
+export function defaultMemoize(func, equalityCheck = defaultEqualityCheck) {
     let lastArgs = null
     let lastResult = null
     // we reference arguments instead of spreading them for performance reasons
@@ -53,9 +33,6 @@ export function defaultMemoize(func, measure, equalityCheck = defaultEqualityChe
             lastResult = func.apply(null, arguments)
         }
 
-        if (measure) {
-            measure();
-        }
         lastArgs = arguments
         return lastResult
     }
@@ -77,25 +54,16 @@ function getDependencies(funcs) {
     return dependencies;
 }
 
-const trackedSelectors = {};
-
 export function createSelectorCreator(memoize, ...memoizeOptions) {
     return (name, ...funcs) => {
-        const id = generateId();
-        let recomputations = 0;
-        let calls = 0;
         const resultFunc = funcs.pop();
         const dependencies = getDependencies(funcs);
 
         const memoizedResultFunc = memoize(
             function() {
-                recomputations++;
-                trackedSelectors[id].recomputations++;
-
                 // apply arguments instead of spreading for performance.
                 return resultFunc?.apply(null, arguments);
             },
-            null,
             ...memoizeOptions,
         );
 
@@ -111,23 +79,10 @@ export function createSelectorCreator(memoize, ...memoizeOptions) {
 
             // apply arguments instead of spreading for performance.
             return memoizedResultFunc.apply(null, params);
-        },
-        () => {
-            calls++;
-            trackedSelectors[id].calls++;
         });
 
         selector.resultFunc = resultFunc;
         selector.dependencies = dependencies;
-        selector.recomputations = () => recomputations;
-        selector.resetRecomputations = () => recomputations = 0;
-
-        trackedSelectors[id] = {
-            id,
-            name,
-            calls: 0,
-            recomputations: 0,
-        };
 
         return selector;
     };
@@ -153,52 +108,3 @@ export function createStructuredSelector(selectors, selectorCreator = createSele
         },
     );
 }
-
-// resetTrackedSelectors resets all the measurements for memoization effectiveness.
-function resetTrackedSelectors() {
-    Object.values(trackedSelectors).forEach((selector) => {
-        selector.calls = 0;
-        selector.recomputations = 0;
-    });
-}
-
-// getSortedTrackedSelectors returns an array, sorted by effectivness, containing mesaurement data on all tracked selectors.
-export function getSortedTrackedSelectors() {
-    let selectors = Object.values(trackedSelectors);
-    // Filter out any selector not called
-    selectors = selectors.filter(selector => selector.calls > 0);
-    const selectorsData = selectors.map((selector) => ({name: selector.name, effectiveness: effectiveness(selector), recomputations: selector.recomputations, calls: selector.calls}));
-    selectorsData.sort((a, b) => {
-        // Sort effectiveness ascending
-        if (a.effectiveness !== b.effectiveness) {
-            return a.effectiveness - b.effectiveness;
-        }
-
-        // And everything else descending
-        if (a.recomputations !== b.recomputations) {
-            return b.recomputations - a.recomputations;
-        }
-
-        if (a.calls !== b.calls) {
-            return b.calls - a.calls;
-        }
-
-        return a.name.localeCompare(b.name);
-    });
-    return selectorsData;
-}
-
-function effectiveness(selector) {
-    return 100 - ((selector.recomputations / selector.calls) * 100);
-}
-
-// dumpTrackedSelectorsStatistics prints to console a table containing the measurement data on all tracked selectors.
-function dumpTrackedSelectorsStatistics() {
-    const selectors = getSortedTrackedSelectors();
-    console.table(selectors); //eslint-disable-line no-console
-}
-
-window.dumpTrackedSelectorsStatistics = dumpTrackedSelectorsStatistics;
-window.resetTrackedSelectors = resetTrackedSelectors;
-window.getSortedTrackedSelectors = getSortedTrackedSelectors
-

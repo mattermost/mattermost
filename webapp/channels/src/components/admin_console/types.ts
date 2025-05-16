@@ -22,6 +22,7 @@ type Component = any
 type AdminDefinitionConfigSchemaComponent = {
     id: string;
     component: Component;
+    isBeta?: boolean;
 }
 
 export type ConsoleAccess = {read: {[key: string]: boolean}; write: {[key: string]: boolean}}
@@ -33,7 +34,7 @@ type AdminDefinitionSettingCustom = Omit<AdminDefinitionSettingBase, 'label'> & 
     key: string;
     showTitle?: boolean;
     component: Component;
-    label?: string;
+    label?: string | MessageDescriptor;
 }
 
 type AdminDefinitionSettingBase = {
@@ -164,6 +165,7 @@ AdminDefinitionSettingRadio | AdminDefinitionSettingRole;
 type AdminDefinitionConfigSchemaSettings = {
     id: string;
     name: string | MessageDescriptor;
+    isBeta?: boolean;
     isHidden?: Check;
     onConfigLoad?: (config: Partial<AdminConfig>) => {[x: string]: string};
     onConfigSave?: (displayVal: any) => any;
@@ -181,6 +183,7 @@ export type AdminDefinitionConfigSchemaSection = {
     header?: string | MessageDescriptor;
     footer?: string | MessageDescriptor;
     component?: Component;
+    isHidden?: Check;
 }
 
 type RestrictedIndicatorType = {

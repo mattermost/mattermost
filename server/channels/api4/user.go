@@ -56,6 +56,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/email/verify/member", api.APISessionRequired(verifyUserEmailWithoutToken)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequired(saveUserTermsOfService)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequired(getUserTermsOfService)).Methods(http.MethodGet)
+	api.BaseRoutes.User.Handle("/reset_failed_attempts", api.APISessionRequired(resetPasswordFailedAttempts)).Methods(http.MethodPost)
 
 	api.BaseRoutes.User.Handle("/auth", api.APISessionRequiredTrustRequester(updateUserAuth)).Methods(http.MethodPut)
 
@@ -1861,6 +1862,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			"api.user.check_user_login_attempts.too_many.app_error",
 			"app.team.join_user_to_team.max_accounts.app_error",
 			"store.sql_user.save.max_accounts.app_error",
+			"api.user.check_user_login_attempts.too_many_ldap.app_error",
 		}
 
 		maskError := true
@@ -3092,14 +3094,62 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	// For backward compatibility purposes
+	if c.Params.Page != -1 {
+		cursor := &model.ChannelMemberCursor{
+			Page:    c.Params.Page,
+			PerPage: c.Params.PerPage,
+		}
+		members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, cursor)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if err := json.NewEncoder(w).Encode(members); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(members); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	// The new model streams data using NDJSON format (each JSON object on a new line)
+	pageSize := 100
+	fromChannelID := ""
+
+	// Set the correct content type for NDJSON
+	w.Header().Set("Content-Type", "application/x-ndjson")
+
+	enc := json.NewEncoder(w)
+
+	for {
+		cursor := &model.ChannelMemberCursor{
+			Page:          -1,
+			PerPage:       pageSize,
+			FromChannelID: fromChannelID,
+		}
+
+		members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, cursor)
+		if err != nil {
+			// If the page size was a perfect multiple of the total number of results,
+			// then the last query will always return zero results.
+			if fromChannelID != "" && err.Id == app.MissingChannelMemberError {
+				break
+			}
+			c.Err = err
+			return
+		}
+
+		for _, member := range members {
+			if err := enc.Encode(member); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
+		}
+
+		if len(members) < pageSize {
+			break
+		}
+
+		fromChannelID = members[len(members)-1].ChannelId
 	}
 }
 
@@ -3524,4 +3574,47 @@ func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(err))
 	}
+}
+
+func resetPasswordFailedAttempts(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+	errParams := map[string]any{"userID": c.Params.UserId}
+
+	auditRec := c.MakeAuditRecord("resetPasswordFailedAttempts", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementUsers) {
+		c.Err = model.NewAppError("resetPasswordFailedAttempts", "api.user.reset_password_failed_attempts.permissions.app_error", errParams, "", http.StatusForbidden)
+		return
+	}
+
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	auditRec.AddEventPriorState(user)
+	auditRec.AddEventObjectType("user")
+
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	if user.AuthService != model.UserAuthServiceLdap && user.AuthService != "" {
+		c.Err = model.NewAppError("resetPasswordFailedAttempts", "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error", errParams, "", http.StatusBadRequest)
+		return
+	}
+
+	if err := c.App.ResetPasswordFailedAttempts(c.AppContext, user); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+
+	ReturnStatusOK(w)
 }

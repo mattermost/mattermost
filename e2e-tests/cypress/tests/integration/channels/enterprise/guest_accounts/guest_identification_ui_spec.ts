@@ -59,8 +59,8 @@ describe('Verify Guest User Identification in different screens', () => {
 
     it('MM-T1370 Verify Guest Badge in Channel Members dropdown and dialog', () => {
         // # Open Channel Members RHS
-        cy.get('#channelHeaderDropdownIcon').click();
-        cy.get('#channelManageMembers').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('#channelHeaderTitle').click();
+        cy.get('#channelMembers').click().wait(TIMEOUTS.HALF_SEC);
         cy.uiGetRHS().findByTestId(`memberline-${guestUser.id}`).within(($el) => {
             cy.wrap($el).get('.Tag').should('be.visible').should('have.text', 'GUEST');
         });
@@ -68,7 +68,7 @@ describe('Verify Guest User Identification in different screens', () => {
 
     it('Verify Guest Badge in Team Members dialog', () => {
         // # Open team menu and click 'View Members'
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
 
         cy.get('#teamMembersModal').should('be.visible').within(($el) => {
             cy.wrap($el).findAllByTestId('userListItemDetails').each(($elChild) => {

@@ -17,6 +17,11 @@ import (
 	"unicode/utf8"
 )
 
+var (
+	// Validates both 3-digit (#RGB) and 6-digit (#RRGGBB) hex colors
+	channelHexColorRegex = regexp.MustCompile(`^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$`)
+)
+
 type ChannelType string
 
 const (
@@ -46,7 +51,7 @@ type ChannelBannerInfo struct {
 	BackgroundColor *string `json:"background_color"`
 }
 
-func (c *ChannelBannerInfo) Scan(value interface{}) error {
+func (c *ChannelBannerInfo) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -94,10 +99,11 @@ type Channel struct {
 	PolicyID          *string            `json:"policy_id"`
 	LastRootPostAt    int64              `json:"last_root_post_at"`
 	BannerInfo        *ChannelBannerInfo `json:"banner_info"`
+	PolicyEnforced    bool               `json:"policy_enforced"`
 }
 
-func (o *Channel) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *Channel) Auditable() map[string]any {
+	return map[string]any{
 		"create_at":            o.CreateAt,
 		"creator_id":           o.CreatorId,
 		"delete_at":            o.DeleteAt,
@@ -114,6 +120,7 @@ func (o *Channel) Auditable() map[string]interface{} {
 		"total_msg_count_root": o.TotalMsgCountRoot,
 		"type":                 o.Type,
 		"update_at":            o.UpdateAt,
+		"policy_enforced":      o.PolicyEnforced,
 	}
 }
 
@@ -139,11 +146,12 @@ type ChannelPatch struct {
 	Header           *string            `json:"header"`
 	Purpose          *string            `json:"purpose"`
 	GroupConstrained *bool              `json:"group_constrained"`
+	Type             ChannelType        `json:"type"`
 	BannerInfo       *ChannelBannerInfo `json:"banner_info"`
 }
 
-func (c *ChannelPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *ChannelPatch) Auditable() map[string]any {
+	return map[string]any{
 		"header":            c.Header,
 		"group_constrained": c.GroupConstrained,
 		"purpose":           c.Purpose,
@@ -181,8 +189,8 @@ type ChannelModerationPatch struct {
 	Roles *ChannelModeratedRolesPatch `json:"roles"`
 }
 
-func (c *ChannelModerationPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *ChannelModerationPatch) Auditable() map[string]any {
+	return map[string]any{
 		"name":  c.Name,
 		"roles": c.Roles,
 	}
@@ -203,26 +211,30 @@ type ChannelModeratedRolesPatch struct {
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
+// ExcludeAccessPolicyEnforced will exclude channels that are enforced by an access policy.
 type ChannelSearchOpts struct {
-	NotAssociatedToGroup     string
-	ExcludeDefaultChannels   bool
-	IncludeDeleted           bool // If true, deleted channels will be included in the results.
-	Deleted                  bool
-	ExcludeChannelNames      []string
-	TeamIds                  []string
-	GroupConstrained         bool
-	ExcludeGroupConstrained  bool
-	PolicyID                 string
-	ExcludePolicyConstrained bool
-	IncludePolicyID          bool
-	IncludeSearchById        bool
-	ExcludeRemote            bool
-	Public                   bool
-	Private                  bool
-	Page                     *int
-	PerPage                  *int
-	LastDeleteAt             int // When combined with IncludeDeleted, only channels deleted after this time will be returned.
-	LastUpdateAt             int
+	NotAssociatedToGroup               string
+	ExcludeDefaultChannels             bool
+	IncludeDeleted                     bool // If true, deleted channels will be included in the results.
+	Deleted                            bool
+	ExcludeChannelNames                []string
+	TeamIds                            []string
+	GroupConstrained                   bool
+	ExcludeGroupConstrained            bool
+	PolicyID                           string
+	ExcludePolicyConstrained           bool
+	IncludePolicyID                    bool
+	IncludeSearchById                  bool
+	ExcludeRemote                      bool
+	Public                             bool
+	Private                            bool
+	Page                               *int
+	PerPage                            *int
+	LastDeleteAt                       int // When combined with IncludeDeleted, only channels deleted after this time will be returned.
+	LastUpdateAt                       int
+	AccessControlPolicyEnforced        bool
+	ExcludeAccessControlPolicyEnforced bool
+	ParentAccessControlPolicyId        string
 }
 
 type ChannelMemberCountByGroup struct {
@@ -310,6 +322,10 @@ func (o *Channel) IsValid() *AppError {
 
 		if o.BannerInfo.BackgroundColor == nil || len(*o.BannerInfo.BackgroundColor) == 0 {
 			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.background_color.empty.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if !channelHexColorRegex.MatchString(*o.BannerInfo.BackgroundColor) {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.background_color.invalid.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 

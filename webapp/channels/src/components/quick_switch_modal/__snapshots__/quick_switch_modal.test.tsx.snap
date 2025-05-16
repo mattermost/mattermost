@@ -3,14 +3,11 @@
 exports[`components/QuickSwitchModal should match snapshot 1`] = `
 <GenericModal
   ariaLabel="Find Channels"
-  autoCloseOnCancelButton={true}
-  autoCloseOnConfirmButton={true}
   bodyPadding={false}
   className="a11y__modal channel-switcher"
   compassDesign={true}
   enforceFocus={false}
   id="quickSwitchModal"
-  keyboardEscape={true}
   modalHeaderText={
     <div
       className="channel-switcher__header"

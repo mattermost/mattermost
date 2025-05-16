@@ -103,11 +103,11 @@ describe('User Management', () => {
     function verifyManageUserSettingModal(user, writeAccess) {
         if (writeAccess) {
             cy.get('.manageUserSettingsBtn').should('be.visible').should('have.text', 'Manage User Settings').click();
-            cy.get('#confirmModalLabel').should('be.visible').should('have.text', `Manage ${user.nickname}'s Settings`);
+            cy.get('#genericModalLabel').should('be.visible').should('have.text', `Manage ${user.nickname}'s Settings`);
 
             cy.get('#cancelModalButton').should('be.visible').should('have.text', 'Cancel');
             cy.get('#confirmModalButton').should('be.visible').should('have.text', 'Manage User Settings').click();
-            cy.get('h2#accountSettingsModalLabel').should('be.visible').should('have.text', `Manage ${user.nickname}'s Settings`);
+            cy.get('span#accountSettingsModalLabel').should('be.visible').should('have.text', `Manage ${user.nickname}'s Settings`);
             cy.get('.adminModeBadge').should('be.visible').should('have.text', 'Admin Mode');
         } else {
             cy.get('.manageUserSettingsBtn').should('not.exist');

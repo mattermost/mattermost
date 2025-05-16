@@ -72,7 +72,7 @@ describe('System Console > User Management > Deactivation', () => {
             cy.sendDirectMessageToUser(other, MESSAGES.SMALL);
 
             // # Close DM
-            cy.get('#channelHeaderDropdownIcon').click();
+            cy.get('#channelHeaderTitle').click();
             cy.findByText('Close Direct Message').click();
 
             // # Deactivate the user

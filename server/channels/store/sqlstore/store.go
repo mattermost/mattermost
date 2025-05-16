@@ -118,6 +118,8 @@ type SqlStoreStores struct {
 	propertyGroup              store.PropertyGroupStore
 	propertyField              store.PropertyFieldStore
 	propertyValue              store.PropertyValueStore
+	accessControlPolicy        store.AccessControlPolicyStore
+	Attributes                 store.AttributesStore
 }
 
 type SqlStore struct {
@@ -263,6 +265,8 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.propertyGroup = newPropertyGroupStore(store)
 	store.stores.propertyField = newPropertyFieldStore(store)
 	store.stores.propertyValue = newPropertyValueStore(store)
+	store.stores.accessControlPolicy = newSqlAccessControlPolicyStore(store, metrics)
+	store.stores.Attributes = newSqlAttributesStore(store, metrics)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -341,16 +345,17 @@ func (ss *SqlStore) initConnection() error {
 	}
 
 	if len(ss.settings.ReplicaLagSettings) > 0 {
-		ss.replicaLagHandles = make([]*dbsql.DB, len(ss.settings.ReplicaLagSettings))
+		ss.replicaLagHandles = make([]*dbsql.DB, 0, len(ss.settings.ReplicaLagSettings))
 		for i, src := range ss.settings.ReplicaLagSettings {
 			if src.DataSource == nil {
 				continue
 			}
-			ss.replicaLagHandles[i], err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBReplicaPingAttempts)
+			replicaLagHandle, err := sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBReplicaPingAttempts)
 			if err != nil {
 				mlog.Warn("Failed to setup replica lag handle. Skipping..", mlog.String("db", fmt.Sprintf(replicaLagPrefix+"-%d", i)), mlog.Err(err))
 				continue
 			}
+			ss.replicaLagHandles = append(ss.replicaLagHandles, replicaLagHandle)
 		}
 	}
 	return nil
@@ -1076,6 +1081,14 @@ func (ss *SqlStore) PropertyField() store.PropertyFieldStore {
 
 func (ss *SqlStore) PropertyValue() store.PropertyValueStore {
 	return ss.stores.propertyValue
+}
+
+func (ss *SqlStore) AccessControlPolicy() store.AccessControlPolicyStore {
+	return ss.stores.accessControlPolicy
+}
+
+func (ss *SqlStore) Attributes() store.AttributesStore {
+	return ss.stores.Attributes
 }
 
 func (ss *SqlStore) DropAllTables() {
