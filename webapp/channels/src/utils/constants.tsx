@@ -2251,8 +2251,8 @@ export const DataSearchTypes = {
 } as const;
 
 export const OverActiveUserLimits = {
-    MIN: 0.05,
-    MAX: 0.1,
+    MIN: 0,
+    MAX: 0,
 } as const;
 
 export const PageLoadContext = {

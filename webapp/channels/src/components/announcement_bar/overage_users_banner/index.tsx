@@ -96,7 +96,7 @@ const OverageUsersBanner = () => {
     const message = (
         <FormattedMessage
             id='licensingPage.overageUsersBanner.text'
-            defaultMessage='(Only visible to admins) Your workspace user count has exceeded your paid license seat count by {seats, number} {seats, plural, one {seat} other {seats}}. Purchase additional seats to remain compliant.'
+            defaultMessage='(Only visible to admins) The user count exceeds the number of paid seats by {seats, number} {seats, plural, one {seat} other {seats}}. Purchase more seats to stay compliant.'
             values={{
                 seats: overageByUsers,
             }}
@@ -105,7 +105,7 @@ const OverageUsersBanner = () => {
     return (
         <AnnouncementBar
             type={isBetween5PercerntAnd10PercentPurchasedSeats ? AnnouncementBarTypes.ADVISOR : AnnouncementBarTypes.CRITICAL}
-            showCloseButton={isBetween5PercerntAnd10PercentPurchasedSeats}
+            showCloseButton={true}
             onButtonClick={handleClick}
             modalButtonText={cta}
             message={message}
