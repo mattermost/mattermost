@@ -13,8 +13,6 @@ type Props = {
     children?: React.ReactNode;
     checkOverflow?: number;
     isAttachmentText?: boolean;
-    isRHSExpanded: boolean;
-    isRHSOpen: boolean;
     text?: string;
     compactDisplay: boolean;
     overflowType?: AttachmentTextOverflowType;
@@ -30,6 +28,7 @@ export default class ShowMore extends React.PureComponent<Props, State> {
     private maxHeight: number;
     private textContainer: React.RefObject<HTMLDivElement>;
     private overflowRef?: number;
+    private resizeObserver: ResizeObserver | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -42,16 +41,17 @@ export default class ShowMore extends React.PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        this.checkTextOverflow();
+        this.setupResizeObserver();
 
-        window.addEventListener('resize', this.handleResize);
+        // Initial check for overflow
+        this.checkTextOverflow();
     }
 
     componentDidUpdate(prevProps: Props) {
+        // Only manually check for overflow when text content changes or when explicitly requested
+        // ResizeObserver will handle size changes caused by other factors
         if (
             this.props.text !== prevProps.text ||
-            this.props.isRHSExpanded !== prevProps.isRHSExpanded ||
-            this.props.isRHSOpen !== prevProps.isRHSOpen ||
             this.props.checkOverflow !== prevProps.checkOverflow
         ) {
             this.checkTextOverflow();
@@ -59,11 +59,38 @@ export default class ShowMore extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
-        window.removeEventListener('resize', this.handleResize);
         if (this.overflowRef) {
             window.cancelAnimationFrame(this.overflowRef);
         }
+        this.cleanupResizeObserver();
     }
+
+    setupResizeObserver = () => {
+        if (!this.textContainer.current || !window.ResizeObserver) {
+            // ResizeObserver is not supported in this browser or the container is not available yet
+            return;
+        }
+
+        // Clean up any existing observer before creating a new one
+        // This prevents multiple observers in case setupResizeObserver is called more than once
+        this.cleanupResizeObserver();
+
+        // Create a new ResizeObserver to watch for size changes in the text container
+        this.resizeObserver = new ResizeObserver(() => {
+            // When the size of the text container changes, check if we need to show/hide the "Show More" button
+            this.checkTextOverflow();
+        });
+
+        // Start observing the text container
+        this.resizeObserver.observe(this.textContainer.current);
+    };
+
+    cleanupResizeObserver = () => {
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+    };
 
     toggleCollapse = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
@@ -92,10 +119,6 @@ export default class ShowMore extends React.PureComponent<Props, State> {
                 });
             }
         });
-    };
-
-    handleResize = () => {
-        this.checkTextOverflow();
     };
 
     render() {

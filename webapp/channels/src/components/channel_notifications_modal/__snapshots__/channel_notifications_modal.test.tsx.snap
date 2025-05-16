@@ -40,22 +40,6 @@ Object {
               <div
                 class="modal-header"
               >
-                <button
-                  aria-label="Close"
-                  class="close"
-                  type="button"
-                >
-                  <span
-                    aria-hidden="true"
-                  >
-                    ×
-                  </span>
-                  <span
-                    class="sr-only"
-                  >
-                    Close
-                  </span>
-                </button>
                 <div
                   class="GenericModal__header__text_container"
                 >
@@ -87,6 +71,22 @@ Object {
                     </h1>
                   </div>
                 </div>
+                <button
+                  aria-label="Close"
+                  class="close"
+                  type="button"
+                >
+                  <span
+                    aria-hidden="true"
+                  >
+                    ×
+                  </span>
+                  <span
+                    class="sr-only"
+                  >
+                    Close
+                  </span>
+                </button>
               </div>
               <div
                 class="modal-body"
@@ -522,22 +522,6 @@ Object {
               <div
                 class="modal-header"
               >
-                <button
-                  aria-label="Close"
-                  class="close"
-                  type="button"
-                >
-                  <span
-                    aria-hidden="true"
-                  >
-                    ×
-                  </span>
-                  <span
-                    class="sr-only"
-                  >
-                    Close
-                  </span>
-                </button>
                 <div
                   class="GenericModal__header__text_container"
                 >
@@ -569,6 +553,22 @@ Object {
                     </h1>
                   </div>
                 </div>
+                <button
+                  aria-label="Close"
+                  class="close"
+                  type="button"
+                >
+                  <span
+                    aria-hidden="true"
+                  >
+                    ×
+                  </span>
+                  <span
+                    class="sr-only"
+                  >
+                    Close
+                  </span>
+                </button>
               </div>
               <div
                 class="modal-body"
@@ -1164,22 +1164,6 @@ Object {
               <div
                 class="modal-header"
               >
-                <button
-                  aria-label="Close"
-                  class="close"
-                  type="button"
-                >
-                  <span
-                    aria-hidden="true"
-                  >
-                    ×
-                  </span>
-                  <span
-                    class="sr-only"
-                  >
-                    Close
-                  </span>
-                </button>
                 <div
                   class="GenericModal__header__text_container"
                 >
@@ -1211,6 +1195,22 @@ Object {
                     </h1>
                   </div>
                 </div>
+                <button
+                  aria-label="Close"
+                  class="close"
+                  type="button"
+                >
+                  <span
+                    aria-hidden="true"
+                  >
+                    ×
+                  </span>
+                  <span
+                    class="sr-only"
+                  >
+                    Close
+                  </span>
+                </button>
               </div>
               <div
                 class="modal-body"
@@ -1314,6 +1314,7 @@ Object {
                     <div
                       class="AlertBanner info AlertBanner--app"
                       data-testid="channelNotificationsMutedBanner"
+                      id="channelNotificationsMutedBanner"
                     >
                       <div
                         class="AlertBanner__icon"
@@ -1524,22 +1525,6 @@ Object {
               <div
                 class="modal-header"
               >
-                <button
-                  aria-label="Close"
-                  class="close"
-                  type="button"
-                >
-                  <span
-                    aria-hidden="true"
-                  >
-                    ×
-                  </span>
-                  <span
-                    class="sr-only"
-                  >
-                    Close
-                  </span>
-                </button>
                 <div
                   class="GenericModal__header__text_container"
                 >
@@ -1571,6 +1556,22 @@ Object {
                     </h1>
                   </div>
                 </div>
+                <button
+                  aria-label="Close"
+                  class="close"
+                  type="button"
+                >
+                  <span
+                    aria-hidden="true"
+                  >
+                    ×
+                  </span>
+                  <span
+                    class="sr-only"
+                  >
+                    Close
+                  </span>
+                </button>
               </div>
               <div
                 class="modal-body"
@@ -2104,22 +2105,6 @@ Object {
               <div
                 class="modal-header"
               >
-                <button
-                  aria-label="Close"
-                  class="close"
-                  type="button"
-                >
-                  <span
-                    aria-hidden="true"
-                  >
-                    ×
-                  </span>
-                  <span
-                    class="sr-only"
-                  >
-                    Close
-                  </span>
-                </button>
                 <div
                   class="GenericModal__header__text_container"
                 >
@@ -2151,6 +2136,22 @@ Object {
                     </h1>
                   </div>
                 </div>
+                <button
+                  aria-label="Close"
+                  class="close"
+                  type="button"
+                >
+                  <span
+                    aria-hidden="true"
+                  >
+                    ×
+                  </span>
+                  <span
+                    class="sr-only"
+                  >
+                    Close
+                  </span>
+                </button>
               </div>
               <div
                 class="modal-body"
@@ -2684,22 +2685,6 @@ Object {
               <div
                 class="modal-header"
               >
-                <button
-                  aria-label="Close"
-                  class="close"
-                  type="button"
-                >
-                  <span
-                    aria-hidden="true"
-                  >
-                    ×
-                  </span>
-                  <span
-                    class="sr-only"
-                  >
-                    Close
-                  </span>
-                </button>
                 <div
                   class="GenericModal__header__text_container"
                 >
@@ -2731,6 +2716,22 @@ Object {
                     </h1>
                   </div>
                 </div>
+                <button
+                  aria-label="Close"
+                  class="close"
+                  type="button"
+                >
+                  <span
+                    aria-hidden="true"
+                  >
+                    ×
+                  </span>
+                  <span
+                    class="sr-only"
+                  >
+                    Close
+                  </span>
+                </button>
               </div>
               <div
                 class="modal-body"

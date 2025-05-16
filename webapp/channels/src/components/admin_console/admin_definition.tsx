@@ -36,7 +36,7 @@ import {searchableStrings as teamAnalyticsSearchableStrings} from 'components/an
 import ExternalLink from 'components/external_link';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks, CacheTypes} from 'utils/constants';
+import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks, CacheTypes, getLicenseTier} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
@@ -228,6 +228,7 @@ export const it = {
     cloudLicensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license)),
     licensedForFeature: (feature: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license[feature] === 'true'),
     licensedForSku: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license.SkuShortName === skuName),
+    minLicenseTier: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && getLicenseTier(license.SkuShortName) >= getLicenseTier(skuName)),
     licensedForCloudStarter: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license) && license.SkuShortName === LicenseSkus.Starter),
     hidePaymentInfo: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
         if (!cloud) {
@@ -1156,7 +1157,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.exportStorage', defaultMessage: 'Export Storage'}),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('Cloud')),
-                    it.not(it.licensedForSku(LicenseSkus.Enterprise)),
+                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                     it.configIsFalse('FeatureFlags', 'CloudDedicatedExportUI'),
                 ),
                 schema: {
@@ -2047,7 +2048,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.mobileSecurity', defaultMessage: 'Mobile Security'}),
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MOBILE_SECURITY)),
-                    it.not(it.licensedForSku(LicenseSkus.Enterprise)),
+                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                 ),
                 schema: {
                     id: 'MobileSecuritySettings',
@@ -2080,7 +2081,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.mobileSecurity', defaultMessage: 'Mobile Security'}),
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MOBILE_SECURITY)),
-                    it.licensedForSku(LicenseSkus.Enterprise),
+                    it.minLicenseTier(LicenseSkus.Enterprise),
                     it.not(it.enterpriseReady),
                 ),
                 schema: {
@@ -2337,7 +2338,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.system_properties', defaultMessage: 'System Properties'}),
                 searchableStrings: systemPropertiesSearchableStrings,
                 isHidden: it.not(it.all(
-                    it.licensedForSku(LicenseSkus.Enterprise),
+                    it.minLicenseTier(LicenseSkus.Enterprise),
                     it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
                 )),
                 schema: {
@@ -2521,8 +2522,7 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.team.customUserGroupsDescription', defaultMessage: 'When true, users with appropriate permissions can create custom user groups and enables at-mentions for those groups.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                             isHidden: it.not(it.any(
-                                it.licensedForSku(LicenseSkus.Enterprise),
-                                it.licensedForSku(LicenseSkus.Professional),
+                                it.minLicenseTier(LicenseSkus.Professional),
                             )),
                         },
                         {
@@ -3348,7 +3348,7 @@ const AdminDefinition: AdminDefinitionType = {
             ip_filtering: {
                 url: 'site_config/ip_filtering',
                 title: adminDefinitionMessages.ip_filtering_title,
-                isHidden: it.not(it.all(it.configIsTrue('FeatureFlags', 'CloudIPFiltering'), it.licensedForSku('enterprise'))),
+                isHidden: it.not(it.all(it.configIsTrue('FeatureFlags', 'CloudIPFiltering'), it.minLicenseTier(LicenseSkus.Enterprise))),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.IP_FILTERING)),
                 searchableStrings: [adminDefinitionMessages.ip_filtering_title],
                 schema: {
@@ -4008,7 +4008,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     key: 'LdapSettings.CustomProfileAttributes',
                                     component: CustomProfileAttributes,
                                     isHidden: it.not(it.all(
-                                        it.licensedForSku(LicenseSkus.Enterprise),
+                                        it.minLicenseTier(LicenseSkus.Enterprise),
                                         it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
                                     )),
                                 },
@@ -4733,7 +4733,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'SamlSettings.CustomProfileAttributes',
                             component: CustomProfileAttributes,
                             isHidden: it.not(it.all(
-                                it.licensedForSku(LicenseSkus.Enterprise),
+                                it.minLicenseTier(LicenseSkus.Enterprise),
                                 it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
                             )),
                         },
@@ -6426,9 +6426,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 ),
                             },
                             help_text_markdown: false,
-                            isHidden: it.not(it.any(
-                                it.licensedForSku(LicenseSkus.Enterprise),
-                                it.licensedForSku(LicenseSkus.E20))),
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
@@ -6447,9 +6445,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     display_name: defineMessage({id: 'admin.experimental.clientSideCertCheck.options.secondary', defaultMessage: 'secondary'}),
                                 },
                             ],
-                            isHidden: it.not(it.any(
-                                it.licensedForSku(LicenseSkus.Enterprise),
-                                it.licensedForSku(LicenseSkus.E20))),
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                                 it.stateIsFalse('ExperimentalSettings.ClientSideCertEnable'),
@@ -6712,7 +6708,11 @@ const AdminDefinition: AdminDefinitionType = {
             audit_logging: {
                 url: 'experimental/audit_logging',
                 title: defineMessage({id: 'admin.sidebar.audit_logging_experimental', defaultMessage: 'Audit Logging'}),
-                isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)), it.configIsFalse('FeatureFlags', 'ExperimentalAuditSettingsSystemConsoleUI'), it.not(it.licensedForSku('enterprise'))),
+                isHidden: it.any(
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                    it.configIsFalse('FeatureFlags', 'ExperimentalAuditSettingsSystemConsoleUI'),
+                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                ),
                 schema: {
                     id: 'ExperimentalAuditSettings',
                     name: 'Audit Log Settings (Experimental)',

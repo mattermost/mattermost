@@ -73,15 +73,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Version 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10626,5 +10626,29 @@
   {
     "id": "ent.saml.login.ldap_user_missing",
     "translation": "Ingen användare registrerad på AD/LDAP-servern som matchar SAML-användaren."
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "Funktionen {{.Feature}} är inte tillgänglig med den aktuella licensen"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "Ogiltig länk för att rapportera ett problem. Måste vara en giltig URL och börja med http:// eller https://."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "En länk för att rapportera ett problem krävs."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "Ogiltigt mejladress för att rapportera ett problem. Måste vara en giltig mejladress."
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "Mejladress för att rapportera ett problem krävs."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Det går inte att uppdatera värdet i ett synkroniserat fält i en anpassad profil"
   }
 ]
