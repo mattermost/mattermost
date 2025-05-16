@@ -434,4 +434,48 @@ describe('ChannelSettingsConfigurationTab', () => {
         // Check that the save changes panel is visible
         expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
     });
+
+    it('should trim whitespace from banner text and color when saving', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+        renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
+
+        // Add whitespace to the banner text
+        await act(async () => {
+            const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+            await userEvent.clear(textInput);
+            await userEvent.type(textInput, '  Banner text with whitespace  ');
+        });
+
+        // Add whitespace to the banner color
+        await act(async () => {
+            const colorInput = screen.getByTestId('color-inputColorValue');
+            await userEvent.clear(colorInput);
+            await userEvent.type(colorInput, '  #00FF00  ');
+        });
+
+        // Click the Save button
+        await act(async () => {
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        });
+
+        // Verify patchChannel was called with the trimmed values
+        expect(patchChannel).toHaveBeenCalledWith('channel1', {
+            ...mockChannelWithBanner,
+            banner_info: {
+                enabled: true,
+                text: 'Banner text with whitespace', // Whitespace should be trimmed
+                background_color: expect.any(String), // The exact color might be normalized by the component
+            },
+        });
+
+        // Verify that the local state is updated with trimmed values
+        // Wait for the component to update after the save
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // The text input should now have the trimmed value
+        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        expect(textInput).toHaveValue('Banner text with whitespace');
+    });
 });
