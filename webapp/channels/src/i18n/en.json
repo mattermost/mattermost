@@ -357,6 +357,7 @@
   "admin.authentication.gitlab": "GitLab",
   "admin.authentication.guest_access": "Guest Access",
   "admin.authentication.ldap": "AD/LDAP",
+  "admin.authentication.ldap.wizard": "AD/LDAP Wizard",
   "admin.authentication.mfa": "Multi-factor Authentication",
   "admin.authentication.oauth": "OAuth 2.0",
   "admin.authentication.openid": "OpenID Connect",
