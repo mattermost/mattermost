@@ -175,6 +175,18 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite.error",
 			map[string]any{"Name": rc.DisplayName, "Error": err.Error()}, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Sync all channel members to the remote
+	if err := scs.SyncAllChannelMembers(channelID, remoteID); err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to sync channel members when inviting remote",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+			mlog.Err(err),
+		)
+		// We don't return an error here as the invite has already been sent successfully
+		// The channel membership will be synchronized during regular sync operations
+	}
+
 	return nil
 }
 
@@ -276,4 +288,26 @@ func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
 		return model.ErrChannelHomedOnRemote
 	}
 	return nil
+}
+
+// updateMembershipSyncCursor updates the LastMembersSyncAt value for the shared channel remote
+// This provides centralized and consistent cursor management
+func (scs *Service) updateMembershipSyncCursor(channelID string, remoteID string, newTimestamp int64, success bool) error {
+	// Don't update cursor on failure
+	if !success {
+		return nil
+	}
+
+	// Get the remote record
+	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
+	if err != nil {
+		return fmt.Errorf("failed to get shared channel remote for cursor update: %w", err)
+	}
+
+	if scr == nil {
+		return fmt.Errorf("shared channel remote not found for channel %s and remote %s", channelID, remoteID)
+	}
+
+	// Update the cursor - the store will handle ensuring it only moves forward
+	return scs.server.GetStore().SharedChannel().UpdateRemoteMembershipCursor(scr.Id, newTimestamp)
 }
