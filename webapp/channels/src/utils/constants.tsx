@@ -2250,9 +2250,12 @@ export const DataSearchTypes = {
     MESSAGES_SEARCH_TYPE: 'messages',
 } as const;
 
+// Currently, the overage user limits are set to 0, which means that the overage active users warning
+// is immediatly shown when over 100% usage.
+// Originally it was set to Min 5% and Max 10% (5% would be a blue warning and 10% would be a red warning).
 export const OverActiveUserLimits = {
-    MIN: 0.05,
-    MAX: 0.1,
+    MIN: 0,
+    MAX: 0,
 } as const;
 
 export const PageLoadContext = {

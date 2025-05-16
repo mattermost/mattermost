@@ -43,8 +43,8 @@ const seatsMinimumFor5PercentageState = (Math.ceil(seatsPurchased * OverActiveUs
 
 const seatsMinimumFor10PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MAX)) + seatsPurchased;
 
-const text5PercentageState = `(Only visible to admins) Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor5PercentageState - seatsPurchased} seats. Purchase additional seats to remain compliant.`;
-const text10PercentageState = `(Only visible to admins) Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor10PercentageState - seatsPurchased} seats. Purchase additional seats to remain compliant.`;
+const text5PercentageState = `(Only visible to admins) The user count exceeds the number of paid seats by ${seatsMinimumFor5PercentageState - seatsPurchased}. Purchase more seats to stay compliant.`;
+const text10PercentageState = `(Only visible to admins) The user count exceeds the number of paid seats by ${seatsMinimumFor10PercentageState - seatsPurchased}. Purchase more seats to stay compliant.`;
 
 const contactSalesTextLink = 'Contact Sales';
 
@@ -127,7 +127,7 @@ describe('components/overage_users_banner', () => {
     it('should not render the banner because we are not on overage state', () => {
         renderWithContext(<OverageUsersBanner/>);
 
-        expect(screen.queryByText('(Only visible to admins) Your workspace user count has exceeded your paid license seat count by', {exact: false})).not.toBeInTheDocument();
+        expect(screen.queryByText('(Only visible to admins) The user count exceeds the number of paid seats by', {exact: false})).not.toBeInTheDocument();
     });
 
     it('should not render the banner because we are not admins', () => {
@@ -299,7 +299,7 @@ describe('components/overage_users_banner', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
             },
         };
 
@@ -319,7 +319,7 @@ describe('components/overage_users_banner', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
             },
         };
 
