@@ -892,7 +892,7 @@ export const userCanSeeOtherUser: (state: GlobalState, userId: string) => boolea
             return false;
         }
 
-        // A remote is directly connected if it's online and confirmed
-        return isConnected(remoteCluster) && isConfirmed(remoteCluster);
+        // A remote is directly connected if it's both confirmed and connected
+        return isConfirmed(remoteCluster) && isConnected(remoteCluster);
     },
 );
