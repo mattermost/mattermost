@@ -1019,8 +1019,6 @@ type SharedChannelStore interface {
 	SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error)
 	GetSingleUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error)
 	GetUsersForUser(userID string) ([]*model.SharedChannelUser, error)
-	GetUsersByUserAndRemote(userID string, remoteID string) ([]*model.SharedChannelUser, error)
-	GetUsersByRemote(remoteID string) ([]*model.SharedChannelUser, error)
 	GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error)
 	UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error
 	UpdateGlobalUserSyncCursor(remoteID string, syncAt int64) error

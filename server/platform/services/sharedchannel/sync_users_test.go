@@ -237,10 +237,6 @@ func createMockStore() store.Store {
 	}, nil)
 
 	// Setup SharedChannel mocks for testing user sync
-	mockSharedChannelStore.On("GetUsersByRemote", mock.Anything).Return([]*model.SharedChannelUser{}, nil)
-
-	// Add mock for GetUsersByUserAndRemote which is used by shouldUserSyncGlobal
-	mockSharedChannelStore.On("GetUsersByUserAndRemote", mock.Anything, mock.Anything).Return([]*model.SharedChannelUser{}, nil)
 
 	// Add mock for UpdateUserLastSyncAt which is called during user sync
 	mockSharedChannelStore.On("UpdateUserLastSyncAt", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil)
@@ -681,9 +677,15 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 		mockServer.On("Log").Return(logger)
 		mockServer.On("GetMetrics").Return(nil) // Mock the GetMetrics call
 
+		// Mock the remote cluster service
+		mockRemoteClusterService := &MockRemoteClusterServiceIface{}
+		mockServer.On("GetRemoteClusterService").Return(mockRemoteClusterService)
+
 		// Mock the Config method to return a proper config with ConnectedWorkspacesSettings
 		mockConfig := &model.Config{}
 		mockConfig.SetDefaults()
+		mockConfig.FeatureFlags = &model.FeatureFlags{}
+		mockConfig.FeatureFlags.EnableSyncAllUsersForRemoteCluster = true
 		mockServer.On("Config").Return(mockConfig)
 
 		mockApp := &MockAppIface{}
@@ -693,17 +695,28 @@ func TestSyncAllUsersForRemote(t *testing.T) {
 		mockUserStore.On("GetAllProfiles", mock.Anything).Return(nil, assert.AnError)
 
 		mockSharedChannelStore := &mocks.SharedChannelStore{}
-		mockSharedChannelStore.On("GetUsersByRemote", mock.Anything).Return([]*model.SharedChannelUser{}, nil)
+
+		// Mock the remote cluster store
+		mockRemoteClusterStore := &mocks.RemoteClusterStore{}
+		mockRemoteClusterStore.On("Get", mock.Anything, mock.Anything).Return(
+			&model.RemoteCluster{
+				RemoteId:             "remote1",
+				LastPingAt:           model.GetMillis(),
+				LastGlobalUserSyncAt: 0,
+			}, nil)
 
 		mockStore := &mocks.Store{}
 		mockStore.On("User").Return(mockUserStore)
 		mockStore.On("SharedChannel").Return(mockSharedChannelStore)
+		mockStore.On("RemoteCluster").Return(mockRemoteClusterStore)
 		mockServer.On("GetStore").Return(mockStore)
 
 		// The service
 		scs := &Service{
 			server: mockServer,
 			app:    mockApp,
+			tasks:  make(map[string]syncTask),
+			mux:    sync.RWMutex{},
 		}
 
 		// The remote cluster

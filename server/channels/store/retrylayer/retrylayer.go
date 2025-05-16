@@ -11621,48 +11621,6 @@ func (s *RetryLayerSharedChannelStore) GetSingleUser(userID string, channelID st
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetUsersByRemote(remoteID string) ([]*model.SharedChannelUser, error) {
-
-	tries := 0
-	for {
-		result, err := s.SharedChannelStore.GetUsersByRemote(remoteID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerSharedChannelStore) GetUsersByUserAndRemote(userID string, remoteID string) ([]*model.SharedChannelUser, error) {
-
-	tries := 0
-	for {
-		result, err := s.SharedChannelStore.GetUsersByUserAndRemote(userID, remoteID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
 
 	tries := 0
@@ -11873,6 +11831,27 @@ func (s *RetryLayerSharedChannelStore) UpdateAttachmentLastSyncAt(id string, syn
 
 }
 
+func (s *RetryLayerSharedChannelStore) UpdateGlobalUserSyncCursor(remoteID string, syncAt int64) error {
+
+	tries := 0
+	for {
+		err := s.SharedChannelStore.UpdateGlobalUserSyncCursor(remoteID, syncAt)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
 
 	tries := 0
@@ -11920,27 +11899,6 @@ func (s *RetryLayerSharedChannelStore) UpdateUserLastSyncAt(userID string, chann
 	tries := 0
 	for {
 		err := s.SharedChannelStore.UpdateUserLastSyncAt(userID, channelID, remoteID)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerSharedChannelStore) UpdateGlobalUserSyncCursor(remoteID string, syncAt int64) error {
-
-	tries := 0
-	for {
-		err := s.SharedChannelStore.UpdateGlobalUserSyncCursor(remoteID, syncAt)
 		if err == nil {
 			return nil
 		}

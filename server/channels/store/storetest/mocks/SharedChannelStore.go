@@ -368,66 +368,6 @@ func (_m *SharedChannelStore) GetSingleUser(userID string, channelID string, rem
 	return r0, r1
 }
 
-// GetUsersByRemote provides a mock function with given fields: remoteID
-func (_m *SharedChannelStore) GetUsersByRemote(remoteID string) ([]*model.SharedChannelUser, error) {
-	ret := _m.Called(remoteID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetUsersByRemote")
-	}
-
-	var r0 []*model.SharedChannelUser
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]*model.SharedChannelUser, error)); ok {
-		return rf(remoteID)
-	}
-	if rf, ok := ret.Get(0).(func(string) []*model.SharedChannelUser); ok {
-		r0 = rf(remoteID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.SharedChannelUser)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(remoteID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetUsersByUserAndRemote provides a mock function with given fields: userID, remoteID
-func (_m *SharedChannelStore) GetUsersByUserAndRemote(userID string, remoteID string) ([]*model.SharedChannelUser, error) {
-	ret := _m.Called(userID, remoteID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetUsersByUserAndRemote")
-	}
-
-	var r0 []*model.SharedChannelUser
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) ([]*model.SharedChannelUser, error)); ok {
-		return rf(userID, remoteID)
-	}
-	if rf, ok := ret.Get(0).(func(string, string) []*model.SharedChannelUser); ok {
-		r0 = rf(userID, remoteID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.SharedChannelUser)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, remoteID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetUsersForSync provides a mock function with given fields: filter
 func (_m *SharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
 	ret := _m.Called(filter)
@@ -712,6 +652,24 @@ func (_m *SharedChannelStore) UpdateAttachmentLastSyncAt(id string, syncTime int
 	return r0
 }
 
+// UpdateGlobalUserSyncCursor provides a mock function with given fields: remoteID, syncAt
+func (_m *SharedChannelStore) UpdateGlobalUserSyncCursor(remoteID string, syncAt int64) error {
+	ret := _m.Called(remoteID, syncAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateGlobalUserSyncCursor")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
+		r0 = rf(remoteID, syncAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateRemote provides a mock function with given fields: remote
 func (_m *SharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
 	ret := _m.Called(remote)
@@ -771,24 +729,6 @@ func (_m *SharedChannelStore) UpdateUserLastSyncAt(userID string, channelID stri
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
 		r0 = rf(userID, channelID, remoteID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UpdateGlobalUserSyncCursor provides a mock function with given fields: remoteID, syncAt
-func (_m *SharedChannelStore) UpdateGlobalUserSyncCursor(remoteID string, syncAt int64) error {
-	ret := _m.Called(remoteID, syncAt)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateGlobalUserSyncCursor")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(remoteID, syncAt)
 	} else {
 		r0 = ret.Error(0)
 	}
