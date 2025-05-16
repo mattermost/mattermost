@@ -105,6 +105,9 @@ async function saveArtifacts() {
         return {success: false};
     }
 
+    // eslint-disable-next-line no-console
+    console.log('Current working directory:', process.cwd());
+
     const reporterPath = path.join(__dirname, 'results/reporter');
     const reportFiles = fs.readdirSync(reporterPath);
 

@@ -114,8 +114,6 @@ case "$TEST" in
 
       # Step 3: Send the data
       echo "$REPORT_DATA" | curl -X POST -fsSL -H 'Content-Type: application/json' -d @- "$WEBHOOK_URL"
-
-      # node report.webhookgen.js | curl -X POST -fsSL -H 'Content-Type: application/json' -d @- "$WEBHOOK_URL"
     fi
     ;;
 esac

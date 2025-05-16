@@ -432,6 +432,8 @@ jobs:
           AWS_REGION: "us-east-1"
           AWS_S3_BUCKET: "mattermost-cypress-report"
         run: |
+          pwd
+          ls -la
           make report
       # The results dir may have been modified as part of the reporting: re-upload
       - name: ci/upload-report-global
