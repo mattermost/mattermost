@@ -7,4 +7,4 @@ export {getOnPremServerConfig} from './default_config';
 export {initSetup, getAdminClient} from './init';
 export {createRandomPost} from './post';
 export {createRandomTeam} from './team';
-export {createRandomUser, getDefaultAdminUser} from './user';
+export {createNewUserProfile, createRandomUser, getDefaultAdminUser, isOutsideRemoteUserHour} from './user';

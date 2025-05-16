@@ -9,7 +9,7 @@ import styled from 'styled-components';
 import {TrackCrossTeamSearchFeature, TrackCrossTeamSearchAllTeamsEvent, TrackCrossTeamSearchCurrentTeamEvent, TrackCrossTeamSearchDifferentTeamEvent} from 'mattermost-redux/constants/telemetry';
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 import {getIsCrossTeamSearchEnabled} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import {trackFeatureEvent} from 'actions/telemetry_actions';
 import {updateSearchTerms, showSearchResults, updateSearchType, updateSearchTeam} from 'actions/views/rhs';
@@ -114,6 +114,7 @@ const NewSearch = (): JSX.Element => {
     const pluginSearch = useSelector(getSearchButtons);
     const currentTeamId = useSelector(getCurrentTeamId);
     const crossTeamSearchEnabled = useSelector(getIsCrossTeamSearchEnabled);
+    const myTeams = useSelector(getMyTeams);
 
     const dispatch = useDispatch();
     const [focused, setFocused] = useState<boolean>(false);
@@ -265,7 +266,7 @@ const NewSearch = (): JSX.Element => {
         >
             <i className='icon icon-magnify'/>
             {(searchType === 'messages' || searchType === 'files') && (
-                <SearchTypeBadge>
+                <SearchTypeBadge data-testid='searchTypeBadge'>
                     {searchType === 'messages' && (
                         <FormattedMessage
                             id='search_bar.search_types.messages'
@@ -318,6 +319,7 @@ const NewSearch = (): JSX.Element => {
                         initialSearchType={searchType}
                         initialSearchTeam={searchTeam}
                         crossTeamSearchEnabled={crossTeamSearchEnabled}
+                        myTeams={myTeams}
                     />
                 </PopoverStyled>
             )}

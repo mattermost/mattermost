@@ -61,9 +61,12 @@ services:
       MM_CLUSTERSETTINGS_READONLYCONFIG: "false"
       MM_SERVICEENVIRONMENT: "test"
       MM_FEATUREFLAGS_MOVETHREADSENABLED: "true"
+      MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES: "true"
       MM_LOGSETTINGS_ENABLEDIAGNOSTICS: "false"
       MM_LOGSETTINGS_CONSOLELEVEL: "DEBUG"
     network_mode: host
+    ports:
+      - "8065:8065"
     depends_on:
 $(for service in $ENABLED_DOCKER_SERVICES; do
     # The server container will start only if all other dependent services are healthy
@@ -276,7 +279,7 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   playwright:
-    image: mcr.microsoft.com/playwright:v1.51.1-noble
+    image: mcr.microsoft.com/playwright:v1.52.0-noble
     entrypoint: ["/bin/bash", "-c"]
     command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
     env_file:
@@ -293,7 +296,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
       PW_RESET_BEFORE_TEST: "false"
       PW_HEADLESS: "true"
       PW_SLOWMO: 0
-      PW_WORKERS: 2
+      PW_WORKERS: 1
       PW_SNAPSHOT_ENABLE: "false"
       PW_PERCY_ENABLE: "false"
     ulimits:
