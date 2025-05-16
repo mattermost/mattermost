@@ -2454,7 +2454,7 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 		require.True(t, fetchedRemote1.IsOnline(), "Remote cluster should be online")
 		require.True(t, fetchedRemote1.IsConfirmed(), "Remote cluster should be confirmed")
 
-		connected := service.IsRemoteClusterDirectlyConnectedForTesting(connectedRC.RemoteId)
+		connected := service.IsRemoteClusterDirectlyConnected(connectedRC.RemoteId)
 		require.True(t, connected, "Remote cluster should be directly connected")
 
 		// Create the direct channel
@@ -2489,7 +2489,7 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 		require.NoError(t, err)
 		require.False(t, fetchedRemote2.IsOnline(), "Remote cluster should be offline")
 
-		connected := service.IsRemoteClusterDirectlyConnectedForTesting(nonConnectedRC.RemoteId)
+		connected := service.IsRemoteClusterDirectlyConnected(nonConnectedRC.RemoteId)
 		require.False(t, connected, "Remote cluster should not be directly connected")
 
 		// Check if the user can see the other user - this is what the API would check before
@@ -2799,8 +2799,8 @@ func TestIndirectRemoteUserCommunication(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify both remotes are online and confirmed to server A
-		b := service.IsRemoteClusterDirectlyConnectedForTesting(remoteB.RemoteId)
-		c := service.IsRemoteClusterDirectlyConnectedForTesting(remoteC.RemoteId)
+		b := service.IsRemoteClusterDirectlyConnected(remoteB.RemoteId)
+		c := service.IsRemoteClusterDirectlyConnected(remoteC.RemoteId)
 		require.True(t, b, "Remote B should be directly connected to server A")
 		require.True(t, c, "Remote C should be directly connected to server A")
 
@@ -2837,7 +2837,7 @@ func TestIndirectRemoteUserCommunication(t *testing.T) {
 		require.NoError(t, err)
 
 		// Use the test helper to verify our setup worked
-		connected := service.IsRemoteClusterDirectlyConnectedForTesting(*userC.RemoteId)
+		connected := service.IsRemoteClusterDirectlyConnected(*userC.RemoteId)
 		require.False(t, connected, "Remote C should not be directly connected")
 
 		// User B should not be able to see User C
@@ -2879,7 +2879,7 @@ func TestIndirectRemoteUserCommunication(t *testing.T) {
 		require.NoError(t, err)
 
 		// Use the test helper to verify our setup worked
-		connected := service.IsRemoteClusterDirectlyConnectedForTesting(*userB.RemoteId)
+		connected := service.IsRemoteClusterDirectlyConnected(*userB.RemoteId)
 		require.False(t, connected, "Remote B should not be directly connected")
 
 		// User C should not be able to see User B

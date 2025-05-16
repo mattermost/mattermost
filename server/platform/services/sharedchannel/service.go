@@ -292,9 +292,3 @@ func (scs *Service) IsRemoteClusterDirectlyConnected(remoteId string) bool {
 
 	return rc.IsOnline() && rc.IsConfirmed()
 }
-
-// IsRemoteClusterDirectlyConnectedForTesting is a helper function for tests
-// This follows the same pattern as HandleChannelNotSharedErrorForTesting
-func (scs *Service) IsRemoteClusterDirectlyConnectedForTesting(remoteId string) bool {
-	return scs.IsRemoteClusterDirectlyConnected(remoteId)
-}
