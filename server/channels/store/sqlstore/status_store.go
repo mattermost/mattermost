@@ -72,18 +72,12 @@ func (s SqlStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) erro
 		}
 	}
 
-	// Handle duplicates by keeping only the last instance of each userId
-	userToStatus := make(map[string]*model.Status)
-	for _, st := range statuses {
-		userToStatus[st.UserId] = st
-	}
-
 	query := s.getQueryBuilder().
 		Insert("Status").
 		Columns("UserId", "Status", quoteColumnName(s.DriverName(), "Manual"), "LastActivityAt", "DNDEndTime", "PrevStatus")
 
 	// Add values for each unique status
-	for _, st := range userToStatus {
+	for _, st := range statuses {
 		query = query.Values(st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus)
 	}
 
