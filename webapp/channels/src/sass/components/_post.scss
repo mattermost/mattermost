@@ -53,7 +53,6 @@
         }
 
         p {
-            margin: 0;
             white-space: pre-wrap;
         }
 
@@ -758,6 +757,11 @@
             }
         }
 
+        .post__link {
+            margin: 0;
+            padding-top: 3px;
+        }
+
         .attachment {
             padding-top: 1px;
             clear: both;
@@ -828,7 +832,6 @@
             display: flex;
             flex-direction: column;
             padding: 0 0 0 8px;
-            margin: 0;
 
             &::before {
                 top: 0;
@@ -859,7 +862,7 @@
         }
 
         .post__body {
-            padding: 2px 0 0;
+            padding: 2px 0;
             background: transparent !important;
             line-height: 1.5;
 
@@ -1381,7 +1384,7 @@
 
     .post__body {
         width: 100%;
-        padding: 0 0 0.2em;
+        padding: 0.2em 0;
         word-wrap: break-word;
 
         &-reactions-acks {
