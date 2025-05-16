@@ -17,7 +17,7 @@ import (
 // createDefaultChannelMemberships adds users to channels based on their group memberships and how those groups are
 // configured to sync with channels for group members on or after the given timestamp. If a channelID is given
 // only that channel's members are created. If channelID is nil all channel memberships are created.
-// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
+// If ReAddRemovedMembers is true, then channel members who left or were removed from the channel will
 // be re-added; otherwise, they will not be re-added.
 func (a *App) createDefaultChannelMemberships(rctx request.CTX, params model.CreateDefaultMembershipParams) error {
 	channelMembers, appErr := a.ChannelMembersToAdd(params.Since, params.ScopedChannelID, params.ReAddRemovedMembers)
@@ -290,7 +290,7 @@ func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncab
 			since = lastJob.StartAt
 		}
 
-		reAddRemovedMembers = false
+		reAddRemovedMembers = *a.Config().LdapSettings.ReAddRemovedMembers
 	}
 
 	params := model.CreateDefaultMembershipParams{Since: since, ReAddRemovedMembers: reAddRemovedMembers}
