@@ -147,6 +147,8 @@ describe('Utils.URL', () => {
             ['data:text/html,<script>alert(1)</script>', false],
             ['mattermost://channel/team-name/channel-name', true],
             ['mattermost://user/user-id', true],
+            ['customapp://some/path', true],
+            ['myapp://action/id', true],
         ])('isUrlSafe for %s should return %s', (url, expected) => {
             expect(isUrlSafe(url)).toBe(expected);
         });
@@ -160,6 +162,8 @@ describe('Utils.URL', () => {
             ['https://example.com', false],
             ['mattermost://channel/team-name/channel-name', true],
             ['mattermost://user/user-id', true],
+            ['customapp://some/path', true],
+            ['myapp://action/id', true],
         ])('isInternalURL for %s should return %s', (url, expected) => {
             expect(isInternalURL(url)).toBe(expected);
         });
@@ -173,6 +177,8 @@ describe('Utils.URL', () => {
             ['https://example.com', true],
             ['mattermost://channel/team-name/channel-name', false],
             ['mattermost://user/user-id', false],
+            ['customapp://some/path', false],
+            ['myapp://action/id', false],
         ])('shouldOpenInNewTab for %s should return %s', (url, expected) => {
             expect(shouldOpenInNewTab(url)).toBe(expected);
         });
@@ -186,6 +192,8 @@ describe('Utils.URL', () => {
             ['javascript:alert(1)', false],
             ['mattermost://channel/team-name/channel-name', true],
             ['mattermost://user/user-id', true],
+            ['customapp://some/path', true],
+            ['myapp://action/id', true],
         ])('isValidUrl for %s should return %s', (url, expected) => {
             expect(isValidUrl(url)).toBe(expected);
         });
@@ -200,6 +208,9 @@ describe('Utils.URL', () => {
             ['mattermost://channel/team-name/channel-name', true],
             ['mattermost://user/user-id', true],
             ['mattermost://invalid url format', false],
+            ['customapp://some/path', true],
+            ['myapp://action/id', true],
+            ['customapp://invalid path with spaces', false],
         ])('validHttpUrl for %s should return %s', (url, expected) => {
             const result = validHttpUrl(url);
             expect(result !== null).toBe(expected);

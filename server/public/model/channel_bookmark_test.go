@@ -270,7 +270,7 @@ func TestChannelBookmarkIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark of type inapp_link with invalid link url (not starting with mattermost://)",
+			"bookmark of type inapp_link with invalid link url format",
 			&ChannelBookmark{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -278,7 +278,7 @@ func TestChannelBookmarkIsValid(t *testing.T) {
 				FileId:      "",
 				DisplayName: "display name",
 				SortOrder:   0,
-				LinkUrl:     "https://mattermost.com",
+				LinkUrl:     "invalid-url",
 				ImageUrl:    "",
 				Emoji:       "",
 				Type:        ChannelBookmarkInAppLink,
@@ -289,7 +289,7 @@ func TestChannelBookmarkIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark of type inapp_link with valid link url",
+			"bookmark of type inapp_link with valid mattermost scheme url",
 			&ChannelBookmark{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -298,6 +298,25 @@ func TestChannelBookmarkIsValid(t *testing.T) {
 				DisplayName: "display name",
 				SortOrder:   0,
 				LinkUrl:     "mattermost://channel/team-name/channel-name",
+				ImageUrl:    "",
+				Emoji:       "",
+				Type:        ChannelBookmarkInAppLink,
+				CreateAt:    2,
+				UpdateAt:    3,
+				DeleteAt:    4,
+			},
+			true,
+		},
+		{
+			"bookmark of type inapp_link with valid custom scheme url",
+			&ChannelBookmark{
+				Id:          NewId(),
+				ChannelId:   NewId(),
+				OwnerId:     NewId(),
+				FileId:      "",
+				DisplayName: "display name",
+				SortOrder:   0,
+				LinkUrl:     "customapp://some/path",
 				ImageUrl:    "",
 				Emoji:       "",
 				Type:        ChannelBookmarkInAppLink,
