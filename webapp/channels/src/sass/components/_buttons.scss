@@ -269,6 +269,14 @@ button {
             }
         }
 
+        &:disabled,
+        &:disabled:hover,
+        &:disabled:active {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            background: transparent;
+            color: rgba(var(--center-channel-color-rgb), 0.32) !important;
+        }
+
         &:hover {
             background-color: rgb(var(--button-bg-rgb), 0.08);
         }
