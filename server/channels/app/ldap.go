@@ -15,7 +15,7 @@ import (
 )
 
 // SyncLdap starts an LDAP sync job.
-// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
+// If opts.ReAddRemovedMembers is true, then members who left or were removed from a team/channel will
 // be re-added; otherwise, they will not be re-added.
 func (a *App) SyncLdap(c request.CTX, opts *model.LdapSyncOptions) {
 	a.Srv().Go(func() {
