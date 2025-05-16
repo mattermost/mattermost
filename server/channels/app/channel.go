@@ -635,6 +635,14 @@ func (a *App) GetGroupChannel(c request.CTX, userIDs []string) (*model.Channel, 
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
+	ok, appErr := a.ChannelAccessControlled(c, channel.Id)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if ok && channel.Type != model.ChannelTypePrivate {
+		return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.not_allowed.app_error", nil, "", http.StatusForbidden)
+	}
+
 	_, err := a.Srv().Store().Channel().Update(c, channel)
 	if err != nil {
 		var appErr *model.AppError
@@ -1576,6 +1584,40 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 		newMember.SchemeAdmin = userShouldBeAdmin
 	}
 
+	if channel.Type == model.ChannelTypePrivate {
+		if ok, appErr := a.ChannelAccessControlled(c, channel.Id); ok {
+			if acs := a.Srv().Channels().AccessControl; acs != nil {
+				groupID, err := a.CpaGroupID()
+				if err != nil {
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
+						fmt.Sprintf("failed to get group: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
+				}
+
+				s, err := a.Srv().Store().Attributes().GetSubject(c, user.Id, groupID)
+				if err != nil {
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
+						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
+				}
+
+				decision, evalErr := acs.AccessEvaluation(c, model.AccessRequest{
+					Subject: *s,
+					Resource: model.Resource{
+						Type: model.AccessControlPolicyTypeChannel,
+						ID:   channel.Id,
+					},
+					Action: "join_channel",
+				})
+				if evalErr != nil {
+					return nil, evalErr
+				} else if !decision.Decision {
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.rejected", nil, "", http.StatusForbidden)
+				}
+			}
+		} else if appErr != nil {
+			c.Logger().Error("Error checking access control policy for channel", mlog.Err(appErr))
+		}
+	}
+
 	newMember, nErr = a.Srv().Store().Channel().SaveMember(c, newMember)
 	if nErr != nil {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
@@ -1989,13 +2031,15 @@ func (a *App) GetAllChannels(c request.CTX, page, perPage int, opts model.Channe
 		opts.ExcludeChannelNames = a.DefaultChannelNames(c)
 	}
 	storeOpts := store.ChannelSearchOpts{
-		NotAssociatedToGroup:     opts.NotAssociatedToGroup,
-		IncludeDeleted:           opts.IncludeDeleted,
-		ExcludeChannelNames:      opts.ExcludeChannelNames,
-		GroupConstrained:         opts.GroupConstrained,
-		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
-		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
-		IncludePolicyID:          opts.IncludePolicyID,
+		NotAssociatedToGroup:               opts.NotAssociatedToGroup,
+		IncludeDeleted:                     opts.IncludeDeleted,
+		ExcludeChannelNames:                opts.ExcludeChannelNames,
+		GroupConstrained:                   opts.GroupConstrained,
+		ExcludeGroupConstrained:            opts.ExcludeGroupConstrained,
+		ExcludePolicyConstrained:           opts.ExcludePolicyConstrained,
+		IncludePolicyID:                    opts.IncludePolicyID,
+		AccessControlPolicyEnforced:        opts.AccessControlPolicyEnforced,
+		ExcludeAccessControlPolicyEnforced: opts.ExcludeAccessControlPolicyEnforced,
 	}
 	channels, err := a.Srv().Store().Channel().GetAllChannels(page*perPage, perPage, storeOpts)
 	if err != nil {
@@ -2962,22 +3006,25 @@ func (a *App) SearchAllChannels(c request.CTX, term string, opts model.ChannelSe
 		opts.ExcludeChannelNames = a.DefaultChannelNames(c)
 	}
 	storeOpts := store.ChannelSearchOpts{
-		ExcludeChannelNames:      opts.ExcludeChannelNames,
-		NotAssociatedToGroup:     opts.NotAssociatedToGroup,
-		IncludeDeleted:           opts.IncludeDeleted,
-		Deleted:                  opts.Deleted,
-		TeamIds:                  opts.TeamIds,
-		GroupConstrained:         opts.GroupConstrained,
-		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
-		PolicyID:                 opts.PolicyID,
-		IncludePolicyID:          opts.IncludePolicyID,
-		IncludeSearchByID:        opts.IncludeSearchById,
-		ExcludeRemote:            opts.ExcludeRemote,
-		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
-		Public:                   opts.Public,
-		Private:                  opts.Private,
-		Page:                     opts.Page,
-		PerPage:                  opts.PerPage,
+		ExcludeChannelNames:                opts.ExcludeChannelNames,
+		NotAssociatedToGroup:               opts.NotAssociatedToGroup,
+		IncludeDeleted:                     opts.IncludeDeleted,
+		Deleted:                            opts.Deleted,
+		TeamIds:                            opts.TeamIds,
+		GroupConstrained:                   opts.GroupConstrained,
+		ExcludeGroupConstrained:            opts.ExcludeGroupConstrained,
+		PolicyID:                           opts.PolicyID,
+		IncludePolicyID:                    opts.IncludePolicyID,
+		IncludeSearchByID:                  opts.IncludeSearchById,
+		ExcludeRemote:                      opts.ExcludeRemote,
+		ExcludePolicyConstrained:           opts.ExcludePolicyConstrained,
+		Public:                             opts.Public,
+		Private:                            opts.Private,
+		Page:                               opts.Page,
+		PerPage:                            opts.PerPage,
+		AccessControlPolicyEnforced:        opts.AccessControlPolicyEnforced,
+		ExcludeAccessControlPolicyEnforced: opts.ExcludeAccessControlPolicyEnforced,
+		ParentAccessControlPolicyId:        opts.ParentAccessControlPolicyId,
 	}
 
 	term = strings.TrimSpace(term)
@@ -3814,4 +3861,20 @@ func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*m
 	}
 
 	return channel, nil
+}
+
+func (a *App) ChannelAccessControlled(c request.CTX, channelID string) (bool, *model.AppError) {
+	if l := a.License(); !model.MinimumEnterpriseAdvancedLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return false, nil
+	}
+
+	_, err := a.Srv().Store().AccessControlPolicy().Get(c, channelID)
+	var nfErr *store.ErrNotFound
+	if err != nil && !errors.As(err, &nfErr) {
+		return false, model.NewAppError("ChannelIsAccessControlled", "app.channel.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	} else if errors.As(err, &nfErr) {
+		return false, nil
+	}
+
+	return true, nil
 }

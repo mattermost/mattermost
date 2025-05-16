@@ -31,7 +31,7 @@ import './channel_list.scss';
 export interface ChannelListProps {
     actions: {
         searchAllChannels: (term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
-        getData: (page: number, perPage: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, includeDeleted?: boolean) => Promise<ActionResult>;
+        getData: (page: number, perPage: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, includeDeleted?: boolean, accessControlPolicyEnforced?: boolean, excludeAccessControlPolicyEnforced?: boolean) => Promise<ActionResult>;
     };
     data: ChannelWithTeamData[];
     total: number;
@@ -57,6 +57,10 @@ const messages = defineMessages({
     manual: {
         id: 'admin.channel_settings.channel_row.managementMethod.manual',
         defaultMessage: 'Manual Invites',
+    },
+    attribute_based: {
+        id: 'admin.channel_settings.channel_row.managementMethod.attribute_based',
+        defaultMessage: 'Attribute Based',
     },
 });
 
@@ -102,7 +106,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
             return;
         }
 
-        await this.props.actions.getData(page, PAGE_SIZE, '', false, true);
+        await this.props.actions.getData(page, PAGE_SIZE, '', false, true, false, false);
         this.setState({page, loading: false});
     };
 
@@ -232,7 +236,16 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                     ),
                     management: (
                         <span className='group-description adjusted row-content'>
-                            <FormattedMessage {...(channel.group_constrained ? messages.group : messages.manual)}/>
+                            <span className='group-indicator channel-indicator channel-indicator--larger'>
+                                {(() => {
+                                    if (channel.policy_enforced) {
+                                        return <FormattedMessage {...messages.attribute_based}/>;
+                                    } else if (channel.group_constrained) {
+                                        return <FormattedMessage {...messages.group}/>;
+                                    }
+                                    return <FormattedMessage {...messages.manual}/>;
+                                })()}
+                            </span>
                         </span>
                     ),
                     edit: (
@@ -256,10 +269,10 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
 
     onFilter = (filterOptions: FilterOptions) => {
         const filters: ChannelSearchOpts = {};
-        const {group_constrained: groupConstrained, exclude_group_constrained: excludeGroupConstrained} = filterOptions.management.values;
+        const {group_constrained: groupConstrained, exclude_group_constrained: excludeGroupConstrained, access_control_policy_enforced: accessControlPolicyEnforced} = filterOptions.management.values;
         const {public: publicChannels, private: privateChannels, deleted} = filterOptions.channels.values;
         const {team_ids: teamIds} = filterOptions.teams.values;
-        if (publicChannels.value || privateChannels.value || deleted.value || groupConstrained.value || excludeGroupConstrained.value || (teamIds.value as string[]).length) {
+        if (publicChannels.value || privateChannels.value || deleted.value || groupConstrained.value || excludeGroupConstrained.value || (teamIds.value as string[]).length || accessControlPolicyEnforced.value) {
             filters.public = publicChannels.value as boolean;
             if (filters.public) {
                 trackEvent('admin_channels_page', 'public_filter_applied_to_channel_list');
@@ -273,6 +286,11 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
             filters.deleted = deleted.value as boolean;
             if (filters.deleted) {
                 trackEvent('admin_channels_page', 'archived_filter_applied_to_channel_list');
+            }
+
+            filters.access_control_policy_enforced = accessControlPolicyEnforced.value as boolean;
+            if (filters.access_control_policy_enforced) {
+                trackEvent('admin_channels_page', 'attributed_based_filter_applied_to_channel_list');
             }
 
             if (!(groupConstrained.value && excludeGroupConstrained.value)) {
@@ -358,8 +376,17 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                         ),
                         value: false,
                     },
+                    access_control_policy_enforced: {
+                        name: (
+                            <FormattedMessage
+                                id='admin.channel_list.attributed_based'
+                                defaultMessage='Attribute Based'
+                            />
+                        ),
+                        value: false,
+                    },
                 },
-                keys: ['group_constrained', 'exclude_group_constrained'],
+                keys: ['group_constrained', 'exclude_group_constrained', 'access_control_policy_enforced'],
             },
             channels: {
                 name: 'Channels',
