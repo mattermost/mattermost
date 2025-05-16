@@ -657,7 +657,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                                 uppercase={true}
                               >
                                 <div
-                                  className="TagWrapper-keYggn gnIgwl Tag Tag--info Tag--xs"
+                                  className="TagWrapper-kezsCu cA-dXXM Tag Tag--info Tag--xs"
                                   data-testid="post-priority-label"
                                 >
                                   <AlertCircleOutlineIcon
@@ -678,7 +678,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                                   </AlertCircleOutlineIcon>
                                   <TagText>
                                     <span
-                                      className="TagText-bWgUzx kzWPbz"
+                                      className="TagText-bWoQAI beIloY"
                                     >
                                       Important
                                     </span>
