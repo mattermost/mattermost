@@ -62,13 +62,10 @@ func (scs *Service) onReceiveMembershipChange(syncMsg *model.SyncMsg, rc *model.
 	}
 
 	// Verify this is a valid shared channel
-	sc, err := scs.server.GetStore().SharedChannel().Get(memberInfo.ChannelId)
+	_, err = scs.server.GetStore().SharedChannel().Get(memberInfo.ChannelId)
 	if err != nil {
 		return fmt.Errorf("cannot get shared channel for membership change: %w", err)
 	}
-
-	// Avoid unused variable warning
-	_ = sc
 
 	// Check for conflicts
 	shouldSkip, _ := scs.checkMembershipConflict(memberInfo.UserId, memberInfo.ChannelId, memberInfo.ChangeTime)
@@ -115,7 +112,6 @@ func (scs *Service) onReceiveMembershipChange(syncMsg *model.SyncMsg, rc *model.
 			mlog.String("remote_name", rc.DisplayName),
 			mlog.Err(err),
 		)
-		// Non-critical error, don't return it
 	}
 
 	return nil
@@ -141,19 +137,10 @@ func (scs *Service) onReceiveMembershipBatch(syncMsg *model.SyncMsg, rc *model.R
 	}
 
 	// Verify this is a valid shared channel
-	sc, err := scs.server.GetStore().SharedChannel().Get(batchInfo.ChannelId)
+	_, err = scs.server.GetStore().SharedChannel().Get(batchInfo.ChannelId)
 	if err != nil {
 		return fmt.Errorf("cannot get shared channel for membership batch: %w", err)
 	}
-
-	// Avoid unused variable warning
-	_ = sc
-
-	scs.server.Log().Log(mlog.LvlInfo, "Processing membership batch",
-		mlog.String("channel_id", batchInfo.ChannelId),
-		mlog.String("remote_id", rc.RemoteId),
-		mlog.Int("batch_size", len(batchInfo.Changes)),
-	)
 
 	// Process each change in the batch
 	var successCount, skipCount, failCount int
@@ -206,7 +193,6 @@ func (scs *Service) onReceiveMembershipBatch(syncMsg *model.SyncMsg, rc *model.R
 				mlog.String("remote_name", rc.DisplayName),
 				mlog.Err(err),
 			)
-			// Non-critical error, don't return it
 		}
 	} else {
 		// Don't update cursor if everything failed, so we can retry
@@ -217,15 +203,6 @@ func (scs *Service) onReceiveMembershipBatch(syncMsg *model.SyncMsg, rc *model.R
 			mlog.Int("failed", failCount),
 		)
 	}
-
-	scs.server.Log().Log(mlog.LvlInfo, "Processed membership batch",
-		mlog.String("channel_id", batchInfo.ChannelId),
-		mlog.String("remote_id", rc.RemoteId),
-		mlog.Int("total", len(batchInfo.Changes)),
-		mlog.Int("success", successCount),
-		mlog.Int("skipped", skipCount),
-		mlog.Int("failed", failCount),
-	)
 
 	return nil
 }
