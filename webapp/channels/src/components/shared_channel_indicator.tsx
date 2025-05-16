@@ -32,7 +32,6 @@ const SharedChannelIndicator: React.FC<Props> = (props: Props): JSX.Element => {
         const MAX_DISPLAY_NAMES = 3;
         const MAX_NAME_LENGTH = 30;
         const MAX_TOOLTIP_LENGTH = 120; // Maximum overall tooltip length
-        let remoteNamesText;
 
         // Truncate long organization names
         const truncatedNames = props.remoteNames.map((name) => (
@@ -42,27 +41,46 @@ const SharedChannelIndicator: React.FC<Props> = (props: Props): JSX.Element => {
         ));
 
         if (truncatedNames.length <= MAX_DISPLAY_NAMES) {
-            remoteNamesText = truncatedNames.join(', ');
+            // If we have 3 or fewer organizations, just display them all separated by commas
+            sharedTooltipText = (
+                <FormattedMessage
+                    id='shared_channel_indicator.tooltip_with_names.few'
+                    defaultMessage='Shared with: {organizations}'
+                    values={{
+                        organizations: truncatedNames.join(', '),
+                    }}
+                />
+            );
         } else {
+            // If we have more than MAX_DISPLAY_NAMES organizations, show the first few and then "and N others"
             const displayNames = truncatedNames.slice(0, MAX_DISPLAY_NAMES);
             const remainingCount = truncatedNames.length - MAX_DISPLAY_NAMES;
-            remoteNamesText = `${displayNames.join(', ')} and ${remainingCount} other${remainingCount > 1 ? 's' : ''}`;
+
+            sharedTooltipText = (
+                <FormattedMessage
+                    id='shared_channel_indicator.tooltip_with_names.many'
+                    defaultMessage='Shared with: {organizations} and {count, number} {count, plural, one {other} other {others}}'
+                    values={{
+                        organizations: displayNames.join(', '),
+                        count: remainingCount,
+                    }}
+                />
+            );
         }
 
         // Add a final truncation to enforce maximum tooltip length
-        if (remoteNamesText.length > MAX_TOOLTIP_LENGTH) {
-            remoteNamesText = remoteNamesText.substring(0, MAX_TOOLTIP_LENGTH - 3) + '...';
+        if (truncatedNames.join(', ').length > MAX_TOOLTIP_LENGTH) {
+            const truncatedStr = truncatedNames.join(', ').substring(0, MAX_TOOLTIP_LENGTH - 3) + '...';
+            sharedTooltipText = (
+                <FormattedMessage
+                    id='shared_channel_indicator.tooltip_with_names'
+                    defaultMessage='Shared with: {remoteNames}'
+                    values={{
+                        remoteNames: truncatedStr,
+                    }}
+                />
+            );
         }
-
-        sharedTooltipText = (
-            <FormattedMessage
-                id='shared_channel_indicator.tooltip_with_names'
-                defaultMessage='Shared with: {remoteNames}'
-                values={{
-                    remoteNames: remoteNamesText,
-                }}
-            />
-        );
     } else {
         // Fallback to generic message if no remote names are available
         sharedTooltipText = (

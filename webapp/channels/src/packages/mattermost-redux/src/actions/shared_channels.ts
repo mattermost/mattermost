@@ -19,14 +19,14 @@ export function receivedChannelRemotes(channelId: string, remotes: RemoteCluster
     };
 }
 
-export function fetchChannelRemotes(channelId: string): ActionFuncAsync<RemoteClusterInfo[]> {
+export function fetchChannelRemotes(channelId: string, forceRefresh = false): ActionFuncAsync<RemoteClusterInfo[]> {
     return async (dispatch: any, getState: () => GlobalState) => {
         // Check if we already have the data in the Redux store
         const state = getState();
         const remotes = state.entities?.sharedChannels?.remotes?.[channelId];
 
-        // If we already have the data, no need to fetch it again
-        if (remotes && remotes.length > 0) {
+        // If we already have the data and no refresh is requested, use the cached data
+        if (!forceRefresh && remotes && remotes.length > 0) {
             return {data: remotes};
         }
 

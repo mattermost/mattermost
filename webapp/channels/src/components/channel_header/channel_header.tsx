@@ -41,8 +41,9 @@ class ChannelHeader extends React.PureComponent<Props> {
     componentDidMount() {
         this.props.actions.getCustomEmojisInText(this.props.channel ? this.props.channel.header : '');
 
-        // Initial fetch of remote names if the channel is shared and we don't already have them
-        if (this.props.channel?.shared && (!this.props.remoteNames || this.props.remoteNames.length === 0)) {
+        // Fetch remote names for shared channels on initial mount
+        if (this.props.channel?.shared) {
+            // Don't force refresh on initial load, use cached data if available
             this.props.actions.fetchChannelRemotes(this.props.channel.id);
         }
     }
@@ -54,12 +55,15 @@ class ChannelHeader extends React.PureComponent<Props> {
             this.props.actions.getCustomEmojisInText(header);
         }
 
-        // Fetch remote names when channel changes or when a channel becomes shared, but only if we don't already have them
-        if (this.props.channel?.shared &&
-            (this.props.channel.id !== prevProps.channel?.id ||
-            this.props.channel.shared !== prevProps.channel?.shared) &&
-            (!this.props.remoteNames || this.props.remoteNames.length === 0)) {
-            this.props.actions.fetchChannelRemotes(this.props.channel.id);
+        // Fetch remote names when channel changes or when a channel becomes shared
+        if (this.props.channel?.shared) {
+            if (this.props.channel.id !== prevProps.channel?.id) {
+                // For regular channel changes, use cached data if available
+                this.props.actions.fetchChannelRemotes(this.props.channel.id);
+            } else if (this.props.channel.shared !== prevProps.channel?.shared) {
+                // Only force refresh when a channel's shared status changes
+                this.props.actions.fetchChannelRemotes(this.props.channel.id, true);
+            }
         }
     }
 

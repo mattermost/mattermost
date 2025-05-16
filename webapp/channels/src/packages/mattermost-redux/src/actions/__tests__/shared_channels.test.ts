@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
+
 import {Client4} from 'mattermost-redux/client';
 
 import {ActionTypes} from '../../reducers/entities/shared_channels';
@@ -11,21 +13,13 @@ jest.mock('mattermost-redux/client');
 describe('shared_channels actions', () => {
     test('receivedChannelRemotes should create the correct action', () => {
         const channelId = 'channel1';
-        const remotes = [
+        const remotes: RemoteClusterInfo[] = [
             {
                 name: 'remote1',
                 display_name: 'Remote 1',
                 create_at: 123,
                 last_ping_at: 456,
                 delete_at: 0,
-                remote_id: 'r1',
-                remote_team_id: 'rt1',
-                site_url: 'http://remote1.com',
-                creator_id: 'user1',
-                plugin_id: 'plugin1',
-                topics: 'topics1',
-                options: 1,
-                default_team_id: 'team1',
             },
             {
                 name: 'remote2',
@@ -33,14 +27,6 @@ describe('shared_channels actions', () => {
                 create_at: 789,
                 last_ping_at: 101,
                 delete_at: 0,
-                remote_id: 'r2',
-                remote_team_id: 'rt2',
-                site_url: 'http://remote2.com',
-                creator_id: 'user2',
-                plugin_id: 'plugin2',
-                topics: 'topics2',
-                options: 1,
-                default_team_id: 'team2',
             },
         ];
 
@@ -57,21 +43,13 @@ describe('shared_channels actions', () => {
 
     test('fetchChannelRemotes should fetch and dispatch remotes', async () => {
         const channelId = 'channel1';
-        const remotes = [
+        const remotes: RemoteClusterInfo[] = [
             {
                 name: 'remote1',
                 display_name: 'Remote 1',
                 create_at: 123,
                 last_ping_at: 456,
                 delete_at: 0,
-                remote_id: 'r1',
-                remote_team_id: 'rt1',
-                site_url: 'http://remote1.com',
-                creator_id: 'user1',
-                plugin_id: 'plugin1',
-                topics: 'topics1',
-                options: 1,
-                default_team_id: 'team1',
             },
             {
                 name: 'remote2',
@@ -79,14 +57,6 @@ describe('shared_channels actions', () => {
                 create_at: 789,
                 last_ping_at: 101,
                 delete_at: 0,
-                remote_id: 'r2',
-                remote_team_id: 'rt2',
-                site_url: 'http://remote2.com',
-                creator_id: 'user2',
-                plugin_id: 'plugin2',
-                topics: 'topics2',
-                options: 1,
-                default_team_id: 'team2',
             },
         ];
 
@@ -118,23 +88,15 @@ describe('shared_channels actions', () => {
         });
     });
 
-    test('fetchChannelRemotes should not fetch if remotes already exist', async () => {
+    test('fetchChannelRemotes should not fetch if remotes already exist and no refresh is requested', async () => {
         const channelId = 'channel1';
-        const remotes = [
+        const remotes: RemoteClusterInfo[] = [
             {
                 name: 'remote1',
                 display_name: 'Remote 1',
                 create_at: 123,
                 last_ping_at: 456,
                 delete_at: 0,
-                remote_id: 'r1',
-                remote_team_id: 'rt1',
-                site_url: 'http://remote1.com',
-                creator_id: 'user1',
-                plugin_id: 'plugin1',
-                topics: 'topics1',
-                options: 1,
-                default_team_id: 'team1',
             },
         ];
 
@@ -157,5 +119,64 @@ describe('shared_channels actions', () => {
 
         // Verify no action was dispatched
         expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    test('fetchChannelRemotes should fetch if remotes exist but forceRefresh is true', async () => {
+        const channelId = 'channel1';
+        const existingRemotes: RemoteClusterInfo[] = [
+            {
+                name: 'remote1',
+                display_name: 'Remote 1',
+                create_at: 123,
+                last_ping_at: 456,
+                delete_at: 0,
+            },
+        ];
+
+        const newRemotes: RemoteClusterInfo[] = [
+            {
+                name: 'remote1',
+                display_name: 'Remote 1',
+                create_at: 123,
+                last_ping_at: 456,
+                delete_at: 0,
+            },
+            {
+                name: 'remote2',
+                display_name: 'Remote 2',
+                create_at: 789,
+                last_ping_at: 101,
+                delete_at: 0,
+            },
+        ];
+
+        // Mock the getState function to return existing remotes
+        const getState = jest.fn().mockReturnValue({
+            entities: {
+                sharedChannels: {
+                    remotes: {
+                        [channelId]: existingRemotes,
+                    },
+                },
+            },
+        });
+        const dispatch = jest.fn();
+
+        // Mock the client response to return updated remotes
+        (Client4.getSharedChannelRemoteInfo as jest.Mock).mockResolvedValueOnce(newRemotes);
+
+        await fetchChannelRemotes(channelId, true)(dispatch, getState, {});
+
+        // Verify Client4 was called
+        expect(Client4.getSharedChannelRemoteInfo).toHaveBeenCalledWith(channelId);
+
+        // Verify the action was dispatched with the new remotes
+        expect(dispatch).toHaveBeenCalledWith({
+            type: ActionTypes.RECEIVED_CHANNEL_REMOTES,
+            data: {
+                channelId,
+                remotes: newRemotes,
+            },
+        });
     });
 });

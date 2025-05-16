@@ -2524,7 +2524,7 @@
       description: |
         Gets the remote clusters information for a shared channel.
         
-        __Minimum server version__: 10.2
+        __Minimum server version__: 10.10
         
         ##### Permissions
         Must be authenticated and have the `read_channel` permission for the channel.
