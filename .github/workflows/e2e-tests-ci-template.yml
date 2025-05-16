@@ -84,9 +84,9 @@ on:
         required: false
       CWS_EXTRA_HTTP_HEADERS:
         required: false
-      CYPRESS_AWS_SECRET_ACCESS_KEY:
+      AWS_ACCESS_KEY_ID:
         required: false
-      CYPRESS_AWS_ACCESS_KEY_ID:
+      AWS_SECRET_ACCESS_KEY:
         required: false
     outputs:
       passed:
@@ -427,8 +427,8 @@ jobs:
           TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
           TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
           CI: true
-          AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
-          AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           AWS_REGION: "us-east-1"
           AWS_S3_BUCKET: "mattermost-cypress-report"
         run: |
