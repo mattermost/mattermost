@@ -776,6 +776,10 @@
         }
 
         &.post--comment {
+            .post__body {
+                padding-left: 8px;
+            }
+
             .attachment {
                 .attachment__body__wrap {
                     .btn-close {
@@ -823,7 +827,8 @@
         blockquote {
             display: flex;
             flex-direction: column;
-            padding: 3px 0 3px 20px;
+            padding: 0 0 0 8px;
+            margin: 0;
 
             &::before {
                 top: 0;
