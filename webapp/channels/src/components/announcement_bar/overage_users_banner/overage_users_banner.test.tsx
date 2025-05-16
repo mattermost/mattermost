@@ -43,8 +43,8 @@ const seatsMinimumFor5PercentageState = (Math.ceil(seatsPurchased * OverActiveUs
 
 const seatsMinimumFor10PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MAX)) + seatsPurchased;
 
-const text5PercentageState = `(Only visible to admins) The user count exceeds the number of paid seats by ${seatsMinimumFor5PercentageState - seatsPurchased}. Purchase more seats to stay compliant.`;
-const text10PercentageState = `(Only visible to admins) The user count exceeds the number of paid seats by ${seatsMinimumFor10PercentageState - seatsPurchased}. Purchase more seats to stay compliant.`;
+const text5PercentageState = `(Only visible to admins) The user count exceeds the number of licensed seats by ${seatsMinimumFor5PercentageState - seatsPurchased}. Purchase more seats to stay compliant.`;
+const text10PercentageState = `(Only visible to admins) The user count exceeds the number of licensed seats by ${seatsMinimumFor10PercentageState - seatsPurchased}. Purchase more seats to stay compliant.`;
 
 const contactSalesTextLink = 'Contact Sales';
 
@@ -127,7 +127,7 @@ describe('components/overage_users_banner', () => {
     it('should not render the banner because we are not on overage state', () => {
         renderWithContext(<OverageUsersBanner/>);
 
-        expect(screen.queryByText('(Only visible to admins) The user count exceeds the number of paid seats by', {exact: false})).not.toBeInTheDocument();
+        expect(screen.queryByText('(Only visible to admins) The user count exceeds the number of licensed seats by', {exact: false})).not.toBeInTheDocument();
     });
 
     it('should not render the banner because we are not admins', () => {

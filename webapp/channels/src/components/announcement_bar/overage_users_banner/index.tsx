@@ -96,7 +96,7 @@ const OverageUsersBanner = () => {
     const message = (
         <FormattedMessage
             id='licensingPage.overageUsersBanner.text'
-            defaultMessage='(Only visible to admins) The user count exceeds the number of paid seats by {seats, number} {seats, plural, one {seat} other {seats}}. Purchase more seats to stay compliant.'
+            defaultMessage='(Only visible to admins) The user count exceeds the number of licensed seats by {seats, number} {seats, plural, one {seat} other {seats}}. Purchase more seats to stay compliant.'
             values={{
                 seats: overageByUsers,
             }}
