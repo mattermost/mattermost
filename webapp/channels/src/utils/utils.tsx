@@ -212,6 +212,43 @@ const removeQuerystringOrHash = (extin: string): string => {
 };
 
 export const getFileType = (extin: string): typeof FileTypes[keyof typeof FileTypes] => {
+    // Handle null or undefined input
+    if (!extin) {
+        return FileTypes.OTHER;
+    }
+
+    // Special handling for image proxy URLs
+    // Check for various forms of image proxy URLs
+    if (extin.includes('/api/v4/image') &&
+        (extin.includes('?url=') || extin.includes('&url='))) {
+        return FileTypes.IMAGE;
+    }
+
+    // Check for image file extensions in the URL path
+    try {
+        // Try to parse as a URL - this will validate if it's a proper URL
+        const url = new URL(extin);
+        const pathname = url.pathname;
+        const pathParts = pathname.split('/');
+        const lastPathPart = pathParts[pathParts.length - 1];
+
+        if (lastPathPart && lastPathPart.includes('.')) {
+            const urlExtension = lastPathPart.split('.').pop()?.toLowerCase();
+            if (urlExtension && Constants.IMAGE_TYPES.indexOf(urlExtension) > -1) {
+                return FileTypes.IMAGE;
+            }
+        }
+    } catch (e) {
+        // Not a valid URL, just check if the string itself has an extension
+        if (extin.includes('.')) {
+            const extension = extin.split('.').pop()?.toLowerCase();
+            if (extension && Constants.IMAGE_TYPES.indexOf(extension) > -1) {
+                return FileTypes.IMAGE;
+            }
+        }
+    }
+
+    // Standard extension-based detection
     const ext = removeQuerystringOrHash(extin.toLowerCase());
 
     if (Constants.TEXT_TYPES.indexOf(ext) > -1) {
@@ -1500,6 +1537,7 @@ export function makeIsEligibleForClick(selector = '') {
             if (
                 CLICKABLE_ELEMENTS.includes(node.tagName.toLowerCase()) ||
                 node.getAttribute('role') === 'button' ||
+                node.getAttribute('role') === 'link' ||
                 (selector && node.matches(selector))
             ) {
                 return false;

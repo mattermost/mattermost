@@ -13,6 +13,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
 const WebpackPwaManifest = require('webpack-pwa-manifest');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const packageJson = require('./package.json');
 
@@ -267,6 +268,40 @@ var config = {
                 sizes: '96x96',
             }],
         }),
+        new MonacoWebpackPlugin({
+            languages: [],
+
+            // don't include features we disable. these generally correspond to the options
+            // passed to editor initialization in note-content-editor.tsx
+            // @see https://github.com/microsoft/monaco-editor/blob/main/webpack-plugin/README.md#options
+            features: [
+                '!bracketMatching',
+                '!codeAction',
+                '!codelens',
+                '!colorPicker',
+                '!comment',
+                '!diffEditor',
+                '!diffEditorBreadcrumbs',
+                '!folding',
+                '!gotoError',
+                '!gotoLine',
+                '!gotoSymbol',
+                '!gotoZoom',
+                '!inspectTokens',
+                '!multicursor',
+                '!parameterHints',
+                '!quickCommand',
+                '!quickHelp',
+                '!quickOutline',
+                '!referenceSearch',
+                '!rename',
+                '!snippet',
+                '!stickyScroll',
+                '!suggest',
+                '!toggleHighContrast',
+                '!unicodeHighlighter',
+            ],
+        }),
     ],
 };
 
@@ -274,7 +309,7 @@ function generateCSP() {
     let csp = 'script-src \'self\' cdn.rudderlabs.com/ js.stripe.com/v3';
 
     if (DEV) {
-        // react-hot-loader and development source maps require eval
+        // Development source maps require eval
         csp += ' \'unsafe-eval\'';
     }
 
@@ -428,13 +463,6 @@ if (targetIsDevServer) {
         optimization: {
             ...config.optimization,
             splitChunks: false,
-        },
-        resolve: {
-            ...config.resolve,
-            alias: {
-                ...config.resolve.alias,
-                'react-dom': '@hot-loader/react-dom',
-            },
         },
     };
 }
