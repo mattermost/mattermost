@@ -437,6 +437,45 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         </div>
       </div>
       <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="autocompleteRequestUrl"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Autocomplete Request URL"
+            id="add_command.autocompleteRequestUrl"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <LocalizedPlaceholderInput
+            className="form-control"
+            id="autocompleteRequestUrl"
+            maxLength={1024}
+            onChange={[Function]}
+            placeholder={
+              Object {
+                "defaultMessage": "Example: https://example.com/autocomplete",
+                "id": "add_command.autocompleteRequestUrl.placeholder",
+              }
+            }
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="(Optional) Specify a URL that will be called to get autocomplete suggestions for this slash command."
+              id="add_command.autocompleteRequestUrl.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
         className="backstage-form__footer"
       >
         <Memo(FormError)
@@ -920,6 +959,45 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         </div>
       </div>
       <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="autocompleteRequestUrl"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Autocomplete Request URL"
+            id="add_command.autocompleteRequestUrl"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <LocalizedPlaceholderInput
+            className="form-control"
+            id="autocompleteRequestUrl"
+            maxLength={1024}
+            onChange={[Function]}
+            placeholder={
+              Object {
+                "defaultMessage": "Example: https://example.com/autocomplete",
+                "id": "add_command.autocompleteRequestUrl.placeholder",
+              }
+            }
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="(Optional) Specify a URL that will be called to get autocomplete suggestions for this slash command."
+              id="add_command.autocompleteRequestUrl.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
         className="backstage-form__footer"
       >
         <Memo(FormError)
@@ -1393,6 +1471,45 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             <MemoizedFormattedMessage
               defaultMessage="(Optional) Describe your slash command for the autocomplete list."
               id="add_command.autocompleteDescription.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="autocompleteRequestUrl"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Autocomplete Request URL"
+            id="add_command.autocompleteRequestUrl"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <LocalizedPlaceholderInput
+            className="form-control"
+            id="autocompleteRequestUrl"
+            maxLength={1024}
+            onChange={[Function]}
+            placeholder={
+              Object {
+                "defaultMessage": "Example: https://example.com/autocomplete",
+                "id": "add_command.autocompleteRequestUrl.placeholder",
+              }
+            }
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="(Optional) Specify a URL that will be called to get autocomplete suggestions for this slash command."
+              id="add_command.autocompleteRequestUrl.help"
             />
           </div>
         </div>

@@ -61,6 +61,7 @@ export type Command = {
     'display_name': string;
     'description': string;
     'url': string;
+    'autocomplete_request_url'?: string;
 };
 
 export type CommandArgs = {
