@@ -27,8 +27,7 @@ Options
 
 ::
 
-  -h, --help                     help for sync
-      --re-add-removed-members   Re-add members who left or were removed from a group-synced team/channel
+  -h, --help   help for sync
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
