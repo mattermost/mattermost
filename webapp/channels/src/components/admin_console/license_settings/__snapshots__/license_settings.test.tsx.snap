@@ -262,6 +262,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -397,6 +398,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -520,6 +522,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -643,6 +646,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -766,6 +770,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={true}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -889,6 +894,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -1006,6 +1012,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={true}
               license={
                 Object {
@@ -1635,6 +1642,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {
@@ -1760,6 +1768,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               handleChange={[Function]}
               handleRemove={[Function]}
               isDisabled={false}
+              isLicenseSetByEnvVar={false}
               isTrialLicense={false}
               license={
                 Object {

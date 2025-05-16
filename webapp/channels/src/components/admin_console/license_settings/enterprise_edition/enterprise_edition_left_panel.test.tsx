@@ -94,6 +94,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         handleChange: jest.fn(),
         fileInputRef: React.createRef(),
         statsActiveUsers: 1,
+        isLicenseSetByEnvVar: false,
     };
 
     test('should format the Users field', () => {
