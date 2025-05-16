@@ -1496,6 +1496,30 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="user_management.attribute_based_access_control_feature_discovery"
+              key="user_management.attribute_based_access_control_feature_discovery"
+              name="user_management/attribute_based_access_control"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="advanced"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="environment"
@@ -2540,6 +2564,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Delegated Granular Administration"
                   id="admin.sidebar.systemRoles"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.attribute_based_access_control"
+              key="user_management.attribute_based_access_control"
+              name="user_management/attribute_based_access_control"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
                 />
               }
             />

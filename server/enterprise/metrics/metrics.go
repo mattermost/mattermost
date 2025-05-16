@@ -236,9 +236,9 @@ type MetricsInterfaceImpl struct {
 	DesktopClientCPUUsage    *prometheus.HistogramVec
 	DesktopClientMemoryUsage *prometheus.HistogramVec
 
-	AccessControlEngineInitDuration        prometheus.Histogram
 	AccessControlExpressionCompileDuration prometheus.Histogram
 	AccessControlEvaluateDuration          prometheus.Histogram
+	AccessControlSearchQueryDuration       prometheus.Histogram
 	AccessControlCacheInvalidation         prometheus.Counter
 }
 
@@ -1541,34 +1541,31 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.DesktopClientMemoryUsage)
 
-	m.AccessControlEngineInitDuration = prometheus.NewHistogram(
-		prometheus.HistogramOpts{
-			Namespace:   MetricsNamespace,
-			Subsystem:   MetricsSubsystemAccessControl,
-			Name:        "engine_init_duration_seconds",
-			Help:        "Duration of the time taken to initialize the access control engine (seconds)",
-			ConstLabels: additionalLabels,
-		})
-	m.Registry.MustRegister(m.AccessControlEngineInitDuration)
+	m.AccessControlSearchQueryDuration = prometheus.NewHistogram(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemAccessControl,
+			Name:      "search_query_duration_seconds",
+			Help:      "Duration of the time taken to query users against an expression (seconds)",
+		}))
+	m.Registry.MustRegister(m.AccessControlSearchQueryDuration)
 
 	m.AccessControlEvaluateDuration = prometheus.NewHistogram(
-		prometheus.HistogramOpts{
-			Namespace:   MetricsNamespace,
-			Subsystem:   MetricsSubsystemAccessControl,
-			Name:        "evaluate_duration_seconds",
-			Help:        "Duration of the time taken to evaluate the access control engine (seconds)",
-			ConstLabels: additionalLabels,
-		})
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemAccessControl,
+			Name:      "evaluate_duration_seconds",
+			Help:      "Duration of the time taken to evaluate the access control engine (seconds)",
+		}))
 	m.Registry.MustRegister(m.AccessControlEvaluateDuration)
 
 	m.AccessControlExpressionCompileDuration = prometheus.NewHistogram(
-		prometheus.HistogramOpts{
-			Namespace:   MetricsNamespace,
-			Subsystem:   MetricsSubsystemAccessControl,
-			Name:        "expression_compile_duration_seconds",
-			Help:        "Duration of the time taken to compile the access control engine expression (seconds)",
-			ConstLabels: additionalLabels,
-		})
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemAccessControl,
+			Name:      "expression_compile_duration_seconds",
+			Help:      "Duration of the time taken to compile the access control engine expression (seconds)",
+		}))
 	m.Registry.MustRegister(m.AccessControlExpressionCompileDuration)
 
 	m.AccessControlCacheInvalidation = prometheus.NewCounter(
@@ -2177,8 +2174,8 @@ func (mi *MetricsInterfaceImpl) ObserveMobileClientSessionMetadata(version, plat
 	mi.MobileClientSessionMetadataGauge.With(prometheus.Labels{"version": version, "platform": platform, "notifications_disabled": notificationDisabled}).Set(value)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveAccessControlEngineInitDuration(value float64) {
-	mi.AccessControlEngineInitDuration.Observe(value)
+func (mi *MetricsInterfaceImpl) ObserveAccessControlSearchQueryDuration(value float64) {
+	mi.AccessControlSearchQueryDuration.Observe(value)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveAccessControlExpressionCompileDuration(value float64) {

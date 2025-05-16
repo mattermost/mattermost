@@ -308,11 +308,6 @@ func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method s
 	_m.Called(endpoint, method, statusCode, originClient, pageLoadContext, elapsed)
 }
 
-// ObserveAccessControlEngineInitDuration provides a mock function with given fields: value
-func (_m *MetricsInterface) ObserveAccessControlEngineInitDuration(value float64) {
-	_m.Called(value)
-}
-
 // ObserveAccessControlEvaluateDuration provides a mock function with given fields: value
 func (_m *MetricsInterface) ObserveAccessControlEvaluateDuration(value float64) {
 	_m.Called(value)
@@ -320,6 +315,11 @@ func (_m *MetricsInterface) ObserveAccessControlEvaluateDuration(value float64) 
 
 // ObserveAccessControlExpressionCompileDuration provides a mock function with given fields: value
 func (_m *MetricsInterface) ObserveAccessControlExpressionCompileDuration(value float64) {
+	_m.Called(value)
+}
+
+// ObserveAccessControlSearchQueryDuration provides a mock function with given fields: value
+func (_m *MetricsInterface) ObserveAccessControlSearchQueryDuration(value float64) {
 	_m.Called(value)
 }
 

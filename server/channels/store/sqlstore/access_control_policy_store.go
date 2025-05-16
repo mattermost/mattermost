@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -16,6 +17,8 @@ import (
 
 	sq "github.com/mattermost/squirrel"
 )
+
+const MaxPerPage = 1000
 
 // Usually rules are how we define the policy, hence the versioning. For v0.1, we also
 // have the imports field which is used to link with the parent policy.
@@ -152,7 +155,7 @@ func newSqlAccessControlPolicyStore(sqlStore *SqlStore, metrics einterfaces.Metr
 	return s
 }
 
-func preSaveAccessControlPolicy(policy, existingPolicy *model.AccessControlPolicy) {
+func preSaveAccessControlPolicy(policy *storeAccessControlPolicy, existingPolicy *model.AccessControlPolicy) {
 	// since policies are immutable, we need to create a new revision
 	// also if it's going to be saved, eventually it will be the new one
 	// we overwrite createAt to make sure it gets the correct timestamp before saving
@@ -181,38 +184,6 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		return nil, errors.Wrapf(err, "failed to fetch policy with id=%s", policy.ID)
 	}
 
-	if existingPolicy != nil {
-		// move existing policy to history
-		tmp, err2 := fromModel(existingPolicy)
-		if err2 != nil {
-			return nil, errors.Wrapf(err2, "failed to parse policy with id=%s", policy.ID)
-		}
-
-		data := tmp.Data
-		props := tmp.Props
-		if s.IsBinaryParamEnabled() {
-			data = AppendBinaryFlag(data)
-			props = AppendBinaryFlag(props)
-		}
-
-		query := s.getQueryBuilder().
-			Insert("AccessControlPolicyHistory").
-			Columns(accessControlPolicyHistorySliceColumns()...).
-			Values(tmp.ID, tmp.Name, tmp.Type, tmp.CreateAt, tmp.Revision, tmp.Version, data, props)
-
-		_, err = tx.ExecBuilder(query)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to save policy with id=%s to history", policy.ID)
-		}
-
-		err = s.deleteT(rctx, tx, existingPolicy.ID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to delete policy with id=%s", policy.ID)
-		}
-	}
-
-	preSaveAccessControlPolicy(policy, existingPolicy)
-
 	storePolicy, err := fromModel(policy)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse policy with Id=%s", policy.ID)
@@ -224,6 +195,57 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		data = AppendBinaryFlag(data)
 		props = AppendBinaryFlag(props)
 	}
+
+	if existingPolicy != nil {
+		if existingPolicy.Type != policy.Type {
+			return nil, errors.New("cannot change type of existing policy")
+		}
+
+		// move existing policy to history
+		tmp, err2 := fromModel(existingPolicy)
+		if err2 != nil {
+			return nil, errors.Wrapf(err2, "failed to parse policy with id=%s", policy.ID)
+		}
+
+		// Check if the policy has actually changed
+		// We compare data, name, and version fields, and ensure type hasn't changed
+		if bytes.Equal(storePolicy.Data, tmp.Data) &&
+			storePolicy.Name == tmp.Name &&
+			storePolicy.Version == tmp.Version {
+			return existingPolicy, nil
+		}
+
+		existingData := tmp.Data
+		existingProps := tmp.Props
+		if s.IsBinaryParamEnabled() {
+			existingData = AppendBinaryFlag(existingData)
+			existingProps = AppendBinaryFlag(existingProps)
+		}
+
+		query := s.getQueryBuilder().
+			Insert("AccessControlPolicyHistory").
+			Columns(accessControlPolicyHistorySliceColumns()...).
+			Values(tmp.ID, tmp.Name, tmp.Type, tmp.CreateAt, tmp.Revision, tmp.Version, existingData, existingProps)
+
+		_, err = tx.ExecBuilder(query)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to save policy with id=%s to history", policy.ID)
+		}
+
+		err = s.deleteT(rctx, tx, existingPolicy.ID)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to delete policy with id=%s", policy.ID)
+		}
+	} else {
+		// if there is no existing policy, also check the history table
+		// to make sure we are not overwriting an existing policy
+		existingPolicy, err = s.getHistoryT(rctx, tx, policy.ID)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.Wrapf(err, "failed to fetch policy with id=%s", policy.ID)
+		}
+	}
+
+	preSaveAccessControlPolicy(storePolicy, existingPolicy)
 
 	query := s.getQueryBuilder().
 		Insert("AccessControlPolicies").
@@ -329,9 +351,27 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
 	}
-	_, err = tx.Query(query, args...)
+	_, err = tx.Exec(query, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update policy with id=%s", id)
+	}
+
+	if existingPolicy.Type == model.AccessControlPolicyTypeParent {
+		// if the policy is a parent, we need to update the child policies
+		var expr sq.Sqlizer
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			expr = sq.Expr("Data->'imports' @> ?::jsonb", fmt.Sprintf("%q", id))
+		} else {
+			expr = sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", id))
+		}
+		query, args, err = s.getQueryBuilder().Update("AccessControlPolicies").Set("Active", active).Where(expr).ToSql()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
+		}
+		_, err = tx.Exec(query, args...)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to update child policies with id=%s", id)
+		}
 	}
 
 	if err = tx.Commit(); err != nil {
@@ -345,7 +385,7 @@ func (s *SqlAccessControlPolicyStore) Get(_ request.CTX, id string) (*model.Acce
 	p := storeAccessControlPolicy{}
 	query := s.selectQueryBuilder.Where(sq.Eq{"ID": id})
 
-	err := s.GetReplica().GetBuilder(&p, query)
+	err := s.GetMaster().GetBuilder(&p, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("AccessControlPolicy", id)
@@ -388,7 +428,35 @@ func (s *SqlAccessControlPolicyStore) getT(_ request.CTX, tx *sqlxTxWrapper, id 
 	return policy, nil
 }
 
-func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts store.GetPolicyOptions) ([]*model.AccessControlPolicy, error) {
+func (s *SqlAccessControlPolicyStore) getHistoryT(_ request.CTX, tx *sqlxTxWrapper, id string) (*model.AccessControlPolicy, error) {
+	query := s.getQueryBuilder().
+		Select(accessControlPolicyHistorySliceColumns()...).
+		From("AccessControlPolicyHistory").
+		Where(
+			sq.Eq{"ID": id},
+		).OrderBy("Revision DESC").
+		Limit(1)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
+	}
+
+	var storePolicy storeAccessControlPolicy
+	err = tx.Get(&storePolicy, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	policy, err := storePolicy.toModel()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse policy with id=%s", id)
+	}
+
+	return policy, nil
+}
+
+func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccessControlPolicyOptions) ([]*model.AccessControlPolicy, model.AccessControlPolicyCursor, error) {
 	p := []storeAccessControlPolicy{}
 	query := s.selectQueryBuilder
 
@@ -404,18 +472,156 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts store.GetPolicy
 		query = query.Where(sq.Eq{"Type": opts.Type})
 	}
 
+	cursor := opts.Cursor
+
+	if !cursor.IsEmpty() {
+		query = query.Where(sq.Or{
+			sq.Gt{"Id": cursor.ID},
+		})
+	}
+
+	limit := uint64(opts.Limit)
+	if limit < 1 {
+		limit = 10
+	} else if limit > MaxPerPage {
+		limit = MaxPerPage
+	}
+
+	query = query.Limit(limit)
+
 	err := s.GetReplica().SelectBuilder(&p, query)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find policies with opts={\"parentID\"=%q, \"resourceType\"=%q", opts.ParentID, opts.Type)
+		return nil, cursor, errors.Wrapf(err, "failed to find policies with opts={\"parentID\"=%q, \"resourceType\"=%q", opts.ParentID, opts.Type)
 	}
 
 	policies := make([]*model.AccessControlPolicy, len(p))
 	for i := range p {
 		policies[i], err = p[i].toModel()
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+			return nil, cursor, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
 		}
 	}
 
-	return policies, nil
+	if len(policies) != 0 {
+		cursor.ID = policies[len(policies)-1].ID
+	}
+
+	return policies, cursor, nil
+}
+
+func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error) {
+	type wrapper struct {
+		storeAccessControlPolicy
+		ChildIDs json.RawMessage
+	}
+
+	p := []wrapper{}
+	var query sq.SelectBuilder
+	if opts.IncludeChildren && opts.ParentID == "" {
+		columns := accessControlPolicySliceColumns("p")
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			childIDs := `COALESCE((SELECT JSON_AGG(c.ID) 
+     FROM AccessControlPolicies c
+	 WHERE c.Type != 'parent' 
+     AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), '[]'::json) AS ChildIDs`
+			columns = append(columns, childIDs)
+		} else {
+			childIDs := `COALESCE((SELECT JSON_ARRAYAGG(c.ID) 
+     FROM AccessControlPolicies c
+     WHERE c.Type != 'parent' 
+     AND JSON_SEARCH(c.Data->'$.imports', 'one', p.ID) IS NOT NULL), JSON_ARRAY()) AS ChildIDs`
+			columns = append(columns, childIDs)
+		}
+		query = s.getQueryBuilder().Select(columns...).From("AccessControlPolicies p")
+	} else {
+		query = s.selectQueryBuilder
+	}
+
+	count := s.getQueryBuilder().Select("COUNT(*)").From("AccessControlPolicies")
+
+	if opts.Term != "" {
+		condition := sq.Like{"Name": fmt.Sprintf("%%%s%%", opts.Term)}
+		query = query.Where(condition)
+		count = count.Where(condition)
+	}
+
+	if opts.Type != "" {
+		condition := sq.Eq{"Type": opts.Type}
+		query = query.Where(condition)
+		count = count.Where(condition)
+	}
+
+	if opts.ParentID != "" {
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			condition := sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID))
+			query = query.Where(condition)
+			count = count.Where(condition)
+		} else {
+			condition := sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", opts.ParentID))
+			query = query.Where(condition)
+			count = count.Where(condition)
+		}
+	}
+
+	if opts.Active {
+		query = query.Where(sq.Eq{"Active": true})
+		count = count.Where(sq.Eq{"Active": true})
+	}
+
+	cursor := opts.Cursor
+
+	if !cursor.IsEmpty() {
+		query = query.Where(sq.Gt{"Id": cursor.ID})
+	}
+
+	limit := uint64(opts.Limit)
+	if limit < 1 {
+		limit = 10
+	} else if limit > MaxPerPage {
+		limit = MaxPerPage
+	}
+
+	query = query.Limit(limit)
+
+	err := s.GetReplica().SelectBuilder(&p, query)
+	if err != nil {
+		return nil, 0, errors.Wrapf(err, "failed to find policies with opts={\"name\"=%q, \"resourceType\"=%q", opts.Term, opts.Type)
+	}
+
+	policies := make([]*model.AccessControlPolicy, len(p))
+	for i := range p {
+		m, err2 := p[i].toModel()
+		if err2 != nil {
+			return nil, 0, errors.Wrapf(err2, "failed to parse policy with id=%s", p[i].ID)
+		}
+
+		// Props field is not guaranteed to be persisted correctly, and it shouldn't be.
+		// This is a field that we want to include metadata, some values may be stored but
+		// not all of them. For example for the childs, we don't want to update it whenever a
+		// child policy changes.
+		if opts.IncludeChildren && opts.ParentID == "" {
+			if m.Props == nil {
+				m.Props = make(map[string]any)
+			}
+			// Unmarshal the JSON array into a slice of strings
+			var childIDs []string
+			if err = json.Unmarshal(p[i].ChildIDs, &childIDs); err != nil {
+				return nil, 0, errors.Wrapf(err, "failed to unmarshal child IDs for policy with id=%s", p[i].ID)
+			}
+			m.Props["child_ids"] = childIDs
+		}
+		policies[i] = m
+	}
+
+	var total int64
+	err = s.GetReplica().GetBuilder(&total, count)
+	if err != nil {
+		return nil, 0, errors.Wrapf(err, "failed to count policies with opts={\"name\"=%q, \"resourceType\"=%q", opts.Term, opts.Type)
+	}
+
+	if len(policies) != 0 {
+		cursor.ID = policies[len(policies)-1].ID
+	}
+
+	return policies, total, nil
 }

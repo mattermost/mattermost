@@ -135,7 +135,7 @@ type MetricsInterface interface {
 	ObserveDesktopCpuUsage(platform, version, process string, usage float64)
 	ObserveDesktopMemoryUsage(platform, version, process string, usage float64)
 
-	ObserveAccessControlEngineInitDuration(value float64)
+	ObserveAccessControlSearchQueryDuration(value float64)
 	ObserveAccessControlExpressionCompileDuration(value float64)
 	ObserveAccessControlEvaluateDuration(value float64)
 	IncrementAccessControlCacheInvalidation()

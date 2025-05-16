@@ -1,0 +1,103 @@
+#job-details-modal {
+    .modal-header{
+        padding: 16px 64px 4px 32px;
+    }
+    
+    .filtered-user-list {
+        height: 440px;
+        cursor: pointer;
+    }
+
+    .modal-header-with-status {
+        display: flex;
+        align-items: center;
+        font-size: 26px;
+        font-weight: 600;
+        gap: 10px;
+    }
+
+    // Status indicator
+    .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        
+        &.status-success { background-color: var(--online-indicator); }
+        &.status-error { background-color: var(--error-text); }
+        &.status-in-progress { background-color: var(--away-indicator); }
+        &.status-pending { background-color: var(--offline-indicator); }
+    }
+
+    .filter-row--full {
+        position: relative;
+        padding: 0 32px;
+
+        .input-clear {
+            top: 16px;
+            right: 14px;
+        }
+
+        #searchIcon {
+            position: absolute;
+            z-index: 2;
+            top: 16px;
+            left: 42px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            pointer-events: none;
+        }
+
+        #searchChannelsTextbox {
+            height: 48px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            box-shadow: none;
+            font-size: 16px;
+            padding-inline: 40px;
+
+            &::placeholder {
+                color: var(--center-channel-color);
+            }
+
+            &:focus {
+                border: 2px solid var(--button-bg);
+            }
+        }
+    }
+
+    .sync-job-channel-count-label {
+        display: flex;
+        margin: 10px 16px;
+        color: var(--center-channel-color-64);
+        font-size: 12px;
+    }
+
+    .changes-cell {
+        text-align: center;
+                        
+        .changes-summary {
+            .added {
+                color: var(--online-indicator);
+                font-weight: 600;
+            }
+            .removed {
+                color: var(--error-text);
+                font-weight: 600;
+            }
+        }
+    }
+
+    .more-modal__list .more-modal__details{
+        padding-left: 0;
+    }
+
+    .error-status-content {
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+        padding: 0px 32px 32px;
+
+        &__title {
+            color: var(--error-text);
+        }
+    }
+}

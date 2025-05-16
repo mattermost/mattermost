@@ -344,6 +344,7 @@ export const ModalIdentifiers = {
     CHANNEL_MEMBERS: 'channel_members',
     CHANNEL_SETTINGS: 'channel_settings',
     TEAM_MEMBERS: 'team_members',
+    TEST_RESULTS: 'test_results',
     ADD_USER_TO_CHANNEL: 'add_user_to_channel',
     ADD_USER_TO_ROLE: 'add_user_to_role',
     ADD_USER_TO_TEAM: 'add_user_to_team',
@@ -933,6 +934,7 @@ export const JobTypes = {
     BLEVE_POST_INDEXING: 'bleve_post_indexing',
     LDAP_SYNC: 'ldap_sync',
     MESSAGE_EXPORT: 'message_export',
+    ACCESS_CONTROL_SYNC: 'access_control_sync',
 } as const;
 
 export const JobStatuses = {

@@ -125,12 +125,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         toPublic={true}
       />
       <ChannelModes
+        abacSupported={true}
         groupsSupported={true}
         isDefault={false}
         isDisabled={false}
         isPublic={true}
         isSynced={false}
         onToggle={[Function]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={true}
       />
       <ChannelGroups
         channel={
@@ -307,12 +310,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         toPublic={true}
       />
       <ChannelModes
+        abacSupported={true}
         groupsSupported={true}
         isDefault={false}
         isDisabled={false}
         isPublic={true}
         isSynced={false}
         onToggle={[Function]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={true}
       />
       <ChannelGroups
         channel={
@@ -508,12 +514,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         toPublic={true}
       />
       <ChannelModes
+        abacSupported={true}
         groupsSupported={false}
         isDefault={false}
         isDisabled={false}
         isPublic={true}
         isSynced={false}
         onToggle={[Function]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={true}
       />
       <Connect(ChannelMembers)
         channelId="123"
@@ -642,12 +651,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         toPublic={true}
       />
       <ChannelModes
+        abacSupported={true}
         groupsSupported={false}
         isDefault={false}
         isDisabled={false}
         isPublic={true}
         isSynced={false}
         onToggle={[Function]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={true}
       />
       <Connect(ChannelMembers)
         channelId="123"
@@ -795,12 +807,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         toPublic={true}
       />
       <ChannelModes
+        abacSupported={false}
         groupsSupported={false}
         isDefault={false}
         isDisabled={false}
         isPublic={true}
         isSynced={false}
         onToggle={[Function]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={true}
       />
       <Connect(ChannelMembers)
         channelId="123"
@@ -929,12 +944,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         toPublic={true}
       />
       <ChannelModes
+        abacSupported={false}
         groupsSupported={false}
         isDefault={false}
         isDisabled={false}
         isPublic={true}
         isSynced={false}
         onToggle={[Function]}
+        policyEnforced={false}
+        policyEnforcedToggleAvailable={true}
       />
       <Connect(ChannelMembers)
         channelId="123"

@@ -38,8 +38,8 @@ func RegisterMetricsInterface(f func(*PlatformService, string, string) einterfac
 	metricsInterfaceFn = f
 }
 
-var pdpInterface func(*PlatformService) einterfaces.PolicyDecisionPointInterface
+var accessControlServiceInterface func(*PlatformService) einterfaces.AccessControlServiceInterface
 
-func RegisterPdpInterface(f func(*PlatformService) einterfaces.PolicyDecisionPointInterface) {
-	pdpInterface = f
+func RegisterAccessControlServiceInterface(f func(*PlatformService) einterfaces.AccessControlServiceInterface) {
+	accessControlServiceInterface = f
 }

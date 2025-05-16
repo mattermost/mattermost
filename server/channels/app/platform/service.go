@@ -489,8 +489,8 @@ func (ps *PlatformService) initEnterprise() {
 		ps.licenseManager = licenseInterface(ps)
 	}
 
-	if pdpInterface != nil {
-		ps.pdpService = pdpInterface(ps)
+	if accessControlServiceInterface != nil {
+		ps.pdpService = accessControlServiceInterface(ps)
 	}
 }
 

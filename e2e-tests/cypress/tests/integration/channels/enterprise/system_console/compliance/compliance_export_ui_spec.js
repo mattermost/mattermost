@@ -108,19 +108,19 @@ describe('Compliance Export', () => {
 
         // * Verify table header
         cy.get('@firstheader').within(() => {
-            cy.get('th:eq(1)').should('have.text', 'Status');
-            cy.get('th:eq(2)').should('have.text', 'Files');
-            cy.get('th:eq(3)').should('have.text', 'Finish Time');
-            cy.get('th:eq(4)').should('have.text', 'Run Time');
-            cy.get('th:eq(5)').should('have.text', 'Details');
+            cy.get('th:eq(0)').should('have.text', 'Status');
+            cy.get('th:eq(1)').should('have.text', 'Finish Time');
+            cy.get('th:eq(2)').should('have.text', 'Run Time');
+            cy.get('th:eq(3)').should('have.text', 'Files');
+            cy.get('th:eq(4)').should('have.text', 'Details');
         });
 
         // * Verify first row (last run job) data
         cy.get('@firstRow').within(() => {
-            cy.get('td:eq(1)').should('have.text', 'Success');
-            cy.get('td:eq(2)').should('have.text', 'Download');
-            cy.get('td:eq(4)').contains('seconds');
-            cy.get('td:eq(5)').should('have.text', '1 messages exported.');
+            cy.get('td:eq(0)').should('have.text', 'Success');
+            cy.get('td:eq(2)').contains('seconds');
+            cy.get('td:eq(3)').should('have.text', 'Download');
+            cy.get('td:eq(4)').should('have.text', '1 messages exported.');
         });
     });
 
@@ -166,6 +166,6 @@ describe('Compliance Export', () => {
         cy.get('.job-table__table').find('tbody > tr').eq(0).as('firstRow');
 
         // * Canceled text should be shown in the first row of the table
-        cy.get('@firstRow').find('td:eq(1)').should('have.text', 'Canceled');
+        cy.get('@firstRow').find('td:eq(0)').should('have.text', 'Canceled');
     });
 });

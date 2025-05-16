@@ -1,0 +1,346 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/access_control/policy_details/PolicyDetails should match snapshot with existing policy 1`] = `
+<div
+  className="wrapper--fixed AccessControlPolicySettings"
+>
+  <AdminHeader
+    withBackButton={true}
+  >
+    <div>
+      <Connect(Component)
+        className="fa fa-angle-left back"
+        to="/admin_console/user_management/attribute_based_access_control"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="Edit Access Control Policy"
+        id="admin.access_control.policy.edit_policy.title"
+      />
+    </div>
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__setting-group"
+      >
+        <TextSetting
+          id="admin.access_control.policy.edit_policy.policyName"
+          inputClassName="col-sm-8"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Access control policy name:"
+              id="admin.access_control.policy.edit_policy.policyName"
+            />
+          }
+          labelClassName="col-sm-4 vertically-centered-label"
+          onChange={[Function]}
+          placeholder="Add a unique policy name"
+          value=""
+        />
+        <Memo(BooleanSetting)
+          helpText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Users who match the attribute values configured below will be automatically added as new members. Regardless of this setting, users who later no longer match the configured attribute values will be removed from the channel after the next sync."
+              id="admin.access_control.policy.edit_policy.autoSyncMembership.description"
+            />
+          }
+          id="admin.access_control.policy.edit_policy.autoSyncMembership"
+          label={
+            <div
+              className="vertically-centered-label"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Auto-add members based on access rules:"
+                id="admin.access_control.policy.edit_policy.autoSyncMembership"
+              />
+            </div>
+          }
+          onChange={[Function]}
+          setByEnv={false}
+          value={false}
+        />
+      </div>
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Switch to Advanced Mode"
+                id="admin.access_control.policy.edit_policy.switch_to_advanced"
+              />
+            }
+            isDisabled={false}
+            onClick={[Function]}
+            subtitle="Select user attributes and values as rules to restrict channel membership."
+            title="Attribute based access rules"
+          />
+        </CardHeader>
+        <CardBody>
+          <TableEditor
+            onChange={[Function]}
+            onValidate={[Function]}
+            userAttributes={Array []}
+            value=""
+          />
+        </CardBody>
+      </Card>
+      <Card
+        className="console add-channels"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add channels"
+                id="admin.access_control.policy.edit_policy.channel_selector.addChannels"
+              />
+            }
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add channels that this property based access policy will apply to."
+                id="admin.access_control.policy.edit_policy.channel_selector.subtitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Assigned channels"
+                id="admin.access_control.policy.edit_policy.channel_selector.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <Connect(ChannelList)
+            channelsToAdd={Object {}}
+            channelsToRemove={Object {}}
+            onRemoveCallback={[Function]}
+            onUndoRemoveCallback={[Function]}
+            policyId="policy1"
+          />
+        </CardBody>
+      </Card>
+      <Card
+        className="console delete-policy"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Delete"
+                id="admin.access_control.policy.edit_policy.delete_policy.delete"
+              />
+            }
+            isDisabled={false}
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="This policy will be deleted and cannot be recovered."
+                id="admin.access_control.policy.edit_policy.delete_policy.subtitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Delete policy"
+                id="admin.access_control.policy.edit_policy.delete_policy.title"
+              />
+            }
+          />
+        </CardHeader>
+      </Card>
+    </div>
+  </div>
+  <div
+    className="admin-console-save"
+  >
+    <SaveButton
+      defaultMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Save"
+          id="admin.access_control.edit_policy.save"
+        />
+      }
+      disabled={true}
+      onClick={[Function]}
+    />
+    <Connect(Component)
+      className="btn btn-quaternary"
+      to="/admin_console/user_management/attribute_based_access_control"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="admin.access_control.edit_policy.cancel"
+      />
+    </Connect(Component)>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/access_control/policy_details/PolicyDetails should match snapshot with new policy 1`] = `
+<div
+  className="wrapper--fixed AccessControlPolicySettings"
+>
+  <AdminHeader
+    withBackButton={true}
+  >
+    <div>
+      <Connect(Component)
+        className="fa fa-angle-left back"
+        to="/admin_console/user_management/attribute_based_access_control"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="Edit Access Control Policy"
+        id="admin.access_control.policy.edit_policy.title"
+      />
+    </div>
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__setting-group"
+      >
+        <TextSetting
+          id="admin.access_control.policy.edit_policy.policyName"
+          inputClassName="col-sm-8"
+          label={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Access control policy name:"
+              id="admin.access_control.policy.edit_policy.policyName"
+            />
+          }
+          labelClassName="col-sm-4 vertically-centered-label"
+          onChange={[Function]}
+          placeholder="Add a unique policy name"
+          value=""
+        />
+        <Memo(BooleanSetting)
+          helpText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Users who match the attribute values configured below will be automatically added as new members. Regardless of this setting, users who later no longer match the configured attribute values will be removed from the channel after the next sync."
+              id="admin.access_control.policy.edit_policy.autoSyncMembership.description"
+            />
+          }
+          id="admin.access_control.policy.edit_policy.autoSyncMembership"
+          label={
+            <div
+              className="vertically-centered-label"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Auto-add members based on access rules:"
+                id="admin.access_control.policy.edit_policy.autoSyncMembership"
+              />
+            </div>
+          }
+          onChange={[Function]}
+          setByEnv={false}
+          value={false}
+        />
+      </div>
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Switch to Advanced Mode"
+                id="admin.access_control.policy.edit_policy.switch_to_advanced"
+              />
+            }
+            isDisabled={false}
+            onClick={[Function]}
+            subtitle="Select user attributes and values as rules to restrict channel membership."
+            title="Attribute based access rules"
+          />
+        </CardHeader>
+        <CardBody>
+          <TableEditor
+            onChange={[Function]}
+            onValidate={[Function]}
+            userAttributes={Array []}
+            value=""
+          />
+        </CardBody>
+      </Card>
+      <Card
+        className="console add-channels"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add channels"
+                id="admin.access_control.policy.edit_policy.channel_selector.addChannels"
+              />
+            }
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add channels that this property based access policy will apply to."
+                id="admin.access_control.policy.edit_policy.channel_selector.subtitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Assigned channels"
+                id="admin.access_control.policy.edit_policy.channel_selector.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <Connect(ChannelList)
+            channelsToAdd={Object {}}
+            channelsToRemove={Object {}}
+            onRemoveCallback={[Function]}
+            onUndoRemoveCallback={[Function]}
+            policyId=""
+          />
+        </CardBody>
+      </Card>
+    </div>
+  </div>
+  <div
+    className="admin-console-save"
+  >
+    <SaveButton
+      defaultMessage={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Save"
+          id="admin.access_control.edit_policy.save"
+        />
+      }
+      disabled={true}
+      onClick={[Function]}
+    />
+    <Connect(Component)
+      className="btn btn-quaternary"
+      to="/admin_console/user_management/attribute_based_access_control"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="admin.access_control.edit_policy.cancel"
+      />
+    </Connect(Component)>
+  </div>
+</div>
+`;
