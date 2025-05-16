@@ -71,6 +71,11 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         create_at: 0,
         update_at: 0,
         delete_at: 0,
+        attrs: {
+            sort_order: 0,
+            visibility: 'when_set',
+            value_type: '',
+        },
     };
 
     let store: ReturnType<typeof configureStore>;
@@ -258,7 +263,6 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(await screen.getByRole('button', {name: `${customProfileAttribute.name} Edit`})).toBeInTheDocument();
 
         props.user = {...testUser, custom_profile_attributes: {field1: 'FieldOneValue'}};
-        console.log(props.user);
         rerender(<UserSettingsGeneral {...props}/>);
         expect(props.actions.getCustomProfileAttributeValues).toHaveBeenCalledTimes(1);
         expect(await screen.findByText('FieldOneValue')).toBeInTheDocument();
@@ -275,6 +279,62 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
         expect(await screen.getByRole('textbox', {name: `${customProfileAttribute.name}`})).toBeInTheDocument();
+    });
+
+    test('should show select Custom Attribute Field with value', async () => {
+        const selectAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'select',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
+                ],
+            },
+        };
+
+        const testUser = {...user, custom_profile_attributes: {field1: 'opt1'}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [selectAttribute],
+            user: testUser,
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(await screen.getByText('Option 1')).toBeInTheDocument();
+    });
+
+    test('should show multiselect Custom Attribute Field with value', async () => {
+        const multiselectAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'multiselect',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
+                ],
+            },
+        };
+
+        const testUser = {...user, custom_profile_attributes: {field1: 'opt2'}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [multiselectAttribute],
+            user: testUser,
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(await screen.getByText('Option 2')).toBeInTheDocument();
     });
 
     test('submitAttribute() should have called saveCustomProfileAttribute', async () => {
@@ -298,5 +358,461 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         expect(saveCustomProfileAttribute).toHaveBeenCalledTimes(1);
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'Updated Value');
+    });
+
+    test('submitAttribute() should handle server error', async () => {
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({error: {message: 'Server Error'}});
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            actions: {...requiredProps.actions, saveCustomProfileAttribute},
+            customProfileAttributeFields: [customProfileAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        userEvent.clear(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}));
+        userEvent.type(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}), 'Updated Value');
+        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(await screen.findByText('Server Error')).toBeInTheDocument();
+    });
+
+    test('updateSelectAttribute() should handle single select changes', async () => {
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const selectAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'select',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
+                ],
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [selectAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        const select = await screen.findByText('Select');
+        userEvent.click(select);
+        userEvent.click(await screen.findByText('Option 2'));
+
+        const saveButton = screen.getByRole('button', {name: 'Save'});
+        userEvent.click(saveButton);
+
+        expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'opt2');
+    });
+
+    test('updateSelectAttribute() should handle multi-select changes', async () => {
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const multiselectAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'multiselect',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
+                ],
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [multiselectAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        const select = await screen.findByText('Select');
+        userEvent.click(select);
+        userEvent.click(await screen.findByText('Option 1'));
+
+        userEvent.click(await screen.findByText('Option 1'));
+        userEvent.click(await screen.findByText('Option 2'));
+
+        const saveButton = screen.getByRole('button', {name: 'Save'});
+        userEvent.click(saveButton);
+
+        expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt2']);
+    });
+
+    test('updateSelectAttribute() should handle clearing selections', async () => {
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const selectAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'select',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
+                ],
+            },
+        };
+
+        const testUser = {...user, custom_profile_attributes: {field1: 'opt1'}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [selectAttribute],
+            user: testUser,
+            activeSection: 'customAttribute_field1',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        const {container} = renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        const clearIndicator = container.querySelector('.react-select__clear-indicator');
+        expect(clearIndicator).toBeInTheDocument();
+
+        userEvent.click(clearIndicator!);
+        await screen.findByText('Select');
+
+        const saveButton = screen.getByRole('button', {name: 'Save'});
+        userEvent.click(saveButton);
+
+        expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', '');
+    });
+
+    test('should handle select with removed options', async () => {
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const selectAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'select',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+
+                    // opt2 has been removed from options
+                ],
+            },
+        };
+
+        // User has a value for an option that no longer exists
+        const testUser = {...user, custom_profile_attributes: {field1: 'opt2'}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [selectAttribute],
+            user: testUser,
+            activeSection: '',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        // Should not display any value since the option no longer exists
+        expect(screen.queryByText('Option 2')).not.toBeInTheDocument();
+        expect(await screen.findByText('Click \'Edit\' to add your custom attribute')).toBeInTheDocument();
+    });
+
+    test('should handle multiselect with removed options', async () => {
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const multiselectAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'multiselect',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+
+                    // opt2 and opt3 have been removed from options
+                ],
+            },
+        };
+
+        // User has values for options that no longer exist
+        const testUser = {...user, custom_profile_attributes: {field1: ['opt1', 'opt2', 'opt3']}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [multiselectAttribute],
+            user: testUser,
+            activeSection: '',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        // Should only display the option that still exists
+        expect(await screen.findByText('Option 1')).toBeInTheDocument();
+        expect(screen.queryByText('Option 2')).not.toBeInTheDocument();
+        expect(screen.queryByText('Option 3')).not.toBeInTheDocument();
+    });
+
+    test('should handle editing select with removed options', async () => {
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const selectAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'select',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+
+                    // opt2 has been removed from options
+                ],
+            },
+        };
+
+        // User has a value for an option that no longer exists
+        const testUser = {...user, custom_profile_attributes: {field1: 'opt2'}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [selectAttribute],
+            user: testUser,
+            activeSection: 'customAttribute_field1',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        // Should show empty select since the option no longer exists
+        expect(await screen.findByText('Select')).toBeInTheDocument();
+
+        // Select a valid option and save
+        userEvent.click(screen.getByText('Select'));
+        userEvent.click(await screen.findByText('Option 1'));
+        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'opt1');
+    });
+
+    test('should handle editing multiselect with removed options', async () => {
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const multiselectAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'multiselect',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt3', name: 'Option 3', color: ''},
+
+                    // opt2 has been removed from options
+                ],
+            },
+        };
+
+        // User has values including one for an option that no longer exists
+        const testUser = {...user, custom_profile_attributes: {field1: ['opt1', 'opt2']}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [multiselectAttribute],
+            user: testUser,
+            activeSection: 'customAttribute_field1',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        // Should only show the valid option
+        expect(await screen.findByText('Option 1')).toBeInTheDocument();
+        expect(screen.queryByText('Option 2')).not.toBeInTheDocument();
+
+        // Add another valid option and save
+        userEvent.click(await screen.findByText('Option 1'));
+        userEvent.click(await screen.findByText('Option 3'));
+        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        // Should save with only the valid options
+        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt3']);
+    });
+
+    test('should not show custom attribute input field when LDAP attribute is set', async () => {
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [
+                {
+                    ...customProfileAttribute,
+                    attrs: {
+                        ...customProfileAttribute.attrs,
+                        ldap: 'ldap_field',
+                    },
+                },
+            ],
+            user: {...user, auth_service: 'ldap'},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: customProfileAttribute.name})).not.toBeInTheDocument();
+        expect(await screen.findByText('This field is handled through your login provider. If you want to change it, you need to do so through your login provider.')).toBeInTheDocument();
+    });
+
+    test('should not show custom attribute input field when SAML attribute is set', async () => {
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [
+                {
+                    ...customProfileAttribute,
+                    attrs: {
+                        ...customProfileAttribute.attrs,
+                        saml: 'saml_field',
+                    },
+                },
+            ],
+            user: {...user, auth_service: 'saml'},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(await screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: customProfileAttribute.name})).not.toBeInTheDocument();
+        expect(await screen.findByText('This field is handled through your login provider. If you want to change it, you need to do so through your login provider.')).toBeInTheDocument();
+    });
+
+    test('should show custom attribute input field when LDAP auth but no LDAP attribute set', async () => {
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [
+                {
+                    ...customProfileAttribute,
+                    attrs: {
+                        ...customProfileAttribute.attrs,
+                        ldap: '',
+                    },
+                },
+            ],
+            user: {...user, auth_service: 'ldap'},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(await screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: customProfileAttribute.name})).toBeInTheDocument();
+    });
+
+    test('should validate URL custom attribute field value', async () => {
+        const urlAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                value_type: 'url',
+            },
+        };
+
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [urlAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'ftp://invalid-scheme');
+        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(await screen.findByText('Please enter a valid url.')).toBeInTheDocument();
+        expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
+
+        userEvent.clear(screen.getByRole('textbox', {name: urlAttribute.name}));
+        userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'example.com');
+        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'http://example.com');
+    });
+
+    test('should validate email custom attribute field value', async () => {
+        const emailAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                value_type: 'email',
+            },
+        };
+
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [emailAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        userEvent.type(screen.getByRole('textbox', {name: emailAttribute.name}), 'invalid-email');
+        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(await screen.findByText('Please enter a valid email address.')).toBeInTheDocument();
+        expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
+
+        userEvent.clear(screen.getByRole('textbox', {name: emailAttribute.name}));
+        userEvent.type(screen.getByRole('textbox', {name: emailAttribute.name}), 'test@example.com');
+        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'test@example.com');
     });
 });

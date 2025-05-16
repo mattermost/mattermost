@@ -969,7 +969,6 @@
     }
 
     .post-edited__indicator {
-        display: flex;
         align-items: center;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 11px;
@@ -1410,39 +1409,6 @@
                     margin: 0;
                     font-size: 1em;
                 }
-            }
-
-            li.list-item--task-list ul,
-            li.list-item--task-list ol {
-                margin-left: 20px;
-            }
-
-            li.list-item--task-list ul {
-                padding-left: 0;
-            }
-
-            li:not(.list-item--task-list) li.list-item--task-list,
-            li:not(.list-item--task-list) li.list-item--task-list ~ li {
-                margin-left: -20px;
-            }
-
-            li input[type="checkbox"]:disabled {
-                cursor: default;
-                vertical-align: top;
-            }
-        }
-
-        ul li.list-item--task-list,
-        ul li.list-item--task-list ~ li {
-            list-style-type: none;
-        }
-
-        ul li.list-item--task-list ~ li:not(.list-item--task-list) {
-            text-indent: 3px;
-
-            &::before {
-                margin-right: 8px;
-                content: "\2022";
             }
         }
 

@@ -402,12 +402,12 @@ function PostComponent(props: Props) {
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
     let comment;
-    if (props.isFirstReply && props.parentPost && props.parentPostUser && post.type !== Constants.PostTypes.EPHEMERAL) {
+    if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
         comment = (
             <CommentedOn
-                post={props.parentPost}
-                parentPostUser={props.parentPostUser}
                 onCommentClick={handleCommentClick}
+                rootId={post.root_id}
+                enablePostUsernameOverride={props.enablePostUsernameOverride}
             />
         );
     }
@@ -506,7 +506,7 @@ function PostComponent(props: Props) {
     };
 
     let priority;
-    if (post.metadata?.priority && props.isPostPriorityEnabled) {
+    if (post.metadata?.priority && props.isPostPriorityEnabled && post.state !== Posts.POST_DELETED) {
         priority = <span className='d-flex mr-2 ml-1'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
     }
 

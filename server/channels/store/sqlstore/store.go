@@ -118,6 +118,8 @@ type SqlStoreStores struct {
 	propertyGroup              store.PropertyGroupStore
 	propertyField              store.PropertyFieldStore
 	propertyValue              store.PropertyValueStore
+	accessControlPolicy        store.AccessControlPolicyStore
+	Attributes                 store.AttributesStore
 }
 
 type SqlStore struct {
@@ -263,6 +265,8 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.propertyGroup = newPropertyGroupStore(store)
 	store.stores.propertyField = newPropertyFieldStore(store)
 	store.stores.propertyValue = newPropertyValueStore(store)
+	store.stores.accessControlPolicy = newSqlAccessControlPolicyStore(store, metrics)
+	store.stores.Attributes = newSqlAttributesStore(store, metrics)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -1077,6 +1081,14 @@ func (ss *SqlStore) PropertyField() store.PropertyFieldStore {
 
 func (ss *SqlStore) PropertyValue() store.PropertyValueStore {
 	return ss.stores.propertyValue
+}
+
+func (ss *SqlStore) AccessControlPolicy() store.AccessControlPolicyStore {
+	return ss.stores.accessControlPolicy
+}
+
+func (ss *SqlStore) Attributes() store.AttributesStore {
+	return ss.stores.Attributes
 }
 
 func (ss *SqlStore) DropAllTables() {

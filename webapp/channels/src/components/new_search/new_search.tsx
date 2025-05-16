@@ -8,8 +8,8 @@ import styled from 'styled-components';
 
 import {TrackCrossTeamSearchFeature, TrackCrossTeamSearchAllTeamsEvent, TrackCrossTeamSearchCurrentTeamEvent, TrackCrossTeamSearchDifferentTeamEvent} from 'mattermost-redux/constants/telemetry';
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
-import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getIsCrossTeamSearchEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import {trackFeatureEvent} from 'actions/telemetry_actions';
 import {updateSearchTerms, showSearchResults, updateSearchType, updateSearchTeam} from 'actions/views/rhs';
@@ -24,8 +24,6 @@ import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
-
-import type {GlobalState} from 'types/store';
 
 import SearchBox from './search_box';
 
@@ -115,7 +113,8 @@ const NewSearch = (): JSX.Element => {
     const searchTeam = useSelector(getSearchTeam);
     const pluginSearch = useSelector(getSearchButtons);
     const currentTeamId = useSelector(getCurrentTeamId);
-    const crossTeamSearchEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ExperimentalCrossTeamSearch')) === 'true';
+    const crossTeamSearchEnabled = useSelector(getIsCrossTeamSearchEnabled);
+    const myTeams = useSelector(getMyTeams);
 
     const dispatch = useDispatch();
     const [focused, setFocused] = useState<boolean>(false);
@@ -267,7 +266,7 @@ const NewSearch = (): JSX.Element => {
         >
             <i className='icon icon-magnify'/>
             {(searchType === 'messages' || searchType === 'files') && (
-                <SearchTypeBadge>
+                <SearchTypeBadge data-testid='searchTypeBadge'>
                     {searchType === 'messages' && (
                         <FormattedMessage
                             id='search_bar.search_types.messages'
@@ -320,6 +319,7 @@ const NewSearch = (): JSX.Element => {
                         initialSearchType={searchType}
                         initialSearchTeam={searchTeam}
                         crossTeamSearchEnabled={crossTeamSearchEnabled}
+                        myTeams={myTeams}
                     />
                 </PopoverStyled>
             )}

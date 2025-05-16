@@ -1,0 +1,80 @@
+.policy-table-container {
+    width: 100%;
+    margin-block: -20px;
+    
+    .policy-table {
+        width: 100%;
+        margin-bottom: 0;
+        background-color: var(--center-channel-bg);
+        border-collapse: collapse;
+        
+        th, td {
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            line-height: 20px;
+            padding-block: 16px;
+            text-align: left;
+            white-space: nowrap;
+        }
+        
+        thead tr {
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        }
+        
+        th {
+            background-color: var(--center-channel-bg);
+            color: var(--center-channel-color);
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        td {
+            background-color: var(--center-channel-bg);
+            color: var(--center-channel-color);
+            font-size: 14px;
+            
+            &.policy-name {
+                font-weight: 600;
+            }
+        }
+        
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .text-right {
+            width: 50px;
+            padding-right: 16px;
+            text-align: right;
+        }
+        
+        .policy-edit-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            text-decoration: none;
+            
+            &:hover {
+                color: rgba(var(--center-channel-color-rgb), 0.9);
+            }
+            
+            i {
+                font-size: 16px;
+            }
+        }
+    }
+}
+
+// Style for the Remove policy button
+#channel_access_control_with_policy {
+    .btn.btn-primary {
+        border-color: var(--dnd-indicator);
+        background-color: var(--dnd-indicator);
+        color: var(--button-color);
+        
+        &:hover, &:active, &:focus {
+            border-color: rgba(var(--dnd-indicator-rgb), 0.88);
+            background-color: rgba(var(--dnd-indicator-rgb), 0.88);
+        }
+    }
+}

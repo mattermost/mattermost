@@ -178,6 +178,28 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 	return nil
 }
 
+// unshareChannelIfNoActiveRemotes checks if there are any remaining
+// non-deleted remotes for the channel and unshares the channel if
+// there are none. Returns true if the channel was unshared.
+func (scs *Service) unshareChannelIfNoActiveRemotes(channelID string) (bool, error) {
+	opts := model.SharedChannelRemoteFilterOpts{ChannelId: channelID}
+	remotes, err := scs.server.GetStore().SharedChannel().GetRemotes(0, 1, opts)
+	if err != nil {
+		return false, fmt.Errorf("failed to check remaining remotes: %w", err)
+	}
+
+	// If no remotes remain, unshare the channel
+	if len(remotes) == 0 {
+		unshared, err := scs.UnshareChannel(channelID)
+		if err != nil {
+			return false, fmt.Errorf("failed to automatically unshare channel after removing last remote: %w", err)
+		}
+		return unshared, nil
+	}
+
+	return false, nil
+}
+
 func (scs *Service) UninviteRemoteFromChannel(channelID, remoteID string) error {
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
 	if err != nil || scr.ChannelId != channelID || scr.DeleteAt != 0 {
@@ -195,6 +217,16 @@ func (scs *Service) UninviteRemoteFromChannel(channelID, remoteID string) error 
 		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.could_not_uninvite.error",
 			map[string]any{"RemoteId": remoteID, "Error": err.Error()}, "", code)
 	}
+
+	_, unshareErr := scs.unshareChannelIfNoActiveRemotes(channelID)
+	if unshareErr != nil {
+		// We don't want to fail the uninvite operation if the unshare fails
+		scs.server.Log().Error("Error during automatic unshare after uninvite",
+			mlog.String("channel_id", channelID),
+			mlog.Err(unshareErr),
+		)
+	}
+
 	return nil
 }
 
