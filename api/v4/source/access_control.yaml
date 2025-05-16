@@ -1,0 +1,524 @@
+  /api/v4/access_control_policies:
+    put:
+      tags:
+        - access control
+      summary: Create an access control policy
+      description: |
+        Creates a new access control policy.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: CreateAccessControlPolicy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccessControlPolicy"
+      responses:
+        "200":
+          description: Access control policy created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessControlPolicy"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v4/access_control_policies/cel/check:
+    post:
+      tags:
+        - access control
+      summary: Check an access control policy expression
+      description: |
+        Checks the syntax and validity of an access control policy expression.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: CheckAccessControlPolicyExpression
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expression:
+                  type: string
+                  description: The expression to check.
+      responses:
+        "200":
+          description: Expression check result.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpressionError"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v4/access_control_policies/cel/test:
+    post:
+      tags:
+        - access control
+      summary: Test an access control policy expression
+      description: |
+        Tests an access control policy expression against users to see who would be affected.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: TestAccessControlPolicyExpression
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QueryExpressionParams"
+      responses:
+        "200":
+          description: Expression test result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessControlPolicyTestResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v4/access_control_policies/search:
+    post:
+      tags:
+        - access control
+      summary: Search access control policies
+      description: |
+        Searches for access control policies based on given criteria.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: SearchAccessControlPolicies
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccessControlPolicySearch"
+      responses:
+        "200":
+          description: Search results for access control policies.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessControlPoliciesWithCount"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v4/access_control_policies/cel/autocomplete/fields:
+    get:
+      tags:
+        - access control
+      summary: Get autocomplete fields for access control policies
+      description: |
+        Provides a list of fields that can be used for autocompletion when creating/editing access control policy expressions.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: GetAccessControlPolicyAutocompleteFields
+      parameters:
+        - name: after
+          in: query
+          description: The field ID to start after for pagination.
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: The maximum number of fields to return.
+          required: true
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Autocomplete fields retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessControlFieldsAutocompleteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  "/api/v4/access_control_policies/{policy_id}":
+    get:
+      tags:
+        - access control
+      summary: Get an access control policy
+      description: |
+        Gets a specific access control policy by its ID.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: GetAccessControlPolicy
+      parameters:
+      - name: policy_id
+        in: path
+        description: The ID of the access control policy.
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Access control policy retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessControlPolicy"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags:
+        - access control
+      summary: Delete an access control policy
+      description: |
+        Deletes an access control policy by its ID.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: DeleteAccessControlPolicy
+      parameters:
+      - name: policy_id
+        in: path
+        description: The ID of the access control policy.
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Access control policy deleted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  "/api/v4/access_control_policies/{policy_id}/activate":
+    get:
+      tags:
+        - access control
+      summary: Activate or deactivate an access control policy
+      description: |
+        Updates the active status of an access control policy.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: UpdateAccessControlPolicyActiveStatus
+      parameters:
+      - name: policy_id
+        in: path
+        description: The ID of the access control policy.
+        required: true
+        schema:
+          type: string
+      - name: active
+        in: query
+        description: Set to "true" to activate, "false" to deactivate.
+        required: true
+        schema:
+          type: boolean
+      responses:
+        "200":
+          description: Policy active status updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  "/api/v4/access_control_policies/{policy_id}/assign":
+    post:
+      tags:
+        - access control
+      summary: Assign an access control policy to channels
+      description: |
+        Assigns an access control policy to a list of channels.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: AssignAccessControlPolicyToChannels
+      parameters:
+      - name: policy_id
+        in: path
+        description: The ID of the access control policy.
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                channel_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: The IDs of the channels to assign the policy to.
+      responses:
+        "200":
+          description: Policy assigned to channels successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  "/api/v4/access_control_policies/{policy_id}/unassign":
+    delete:
+      tags:
+        - access control
+      summary: Unassign an access control policy from channels
+      description: |
+        Unassigns an access control policy from a list of channels.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: UnassignAccessControlPolicyFromChannels
+      parameters:
+      - name: policy_id
+        in: path
+        description: The ID of the access control policy.
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                channel_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: The IDs of the channels to unassign the policy from.
+      responses:
+        "200":
+          description: Policy unassigned from channels successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  "/api/v4/access_control_policies/{policy_id}/resources/channels":
+    get:
+      tags:
+        - access control
+      summary: Get channels for an access control policy
+      description: |
+        Retrieves a paginated list of channels to which a specific access control policy is applied.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: GetChannelsForAccessControlPolicy
+      parameters:
+      - name: policy_id
+        in: path
+        description: The ID of the access control policy.
+        required: true
+        schema:
+          type: string
+      - name: after
+        in: query
+        description: The channel ID to start after for pagination.
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: The maximum number of channels to return.
+        required: true
+        schema:
+          type: integer
+          default: 60
+      responses:
+        "200":
+          description: Channels retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelsWithCount"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  "/api/v4/access_control_policies/{policy_id}/resources/channels/search":
+    post:
+      tags:
+        - access control
+      summary: Search channels for an access control policy
+      description: |
+        Searches for channels associated with a specific access control policy based on search criteria.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: SearchChannelsForAccessControlPolicy
+      parameters:
+      - name: policy_id
+        in: path
+        description: The ID of the access control policy.
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChannelSearch"
+      responses:
+        "200":
+          description: Channel search results retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelsWithCount"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  "/api/v4/channels/{channel_id}/access_control/attributes":
+    get:
+      tags:
+        - access control
+        - channels
+      summary: Get access control attributes for a channel
+      description: |
+        Retrieves the effective access control policy attributes for a specific channel.
+        This can be used to understand what attributes are currently being applied to the channel by the access control system.
+        ##### Permissions
+        Must have `read_channel` permission for the specified channel.
+      operationId: GetChannelAccessControlAttributes
+      parameters:
+        - name: channel_id
+          in: path
+          description: The ID of the channel.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Access control attributes retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object # Placeholder - define more specifically if the structure is known
+                additionalProperties: true
+                description: A map of attribute names to their values as applied to the channel.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v4/access_control_policies/cel/visual_ast:
+    post:
+      tags:
+        - access control
+      summary: Get the visual AST for a CEL expression
+      description: |
+        Retrieves the visual AST for a CEL expression.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: GetCELVisualAST
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CELExpression"
+      responses:
+        "200":
+          description: Visual AST retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisualExpression" 
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
