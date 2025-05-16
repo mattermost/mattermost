@@ -1765,6 +1765,8 @@
   "admin.rate.maxBurstExample": "F.eks.: \"100\"",
   "admin.rate.memoryExample": "F.eks.: \"10000\"",
   "admin.rate.queriesExample": "F.eks.: \"10\"",
+  "admin.rate.varyByUserDescription": "Når sann, begrens API-tilgang via brukerautentiseringstoken.",
+  "admin.recycle.button": "Resirkulere databasetilkoblinger",
   "admin.recycle.recycleDescription.reloadConfiguration": "Miljø > Webserver > Last inn konfigurasjon fra disk",
   "admin.recycle.reloadFail": "Resirkulering mislyktes: {error}",
   "admin.regenerate": "Regener",
