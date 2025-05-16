@@ -204,6 +204,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                         onToggle={setIsInteracting}
                     >
                         <button
+                            data-testid='time_button'
                             className='style--none'
                             ref={timeButtonRef}
                         >
@@ -228,6 +229,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                             <Menu.Group>
                                 {Array.isArray(timeOptions) && timeOptions.map((option, index) => (
                                     <Menu.ItemAction
+                                        id={`time_option_${index}`}
                                         onClick={handleTimeChange.bind(this, option)}
                                         key={index}
                                         text={

@@ -344,6 +344,7 @@ export const ModalIdentifiers = {
     CHANNEL_MEMBERS: 'channel_members',
     CHANNEL_SETTINGS: 'channel_settings',
     TEAM_MEMBERS: 'team_members',
+    TEST_RESULTS: 'test_results',
     ADD_USER_TO_CHANNEL: 'add_user_to_channel',
     ADD_USER_TO_ROLE: 'add_user_to_role',
     ADD_USER_TO_TEAM: 'add_user_to_team',
@@ -542,7 +543,7 @@ export enum LicenseSkus {
     Starter = 'starter',
     Professional = 'professional',
     Enterprise = 'enterprise',
-    Premium = 'premium',
+    EnterpriseAdvanced = 'advanced',
 }
 
 export function getLicenseTier(licenseSku: string): number {
@@ -551,7 +552,7 @@ export function getLicenseTier(licenseSku: string): number {
         return 10;
     case LicenseSkus.Enterprise:
         return 20;
-    case LicenseSkus.Premium:
+    case LicenseSkus.EnterpriseAdvanced:
         return 30;
     default:
         return 0;
@@ -933,6 +934,7 @@ export const JobTypes = {
     BLEVE_POST_INDEXING: 'bleve_post_indexing',
     LDAP_SYNC: 'ldap_sync',
     MESSAGE_EXPORT: 'message_export',
+    ACCESS_CONTROL_SYNC: 'access_control_sync',
 } as const;
 
 export const JobStatuses = {
@@ -1307,6 +1309,8 @@ export const PermissionsScope = {
     [Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL]: 'channel_scope',
     [Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL]: 'channel_scope',
     [Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL]: 'channel_scope',
+    [Permissions.MANAGE_PUBLIC_CHANNEL_BANNER]: 'channel_scope',
+    [Permissions.MANAGE_PRIVATE_CHANNEL_BANNER]: 'channel_scope',
 };
 
 export const DefaultRolePermissions = {
@@ -1386,6 +1390,8 @@ export const DefaultRolePermissions = {
         Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
+        Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
+        Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
     ],
     team_admin: [
         Permissions.EDIT_OTHERS_POSTS,
@@ -1421,6 +1427,8 @@ export const DefaultRolePermissions = {
         Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
+        Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
+        Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
     ],
     guests: [
         Permissions.EDIT_POST,
