@@ -1,38 +1,82 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {ClientLicense} from '@mattermost/types/config';
 
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {get as selectPreference} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+
 import ExternalLink from 'components/external_link';
 
-import {LicenseLinks} from 'utils/constants';
+import {Preferences, LicenseLinks} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import AlertBanner from '../../alert_banner';
 
 export interface UserSeatAlertBannerProps {
     license: ClientLicense;
     totalUsers: number;
+    location: 'license_settings' | 'system_statistics';
 }
 
-const UserSeatAlertBanner: React.FC<UserSeatAlertBannerProps> = ({license, totalUsers}) => {
-    const [visible, setVisible] = useState(true);
+const UserSeatAlertBanner: React.FC<UserSeatAlertBannerProps> = ({license, totalUsers, location}) => {
     const {formatMessage} = useIntl();
-    if (!visible) {
-        return null;
-    }
-    if (!license || !license.Users) {
-        return null;
-    }
-    const licensedUsers = parseInt(license.Users, 10);
-    if (!licensedUsers || licensedUsers === 0) {
-        return null;
-    }
-    const percentUsed = (totalUsers / licensedUsers) * 100;
+    const dispatch = useDispatch();
+    const currentUser = useSelector(getCurrentUser);
 
-    if (percentUsed < 90) {
+    const getPreferenceName = (percentUsed: number) => {
+        if (percentUsed < 90) {
+            return '';
+        }
+
+        const locationSuffix = location === 'license_settings' ? 'license_settings' : 'system_statistics';
+        if (percentUsed >= 100) {
+            return `100_seat_${locationSuffix}`;
+        } else if (percentUsed >= 95) {
+            return `95_seat_${locationSuffix}`;
+        }
+        return `90_seat_${locationSuffix}`;
+    };
+
+    const calculatePercentUsed = () => {
+        if (!license || !license.Users) {
+            return 0;
+        }
+        const licensedUsers = parseInt(license.Users, 10);
+
+        if (!licensedUsers || licensedUsers === 0) {
+            return 0;
+        }
+        return (totalUsers / licensedUsers) * 100;
+    };
+
+    const percentUsed = calculatePercentUsed();
+    const preferenceName = getPreferenceName(percentUsed);
+    const dismissed = useSelector((state: GlobalState) => selectPreference(state, Preferences.CATEGORY_SYSTEM_NOTICE, preferenceName, 'false'));
+    const [visible, setVisible] = useState(dismissed === 'false');
+
+    useEffect(() => {
+        setVisible(dismissed === 'false');
+    }, [dismissed]);
+
+    const handleDismiss = () => {
+        setVisible(false);
+
+        dispatch(savePreferences(currentUser.id, [{
+            user_id: currentUser.id,
+            category: Preferences.CATEGORY_SYSTEM_NOTICE,
+            name: preferenceName,
+            value: 'true',
+        }]));
+    };
+
+    if (!visible || !license || !license.Users || percentUsed < 90) {
         return null;
     }
 
@@ -103,7 +147,7 @@ const UserSeatAlertBanner: React.FC<UserSeatAlertBannerProps> = ({license, total
             title={title}
             message={message}
             actionButtonLeft={actionButtonLeft}
-            onDismiss={() => setVisible(false)}
+            onDismiss={handleDismiss}
             closeBtnTooltip={formatMessage({id: 'admin.license.userSeatAlert.closeBtnTooltip', defaultMessage: 'Dismiss'})}
         />
     );

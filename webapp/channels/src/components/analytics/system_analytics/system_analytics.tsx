@@ -514,6 +514,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                         <UserSeatAlertBanner
                             license={this.props.license}
                             totalUsers={this.getStatValue(stats[StatTypes.TOTAL_USERS]) || 0}
+                            location='system_statistics'
                         />
                         {banner}
                         <div className='grid-statistics'>

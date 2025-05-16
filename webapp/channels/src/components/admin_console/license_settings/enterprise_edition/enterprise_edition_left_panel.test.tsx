@@ -14,7 +14,7 @@ import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
-import {OverActiveUserLimits, SelfHostedProducts} from 'utils/constants';
+import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import EnterpriseEditionLeftPanel from './enterprise_edition_left_panel';

@@ -358,6 +358,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                             <UserSeatAlertBanner
                                 license={license}
                                 totalUsers={this.props.totalUsers}
+                                location='license_settings'
                             />
                             {!this.state.clickNormalUpgradeBtn && license.IsLicensed !== 'true' &&
                                 this.props.prevTrialLicense?.IsLicensed !== 'true' &&
