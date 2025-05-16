@@ -127,12 +127,8 @@
             }
         }
 
-        .modal-header {
-            h1#createGroupsModalTitleWithBack,
-            h1#updateGroupsModalTitle,
-            h1#addUsersToGroupsModalLabel {
-                margin-left: 16px;
-            }
+        .GenericModal__header {
+            display: flex;
         }
     }
 
@@ -155,9 +151,11 @@
                     line-height: 38px;
                 }
 
-                .Input {
+                .Input.form-control {
                     font-size: 14px;
                     line-height: 38px;
+                    border: none;
+                    height: 34px;
                 }
             }
 
@@ -180,6 +178,9 @@
                 padding: 6px;
                 border-radius: 4px;
                 line-height: 12px;
+                display: inline-flex;
+                border: none;
+                background: none;
 
                 &:hover {
                     background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -189,14 +190,11 @@
                     background: rgba(var(--button-bg-rgb), 0.08);
                 }
 
-                a {
-                    line-height: 12px;
-
                     span {
                         color: var(--button-bg);
                         font-size: 12px;
                         line-height: 12px;
-                    }
+                    white-space: nowrap;
                 }
             }
 
