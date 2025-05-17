@@ -45,14 +45,16 @@ const PostAttachmentContainer = (props: Props) => {
     const crtEnabled = useSelector(isCollapsedThreadsEnabled);
 
     const handleOnClick = useCallback((e) => {
-        const {tagName} = e.target;
         e.stopPropagation();
         const elements = ['A', 'IMG', 'BUTTON', 'I'];
 
+        if (elements.some((el) => e.target.closest(el))) {
+            return;
+        }
+
         if (
-            !elements.includes(tagName) &&
-                e.target.getAttribute('role') !== 'button' &&
-                e.target.className !== `attachment attachment--${className}`
+            e.target.getAttribute('role') !== 'button' &&
+            e.target.className !== `attachment attachment--${className}`
         ) {
             const classNames = [
                 'icon icon-menu-down',
