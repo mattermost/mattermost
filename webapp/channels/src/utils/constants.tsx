@@ -378,7 +378,6 @@ export const ModalIdentifiers = {
     UPGRADE_CLOUD_ACCOUNT: 'upgrade_cloud_account',
     START_TRIAL_MODAL: 'start_trial_modal',
     TRIAL_BENEFITS_MODAL: 'trial_benefits_modal',
-    PRICING_MODAL: 'pricing_modal',
     LEARN_MORE_TRIAL_MODAL: 'learn_more_trial_modal',
     ENTERPRISE_EDITION_LICENSE: 'enterprise_edition_license',
     CONFIRM_NOTIFY_ADMIN: 'confirm_notify_admin',
@@ -1116,14 +1115,15 @@ export const AboutLinks = {
 
 export const CloudLinks = {
     BILLING_DOCS: 'https://docs.mattermost.com/pl/cloud-billing',
-    PRICING: 'https://mattermost.com/pl/pricing/',
+    PRICING: 'https://mattermost.com/pricing',
     PRORATED_PAYMENT: 'https://mattermost.com/pl/mattermost-cloud-prorate-documentation',
     DEPLOYMENT_OPTIONS: 'https://mattermost.com/deploy/',
     DOWNLOAD_UPDATE: 'https://mattermost.com/deploy/',
     CLOUD_SIGNUP_PAGE: 'https://mattermost.com/sign-up/',
     SELF_HOSTED_SIGNUP: 'https://customers.mattermost.com/signup',
     DELINQUENCY_DOCS: 'https://docs.mattermost.com/about/cloud-subscriptions.html#failed-or-late-payments',
-    SELF_HOSTED_PRICING: 'https://mattermost.com/pl/pricing/#self-hosted',
+    SELF_HOSTED_PRICING: 'https://mattermost.com/pricing/#self-hosted',
+    CONTACT_SALES: 'https://mattermost.com/contact-sales/',
 };
 
 export const HostedCustomerLinks = {
@@ -1195,7 +1195,7 @@ export const LicenseLinks = {
     EMBARGOED_COUNTRIES: 'https://mattermost.com/pl/limitations-for-embargoed-countries',
     SOFTWARE_SERVICES_LICENSE_AGREEMENT: 'https://mattermost.com/pl/software-and-services-license-agreement',
     SOFTWARE_SERVICES_LICENSE_AGREEMENT_TEXT: 'Software Services and License Agreement',
-    UNSUPPORTED: 'https://mattermost.com/pricing/',
+    UNSUPPORTED: 'https://mattermost.com/pricing',
 };
 
 export const MattermostLink = 'https://mattermost.com/';
